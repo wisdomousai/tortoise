@@ -1,6 +1,6 @@
 # Working on this starter
 
-Read `IMPLEMENTATION_PLAN.md` and `docs/architecture.md` before changing boundaries.
+Read `docs/principles.md`, `docs/primitives.md`, `IMPLEMENTATION_PLAN.md` and `docs/architecture.md` before changing boundaries.
 
 - Contracts are browser-safe. Keep executable server handlers, React components, scenarios and provider code in separate entrypoints.
 - Every business write uses the application runtime. Never write feature state from a transport or harness.
@@ -14,3 +14,14 @@ Read `IMPLEMENTATION_PLAN.md` and `docs/architecture.md` before changing boundar
 - Concurrent agents must own disjoint files, communicate interface changes and preserve other work. Root owns dependency manifests and the lockfile.
 
 This repository is a generic architecture reference. Avoid platform-specific cloud dependencies in framework contracts or runtime.
+
+## Principles and primitives
+
+`docs/principles.md` states the architectural invariants (P1–P10), starting with: every operation is executable from UI, MCP, CLI and API. Each principle says what it rules out and which checks and tests enforce it, and marks what is still convention. `docs/primitives.md` documents each primitive as a concept: the core is a capability catalog over a logical CQRS authority where people, agents, scripts and devices are equal callers, extended by callers, edges to other systems, and trust, configuration and proof. Each entry gives the guarantees, gaps, the principles it serves and its code. Both evolve with the code. Update them in the same change, not afterwards.
+
+- Before designing, find the principles that apply and the primitives that already exist. Extend or extract before adding something new.
+- When you add, rename, move or remove a public export, package, registry item or enforcing script, update its primitive entry. Do the same when its guarantees or gaps change. No tool checks these documents; reviewers check that the code change and the entry agree.
+- Every primitive names the principles it serves. When you add a check or test that enforces a principle, list it under that principle's **Enforced by**; prefer turning convention into enforcement over adding prose. If no principle fits, add or amend a principle before writing code. Record a significant decision as an ADR in `docs/decisions/` that names the principle.
+- A change that would break a principle stops for discussion. Do not work around it in code. Amending a principle is an explicit edit with a changelog line. Principle IDs are permanent: retire one, never renumber.
+- Keep `packages/*` domain-neutral. A domain concept becomes a primitive only when a second example needs it, and its gate must pass on more than one example. Reusable UI ships as a shadcn registry built from stock primitives.
+- Change a primitive's status (`proposed`, `partial`, `implemented`) only with matching evidence in `docs/implementation-status.md`.

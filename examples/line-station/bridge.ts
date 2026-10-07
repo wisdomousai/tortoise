@@ -14,15 +14,15 @@ import {
 } from '@agent-native/station';
 import { operations } from './contracts';
 import { bridgePrincipal, hmiTarget } from './domain';
+// Imported, not read from disk: compiled binaries embed JSON imports but contain no source files.
+import fillerProfile from './station-profile.json';
 
 /** Read and validate a station profile document; throws listing every issue. */
 export function loadProfile(path: string | URL): StationProfile {
   return parseProfile(JSON.parse(readFileSync(path, 'utf8')));
 }
 /** The reference station profile shipped with the example. */
-export const filler: StationProfile = loadProfile(
-  new URL('./station-profile.json', import.meta.url),
-);
+export const filler: StationProfile = parseProfile(fillerProfile);
 
 export interface LineStationBridgeOptions {
   readonly application: DispatcherApplication & {
