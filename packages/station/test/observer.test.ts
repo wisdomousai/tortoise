@@ -89,9 +89,11 @@ test('an unchanged screen is one submission per heartbeat window; a change is a 
 
 test('returning to an earlier state within one window is a new submission, never a key reuse', async () => {
   const { hmi, observer, submitted } = observerFixture();
-  for (const machine of ['STOPPED', 'STOPPED', 'RUNNING', 'STOPPED', 'STOPPED'])
-    ((hmi.state.machine = machine), await observer.runOnce());
-  expect(submitted.map((request) => (request.input as Observation).screen)).toHaveLength(4);
+  for (const machine of ['STOPPED', 'STOPPED', 'RUNNING', 'STOPPED', 'STOPPED'] as const) {
+    hmi.state.machine = machine;
+    await observer.runOnce();
+  }
+  expect(submitted).toHaveLength(4);
   expect(
     submitted.map(
       (request) =>
