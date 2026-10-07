@@ -295,8 +295,10 @@ export function createApplication<
       if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
       if (effect.status !== 'pending')
         throw new ApplicationError('CONFLICT', 'Effect already settled');
+      // Held is a sub-state of pending: a settled effect no longer awaits reconciliation.
+      const { heldAt: _heldAt, holdReason: _holdReason, ...unheld } = effect;
       const settled: Effect = {
-        ...effect,
+        ...unheld,
         status: validOutcome(outcome).status,
         outcome: validOutcome(outcome),
         settledAt: now(),
@@ -305,13 +307,27 @@ export function createApplication<
       touchedEffects.push(settled);
       return structuredClone(settled);
     },
+    releaseEffect(id: string) {
+      if (query) throw new ApplicationError('INTERNAL', 'Queries cannot release effects');
+      const effect = ownEffect(snapshot, id);
+      if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
+      if (effect.status !== 'pending' || effect.heldAt === undefined)
+        throw new ApplicationError('CONFLICT', 'Effect is not held');
+      // Clearing the attempt clock lets the dispatcher deliver on its next pass, without backoff.
+      const { heldAt: _heldAt, holdReason: _holdReason, lastAttemptAt: _last, ...rest } = effect;
+      const released: Effect = rest;
+      putEffect(snapshot, released);
+      touchedEffects.push(released);
+      return structuredClone(released);
+    },
     effects(filter = {}) {
       return structuredClone(
         Object.values(snapshot.effects)
           .filter(
             (effect) =>
               (filter.status === undefined || effect.status === filter.status) &&
-              (filter.target === undefined || effect.target === filter.target),
+              (filter.target === undefined || effect.target === filter.target) &&
+              (filter.held === undefined || (effect.heldAt !== undefined) === filter.held),
           )
           .sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
       );
@@ -544,10 +560,15 @@ export function createApplication<
   /**
    * Host-only outbox read for a trusted dispatcher. Transports must not expose it: payloads are
    * unprojected. Business visibility of synchronization goes through authorized domain queries.
+   * Held effects wait for reconciliation, not delivery, so they are excluded unless asked for.
    */
   async function pendingEffects(
     context: ExecutionContext,
-    filter: { readonly target?: string; readonly limit?: number } = {},
+    filter: {
+      readonly target?: string;
+      readonly limit?: number;
+      readonly includeHeld?: boolean;
+    } = {},
   ): Promise<readonly Effect[]> {
     trusted(context);
     const limit = filter.limit ?? 100;
@@ -558,6 +579,7 @@ export function createApplication<
         .filter(
           (effect) =>
             effect.status === 'pending' &&
+            (filter.includeHeld || effect.heldAt === undefined) &&
             (filter.target === undefined || effect.target === filter.target),
         )
         .sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
@@ -568,11 +590,16 @@ export function createApplication<
    * Host-only record of a transient delivery failure. It changes framework metadata, not feature
    * state, so the resource revision is unchanged (editors see no false conflict). A journal entry
    * at the current revision still lets authorized subscribers show retry progress.
+   *
+   * With `hold`, the dispatcher could not tell whether the target applied the effect. The effect
+   * stays pending but leaves delivery until a domain command settles or releases it, and the
+   * journal records `effect.held` so screens can ask a person to reconcile.
    */
   async function recordAttempt(
     context: ExecutionContext,
     id: string,
     failure: string,
+    attempt: { readonly hold?: boolean } = {},
   ): Promise<Effect> {
     trusted(context);
     return options.storage.transact(context.workspaceId, async (snapshot) => {
@@ -585,13 +612,16 @@ export function createApplication<
         attempts: effect.attempts + 1,
         lastAttemptAt: now(),
         lastFailure: (failure || 'Delivery failed').slice(0, 500),
+        ...(attempt.hold
+          ? { heldAt: now(), holdReason: (failure || 'Outcome unknown').slice(0, 500) }
+          : {}),
       };
       putEffect(snapshot, next);
       snapshot.journal.push({
         cursor: ++snapshot.cursor,
         resource: effect.resource,
         revision: revisionOf(snapshot, effect.resource),
-        type: 'effect.attempted',
+        type: attempt.hold ? 'effect.held' : 'effect.attempted',
         operation: effect.operation,
       });
       return next;

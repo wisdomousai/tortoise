@@ -61,6 +61,15 @@ export interface Effect extends EffectRequest {
   readonly lastFailure?: string;
   readonly settledAt?: number;
   readonly outcome?: EffectOutcome;
+  /**
+   * Set while a pending effect awaits reconciliation: the target may or may not have applied it
+   * (for example a screen procedure was interrupted), so redelivery could act twice. Dispatchers
+   * skip held effects. A domain command resolves it with `settleEffect` (it was applied, or it was
+   * refused) or `releaseEffect` (it was not applied; deliver again).
+   */
+  readonly heldAt?: number;
+  /** Caller-safe, bounded reason for the hold. */
+  readonly holdReason?: string;
 }
 export interface StoredReceipt {
   readonly fingerprint: string;
@@ -133,10 +142,17 @@ export interface HandlerContext<State, Services> {
    * outcome commits with the domain update it causes. Settling twice fails with CONFLICT.
    */
   settleEffect(id: string, outcome: EffectOutcome): Effect;
+  /**
+   * Return a held effect to delivery, inside the reconciliation command whose actor confirmed the
+   * target did not apply it. Fails with CONFLICT unless the effect is pending and held.
+   */
+  releaseEffect(id: string): Effect;
   /** Read outbox state, for example to summarize synchronization in a query. */
   effects(filter?: {
     readonly status?: Effect['status'];
     readonly target?: string;
+    /** `true` for held effects only, `false` to exclude them; all when omitted. */
+    readonly held?: boolean;
   }): readonly Effect[];
 }
 export interface HandlerContribution<State, Services, C extends AnyCapability = AnyCapability> {

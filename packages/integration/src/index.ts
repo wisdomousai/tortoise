@@ -35,17 +35,38 @@ export interface SystemOfRecordPort<Item = unknown> {
    * endpoints, tokens or payload fragments never reach application state.
    */
   deliver(effect: Readonly<Effect>, signal: AbortSignal): Promise<EffectOutcome>;
-  /** Find a previous delivery by effect ID. Required when delivery is not idempotent. */
-  lookup?(effectId: string, signal: AbortSignal): Promise<EffectOutcome | undefined>;
+  /**
+   * Find a previous delivery by effect ID. Required when delivery is not idempotent. Return
+   * `undefined` when the target has no trace of it (safe to deliver), or `uncertain` when the target
+   * cannot tell (for example a screen shows a state that neither confirms nor rules out an earlier
+   * attempt); the dispatcher then holds the effect for reconciliation instead of delivering again.
+   * The effect is passed for targets whose lookup is a readback of its payload (screen bridges).
+   */
+  lookup?(effectId: string, signal: AbortSignal, effect?: Readonly<Effect>): Promise<LookupResult>;
   /** Changes after `cursor` (undefined for an initial load). Required for inbound sync. */
   pull?(cursor: string | undefined, signal: AbortSignal): Promise<PullBatch<Item>>;
 }
+
+/** What a target knows about an earlier delivery. */
+export type LookupResult =
+  EffectOutcome | { readonly status: 'uncertain'; readonly reason: string } | undefined;
 
 /** A transient failure whose message is safe to show to authorized application users. */
 export class DeliveryFailure extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'DeliveryFailure';
+  }
+}
+/**
+ * Delivery stopped at a point where the target may or may not have applied the effect, and
+ * repeating it could act twice. The dispatcher holds the effect for reconciliation instead of
+ * retrying. The message must be caller-safe, as for `DeliveryFailure`.
+ */
+export class DeliveryUncertain extends DeliveryFailure {
+  constructor(message: string) {
+    super(message);
+    this.name = 'DeliveryUncertain';
   }
 }
 
@@ -55,7 +76,12 @@ export interface DispatcherApplication {
     context: ExecutionContext,
     filter?: { readonly target?: string; readonly limit?: number },
   ): Promise<readonly Effect[]>;
-  recordAttempt(context: ExecutionContext, id: string, failure: string): Promise<Effect>;
+  recordAttempt(
+    context: ExecutionContext,
+    id: string,
+    failure: string,
+    attempt?: { readonly hold?: boolean },
+  ): Promise<Effect>;
   invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
 }
 export interface DispatchReport {
@@ -63,6 +89,8 @@ export interface DispatchReport {
   rejected: number;
   retried: number;
   deferred: number;
+  /** Effects whose outcome at the target is unknown; they wait for a reconciliation command. */
+  held: number;
 }
 export interface EffectDispatcherOptions {
   readonly application: DispatcherApplication;
@@ -143,7 +171,7 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
     signal: AbortSignal = new AbortController().signal,
     { ignoreBackoff = false } = {},
   ): Promise<DispatchReport> {
-    const report: DispatchReport = { accepted: 0, rejected: 0, retried: 0, deferred: 0 };
+    const report: DispatchReport = { accepted: 0, rejected: 0, retried: 0, deferred: 0, held: 0 };
     const effects = await options.application.pendingEffects(options.context, {
       target: description.target,
       limit: options.batchSize ?? 50,
@@ -162,17 +190,31 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
       try {
         // A non-idempotent target may already hold a delivery whose response or settlement was
         // lost, so it is always checked before sending again.
-        if (!description.idempotentDelivery)
-          outcome = await options.port.lookup!(effect.id, signal);
+        if (!description.idempotentDelivery) {
+          const found = await options.port.lookup!(effect.id, signal, effect);
+          if (found?.status === 'uncertain') {
+            // Neither confirmed nor ruled out: delivering again could act twice. A person (or an
+            // agent through the reconciliation command) decides.
+            await options.application.recordAttempt(options.context, effect.id, found.reason, {
+              hold: true,
+            });
+            report.held++;
+            continue;
+          }
+          outcome = found;
+        }
         outcome ??= await options.port.deliver(effect, signal);
       } catch (error) {
         if (signal.aborted) break;
+        const uncertain = error instanceof DeliveryUncertain;
         await options.application.recordAttempt(
           options.context,
           effect.id,
           error instanceof DeliveryFailure ? error.message : 'Delivery failed',
+          uncertain ? { hold: true } : {},
         );
-        report.retried++;
+        if (uncertain) report.held++;
+        else report.retried++;
         continue;
       }
       try {
@@ -201,8 +243,8 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
 
   /**
    * Deliver until nothing is pending or the timeout passes, ignoring backoff. Returns the number of
-   * effects still pending. An ephemeral host calls this before teardown so captured data is not
-   * silently abandoned.
+   * effects still awaiting delivery; held effects await reconciliation and are not counted. An
+   * ephemeral host calls this before teardown so captured data is not silently abandoned.
    */
   async function drain(timeoutMs: number, pollMs = 200): Promise<number> {
     // A timeout is elapsed time; the injected clock may be frozen or skewed for backoff tests.
