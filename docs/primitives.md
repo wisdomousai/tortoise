@@ -242,7 +242,7 @@ Serves P7, P9 · implemented · `packages/integration` `packages/station` · `Sy
 
 _The worker that delivers pending effects and settles them under a narrow integration principal._
 
-Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending.
+Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending, and its deadline aborts a delivery in flight. An uncertain outcome is recorded and held even when shutdown interrupts the pass.
 
 Gaps: no worker claims or fencing, no upstream-pending state, no cancel-before-dispatch, no dispatch-time recheck of the original actor's authority.
 

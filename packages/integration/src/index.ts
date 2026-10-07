@@ -205,8 +205,11 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
         }
         outcome ??= await options.port.deliver(effect, signal);
       } catch (error) {
-        if (signal.aborted) break;
         const uncertain = error instanceof DeliveryUncertain;
+        // An uncertain outcome is recorded even during shutdown: the target may have changed, and
+        // an unrecorded attempt looks fresh (`attempts === 0`) to the next process, which would
+        // deliver again. Recording uses the dispatcher's own context, not the cancelled signal.
+        if (signal.aborted && !uncertain) break;
         await options.application.recordAttempt(
           options.context,
           effect.id,
@@ -215,6 +218,7 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
         );
         if (uncertain) report.held++;
         else report.retried++;
+        if (signal.aborted) break;
         continue;
       }
       try {
@@ -245,18 +249,33 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
    * Deliver until nothing is pending or the timeout passes, ignoring backoff. Returns the number of
    * effects still awaiting delivery; held effects await reconciliation and are not counted. An
    * ephemeral host calls this before teardown so captured data is not silently abandoned.
+   * The deadline aborts a delivery still in flight, so a hung target cannot hang the drain; an
+   * adapter that already acted reports that as `DeliveryUncertain`, which is held, not retried.
    */
   async function drain(timeoutMs: number, pollMs = 200): Promise<number> {
     // A timeout is elapsed time; the injected clock may be frozen or skewed for backoff tests.
-    const deadline = performance.now() + timeoutMs;
     const controller = new AbortController();
-    for (;;) {
-      await runOnce(controller.signal, { ignoreBackoff: true });
-      const remaining = (
-        await options.application.pendingEffects(options.context, { target: description.target })
-      ).length;
-      if (remaining === 0 || performance.now() >= deadline) return remaining;
-      await new Promise((resolve) => setTimeout(resolve, pollMs));
+    const deadline = setTimeout(() => controller.abort(), Math.max(0, timeoutMs));
+    const pause = (ms: number) =>
+      new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, ms);
+        controller.signal.addEventListener('abort', () => (clearTimeout(timer), resolve()), {
+          once: true,
+        });
+      });
+    try {
+      for (;;) {
+        await runOnce(controller.signal, { ignoreBackoff: true });
+        const remaining = (
+          await options.application.pendingEffects(options.context, {
+            target: description.target,
+          })
+        ).length;
+        if (remaining === 0 || controller.signal.aborted) return remaining;
+        await pause(pollMs);
+      }
+    } finally {
+      clearTimeout(deadline);
     }
   }
   return { target: description.target, runOnce, drain, ...createLoop((signal) => runOnce(signal)) };
