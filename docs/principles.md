@@ -66,7 +66,7 @@ The framework packages and the shell are domain-neutral (P11). Domains live in m
 
 **Rules out:** domain names in `packages/*`, customer forks, site logic in code, forked or hand-styled UI primitives.
 
-**Enforced by:** `bun run check:boundaries` rejects imports from `packages/*` into `examples/` or `apps/`; `packages/runtime/test/compose.test.ts` (modules see only their slice, unrouted operations fail closed); `packages/station/test/profile.test.ts` and `bun run station:golden` (profiles validated and gated); `bun run check:registry:operator` (registry manifest drift). **Convention only:** that package code names no business domain, and the second-application promotion rule.
+**Enforced by:** `bun run check:boundaries` rejects imports from `packages/*` into `examples/` or `apps/`, whether by relative path or by workspace package name; `packages/runtime/test/compose.test.ts` (modules see only their slice, unrouted operations fail closed); `packages/station/test/profile.test.ts` and `bun run station:golden` (profiles validated and gated); `bun run check:registry:operator` (registry manifest drift). **Convention only:** that package code names no business domain, and the second-application promotion rule.
 
 ### P9 — Every external dependency sits behind a port
 

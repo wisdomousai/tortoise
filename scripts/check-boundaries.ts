@@ -25,6 +25,33 @@ const browserRoots = [
   'packages/operator-ui/',
   'apps/web/src/',
 ];
+// Layers by directory (P11): framework `packages/*`, shell `apps/*`, content `examples/*`.
+// Imports resolve through relative paths and workspace package names alike, so an alias such as
+// `@agent-native/line-station` cannot bypass a rule that a relative path would break.
+type Layer = 'framework' | 'shell' | 'content';
+const layerDirectories: Record<string, Layer> = {
+  packages: 'framework',
+  apps: 'shell',
+  examples: 'content',
+};
+const packageLayers = new Map<string, Layer>();
+for (const [directory, layer] of Object.entries(layerDirectories))
+  for (const entry of await readdir(resolve(root, directory), { withFileTypes: true }))
+    if (entry.isDirectory()) {
+      const manifest = await readFile(resolve(root, directory, entry.name, 'package.json'), 'utf8')
+        .then((text) => JSON.parse(text) as { name?: string })
+        .catch(() => undefined);
+      if (manifest?.name) packageLayers.set(manifest.name, layer);
+    }
+function layerOfPath(path: string): Layer | undefined {
+  return layerDirectories[relative(root, path).replaceAll('\\', '/').split('/')[0]!];
+}
+function layerOfImport(file: string, dependency: string): Layer | undefined {
+  if (dependency.startsWith('.')) return layerOfPath(resolve(file, '..', dependency));
+  const [scope, name] = dependency.split('/');
+  return packageLayers.get(scope!.startsWith('@') ? `${scope}/${name}` : scope!);
+}
+
 for (const file of all) {
   const name = relative(root, file).replaceAll('\\', '/');
   const source = await readFile(file, 'utf8');
@@ -34,8 +61,10 @@ for (const file of all) {
     ),
   ].map((match) => match[1] ?? match[2]!);
   for (const dependency of imports) {
-    if (name.startsWith('packages/') && /^(?:\.\.\/)+(?:apps|examples)\//.test(dependency))
-      errors.push(`${name}: framework imports feature ${dependency}`);
+    const from = layerOfPath(file);
+    const to = layerOfImport(file, dependency);
+    if (from === 'framework' && (to === 'shell' || to === 'content'))
+      errors.push(`${name}: framework imports ${to} ${dependency}`);
     if (
       browserRoots.some((prefix) => name.startsWith(prefix)) &&
       // A server entrypoint inside a browser-safe package (devices/server) is itself host code.
