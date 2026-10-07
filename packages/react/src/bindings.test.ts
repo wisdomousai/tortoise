@@ -25,6 +25,9 @@ function fixture() {
   let revision = 0;
   const pending: ((value: Snapshot<unknown>) => void)[] = [];
   let hold = false;
+  // A change stream the test feeds one batch at a time.
+  const stream: ChangeBatch[] = [];
+  let wake: (() => void) | undefined;
   const transport: Transport = {
     query: async <T>(operation: string) => {
       calls.push(operation);
@@ -35,7 +38,13 @@ function fixture() {
     command: async () => {
       throw new Error('unused');
     },
-    events: async function* () {},
+    events: async function* (_cursor, signal) {
+      while (!signal.aborted) {
+        const next = stream.shift();
+        if (next) yield next;
+        else await new Promise<void>((resolve) => (wake = resolve));
+      }
+    },
   };
   const client = new QueryClient();
   const live = createLiveBindings(transport);
@@ -54,6 +63,7 @@ function fixture() {
     setRevision: (value: number) => (revision = value),
     hold: (value: boolean) => (hold = value),
     release: (snapshot: Snapshot<unknown>) => pending.shift()!(snapshot),
+    emit: (next: ChangeBatch) => (stream.push(next), wake?.()),
   };
 }
 const batch = (partial: Partial<ChangeBatch>): ChangeBatch => ({
@@ -118,6 +128,36 @@ test('a snapshot from before a revocation is never cached', async () => {
   await settle();
   release({ data: { n: 99 }, cursor: 'old', authorizationRevision: 0 });
   await settle();
+  expect(observer.getCurrentResult().data).toBeUndefined();
+});
+
+test('a refetch that never answers does not hold back a later revocation', async () => {
+  const { client, live, observe, settle, hold, setRevision, emit } = fixture();
+  const { observer } = observe(lots);
+  await settle();
+  const controller = new AbortController();
+  void live.follow(client, controller.signal);
+  // The stream's first batch refetches under the same revision; that refetch hangs.
+  hold(true);
+  emit(batch({ reset: true }));
+  await settle();
+  expect(observer.getCurrentResult().data).toBeDefined();
+  setRevision(1);
+  emit(batch({ reset: true, authorizationRevision: 1 }));
+  await settle();
+  expect(observer.getCurrentResult().data).toBeUndefined();
+  controller.abort();
+});
+
+test('a first stream batch under a newer revision clears data cached before it', async () => {
+  const { client, live, observe, settle, hold, setRevision } = fixture();
+  const { observer } = observe(lots);
+  await settle();
+  expect(observer.getCurrentResult().data).toBeDefined();
+  // Revoked between the initial query and the subscription's first batch.
+  setRevision(1);
+  hold(true);
+  void live.applyBatch(client, batch({ reset: true, authorizationRevision: 1 }));
   expect(observer.getCurrentResult().data).toBeUndefined();
 });
 
