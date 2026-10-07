@@ -1,6 +1,6 @@
 # Task and workflow applications over systems of record
 
-This architecture is intended for bounded applications at the point where work happens. A warehouse receiving station, a field inspection or a customer handover needs an interface fitted to that task. The system of record continues to own shared business records and enterprise invariants. A task application provides the interaction, captures the event and coordinates its acceptance into those records.
+This architecture is intended for bounded applications at the point where work happens. A warehouse receiving station, a field inspection or a customer handover needs an interface fitted to that task. The system of record continues to own shared business records and enterprise invariants. A task application provides the interaction, captures the event and coordinates its acceptance into those records. Where the work happens at a machine and its control software, the application runs at the edge beside it; [edge applications](edge-applications.md) covers that deployment.
 
 The design hypothesis is that a common host, interaction contract and delivery process can make specialized interfaces economical to build and operate. AI-assisted development can reduce implementation effort; measured task savings must still cover integration, validation, operation and change. The framework should make that hypothesis testable.
 

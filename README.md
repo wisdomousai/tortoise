@@ -1,6 +1,10 @@
 # Agent-native desktop starter
 
-A TypeScript architecture reference for bounded task and workflow applications in which people, agents and background jobs use the same business operations. Specialized desktop and browser interfaces can capture work at the moment it happens, while existing systems of record retain ownership of enterprise records.
+A TypeScript architecture reference for applications at the edge, on or next to the machines where work happens, that people and local AI agents operate together. They capture work as it happens, reach local control software, and deliver results to the systems of record that keep ownership of enterprise records.
+
+Read [edge applications](docs/edge-applications.md) for the concept: why these applications run at the edge, the execute–interpret–report loop, how they reach control software and how agents take part. The [overview](docs/overview.md) covers the code: layout, the capability model, command execution, ports, external delivery, rules and verification status.
+
+The [repository review](docs/reviews/2026-10-07-repository-review.md) records defects, design concerns and verification results from 7 October 2026.
 
 Define a capability once. Explicit module composition collects its schema, permission requirements, handler binding, UI binding and workflow references. The resulting catalog drives HTTP, MCP, CLI, typed React calls and generated documentation. Changes made through any surface reach subscribed frontends through the same committed journal.
 
@@ -51,7 +55,7 @@ bun run check
 bun run dev
 ```
 
-The target must not exist. The scaffolder exports local framework source and the canonical example, with a versioned file-hash manifest. A coding agent then replaces the example domain using the [setup skill](skills/create-agent-native-app/SKILL.md) and [capability authoring guide](docs/capability-authoring.md). It does not install global agent configuration or invent a domain from the application name.
+The target must not exist. The scaffolder exports the starter, the framework source and all examples, or one example as the hosted application with `--example <name>`, with a versioned file-hash manifest. A coding agent then replaces the example domain using the [setup skill](skills/create-agent-native-app/SKILL.md) and [capability authoring guide](docs/capability-authoring.md). It does not install global agent configuration or invent a domain from the application name.
 
 ## Architecture and extension points
 
@@ -59,16 +63,17 @@ The target must not exist. The scaffolder exports local framework source and the
 | ----------------------------------- | --------------------------------------------------------------------- |
 | `packages/contracts`                | Portable schemas, capability descriptors and catalog validation       |
 | `packages/runtime`                  | Authorization, transactions, revisions, receipts and journal delivery |
+| `packages/host`, `packages/frame`   | Generic authority host and web frame for one configured application   |
 | `packages/adapters`                 | CASL, SQLite, host ownership, HTTP/SSE, MCP, CLI and UI sessions      |
 | `packages/client`, `packages/react` | Typed bindings, live queries, cache fences and UI primitives          |
 | `packages/agents`                   | Run supervision, Codex, Claude, AI SDK and protected account flows    |
 | `packages/testing`                  | Shared scenarios and independent security/transport verification      |
 | `packages/scaffold`                 | Deterministic source export                                           |
-| `examples/project-tasks`            | Domain contracts, handlers, feature state and permission policy       |
+| `examples/*`                        | Applications: manifest, application definition, screens and tests     |
 
 The runtime treats feature state as opaque. The reference SQLite adapter serializes a complete JSON snapshot, including receipts and journal, in one transaction. Storage adapters can map the snapshot to existing tables; handlers receive materialized state. Large applications may need a different unit-of-work adapter and transaction-bound repository design rather than loading the whole workspace. The framework does not impose an ORM or cloud platform.
 
-Start with the [principles](docs/principles.md) and the [primitives](docs/primitives.md) derived from them: a capability catalog over a logical CQRS authority, where people, agents, scripts and devices use the same commands and queries. Both are kept current with the code. Then read the [architecture](docs/architecture.md), [interaction contract](docs/interaction-contract.md), [authorization](docs/authorization.md), [reactivity](docs/state-and-reactivity.md), [adapter guide](docs/adapters.md), [harness guide](docs/agent-harnesses.md) and [generated operation reference](docs/reference/operations.md).
+Start with the [principles](docs/principles.md) and the [primitives](docs/primitives.md) derived from them: a capability catalog over a logical CQRS authority, where people, agents, scripts and devices use the same commands and queries. Both are kept current with the code. Then read the [architecture](docs/architecture.md), [interaction contract](docs/interaction-contract.md), [authorization](docs/authorization.md), [reactivity](docs/state-and-reactivity.md), [adapter guide](docs/adapters.md), [harness guide](docs/agent-harnesses.md) and [generated operation reference](docs/reference/project-tasks/operations.md) (one per application under `docs/reference/<id>/`).
 
 ## Verification and delivery
 
