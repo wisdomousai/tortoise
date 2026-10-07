@@ -62,7 +62,12 @@ export function createWorkerExtractor(options: WorkerExtractorOptions): Extracto
     { resolve: (line: unknown) => void; reject: (error: Error) => void }
   >();
 
-  function fail(error: Error) {
+  /**
+   * End the current process lifetime. `owner` fences callbacks: a late exit or error from an
+   * earlier process must not reject requests or kill the process that replaced it.
+   */
+  function fail(error: Error, owner?: ChildProcessWithoutNullStreams) {
+    if (owner && owner !== child) return;
     for (const pending of waiting.values()) pending.reject(error);
     waiting.clear();
     child?.kill();
@@ -79,16 +84,18 @@ export function createWorkerExtractor(options: WorkerExtractorOptions): Extracto
         stdio: ['pipe', 'pipe', 'pipe'],
       });
       child = process;
+      // The handshake belongs to this process; `model` keeps the last identity for readers.
+      let greeted = false;
       const timer = setTimeout(
         () => (
           reject(new Error(`Worker ${options.id} did not become ready`)),
-          fail(new Error('Worker startup timed out'))
+          fail(new Error('Worker startup timed out'), process)
         ),
         options.startupTimeoutMs ?? 30_000,
       );
-      process.on('error', (error) => (clearTimeout(timer), reject(error), fail(error)));
+      process.on('error', (error) => (clearTimeout(timer), reject(error), fail(error, process)));
       process.on('exit', (code) =>
-        fail(new Error(`Worker ${options.id} exited (${code ?? 'signal'})`)),
+        fail(new Error(`Worker ${options.id} exited (${code ?? 'signal'})`), process),
       );
       // Worker diagnostics stay local; they may contain paths or model output.
       process.stderr.resume();
@@ -99,9 +106,10 @@ export function createWorkerExtractor(options: WorkerExtractorOptions): Extracto
         } catch {
           return;
         }
-        if (!model) {
+        if (!greeted) {
           const hello = ready.safeParse(message);
           if (hello.success) {
+            greeted = true;
             model = hello.data.model;
             clearTimeout(timer);
             resolve();

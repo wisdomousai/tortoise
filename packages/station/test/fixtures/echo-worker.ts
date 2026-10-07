@@ -1,5 +1,5 @@
 // Minimal JSON-lines perception worker for tests: reports a model, answers each request with the
-// field ids it was asked for, and fails on demand.
+// field ids it was asked for, and fails or exits on demand.
 import { createInterface } from 'node:readline';
 
 console.log(JSON.stringify({ type: 'ready', model: { id: 'echo-ocr', version: '0.1' } }));
@@ -13,6 +13,7 @@ createInterface({ input: process.stdin }).on('line', (line) => {
     console.log(JSON.stringify({ id: request.id, error: 'cannot read' }));
     return;
   }
+  const exit = request.fields.some((field) => field.id === 'exit');
   console.log(
     JSON.stringify({
       id: request.id,
@@ -26,4 +27,6 @@ createInterface({ input: process.stdin }).on('line', (line) => {
       ],
     }),
   );
+  // Answer, then end the process, as a crashing or recycled runtime would.
+  if (exit) process.exit(0);
 });

@@ -122,6 +122,53 @@ test('a JSON-lines worker reports its model and answers only requested fields', 
   }
 });
 
+test('a worker that exits is restarted and becomes ready again', async () => {
+  const worker = createWorkerExtractor({
+    id: 'worker-ocr',
+    modality: 'ocr',
+    command: [
+      process.execPath,
+      fileURLToPath(new URL('./fixtures/echo-worker.ts', import.meta.url)),
+    ],
+    startupTimeoutMs: 5_000,
+  });
+  try {
+    const [answered] = await worker.extract(pixels, [{ id: 'exit', type: 'text' }], signal);
+    expect(answered).toMatchObject({ field: 'exit' });
+    // Wait for the first process to be gone, then the next request needs a second lifetime.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(await worker.extract(pixels, fields, signal)).toHaveLength(2);
+    expect(worker.model).toEqual({ id: 'echo-ocr', version: '0.1' });
+  } finally {
+    await worker.close();
+  }
+}, 10_000);
+
+test('vision requests never follow a redirect away from the configured endpoint', async () => {
+  let forwarded = 0;
+  const elsewhere = Bun.serve({
+    hostname: '127.0.0.1',
+    port: 0,
+    fetch: () => (forwarded++, Response.json({ choices: [] })),
+  });
+  const configured = Bun.serve({
+    hostname: '127.0.0.1',
+    port: 0,
+    fetch: () => Response.redirect(`http://127.0.0.1:${elsewhere.port}/v1/chat/completions`, 307),
+  });
+  try {
+    const extractor = createOpenAiCompatibleVisionExtractor({
+      baseUrl: `http://127.0.0.1:${configured.port}/v1`,
+      model: 'm',
+    });
+    await expect(extractor.extract(pixels, fields, signal)).rejects.toThrow();
+    expect(forwarded).toBe(0);
+  } finally {
+    configured.stop(true);
+    elsewhere.stop(true);
+  }
+});
+
 test('Playwright aria JSON maps to accessibility nodes with boxes', () => {
   expect(
     toAccessibility([

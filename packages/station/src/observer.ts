@@ -44,14 +44,17 @@ export interface StationObserverOptions {
  * Watches a station screen and reports what it shows through the domain's ingest command, the
  * inbound half of the bridge. It never writes storage and never acts on the screen. A reading
  * must agree over `stableReads` consecutive captures before it is submitted, which filters
- * redraw flicker and one-off misreads. Submissions are idempotent per content and heartbeat
- * window, so a static screen does not grow the journal.
+ * redraw flicker and one-off misreads. Unchanged content is resubmitted at most once per heartbeat
+ * window, so a static screen does not grow the journal; each submission's idempotency key is
+ * derived from its exact payload, so keys are never reused for different input.
  */
 export function createStationObserver(options: StationObserverOptions) {
   const perception = createPerception(options.profile, options.extractors);
   const gate = new StabilityGate();
   const heartbeatMs = options.heartbeatMs ?? 10_000;
   let lastObservedAt: number | undefined;
+  // The last accepted submission; a failed one is not recorded, so the next pass resends.
+  let last: { content: string; window: number; receipt: CommandReceipt } | undefined;
 
   async function runOnce(signal: AbortSignal = new AbortController().signal) {
     const frame = await options.transport.capture(signal);
@@ -84,7 +87,8 @@ export function createStationObserver(options: StationObserverOptions) {
       localInput,
       readings,
     };
-    // Same content within one heartbeat window is one submission; times are excluded from the hash.
+    // Same content as the previous submission within one heartbeat window is not resent; times
+    // and digests are excluded from the content hash. Anything else is a new submission.
     const content = createHash('sha256')
       .update(
         JSON.stringify({
@@ -93,17 +97,23 @@ export function createStationObserver(options: StationObserverOptions) {
           readings: readings.map(({ observedAt: _at, frameDigest: _digest, ...rest }) => rest),
         }),
       )
-      .digest('hex')
-      .slice(0, 32);
+      .digest('hex');
     const window = Math.floor(frame.capturedAt / heartbeatMs);
+    if (last && last.content === content && last.window === window)
+      return { observation, receipt: last.receipt };
+    const input = options.toInput ? options.toInput(observation) : observation;
+    // The key fingerprints the exact payload: a retry of this payload reuses it, and a different
+    // payload (a later frame, or a return to an earlier state) can never collide with it.
+    const payload = createHash('sha256').update(JSON.stringify(input)).digest('hex').slice(0, 32);
     const receipt = await options.application.invokeRaw(
       {
         operation: options.ingestOperation,
-        input: options.toInput ? options.toInput(observation) : observation,
-        idempotencyKey: `observe:${options.station}:${content}:${window}`,
+        input,
+        idempotencyKey: `observe:${options.station}:${payload}`,
       },
       options.context,
     );
+    last = { content, window, receipt };
     return { observation, receipt };
   }
 

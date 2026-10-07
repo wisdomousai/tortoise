@@ -8,6 +8,8 @@ function observerFixture() {
   const hmi = createHmi();
   const model = createCounterModel(hmi);
   const submitted: Invocation[] = [];
+  // Fingerprints like the runtime: one key may only ever carry one payload.
+  const payloads = new Map<string, string>();
   const observer = createStationObserver({
     station: 'line-1',
     profile,
@@ -15,6 +17,13 @@ function observerFixture() {
     extractors: [createAccessibilityExtractor(), model.extractor],
     application: {
       async invokeRaw(request) {
+        const payload = JSON.stringify(request.input);
+        const earlier = payloads.get(request.idempotencyKey!);
+        if (earlier !== undefined && earlier !== payload)
+          throw Object.assign(new Error('Idempotency key was used for another request'), {
+            code: 'IDEMPOTENCY_CONFLICT',
+          });
+        payloads.set(request.idempotencyKey!, payload);
         submitted.push(request);
         return { result: {}, revision: submitted.length } as unknown as CommandReceipt;
       },
@@ -51,29 +60,45 @@ test('readings are submitted only once stable, with provenance', async () => {
 });
 
 test('a changing value restarts stability, and an unsure reading is uncertain, not observed', async () => {
-  const { hmi, model, observer, readings } = observerFixture();
+  const { hmi, model, observer, submitted, readings } = observerFixture();
   await observer.runOnce();
   hmi.state.count = 1201;
   await observer.runOnce();
-  expect(readings(1).count).toBeUndefined();
+  // The count is not yet stable, so the screen shows nothing new and nothing is resent.
+  expect(submitted).toHaveLength(1);
+  expect(readings(0).count).toBeUndefined();
   model.control.confidence = 0.6;
   await observer.runOnce();
-  expect(readings(2).count).toMatchObject({ value: 1201, status: 'uncertain', confidence: 0.6 });
+  expect(readings(1).count).toMatchObject({ value: 1201, status: 'uncertain', confidence: 0.6 });
 });
 
 test('an unchanged screen is one submission per heartbeat window; a change is a new one', async () => {
   const { hmi, observer, submitted } = observerFixture();
   await observer.runOnce();
   await observer.runOnce();
+  // Second pass adds the now-stable count; the third shows the same content and is not resent.
   await observer.runOnce();
-  const keys = submitted.map((request) => request.idempotencyKey);
-  // Second pass adds the now-stable count; the third is identical to the second.
-  expect(keys[2]).toBe(keys[1]!);
-  expect(keys[1]).not.toBe(keys[0]!);
+  expect(submitted).toHaveLength(2);
   hmi.state.machine = 'RUNNING';
   await observer.runOnce();
-  expect(submitted.at(-1)!.idempotencyKey).not.toBe(keys[2]!);
+  expect(submitted).toHaveLength(3);
+  const keys = submitted.map((request) => request.idempotencyKey);
+  expect(new Set(keys).size).toBe(3);
   expect(keys[0]).toStartWith('observe:line-1:');
+});
+
+test('returning to an earlier state within one window is a new submission, never a key reuse', async () => {
+  const { hmi, observer, submitted } = observerFixture();
+  for (const machine of ['STOPPED', 'STOPPED', 'RUNNING', 'STOPPED', 'STOPPED'])
+    ((hmi.state.machine = machine), await observer.runOnce());
+  expect(submitted.map((request) => (request.input as Observation).screen)).toHaveLength(4);
+  expect(
+    submitted.map(
+      (request) =>
+        (request.input as Observation).readings.find((reading) => reading.field === 'machine')
+          ?.value,
+    ),
+  ).toEqual(['STOPPED', 'STOPPED', 'RUNNING', 'STOPPED']);
 });
 
 test('an unknown screen reports no readings and forgets stability', async () => {
