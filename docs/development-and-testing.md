@@ -16,25 +16,25 @@ bun run build
 
 For focused work, use these scripts:
 
-| Command                                       | Scope                                                                                                                  |
-| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `bun run test:unit`                           | Contracts, runtime, client ordering and UI context helpers.                                                            |
-| `bun run test:conformance`                    | Policy, repositories, adapters and example-domain scenarios.                                                           |
-| `bun run test:service`                        | Host package and each example's HTTP boundary and loopback authority behavior.                                         |
-| `bun run test:harness`                        | Provider-independent harness/supervision fixtures.                                                                     |
-| `bun run test:integration`                    | Outbox dispatcher and inbound sync against fake system-of-record ports.                                                |
+| Command                                       | Scope                                                                                                                                 |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run test:unit`                           | Contracts, runtime, client ordering and UI context helpers.                                                                           |
+| `bun run test:conformance`                    | Policy, repositories, adapters and example-domain scenarios.                                                                          |
+| `bun run test:service`                        | Host package and each example's HTTP boundary and loopback authority behavior.                                                        |
+| `bun run test:harness`                        | Provider-independent harness/supervision fixtures.                                                                                    |
+| `bun run test:integration`                    | Outbox dispatcher and inbound sync against fake system-of-record ports.                                                               |
 | `bun run test:sandbox`                        | Compiles the single CLI binary and runs the embedded MCP/drain/serve scenario with an empty environment, then verifies its audit log. |
-| `bun run test:isolated`                       | The whole suite with a trap that fails on any non-loopback connection from the test process. |
-| `bun run test:e2e`                            | Real browser acceptance, configured by Playwright.                                                                     |
-| `bun run dev`                                 | Build and serve the configured application from the starter.                                                           |
-| `cd examples/<name> && bun run dev`           | Build and serve one example on its own port and workspace (ports 4321-4323); `line-station` adds the fake HMI.         |
-| `bun run station:golden` (in `line-station`)  | Station profile and perception gate on the labeled golden frames in `examples/line-station/golden`.                    |
-| `bun run station:record-golden` (same)        | Re-record golden frames from the fake HMI in Chromium after changing the simulator or profile.                         |
-| `bun run dev:hmi` (same)                      | Start the fake station HMI on port 4610 with simulation endpoints, for the demo.                                       |
-| `bun run build:registry:operator`             | Generate and build the `operator` shadcn registry into `dist/registry/operator`.                                       |
-| `bun run test:package`                        | Desktop/sidecar packaging checks available on the current platform.                                                    |
-| `bun run test:scaffold`                       | Deterministic export and overwrite/privacy safeguards.                                                                 |
-| `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` | Fresh source export, frozen pinned dependency installation, independent typecheck/build/tests and an added capability. |
+| `bun run test:isolated`                       | The whole suite with a trap that fails on any non-loopback connection from the test process.                                          |
+| `bun run test:e2e`                            | Real browser acceptance, configured by Playwright.                                                                                    |
+| `bun run dev`                                 | Build and serve the configured application from the starter.                                                                          |
+| `cd examples/<name> && bun run dev`           | Build and serve one example on its own port and workspace (ports 4321-4323); `line-station` adds the fake HMI.                        |
+| `bun run station:golden` (in `line-station`)  | Station profile and perception gate on the labeled golden frames in `examples/line-station/golden`.                                   |
+| `bun run station:record-golden` (same)        | Re-record golden frames from the fake HMI in Chromium after changing the simulator or profile.                                        |
+| `bun run dev:hmi` (same)                      | Start the fake station HMI on port 4610 with simulation endpoints, for the demo.                                                      |
+| `bun run build:registry:operator`             | Generate and build the `operator` shadcn registry into `dist/registry/operator`.                                                      |
+| `bun run test:package`                        | Desktop/sidecar packaging checks available on the current platform.                                                                   |
+| `bun run test:scaffold`                       | Deterministic export and overwrite/privacy safeguards.                                                                                |
+| `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` | Fresh source export, frozen pinned dependency installation, independent typecheck/build/tests and an added capability.                |
 
 Security artifacts are deterministic: `generate` also writes the security manifest, data flows, control mapping and CycloneDX SBOM. `check:boundaries` also fails on direct network or process APIs in server code outside the egress guard. Firewall exporters are covered by golden files in `packages/assurance/test/golden`; regenerate them with `UPDATE_GOLDEN=1 bun test packages/assurance` and review the diff. The goldens are text comparisons. Loading rules into `nft`, Windows Firewall, systemd or a cluster is a separate platform check, and so is mutual TLS against operator certificates. The mTLS test issues throwaway certificates with `openssl` and is skipped where `openssl` is missing.
 
