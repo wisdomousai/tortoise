@@ -154,9 +154,14 @@ function Field({
  * Cheap keyboard-wedge scanners are calibrated from their keystrokes; serial, HID POS and camera
  * sources connect on a button press, as browsers require. Saving is the caller's command (for
  * example `device.scanner.save`); this block validates the profile but never persists it.
+ *
+ * The draft keeps the `revision` it started from and hands it to `onSave`, so a save over a
+ * change made elsewhere conflicts instead of overwriting it. A new committed `initial` replaces
+ * an unedited draft; an edited one is kept and the operator chooses to load the saved profile.
  */
 function ScannerSetup({
   initial,
+  revision,
   routes = [],
   onSave,
   onRemove,
@@ -165,8 +170,11 @@ function ScannerSetup({
   className,
 }: {
   initial: ScannerProfile;
+  /** Committed revision of `initial`, for optimistic concurrency on save. */
+  revision?: number;
   routes?: readonly ScanRoute[];
-  onSave: (profile: ScannerProfile) => void;
+  /** `base` is the revision the draft was edited from. */
+  onSave: (profile: ScannerProfile, base?: number) => void;
   onRemove?: (id: string) => void;
   pending?: boolean;
   /** Result of the last save, as reported by the caller. */
@@ -174,6 +182,16 @@ function ScannerSetup({
   className?: string;
 }) {
   const [draft, setDraft] = React.useState(initial);
+  const [base, setBase] = React.useState({ profile: initial, revision });
+  const edited = JSON.stringify(draft) !== JSON.stringify(base.profile);
+  const changedElsewhere = revision !== base.revision;
+  const load = () => {
+    setBase({ profile: initial, revision });
+    setDraft(initial);
+  };
+  // Adopt a committed change while nothing is edited (state adjusted during render, not in an
+  // effect, so the stale draft is never shown).
+  if (changedElsewhere && !edited) load();
   const [result, setResult] = React.useState<CalibrationResult>();
   const recorder = useKeyRecorder((keys) => setResult(calibrate(keys)));
   const scanner = useScanner({ profile: draft, routes, enabled: !recorder.recording });
@@ -364,13 +382,24 @@ function ScannerSetup({
           ) : (
             <p className="text-muted-foreground">No scan yet.</p>
           )}
+          {changedElsewhere && edited && (
+            <div
+              role="alert"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-op-attention p-3"
+            >
+              <span>The saved profile changed since you started editing.</span>
+              <Button type="button" variant="outline" onClick={load}>
+                Load saved profile
+              </Button>
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-(--operator-gap)">
             <BigAction
               className="sm:w-auto sm:min-w-64"
               label="Save profile"
               pending={pending}
               disabled={!validation.success}
-              onAction={() => validation.success && onSave(validation.data)}
+              onAction={() => validation.success && onSave(validation.data, base.revision)}
             />
             {onRemove && (
               <BigAction

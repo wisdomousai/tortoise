@@ -29,9 +29,14 @@ const format = (value: number, decimals?: number) =>
  */
 export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups: CodeGroups }) {
   const [override, setOverride] = useState<Target>();
+  // The slot a draft belongs to, pinned when typing starts. Live updates may advance the worklist
+  // while the operator types; the value still describes the sample they were measuring.
+  const [pinned, setPinned] = useState<Target>();
   const [announcement, setAnnouncement] = useState('');
-  const target = override ?? lot.next ?? undefined;
+  const target = override ?? pinned ?? lot.next ?? undefined;
   const characteristic = lot.characteristics.find((item) => item.id === target?.characteristicId);
+  // Another caller recorded the draft's sample first: the draft is not silently moved elsewhere.
+  const taken = characteristic?.results.find((result) => result.sample === target?.sample);
   const codes = useMemo(
     () => codeGroups.find((group) => group.id === characteristic?.codeGroup)?.codes ?? [],
     [codeGroups, characteristic?.codeGroup],
@@ -45,6 +50,7 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
     defaultValues: { value: '', code: '' },
     toInput: (values) => {
       if (!target || !characteristic) throw new Error('Nothing left to measure on this lot');
+      if (taken) throw new Error(`Sample ${target.sample} is already recorded`);
       const quantitative = characteristic.kind === 'quantitative';
       if (quantitative && values.value.trim() === '') throw new Error('Enter a measured value');
       const durationMs = elapsed();
@@ -69,9 +75,15 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
         }`,
       );
       setOverride(undefined);
+      setPinned(undefined);
       form.reset();
     },
   });
+  const discard = () => {
+    setOverride(undefined);
+    setPinned(undefined);
+    form.reset();
+  };
 
   const submitCode = (code: string) => {
     form.setFieldValue('code', code);
@@ -106,12 +118,31 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
               <span className="font-mono text-lg text-muted-foreground">{characteristic.code}</span>
             </h2>
           </div>
-          {override && (
-            <Button variant="ghost" size="sm" onClick={() => setOverride(undefined)}>
+          {override && !taken && (
+            <Button variant="ghost" size="sm" onClick={discard}>
               Back to worklist order
             </Button>
           )}
         </div>
+        {taken && (
+          <div
+            role="alert"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm"
+          >
+            <span>
+              Sample {target.sample} was recorded elsewhere as{' '}
+              <strong className="tabular">
+                {taken.value !== undefined
+                  ? format(taken.value, characteristic.decimals)
+                  : taken.code}
+              </strong>
+              . Your entry was not saved.
+            </span>
+            <Button variant="outline" size="sm" onClick={discard}>
+              Discard my entry
+            </Button>
+          </div>
+        )}
         <form
           className="space-y-4"
           onSubmit={(event) => {
@@ -134,9 +165,17 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
                       autoComplete="off"
                       className="tabular h-16 text-3xl md:text-3xl"
                       value={field.state.value}
-                      onChange={(event) => field.handleChange(event.target.value)}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        // Typing pins the slot; clearing the field releases it.
+                        setPinned(value ? (current) => current ?? target : undefined);
+                        field.handleChange(value);
+                      }}
                       onKeyDown={(event) => {
-                        if (event.key === 'Escape') field.handleChange('');
+                        if (event.key === 'Escape') {
+                          setPinned(undefined);
+                          field.handleChange('');
+                        }
                       }}
                     />
                     <span className="self-center text-xl text-muted-foreground">
@@ -144,7 +183,11 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
                     </span>
                     <form.Subscribe selector={(state) => state.isSubmitting}>
                       {(submitting) => (
-                        <Button type="submit" className="h-16 px-6 text-base" disabled={submitting}>
+                        <Button
+                          type="submit"
+                          className="h-16 px-6 text-base"
+                          disabled={submitting || taken !== undefined}
+                        >
                           Record <Kbd className="ml-2">↵</Kbd>
                         </Button>
                       )}

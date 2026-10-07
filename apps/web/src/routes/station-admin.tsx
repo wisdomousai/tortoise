@@ -49,18 +49,20 @@ export function StationDevicesScreen() {
         actions={<StationBackLink station={stationId} />}
       />
       <ScannerSetup
-        // Remount when another device saves, so the form starts from the stored profile.
-        key={`${data.revision}`}
+        // One draft per station. A save from another device updates an unedited draft and
+        // conflicts with an edited one, instead of discarding the operator's edits.
+        key={stationId}
         initial={data.scanners[0] ?? defaultWedgeProfile(`${stationId}-wedge`)}
+        revision={data.revision}
         routes={data.routes}
         pending={pending}
         saved={saved}
-        onSave={(profile) =>
+        onSave={(profile, base = data.revision) =>
           void act(() =>
             client.command(
               deviceOperations.scannerSave,
               { station: stationId, profile },
-              { expectedRevisions: { [`device:${stationId}`]: data.revision } },
+              { expectedRevisions: { [`device:${stationId}`]: base } },
             ),
           )
         }

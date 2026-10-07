@@ -42,7 +42,7 @@ A change committed by a person, an agent, a job or an inbound sync flows through
 
 **Rules out:** polling as the consistency model, per-surface caches that miss other surfaces' writes, event payloads carrying protected record contents.
 
-**Enforced by:** `packages/client/src/client.test.ts` (snapshot cursor closes the subscription race, revocation resets, stale responses are fenced); `packages/testing/test/direct-transport.test.ts` (the in-process transport resets after a revocation between snapshot and subscription, and never lifts launcher cancellation); `packages/react/src/bindings.test.ts` (dependency-indexed refetch, permission change clears cache); `tests/e2e/workspace.pw.ts` and `inspection.pw.ts` (an external write appears without refresh, drafts survive).
+**Enforced by:** `packages/client/src/client.test.ts` (snapshot cursor closes the subscription race, revocation resets, stale responses are fenced); `packages/testing/test/direct-transport.test.ts` (the in-process transport resets after a revocation between snapshot and subscription, and never lifts launcher cancellation); `packages/react/src/bindings.test.ts` (dependency-indexed refetch, permission change clears cache); `tests/e2e/workspace.pw.ts` and `inspection.pw.ts` (an external write appears without refresh, drafts survive, a draft keeps its sample and shows a conflict when another caller records that sample first). **Convention only:** that each draft screen pins its target and base revision; `ScannerSetup` saves against the revision it was loaded from but has no browser spec.
 
 ### P6 — Status reports what is known, not what is hoped
 

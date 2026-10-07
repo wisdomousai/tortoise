@@ -112,3 +112,53 @@ test('keyboard-only capture records, advances, deduplicates and shows SoR outcom
     await rm(workspace, { recursive: true, force: true });
   }
 });
+
+test('an unfinished draft keeps its sample when another caller records that sample first', async ({
+  page,
+}) => {
+  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-inspection-'));
+  const host = await startService(workspace);
+  try {
+    await page.goto(host.launchUrl);
+    await page.getByRole('link', { name: 'Inspection', exact: true }).click();
+    await page.getByRole('row', { name: 'Inspect lot 4000001' }).click();
+    const diameter = page.getByLabel('Measured Outer diameter');
+    await expect(diameter).toBeFocused();
+    await page.keyboard.type('220.02');
+
+    // An agent or another station records sample 1 while the operator is still typing.
+    const external = await page.request.post(
+      `${host.origin}/api/v1/commands/inspection.result.record`,
+      {
+        headers: { Origin: host.origin },
+        data: {
+          idempotencyKey: 'external-sample-1',
+          input: {
+            lotId: '4000001',
+            characteristicId: 'C10',
+            sample: 1,
+            value: 220.01,
+            occurredAt: Date.now(),
+          },
+        },
+      },
+    );
+    expect(external.ok()).toBe(true);
+
+    // The draft still belongs to sample 1; it is not silently moved to sample 2.
+    await expect(page.getByRole('alert')).toContainText('Sample 1 was recorded elsewhere');
+    await expect(page.getByText('NOW MEASURING · SAMPLE 1 OF 3')).toBeVisible();
+    await expect(diameter).toHaveValue('220.02');
+    await page.keyboard.press('Enter');
+    await page.getByRole('button', { name: 'Discard my entry' }).click();
+    await expect(page.getByText('NOW MEASURING · SAMPLE 2 OF 3')).toBeVisible();
+    await expect(diameter).toHaveValue('');
+    const results = (await lot(page, host.origin, '4000001')).characteristics.find(
+      (item) => item.id === 'C10',
+    )!.results;
+    expect(results).toEqual([expect.objectContaining({ sample: 1, value: 220.01 })]);
+  } finally {
+    await host.stop();
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
