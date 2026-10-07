@@ -1,13 +1,14 @@
+import { defineHostComponent } from '@agent-native/contracts';
+
 /**
  * What the station bridge needs from the deployment, as data. Side-effect free: generators import
- * this without loading Playwright, model clients or child processes. Shaped as a `HostComponent`
- * (`@agent-native/contracts` requirements); wrap it with `defineHostComponent` once that is
- * available on this branch.
+ * this without loading Playwright, model clients or child processes. Hosts compose it into the
+ * catalog's requirements, where the site policy binds or disables each destination.
  *
  * The station screen itself and the MES are declared by the domain module that names their outbox
  * targets (for example `lineStationModule`), not here: this package is domain-neutral.
  */
-export const stationBridgeComponent = Object.freeze({
+export const stationBridgeComponent = defineHostComponent({
   id: 'station-bridge',
   description:
     'Reads station screens with local perception models and runs declared screen procedures behind the outbox.',
@@ -49,4 +50,4 @@ export const stationBridgeComponent = Object.freeze({
       },
     ],
   },
-} as const);
+});

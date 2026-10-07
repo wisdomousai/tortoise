@@ -7,3 +7,4 @@ playwright-report
 bun.lock
 docs/reference
 scaffold.manifest.json
+packages/assurance/test/golden

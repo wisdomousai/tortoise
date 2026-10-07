@@ -1,10 +1,11 @@
+import { defineHostComponent } from '@agent-native/contracts';
+
 /**
  * Devices the scanner kit can use, as data for the requirements manifest. Side-effect free and
  * browser-safe. Every source is optional: keyboard-wedge scanners need no declaration because
- * they arrive as keyboard input. Shaped as a `HostComponent` (`@agent-native/contracts`
- * requirements); wrap it with `defineHostComponent` once that is available on this branch.
+ * they arrive as keyboard input. Hosts compose it into the catalog's requirements.
  */
-export const scannerDevicesComponent = Object.freeze({
+export const scannerDevicesComponent = defineHostComponent({
   id: 'scanner-devices',
   description:
     'Barcode scanner sources beyond keyboard wedge: serial, HID POS, camera and vendor SDKs.',
@@ -36,4 +37,4 @@ export const scannerDevicesComponent = Object.freeze({
       },
     ],
   },
-} as const);
+});

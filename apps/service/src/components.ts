@@ -1,5 +1,7 @@
 import { defineHostComponent } from '@agent-native/contracts';
 import { providerComponents } from '@agent-native/agents/requirements';
+import { scannerDevicesComponent } from '@agent-native/devices/requirements';
+import { stationBridgeComponent } from '@agent-native/station/requirements';
 
 /**
  * The local authority's own requirements: its listener, the audit forwarder and the browser it
@@ -43,4 +45,9 @@ export const authorityComponent = defineHostComponent({
 });
 
 /** Every non-module component composed by this deployment, in manifest order. */
-export const hostComponents = [authorityComponent, ...providerComponents] as const;
+export const hostComponents = [
+  authorityComponent,
+  ...providerComponents,
+  stationBridgeComponent,
+  scannerDevicesComponent,
+] as const;

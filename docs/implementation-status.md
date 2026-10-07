@@ -53,7 +53,7 @@ Not part of this reference: a live computer-use driver (the `ComputerUseDriver` 
 
 ## Security evidence limits
 
-The exported rules were compared as text only. They were not loaded into nftables, Windows Firewall, systemd (`systemd-analyze verify`) or a Kubernetes cluster. No off-host syslog collector, live provider egress through the guard, or zero-trust deployment was exercised. Zero trust refuses to start until a workforce identity adapter exists. Control mappings are indicative, not a certification. `bun run test:sandbox` passes the embedded MCP scenario and its audit verification. Its compiled `serve` scenario needs the line-station profile embedded in the binary; that fix is in the station work and not yet merged into this branch.
+The exported rules were compared as text only. They were not loaded into nftables, Windows Firewall, systemd (`systemd-analyze verify`) or a Kubernetes cluster. No off-host syslog collector, live provider egress through the guard, or zero-trust deployment was exercised. Zero trust refuses to start until a workforce identity adapter exists. Control mappings are indicative, not a certification. `bun run test:sandbox` passes in full: the compiled binary runs the embedded MCP, drain and `serve` scenarios with an empty environment, and its audit log then verifies with no egress allowed or denied.
 
 ## Explicitly unverified
 

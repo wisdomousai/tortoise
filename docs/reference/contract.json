@@ -7926,7 +7926,36 @@
     }
   ],
   "requirements": {
-    "devices": [],
+    "devices": [
+      {
+        "availability": "optional",
+        "id": "scanner-camera",
+        "kind": "camera",
+        "owner": "scanner-devices",
+        "purpose": "Camera barcode decoding at the station."
+      },
+      {
+        "availability": "optional",
+        "id": "scanner-hid-pos",
+        "kind": "hid",
+        "owner": "scanner-devices",
+        "purpose": "HID POS barcode scanners (usage page 0x8C) through WebHID."
+      },
+      {
+        "availability": "optional",
+        "id": "scanner-serial",
+        "kind": "serial",
+        "owner": "scanner-devices",
+        "purpose": "USB-COM/CDC or RS-232 barcode scanners through Web Serial."
+      },
+      {
+        "availability": "optional",
+        "id": "scanner-vendor-sdk",
+        "kind": "vendor-sdk",
+        "owner": "scanner-devices",
+        "purpose": "Vendor scanner SDKs on the station PC through the host scanner bridge."
+      }
+    ],
     "network": [
       {
         "availability": "optional",
@@ -8049,6 +8078,32 @@
         "targets": [
           "legacy-hmi"
         ]
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "screen-frame"
+        ],
+        "direction": "egress",
+        "id": "station-vision",
+        "offline": "degrade",
+        "owner": "station-bridge",
+        "protocol": "http",
+        "purpose": "Local OpenAI-compatible vision model reading counters and other pixel-only fields.",
+        "scope": "loopback"
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "screen-frame"
+        ],
+        "direction": "egress",
+        "id": "station-vision-site",
+        "offline": "degrade",
+        "owner": "station-bridge",
+        "protocol": "https",
+        "purpose": "Vision model on a site host the deployment allowlists explicitly (STATION_VISION_ALLOWED_HOSTS).",
+        "scope": "site"
       }
     ],
     "processes": [
@@ -8071,6 +8126,14 @@
         ],
         "owner": "openai",
         "purpose": "Codex app-server harness under a delegated grant."
+      },
+      {
+        "availability": "optional",
+        "executable": "configured",
+        "id": "perception-worker",
+        "network": [],
+        "owner": "station-bridge",
+        "purpose": "JSON-lines perception worker for local OCR, classifier or audio models."
       },
       {
         "availability": "optional",

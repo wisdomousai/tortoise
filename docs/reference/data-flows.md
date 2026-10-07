@@ -7,12 +7,14 @@ flowchart LR
   app["agent-native-desktop-starter (local authority)"]
   subgraph loopback["loopback"]
     authority_http["authority-http"]
+    station_vision["station-vision"]
   end
   subgraph site["site"]
     audit_collector["audit-collector"]
     mes_api["mes-api"]
     quality_system_api["quality-system-api"]
     station_screen["station-screen"]
+    station_vision_site["station-vision-site"]
   end
   subgraph internet["internet"]
     anthropic_api["anthropic-api"]
@@ -27,10 +29,13 @@ flowchart LR
   app -- "oauth-authorization, identity-token" --> openai_auth
   app -- "inspection-result, defect, usage-decision" --> quality_system_api
   app -- "screen-input, recipe-selection" --> station_screen
+  app -- "screen-frame" --> station_vision
+  app -- "screen-frame" --> station_vision_site
   app -. spawns .-> proc_claude_code(["claude-code"])
   proc_claude_code -. may reach .-> anthropic_api
   app -. spawns .-> proc_codex_app_server(["codex-app-server"])
   proc_codex_app_server -. may reach .-> openai_api
+  app -. spawns .-> proc_perception_worker(["perception-worker"])
   app -. spawns .-> proc_station_bridge_browser(["station-bridge-browser"])
   proc_station_bridge_browser -. may reach .-> station_screen
 ```
@@ -47,6 +52,8 @@ flowchart LR
 | `openai-auth` | openai | egress | internet | https | auth.openai.com | oauth-authorization, identity-token | optional | unavailable |
 | `quality-system-api` | quality-inspection | egress | site | https | site policy | inspection-result, defect, usage-decision | required | queue |
 | `station-screen` | line-station | egress | site | https | site policy | screen-input, recipe-selection | optional | queue |
+| `station-vision` | station-bridge | egress | loopback | http | site policy | screen-frame | optional | degrade |
+| `station-vision-site` | station-bridge | egress | site | https | site policy | screen-frame | optional | degrade |
 
 - `anthropic-api`: Inference for Claude runs.
 - `audit-collector`: Forward audit events off the host (RFC 5424 syslog over TLS).
@@ -56,6 +63,8 @@ flowchart LR
 - `openai-auth`: ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.
 - `quality-system-api`: Forward results, defects and usage decisions to the quality system and pull lots and characteristics from it.
 - `station-screen`: Reach the legacy station software screen to observe it and run declared procedures (web HMI, VNC or RDP, per site).
+- `station-vision`: Local OpenAI-compatible vision model reading counters and other pixel-only fields.
+- `station-vision-site`: Vision model on a site host the deployment allowlists explicitly (STATION_VISION_ALLOWED_HOSTS).
 
 ## Operations that leave the host
 
@@ -72,6 +81,15 @@ Each is committed locally first and forwarded through the outbox; a receipt prov
 | `line.order.start` | legacy-hmi | `station-screen` | recipe-selection, screen-input | digest only |
 | `line.stop.classify` | mes | `mes-api` | count-confirmation, stop-classification | digest only |
 
+## Devices
+
+| ID | Owner | Kind | Availability | Purpose |
+| --- | --- | --- | --- | --- |
+| `scanner-camera` | scanner-devices | camera | optional | Camera barcode decoding at the station. |
+| `scanner-hid-pos` | scanner-devices | hid | optional | HID POS barcode scanners (usage page 0x8C) through WebHID. |
+| `scanner-serial` | scanner-devices | serial | optional | USB-COM/CDC or RS-232 barcode scanners through Web Serial. |
+| `scanner-vendor-sdk` | scanner-devices | vendor-sdk | optional | Vendor scanner SDKs on the station PC through the host scanner bridge. |
+
 ## Child processes
 
 A child may reach only the destinations listed here. Children launched with proxy settings tunnel through the audited loopback proxy, which enforces this list; any child that does not use the proxy is contained only by the exported OS rules.
@@ -80,4 +98,5 @@ A child may reach only the destinations listed here. Children launched with prox
 | --- | --- | --- | --- | --- |
 | `claude-code` | anthropic | `claude` | `anthropic-api` | Claude Code process driven by the Agent SDK. |
 | `codex-app-server` | openai | `codex` | `openai-api` | Codex app-server harness under a delegated grant. |
+| `perception-worker` | station-bridge | `configured` | nothing | JSON-lines perception worker for local OCR, classifier or audio models. |
 | `station-bridge-browser` | authority | `chromium (Playwright)` | `station-screen` | Browser that reaches a web-based station HMI for the screen bridge. |

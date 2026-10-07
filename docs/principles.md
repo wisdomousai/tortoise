@@ -2,7 +2,7 @@
 
 Each principle is an architectural invariant that a design either keeps or breaks. **Rules out** names what a violation looks like. **Enforced by** names the checks and tests that fail when the invariant breaks, and marks what is still **convention only**, kept by authors and reviewers. The building blocks that deliver each principle are explained in [primitives](primitives.md).
 
-Mechanism detail lives in the [architecture](architecture.md), [interaction contract](interaction-contract.md), [authorization](authorization.md), [state and reactivity](state-and-reactivity.md), [system-of-record](system-of-record-pattern.md) and [operator workstation](operator-workstation-pattern.md) documents and the [decision records](decisions/).
+Mechanism detail lives in the [architecture](architecture.md), [interaction contract](interaction-contract.md), [authorization](authorization.md), [state and reactivity](state-and-reactivity.md), [system-of-record](system-of-record-pattern.md), [operator workstation](operator-workstation-pattern.md) and [security and assurance](security-and-assurance.md) documents and the [decision records](decisions/).
 
 ### P1 — Every operation is executable from UI, MCP, CLI and API
 
@@ -26,7 +26,7 @@ The host derives principal, workspace and grant; operation input cannot select o
 
 **Rules out:** role or principal fields in operation input, checks only at the edge, counts that leak hidden rows, cached decisions reused after revocation.
 
-**Enforced by:** `packages/testing/src/security-conformance.test.ts` (grants constrain rows, replay and events; interruptions cannot commit or leak); the role matrices in each `examples/*/domain.test.ts`; `packages/adapters/src/casl.test.ts` (scope agreement across CASL, memory and SQL, fail-closed rules); `packages/runtime/test/runtime.test.ts` (current authorization governs retries).
+**Enforced by:** `packages/testing/src/security-conformance.test.ts` (grants constrain rows, replay and events; interruptions cannot commit or leak); the role matrices in each `examples/*/domain.test.ts`; `packages/adapters/src/casl.test.ts` (scope agreement across CASL, memory and SQL, fail-closed rules); `packages/runtime/test/runtime.test.ts` (current authorization governs retries); `apps/service/hardening.test.ts` (a hardened site admits only expiring launcher grants, refuses to fall back to the local owner, and its mTLS listener still requires a session token).
 
 ### P4 — Every write is a command to the single authority of its workspace
 
@@ -84,6 +84,14 @@ Every operation has behavioral scenarios that run through each surface it suppor
 
 **Enforced by:** the implementation ledger records deterministic, browser, native, device and live-provider evidence separately; `bun run test:sandbox` runs the compiled binary with an empty environment. **Convention only:** most of this principle is review discipline; no tool can tell a mocked pass from a live one.
 
+### P11 — The application reaches only what it declares and the site binds, and records what it does
+
+Every network destination, device and child process is declared in the catalog with its purpose and the data classes it carries. A site policy binds declarations to addresses. Without one the application runs isolated and offline, queuing what it cannot deliver and saying what is unavailable. Server code reaches the network only through the egress guard, which refuses anything unbound and records every decision. Every action, denial and connection goes into a tamper-evident log, and by default a command that cannot be recorded does not commit. Hardening profiles are floors: the host refuses to start below one rather than weaken identity, transport or audit. The evidence an auditor checks is generated from the same declarations.
+
+**Rules out:** direct `fetch`, sockets or process spawning in server code; site endpoints in code; a feature that silently needs the network; commits without an audit record; falling back to the local owner or plain transport when a floor is not met.
+
+**Enforced by:** catalog validation of requirements, including outbox targets without a queuing destination (`packages/contracts/test/contracts.test.ts`); `bun run check:boundaries` fails on direct network and process APIs outside `packages/egress` and flags stale exemptions; `packages/egress/test/egress.test.ts` (host, port, scheme, redirect and DNS escapes refused; profile floors); `packages/runtime/test/audit.test.ts` (a failed required append rolls back the commit; crash recovery); `packages/event-log/test/event-log.test.ts` (tampering, gaps, truncation, one writer); `apps/service/hardening.test.ts` (startup floors, mTLS); `bun run test:isolated` (the suite makes no non-loopback connection); `bun run test:sandbox` (the compiled binary's audit chain verifies with no egress); `bun run check:generated` (security manifest, data flows, controls and SBOM match the code). **Convention only:** device access is declared but not mediated; containment of children that ignore proxy settings depends on the deployment applying the exported OS rules; `audit.fields` allow-lists are reviewed by hand.
+
 ## Keeping this current
 
 Principles change rarely and on purpose. The [primitives](primitives.md) document changes whenever a public building block does. [AGENTS.md](../AGENTS.md#principles-and-primitives) gives the working rules.
@@ -94,6 +102,8 @@ Principles change rarely and on purpose. The [primitives](primitives.md) documen
 - When a check or test starts or stops enforcing a principle, update its **Enforced by** line. Turning convention into enforcement is the preferred way to strengthen a principle.
 
 ## Changelog
+
+- 2026-10-07 — Added P11 (declared reach, site binding and a recorded, fail-closed audit trail) for the egress guard, site policy and event log; see ADR 005. P3 now lists the hardening tests.
 
 - 2026-10-07 — Replaced each principle's primitive list with what enforces it; primitives name their principles in one place.
 - 2026-10-07 — Rewritten as ten architectural invariants, each with what it rules out and the primitives it requires. Replaces the same-day drafts before anything external cited them.

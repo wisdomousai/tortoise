@@ -11195,6 +11195,60 @@
           "value": "queue"
         }
       ]
+    },
+    {
+      "bom-ref": "service:station-vision",
+      "name": "station-vision",
+      "description": "Local OpenAI-compatible vision model reading counters and other pixel-only fields.",
+      "trustZone": "loopback",
+      "x-trust-boundary": false,
+      "data": [
+        {
+          "flow": "outbound",
+          "classification": "screen-frame"
+        }
+      ],
+      "properties": [
+        {
+          "name": "agent-native:owner",
+          "value": "station-bridge"
+        },
+        {
+          "name": "agent-native:availability",
+          "value": "optional"
+        },
+        {
+          "name": "agent-native:offline",
+          "value": "degrade"
+        }
+      ]
+    },
+    {
+      "bom-ref": "service:station-vision-site",
+      "name": "station-vision-site",
+      "description": "Vision model on a site host the deployment allowlists explicitly (STATION_VISION_ALLOWED_HOSTS).",
+      "trustZone": "site",
+      "x-trust-boundary": true,
+      "data": [
+        {
+          "flow": "outbound",
+          "classification": "screen-frame"
+        }
+      ],
+      "properties": [
+        {
+          "name": "agent-native:owner",
+          "value": "station-bridge"
+        },
+        {
+          "name": "agent-native:availability",
+          "value": "optional"
+        },
+        {
+          "name": "agent-native:offline",
+          "value": "degrade"
+        }
+      ]
     }
   ],
   "dependencies": [

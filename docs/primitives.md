@@ -72,7 +72,7 @@ Serves P1, P2 · implemented · `packages/contracts` · `buildCatalog`, `Catalog
 
 _A pure transformation from the catalog to a checked-in artifact._
 
-JSON Schema, OpenAPI, the operation and workflow references, and the application skill with CLI forms are generated, not written. Agents learn the application from the same source the UI is built from.
+JSON Schema, OpenAPI, the operation and workflow references, the application skill with CLI forms, and the security manifest, data flows, control mapping and SBOM are generated, not written. Agents and auditors learn the application from the same source the UI is built from.
 
 Guarantees: generation opens no workspace, reads no credential and starts no server. Drift fails the build, and a boundary check keeps contract and browser code free of host-only modules.
 
@@ -200,9 +200,11 @@ Scanners are callers too. A wedge, serial, HID or camera scanner produces a norm
 
 Guarantees: sources are registered explicitly. Decoding validates GS1 check digits and AIM symbologies and corrects keyboard-layout mismatch. Routes are site configuration.
 
-Gaps: no source has been checked on real hardware.
+Each non-wedge source is declared as a device requirement, so the security manifest lists it.
 
-Serves P1, P8 · implemented · `packages/devices` · `ScannerSource`, `ScanEvent`, `decodeScan`, `calibrate`, `createScanRouter`, `createWedgeSource`, `createSerialSource`, `createHidPosSource`, `createCameraSource`
+Gaps: no source has been checked on real hardware. Device access is declared but not mediated.
+
+Serves P1, P8, P11 · implemented · `packages/devices` · `ScannerSource`, `ScanEvent`, `decodeScan`, `calibrate`, `createScanRouter`, `createWedgeSource`, `createSerialSource`, `createHidPosSource`, `createCameraSource`, `scannerDevicesComponent`
 
 ### UI registry
 
@@ -270,7 +272,9 @@ Guarantees: each reading carries its source, model identity and digest, frame di
 
 Gaps: implemented for screens only; promote out of `packages/station` when a second kind of source needs it.
 
-Serves P4, P6 · implemented · `packages/station` · `createStationObserver`, `StabilityGate`, `Reading`, `ModelIdentity`
+The station's vision endpoints and perception worker are declared requirements; a site binds a vision service or the observer degrades.
+
+Serves P4, P6, P11 · implemented · `packages/station` · `createStationObserver`, `StabilityGate`, `Reading`, `ModelIdentity`, `stationBridgeComponent`
 
 ### Gated actuator
 
@@ -310,11 +314,59 @@ Guarantees: fails closed when the store is unavailable. Secrets never reach brow
 
 Serves P3, P9 · implemented · `packages/agents` · `CredentialVault`, `OsCredentialVault`, `MemoryCredentialVault`
 
+### Requirement declaration
+
+_What a module or host component needs outside the process, as data: network destinations, devices and child processes._
+
+Security teams admit software when they can see what it talks to and what data leaves. Declarations make that a property of the catalog. Each destination names its purpose, scope, protocol, data classes, availability and offline behavior, and the generated manifest, data flows and SBOM show every change to reviewers.
+
+Guarantees: declarations are browser-safe data, composed with their owners. Composition rejects duplicate IDs, a process that names an undeclared destination, and an outbox target that no destination carries or whose destination does not queue offline. A capability's input is logged in plain text only for the fields its `audit.fields` names.
+
+Serves P2, P11 · implemented · `packages/contracts` · `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `HostComponent`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`
+
+### Site policy
+
+_Deployment data that binds declared destinations to addresses and sets a hardening floor._
+
+What a site permits is configuration, like everything else that differs per site. Without a policy the application is isolated: loopback only, outbox targets queue, providers report unavailable.
+
+Guarantees: bindings must name declared destinations and match their protocol, host and port. In connected mode a required destination is bound or explicitly disabled, and every closed destination lists its offline consequence. The `desktop-local`, `sandbox` and `zero-trust` profiles are floors on plain HTTP, ingress (loopback or mTLS), identity, grant lifetime and audit mode; `security check` and startup report the same findings, and the host refuses to start below its floor. Certificate files are referenced by path and must be readable.
+
+Gaps: `external` identity refuses to start because no workforce identity adapter exists. No certificate issuance or rotation.
+
+Serves P3, P8, P11 · implemented · `packages/egress` · `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`
+
+### Egress guard
+
+_The only path from server code, and from declared child processes, to the network._
+
+Guarantees: a destination-scoped fetch allows only the bound scheme, host and port, rechecks every redirect hop, checks DNS answers against bound addresses, applies CA bundles and certificate pins, and caps response size and time. Provider SDKs get a fetch routed by origin, TCP transports a scoped socket, and declared children a loopback CONNECT proxy limited to their declared destinations. Every decision is logged; a refusal is an `UNAVAILABLE` error. `check:boundaries` fails on direct network or process APIs in server code outside a reviewed exemption list, and on an exemption that no longer matches.
+
+Gaps: an in-process control, not an isolation boundary. A child that ignores proxy settings, or a compromised process, is contained only once the exported OS rules are applied.
+
+Serves P9, P11 · implemented · `packages/egress` `scripts` · `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`, `directEgress`, `egressExemptions`
+
+### Event log
+
+_An injected, hash-chained record of every command, query, denial, outbox transition, sync pass, connection and run._
+
+The journal tells views what changed; the event log tells an auditor who did what, through which surface, and what was refused. Injecting the port makes every layer observable without code in handlers.
+
+Guarantees: events carry the actor and channel, operation, a safe reason code, correlation IDs and an input digest; input values appear only for allow-listed fields. `command.accepted` is appended inside the transaction, so in required mode a failed append rolls the command back, and startup resolves accepted commands a crash left open. The JSONL adapter chains SHA-256 across rotated segments, syncs every append, writes 0600 files and admits one writer per directory. The verifier reports edits, gaps and truncated segments. Forwarding sends RFC 5424 syslog through the egress guard.
+
+Gaps: removing the newest events is detectable only against an anchor or a forwarded copy. No off-host collector has been exercised.
+
+Serves P6, P10, P11 · implemented · `packages/contracts` `packages/runtime` `packages/event-log` · `EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`, `createMemoryEventLog`, `openJsonlEventLog`, `verifyEventLog`, `unresolvedCommands`, `readEvents`, `forwardingEventLog`
+
 ### Execution host
 
 _An isolation boundary and credential broker for tools an agent runs._
 
-Serves P3, P9 · proposed
+The egress guard confines declared children to their destinations, launchers fix an embedded agent's grant, and the hardening exports describe an OS sandbox for the service.
+
+Gaps: no isolation backend applies those rules, and there is no credential broker.
+
+Serves P3, P9, P11 · partial · `packages/egress` `packages/assurance` · `startEgressProxy`, `exportRules`
 
 ### Profile
 
@@ -343,6 +395,16 @@ Guarantees: reports per-field accuracy and confidence and fails on a confident m
 Gaps: the current golden set exercises recorded expectations, not a model.
 
 Serves P8, P10 · implemented · `packages/station` · `runGolden`, `GoldenReport`
+
+### Assurance bundle
+
+_The evidence an auditor checks, generated from the catalog and site policy and re-checked while the application runs._
+
+Guarantees: the security manifest, data flows, control mapping (ISO/IEC 27001 Annex A, NIST SP 800-53 and CSF, IEC 62443-4-2) and CycloneDX SBOM are deterministic and drift-checked. Rule exports for nftables, Windows Firewall, systemd, Kubernetes, Compose and JSON are default-deny, carry the policy digest and list what they could not enforce. A posture monitor re-verifies the log and records `posture.checked`. Listed auditors read it through the `assurance.*` queries, which have scenarios and a Security screen. The reference CLI adds `security check|export` and `audit verify|report`, which work offline.
+
+Gaps: exports are compared as text, not loaded into a firewall or cluster. Control mappings are indicative, not a certification.
+
+Serves P2, P10, P11 · implemented · `packages/assurance` `apps/service` `apps/web` · `securityManifest`, `dataFlowsMarkdown`, `controls`, `cycloneDx`, `networkRules`, `exportRules`, `assessPosture`, `createPostureMonitor`, `assuranceModule`, `createAssuranceHandlers`, `assuranceCommand`
 
 ### Behavioral scenario
 
