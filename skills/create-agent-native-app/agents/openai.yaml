@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Create Agent-native App'
+  short_description: 'Create or extend a shared-capability application'
+  default_prompt: 'Use $create-agent-native-app to build my application from the local framework and verify its shared capabilities.'

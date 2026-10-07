@@ -1,0 +1,1058 @@
+{
+  "formatVersion": 1,
+  "operations": [
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Archive a project as its owner. Tasks remain readable, but task edits are blocked until the project is restored. Supply project:<id> in expectedRevisions to detect concurrent edits.",
+      "errors": [],
+      "id": "project.archive",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "project_archive",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "type": "boolean"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "members": {
+            "additionalProperties": {
+              "enum": [
+                "owner",
+                "editor",
+                "viewer"
+              ],
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "name",
+          "archived"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "manage",
+        "resourceType": "Project"
+      },
+      "ui": {
+        "binding": "project.archive"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Create a project as workspace owner. The creator becomes a project owner. Returns the project and its committed revision.",
+      "errors": [],
+      "id": "project.create",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "project_create",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "type": "boolean"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "members": {
+            "additionalProperties": {
+              "enum": [
+                "owner",
+                "editor",
+                "viewer"
+              ],
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "name",
+          "archived"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "create",
+        "resourceType": "Project"
+      },
+      "ui": {
+        "binding": "project.create"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Read one accessible project and its current revision. The membership map is included only for project owners.",
+      "errors": [],
+      "id": "project.get",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "project_get",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "type": "boolean"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "members": {
+            "additionalProperties": {
+              "enum": [
+                "owner",
+                "editor",
+                "viewer"
+              ],
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "name",
+          "archived"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "Project"
+      },
+      "ui": {
+        "binding": "project.get"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "List accessible projects with optional archive filtering. Authorization is applied before pagination and the count includes only accessible matching projects.",
+      "errors": [],
+      "id": "project.list",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "type": "boolean"
+          },
+          "limit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "project_list",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "archived": {
+                  "type": "boolean"
+                },
+                "id": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "members": {
+                  "additionalProperties": {
+                    "enum": [
+                      "owner",
+                      "editor",
+                      "viewer"
+                    ],
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "revision": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "id",
+                "revision",
+                "name",
+                "archived"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "Project"
+      },
+      "ui": {
+        "binding": "project.list"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Restore an archived project as its owner, permitting ordinary task edits again. Supply project:<id> in expectedRevisions to detect concurrent edits.",
+      "errors": [],
+      "id": "project.restore",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "project_restore",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "type": "boolean"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "members": {
+            "additionalProperties": {
+              "enum": [
+                "owner",
+                "editor",
+                "viewer"
+              ],
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "name",
+          "archived"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "manage",
+        "resourceType": "Project"
+      },
+      "ui": {
+        "binding": "project.restore"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Set or remove a project membership as project owner. A null role removes access; workspace-owner membership is fixed. Permission changes invalidate affected views. Supply project:<id> in expectedRevisions.",
+      "errors": [],
+      "id": "project.set-member",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "principalId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "owner",
+                  "editor",
+                  "viewer"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "principalId",
+          "role"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "project_set_member",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "type": "boolean"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "members": {
+            "additionalProperties": {
+              "enum": [
+                "owner",
+                "editor",
+                "viewer"
+              ],
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "name",
+          "archived"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "manage",
+        "resourceType": "Project"
+      },
+      "ui": {
+        "binding": "project.set-member"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Create a todo task in an accessible, active project as owner or editor. Only owners may supply privateNote. Returns the task and its committed revision.",
+      "errors": [],
+      "id": "task.create",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 10000,
+            "type": "string"
+          },
+          "privateNote": {
+            "maxLength": 10000,
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectId",
+          "title"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "task_create",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "privateNote": {
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "projectId",
+          "title",
+          "description",
+          "status"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "create",
+        "resourceType": "Task"
+      },
+      "ui": {
+        "binding": "task.create"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Remove a task from an active project as owner or editor. This capability has no restore operation. Supply task:<id> in expectedRevisions to detect concurrent changes.",
+      "errors": [],
+      "id": "task.delete",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "task_delete",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "delete",
+        "resourceType": "Task"
+      },
+      "ui": {
+        "binding": "task.delete"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Read one accessible task and its current revision. privateNote is included only for project owners. Use this revision in a later mutation expectedRevisions map.",
+      "errors": [],
+      "id": "task.get",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "task_get",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "privateNote": {
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "projectId",
+          "title",
+          "description",
+          "status"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "Task"
+      },
+      "ui": {
+        "binding": "task.get"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "List tasks in accessible projects, with public-field search, status/project filters and pagination. Authorization precedes filtering and count calculation. privateNote is owner-only and cannot be searched or sorted.",
+      "errors": [],
+      "id": "task.list",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "projectId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "search": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "sort": {
+            "enum": [
+              "title",
+              "status"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "task_list",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "id": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "privateNote": {
+                  "type": "string"
+                },
+                "projectId": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "revision": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "status": {
+                  "enum": [
+                    "todo",
+                    "doing",
+                    "done"
+                  ],
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "revision",
+                "projectId",
+                "title",
+                "description",
+                "status"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "Task"
+      },
+      "ui": {
+        "binding": "task.list"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Set a task to todo, doing or done in an active project as owner or editor. Supply task:<id> in expectedRevisions to detect concurrent changes.",
+      "errors": [],
+      "id": "task.set-status",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "task_set_status",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "privateNote": {
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "projectId",
+          "title",
+          "description",
+          "status"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "update",
+        "resourceType": "Task"
+      },
+      "ui": {
+        "binding": "task.set-status"
+      }
+    },
+    {
+      "dependencies": [
+        "project",
+        "task"
+      ],
+      "description": "Edit task title or description in an active project as owner or editor; privateNote is owner-only. Project reassignment is not accepted. Supply task:<id> in expectedRevisions to prevent overwriting a concurrent edit.",
+      "errors": [],
+      "id": "task.update",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 10000,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "privateNote": {
+            "maxLength": 10000,
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "task_update",
+      "module": "project-tasks",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "privateNote": {
+            "type": "string"
+          },
+          "projectId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "projectId",
+          "title",
+          "description",
+          "status"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "update",
+        "resourceType": "Task"
+      },
+      "ui": {
+        "binding": "task.update"
+      }
+    }
+  ],
+  "workflows": [
+    {
+      "id": "project-planning",
+      "operations": [
+        "project.create",
+        "task.create",
+        "task.list",
+        "task.set-status"
+      ],
+      "text": "Create a project from the brief, add concrete tasks, inspect the scoped task list, and update each task status as work progresses."
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+/** Host-owned application tools. Implementations derive identity/grants from the run,
+ * never from model arguments, and recheck cancellation at their commit boundary. */
+export interface ToolPort {
+  readonly definitions?: readonly ToolDefinition[];
+  execute(operation: string, input: unknown, context: ToolExecutionContext): Promise<unknown>;
+}
+export interface ToolDefinition {
+  operation: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
+}
+export interface ToolExecutionContext {
+  runId: string;
+  signal: AbortSignal;
+  /** Stable per invocation, including a repeated native tool callback. */
+  idempotencyKey?: string;
+}
+export type RunState =
+  | 'queued'
+  | 'running'
+  | 'awaiting-question'
+  | 'awaiting-approval'
+  | 'succeeded'
+  | 'failed'
+  | 'cancelled'
+  | 'interrupted';
+export type HarnessEvent =
+  | { type: 'text'; text: string }
+  | { type: 'progress'; message: string }
+  | { type: 'tool-start'; operation: string; callId: string }
+  | { type: 'tool-finish'; operation: string; callId: string }
+  | { type: 'resume-data'; data: Record<string, string> };
+export interface RunEvent {
+  sequence: number;
+  at: string;
+  type: HarnessEvent['type'] | 'state' | 'question' | 'approval';
+  state?: RunState;
+  text?: string;
+  message?: string;
+  operation?: string;
+  callId?: string;
+  requestId?: string;
+  choices?: readonly string[];
+}
+export interface RunSnapshot {
+  id: string;
+  harnessId: string;
+  conversationId: string;
+  state: RunState;
+  createdAt: string;
+  updatedAt: string;
+  /** Captured, server-approved UI/resource context; later selections cannot retarget it. */
+  context: Record<string, unknown>;
+  events: RunEvent[];
+  nextSequence: number;
+  resumeData?: Record<string, string>;
+  failure?: { code: string; message: string };
+}
+/** Persist atomically per snapshot. Stores must not contain credentials or prompts. */
+export interface RunStore {
+  get(id: string): Promise<RunSnapshot | undefined>;
+  list(): Promise<RunSnapshot[]>;
+  save(snapshot: RunSnapshot): Promise<void>;
+}
+export interface HarnessTurn {
+  runId: string;
+  conversationId: string;
+  prompt: string;
+  context: Readonly<Record<string, unknown>>;
+  signal: AbortSignal;
+  tools: ToolPort;
+  resumeData?: Record<string, string>;
+  question(message: string, choices?: readonly string[]): Promise<string>;
+  approve(message: string): Promise<boolean>;
+}
+export interface Harness {
+  readonly id: string;
+  readonly features: { questions: boolean; approvals: boolean; resume: boolean };
+  availability(): Promise<{ available: boolean; reason?: string }>;
+  run(turn: HarnessTurn): AsyncIterable<HarnessEvent>;
+}
+export const terminalStates = new Set<RunState>([
+  'succeeded',
+  'failed',
+  'cancelled',
+  'interrupted',
+]);
+
+/** Native providers have tighter naming rules than capability IDs. The hexadecimal
+ * encoding is reversible and collision-free, unlike replacing punctuation. */
+export function toolName(operation: string): string {
+  const name = `app_${Buffer.from(operation, 'utf8').toString('hex')}`;
+  if (name.length > 64)
+    throw new Error(`Capability ID is too long for provider tool naming: ${operation}`);
+  return name;
+}
