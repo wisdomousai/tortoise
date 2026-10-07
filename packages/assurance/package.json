@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/assurance",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Security assurance: manifest, data flows, control mapping, CycloneDX SBOM, firewall and hardening exporters, posture checks and the browser-safe assurance capability module.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

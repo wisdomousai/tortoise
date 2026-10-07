@@ -116,11 +116,16 @@ export async function startHost(options: {
     startupCleanup.unshift(() => storage.close());
     const runStore = new SQLiteRunStore(join(ownership.canonicalPath, 'runs.sqlite'));
     startupCleanup.unshift(() => runStore.close());
-    const application = createApplicationRuntime({ storage, eventLog: security.eventLog });
+    const application = createApplicationRuntime({
+      storage,
+      eventLog: security.eventLog,
+      services: { assurance: security.monitor },
+    });
     // Attest what is running, then resolve audit entries a crash left open. Both precede any
     // integration pass or request, so no new command reuses a cursor recovery compares against.
     await security.attest({ instance: ownership.instance });
     await security.recover(application);
+    security.monitor.start();
     const systemOfRecord = options.systemOfRecord ?? new FakeQualitySystem();
     const integration = createQualityIntegration({
       application,

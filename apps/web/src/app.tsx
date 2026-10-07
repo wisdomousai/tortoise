@@ -13,6 +13,7 @@ import { ProjectsScreen } from '@/routes/projects';
 import { InspectionScreen } from '@/routes/inspection';
 import { CaptureScreen } from '@/routes/capture';
 import { SyncScreen } from '@/routes/sync';
+import { SecurityScreen } from '@/routes/security';
 import { StationKitScreen } from '@/routes/station-kit';
 import { StationScreen, StationsScreen } from '@/routes/station';
 import { StationBridgeScreen, StationDevicesScreen } from '@/routes/station-admin';
@@ -59,6 +60,12 @@ const stationKitRoute = createRoute({
   path: 'station/kit',
   component: StationKitScreen,
 });
+// assurance.* bindings: posture, audit events and chain verification for auditors.
+const securityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'security',
+  component: SecurityScreen,
+});
 // line.station.* bindings: the glove surface, scanner setup (device.*) and the bridge view.
 const stationRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -90,6 +97,7 @@ const router = createRouter({
     stationRoute,
     stationDevicesRoute,
     stationBridgeRoute,
+    securityRoute,
   ]),
   history: createHashHistory(),
   defaultPreload: 'intent',

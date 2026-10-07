@@ -1,0 +1,53 @@
+{
+  "format": 1,
+  "application": "agent-native",
+  "profile": "sandbox",
+  "mode": "connected",
+  "policyDigest": "a874c563fd1c45914f7a172ce03f7eab3232e9928f429f345535f8e8b3d897f1",
+  "defaultEgress": "deny",
+  "ingress": {
+    "listen": "loopback"
+  },
+  "allow": [
+    {
+      "destination": "audit-collector",
+      "owner": "plant",
+      "scope": "site",
+      "transport": "tcp",
+      "port": 6514,
+      "host": "10.20.0.40",
+      "addresses": [
+        "10.20.0.40/32"
+      ],
+      "purpose": "audit-collector for tests",
+      "processes": []
+    },
+    {
+      "destination": "mes-api",
+      "owner": "plant",
+      "scope": "site",
+      "transport": "tcp",
+      "port": 8443,
+      "host": "mes.plant.local",
+      "addresses": [
+        "10.20.0.15/32",
+        "fd00:20::15/128"
+      ],
+      "purpose": "mes-api for tests",
+      "processes": []
+    }
+  ],
+  "dns": {
+    "resolvers": [
+      "10.20.0.53"
+    ],
+    "needed": true
+  },
+  "unresolved": [
+    {
+      "destination": "vendor-api",
+      "host": "api.vendor.example",
+      "reason": "HOSTNAME_ONLY"
+    }
+  ]
+}

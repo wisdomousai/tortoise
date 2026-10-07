@@ -57,7 +57,12 @@ export async function openEmbeddedAuthority(options: {
     throw error;
   });
   const storage = workspaceStorage(ownership.canonicalPath);
-  const application = createApplicationRuntime({ storage, eventLog: security.eventLog });
+  // One-shot and stdio processes check posture on demand only; no background interval.
+  const application = createApplicationRuntime({
+    storage,
+    eventLog: security.eventLog,
+    services: { assurance: security.monitor },
+  });
   try {
     await security.attest({ instance: ownership.instance });
     await security.recover(application);

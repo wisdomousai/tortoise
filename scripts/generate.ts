@@ -3,6 +3,14 @@ import { commandWords, synopsis } from '@agent-native/adapters/cli-syntax';
 import { applicationModules } from '../apps/service/src/modules';
 import { hostComponents } from '../apps/service/src/components';
 import identity from '../app.config.json';
+import rootPackage from '../package.json';
+import {
+  controls,
+  controlsMarkdown,
+  cycloneDx,
+  dataFlowsMarkdown,
+  securityManifest,
+} from '@agent-native/assurance';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 
@@ -71,6 +79,15 @@ const paths = Object.fromEntries(
     },
   ]),
 );
+// Security assurance artifacts come from the same composed catalog plus the lockfile. They are
+// declarations, not a site's bindings: `security export --site` applies a policy.
+const manifest = securityManifest({
+  application: identity.name,
+  catalog,
+  components: hostComponents,
+});
+const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
+const lock = await readFile(join(import.meta.dir, '..', 'bun.lock'), 'utf8');
 const outputs = new Map([
   ['contract.json', JSON.stringify(JSON.parse(canonicalJson(catalog)), null, 2) + '\n'],
   [
@@ -100,6 +117,14 @@ const outputs = new Map([
             `## ${workflow.id}\n\n${workflow.text}\n\nOperations: ${workflow.operations.map((id) => `\`${id}\``).join(', ')}.\n`,
         )
         .join('\n'),
+  ],
+  ['security-manifest.json', json(manifest)],
+  ['data-flows.md', dataFlowsMarkdown(manifest)],
+  ['controls.json', json(controls)],
+  ['controls.md', controlsMarkdown(controls)],
+  [
+    'sbom.cdx.json',
+    json(cycloneDx({ application: identity.name, version: rootPackage.version, lock, manifest })),
   ],
   [
     'application-skill/SKILL.md',

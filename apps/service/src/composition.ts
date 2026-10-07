@@ -49,6 +49,13 @@ import {
   deviceAuthorizationRoute,
   type DeviceState,
 } from '@agent-native/devices/server';
+import {
+  assuranceAuthorizationRoute,
+  createAssuranceHandlers,
+  createAssuranceState,
+  type AssuranceServices,
+  type AssuranceState,
+} from '@agent-native/assurance/server';
 import { applicationModules } from './modules';
 import { hostComponents } from './components';
 
@@ -58,8 +65,12 @@ export interface ApplicationState {
   quality: QualityState;
   lineStation: LineState;
   devices: DeviceState;
+  assurance: AssuranceState;
 }
-export type ApplicationServices = ProjectTaskServices & QualityServices & LineServices;
+export type ApplicationServices = ProjectTaskServices &
+  QualityServices &
+  LineServices &
+  AssuranceServices;
 
 export const INTEGRATION_PRINCIPAL = 'integration';
 /** The homebrew MES integration; separate from the quality integration and every station bridge. */
@@ -79,6 +90,8 @@ export function createApplicationState(ownerId = 'owner'): ApplicationState {
       ],
     }),
     devices: createDeviceState(),
+    // The workspace owner reads the audit trail; further auditors are application policy.
+    assurance: createAssuranceState([ownerId]),
   };
 }
 
@@ -97,6 +110,7 @@ export function upgradeApplicationState(state: unknown, ownerId = 'owner'): Appl
     quality: (value.quality as QualityState | undefined) ?? fresh.quality,
     lineStation: (value.lineStation as LineState | undefined) ?? fresh.lineStation,
     devices: (value.devices as DeviceState | undefined) ?? fresh.devices,
+    assurance: (value.assurance as AssuranceState | undefined) ?? fresh.assurance,
   };
 }
 
@@ -129,6 +143,7 @@ export const applicationAuthorization = composeAuthorization<ApplicationState>([
       return role === 'supervisor' ? 'administer' : role ? 'read' : undefined;
     },
   })),
+  assuranceAuthorizationRoute<ApplicationState>((state) => state.assurance),
 ]);
 
 /** Compose the application once; HTTP, embedded MCP and tests all use this definition. */
@@ -159,6 +174,10 @@ export function createApplicationRuntime(options: {
       ...sliceHandlers<ApplicationState, 'devices', ApplicationServices>(
         'devices',
         createDeviceHandlers(),
+      ),
+      ...sliceHandlers<ApplicationState, 'assurance', ApplicationServices>(
+        'assurance',
+        createAssuranceHandlers(),
       ),
     ],
     storage: options.storage,

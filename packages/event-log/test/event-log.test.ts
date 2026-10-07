@@ -157,6 +157,25 @@ describe('JSON-lines event log', () => {
   });
 });
 
+describe('live verification', () => {
+  test('verifies up to the writer head and ignores an append in progress', async () => {
+    await withDirectory(async (directory) => {
+      const log = await openJsonlEventLog({ directory, source, now });
+      await log.append([record(1), record(2)]);
+      const head = log.head();
+      // A concurrent append that has written only part of its line.
+      await appendFile(join(directory, segmentName(1)), '{"seq":');
+      expect((await verifyEventLog(directory, { head })).ok).toBe(true);
+      expect((await verifyEventLog(directory)).problems[0]?.problem).toBe('torn final line');
+      const forged = await verifyEventLog(directory, { head: { ...head, hash: 'f'.repeat(64) } });
+      expect(forged.problems.map((problem) => problem.problem)).toEqual([
+        'event at head does not match the writer',
+      ]);
+      await log.close();
+    });
+  });
+});
+
 describe('JSON-lines writer lock', () => {
   test('a second writer is refused until the first closes', async () => {
     await withDirectory(async (directory) => {

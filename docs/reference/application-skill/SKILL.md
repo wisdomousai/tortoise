@@ -45,6 +45,14 @@ Tools: `project_create`, `task_create`, `task_list`, `task_set_status`.
 
 CLI: `agent-native-desktop-starter project create`, `agent-native-desktop-starter task create`, `agent-native-desktop-starter task list`, `agent-native-desktop-starter task set-status`.
 
+## review-security-posture
+
+Start with the posture. For any check that is not passing, list the matching audit events (for example kinds egress.denied, command.denied or posture.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.
+
+Tools: `assurance_posture_get`, `assurance_events_list`, `assurance_log_verify`.
+
+CLI: `agent-native-desktop-starter assurance posture get`, `agent-native-desktop-starter assurance events list`, `agent-native-desktop-starter assurance log verify`.
+
 ## shift-handover
 
 Summarize each station for the next shift: active order and counters with their freshness and source, stops and their classification, open attention items and held screen procedures, and records the MES rejected. Report observed values as observed (with time and confidence), not as facts.

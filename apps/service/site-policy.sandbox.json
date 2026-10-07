@@ -1,0 +1,26 @@
+{
+  "profile": "sandbox",
+  "mode": "connected",
+  "destinations": {
+    "mes-api": {
+      "url": "https://mes.plant.local:8443",
+      "addresses": ["10.20.0.15/32"]
+    },
+    "quality-system-api": {
+      "url": "https://qms.plant.local",
+      "addresses": ["10.20.0.21/32"]
+    },
+    "audit-collector": {
+      "url": "tcp://10.20.0.40:6514",
+      "addresses": ["10.20.0.40/32"],
+      "tls": true
+    },
+    "station-screen": { "disabled": true, "reason": "No web HMI on this line." },
+    "openai-auth": { "disabled": true, "reason": "No cloud inference in the sandbox." },
+    "openai-api": { "disabled": true, "reason": "No cloud inference in the sandbox." },
+    "anthropic-api": { "disabled": true, "reason": "No cloud inference in the sandbox." }
+  },
+  "audit": { "mode": "fail-closed", "forwardTo": "audit-collector" },
+  "identity": "grant-file",
+  "grants": { "maxTtlSeconds": 3600 }
+}

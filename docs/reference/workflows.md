@@ -24,6 +24,12 @@ Create a project from the brief, add concrete tasks, inspect the scoped task lis
 
 Operations: `project.create`, `task.create`, `task.list`, `task.set-status`.
 
+## review-security-posture
+
+Start with the posture. For any check that is not passing, list the matching audit events (for example kinds egress.denied, command.denied or posture.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.
+
+Operations: `assurance.posture.get`, `assurance.events.list`, `assurance.log.verify`.
+
 ## shift-handover
 
 Summarize each station for the next shift: active order and counters with their freshness and source, stops and their classification, open attention items and held screen procedures, and records the MES rejected. Report observed values as observed (with time and confidence), not as facts.

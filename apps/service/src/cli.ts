@@ -19,6 +19,7 @@ import { LOCAL_WORKSPACE, openEmbeddedAuthority, type EmbeddedAuthority } from '
 import { applicationModules } from './modules';
 import { hostComponents } from './components';
 import type { SecurityOptions } from './security';
+import { assuranceCommand, assuranceUsage } from './assurance-cli';
 
 /**
  * Application command line, compiled into one binary by `bun run build:cli`.
@@ -275,8 +276,11 @@ export async function main(argv: readonly string[]): Promise<number> {
     if (verb === 'mcp') return await mcpCommand(args.slice(1));
     if (verb === 'drain') return await drainCommand(args.slice(1));
     if (verb === 'sync') return await syncCommand(args.slice(1));
+    // Loaded with the CLI but touching no workspace: policy checks, rule export, log audit.
+    const assurance = await assuranceCommand(args);
+    if (assurance !== undefined) return assurance;
     if (verb === undefined || (verb === 'help' && args.length === 1) || verb === '--help') {
-      process.stdout.write(authorityUsage + '\n');
+      process.stdout.write(authorityUsage + '\n' + assuranceUsage(program) + '\n');
       return await operationCommand(['help']);
     }
     return await operationCommand(args);

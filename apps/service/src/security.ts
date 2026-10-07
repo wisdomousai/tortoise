@@ -32,6 +32,7 @@ import {
   type ForwardingEventLog,
   type JsonlEventLog,
 } from '@agent-native/event-log';
+import { createPostureMonitor } from '@agent-native/assurance';
 import identity from '../../../app.config.json';
 import { hostComponents } from './components';
 import { applicationModules } from './modules';
@@ -192,6 +193,16 @@ export async function openSecurity(
     await log.close();
     throw error;
   }
+  const catalogDigest = digest(catalog);
+  // Passive posture checks over this log; the assurance capabilities read through it.
+  const monitor = createPostureMonitor({
+    policy,
+    directory,
+    head: () => log.head(),
+    eventLog,
+    forwarding: () => forwarder?.stats(),
+    attestation: async () => ({ catalogDigest, executableDigest: await digestExecutable() }),
+  });
   let closed = false;
   return {
     policy,
@@ -199,6 +210,7 @@ export async function openSecurity(
     eventLog,
     egress,
     proxy,
+    monitor,
     logDirectory: directory,
     forwarding: () => forwarder?.stats(),
     /**
@@ -215,7 +227,7 @@ export async function openSecurity(
             ...extra,
             application: identity.name,
             executableDigest: await digestExecutable(),
-            catalogDigest: digest(catalog),
+            catalogDigest,
             policyDigest: policy.digest,
             profile: policy.profile,
             networkMode: policy.mode,
@@ -256,10 +268,11 @@ export async function openSecurity(
       const pending = unresolvedCommands(await readEvents(directory, { kinds: recoveryKinds }));
       return pending.length ? (await application.recoverAudit(pending)).length : 0;
     },
-    /** Stop the proxy, offer queued events to the collector, then release the log lock. */
+    /** Stop monitoring and the proxy, offer queued events to the collector, release the lock. */
     async close() {
       if (closed) return;
       closed = true;
+      await monitor.stop();
       await proxy?.close().catch(() => undefined);
       await forwarder?.flush().catch(() => undefined);
       sink?.close();

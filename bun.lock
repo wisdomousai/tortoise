@@ -7,6 +7,7 @@
       "dependencies": {
         "@agent-native/adapters": "workspace:*",
         "@agent-native/agents": "workspace:*",
+        "@agent-native/assurance": "workspace:*",
         "@agent-native/client": "workspace:*",
         "@agent-native/contracts": "workspace:*",
         "@agent-native/devices": "workspace:*",
@@ -92,6 +93,10 @@
       "name": "@agent-native/agents",
       "version": "0.1.0",
     },
+    "packages/assurance": {
+      "name": "@agent-native/assurance",
+      "version": "0.1.0",
+    },
     "packages/client": {
       "name": "@agent-native/client",
       "version": "0.1.0",
@@ -148,6 +153,8 @@
     "@agent-native/adapters": ["@agent-native/adapters@workspace:packages/adapters"],
 
     "@agent-native/agents": ["@agent-native/agents@workspace:packages/agents"],
+
+    "@agent-native/assurance": ["@agent-native/assurance@workspace:packages/assurance"],
 
     "@agent-native/client": ["@agent-native/client@workspace:packages/client"],
 

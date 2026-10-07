@@ -48,6 +48,7 @@
   "dependencies": {
     "@agent-native/adapters": "workspace:*",
     "@agent-native/agents": "workspace:*",
+    "@agent-native/assurance": "workspace:*",
     "@agent-native/client": "workspace:*",
     "@agent-native/contracts": "workspace:*",
     "@agent-native/devices": "workspace:*",

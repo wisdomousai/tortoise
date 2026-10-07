@@ -1,0 +1,346 @@
+{
+  "format": 1,
+  "application": "agent-native-desktop-starter",
+  "owners": [
+    {
+      "id": "anthropic",
+      "kind": "component",
+      "description": "Claude Agent SDK harness with API-key funding."
+    },
+    {
+      "id": "assurance",
+      "kind": "module"
+    },
+    {
+      "id": "authority",
+      "kind": "component",
+      "description": "Local authority service: HTTP/SSE API, MCP attach and audit forwarding."
+    },
+    {
+      "id": "device-config",
+      "kind": "module"
+    },
+    {
+      "id": "line-station",
+      "kind": "module"
+    },
+    {
+      "id": "openai",
+      "kind": "component",
+      "description": "ChatGPT plan sign-in, model catalog, Codex app-server and AI SDK inference."
+    },
+    {
+      "id": "project-tasks",
+      "kind": "module"
+    },
+    {
+      "id": "quality-inspection",
+      "kind": "module"
+    }
+  ],
+  "network": [
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "prompt",
+        "application-context",
+        "tool-results"
+      ],
+      "direction": "egress",
+      "host": "api.anthropic.com",
+      "id": "anthropic-api",
+      "offline": "unavailable",
+      "owner": "anthropic",
+      "protocol": "https",
+      "purpose": "Inference for Claude runs.",
+      "scope": "internet"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "audit-event"
+      ],
+      "direction": "egress",
+      "id": "audit-collector",
+      "offline": "degrade",
+      "owner": "authority",
+      "protocol": "tcp",
+      "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
+      "scope": "site"
+    },
+    {
+      "availability": "required",
+      "dataClasses": [],
+      "direction": "ingress",
+      "id": "authority-http",
+      "owner": "authority",
+      "protocol": "http",
+      "purpose": "Serve the frontend, API, events and attach connections.",
+      "scope": "loopback"
+    },
+    {
+      "availability": "required",
+      "dataClasses": [
+        "stop-classification",
+        "count-confirmation"
+      ],
+      "direction": "egress",
+      "id": "mes-api",
+      "offline": "queue",
+      "owner": "line-station",
+      "protocol": "https",
+      "purpose": "Forward stop classifications and count confirmations to the MES and pull orders and reasons.",
+      "scope": "site",
+      "targets": [
+        "mes"
+      ]
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "prompt",
+        "application-context",
+        "tool-results"
+      ],
+      "direction": "egress",
+      "host": "api.openai.com",
+      "id": "openai-api",
+      "offline": "unavailable",
+      "owner": "openai",
+      "protocol": "https",
+      "purpose": "Model catalog and inference for Codex and AI SDK runs.",
+      "scope": "internet"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "oauth-authorization",
+        "identity-token"
+      ],
+      "direction": "egress",
+      "host": "auth.openai.com",
+      "id": "openai-auth",
+      "offline": "unavailable",
+      "owner": "openai",
+      "protocol": "https",
+      "purpose": "ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.",
+      "scope": "internet"
+    },
+    {
+      "availability": "required",
+      "dataClasses": [
+        "inspection-result",
+        "defect",
+        "usage-decision"
+      ],
+      "direction": "egress",
+      "id": "quality-system-api",
+      "offline": "queue",
+      "owner": "quality-inspection",
+      "protocol": "https",
+      "purpose": "Forward results, defects and usage decisions to the quality system and pull lots and characteristics from it.",
+      "scope": "site",
+      "targets": [
+        "quality-system"
+      ]
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "screen-input",
+        "recipe-selection"
+      ],
+      "direction": "egress",
+      "id": "station-screen",
+      "offline": "queue",
+      "owner": "line-station",
+      "protocol": "https",
+      "purpose": "Reach the legacy station software screen to observe it and run declared procedures (web HMI, VNC or RDP, per site).",
+      "scope": "site",
+      "targets": [
+        "legacy-hmi"
+      ]
+    }
+  ],
+  "devices": [],
+  "processes": [
+    {
+      "availability": "optional",
+      "executable": "claude",
+      "id": "claude-code",
+      "network": [
+        "anthropic-api"
+      ],
+      "owner": "anthropic",
+      "purpose": "Claude Code process driven by the Agent SDK."
+    },
+    {
+      "availability": "optional",
+      "executable": "codex",
+      "id": "codex-app-server",
+      "network": [
+        "openai-api"
+      ],
+      "owner": "openai",
+      "purpose": "Codex app-server harness under a delegated grant."
+    },
+    {
+      "availability": "optional",
+      "executable": "chromium (Playwright)",
+      "id": "station-bridge-browser",
+      "network": [
+        "station-screen"
+      ],
+      "owner": "authority",
+      "purpose": "Browser that reaches a web-based station HMI for the screen bridge."
+    }
+  ],
+  "flows": [
+    {
+      "operation": "inspection.decision.set",
+      "kind": "command",
+      "module": "quality-inspection",
+      "target": "quality-system",
+      "destinations": [
+        "quality-system-api"
+      ],
+      "dataClasses": [
+        "defect",
+        "inspection-result",
+        "usage-decision"
+      ],
+      "auditFields": []
+    },
+    {
+      "operation": "inspection.defect.record",
+      "kind": "command",
+      "module": "quality-inspection",
+      "target": "quality-system",
+      "destinations": [
+        "quality-system-api"
+      ],
+      "dataClasses": [
+        "defect",
+        "inspection-result",
+        "usage-decision"
+      ],
+      "auditFields": []
+    },
+    {
+      "operation": "inspection.result.correct",
+      "kind": "command",
+      "module": "quality-inspection",
+      "target": "quality-system",
+      "destinations": [
+        "quality-system-api"
+      ],
+      "dataClasses": [
+        "defect",
+        "inspection-result",
+        "usage-decision"
+      ],
+      "auditFields": []
+    },
+    {
+      "operation": "inspection.result.record",
+      "kind": "command",
+      "module": "quality-inspection",
+      "target": "quality-system",
+      "destinations": [
+        "quality-system-api"
+      ],
+      "dataClasses": [
+        "defect",
+        "inspection-result",
+        "usage-decision"
+      ],
+      "auditFields": []
+    },
+    {
+      "operation": "inspection.result.record-batch",
+      "kind": "command",
+      "module": "quality-inspection",
+      "target": "quality-system",
+      "destinations": [
+        "quality-system-api"
+      ],
+      "dataClasses": [
+        "defect",
+        "inspection-result",
+        "usage-decision"
+      ],
+      "auditFields": []
+    },
+    {
+      "operation": "line.count.confirm",
+      "kind": "command",
+      "module": "line-station",
+      "target": "mes",
+      "destinations": [
+        "mes-api"
+      ],
+      "dataClasses": [
+        "count-confirmation",
+        "stop-classification"
+      ],
+      "auditFields": []
+    },
+    {
+      "operation": "line.order.start",
+      "kind": "command",
+      "module": "line-station",
+      "target": "legacy-hmi",
+      "destinations": [
+        "station-screen"
+      ],
+      "dataClasses": [
+        "recipe-selection",
+        "screen-input"
+      ],
+      "auditFields": []
+    },
+    {
+      "operation": "line.stop.classify",
+      "kind": "command",
+      "module": "line-station",
+      "target": "mes",
+      "destinations": [
+        "mes-api"
+      ],
+      "dataClasses": [
+        "count-confirmation",
+        "stop-classification"
+      ],
+      "auditFields": []
+    }
+  ],
+  "summary": {
+    "egress": 7,
+    "ingress": 1,
+    "internet": [
+      "anthropic-api",
+      "openai-api",
+      "openai-auth"
+    ],
+    "required": [
+      "authority-http",
+      "mes-api",
+      "quality-system-api"
+    ],
+    "dataClasses": [
+      "application-context",
+      "audit-event",
+      "count-confirmation",
+      "defect",
+      "identity-token",
+      "inspection-result",
+      "oauth-authorization",
+      "prompt",
+      "recipe-selection",
+      "screen-input",
+      "stop-classification",
+      "tool-results",
+      "usage-decision"
+    ]
+  }
+}

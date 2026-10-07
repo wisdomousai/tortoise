@@ -25,6 +25,12 @@ export interface VerifyOptions {
    * must be the genesis event; with it the first event must link to this head.
    */
   readonly anchor?: { readonly seq: number; readonly hash: string };
+  /**
+   * Verify a live log up to a head its writer reported (`JsonlEventLog.head()`). Events after it,
+   * including a line still being written, are ignored, and the event at `head.seq` must carry
+   * `head.hash`, which ties the files to the writer's in-memory chain.
+   */
+  readonly head?: { readonly seq: number; readonly hash: string };
 }
 
 /**
@@ -43,12 +49,16 @@ export async function verifyEventLog(
   let firstSeq: number | undefined;
   let events = 0;
   let checkpoints = 0;
-  for (const segment of segments) {
+  const limit = options.head?.seq ?? Number.POSITIVE_INFINITY;
+  let lastSegment = '';
+  scan: for (const segment of segments) {
+    lastSegment = segment;
     const text = await readFile(join(directory, segment), 'utf8');
-    if (text.length && !text.endsWith('\n'))
-      problems.push({ segment, line: text.split('\n').length, problem: 'torn final line' });
     const lines = text.split('\n');
+    if (text.length && !text.endsWith('\n') && options.head === undefined)
+      problems.push({ segment, line: lines.length, problem: 'torn final line' });
     for (let index = 0; index < lines.length; index++) {
+      if (expected.seq >= limit) break scan;
       const line = lines[index]!;
       if (!line) continue;
       const at = { segment, line: index + 1 };
@@ -56,6 +66,8 @@ export async function verifyEventLog(
       try {
         event = JSON.parse(line) as AuditEvent;
       } catch {
+        // With a live head, an unterminated last line is an append in progress, not damage.
+        if (options.head && index === lines.length - 1) break;
         problems.push({ ...at, problem: 'unparseable event' });
         continue;
       }
@@ -82,6 +94,18 @@ export async function verifyEventLog(
       expected = { seq: event.seq, hash };
     }
   }
+  if (options.head && expected.seq < options.head.seq)
+    problems.push({
+      segment: lastSegment,
+      line: 0,
+      problem: `log ends before head ${options.head.seq}`,
+    });
+  else if (options.head && expected.hash !== options.head.hash)
+    problems.push({
+      segment: lastSegment,
+      line: 0,
+      problem: 'event at head does not match the writer',
+    });
   return {
     ok: problems.length === 0,
     segments: segments.length,

@@ -1,0 +1,21 @@
+{
+  "profile": "sandbox",
+  "mode": "connected",
+  "destinations": {
+    "mes-api": {
+      "url": "https://mes.plant.local:8443",
+      "addresses": ["10.20.0.15/32", "fd00:20::15/128"]
+    },
+    "vendor-api": { "url": "https://api.vendor.example" },
+    "audit-collector": {
+      "url": "tcp://10.20.0.40:6514",
+      "addresses": ["10.20.0.40/32"],
+      "tls": true
+    },
+    "local-model": { "url": "http://127.0.0.1:11434" },
+    "station-screen": { "disabled": true, "reason": "No web HMI on this line." }
+  },
+  "audit": { "mode": "fail-closed", "forwardTo": "audit-collector" },
+  "identity": "grant-file",
+  "grants": { "maxTtlSeconds": 3600 }
+}
