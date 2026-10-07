@@ -136,18 +136,28 @@ function validDate(value: string): boolean {
   return month >= 1 && month <= 12 && day <= 31;
 }
 
+/** Length rule for an AI's data, shared by the raw and bracketed syntaxes. */
+function lengthIssue(ai: string, prefix: number, value: string): string | undefined {
+  const fixed = fixedData[prefix];
+  if (fixed !== undefined)
+    return value.length === fixed ? undefined : `AI ${ai} needs ${fixed} characters`;
+  const max = variableMax[ai] ?? 90;
+  return value.length === 0 || value.length > max ? `Length must be 1 to ${max}` : undefined;
+}
+
 function element(ai: string, value: string): Gs1Element {
   const prefix = Number(ai.slice(0, 2));
-  let issue: string | undefined;
+  // A length issue wins: the content rules below assume the declared length.
+  let issue = lengthIssue(ai, prefix, value);
   let decimals: number | undefined;
   let numeric: number | undefined;
   if (['00', '01', '02', '03'].includes(ai) || (prefix === 41 && ai.length === 3)) {
-    if (!gs1CheckDigitValid(value)) issue = 'Check digit mismatch';
-  } else if (prefix >= 11 && prefix <= 17 && !validDate(value)) issue = 'Invalid date';
+    if (!gs1CheckDigitValid(value)) issue ??= 'Check digit mismatch';
+  } else if (prefix >= 11 && prefix <= 17 && !validDate(value)) issue ??= 'Invalid date';
   if ((prefix >= 31 && prefix <= 36) || ai.startsWith('392')) {
     decimals = Number(ai.at(-1));
     if (/^\d+$/.test(value)) numeric = Number(value) / 10 ** decimals;
-    else issue = 'Expected digits';
+    else issue ??= 'Expected digits';
   } else if ((ai === '30' || ai === '37') && /^\d+$/.test(value)) numeric = Number(value);
   const title = titles[ai] ?? (ai.length === 4 ? measureTitles[ai.slice(0, 3)] : undefined);
   return {
@@ -211,13 +221,7 @@ export function parseGs1(data: string): Gs1Result {
     }
     const end = data.indexOf(GROUP_SEPARATOR, position);
     const value = data.slice(position, end < 0 ? data.length : end);
-    const max = variableMax[ai] ?? 90;
-    const parsed = element(ai, value);
-    elements.push(
-      value.length === 0 || value.length > max
-        ? { ...parsed, issue: `Length must be 1 to ${max}` }
-        : parsed,
-    );
+    elements.push(element(ai, value));
     position = end < 0 ? data.length : end + 1;
   }
   return result(elements);

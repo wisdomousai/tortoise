@@ -15,6 +15,11 @@ import {
 
 export type InputChannel = 'keyboard' | 'scanner' | 'touch';
 
+// Stable defaults: a fresh array or profile per render would recreate `connect` and make the
+// connection effect tear down the device it just opened.
+const NO_ROUTES: readonly ScanRoute[] = [];
+const DEFAULT_PROFILE = defaultWedgeProfile();
+
 function sourceFor(profile: ScannerProfile, video?: HTMLVideoElement): ScannerSource | undefined {
   switch (profile.transport) {
     case 'wedge':
@@ -39,8 +44,8 @@ function sourceFor(profile: ScannerProfile, video?: HTMLVideoElement): ScannerSo
  * arrived, so a datapoint can report its input channel.
  */
 export function useScanner({
-  profile = defaultWedgeProfile(),
-  routes = [],
+  profile = DEFAULT_PROFILE,
+  routes = NO_ROUTES,
   onScan,
   onRoute,
   enabled = true,
@@ -59,7 +64,10 @@ export function useScanner({
   const [error, setError] = React.useState<string>();
   const handlers = React.useRef({ onScan, onRoute });
   handlers.current = { onScan, onRoute };
-  const router = React.useMemo(() => createScanRouter(routes), [routes]);
+  // Routing is read per scan, so changing routes never reconnects the physical device.
+  const scanRouter = React.useMemo(() => createScanRouter(routes), [routes]);
+  const router = React.useRef(scanRouter);
+  router.current = scanRouter;
   const stop = React.useRef<(() => void) | undefined>(undefined);
 
   const connect = React.useCallback(async () => {
@@ -72,11 +80,11 @@ export function useScanner({
     try {
       stop.current = await source.start({
         onScan: (scan) => {
-          const routed = router.route(scan);
-          setLast({ scan, ...(routed ? { routed } : {}) });
+          const match = router.current.route(scan);
+          setLast({ scan, ...(match ? { routed: match } : {}) });
           setChannel('scanner');
           handlers.current.onScan?.(scan);
-          if (routed) handlers.current.onRoute?.(routed);
+          if (match) handlers.current.onRoute?.(match);
         },
         onError: (failure) => setError(failure.message),
       });
@@ -86,7 +94,7 @@ export function useScanner({
       setError(failure instanceof Error ? failure.message : 'Scanner unavailable');
       setConnected(false);
     }
-  }, [profile, router, video]);
+  }, [profile, video]);
 
   React.useEffect(() => {
     if (enabled && profile.transport === 'wedge') void connect();

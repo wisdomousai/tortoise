@@ -191,6 +191,22 @@ describe('sources and routing', () => {
     expect(assembler.push(new TextEncoder().encode('\n'))).toEqual(['X']);
   });
 
+  test('CR-only scanners emit each scan at its terminator, not at the next scan', () => {
+    const assembler = new LineAssembler();
+    const encode = (text: string) => new TextEncoder().encode(text);
+    expect(assembler.push(encode('ORDER123\r'))).toEqual(['ORDER123']);
+    // An LF that follows the CR in a later chunk belongs to the same terminator.
+    expect(assembler.push(encode('\nLOT9\r'))).toEqual(['LOT9']);
+    expect(assembler.push(encode('\n'))).toEqual([]);
+  });
+
+  test('bracketed GS1 applies the same length rules as the raw element string', () => {
+    expect(parseGs1('(01)00').valid).toBe(false);
+    expect(parseGs1('(01)00').elements[0]!.issue).toContain('needs 14');
+    expect(parseGs1('(10)').valid).toBe(false);
+    expect(parseGs1('(10)ABC').valid).toBe(true);
+  });
+
   test('HID POS reports assemble across a full report', () => {
     const assembler = new HidReportAssembler({ lengthByte: 0, dataOffset: 4 });
     const report = (text: string, size = 8) => {
