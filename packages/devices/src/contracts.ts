@@ -67,7 +67,7 @@ export const deviceOperations = {
     output: jsonSchema(stationDeviceConfigSchema),
     permission: administer,
     dependencies: ['device'],
-    ui: { binding: 'scanner-setup' },
+    ui: { exception: 'administrator configuration over CLI or MCP; scanner setup shows routes' },
   }),
 } as const;
 

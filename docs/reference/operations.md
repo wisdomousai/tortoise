@@ -252,7 +252,7 @@ Replace the ordered scan routes of a station as its administrator. The first mat
 - Kind: command
 - MCP: `device_routes_save`
 - Permission: `administer` on `DeviceConfig`
-- UI: scanner-setup
+- UI: administrator configuration over CLI or MCP; scanner setup shows routes
 - CLI: `agent-native-desktop-starter device routes save --routes <json> --station <string> [--key <idempotency-key>]`
 
 Input:
@@ -3274,7 +3274,7 @@ Record up to 100 measurements for one open lot in a single commit, for example f
 - Kind: command
 - MCP: `inspection_result_record_batch`
 - Permission: `capture` on `InspectionLot`
-- UI: inspection.result.record-batch
+- UI: instrument import by agents and scripts; people record one sample at a time
 - System of record: forwarded to `quality-system` through the outbox. A receipt proves the local commit, not acceptance by the target.
 - CLI: `agent-native-desktop-starter inspection result record-batch --lot-id <string> --results <json> [--station <string>] [--key <idempotency-key>]`
 
@@ -3637,7 +3637,7 @@ Return the next characteristic and sample to measure for an open lot, and how ma
 - Kind: query
 - MCP: `inspection_worklist`
 - Permission: `read` on `InspectionLot`
-- UI: inspection.worklist
+- UI: agent capture loop; the capture screen reads the next sample from lot.get
 - CLI: `agent-native-desktop-starter inspection worklist --lot-id <string>`
 
 Input:

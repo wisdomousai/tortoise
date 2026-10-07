@@ -168,7 +168,9 @@ _A UI control bound to a capability through the typed client._
 
 The UI's equivalent of a tool call. It turns a person's intent into exactly one command, however many times they tap.
 
-Guarantees: one idempotency key per intent, kept across retries until commit. Validation uses the contract's schema and field errors map back to inputs. Drafts stay separate from committed data and conflict explicitly: a draft pins the object it edits (capture pins its characteristic and sample; scanner setup keeps the revision it loaded and saves with it as the expected revision), so an external write shows a conflict instead of retargeting or discarding the entry.
+Guarantees: one idempotency key per intent, kept across retries until commit. Validation uses the contract's schema and field errors map back to inputs. Drafts stay separate from committed data and conflict explicitly: a draft pins the object it edits (capture pins its characteristic and sample; scanner setup keeps the revision it loaded and saves with it as the expected revision), so an external write shows a conflict instead of retargeting or discarding the entry. Every operation that claims a UI binding is referenced by a screen of the reference web app; an operation no screen offers declares an exception instead.
+
+Gaps: the reference check proves a screen names the capability, not that a control renders it.
 
 Serves P1, P4 · implemented · `packages/react` · `useCapabilityForm`, `useCommand`, `useLiveQuery`
 

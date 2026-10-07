@@ -10,7 +10,7 @@ Each operation has one handler. Every surface reaches it with the same validatio
 
 **Rules out:** UI-only endpoints, agent-only tools, admin scripts that write the database, business logic inside a transport or component.
 
-**Enforced by:** catalog validation rejects an operation without a UI binding or declared exception (`packages/contracts/test/contracts.test.ts`); the same scenarios run through direct, HTTP, CLI subprocess and MCP and must agree (`packages/testing/test/transport-conformance.test.ts`, `inspection-conformance.test.ts`, `station-conformance.test.ts`). **Convention only:** that a UI binding declaration is actually rendered; browser specs cover the reference screens, not every operation.
+**Enforced by:** catalog validation rejects an operation without a UI binding or declared exception (`packages/contracts/test/contracts.test.ts`); the same scenarios run through direct, HTTP, CLI subprocess and MCP and must agree (`packages/testing/test/transport-conformance.test.ts`, `inspection-conformance.test.ts`, `station-conformance.test.ts`). `apps/web/ui-bindings.test.ts` fails when an operation claims a UI binding that no screen references. **Convention only:** that a referenced binding is actually rendered; browser specs cover the reference screens, not every operation.
 
 ### P2 — The catalog is the only description of what the application can do
 

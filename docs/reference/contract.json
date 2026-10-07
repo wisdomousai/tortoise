@@ -517,7 +517,7 @@
         "resourceType": "DeviceConfig"
       },
       "ui": {
-        "binding": "scanner-setup"
+        "exception": "administrator configuration over CLI or MCP; scanner setup shows routes"
       }
     },
     {
@@ -3519,7 +3519,7 @@
         "resourceType": "InspectionLot"
       },
       "ui": {
-        "binding": "inspection.result.record-batch"
+        "exception": "instrument import by agents and scripts; people record one sample at a time"
       }
     },
     {
@@ -3705,7 +3705,7 @@
         "resourceType": "InspectionLot"
       },
       "ui": {
-        "binding": "inspection.worklist"
+        "exception": "agent capture loop; the capture screen reads the next sample from lot.get"
       }
     },
     {

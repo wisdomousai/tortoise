@@ -86,6 +86,10 @@ test('keyboard-only capture records, advances, deduplicates and shows SoR outcom
     await page.getByLabel('Role').selectOption('inspector');
     await page.getByRole('button', { name: 'Update plant role' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Saved' })).toBeVisible();
+    // The plant list follows the grant live; a supervisor sees the new member.
+    await expect(page.getByRole('list', { name: 'Plant memberships' })).toContainText(
+      'ina: inspector',
+    );
 
     // Triage: correct the rejected result. The correction supersedes it (the original leaves the
     // open rejections) and is forwarded again; the lot is still locked, so it is rejected too.

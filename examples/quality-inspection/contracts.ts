@@ -253,7 +253,10 @@ export const operations = {
     z.strictObject({ lotId: id }),
     z.strictObject({ lotId: id, next: nextSample.nullable(), remaining: z.number().int() }),
     lotRead,
-    { dependencies: ['lot', 'result'] },
+    {
+      dependencies: ['lot', 'result'],
+      exception: 'agent capture loop; the capture screen reads the next sample from lot.get',
+    },
   ),
   codeList: operation(
     'inspection.code.list',
@@ -335,7 +338,11 @@ export const operations = {
     }),
     z.strictObject({ items: z.array(resultSchema) }),
     capture,
-    { dependencies: ['lot', 'result'], integration: true },
+    {
+      dependencies: ['lot', 'result'],
+      integration: true,
+      exception: 'instrument import by agents and scripts; people record one sample at a time',
+    },
   ),
   resultCorrect: operation(
     'inspection.result.correct',

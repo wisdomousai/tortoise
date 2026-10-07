@@ -181,11 +181,35 @@ export function InspectionScreen() {
             inspection.plant.set-member contract; the authority decides who may use it.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="grid gap-4">
+          <PlantRoles />
           <CapabilityForm capability={operations.plantSetMember} submitLabel="Update plant role" />
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+/** Your role at each plant; supervisors also see who else holds one, updated live. */
+function PlantRoles() {
+  const plants = useQuery(live.liveQueryOptions(operations.plantList, {}));
+  if (!plants.data) return <p className="text-sm text-muted-foreground">Loading plants…</p>;
+  if (!plants.data.items.length)
+    return <p className="text-sm text-muted-foreground">You hold no plant role.</p>;
+  return (
+    <ul aria-label="Plant memberships" className="grid gap-2 text-sm">
+      {plants.data.items.map((plant) => (
+        <li key={plant.plant} className="flex flex-wrap items-center gap-2">
+          <span className="font-mono">{plant.plant}</span>
+          <Badge variant="secondary">{plant.role}</Badge>
+          {Object.entries(plant.members ?? {}).map(([principal, role]) => (
+            <span key={principal} className="text-muted-foreground">
+              {principal}: {role}
+            </span>
+          ))}
+        </li>
+      ))}
+    </ul>
   );
 }
 
