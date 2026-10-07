@@ -20,7 +20,17 @@ export interface Observation {
   readonly readings: readonly (Reading & {
     readonly status: 'observed' | 'uncertain';
     readonly minConfidence: number;
+    /** The profile's declaration for the field, so a correction uses the right value type. */
+    readonly declared: FieldDeclaration;
   })[];
+}
+
+/** What a profile declares about a field's value: its type and, where given, options and format. */
+export interface FieldDeclaration {
+  readonly type: StationProfile['fields'][number]['type'];
+  readonly options?: readonly string[];
+  readonly decimals?: number;
+  readonly unit?: string;
 }
 
 export interface StationObserverOptions {
@@ -76,6 +86,12 @@ export function createStationObserver(options: StationObserverOptions) {
             ? 'observed'
             : 'uncertain',
         minConfidence: field.minConfidence,
+        declared: {
+          type: field.type,
+          ...(field.options ? { options: field.options } : {}),
+          ...(field.decimals !== undefined ? { decimals: field.decimals } : {}),
+          ...(field.unit ? { unit: field.unit } : {}),
+        },
       });
     }
     const observation: Observation = {

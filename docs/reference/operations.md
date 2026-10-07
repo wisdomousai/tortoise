@@ -3774,6 +3774,9 @@ Output:
           "field": {
             "type": "string"
           },
+          "frameDigest": {
+            "type": "string"
+          },
           "id": {
             "maxLength": 128,
             "minLength": 1,
@@ -3785,6 +3788,24 @@ Output:
               "reconcile"
             ],
             "type": "string"
+          },
+          "profile": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "maxLength": 64,
+                "type": "string"
+              },
+              "version": {
+                "maxLength": 32,
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "version"
+            ],
+            "type": "object"
           },
           "proposed": {
             "anyOf": [
@@ -3813,6 +3834,41 @@ Output:
           },
           "title": {
             "type": "string"
+          },
+          "value": {
+            "additionalProperties": false,
+            "properties": {
+              "decimals": {
+                "maximum": 6,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "options": {
+                "items": {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              "type": {
+                "enum": [
+                  "number",
+                  "text",
+                  "enum",
+                  "boolean"
+                ],
+                "type": "string"
+              },
+              "unit": {
+                "maxLength": 16,
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
           }
         },
         "required": [
@@ -4455,6 +4511,41 @@ Input:
             "minimum": 0,
             "type": "number"
           },
+          "declared": {
+            "additionalProperties": false,
+            "properties": {
+              "decimals": {
+                "maximum": 6,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "options": {
+                "items": {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              "type": {
+                "enum": [
+                  "number",
+                  "text",
+                  "enum",
+                  "boolean"
+                ],
+                "type": "string"
+              },
+              "unit": {
+                "maxLength": 16,
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
           "extractor": {
             "maxLength": 64,
             "minLength": 1,
@@ -4891,6 +4982,9 @@ Output:
         "confidence": {
           "type": "number"
         },
+        "frameDigest": {
+          "type": "string"
+        },
         "model": {
           "additionalProperties": false,
           "properties": {
@@ -4916,6 +5010,24 @@ Output:
           "maximum": 9007199254740991,
           "minimum": 0,
           "type": "integer"
+        },
+        "profile": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "maxLength": 64,
+              "type": "string"
+            },
+            "version": {
+              "maxLength": 32,
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "version"
+          ],
+          "type": "object"
         },
         "source": {
           "type": "string"
@@ -5469,6 +5581,9 @@ Output:
           "confidence": {
             "type": "number"
           },
+          "frameDigest": {
+            "type": "string"
+          },
           "model": {
             "additionalProperties": false,
             "properties": {
@@ -5494,6 +5609,24 @@ Output:
             "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
+          },
+          "profile": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "maxLength": 64,
+                "type": "string"
+              },
+              "version": {
+                "maxLength": 32,
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "version"
+            ],
+            "type": "object"
           },
           "source": {
             "type": "string"

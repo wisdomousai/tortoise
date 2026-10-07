@@ -383,6 +383,73 @@ describe('line station: observe, annotate, actuate', () => {
     });
   });
 
+  test('readings keep their frame and profile; corrections follow the declared field type', async () => {
+    const env = await setup();
+    const { observe, command, query } = env;
+    await observe();
+    const station = await query('line.station.get', { station: 'line-1' });
+    expect(station.readings.machine).toMatchObject({
+      frameDigest: expect.any(String),
+      profile: { id: 'filler-hmi' },
+    });
+    // An unsure textual reading, as a vision model might report a recipe label.
+    const bridgeContext = {
+      ...as('station-bridge:line-1'),
+      grant: { operations: ['line.observation.ingest'] },
+    };
+    const uncertain = (field: string, value: string, declared: object) => ({
+      field,
+      value,
+      confidence: 0.5,
+      extractor: 'vision',
+      observedAt: T0 + 60_000,
+      frameDigest: `frame-${field}`,
+      status: 'uncertain',
+      minConfidence: 0.9,
+      declared,
+    });
+    await command(
+      'line.observation.ingest',
+      {
+        station: 'line-1',
+        profile: { id: 'filler-hmi', version: '1.0.0' },
+        screen: 'main',
+        observedAt: T0 + 60_000,
+        frameDigest: 'frame-text',
+        localInput: false,
+        readings: [
+          uncertain('recipe', 'RC-0B', { type: 'text' }),
+          uncertain('machine', 'RUNNlNG', {
+            type: 'enum',
+            options: ['RUNNING', 'STOPPED', 'ALARM'],
+          }),
+        ],
+      },
+      bridgeContext,
+    );
+    const items = (await query('line.attention.list', { station: 'line-1' })).items;
+    const recipe = items.find((item: { field?: string }) => item.field === 'recipe');
+    const machine = items.find((item: { field?: string }) => item.field === 'machine');
+    expect(recipe).toMatchObject({
+      value: { type: 'text' },
+      frameDigest: 'frame-recipe',
+      profile: { id: 'filler-hmi', version: '1.0.0' },
+    });
+    expect(machine.value).toEqual({ type: 'enum', options: ['RUNNING', 'STOPPED', 'ALARM'] });
+    for (const value of [42, '  ', true])
+      await expect(
+        command('line.reading.confirm', { attentionId: recipe.id, value }),
+      ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
+    await command('line.reading.confirm', { attentionId: recipe.id, value: 'RC-08' });
+    await expect(
+      command('line.reading.confirm', { attentionId: machine.id, value: 'RUNNlNG' }),
+    ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
+    await command('line.reading.confirm', { attentionId: machine.id, value: 'RUNNING' });
+    const readings = (await query('line.station.get', { station: 'line-1' })).readings;
+    expect(readings.recipe).toMatchObject({ value: 'RC-08', status: 'operator-verified' });
+    expect(readings.machine).toMatchObject({ value: 'RUNNING', status: 'operator-verified' });
+  });
+
   test('integration principals stay in their lane', async () => {
     const env = await setup();
     const { app, command, observe, bridge, mesDispatcher } = env;

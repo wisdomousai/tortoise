@@ -27,6 +27,13 @@ const model = z.strictObject({
 });
 
 /** One reading as the bridge submits it (see `Observation` in @agent-native/station). */
+const fieldDeclaration = z.strictObject({
+  type: z.enum(['number', 'text', 'enum', 'boolean']),
+  options: z.array(z.string().max(100)).max(100).optional(),
+  decimals: z.number().int().min(0).max(6).optional(),
+  unit: z.string().max(16).optional(),
+});
+const profileIdentity = z.strictObject({ id: z.string().max(64), version: z.string().max(32) });
 export const observedReadingSchema = z.strictObject({
   field: z.string().min(1).max(64),
   value: fieldValue,
@@ -37,10 +44,12 @@ export const observedReadingSchema = z.strictObject({
   frameDigest: z.string().min(1).max(128),
   status: z.enum(['observed', 'uncertain']),
   minConfidence: z.number().min(0).max(1),
+  /** The profile's field declaration; without it the type is inferred from the value. */
+  declared: fieldDeclaration.optional(),
 });
 export const observationSchema = z.strictObject({
   station: id,
-  profile: z.strictObject({ id: z.string().max(64), version: z.string().max(32) }),
+  profile: profileIdentity,
   screen: z.string().max(64).nullable(),
   observedAt: timestamp,
   frameDigest: z.string().min(1).max(128),
@@ -55,6 +64,9 @@ export const readingSchema = z.strictObject({
   source: z.string(),
   model: model.optional(),
   observedAt: timestamp,
+  /** Frame and profile that produced an observed value, so it can be explained afterwards. */
+  frameDigest: z.string().optional(),
+  profile: profileIdentity.optional(),
   status: z.enum(['observed', 'operator-verified']),
   verifiedBy: id.optional(),
   stale: z.boolean(),
@@ -97,8 +109,12 @@ export const attentionSchema = z.strictObject({
   detail: z.string().optional(),
   field: z.string().optional(),
   proposed: fieldValue.optional(),
+  /** How a correction must be entered: the field's declared type, options and format. */
+  value: fieldDeclaration.optional(),
   confidence: z.number().optional(),
   source: z.string().optional(),
+  frameDigest: z.string().optional(),
+  profile: profileIdentity.optional(),
   effectId: id.optional(),
   createdAt: timestamp,
 });
