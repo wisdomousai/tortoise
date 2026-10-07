@@ -18,7 +18,7 @@ import { demoSystemOfRecord } from './demo';
 import { LOCAL_WORKSPACE, openEmbeddedAuthority, type EmbeddedAuthority } from './embedded';
 import { applicationModules } from './modules';
 import { hostComponents } from './components';
-import type { SecurityOptions } from './security';
+import { assertIdentity, type SecurityOptions } from './security';
 import { assuranceCommand, assuranceUsage } from './assurance-cli';
 
 /**
@@ -152,6 +152,12 @@ async function mcpCommand(args: string[]) {
     systemOfRecord: demoSystemOfRecord(),
     security,
   });
+  try {
+    assertIdentity(authority.security.policy, context);
+  } catch (error) {
+    await authority.close();
+    throw error;
+  }
   // Load master data before the first tool call so the worklist is not empty on a fresh sandbox.
   // An unreachable system of record must not block capture; the background loop retries.
   await authority.integration.inbound.runOnce().catch((error) => {
@@ -258,6 +264,8 @@ async function operationCommand(args: string[]) {
           systemOfRecord: demoSystemOfRecord(),
           security,
         });
+        // The local owner acts only where the site policy trusts it; otherwise a grant is required.
+        assertIdentity(authority.security.policy, context);
         // Commits stay in the workspace outbox; `drain`, `mcp --embedded` or `serve` deliver them.
         return createDirectTransport(authority.application, context);
       },

@@ -28,7 +28,7 @@ import { createRunSupervisor } from '@agent-native/agents/supervisor';
 import { DeterministicHarness } from '@agent-native/agents/deterministic';
 import type { Harness, RunSnapshot, RunStore } from '@agent-native/agents/types';
 import { createProviderAccess } from './providers';
-import { openSecurity, type SecurityOptions } from './security';
+import { assertIdentity, openSecurity, type SecurityOptions } from './security';
 
 /** Run snapshots are separate from business transactions; a completed run is never a commit receipt. */
 class SQLiteRunStore implements RunStore {
@@ -64,7 +64,12 @@ class SQLiteRunStore implements RunStore {
 
 /**
  * One local authority owns the workspace. Browser, native and process clients attach via
- * authenticated loopback HTTP. Tests may inject sessions; production always starts as local owner.
+ * authenticated HTTP. The listener is loopback by default; the site policy can select a mutual
+ * TLS listener instead, and every API call still needs a session. The site policy's identity
+ * floor decides who the first session belongs to:
+ * - `local-owner`: the OS account that started the host.
+ * - `grant-file`: only the launcher's delegated grant; no owner session or credential file.
+ * - `external`: refuses to start, because no identity adapter is composed.
  */
 export async function startHost(options: {
   workspacePath: string;
@@ -112,6 +117,10 @@ export async function startHost(options: {
       childProxy: true,
     });
     startupCleanup.unshift(() => security.close());
+    // Identity floor before any state opens: under `grant-file` the launcher's delegated grant is
+    // the only principal, and the trusted local owner is never issued a session.
+    assertIdentity(security.policy, options.agentConnection?.context);
+    const localOwner = security.policy.policy.identity === 'local-owner';
     const storage = workspaceStorage(ownership.canonicalPath);
     startupCleanup.unshift(() => storage.close());
     const runStore = new SQLiteRunStore(join(ownership.canonicalPath, 'runs.sqlite'));
@@ -157,10 +166,9 @@ export async function startHost(options: {
       childEnvironment: (processId) => security.proxy!.childEnvironment(processId),
     });
     startupCleanup.unshift(() => providers.close());
-    const ownerSession = sessions.create(
-      { workspaceId: LOCAL_WORKSPACE, principalId: 'owner' },
-      365 * 86_400_000,
-    );
+    const ownerSession = localOwner
+      ? sessions.create({ workspaceId: LOCAL_WORKSPACE, principalId: 'owner' }, 365 * 86_400_000)
+      : undefined;
     async function validateResources(context: ExecutionContext, input: UiContextInput) {
       for (const resource of input.selectedResources) {
         const [kind, ...idParts] = resource.split(':');
@@ -297,6 +305,7 @@ export async function startHost(options: {
         if (url.pathname === '/api/v1/shutdown' && request.method === 'POST') {
           const body = await readJsonBody(request);
           if (
+            !ownerSession ||
             request.headers.get('authorization') !== `Bearer ${ownerSession.token}` ||
             body.instance !== ownership.instance
           )
@@ -494,28 +503,56 @@ export async function startHost(options: {
         });
       },
     });
-    const server = Bun.serve({
-      hostname: '127.0.0.1',
-      port: options.port ?? 0,
-      idleTimeout: 30,
-      fetch: handler,
-    });
+    const ingress = security.policy.policy.ingress;
+    const tls = security.policy.ingressTls;
+    // mTLS: the TLS layer admits only clients with a certificate from the site's client CA;
+    // a session token is still required on every API call. Otherwise loopback only.
+    const server =
+      ingress.listen === 'mtls' && tls
+        ? Bun.serve({
+            hostname: ingress.host!,
+            port: ingress.port!,
+            idleTimeout: 30,
+            tls: {
+              cert: Bun.file(tls.cert),
+              key: Bun.file(tls.key),
+              ca: Bun.file(tls.clientCa),
+              requestCert: true,
+              rejectUnauthorized: true,
+            },
+            fetch: handler,
+          })
+        : Bun.serve({
+            hostname: '127.0.0.1',
+            port: options.port ?? 0,
+            idleTimeout: 30,
+            fetch: handler,
+          });
     startupCleanup.unshift(() => {
       server.stop(true);
     });
-    origin = `http://127.0.0.1:${server.port}`;
+    origin =
+      ingress.listen === 'mtls'
+        ? `https://${ingress.host}:${server.port}`
+        : `http://127.0.0.1:${server.port}`;
     await ownership.publish(origin);
-    const connectionFile = join(ownership.canonicalPath, '.connection.json');
-    await writeFile(
-      connectionFile,
-      JSON.stringify({ endpoint: origin, token: ownerSession.token }),
-      { mode: 0o600 },
-    );
-    await chmod(connectionFile, 0o600);
+    // The owner's connection file exists only where the local owner is a trusted identity.
+    const connectionFile = ownerSession
+      ? join(ownership.canonicalPath, '.connection.json')
+      : undefined;
+    if (connectionFile) {
+      await writeFile(
+        connectionFile,
+        JSON.stringify({ endpoint: origin, token: ownerSession!.token }),
+        { mode: 0o600 },
+      );
+      await chmod(connectionFile, 0o600);
+    }
     const agentConnection = options.agentConnection;
+    let agentSession: ReturnType<typeof sessions.create> | undefined;
     if (agentConnection) {
       const expiresAt = agentConnection.context.grant?.expiresAt;
-      const agentSession = sessions.create(
+      agentSession = sessions.create(
         agentConnection.context,
         expiresAt === undefined ? 30 * 86_400_000 : Math.max(0, expiresAt - Date.now()),
       );
@@ -554,7 +591,7 @@ export async function startHost(options: {
       providers.close();
       await storage.close();
       runStore.close();
-      await unlink(connectionFile).catch(() => {});
+      if (connectionFile) await unlink(connectionFile).catch(() => {});
       if (agentConnection) await unlink(agentConnection.path).catch(() => {});
       await security.close();
       await ownership.release();
@@ -564,7 +601,8 @@ export async function startHost(options: {
       workspacePath: ownership.canonicalPath,
       connectionFile,
       instance: ownership.instance,
-      launchUrl: `${origin}/#launch=${sessions.launch(ownerSession)}`,
+      // The browser opens as whoever the identity floor admits: the owner, or the delegate.
+      launchUrl: `${origin}/#launch=${sessions.launch((ownerSession ?? agentSession)!)}`,
       sessions,
       application,
       security,

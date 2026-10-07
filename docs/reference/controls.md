@@ -182,12 +182,12 @@ Every command and query is authorized against current state inside the storage t
 
 **Identity and ingress floors for sandbox and zero-trust profiles** (partial)
 
-Profiles refuse to start below their floor: zero trust rejects the trusted local-owner identity, non-loopback listeners without mutual TLS, unbounded grants and an unforwarded audit log.
+Profiles refuse to start below their floor. Under a grant-file identity the host issues no local-owner session or credential file and admits only the launcher grant, which must expire within the policy maximum; embedded CLI calls are held to the same rule. The only non-loopback listener is mutual TLS against the site client CA, and a session is still required on top of the certificate. Zero trust also requires an off-host audit forwarder.
 
 Limits: A workforce identity adapter (OIDC/SAML for human principals) and certificate issuance are not part of this framework; the zero-trust profile refuses to start without them instead of falling back.
 
-- Tests: `packages/egress/test/egress.test.ts`, `apps/service/security.test.ts`
-- Artifacts: —
+- Tests: `packages/egress/test/egress.test.ts`, `apps/service/security.test.ts`, `apps/service/hardening.test.ts`
+- Artifacts: `security export --format k8s-networkpolicy|nftables`
 - Runtime events: `config.loaded`
 
 ## AN-CFG-01

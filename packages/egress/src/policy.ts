@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { access, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { z } from 'zod';
 import {
@@ -53,9 +54,15 @@ export const sitePolicySchema = z.strictObject({
   identity: z.enum(['local-owner', 'grant-file', 'external']).default('local-owner'),
   ingress: z
     .strictObject({
-      listen: z.enum(['loopback', 'unix', 'mtls']).default('loopback'),
+      /**
+       * `loopback`: 127.0.0.1, trusted local clients. `mtls`: a TLS listener that admits only
+       * clients presenting a certificate from `clientCa`; sessions are still required on top.
+       */
+      listen: z.enum(['loopback', 'mtls']).default('loopback'),
+      /** Name clients connect to; the listener binds it and checks the Host header against it. */
       host: z.string().optional(),
       port: z.number().int().min(0).max(65535).optional(),
+      /** PEM paths, relative to the policy file. */
       cert: z.string().optional(),
       key: z.string().optional(),
       clientCa: z.string().optional(),
@@ -103,6 +110,11 @@ export interface ResolvedPolicy {
   readonly consequences: readonly OfflineConsequence[];
   /** SHA-256 of the canonical policy, for attestation events and reports. */
   readonly digest: string;
+  /**
+   * Absolute PEM paths for an `mtls` listener, checked readable by `loadSitePolicy`. Paths, not
+   * contents, so the private key never sits in an object that reports and monitors pass around.
+   */
+  readonly ingressTls?: { readonly cert: string; readonly key: string; readonly clientCa: string };
 }
 
 const schemes: Record<NetworkProtocol, string> = {
@@ -135,7 +147,15 @@ const plaintextApplication = (url: URL) => url.protocol === 'http:' || url.proto
 export function resolveSitePolicy(
   input: unknown,
   requirements: CatalogRequirements,
-  files: { readonly ca?: Readonly<Record<string, string>> } = {},
+  files: {
+    readonly ca?: Readonly<Record<string, string>>;
+    /** Absolute paths of the listener files that exist and are readable. */
+    readonly ingress?: {
+      readonly cert?: string;
+      readonly key?: string;
+      readonly clientCa?: string;
+    };
+  } = {},
 ): ResolvedPolicy {
   const policy = sitePolicySchema.parse(input ?? {});
   const findings: PolicyFinding[] = [];
@@ -264,13 +284,15 @@ export function resolveSitePolicy(
     warn('INGRESS_MTLS', 'mTLS ingress is intended for sandbox or zero-trust deployments');
   if (policy.profile === 'desktop-local' && policy.ingress.listen !== 'loopback')
     error('INGRESS_FLOOR', 'desktop-local listens on loopback only');
-  if (policy.profile === 'sandbox' && policy.ingress.listen === 'mtls' && !policy.ingress.clientCa)
-    error('INGRESS_FLOOR', 'mTLS ingress requires a client CA');
-  if (
-    policy.ingress.listen === 'mtls' &&
-    (!policy.ingress.cert || !policy.ingress.key || !policy.ingress.clientCa)
-  )
+  const mtls = policy.ingress.listen === 'mtls';
+  if (mtls && (!policy.ingress.cert || !policy.ingress.key || !policy.ingress.clientCa))
     error('INGRESS_FLOOR', 'mTLS ingress requires cert, key and clientCa');
+  if (mtls && (!policy.ingress.host || !policy.ingress.port))
+    error('INGRESS_FLOOR', 'mTLS ingress requires the host name clients use and a fixed port');
+  // Files are checked only when the caller loaded them (`loadSitePolicy`), as for CA bundles.
+  const ingressFiles = files.ingress;
+  if (mtls && ingressFiles && (!ingressFiles.cert || !ingressFiles.key || !ingressFiles.clientCa))
+    error('INGRESS_UNREADABLE', 'mTLS certificate, key or client CA could not be read');
   if (strict && policy.grants.maxTtlSeconds === undefined)
     error('GRANT_FLOOR', `${policy.profile} requires grants.maxTtlSeconds`);
   if (zeroTrust && (policy.grants.maxTtlSeconds ?? Infinity) > 3600)
@@ -288,6 +310,15 @@ export function resolveSitePolicy(
     digest: createHash('sha256')
       .update(canonicalJson(JSON.parse(JSON.stringify(policy))))
       .digest('hex'),
+    ...(mtls && ingressFiles?.cert && ingressFiles.key && ingressFiles.clientCa
+      ? {
+          ingressTls: {
+            cert: ingressFiles.cert,
+            key: ingressFiles.key,
+            clientCa: ingressFiles.clientCa,
+          },
+        }
+      : {}),
   };
 }
 
@@ -300,7 +331,7 @@ export function assertPolicyUsable(resolved: ResolvedPolicy): void {
     );
 }
 
-/** Read a policy file and the CA bundles it references (paths relative to the file). */
+/** Read a policy file and the CA bundles and listener files it references (relative paths). */
 export async function loadSitePolicy(
   path: string,
   requirements: CatalogRequirements,
@@ -315,7 +346,24 @@ export async function loadSitePolicy(
           () => undefined as unknown as string,
         );
   for (const [key, value] of Object.entries(ca)) if (value === undefined) delete ca[key];
-  return resolveSitePolicy(raw, requirements, { ca });
+  const read = async (file: string | undefined) => {
+    if (!file) return undefined;
+    const absolute = resolve(dirname(path), file);
+    return access(absolute, constants.R_OK).then(
+      () => absolute,
+      () => undefined,
+    );
+  };
+  const ingress = parsed.success ? parsed.data.ingress : undefined;
+  const [cert, key, clientCa] = await Promise.all([
+    read(ingress?.cert),
+    read(ingress?.key),
+    read(ingress?.clientCa),
+  ]);
+  return resolveSitePolicy(raw, requirements, {
+    ca,
+    ...(ingress?.listen === 'mtls' ? { ingress: { cert, key, clientCa } } : {}),
+  });
 }
 
 /** The isolated default: loopback only, every egress destination reported as a consequence. */

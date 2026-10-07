@@ -11,7 +11,7 @@ import { startHost } from '../../../apps/service/src/host';
 test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors and idempotent commits', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-transport-'));
   const host = await startHost({ workspacePath: join(directory, 'workspace') });
-  const ownerConnection = (await Bun.file(host.connectionFile).json()) as { token: string };
+  const ownerConnection = (await Bun.file(host.connectionFile!).json()) as { token: string };
   const owner = createHttpTransport({ baseUrl: host.url, token: ownerConnection.token });
   const viewerSession = host.sessions.create({ workspaceId: 'local', principalId: 'viewer' });
   const viewer = createHttpTransport({ baseUrl: host.url, token: viewerSession.token });
@@ -120,7 +120,7 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
       idempotencyKey: 'shared-key',
       expectedRevisions: revisions,
     });
-    const retryCli = await cli(host.connectionFile, [
+    const retryCli = await cli(host.connectionFile!, [
       'call',
       'task.update',
       JSON.stringify(input),

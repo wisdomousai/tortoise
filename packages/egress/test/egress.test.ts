@@ -1,5 +1,8 @@
 import { afterAll, describe, expect, test } from 'bun:test';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { connect, createServer, type AddressInfo } from 'node:net';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   collectRequirements,
   type AuditRecord,
@@ -13,6 +16,7 @@ import {
   createEgress,
   EgressDenied,
   isolatedPolicy,
+  loadSitePolicy,
   parseCidr,
   resolveSitePolicy,
   startEgressProxy,
@@ -166,6 +170,54 @@ describe('site policy', () => {
         },
       }),
     ).toEqual([]);
+  });
+
+  test('a non-loopback listener needs mutual TLS with a named host and fixed port', async () => {
+    const floor = { profile: 'sandbox', identity: 'grant-file', grants: { maxTtlSeconds: 600 } };
+    expect(codes({ ...floor, ingress: { listen: 'mtls' } } as SitePolicyInput)).toEqual([
+      'INGRESS_FLOOR',
+      'INGRESS_FLOOR',
+    ]);
+    expect(codes({ ingress: { listen: 'mtls', host: 'a', port: 1 } } as SitePolicyInput)).toEqual([
+      'INGRESS_FLOOR',
+      'INGRESS_FLOOR',
+    ]);
+    // Only listeners the host implements are accepted at all.
+    expect(() => policy({ ingress: { listen: 'unix' } } as unknown as SitePolicyInput)).toThrow();
+    // Listener files are resolved next to the policy and must be readable; contents stay on disk.
+    const directory = await mkdtemp(join(tmpdir(), 'egress-ingress-'));
+    try {
+      await writeFile(join(directory, 'server.pem'), 'cert');
+      const path = join(directory, 'policy.json');
+      const ingress = { listen: 'mtls', host: 'authority.plant', port: 8443 };
+      await writeFile(
+        path,
+        JSON.stringify({
+          ...floor,
+          ingress: { ...ingress, cert: 'server.pem', key: 'missing.key', clientCa: 'server.pem' },
+        }),
+      );
+      expect((await loadSitePolicy(path, requirements)).findings.map((f) => f.code)).toEqual([
+        'INGRESS_UNREADABLE',
+      ]);
+      await writeFile(join(directory, 'server.key'), 'key');
+      await writeFile(
+        path,
+        JSON.stringify({
+          ...floor,
+          ingress: { ...ingress, cert: 'server.pem', key: 'server.key', clientCa: 'server.pem' },
+        }),
+      );
+      const loaded = await loadSitePolicy(path, requirements);
+      expect(loaded.findings).toEqual([]);
+      expect(loaded.ingressTls).toEqual({
+        cert: join(directory, 'server.pem'),
+        key: join(directory, 'server.key'),
+        clientCa: join(directory, 'server.pem'),
+      });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 });
 

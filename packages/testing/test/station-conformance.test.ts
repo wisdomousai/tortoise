@@ -34,7 +34,7 @@ test('a station observed through its screen reads the same on every transport; l
     extractors: [createAccessibilityExtractor(), createSimulatorOcr(() => sim.state)],
     sleep: async () => undefined,
   });
-  const ownerConnection = (await Bun.file(host.connectionFile).json()) as { token: string };
+  const ownerConnection = (await Bun.file(host.connectionFile!).json()) as { token: string };
   const owner = createHttpTransport({ baseUrl: host.url, token: ownerConnection.token });
   const operatorSession = host.sessions.create({ workspaceId: 'local', principalId: 'olga' });
   const operator = createHttpTransport({ baseUrl: host.url, token: operatorSession.token });

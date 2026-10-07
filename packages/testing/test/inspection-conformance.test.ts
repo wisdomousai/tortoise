@@ -19,7 +19,7 @@ test('a datapoint captured over any transport commits once, is forwarded once an
     systemOfRecord,
     integration: false,
   });
-  const ownerConnection = (await Bun.file(host.connectionFile).json()) as { token: string };
+  const ownerConnection = (await Bun.file(host.connectionFile!).json()) as { token: string };
   const owner = createHttpTransport({ baseUrl: host.url, token: ownerConnection.token });
   const inspectorSession = host.sessions.create({ workspaceId: 'local', principalId: 'ina' });
   const viewerSession = host.sessions.create({ workspaceId: 'local', principalId: 'vic' });

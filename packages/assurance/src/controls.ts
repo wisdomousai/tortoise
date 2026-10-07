@@ -309,7 +309,7 @@ export const controls: readonly Control[] = [
     id: 'AN-IAC-02',
     title: 'Identity and ingress floors for sandbox and zero-trust profiles',
     implementation:
-      'Profiles refuse to start below their floor: zero trust rejects the trusted local-owner identity, non-loopback listeners without mutual TLS, unbounded grants and an unforwarded audit log.',
+      'Profiles refuse to start below their floor. Under a grant-file identity the host issues no local-owner session or credential file and admits only the launcher grant, which must expire within the policy maximum; embedded CLI calls are held to the same rule. The only non-loopback listener is mutual TLS against the site client CA, and a session is still required on top of the certificate. Zero trust also requires an off-host audit forwarder.',
     limits:
       'A workforce identity adapter (OIDC/SAML for human principals) and certificate issuance are not part of this framework; the zero-trust profile refuses to start without them instead of falling back.',
     status: 'partial',
@@ -320,8 +320,12 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 1.1', 'CR 1.2'],
     },
     evidence: {
-      tests: ['packages/egress/test/egress.test.ts', 'apps/service/security.test.ts'],
-      artifacts: [],
+      tests: [
+        'packages/egress/test/egress.test.ts',
+        'apps/service/security.test.ts',
+        'apps/service/hardening.test.ts',
+      ],
+      artifacts: ['security export --format k8s-networkpolicy|nftables'],
       events: ['config.loaded'],
     },
   },

@@ -178,7 +178,7 @@ test('authored summary is available through the exported HTTP host', async () =>
   const workspace = await mkdtemp(join(tmpdir(), 'authored-extension-'));
   const host = await startHost({ workspacePath: workspace });
   try {
-    const connection = await Bun.file(host.connectionFile).json();
+    const connection = await Bun.file(host.connectionFile!).json();
     const transport = createHttpTransport({ baseUrl: host.url, token: connection.token });
     const project = await transport.command<{ id: string }>('project.create', { name: 'Extension' });
     await transport.command('task.create', { projectId: project.result.id, title: 'One task' });
