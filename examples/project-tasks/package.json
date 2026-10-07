@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "bun ../../scripts/dev-example.ts project-tasks"
+  },
   "exports": {
     "./*": "./*.ts"
   }

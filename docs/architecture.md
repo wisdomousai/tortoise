@@ -4,6 +4,16 @@ The [principles](principles.md) state the commitments this architecture serves; 
 
 The intended product unit is a bounded task or workflow interface over existing systems of record. See the [task/workflow pattern](task-workflow-pattern.md) for ownership, point-of-work capture and execution boundaries. The architecture below describes the implemented local kernel. The [system-of-record reference](system-of-record-pattern.md) describes the implemented outbox, inbound sync, capture kit and sandbox CLI/MCP; the [operator workstation pattern](operator-workstation-pattern.md) treats screen-only station software as a connector behind the same outbox ([ADR 004](decisions/004-screen-mediated-authority.md)); the [next reference plan](system-of-record-reference-plan.md) covers the remaining delivery and execution-boundary gates.
 
+The repository has three layers ([P11](principles.md), [ADR 005](decisions/005-framework-shell-content.md)). Dependencies point from content to shell to framework.
+
+| Layer     | Location     | Holds                                                                                                                    |
+| --------- | ------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Framework | `packages/*` | Domain-neutral primitives, ports, adapters and UI registries.                                                            |
+| Shell     | `apps/*`     | The domain-neutral host for one application: authority, sessions, launch, surfaces, run supervision, web frame, desktop. |
+| Content   | `examples/*` | Applications: modules, state, policy, handlers, connectors, demo fakes, screens and navigation in one definition.        |
+
+Each running authority hosts one application, with its own catalog, generated artifacts and workspace. Today the shell still composes all three examples into one application; milestone M10 moves that composition into each example.
+
 Business capabilities are the shared entrypoint for humans, agents and background processes. A feature authors browser-safe contracts, separate server handlers and ordinary product screens. The host explicitly composes modules, transaction storage, authorization and services. API, MCP and CLI adapters invoke that same runtime; generators consume its pure catalog.
 
 ```mermaid

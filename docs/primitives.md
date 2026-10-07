@@ -52,7 +52,7 @@ Serves P1, P2 · implemented · `packages/contracts` · `defineCapability`, `jso
 
 _The unit a domain contributes: capabilities, handlers, a state slice, a policy route, workflows and scenarios._
 
-Modules are how one framework hosts many task applications. Each is composed explicitly at the root, owns its slice of state and routes its own policy, so a quality-inspection module and a line-station module can share one authority without seeing each other's data.
+Modules are how an application is assembled from independently authored parts. Each is composed explicitly in the application definition, owns its slice of state and routes its own policy, so the line-station module and the reusable device configuration module share one authority without seeing each other's data.
 
 Guarantees: nothing is discovered or registered globally. Handlers see only their module's slice. Operations and resources no module claims are denied.
 
@@ -149,6 +149,28 @@ The journal closes the CQRS loop: whatever wrote the change, every view that may
 Guarantees: events carry resource references and revisions, never record contents, and are filtered by current access. Clients subscribe from their query's cursor, so nothing falls between snapshot and stream. Invalidation follows the catalog's resource dependencies and is coalesced. An authorization change resets views without leaking identifiers. It clears cached data at once, even while a refetch is still pending, and it covers snapshots cached before the stream's first batch.
 
 Serves P5 · implemented · `packages/runtime` `packages/client` `packages/react` · `ChangeEvent`, `EventBatch`, `createClient`, `LiveQuery`, `createLiveBindings`
+
+### Application
+
+_One unit of content: the definition the shell runs._
+
+An application gathers its modules, state factory and upgrades, policy routes, handlers, services and connectors (demo fakes included), integration principals, selectable resources, screens and navigation. The shell takes this definition and supplies authority, sessions, surfaces and the web frame, so adding an application changes no shell code (P11). Each example in `examples/*` is one application.
+
+Guarantees (target): one catalog, generated artifact set and workspace per application; the shell imports no application.
+
+Gaps: there is no definition type yet. `apps/service/src/composition.ts`, `modules.ts`, `host.ts`, `demo.ts` and `apps/web/src/app.tsx` compose all three examples into one application inside the shell.
+
+Serves P2, P8, P11 · proposed
+
+### Shell
+
+_The domain-neutral host that runs one application._
+
+The shell owns everything an application should not rewrite: workspace ownership, launch and sessions, HTTP/SSE, MCP and CLI entrypoints, run supervision, the web frame and the desktop wrapper. Its counterpart in the framework is the set of ports and adapters it wires; its counterpart in content is the application definition.
+
+Gaps: the shell currently names all three examples, their fakes and their screens; see Application.
+
+Serves P1, P4, P11 · partial · `apps/service` `apps/web` `apps/desktop` · `serve`, `startHost`
 
 ## Callers: every surface on the same contract
 

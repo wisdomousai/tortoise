@@ -27,6 +27,7 @@ For focused work, use these scripts:
 | `bun run test:e2e`                            | Real browser acceptance, configured by Playwright.                                                                     |
 | `bun run station:golden`                      | Station profile and perception gate on the labeled golden frames in `examples/line-station/golden`.                    |
 | `bun run station:record-golden`               | Re-record golden frames from the fake HMI in Chromium after changing the simulator or profile.                         |
+| `cd examples/<name> && bun run dev`           | Start one example on its own port and workspace (ports 4321-4323); `line-station` adds the fake HMI.                   |
 | `bun run dev:hmi`                             | Start the fake station HMI on port 4610 with simulation endpoints, for the demo.                                       |
 | `bun run build:registry:operator`             | Generate and build the `operator` shadcn registry into `dist/registry/operator`.                                       |
 | `bun run test:package`                        | Desktop/sidecar packaging checks available on the current platform.                                                    |

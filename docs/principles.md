@@ -62,7 +62,7 @@ Systems of record keep ownership of their records. A command commits an intent w
 
 ### P8 — Specialization is composition and configuration, never a fork
 
-The framework packages are domain-neutral. Domains live in modules and examples, composed explicitly with their own state slice and routed policy; a domain concept becomes a primitive only when a second application needs it. What differs per site (station profiles, scanner profiles, scan routes, connector mappings) is versioned, schema-validated data, gated by a replayable check where it drives perception or actuation. Reusable UI ships as shadcn registries composed from stock primitives.
+The framework packages and the shell are domain-neutral (P11). Domains live in modules, composed explicitly into an application with their own state slice and routed policy; a domain concept becomes a primitive only when a second application needs it. What differs per site (station profiles, scanner profiles, scan routes, connector mappings) is versioned, schema-validated data, gated by a replayable check where it drives perception or actuation. Reusable UI ships as shadcn registries composed from stock primitives.
 
 **Rules out:** domain names in `packages/*`, customer forks, site logic in code, forked or hand-styled UI primitives.
 
@@ -84,6 +84,14 @@ Every operation has behavioral scenarios that run through each surface it suppor
 
 **Enforced by:** the implementation ledger records deterministic, browser, native, device and live-provider evidence separately; `bun run test:sandbox`, part of `bun run check`, compiles the binary with the shipped build configuration and runs it with an empty environment. **Convention only:** most of this principle is review discipline; no tool can tell a mocked pass from a live one.
 
+### P11 — Framework, shell and content are separate layers, and an authority runs one application
+
+The framework (`packages/*`) provides domain-neutral primitives, ports and adapters. The shell (`apps/*`) is the domain-neutral host: it runs one application's authority, sessions, launch, surfaces, run supervision, web frame and desktop wrapper. Content (`examples/*`) is applications: each declares its modules, state, policy, handlers, connectors, demo fakes, screens and navigation in one definition, and the shell runs that definition. Dependencies point from content to shell to framework, never back. A catalog, its generated artifacts, a workspace and a launch belong to one application; several modules may form one application, but separate applications never share a process ([ADR 005](decisions/005-framework-shell-content.md)).
+
+**Rules out:** a shell that imports an example, edits to the shell to add an application, one process serving several applications' catalogs, a demo fake or screen of one application visible in another.
+
+**Enforced by:** `bun run check:boundaries` rejects imports from `packages/*` into `apps/*` or `examples/*`. **Convention only, and not yet true:** the shell still composes all three examples (`apps/service/src/composition.ts`, `modules.ts`, `host.ts`, `apps/web/src/app.tsx`). Milestone M10 removes them and then extends `check:boundaries` to reject imports from `apps/*` into `examples/*`.
+
 ## Keeping this current
 
 Principles change rarely and on purpose. The [primitives](primitives.md) document changes whenever a public building block does. [AGENTS.md](../AGENTS.md#principles-and-primitives) gives the working rules.
@@ -95,6 +103,7 @@ Principles change rarely and on purpose. The [primitives](primitives.md) documen
 
 ## Changelog
 
+- 2026-10-07 — Added P11 (framework, shell and content; one application per authority, ADR 005). P8 now names the shell as domain-neutral and composes domains into an application.
 - 2026-10-07 — Replaced each principle's primitive list with what enforces it; primitives name their principles in one place.
 - 2026-10-07 — Rewritten as ten architectural invariants, each with what it rules out and the primitives it requires. Replaces the same-day drafts before anything external cited them.
 - 2026-10-07 — First draft from the implementation plan invariants, ADRs 001–004 and the pattern documents.
