@@ -178,6 +178,34 @@ describe('authorized atomic command runtime', () => {
     expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
     expect((await app.query({ operation: 'counter.get', input: {} }, owner)).data).toBe(1);
   });
+  test('expected revisions of unreadable resources are denied before any comparison', async () => {
+    const { app } = fixture({
+      policy: {
+        authorize: () => ({ allowed: true }),
+        canReadEvent: ({ event }) => event.resource === 'counter:one',
+      },
+    });
+    await app.invoke({ operation: 'counter.add', input: { amount: 1 } }, owner);
+    const probe = (expectedRevisions: Record<string, number>) =>
+      app.invoke({ operation: 'counter.add', input: { amount: 1 }, expectedRevisions }, owner);
+    // Hidden and nonexistent keys at any revision fail the same way, so no revision leaks.
+    for (const revisions of <Record<string, number>[]>[
+      { 'counter:hidden': 0 },
+      { 'counter:hidden': 1 },
+      { 'counter:missing': 0 },
+      { 'counter:one': 0, 'counter:hidden': 0 },
+    ])
+      await expect(probe(revisions)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(probe({ 'counter:one': 0 })).rejects.toMatchObject({ code: 'CONFLICT' });
+    expect((await probe({ 'counter:one': 1 })).result).toBe(2);
+    const granted = { ...owner, grant: { operations: ['counter.add'], resources: ['counter:two'] } };
+    await expect(
+      app.invoke(
+        { operation: 'counter.add', input: { amount: 1 }, expectedRevisions: { 'counter:one': 1 } },
+        granted,
+      ),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
   test('idempotency fingerprints bind application version, run and effective grant context', async () => {
     const { app, storage } = fixture();
     const request = {

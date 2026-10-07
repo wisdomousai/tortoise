@@ -392,6 +392,25 @@ export function createApplication<
         return { ...stored.receipt, result, authorizationRevision: snapshot.authorizationRevision };
       }
       await authorize(capability, input, context, snapshot, 'invoke');
+      // A precondition reveals a revision, so it is a read: check grant scope and read policy for
+      // every key before comparing any. Hidden and nonexistent keys get the same denial, raised
+      // before the first comparison, so a CONFLICT never distinguishes them.
+      for (const resource of Object.keys(expected))
+        if (
+          (context.grant?.resources && !context.grant.resources.includes(resource)) ||
+          !(await options.authorization.canReadEvent({
+            event: {
+              cursor: snapshot.cursor,
+              resource,
+              revision: revisionOf(snapshot, resource),
+              type: 'precondition',
+              operation: capability.id,
+            },
+            context,
+            state: snapshot.state,
+          }))
+        )
+          throw new ApplicationError('FORBIDDEN', 'Expected revision is not readable');
       for (const [resource, revision] of Object.entries(expected))
         if (revisionOf(snapshot, resource) !== revision)
           throw new ApplicationError('CONFLICT', 'Resource revision changed', { resource });
