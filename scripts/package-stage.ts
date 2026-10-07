@@ -30,22 +30,24 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
     await downloadNativePackage(packages[name], resolve(resources, 'runtimes', name));
   }
   const files = await listFiles(resources);
+  // Match on resource-relative POSIX paths: listFiles returns native paths, which use `\` on Windows.
+  const rel = (path: string) => relative(resources, path).split('\\').join('/');
   const find = (predicate: (file: string) => boolean) => {
-    const matches = files.filter(predicate);
+    const matches = files.filter((file) => predicate(rel(file)));
     if (matches.length !== 1)
       throw new Error(`Expected exactly one native resource, found ${matches.length}`);
     return matches[0]!;
   };
   const nativeName = target.startsWith('win32') ? 'codex.exe' : 'codex';
   const codex = find(
-    (file) => file.includes('/runtimes/codex/') && file.endsWith(`/bin/${nativeName}`),
+    (file) => file.startsWith('runtimes/codex/') && file.endsWith(`/bin/${nativeName}`),
   );
   const claude = find(
     (file) =>
-      file.includes('/runtimes/claude/') &&
+      file.startsWith('runtimes/claude/') &&
       file.endsWith(target.startsWith('win32') ? '/claude.exe' : '/claude'),
   );
-  const keyring = find((file) => file.includes('/runtimes/keyring/') && file.endsWith('.node'));
+  const keyring = find((file) => file.startsWith('runtimes/keyring/') && file.endsWith('.node'));
   const entry = resolve(stage, 'service-entry.ts');
   // Direct .node require is statically visible to Bun, unlike npm's dynamic platform
   // loader. Initialization precedes importing the service composition root.
@@ -64,13 +66,12 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   if (!build.success) throw new Error(build.logs.map((log) => log.message).join('\n'));
   await chmod(service, 0o755);
   await cp(resolve(root, 'dist/web'), resolve(resources, 'web'), { recursive: true });
-  const rel = (path: string) => relative(resources, path).split('\\').join('/');
   const runtime = async (name: 'codex' | 'claude', executable: string) => ({
     executable: rel(executable),
     version: runtimeVersions[name],
     files: await Promise.all(
       files
-        .filter((file) => file.includes(`/runtimes/${name}/`))
+        .filter((file) => rel(file).startsWith(`runtimes/${name}/`))
         .map(async (file) => ({ path: rel(file), sha256: await sha256(file) })),
     ),
   });

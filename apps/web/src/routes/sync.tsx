@@ -147,13 +147,18 @@ function CorrectionForm({
   const original = characteristic?.results.find((result) => result.id === resultId);
   const { form } = useCapabilityForm(transport, operations.resultCorrect, {
     defaultValues: { value: '', code: '', reason: '' },
-    toInput: (values) => ({
-      resultId,
-      reason: values.reason,
-      ...(characteristic?.kind === 'qualitative'
-        ? { code: values.code }
-        : { value: Number(values.value.replace(',', '.')) }),
-    }),
+    toInput: (values) => {
+      const qualitative = characteristic?.kind === 'qualitative';
+      // A blank field is a missing value, not a measured zero.
+      if (!qualitative && values.value.trim() === '') throw new Error('Enter the corrected value');
+      return {
+        resultId,
+        reason: values.reason,
+        ...(qualitative
+          ? { code: values.code }
+          : { value: Number(values.value.replace(',', '.')) }),
+      };
+    },
     onCommitted: onDone,
   });
   if (!characteristic || !original) return <p role="status">Loading result…</p>;
