@@ -15,11 +15,19 @@ import {
 import { createStationConnector, type BridgeControl } from '../src/controller';
 import { createAccessibilityExtractor } from '../src/perception/accessibility';
 import { createScriptedDriver } from '../src/scripted-driver';
-import { createCounterModel, createHmi, effect, profile } from './support';
+import type { Extractor } from '../src/ports';
+import { parseProfile } from '../src/profile';
+import { createCounterModel, createHmi, effect, profile, profileDocument } from './support';
 
 const present = { recipe: 'R-12', presence: { confirmedBy: 'op-7' } };
 
-function connectorFixture(initial: Partial<BridgeControl> = {}) {
+function connectorFixture(
+  initial: Partial<BridgeControl> = {},
+  options: {
+    profile?: typeof profile;
+    extractors?: (hmi: ReturnType<typeof createHmi>) => Extractor[];
+  } = {},
+) {
   const hmi = createHmi();
   const control: { -readonly [K in keyof BridgeControl]: BridgeControl[K] } & {
     onRead?: (reads: number) => Partial<BridgeControl> | void;
@@ -30,9 +38,12 @@ function connectorFixture(initial: Partial<BridgeControl> = {}) {
   };
   let reads = 0;
   const connector = createStationConnector({
-    profile,
+    profile: options.profile ?? profile,
     transport: hmi.transport,
-    extractors: [createAccessibilityExtractor(), createCounterModel(hmi).extractor],
+    extractors: options.extractors?.(hmi) ?? [
+      createAccessibilityExtractor(),
+      createCounterModel(hmi).extractor,
+    ],
     driver: createScriptedDriver(),
     control: async () => {
       Object.assign(control, control.onRead?.(++reads) ?? {});
@@ -116,6 +127,64 @@ test('an unexpected popup mid-procedure makes the delivery uncertain', async () 
   });
   // Once someone closed the popup and the start screen is back without the recipe, deliver again.
   hmi.state.screen = 'main';
+  expect(await connector.lookup!('e1', signal, effect(present, { attempts: 1 }))).toBeUndefined();
+});
+
+test('a popup after a click stops the procedure before it types into the wrong screen', async () => {
+  const { hmi, connector, signal } = connectorFixture();
+  // The popup replaces the recipe dialog right after the text box was clicked.
+  hmi.state.popupAfter = 2;
+  await expect(connector.deliver(effect(present), signal)).rejects.toBeInstanceOf(
+    DeliveryUncertain,
+  );
+  expect(hmi.state.actions.map((action) => action.kind)).toEqual(['click', 'click']);
+});
+
+/** The loaded recipe, read by a model that misreads it once with full confidence. */
+function flakyRecipe(misreads: string[]): (hmi: ReturnType<typeof createHmi>) => Extractor[] {
+  return (hmi) => [
+    createAccessibilityExtractor(),
+    createCounterModel(hmi).extractor,
+    {
+      id: 'vision',
+      modality: 'vision',
+      async extract(_frame, fields) {
+        return fields
+          .filter((field) => field.id === 'recipe')
+          .map((field) => ({
+            field: field.id,
+            value: misreads.shift() ?? hmi.state.recipe,
+            confidence: 1,
+          }));
+      },
+    },
+  ];
+}
+const stableRecipe = parseProfile({
+  ...profileDocument,
+  fields: profileDocument.fields.map((field) =>
+    field.id === 'recipe' ? { ...field, extractor: 'vision', stableReads: 3 } : field,
+  ),
+});
+
+test('one confident transient reading never establishes the requested state', async () => {
+  const { hmi, connector, signal } = connectorFixture(
+    {},
+    { profile: stableRecipe, extractors: flakyRecipe(['R-12']) },
+  );
+  const outcome = await connector.deliver(effect(present), signal);
+  // The procedure ran, because the station did not actually show R-12, and readback agreed.
+  expect(hmi.state.actions.length).toBeGreaterThan(0);
+  expect(hmi.state.recipe).toBe('R-12');
+  expect(outcome).toMatchObject({ status: 'accepted' });
+});
+
+test('lookup needs the declared stable reads before it accepts an earlier delivery', async () => {
+  const { connector, signal } = connectorFixture(
+    {},
+    { profile: stableRecipe, extractors: flakyRecipe(['R-12']) },
+  );
+  // The misread is not confirmed; back on the start screen, so the effect is delivered again.
   expect(await connector.lookup!('e1', signal, effect(present, { attempts: 1 }))).toBeUndefined();
 });
 

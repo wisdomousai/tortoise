@@ -58,7 +58,7 @@ Systems of record keep ownership of their records. A command commits an intent w
 
 **Rules out:** calling a remote system from a handler, distributed transactions, connectors that hold business tools, retrying an unknown outcome as if it failed.
 
-**Enforced by:** `packages/runtime/test/outbox.test.ts` (effects commit with the command, replay never re-enqueues); `packages/integration/test/dispatcher.test.ts` (delivery outside the transaction, lookup before resend, integration grant limits, watermark-bound sync); `packages/station/test/controller.test.ts` (gate, readback, uncertain procedures held); lane separation in `station-conformance.test.ts`.
+**Enforced by:** `packages/runtime/test/outbox.test.ts` (effects commit with the command, replay never re-enqueues); `packages/integration/test/dispatcher.test.ts` (delivery outside the transaction, lookup before resend, integration grant limits, watermark-bound sync); `packages/station/test/controller.test.ts` (per-action screen gate, stable readback, uncertain procedures held); lane separation in `station-conformance.test.ts`.
 
 ### P8 — Specialization is composition and configuration, never a fork
 
