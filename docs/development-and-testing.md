@@ -1,6 +1,6 @@
 # Development and testing
 
-Install the pinned dependencies with `bun install --frozen-lockfile`. The root workspace contains browser-safe contracts/client/React packages, authority-only adapters/runtime, example domain modules and agent harnesses. Feature authoring follows [capability-authoring.md](capability-authoring.md); permission behavior is specified in [authorization.md](authorization.md).
+Install the pinned dependencies with `bun install --frozen-lockfile`. The root workspace holds three layers ([ADR 005](decisions/005-framework-shell-content.md)): framework packages in `packages/*`, the starter in `apps/*` and content in `examples/*`. The starter hosts the one application `app.config.json` names; `AGENT_NATIVE_APPLICATION` (a package name or path) overrides it for one launch. Feature authoring follows [capability-authoring.md](capability-authoring.md); permission behavior is specified in [authorization.md](authorization.md).
 
 ```sh
 bun run typecheck
@@ -12,7 +12,7 @@ bun run test:sandbox
 bun run build
 ```
 
-`generate` writes deterministic contract, operation, workflow and OpenAPI references and the application skill, including CLI forms. `check:generated` fails when those files drift. `check:boundaries` checks imports and runs the Vite build graph with a plugin that rejects host-only modules and transitive Node built-ins in browser code. `build` runs the Vite web build into `dist/web` (flat, because the host serves only a flat directory) and builds the shadcn registry into `dist/registry`. `build:cli` compiles the application CLI into `dist/bin/<name>`. `check` also runs `test:sandbox`, which compiles that binary through the same `compileCli` function and runs it, because a source run cannot show that the standalone build resolves. Packages that optional adapters load at runtime are listed in `apps/service/src/optional-packages.ts` and stay external to every standalone build. A successful browser build is separate from a browser interaction or packaged desktop launch.
+`generate` writes deterministic contract, operation, workflow and OpenAPI references and the application skill, including CLI forms, for the configured application and every example, each under `docs/reference/<id>/`. `check:generated` fails when those files drift or a reference directory no application produces remains. `check:boundaries` checks imports, including starter-to-content and content-to-starter, and builds every application's Vite graph with a plugin that rejects host-only modules and transitive Node built-ins in browser code. `build` runs the Vite web build of the configured application into `dist/web/<id>` (flat, because the host serves only a flat directory) and builds the frame's shadcn registry into `dist/registry`; `build:web:examples` builds every example, which the Playwright global setup also does. `build:cli` compiles the configured application's CLI into `dist/bin/<name>` through a generated static entry. `check` also runs `test:sandbox`, which compiles a quality-inspection binary through the same `compileCli` function and runs it, because a source run cannot show that the standalone build resolves. Packages that optional adapters load at runtime are listed in `packages/host/src/optional-packages.ts` and stay external to every standalone build. A successful browser build is separate from a browser interaction or packaged desktop launch.
 
 For focused work, use these scripts:
 
@@ -20,36 +20,37 @@ For focused work, use these scripts:
 | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `bun run test:unit`                           | Contracts, runtime, client ordering and UI context helpers.                                                            |
 | `bun run test:conformance`                    | Policy, repositories, adapters and example-domain scenarios.                                                           |
-| `bun run test:service`                        | HTTP boundary and actual loopback authority behavior.                                                                  |
+| `bun run test:service`                        | Host package and each example's HTTP boundary and loopback authority behavior.                                         |
 | `bun run test:harness`                        | Provider-independent harness/supervision fixtures.                                                                     |
 | `bun run test:integration`                    | Outbox dispatcher and inbound sync against fake system-of-record ports.                                                |
 | `bun run test:sandbox`                        | Compiles the single CLI binary and runs the embedded MCP/drain/serve scenario with an empty environment.               |
 | `bun run test:e2e`                            | Real browser acceptance, configured by Playwright.                                                                     |
-| `bun run station:golden`                      | Station profile and perception gate on the labeled golden frames in `examples/line-station/golden`.                    |
-| `bun run station:record-golden`               | Re-record golden frames from the fake HMI in Chromium after changing the simulator or profile.                         |
-| `cd examples/<name> && bun run dev`           | Start one example on its own port and workspace (ports 4321-4323); `line-station` adds the fake HMI.                   |
-| `bun run dev:hmi`                             | Start the fake station HMI on port 4610 with simulation endpoints, for the demo.                                       |
+| `bun run dev`                                 | Build and serve the configured application from the starter.                                                           |
+| `cd examples/<name> && bun run dev`           | Build and serve one example on its own port and workspace (ports 4321-4323); `line-station` adds the fake HMI.         |
+| `bun run station:golden` (in `line-station`)  | Station profile and perception gate on the labeled golden frames in `examples/line-station/golden`.                    |
+| `bun run station:record-golden` (same)        | Re-record golden frames from the fake HMI in Chromium after changing the simulator or profile.                         |
+| `bun run dev:hmi` (same)                      | Start the fake station HMI on port 4610 with simulation endpoints, for the demo.                                       |
 | `bun run build:registry:operator`             | Generate and build the `operator` shadcn registry into `dist/registry/operator`.                                       |
 | `bun run test:package`                        | Desktop/sidecar packaging checks available on the current platform.                                                    |
 | `bun run test:scaffold`                       | Deterministic export and overwrite/privacy safeguards.                                                                 |
 | `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` | Fresh source export, frozen pinned dependency installation, independent typecheck/build/tests and an added capability. |
 
-The complete scaffold acceptance is opt-in so exported tests do not recursively export/install themselves. Its install uses the pinned public dependencies in the exported lockfile. No unpublished framework package or access to the original checkout is required.
+The complete scaffold acceptance is opt-in so exported tests do not recursively export/install themselves. Its install uses the pinned public dependencies in the exported lockfile. Framework packages are copied into the export, so no unpublished package or access to the original checkout is required. `bun run scaffold <target> --name <name> --example <example>` exports one example as the hosted application.
 
 Service tests bind loopback ports. A sandbox that blocks listening sockets can report `EADDRINUSE` even for port zero; run the authorized local integration checks in an environment that permits loopback listeners. Subprocess tests use temporary workspaces and terminate only processes they start.
 
-Native acceptance requires an already packaged application. Set `DESKTOP_EXECUTABLE` to its executable and run `bunx playwright test tests/e2e/desktop.pw.ts`. Without that variable the two native tests explicitly skip. They launch real Electron with a minimal runtime `PATH`, use isolated workspaces whose paths contain spaces, verify external changes in the native window and renderer isolation, reopen persisted data after owned-sidecar shutdown, and confirm that closing an attached frontend preserves a pre-existing authority. Rerun against the final packaged bytes after any service, frontend or desktop change.
+Browser specs live next to their application in `examples/<name>/e2e/` and start a service with `startService(application, ...)` from `tests/e2e/service.ts`. Native acceptance requires an already packaged application. Set `DESKTOP_EXECUTABLE` to its executable and run `bunx playwright test tests/e2e/desktop.pw.ts`. Without that variable the two native tests explicitly skip. They launch real Electron with a minimal runtime `PATH`, use isolated workspaces whose paths contain spaces, verify external changes in the native window and renderer isolation, reopen persisted data after owned-sidecar shutdown, and confirm that closing an attached frontend preserves a pre-existing authority. Rerun against the final packaged bytes after any service, frontend or desktop change.
 
 ## Station bridge demo and opt-in perception
 
-The service starts a station bridge only when `STATION_HMI_URL` is set. Nothing is discovered. Run `bun run dev:hmi`, then start the service with `STATION_HMI_URL=http://127.0.0.1:4610`. The bridge drives the HMI page through Playwright Chromium. Counters are pixel-only on the fake HMI, so they need a perception source:
+A line-station host starts a station bridge only when `STATION_HMI_URL` is set. Nothing is discovered. `cd examples/line-station && bun run dev` starts the fake HMI in the same process and sets `STATION_HMI_URL` and `STATION_SIMULATOR=1` unless they are already set. To bridge another HMI, set `STATION_HMI_URL` yourself. The bridge drives the HMI page through Playwright Chromium. Counters are pixel-only on the fake HMI, so they need a perception source:
 
 | Variable                                                                                                  | Effect                                                                                                                                   |
 | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `STATION_SIMULATOR=1`                                                                                     | Counters come from the simulator's ground truth, and its local-input probe is used. Demo and tests only.                                 |
 | `STATION_VISION_BASE_URL`, `STATION_VISION_MODEL`, `STATION_VISION_ALLOWED_HOSTS`, `STATION_VISION_READS` | A local OpenAI-compatible vision model. Loopback only, unless the host is allowlisted. Confidence is agreement across reads (default 3). |
 | `STATION_PERCEPTION_WORKER`                                                                               | A JSON array command for a JSON-lines perception worker (OCR, classifiers, audio). Spawned with an empty environment.                    |
-| `STATION_ID`, `STATION_PROFILE`, `STATION_OBSERVE_MS`                                                     | Station id (default `line-1`), profile path (default `examples/line-station/station-profile.json`) and observe interval.                 |
+| `STATION_ID`, `STATION_PROFILE`, `STATION_OBSERVE_MS`                                                     | Station id (default `line-1`), profile path (default: the example's `station-profile.json`) and observe interval.                        |
 
 The vision and worker variables also select the pixel extractor for `station:golden`; without them the gate replays recorded expectations, which checks wiring only. Source exports copy text files only, so exported applications have no golden PNGs: the wiring check still passes, and a configured model refuses to run until `bun run station:record-golden` has recorded them. Record live-model golden results separately in the implementation status document; a model gate is never implied by the deterministic one.
 

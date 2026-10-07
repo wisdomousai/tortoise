@@ -41,12 +41,12 @@ Implemented delivery states are pending (with attempt count and safe failure tex
 
 ## Capture interface kit
 
-The web app (`apps/web`) is Vite, TanStack Router/Query/Form/Table and shadcn components. Trust-relevant behavior lives in versioned bindings in `@agent-native/react`; presentational source is copied into the app and published as a shadcn registry (`apps/web/registry.json`, built to `dist/registry`).
+The web app is the starter's `apps/web` (Vite) around the web frame (`packages/frame`): TanStack Router/Query/Form/Table and shadcn components. Trust-relevant behavior lives in versioned bindings in `@agent-native/react`; presentational source is published as a shadcn registry (`packages/frame/registry.json`, built to `dist/registry`) that a starter copies and owns. The quality-inspection screens live in `examples/quality-inspection/ui`.
 
 - `@agent-native/react/query`: `liveQueryOptions(capability, input)` and one event subscription that invalidates queries by the catalog's resource-type `dependencies`. It coalesces refetches, resets all queries when the authorization revision rises, and fences responses that started before a revocation.
 - `@agent-native/react/form`: `useCapabilityForm` validates with the contract's Standard Schema. It mints the idempotency key when the form opens and keeps it, with the exact mapped input, across retries until a commit. A double tap or a scanner sending Enter twice therefore records one datapoint. The key rotates after a commit or an `IDEMPOTENCY_CONFLICT`; `details.field` errors map onto form fields.
 - `@agent-native/react/capture`: keyboard-wedge scan detection, a capture loop that returns focus to the next worklist item, and per-item timing.
-- Registry items: `capability-form`, `live-data-table`, `capture-station`, `sync-status`, `conflict-banner`, `run-panel`, `command-palette`, `native-dialog`, `session`. `capture-station` and `sync-status` bind to the quality-inspection contracts and serve as starting points for a new domain.
+- Registry items: `capability-form`, `live-data-table`, `conflict-banner`, `run-panel`, `command-palette`, `native-dialog`, `session`, `screens`, `ui-session`, `accounts`, `app-shell`, `frame`. The capture station and sync status screens (`examples/quality-inspection/ui/capture-station.tsx`, `sync-status.tsx`) bind to the quality-inspection contracts and serve as starting points for a new domain.
 
 The host's CSP (`style-src 'self'`) rejects injected `<style>` elements. Components that inject styles at runtime (Radix Dialog/Select/DropdownMenu, sonner) are replaced by native `<dialog>` and `<select>`.
 
@@ -56,7 +56,7 @@ Each result stores `capture.actor` and, when the client reports them, `capture.d
 
 ## Command line and MCP
 
-`bun run build:cli` compiles `apps/service/src/cli.ts` into one executable, `dist/bin/<name>`, named from `app.config.json`; `--target` cross-compiles. It needs no Bun, Node or package install, and the sandbox test runs it with an empty environment.
+`bun run build:cli` compiles the configured application's CLI (`createCli` from `@agent-native/host`, through a generated static entry) into one executable, `dist/bin/<name>`, named from `app.config.json`; `--target` cross-compiles. Configure `@agent-native/quality-inspection` as the application, or set `AGENT_NATIVE_APPLICATION`, to build this one. It needs no Bun, Node or package install, and the sandbox test runs it with an empty environment.
 
 Every catalog operation is a subcommand: `app inspection result record --lot-id 4000001 --characteristic-id C10 --value 220.01 --occurred-at 1791370306000 --key r-1`. Flags are generated from the top-level input schema and typed by it; nested objects take JSON. `--json <object|->` supplies the whole input, and stdin is read only when `-` is given. `--dry-run` validates input against the published schema and the caller's discovered availability without executing. It is advisory: it rebuilds the validator with Zod's semi-experimental `fromJSONSchema`, and the authority validates and authorizes again. `--output text` renders tables. `help`, `schema` and `workflows` work without any authority. The original `call <operation> <json>` form remains.
 
@@ -72,7 +72,7 @@ Every catalog operation is a subcommand: `app inspection result record --lot-id 
 | 7    | Cancelled                                 |
 | 75   | `drain`: effects still pending            |
 
-The generated application skill (`docs/reference/application-skill/SKILL.md`) lists the CLI form beside the MCP tool names for every workflow.
+The generated application skill (`docs/reference/quality-inspection/application-skill/SKILL.md`) lists the CLI form beside the MCP tool names for every workflow.
 
 ## Caveats
 
@@ -90,14 +90,14 @@ The generated application skill (`docs/reference/application-skill/SKILL.md`) li
 | `packages/runtime/test/outbox.test.ts`                 | Effects commit with the receipt, replay does not re-enqueue, rollback drops them, settlement is exactly once locally, attempts are journaled.                                                                        |
 | `packages/integration/test/dispatcher.test.ts`         | Delivery outside the transaction, backoff with safe failure text, rejection as data, idempotent redelivery after lost settlement, lookup-before-send, drain, integration grant limits, watermark-bound inbound sync. |
 | `packages/runtime/test/compose.test.ts`                | Module slices, per-module policy, fail-closed routing for unknown operations and resources.                                                                                                                          |
-| `packages/testing/test/inspection-conformance.test.ts` | Direct, HTTP, CLI and MCP agree on results, denial and idempotent retry; `openWorldHint` on forwarded commands.                                                                                                      |
+| `examples/quality-inspection/test/conformance.test.ts` | Direct, HTTP, CLI and MCP agree on results, denial and idempotent retry; `openWorldHint` on forwarded commands.                                                                                                      |
 | `examples/quality-inspection/domain.test.ts`           | Role matrix, plant scoping before counts, supersession, occurrence-time bounds, metrics aggregation.                                                                                                                 |
 | `packages/react/src/bindings.test.ts`                  | Dependency-indexed invalidation, coalescing, reset on authorization change, revocation fence, scan detection.                                                                                                        |
 | `packages/adapters/src/cli.test.ts`                    | Generated subcommands and typed flags, stdin, usage errors before any call, dry-run, help, exit-code mapping, grant-file validation.                                                                                 |
-| `apps/service/sandbox.test.ts`                         | An agent captures over embedded MCP under a grant, retries idempotently, is refused integration operations and a concurrent writer; drain exits 75 then 0; metrics split agent and human; grant-bound `serve`.       |
-| `tests/e2e/inspection.pw.ts`                           | Keyboard-only capture advances focus, a wedge burst and double Enter record once, SoR references and a rejection appear live, metrics render, a generated form commits, a correction supersedes a rejection.         |
+| `examples/quality-inspection/test/sandbox.test.ts`     | An agent captures over embedded MCP under a grant, retries idempotently, is refused integration operations and a concurrent writer; drain exits 75 then 0; metrics split agent and human; grant-bound `serve`.       |
+| `examples/quality-inspection/e2e/inspection.pw.ts`     | Keyboard-only capture advances focus, a wedge burst and double Enter record once, SoR references and a rejection appear live, metrics render, a generated form commits, a correction supersedes a rejection.         |
 
-`bun run check` runs everything except the browser specs and the compiled-binary variant. Run those with `bunx playwright test tests/e2e/inspection.pw.ts` and `bun run test:sandbox`.
+`bun run check` runs everything except the browser specs and the compiled-binary variant. Run those with `bunx playwright test examples/quality-inspection/e2e` and `bun run test:sandbox`.
 
 ## Status against the reference plan
 

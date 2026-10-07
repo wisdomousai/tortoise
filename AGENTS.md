@@ -15,7 +15,7 @@ Read `docs/principles.md`, `docs/primitives.md`, `IMPLEMENTATION_PLAN.md` and `d
 
 This repository is a generic architecture reference. Avoid platform-specific cloud dependencies in framework contracts or runtime.
 
-Three layers, dependencies pointing one way (P11, ADR 005): **framework** `packages/*` → **shell** `apps/*` → **content** `examples/*`. The framework and the shell name no domain. Each example is a standalone application that the shell runs, one application per authority. Put new domain code, demo fakes and screens in the example, never in `apps/*`. Until milestone M10 lands, the shell still composes all three examples; do not add to that.
+Three layers (P11, ADR 005): **framework** `packages/*` (including `@agent-native/host` and `@agent-native/frame`), **starter** `apps/*` and **content** `examples/*`. Content implements framework contracts; the starter wires one application, named in `app.config.json`, into the host and frame and imports no content statically. Neither the framework nor the starter names a domain. Each example is an application with `manifest` (browser-safe), `application` (server definition) and `screens` (browser) entrypoints. Put domain code, demo fakes, screens and their tests (`examples/<name>/test`, `examples/<name>/e2e`) in the example; framework tests never import an example. Generic host or frame behavior goes in the framework package, not the starter, so a forked starter keeps receiving it.
 
 ## Principles and primitives
 

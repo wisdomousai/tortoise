@@ -72,9 +72,9 @@ Serves P1, P2 · implemented · `packages/contracts` · `buildCatalog`, `Catalog
 
 _A pure transformation from the catalog to a checked-in artifact._
 
-JSON Schema, OpenAPI, the operation and workflow references, and the application skill with CLI forms are generated, not written. Agents learn the application from the same source the UI is built from.
+JSON Schema, OpenAPI, the operation and workflow references, and the application skill with CLI forms are generated, not written. Agents learn the application from the same source the UI is built from. Each application gets its own set under `docs/reference/<id>/`, built from its browser-safe manifest.
 
-Guarantees: generation opens no workspace, reads no credential and starts no server. Drift fails the build, and a boundary check keeps contract and browser code free of host-only modules.
+Guarantees: generation opens no workspace, reads no credential, starts no server and loads no handler. Drift fails the build, including a reference directory no application produces any more. A boundary check keeps contract and browser code free of host-only modules, keeps the starter from importing content and content from importing the starter, and bundles every application's web entry to prove its browser graph.
 
 Serves P2 · implemented · `scripts` · `generate`, `check-boundaries`, `boundary-rules`
 
@@ -152,25 +152,43 @@ Serves P5 · implemented · `packages/runtime` `packages/client` `packages/react
 
 ### Application
 
-_One unit of content: the definition the shell runs._
+_One unit of content: the definition a host runs._
 
-An application gathers its modules, state factory and upgrades, policy routes, handlers, services and connectors (demo fakes included), integration principals, selectable resources, screens and navigation. The shell takes this definition and supplies authority, sessions, surfaces and the web frame, so adding an application changes no shell code (P11). Each example in `examples/*` is one application.
+An application is a package with three entrypoints. `manifest` is browser-safe: its id, title and composed modules. `application` is server code: state factory and upgrades, composed policy, handlers, services, selectable resources and `connect`, which wires systems of record (demo fakes included) and observers once per authority. `screens` is browser code: routes, navigation, capability screens and a status slot. The starter names one application in its configuration and the host and frame resolve these entrypoints, so adding an application changes no framework or starter code (P11). Each example in `examples/*` is one application.
 
-Guarantees (target): one catalog, generated artifact set and workspace per application; the shell imports no application.
+Guarantees: one catalog, generated reference set, web bundle and workspace per application. `defineApplication` fails when a selectable resource names an operation the manifest does not compose; `defineManifest` rejects an invalid id or a duplicate module; `defineScreens` rejects a navigation target with no route. A definition is trusted code; only callers are untrusted.
 
-Gaps: there is no definition type yet. `apps/service/src/composition.ts`, `modules.ts`, `host.ts`, `demo.ts` and `apps/web/src/app.tsx` compose all three examples into one application inside the shell.
+Serves P2, P8, P11 · implemented · `packages/host` `packages/frame` · `defineManifest`, `ApplicationManifest`, `defineApplication`, `ApplicationDefinition`, `ApplicationConnections`, `defineScreens`, `ApplicationScreens`
 
-Serves P2, P8, P11 · proposed
+### Host
 
-### Shell
+_The domain-neutral authority process that runs one application definition._
 
-_The domain-neutral host that runs one application._
+The host owns everything an application should not rewrite: workspace ownership, storage, launch and sessions, HTTP/SSE, embedded MCP, the CLI, run supervision and background delivery. It receives a definition and composes the runtime, integrations and observers from it; it names no domain.
 
-The shell owns everything an application should not rewrite: workspace ownership, launch and sessions, HTTP/SSE, MCP and CLI entrypoints, run supervision, the web frame and the desktop wrapper. Its counterpart in the framework is the set of ports and adapters it wires; its counterpart in content is the application definition.
+Guarantees: one authority per workspace, enforced by the same OS lock for a serving host and an embedded one. Embedded authorities never start observers. Observers start only after the host listens, and a failed start stops the ones already running. `loadApplication` and `loadManifest` resolve the configured application at runtime; compiled builds use a generated static entry because a binary cannot follow that import.
 
-Gaps: the shell currently names all three examples, their fakes and their screens; see Application.
+Serves P1, P4, P11 · implemented · `packages/host` · `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `loadApplication`, `loadManifest`
 
-Serves P1, P4, P11 · partial · `apps/service` `apps/web` `apps/desktop` · `serve`, `startHost`
+### Web frame
+
+_The domain-neutral browser shell around one application's screens._
+
+The frame supplies session and launch exchange, routing, navigation, the command palette, the run panel and accounts, and fills them from the application's screens. Its Vite plugin binds the configured application's `screens` entry to a virtual module and resolves `@/` imports from the starter first, then the frame, then the operator registry, so a starter file at the same path replaces the frame's.
+
+Guarantees: the frame imports no application; the boundary check bundles every application through it. The same parts ship as a shadcn registry, so a starter can copy and own any of them.
+
+Serves P1, P11 · implemented · `packages/frame` · `Frame`, `ScreensProvider`, `useScreens`, `screenForCapability`, `exchangeLaunch`, `frame`
+
+### Starter
+
+_The thin application a team forks or generates and then owns._
+
+The starter wires framework to content: `app.config.json` names its identity and the application it hosts, `apps/service` serves it, `apps/web` frames its screens and `apps/desktop` wraps both. It holds no domain and no generic host code, so changing it never forks the framework; extending it is the owner's business. `AGENT_NATIVE_APPLICATION` overrides the configured application for one developer's launch.
+
+Guarantees: the starter imports no content statically; the boundary check fails a direct import from `examples/*`.
+
+Serves P11 · implemented · `apps/service` `apps/web` `apps/desktop` `app.config.json` · `configuredApplication`, `runService`
 
 ## Callers: every surface on the same contract
 
@@ -190,7 +208,7 @@ _A UI control bound to a capability through the typed client._
 
 The UI's equivalent of a tool call. It turns a person's intent into exactly one command, however many times they tap.
 
-Guarantees: one idempotency key per intent, kept across retries until commit. Validation uses the contract's schema and field errors map back to inputs. Drafts stay separate from committed data and conflict explicitly: a draft pins the object it edits (capture pins its characteristic and sample; scanner setup keeps the revision it loaded and saves with it as the expected revision), so an external write shows a conflict instead of retargeting or discarding the entry. Every operation that claims a UI binding is referenced by a screen of the reference web app; an operation no screen offers declares an exception instead.
+Guarantees: one idempotency key per intent, kept across retries until commit. Validation uses the contract's schema and field errors map back to inputs. Drafts stay separate from committed data and conflict explicitly: a draft pins the object it edits (capture pins its characteristic and sample; scanner setup keeps the revision it loaded and saves with it as the expected revision), so an external write shows a conflict instead of retargeting or discarding the entry. Every operation that claims a UI binding is referenced by a screen of its application; an operation no screen offers declares an exception instead.
 
 Gaps: the reference check proves a screen names the capability, not that a control renders it.
 
@@ -236,9 +254,9 @@ Specialized interfaces are cheap only if their parts are shared. Apps pull regis
 
 Guarantees: no shadcn primitive is forked; sizing comes from tokens and `cva` variants. The registry manifest is generated and drift-checked. Operator items follow the point-of-work rules: glove-sized targets, hold-to-confirm for consequential actions, state as icon plus text.
 
-Gaps: `capture-station` and `sync-status` still bind to quality-inspection contracts. No scratch-app `shadcn add` acceptance test.
+Gaps: no scratch-app `shadcn add` acceptance test.
 
-Serves P1, P8 · implemented · `packages/operator-ui` `apps/web/src/components` · `operator-surface`, `big-action`, `use-press-and-hold`, `use-tap-guard`, `status-strip`, `capability-form`, `live-data-table`, `sync-status`
+Serves P1, P8 · implemented · `packages/operator-ui` `packages/frame` · `operator-surface`, `big-action`, `use-press-and-hold`, `use-tap-guard`, `status-strip`, `capability-form`, `live-data-table`, `run-panel`, `command-palette`, `app-shell`, `frame`
 
 ## Edges: systems that keep their own records
 
@@ -268,9 +286,11 @@ _The worker that delivers pending effects and settles them under a narrow integr
 
 Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending, and its deadline aborts a delivery in flight. `drainTargets` drains every dispatcher a host composed and accounts for the whole outbox by target, so a target with work but no dispatcher in this process is reported as not deliverable instead of being left out. An uncertain outcome is recorded and held even when shutdown interrupts the pass.
 
+`createTargetIntegration` builds one target's connector, integration context, dispatcher and inbound sync from a port, so an application's `connect` declares targets instead of wiring workers.
+
 Gaps: no worker claims or fencing, no upstream-pending state, no cancel-before-dispatch, no dispatch-time recheck of the original actor's authority.
 
-Serves P6, P7 · partial · `packages/integration` · `createEffectDispatcher`, `drainTargets`, `TargetBacklog`, `DeliveryFailure`, `DispatchReport`
+Serves P6, P7 · partial · `packages/integration` · `createEffectDispatcher`, `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DeliveryFailure`, `DispatchReport`
 
 ### Inbound sync
 
@@ -380,11 +400,15 @@ Serves P1, P3, P10 · implemented · `packages/testing` · `BehavioralScenario`,
 
 ### Scaffold
 
-_Exports the framework and canonical example as a standalone application._
+_Exports the framework, the starter and content as a standalone application._
 
-Guarantees: a versioned file-hash manifest; no credentials, workspace data or build output; never overwrites an existing target.
+`--example <name>` exports one example as the hosted application and leaves the others, their reference sets, root dependencies and lockfile entries out.
 
-Serves P8 · implemented · `packages/scaffold` · `scaffold`, `ScaffoldManifest`
+Guarantees: a versioned file-hash manifest; no credentials, workspace data or build output; never overwrites an existing target. A single-example export installs frozen and passes its own checks.
+
+Gaps: framework packages are unpublished, so an export vendors `packages/*` instead of depending on published versions.
+
+Serves P8, P11 · implemented · `packages/scaffold` · `scaffold`, `ScaffoldManifest`
 
 ### Task package
 

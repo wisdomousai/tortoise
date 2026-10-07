@@ -33,11 +33,11 @@ These rules apply to every screen built from the kit:
 
 `bun run build:registry:operator` generates `registry.json` and `src/styles/operator.css` from `registry.manifest.ts`, then runs `shadcn build` into `dist/registry/operator`. The generator fails when an item imports an `@/` module it does not declare as a registry dependency, or a package it does not declare as a dependency. `check:registry:operator` (part of `bun run check`) fails when the generated files drift.
 
-Inside this repository, `apps/web` resolves `@/` against its own sources first and then against `packages/operator-ui/src` (see `apps/web/vite.config.ts`). The app therefore uses the registry items in place, with the same import paths a pulling app would have after `shadcn add`. Another application pulls them from the built registry with the shadcn CLI.
+Inside this repository, `apps/web` resolves `@/` against its own sources first, then the frame (`packages/frame/src`), then `packages/operator-ui/src` (the `frame()` Vite plugin in `packages/frame/vite.ts`). The app therefore uses the registry items in place, with the same import paths a pulling app would have after `shadcn add`. Another application pulls them from the built registry with the shadcn CLI.
 
 `use-scanner` and `scanner-setup` depend on `@agent-native/devices`, which is not published. They can be pulled outside this workspace only once that package is published or vendored. A scratch-app `shadcn add` acceptance test is not yet part of the gates.
 
-The gallery at `#/station/kit` renders every primitive at desk, touch and glove density with local state only. `tests/e2e/station.pw.ts` uses it for interaction tests: a hold that cancels on slide-off, digit hotkeys and paging, a wedge burst that fires no hotkey, keypad tolerance and the takeover hold.
+The gallery at `#/station/kit` renders every primitive at desk, touch and glove density with local state only. `examples/line-station/e2e/station.pw.ts` uses it for interaction tests: a hold that cancels on slide-off, digit hotkeys and paging, a wedge burst that fires no hotkey, keypad tolerance and the takeover hold.
 
 ## Scanner device kit
 
@@ -95,6 +95,6 @@ A scan router maps scans to intents with no model turn. Routes match a GS1 AI or
 
 ## Evidence
 
-Deterministic tests cover decoding, GS1 check digits, AIM parsing, layout remapping, calibration inference, serial and HID report assembly, camera repeat filtering, routing and the device module's policy (`bun test packages/devices packages/operator-ui`). Browser tests cover the kit interactions and the bound station surface (`tests/e2e/station.pw.ts`).
+Deterministic tests cover decoding, GS1 check digits, AIM parsing, layout remapping, calibration inference, serial and HID report assembly, camera repeat filtering, routing and the device module's policy (`bun test packages/devices packages/operator-ui`). Browser tests cover the kit interactions and the bound station surface (`examples/line-station/e2e/station.pw.ts`).
 
 None of the physical scanner types (wedge, serial, HID POS, camera) has been checked on real hardware yet. Electron permission handlers for Web Serial and WebHID are not wired yet. Until a device has been checked and the result recorded in the [implementation ledger](implementation-status.md#operator-workstation-bridge), do not claim it is supported.

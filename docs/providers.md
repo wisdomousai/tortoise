@@ -2,7 +2,7 @@
 
 The application runtime remains the only authority for business data. A harness receives the catalog's tool definitions and a `ToolPort`; it cannot choose an acting principal, issue itself a grant or replace the captured resource context. Tool calls enter the same application execute path as HTTP, CLI and MCP calls. Register capabilities in the application catalog rather than adding provider-specific mutations.
 
-Start with `packages/agents/src/types.ts`, `supervisor.ts` and `apps/service/src/providers.ts` when extending a provider. `Harness.run()` produces an async stream of text, progress, tool and native-session events. Successful iterator completion is meaningful only after the adapter validates its provider's terminal result. The supervisor also waits for tracked application calls before persisting success. Native IDs belong in `resumeData`; credentials and prompts do not belong in run receipts.
+Start with `packages/agents/src/types.ts`, `supervisor.ts` and `packages/host/src/providers.ts` when extending a provider. `Harness.run()` produces an async stream of text, progress, tool and native-session events. Successful iterator completion is meaningful only after the adapter validates its provider's terminal result. The supervisor also waits for tracked application calls before persisting success. Native IDs belong in `resumeData`; credentials and prompts do not belong in run receipts.
 
 ## Available adapters
 
