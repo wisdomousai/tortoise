@@ -104,6 +104,7 @@ const statusCodes = {
   CONFLICT: 409,
   IDEMPOTENCY_CONFLICT: 409,
   CANCELLED: 409,
+  UNAVAILABLE: 503,
   INTERNAL: 500,
 };
 export function jsonResponse(value: unknown, status = 200, headers: HeadersInit = {}): Response {

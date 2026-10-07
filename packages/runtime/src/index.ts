@@ -1,9 +1,15 @@
+import { createHash } from 'node:crypto';
 import {
   ApplicationError,
   buildCatalog,
   canonicalJson,
   assertJson,
   type AnyCapability,
+  type AuditEvent,
+  type AuditRecord,
+  type AuditRequirement,
+  type EventLogPort,
+  type JsonObject,
   type CapabilityModule,
   type CapabilitiesOf,
   type CapabilityById,
@@ -105,7 +111,16 @@ export interface ApplicationOptions<State, Services, Modules extends readonly Ca
   readonly contractVersion?: string;
   /** Outbox effect identifiers; they must be globally unique because targets deduplicate by them. */
   readonly newEffectId?: () => string;
+  /**
+   * Audit sink. When present, every command, query, denial, outbox transition and delivery
+   * attempt is recorded. Its `mode` decides whether an unwritable log blocks the action.
+   */
+  readonly eventLog?: EventLogPort;
 }
+
+/** Bounded, framework-generated error text; free text from handlers never reaches the log. */
+const safeMessage = (error: unknown) =>
+  error instanceof ApplicationError ? error.message.slice(0, 200) : 'Unexpected failure';
 
 /** Compose pure capability definitions with private host implementations. No transport owns business execution. */
 export function createApplication<
@@ -131,6 +146,97 @@ export function createApplication<
     if (!handlers.has(id)) throw new Error(`Missing handler: ${id}`);
   const now = options.now ?? Date.now;
   const newEffectId = options.newEffectId ?? (() => crypto.randomUUID());
+  const eventLog = options.eventLog;
+  /**
+   * Append audit records. In `required` mode a failed append throws UNAVAILABLE so the caller
+   * aborts; in `best-effort` mode it is swallowed and the gap shows up in verification instead.
+   */
+  async function audit(requirement: AuditRequirement, records: readonly AuditRecord[]) {
+    if (!eventLog || records.length === 0) return;
+    try {
+      await eventLog.append(records);
+    } catch {
+      if (requirement === 'required')
+        throw new ApplicationError('UNAVAILABLE', 'Audit log unavailable');
+    }
+  }
+  /** Audit after an action already took effect: it cannot be undone, so never throw. */
+  const auditAfter = (records: readonly AuditRecord[]) =>
+    audit('best-effort', records).catch(() => undefined);
+  const actorOf = (context: ExecutionContext) => ({
+    principalId: context.principalId,
+    workspaceId: context.workspaceId,
+    ...(context.runId === undefined ? {} : { runId: context.runId }),
+    ...(context.channel === undefined ? {} : { via: context.channel }),
+  });
+  /**
+   * Inputs are logged as a digest plus field names. Only fields the capability allow-lists in
+   * `audit.fields` appear in plain text. A digest of a low-entropy input can be guessed, so the
+   * log itself remains confidential.
+   */
+  const describeInput = (capability: AnyCapability, input: unknown) => {
+    const object =
+      input !== null && typeof input === 'object' && !Array.isArray(input)
+        ? (input as Record<string, unknown>)
+        : undefined;
+    const allowed = Object.fromEntries(
+      (capability.audit?.fields ?? [])
+        .filter((field) => object && Object.hasOwn(object, field))
+        .map((field) => [field, object![field]]),
+    ) as JsonObject;
+    return {
+      inputDigest: createHash('sha256').update(canonicalJson(input)).digest('hex'),
+      data: {
+        fields: object ? Object.keys(object).sort() : [],
+        ...(Object.keys(allowed).length ? { values: allowed } : {}),
+      } as JsonObject,
+    };
+  };
+  const failureRecord = (
+    kind: 'command' | 'query',
+    operation: string,
+    context: ExecutionContext,
+    correlationId: string,
+    error: unknown,
+  ): AuditRecord => {
+    const code = error instanceof ApplicationError ? error.code : 'INTERNAL';
+    return {
+      kind: `${kind}.${code === 'FORBIDDEN' ? 'denied' : 'failed'}`,
+      outcome: code === 'FORBIDDEN' ? 'denied' : 'failed',
+      operation,
+      actor: actorOf(context),
+      correlationId,
+      reason: code,
+      data: { message: safeMessage(error) },
+    };
+  };
+  const effectRecords = (
+    effects: readonly Effect[],
+    context: ExecutionContext,
+    correlationId: string,
+  ): AuditRecord[] =>
+    effects.map((effect) => ({
+      // Enqueued effects have no attempts yet; a held effect always has one, so a pending effect
+      // with attempts that a command touched was released.
+      kind:
+        effect.status !== 'pending'
+          ? 'effect.settled'
+          : effect.attempts === 0
+            ? 'effect.enqueued'
+            : 'effect.released',
+      outcome: 'info',
+      operation: effect.operation,
+      resources: [effect.resource],
+      actor: actorOf(context),
+      correlationId,
+      data: {
+        effectId: effect.id,
+        target: effect.target,
+        type: effect.type,
+        ...(effect.outcome ? { status: effect.outcome.status } : {}),
+        ...(effect.outcome?.status === 'rejected' ? { code: effect.outcome.code } : {}),
+      },
+    }));
   const ownEffect = (snapshot: WorkspaceSnapshot<State>, id: string): Effect | undefined =>
     Object.hasOwn(snapshot.effects, id) ? snapshot.effects[id] : undefined;
   // Defined properties keep untrusted identifiers such as "__proto__" from touching prototypes.
@@ -334,9 +440,54 @@ export function createApplication<
     },
   });
 
+  /**
+   * Audit ordering for commands:
+   * 1. Refusals and failures are recorded after the transaction has rolled back.
+   * 2. `command.accepted` is appended inside the transaction, after the final commit-phase
+   *    authorization and before the callback returns. If the log is required and the append
+   *    fails, the callback throws UNAVAILABLE and storage commits nothing.
+   * 3. `command.committed` and outbox events are appended after the commit. A crash between 2
+   *    and 3 leaves an accepted event without an outcome; `recoverAudit` resolves it against the
+   *    journal on the next start.
+   * The append in step 2 is local, fsynced file I/O under the storage lock, never a network call.
+   */
   async function invokeRaw(
     request: Invocation,
     context: ExecutionContext,
+  ): Promise<CommandReceipt> {
+    const correlationId = crypto.randomUUID();
+    const operation = typeof request?.operation === 'string' ? request.operation : '';
+    let transitions: Effect[] = [];
+    let replayed = false;
+    try {
+      const receipt = await invokeCommand(request, context, correlationId, (effects, replay) => {
+        transitions = effects;
+        replayed = replay;
+      });
+      await auditAfter([
+        {
+          kind: replayed ? 'command.replayed' : 'command.committed',
+          outcome: 'committed',
+          operation,
+          actor: actorOf(context),
+          correlationId,
+          cursor: receipt.cursor,
+          resources: Object.keys(receipt.revisions).sort(),
+        },
+        ...effectRecords(transitions, context, correlationId),
+      ]);
+      return receipt;
+    } catch (error) {
+      if (eventLog)
+        await auditAfter([failureRecord('command', operation, context, correlationId, error)]);
+      throw error;
+    }
+  }
+  async function invokeCommand(
+    request: Invocation,
+    context: ExecutionContext,
+    correlationId: string,
+    report: (effects: Effect[], replay: boolean) => void,
   ): Promise<CommandReceipt> {
     const { capability, input, handler } = resolve(request, 'command');
     active(context, capability.id);
@@ -389,6 +540,7 @@ export function createApplication<
           );
         const result = await project(capability, input, context, snapshot, stored.receipt.result);
         await authorize(capability, input, context, snapshot, 'replay');
+        report([], true);
         return { ...stored.receipt, result, authorizationRevision: snapshot.authorizationRevision };
       }
       await authorize(capability, input, context, snapshot, 'invoke');
@@ -467,12 +619,69 @@ export function createApplication<
           input: input as JsonValue,
         };
       }
+      // Last step inside the transaction: nothing commits unless this append is durable (when
+      // required). `fromCursor` lets recovery find this command's journal entries.
+      const described = describeInput(capability, input);
+      await audit(eventLog?.mode.commands ?? 'best-effort', [
+        {
+          kind: 'command.accepted',
+          outcome: 'accepted',
+          operation: capability.id,
+          actor: actorOf(context),
+          correlationId,
+          cursor: snapshot.cursor,
+          resources: Object.keys(revisions).sort(),
+          inputDigest: described.inputDigest,
+          data: {
+            ...described.data,
+            fromCursor: snapshot.cursor - changes.size,
+            ...(request.idempotencyKey === undefined
+              ? {}
+              : { idempotencyKey: request.idempotencyKey }),
+          },
+        },
+      ]);
+      report(touchedEffects, false);
       return receipt;
     });
   }
+  /**
+   * Queries are audited after the read: `query.executed` must be durable before data is returned
+   * when the log is required for queries. Refusals are recorded as `query.denied`.
+   */
   async function queryRaw(request: Invocation, context: ExecutionContext): Promise<QueryResult> {
+    const correlationId = crypto.randomUUID();
+    const operation = typeof request?.operation === 'string' ? request.operation : '';
+    let result: QueryResult;
+    let inputDigest: string | undefined;
+    try {
+      result = await readQuery(request, context, (digest) => (inputDigest = digest));
+    } catch (error) {
+      if (eventLog)
+        await auditAfter([failureRecord('query', operation, context, correlationId, error)]);
+      throw error;
+    }
+    await audit(eventLog?.mode.queries ?? 'best-effort', [
+      {
+        kind: 'query.executed',
+        outcome: 'allowed',
+        operation,
+        actor: actorOf(context),
+        correlationId,
+        cursor: result.cursor,
+        ...(inputDigest ? { inputDigest } : {}),
+      },
+    ]);
+    return result;
+  }
+  async function readQuery(
+    request: Invocation,
+    context: ExecutionContext,
+    describe: (inputDigest: string) => void,
+  ): Promise<QueryResult> {
     const { capability, input, handler } = resolve(request, 'query');
     active(context, capability.id);
+    if (eventLog) describe(describeInput(capability, input).inputDigest);
     return options.storage.read(context.workspaceId, async (readonlySnapshot) => {
       const snapshot = structuredClone(readonlySnapshot);
       await authorize(capability, input, context, snapshot, 'invoke');
@@ -602,6 +811,30 @@ export function createApplication<
     attempt: { readonly hold?: boolean } = {},
   ): Promise<Effect> {
     trusted(context);
+    const effect = await recordAttemptInStorage(context, id, failure, attempt);
+    await auditAfter([
+      {
+        kind: attempt.hold ? 'effect.held' : 'effect.attempted',
+        outcome: 'failed',
+        operation: effect.operation,
+        resources: [effect.resource],
+        actor: actorOf(context),
+        data: {
+          effectId: effect.id,
+          target: effect.target,
+          attempts: effect.attempts,
+          failure: effect.lastFailure ?? 'Delivery failed',
+        },
+      },
+    ]);
+    return effect;
+  }
+  function recordAttemptInStorage(
+    context: ExecutionContext,
+    id: string,
+    failure: string,
+    attempt: { readonly hold?: boolean },
+  ): Promise<Effect> {
     return options.storage.transact(context.workspaceId, async (snapshot) => {
       const effect = ownEffect(snapshot, id);
       if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
@@ -626,6 +859,51 @@ export function createApplication<
       });
       return next;
     });
+  }
+  /**
+   * Host-only, at startup and before serving: resolve `command.accepted` events that have no
+   * outcome because the process stopped between the audited commit and `command.committed`.
+   * The journal entries between `fromCursor` and `cursor` (or the idempotency receipt) decide
+   * whether the command committed. It must run before new commands could reuse those cursors.
+   * Appends with the log required: an unrecorded resolution would stay invisible.
+   */
+  async function recoverAudit(accepted: readonly AuditEvent[]): Promise<readonly AuditRecord[]> {
+    const records: AuditRecord[] = [];
+    for (const event of accepted) {
+      const workspaceId = event.actor?.workspaceId;
+      if (event.kind !== 'command.accepted' || !workspaceId || !event.operation) continue;
+      const data = (event.data ?? {}) as { fromCursor?: unknown; idempotencyKey?: unknown };
+      const committed = await options.storage.read(workspaceId, async (snapshot) => {
+        const from = typeof data.fromCursor === 'number' ? data.fromCursor : undefined;
+        const to = event.cursor;
+        if (from !== undefined && to !== undefined && to > from)
+          return snapshot.journal.some(
+            (entry) =>
+              entry.cursor > from && entry.cursor <= to && entry.operation === event.operation,
+          );
+        if (typeof data.idempotencyKey === 'string') {
+          const key = canonicalJson([event.actor!.principalId, data.idempotencyKey]);
+          const stored = Object.hasOwn(snapshot.receipts, key) ? snapshot.receipts[key] : undefined;
+          return stored?.receipt.operation === event.operation && stored?.receipt.cursor === to;
+        }
+        // A command without changes or key leaves nothing to compare against.
+        return undefined;
+      });
+      records.push({
+        kind: committed ? 'command.recovered' : 'command.aborted',
+        outcome: committed ? 'recovered' : 'aborted',
+        operation: event.operation,
+        ...(event.actor ? { actor: event.actor } : {}),
+        ...(event.correlationId ? { correlationId: event.correlationId } : {}),
+        causationId: event.hash,
+        ...(event.cursor === undefined ? {} : { cursor: event.cursor }),
+        ...(committed
+          ? {}
+          : { reason: committed === undefined ? 'UNVERIFIABLE' : 'NOT_COMMITTED' }),
+      });
+    }
+    await audit('required', records);
+    return records;
   }
   function discover(context: ExecutionContext) {
     trusted(context);
@@ -653,5 +931,6 @@ export function createApplication<
     discover,
     pendingEffects,
     recordAttempt,
+    recoverAudit,
   };
 }

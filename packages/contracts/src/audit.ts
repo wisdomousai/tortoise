@@ -73,6 +73,7 @@ export function isAuditKind(kind: string): boolean {
 export const auditEventKinds = {
   'command.accepted': 'A command passed final authorization and is about to commit.',
   'command.committed': 'A command committed; carries the journal cursor.',
+  'command.replayed': 'An idempotent retry returned the stored receipt; nothing new committed.',
   'command.recovered': 'Startup resolved an accepted command against the receipt store.',
   'command.aborted': 'An accepted command left no receipt and did not commit.',
   'command.denied': 'Authorization or grant checks refused a command.',
@@ -84,7 +85,6 @@ export const auditEventKinds = {
   'effect.held': 'An uncertain delivery is held for operator reconciliation.',
   'effect.released': 'A held effect was released for redelivery.',
   'effect.settled': 'The target accepted or rejected an effect.',
-  'sync.pulled': 'Inbound sync imported a batch from a system of record.',
   'egress.allowed': 'The egress guard opened a declared, bound connection.',
   'egress.denied': 'The egress guard refused an undeclared, unbound or disallowed connection.',
   'egress.completed': 'A guarded request finished; carries status, size and duration.',
@@ -100,3 +100,31 @@ export const auditEventKinds = {
   'log.checkpoint': 'A checkpoint recorded the chain head.',
 } as const;
 export type FrameworkAuditKind = keyof typeof auditEventKinds;
+
+/**
+ * Whether an unwritable log blocks the audited action. `required` fails closed: the command does
+ * not commit, the query returns no data and the connection does not open. `best-effort` proceeds
+ * and the gap becomes visible through the verifier and posture checks.
+ */
+export type AuditRequirement = 'required' | 'best-effort';
+export interface AuditMode {
+  readonly commands: AuditRequirement;
+  readonly queries: AuditRequirement;
+  readonly egress: AuditRequirement;
+}
+export const failClosedAuditMode: AuditMode = Object.freeze({
+  commands: 'required',
+  queries: 'required',
+  egress: 'required',
+});
+
+/**
+ * Append-only audit sink injected into the runtime, egress guard, dispatcher and host. Appends
+ * are ordered: resolved events carry consecutive `seq` values and one hash chain. A rejected
+ * promise means none of the records is durable. Implementations must not block on the network
+ * while the caller holds a storage transaction; forward to remote sinks after the local append.
+ */
+export interface EventLogPort {
+  readonly mode: AuditMode;
+  append(records: readonly AuditRecord[]): Promise<readonly AuditEvent[]>;
+}

@@ -1,4 +1,10 @@
-import type { AnyCapability, InputOf, OutputOf, JsonValue } from '@agent-native/contracts';
+import type {
+  AnyCapability,
+  AuditChannel,
+  InputOf,
+  OutputOf,
+  JsonValue,
+} from '@agent-native/contracts';
 
 export interface DelegationGrant {
   readonly operations: readonly string[];
@@ -15,6 +21,8 @@ export interface ExecutionContext {
   readonly grant?: DelegationGrant;
   readonly runId?: string;
   readonly signal?: AbortSignal;
+  /** Surface that carried the request, for audit events. Set by the host adapter, never by callers. */
+  readonly channel?: AuditChannel;
 }
 export interface ChangeEvent {
   readonly cursor: number;

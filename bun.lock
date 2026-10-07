@@ -10,6 +10,8 @@
         "@agent-native/client": "workspace:*",
         "@agent-native/contracts": "workspace:*",
         "@agent-native/devices": "workspace:*",
+        "@agent-native/egress": "workspace:*",
+        "@agent-native/event-log": "workspace:*",
         "@agent-native/integration": "workspace:*",
         "@agent-native/operator-ui": "workspace:*",
         "@agent-native/project-tasks": "workspace:*",
@@ -102,6 +104,14 @@
       "name": "@agent-native/devices",
       "version": "0.1.0",
     },
+    "packages/egress": {
+      "name": "@agent-native/egress",
+      "version": "0.1.0",
+    },
+    "packages/event-log": {
+      "name": "@agent-native/event-log",
+      "version": "0.1.0",
+    },
     "packages/integration": {
       "name": "@agent-native/integration",
       "version": "0.1.0",
@@ -146,6 +156,10 @@
     "@agent-native/desktop": ["@agent-native/desktop@workspace:apps/desktop"],
 
     "@agent-native/devices": ["@agent-native/devices@workspace:packages/devices"],
+
+    "@agent-native/egress": ["@agent-native/egress@workspace:packages/egress"],
+
+    "@agent-native/event-log": ["@agent-native/event-log@workspace:packages/event-log"],
 
     "@agent-native/integration": ["@agent-native/integration@workspace:packages/integration"],
 

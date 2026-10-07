@@ -58,6 +58,7 @@ export const exitCodes = {
   CONFLICT: 5,
   IDEMPOTENCY_CONFLICT: 6,
   CANCELLED: 7,
+  UNAVAILABLE: 8,
 } as const satisfies Record<ErrorCode, number>;
 /** Work committed locally is still waiting for an external system (sysexits EX_TEMPFAIL). */
 export const PENDING_EXIT_CODE = 75;
@@ -237,7 +238,7 @@ function overview(catalog: Catalog, program: string): CliText {
       `Run "${program} help <command>" for flags. Other verbs: list, schema [command],`,
       'workflows [id], call <operation> <json> [--key key] [--revisions json].',
       'Exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict,',
-      '6 idempotency conflict, 7 cancelled, 1 internal.',
+      '6 idempotency conflict, 7 cancelled, 8 unavailable, 1 internal.',
     ].join('\n'),
   );
 }

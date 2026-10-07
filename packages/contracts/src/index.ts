@@ -395,6 +395,8 @@ export type ErrorCode =
   | 'CONFLICT'
   | 'IDEMPOTENCY_CONFLICT'
   | 'CANCELLED'
+  /** A required dependency of the authority is unavailable, e.g. the audit log in fail-closed mode. */
+  | 'UNAVAILABLE'
   | 'INTERNAL';
 export class ApplicationError extends Error {
   constructor(

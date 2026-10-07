@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/event-log",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Server-only append-only audit event log: hash-chained memory and JSON-lines adapters, verifier and forwarding.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}
