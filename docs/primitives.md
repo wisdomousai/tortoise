@@ -360,11 +360,11 @@ Serves P1, P8 · implemented · `packages/devices` · `deviceConfigModule`, `cre
 
 ### Golden check
 
-_Replays labeled inputs through a profile and its extractors before activation._
+_Replays labeled inputs through a profile and its extractors, as a separate procedure run before a profile or model change is used._
 
 Guarantees: reports per-field accuracy and confidence and fails on a confident misread.
 
-Gaps: the current golden set exercises recorded expectations, not a model.
+Gaps: the current golden set exercises recorded expectations, not a model. Activation does not require a passing report: nothing ties a running profile to a golden result, so the check is a procedure, not a gate.
 
 Serves P8, P10 · implemented · `packages/station` · `runGolden`, `GoldenReport`
 

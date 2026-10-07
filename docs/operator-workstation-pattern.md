@@ -74,9 +74,9 @@ A held effect stays visible as "needs reconciliation". The operator states wheth
 
 The reference implementation ships a deterministic scripted driver that resolves targets from locators. A live computer-use model implements the same port later. Local models, such as open UI-grounding models, and cloud models can then be swapped without changing the gate.
 
-### Seat lease
+### Seat
 
-The operator and the agent share one legacy screen. Exactly one holds it at a time: `operator`, `agent` or `idle`. The operator always preempts. The station UI's takeover command changes the desired seat in domain state, and the controller reads it through its control query. Where the transport detects local keyboard or mouse input, the controller aborts immediately and reports the seat as `operator`. An aborted procedure is uncertain and follows the reconciliation rules above.
+The operator and the agent share one legacy screen. Exactly one holds it at a time: `operator`, `agent` or `idle`. The operator always preempts. The seat is recorded state, not a lease: it has no expiry and no fencing token, so a holder that disappears keeps it until someone changes it. The station UI's takeover command changes the desired seat in domain state, and the controller reads it through its control query. Where the transport detects local keyboard or mouse input, the controller aborts immediately and reports the seat as `operator`. An aborted procedure is uncertain and follows the reconciliation rules above.
 
 ## Observation and local models
 
