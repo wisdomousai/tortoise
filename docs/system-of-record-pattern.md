@@ -37,7 +37,7 @@ A command handler calls `ctx.enqueue({ target, type, payload, resource })`. The 
 
 Implemented delivery states are pending (with attempt count and safe failure text), accepted (with external reference and acceptance time) and rejected (with code and message). A correction supersedes a rejected result and is forwarded again. Claims with fencing, upstream-pending acknowledgement, needs-reconciliation, cancel-before-dispatch and a dispatch-time recheck of the original actor's authority are **not** implemented; see the status table.
 
-`app drain [--timeout ms]` delivers until nothing is pending and exits `0`, or exits `75` (EX_TEMPFAIL) while effects remain. An orchestrator must not discard an ephemeral sandbox until drain exits `0`, or it must keep the workspace on a persistent volume. `app sync` pulls master data once. Both need the workspace not to be owned by a live process.
+`app drain [--timeout ms]` delivers to every target the application composes until nothing is pending and exits `0`, or exits `75` (EX_TEMPFAIL) while effects remain. It prints the remaining work per target: `pending` awaits delivery, `held` awaits reconciliation, and `deliverable: false` marks a target this process cannot reach (a station screen only a running host's bridge drives), whose effects still count as pending. An orchestrator must not discard an ephemeral sandbox until drain exits `0`, or it must keep the workspace on a persistent volume. `app sync` pulls master data once from each target and prints one report per target. Both need the workspace not to be owned by a live process.
 
 ## Capture interface kit
 

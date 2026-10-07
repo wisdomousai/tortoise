@@ -50,7 +50,7 @@ Draft, committed, dispatched, accepted, rejected and uncertain are distinct stat
 
 **Rules out:** optimistic "done" before acceptance, inferring success from narration, silently overwriting state with a low-confidence reading.
 
-**Enforced by:** `packages/runtime/test/outbox.test.ts` and `packages/integration/test/held.test.ts` (delivery states, uncertain outcomes held, not resent, including when shutdown interrupts delivery); `packages/station/test/observer.test.ts` (only stable readings become current, unsure readings stay uncertain); `packages/agents/test/supervisor.test.ts` (run state separate from commits). **Convention only:** that every screen and tool shows the delivery state rather than a receipt.
+**Enforced by:** `packages/runtime/test/outbox.test.ts` and `packages/integration/test/held.test.ts` (delivery states, uncertain outcomes held, not resent, including when shutdown interrupts delivery; a drain reports outbox work for targets it cannot deliver); `apps/service/sandbox.test.ts` and `composition.test.ts` (`drain` exits non-zero until every composed target is empty); `packages/station/test/observer.test.ts` (only stable readings become current, unsure readings stay uncertain); `packages/agents/test/supervisor.test.ts` (run state separate from commits). **Convention only:** that every screen and tool shows the delivery state rather than a receipt.
 
 ### P7 — Other systems are reached only through durable intents
 

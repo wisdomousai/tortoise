@@ -9,6 +9,7 @@ import {
 import {
   createEffectDispatcher,
   createInboundSync,
+  drainTargets,
   type SystemOfRecordPort,
 } from '@agent-native/integration';
 import {
@@ -263,3 +264,54 @@ export function createLineIntegration(options: {
     },
   };
 }
+
+/**
+ * Every system-of-record integration this application composes, built once so the HTTP host and
+ * the embedded CLI authority deliver and sync the same targets. `drain` accounts for the whole
+ * outbox, including targets with no dispatcher in this process, such as station screens that only
+ * a running host's bridge drives.
+ */
+export function createIntegrations(options: {
+  application: ApplicationRuntime;
+  workspaceId: string;
+  systemOfRecord: SystemOfRecordPort<QualityItem>;
+  mes: SystemOfRecordPort<MesItem>;
+}) {
+  const quality = createQualityIntegration({
+    application: options.application,
+    port: options.systemOfRecord,
+    workspaceId: options.workspaceId,
+  });
+  const line = createLineIntegration({
+    application: options.application,
+    port: options.mes,
+    workspaceId: options.workspaceId,
+  });
+  const all = [quality, line];
+  return {
+    quality,
+    line,
+    start(intervals?: { deliverMs?: number; syncMs?: number }) {
+      for (const integration of all) integration.start(intervals);
+    },
+    async stop() {
+      await Promise.all(all.map((integration) => integration.stop()));
+    },
+    drain(timeoutMs: number) {
+      return drainTargets({
+        application: options.application,
+        context: integrationContext(options.workspaceId),
+        dispatchers: all.map((integration) => integration.dispatcher),
+        timeoutMs,
+      });
+    },
+    /** One inbound pass per target, in order; a failing target stops the pass. */
+    async sync() {
+      const reports = [];
+      for (const { inbound } of all)
+        reports.push({ target: inbound.target, ...(await inbound.runOnce()) });
+      return reports;
+    },
+  };
+}
+export type Integrations = ReturnType<typeof createIntegrations>;

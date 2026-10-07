@@ -242,11 +242,11 @@ Serves P7, P9 · implemented · `packages/integration` `packages/station` · `Sy
 
 _The worker that delivers pending effects and settles them under a narrow integration principal._
 
-Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending, and its deadline aborts a delivery in flight. An uncertain outcome is recorded and held even when shutdown interrupts the pass.
+Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending, and its deadline aborts a delivery in flight. `drainTargets` drains every dispatcher a host composed and accounts for the whole outbox by target, so a target with work but no dispatcher in this process is reported as not deliverable instead of being left out. An uncertain outcome is recorded and held even when shutdown interrupts the pass.
 
 Gaps: no worker claims or fencing, no upstream-pending state, no cancel-before-dispatch, no dispatch-time recheck of the original actor's authority.
 
-Serves P6, P7 · partial · `packages/integration` · `createEffectDispatcher`, `DeliveryFailure`, `DispatchReport`
+Serves P6, P7 · partial · `packages/integration` · `createEffectDispatcher`, `drainTargets`, `TargetBacklog`, `DeliveryFailure`, `DispatchReport`
 
 ### Inbound sync
 

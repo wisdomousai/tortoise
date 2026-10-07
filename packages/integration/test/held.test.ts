@@ -11,6 +11,7 @@ import {
 import {
   DeliveryUncertain,
   createEffectDispatcher,
+  drainTargets,
   type LookupResult,
   type SystemOfRecordPort,
 } from '../src/index';
@@ -275,3 +276,42 @@ test('a drain deadline aborts a delivery that is still in flight', async () => {
   expect(performance.now() - started).toBeLessThan(500);
   expect(aborted).toBe(true);
 }, 2_000);
+
+test('draining several targets accounts for outbox work no dispatcher here can deliver', async () => {
+  const app = fixture();
+  const { port } = station();
+  await app.invoke(
+    { operation: 'recipe.load', input: { recipe: 'R-12' }, idempotencyKey: 'load-1' },
+    operator,
+  );
+  const mes = createEffectDispatcher({
+    application: app,
+    port: { ...port, describe: () => ({ target: 'mes', idempotentDelivery: false }) },
+    context: bridge,
+    settleOperation: 'recipe.settle',
+  });
+  // Only an MES dispatcher runs here; the station effect is still owed and must be reported.
+  expect(
+    await drainTargets({ application: app, context: bridge, dispatchers: [mes], timeoutMs: 0 }),
+  ).toEqual({
+    pending: 1,
+    targets: [
+      { target: 'legacy-hmi', pending: 1, held: 0, deliverable: false },
+      { target: 'mes', pending: 0, held: 0, deliverable: true },
+    ],
+  });
+  const hmi = createEffectDispatcher({
+    application: app,
+    port,
+    context: bridge,
+    settleOperation: 'recipe.settle',
+  });
+  expect(
+    await drainTargets({
+      application: app,
+      context: bridge,
+      dispatchers: [mes, hmi],
+      timeoutMs: 1_000,
+    }),
+  ).toMatchObject({ pending: 0 });
+});

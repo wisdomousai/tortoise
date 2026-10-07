@@ -14,12 +14,7 @@ import {
 } from '@agent-native/adapters/http';
 import { UiSessionStore, type UiContextInput } from '@agent-native/adapters/ui-sessions';
 import type { UiIntent } from '@agent-native/react';
-import {
-  createApplicationRuntime,
-  createLineIntegration,
-  createQualityIntegration,
-  selectableResources,
-} from './composition';
+import { createApplicationRuntime, createIntegrations, selectableResources } from './composition';
 import { FakeMes, type MesItem } from '../../../examples/line-station/fake-mes';
 import { startStationBridge, type StationBridgeConfig } from './station-bridge';
 import { LOCAL_WORKSPACE, workspaceStorage } from './embedded';
@@ -101,19 +96,14 @@ export async function startHost(options: {
     startupCleanup.unshift(() => runStore.close());
     const application = createApplicationRuntime({ storage });
     const systemOfRecord = options.systemOfRecord ?? new FakeQualitySystem();
-    const integration = createQualityIntegration({
-      application,
-      port: systemOfRecord,
-      workspaceId: LOCAL_WORKSPACE,
-    });
-    startupCleanup.unshift(() => integration.stop());
     const mes = options.lineStation?.mes ?? new FakeMes();
-    const lineIntegration = createLineIntegration({
+    const integrations = createIntegrations({
       application,
-      port: mes,
       workspaceId: LOCAL_WORKSPACE,
+      systemOfRecord,
+      mes,
     });
-    startupCleanup.unshift(() => lineIntegration.stop());
+    startupCleanup.unshift(() => integrations.stop());
     const bridges: { stop(): Promise<void> }[] = [];
     startupCleanup.unshift(async () => {
       await Promise.all(bridges.map((bridge) => bridge.stop()));
@@ -497,8 +487,7 @@ export async function startHost(options: {
       startupCleanup.unshift(() => unlink(agentConnection.path).catch(() => {}));
     }
     if (options.integration !== false) {
-      integration.start(options.integration);
-      lineIntegration.start(options.integration);
+      integrations.start(options.integration);
       for (const config of options.lineStation?.stations ?? [])
         bridges.push(
           await startStationBridge({
@@ -519,7 +508,7 @@ export async function startHost(options: {
           await supervisor.cancel(run.id);
       server.stop(true);
       await Promise.all(bridges.map((bridge) => bridge.stop()));
-      await Promise.all([integration.stop(), lineIntegration.stop()]);
+      await integrations.stop();
       providers.close();
       await storage.close();
       runStore.close();
@@ -536,8 +525,8 @@ export async function startHost(options: {
       sessions,
       application,
       supervisor,
-      integration: { ...integration, systemOfRecord },
-      lineIntegration: { ...lineIntegration, mes },
+      integration: { ...integrations.quality, systemOfRecord },
+      lineIntegration: { ...integrations.line, mes },
       close: closeHost,
     };
   } catch (error) {

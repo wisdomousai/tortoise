@@ -17,6 +17,8 @@ import {
   projectTaskPolicy,
   projectTasksModule,
 } from '../../examples/project-tasks/server';
+import { demoMes, demoSystemOfRecord } from './src/demo';
+import { openEmbeddedAuthority } from './src/embedded';
 
 const owner = { workspaceId: 'local', principalId: 'owner' };
 
@@ -68,4 +70,29 @@ test('a workspace written before module composition keeps its projects after upg
 test('upgrade is idempotent for already composed state', () => {
   const state = createApplicationState('owner');
   expect(upgradeApplicationState(structuredClone(state))).toEqual(state);
+});
+
+test('the embedded authority drains and syncs every target the host composes', async () => {
+  const workspacePath = await mkdtemp(join(tmpdir(), 'agent-native-embedded-'));
+  const authority = await openEmbeddedAuthority({
+    workspacePath,
+    systemOfRecord: demoSystemOfRecord({}),
+    mes: demoMes(),
+  });
+  try {
+    expect((await authority.integrations.sync()).map((report) => report.target)).toEqual([
+      'quality-system',
+      'mes',
+    ]);
+    expect(await authority.integrations.drain(0)).toEqual({
+      pending: 0,
+      targets: [
+        { target: 'mes', pending: 0, held: 0, deliverable: true },
+        { target: 'quality-system', pending: 0, held: 0, deliverable: true },
+      ],
+    });
+  } finally {
+    await authority.close();
+    await rm(workspacePath, { recursive: true, force: true });
+  }
 });

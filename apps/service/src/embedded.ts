@@ -6,11 +6,12 @@ import type { SystemOfRecordPort } from '@agent-native/integration';
 import {
   createApplicationRuntime,
   createApplicationState,
-  createQualityIntegration,
+  createIntegrations,
   upgradeApplicationState,
   type ApplicationState,
 } from './composition';
 import type { QualityItem } from '../../../examples/quality-inspection/fake-sor';
+import type { MesItem } from '../../../examples/line-station/fake-mes';
 
 /** The single workspace a local authority serves. */
 export const LOCAL_WORKSPACE = 'local';
@@ -32,6 +33,7 @@ export function workspaceStorage(canonicalPath: string) {
 export async function openEmbeddedAuthority(options: {
   workspacePath: string;
   systemOfRecord: SystemOfRecordPort<QualityItem>;
+  mes: SystemOfRecordPort<MesItem>;
 }) {
   const ownership = await acquireWorkspaceOwnership(options.workspacePath).catch((error) => {
     if (error instanceof WorkspaceOwnedError)
@@ -43,21 +45,22 @@ export async function openEmbeddedAuthority(options: {
   });
   const storage = workspaceStorage(ownership.canonicalPath);
   const application = createApplicationRuntime({ storage });
-  const integration = createQualityIntegration({
+  const integrations = createIntegrations({
     application,
-    port: options.systemOfRecord,
     workspaceId: LOCAL_WORKSPACE,
+    systemOfRecord: options.systemOfRecord,
+    mes: options.mes,
   });
   let closed = false;
   return {
     application,
-    integration,
+    integrations,
     workspacePath: ownership.canonicalPath,
     /** Stop background delivery, then release storage before the ownership lock. */
     async close() {
       if (closed) return;
       closed = true;
-      await integration.stop();
+      await integrations.stop();
       await storage.close();
       await ownership.release();
     },

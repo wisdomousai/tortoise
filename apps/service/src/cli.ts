@@ -14,7 +14,7 @@ import {
 import { createDirectTransport, readGrantFile } from '@agent-native/adapters/direct';
 import { createMcpServer } from '@agent-native/adapters/mcp';
 import identity from '../../../app.config.json';
-import { demoSystemOfRecord } from './demo';
+import { demoMes, demoSystemOfRecord } from './demo';
 import { LOCAL_WORKSPACE, openEmbeddedAuthority, type EmbeddedAuthority } from './embedded';
 import { applicationModules } from './modules';
 
@@ -66,6 +66,7 @@ async function withEmbedded<T>(
   const authority = await openEmbeddedAuthority({
     workspacePath,
     systemOfRecord: demoSystemOfRecord(),
+    mes: demoMes(),
   });
   try {
     return await use(authority);
@@ -125,13 +126,14 @@ async function mcpCommand(args: string[]) {
   const authority = await openEmbeddedAuthority({
     workspacePath,
     systemOfRecord: demoSystemOfRecord(),
+    mes: demoMes(),
   });
   // Load master data before the first tool call so the worklist is not empty on a fresh sandbox.
   // An unreachable system of record must not block capture; the background loop retries.
-  await authority.integration.inbound.runOnce().catch((error) => {
+  await authority.integrations.sync().catch((error) => {
     process.stderr.write(`Initial master-data sync failed: ${errorEnvelope(error).message}\n`);
   });
-  authority.integration.start();
+  authority.integrations.start();
   const server = createMcpServer(createDirectTransport(authority.application, context));
   let closing: Promise<void> | undefined;
   const shutdown = () => {
@@ -153,18 +155,19 @@ async function drainCommand(args: string[]) {
   const workspacePath = workspaceOf(args);
   const timeout = finite(takeFlag(args, 'timeout'), 30_000, 'timeout');
   rejectRemaining(args);
-  return withEmbedded(workspacePath, async ({ integration }) => {
-    const pending = await integration.dispatcher.drain(timeout);
-    report({ target: integration.dispatcher.target, pending });
-    return pending ? PENDING_EXIT_CODE : 0;
+  return withEmbedded(workspacePath, async ({ integrations }) => {
+    // Pending counts every target in the outbox, including ones this process cannot deliver.
+    const backlog = await integrations.drain(timeout);
+    report(backlog);
+    return backlog.pending ? PENDING_EXIT_CODE : 0;
   });
 }
 
 async function syncCommand(args: string[]) {
   const workspacePath = workspaceOf(args);
   rejectRemaining(args);
-  return withEmbedded(workspacePath, async ({ integration }) => {
-    report(await integration.inbound.runOnce());
+  return withEmbedded(workspacePath, async ({ integrations }) => {
+    report(await integrations.sync());
     return 0;
   });
 }
@@ -224,6 +227,7 @@ async function operationCommand(args: string[]) {
         authority = await openEmbeddedAuthority({
           workspacePath,
           systemOfRecord: demoSystemOfRecord(),
+          mes: demoMes(),
         });
         // Commits stay in the workspace outbox; `drain`, `mcp --embedded` or `serve` deliver them.
         return createDirectTransport(authority.application, context);

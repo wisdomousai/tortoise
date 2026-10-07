@@ -1,3 +1,4 @@
+import { FakeMes } from '../../../examples/line-station/fake-mes';
 import { FakeQualitySystem } from '../../../examples/quality-inspection/fake-sor';
 import type { StationBridgeConfig } from './station-bridge';
 
@@ -14,6 +15,11 @@ export function demoSystemOfRecord(env: Record<string, string | undefined> = pro
     systemOfRecord.lock(lot.trim());
   if (env.DEMO_QUALITY_UNAVAILABLE === '1') systemOfRecord.faults = { unavailable: true };
   return systemOfRecord;
+}
+
+/** Demo only: the deterministic in-memory MES the line station reports to. */
+export function demoMes() {
+  return new FakeMes();
 }
 
 /**

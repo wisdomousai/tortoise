@@ -155,10 +155,18 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
     });
   }
   // A sandbox must not be discarded yet: three captured datapoints have not reached the SoR.
-  expect(pending).toEqual({ exitCode: 75, value: { target: 'quality-system', pending: 3 } });
+  // Every composed target is accounted for, not only the one that still has work.
+  const backlog = (quality: number) => ({
+    pending: quality,
+    targets: [
+      { target: 'mes', pending: 0, held: 0, deliverable: true },
+      { target: 'quality-system', pending: quality, held: 0, deliverable: true },
+    ],
+  });
+  expect(pending).toEqual({ exitCode: 75, value: backlog(3) });
   expect(await run(['drain', '--workspace', workspace, '--timeout', '5000'])).toEqual({
     exitCode: 0,
-    value: { target: 'quality-system', pending: 0 },
+    value: backlog(0),
   });
 
   // A human operator on the same workspace, without a grant, through the generated subcommands.
