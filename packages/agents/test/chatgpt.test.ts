@@ -230,3 +230,54 @@ test('a missing resource.invoke grant disables plan execution even with direct-t
     false,
   );
 });
+
+test('generic OIDC logout cannot be undone by a refresh that was already in flight', async () => {
+  const { OidcAccountConnection } = await import('../src/oidc');
+  const vault = new MemoryCredentialVault();
+  let release!: () => void;
+  const answered = new Promise<void>((resolve) => (release = resolve));
+  let requested!: () => void;
+  const sent = new Promise<void>((resolve) => (requested = resolve));
+  const connection = new OidcAccountConnection(
+    {
+      issuer: 'https://id.example.test',
+      authorizationEndpoint: 'https://id.example.test/authorize',
+      tokenEndpoint: 'https://id.example.test/token',
+      jwksUri: 'https://id.example.test/jwks',
+      clientId: 'client',
+      redirectUri: 'http://127.0.0.1:4100/callback',
+      scopes: ['openid'],
+      requiredScopes: [],
+    },
+    vault,
+    'provider.fixture',
+    {
+      keyResolver: async () => {
+        throw new Error('unused');
+      },
+      fetch: (async () => {
+        requested();
+        await answered;
+        return Response.json({ access_token: 'new', token_type: 'Bearer', expires_in: 3600 });
+      }) as unknown as typeof fetch,
+    },
+  );
+  await vault.set(
+    'provider.fixture',
+    JSON.stringify({
+      accessToken: 'old',
+      refreshToken: 'refresh-fixture',
+      expiresAt: 0,
+      scopes: ['openid'],
+      subject: 'user',
+      issuer: 'https://id.example.test',
+    }),
+  );
+  const refreshing = connection.refresh();
+  await sent;
+  const loggedOut = connection.logout();
+  release();
+  await refreshing.catch(() => undefined);
+  await loggedOut;
+  expect(await vault.get('provider.fixture')).toBeUndefined();
+});

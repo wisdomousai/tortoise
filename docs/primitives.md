@@ -306,7 +306,7 @@ _The port for provider secrets._
 
 Provider credentials pay for inference; they never grant workspace access. The vault keeps them in the operating system's store.
 
-Guarantees: fails closed when the store is unavailable. Secrets never reach browser state, domain data, model context or run logs, and are never discovered or reused implicitly.
+Guarantees: fails closed when the store is unavailable. Secrets never reach browser state, domain data, model context or run logs, and are never discovered or reused implicitly. Account connections (`OidcAccountConnection`, the ChatGPT account) serialize credential writes, so a logout cannot be undone by a sign-in or refresh already in flight.
 
 Serves P3, P9 · implemented · `packages/agents` · `CredentialVault`, `OsCredentialVault`, `MemoryCredentialVault`
 
