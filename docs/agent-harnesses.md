@@ -2,7 +2,7 @@
 
 `packages/agents` exposes `Harness`, `HarnessTurn`, `ToolPort`, `RunStore` and `createRunSupervisor`. The public contracts contain no vendor SDK types. Each adapter translates native lifecycle events into text/progress/tool events; domain changes remain command receipts and change-journal entries.
 
-The supervisor serializes turns by conversation ID while independent runs may execute concurrently. It records queued, running, awaiting-question, awaiting-approval, succeeded, failed, cancelled and interrupted states. Output is bounded and known credential formats are redacted. A terminal provider result is required for success. Partial text followed by a provider failure remains a failed run.
+The supervisor serializes turns by conversation ID while independent runs may execute concurrently. It records queued, running, awaiting-question, awaiting-approval, succeeded, failed, cancelled and interrupted states. Output is bounded and known credential formats are redacted within each event; a secret split across streamed deltas is not, so redaction is a guard, not a reason to let credentials reach a run. A terminal provider result is required for success. Partial text followed by a provider failure remains a failed run.
 
 The host stores run snapshots in a separate SQLite database. On startup, unsettled runs become interrupted. Recovery is explicit: the host never silently repeats a model turn or a completed command. Resume identifiers are provider-specific; they are not a portable conversation format.
 
