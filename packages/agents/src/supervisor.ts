@@ -47,6 +47,8 @@ type Active = {
   subscribers: Set<EventQueue>;
   write: Promise<void>;
   outputChars: number;
+  /** Raw streamed text held back because a secret or token may continue in the next delta. */
+  textCarry: string;
   persistenceFailed?: boolean;
 };
 
@@ -101,18 +103,47 @@ export function createRunSupervisor(options: SupervisorOptions) {
   const active = new Map<string, Active>();
   const conversations = new Map<string, Promise<void>>();
   const timestamp = () => (options.now?.() ?? new Date()).toISOString();
+  const secrets = (options.redact ?? []).filter(Boolean);
+  const tokenPatterns = [
+    /\bBearer\s+[\w.\-]+/gi,
+    /\b(?:sk|sk-ant)-[\w\-]{8,}/g,
+    /("?(?:access_token|refresh_token|api_key|id_token)"?\s*[:=]\s*")[^"]*/gi,
+  ];
   const scrub = (value: string) => {
     let result = value;
-    for (const secret of options.redact ?? [])
-      if (secret) result = result.split(secret).join('[redacted]');
+    for (const secret of secrets) result = result.split(secret).join('[redacted]');
     return result
-      .replace(/\bBearer\s+[\w.\-]+/gi, 'Bearer [redacted]')
-      .replace(/\b(?:sk|sk-ant)-[\w\-]{8,}/g, '[redacted]')
-      .replace(
-        /("?(?:access_token|refresh_token|api_key|id_token)"?\s*[:=]\s*")[^"]*/gi,
-        '$1[redacted]',
-      );
+      .replace(tokenPatterns[0]!, 'Bearer [redacted]')
+      .replace(tokenPatterns[1]!, '[redacted]')
+      .replace(tokenPatterns[2]!, '$1[redacted]');
   };
+  // Streamed text is redacted across deltas: a tail that may still be the start of a secret or
+  // token stays raw in memory until the next delta or a flush, and is never persisted unscrubbed.
+  const holdBack = Math.max(64, ...secrets.map((secret) => secret.length - 1));
+  function safeCut(text: string) {
+    let cut = Math.max(0, text.length - holdBack);
+    const hold = (start: number, end: number) => {
+      if (start < cut && (end > cut || end === text.length)) cut = start;
+    };
+    for (const secret of secrets)
+      for (let at = text.indexOf(secret); at !== -1; at = text.indexOf(secret, at + 1))
+        hold(at, at + secret.length);
+    for (const pattern of tokenPatterns)
+      for (const match of text.matchAll(pattern)) hold(match.index, match.index + match[0].length);
+    // A carry this large cannot be a pending secret prefix; release it rather than grow.
+    return text.length - cut > 16_000 ? text.length : cut;
+  }
+  async function emitText(run: Active, text: string) {
+    const combined = run.textCarry + text;
+    const cut = safeCut(combined);
+    run.textCarry = combined.slice(cut);
+    if (cut > 0) await emit(run, { type: 'text', text: combined.slice(0, cut) });
+  }
+  async function flushText(run: Active) {
+    const text = run.textCarry;
+    run.textCarry = '';
+    if (text) await emit(run, { type: 'text', text });
+  }
   async function emit(run: Active, event: Omit<RunEvent, 'sequence' | 'at'>) {
     const entry: RunEvent = { ...event, sequence: run.snapshot.nextSequence++, at: timestamp() };
     for (const field of ['text', 'message'] as const)
@@ -236,17 +267,26 @@ export function createRunSupervisor(options: SupervisorOptions) {
         approve: async (message) => Boolean(await request(run, 'approval', message)),
       })) {
         abortCheck(run);
+        if (event.type === 'text') {
+          await emitText(run, event.text);
+          continue;
+        }
+        // Held text precedes any later event, so event order matches the provider's.
+        await flushText(run);
         if (event.type === 'resume-data') {
           run.snapshot.resumeData = structuredClone(event.data);
           await emit(run, { type: 'progress', message: 'Native session recorded' });
         } else await emit(run, event);
       }
+      await flushText(run);
       // A native terminal event cannot overtake an application call still in flight.
       await Promise.all([...calls.values()].map((call) => call.result));
       abortCheck(run);
       await setState(run, 'succeeded');
     } catch (error) {
       if (terminalStates.has(run.snapshot.state)) return;
+      // Partial output before a failure is kept, scrubbed like every other event.
+      if (!run.persistenceFailed) await flushText(run).catch(() => {});
       if (run.controller.signal.aborted) await setState(run, 'cancelled');
       else {
         run.snapshot.failure = {
@@ -291,6 +331,7 @@ export function createRunSupervisor(options: SupervisorOptions) {
         subscribers: new Set(),
         write: Promise.resolve(),
         outputChars: 0,
+        textCarry: '',
       };
       active.set(id, run);
       await setState(run, 'queued');

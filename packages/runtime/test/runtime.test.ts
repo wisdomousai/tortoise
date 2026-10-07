@@ -198,7 +198,10 @@ describe('authorized atomic command runtime', () => {
       await expect(probe(revisions)).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await expect(probe({ 'counter:one': 0 })).rejects.toMatchObject({ code: 'CONFLICT' });
     expect((await probe({ 'counter:one': 1 })).result).toBe(2);
-    const granted = { ...owner, grant: { operations: ['counter.add'], resources: ['counter:two'] } };
+    const granted = {
+      ...owner,
+      grant: { operations: ['counter.add'], resources: ['counter:two'] },
+    };
     await expect(
       app.invoke(
         { operation: 'counter.add', input: { amount: 1 }, expectedRevisions: { 'counter:one': 1 } },

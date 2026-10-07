@@ -70,6 +70,33 @@ describe('run receipts and terminal states', () => {
     expect(text).not.toContain('private-secret');
     expect(text).not.toContain('opaque-value');
   });
+  test('a secret split across streamed deltas is redacted before persistence and delivery', async () => {
+    const store = new MemoryRunStore();
+    const supervisor = createRunSupervisor({
+      harnesses: [
+        harness(async function* () {
+          yield { type: 'text', text: 'key sk-test123' };
+          yield { type: 'text', text: '456789 then exp' };
+          yield { type: 'text', text: 'licit-sec' };
+          yield { type: 'text', text: 'ret done' };
+          yield { type: 'progress', message: 'after' };
+        }),
+      ],
+      tools,
+      store,
+      redact: ['explicit-secret'],
+    });
+    const run = await supervisor.start({ harnessId: 'test', prompt: 'go' });
+    const done = await until(supervisor, run.id, 'succeeded');
+    const persisted = JSON.stringify(await store.get(run.id));
+    for (const leak of ['sk-test123', '456789', 'explicit-secret', 'licit-sec'])
+      expect(persisted).not.toContain(leak);
+    const text = done.events.flatMap((event) => (event.type === 'text' ? [event.text] : []));
+    expect(text.join('')).toBe('key [redacted] then [redacted] done');
+    // Held text is released before the next event, so provider order is preserved.
+    const order = done.events.map((event) => event.type).filter((type) => type !== 'state');
+    expect(order).toEqual([...text.map(() => 'text' as const), 'progress' as const]);
+  });
   for (const kind of ['question', 'approval'] as const)
     test(`${kind} times out and closes subscribers`, async () => {
       const supervisor = createRunSupervisor({
