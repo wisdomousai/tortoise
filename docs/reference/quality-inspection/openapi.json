@@ -1,0 +1,3125 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Quality inspection interaction API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/queries/inspection.code.list": {
+      "post": {
+        "operationId": "inspection.code.list",
+        "summary": "List qualitative code groups and defect codes published by the quality system, with their valuation.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {},
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "groups": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "codes": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "code": {
+                                      "maxLength": 32,
+                                      "minLength": 1,
+                                      "type": "string"
+                                    },
+                                    "text": {
+                                      "maxLength": 200,
+                                      "type": "string"
+                                    },
+                                    "valuation": {
+                                      "enum": [
+                                        "accepted",
+                                        "rejected"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "code",
+                                    "text",
+                                    "valuation"
+                                  ],
+                                  "type": "object"
+                                },
+                                "maxItems": 200,
+                                "type": "array"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "codes"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "groups"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/inspection.decision.set": {
+      "post": {
+        "operationId": "inspection.decision.set",
+        "summary": "Set the usage decision for a fully inspected open lot as supervisor. Supply lot:<id> in expectedRevisions so results recorded after you reviewed the lot cause a conflict instead of being ignored.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "code": {
+                        "enum": [
+                          "accept",
+                          "reject",
+                          "conditional"
+                        ],
+                        "type": "string"
+                      },
+                      "lotId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "note": {
+                        "maxLength": 1000,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "lotId",
+                      "code"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "decision": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "enum": [
+                                "accept",
+                                "reject",
+                                "conditional"
+                              ],
+                              "type": "string"
+                            },
+                            "decidedAt": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "decidedBy": {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "note": {
+                              "type": "string"
+                            },
+                            "rejection": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "code": {
+                                  "type": "string"
+                                },
+                                "message": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "message"
+                              ],
+                              "type": "object"
+                            },
+                            "sorRef": {
+                              "type": "string"
+                            },
+                            "sync": {
+                              "enum": [
+                                "pending",
+                                "accepted",
+                                "rejected"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "decidedBy",
+                            "decidedAt",
+                            "sync"
+                          ],
+                          "type": "object"
+                        },
+                        "lotId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "lotId",
+                        "revision",
+                        "decision"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/inspection.defect.record": {
+      "post": {
+        "operationId": "inspection.defect.record",
+        "summary": "Record a defect with a catalog code and quantity for an open lot as inspector or supervisor.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "characteristicId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "code": {
+                        "maxLength": 32,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "lotId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "note": {
+                        "maxLength": 1000,
+                        "type": "string"
+                      },
+                      "quantity": {
+                        "maximum": 1000000,
+                        "minimum": 1,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "lotId",
+                      "code",
+                      "quantity"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "characteristicId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "lotId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "note": {
+                          "type": "string"
+                        },
+                        "quantity": {
+                          "maximum": 9007199254740991,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "recordedAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "recordedBy": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "rejection": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "message"
+                          ],
+                          "type": "object"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "sorRef": {
+                          "type": "string"
+                        },
+                        "sync": {
+                          "enum": [
+                            "pending",
+                            "accepted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "lotId",
+                        "code",
+                        "quantity",
+                        "recordedBy",
+                        "recordedAt",
+                        "sync"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/inspection.effect.settle": {
+      "post": {
+        "operationId": "inspection.effect.settle",
+        "summary": "Integration principal only: record the quality system outcome for a forwarded result, defect or decision.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "effectId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "outcome": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "externalRef": {
+                                "maxLength": 256,
+                                "type": "string"
+                              },
+                              "status": {
+                                "const": "accepted",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "status"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "message": {
+                                "maxLength": 2000,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "status": {
+                                "const": "rejected",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "status",
+                              "code",
+                              "message"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "effectId",
+                      "outcome"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "resource": {
+                          "type": "string"
+                        },
+                        "sync": {
+                          "enum": [
+                            "pending",
+                            "accepted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "resource",
+                        "sync"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/inspection.lot.get": {
+      "post": {
+        "operationId": "inspection.lot.get",
+        "summary": "Read one inspection lot with its characteristics, specification limits, active results, defects, usage decision and the next open sample. Use its revision as lot:<id> in a decision expectedRevisions map.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "batch": {
+                          "type": "string"
+                        },
+                        "characteristics": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "maxLength": 64,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "codeGroup": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "decimals": {
+                                "maximum": 6,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "kind": {
+                                "enum": [
+                                  "quantitative",
+                                  "qualitative"
+                                ],
+                                "type": "string"
+                              },
+                              "lower": {
+                                "type": "number"
+                              },
+                              "results": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "capture": {
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "actor": {
+                                          "enum": [
+                                            "human",
+                                            "agent"
+                                          ],
+                                          "type": "string"
+                                        },
+                                        "durationMs": {
+                                          "maximum": 9007199254740991,
+                                          "minimum": 0,
+                                          "type": "integer"
+                                        },
+                                        "input": {
+                                          "enum": [
+                                            "keyboard",
+                                            "scanner",
+                                            "instrument",
+                                            "touch"
+                                          ],
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "actor"
+                                      ],
+                                      "type": "object"
+                                    },
+                                    "characteristicId": {
+                                      "maxLength": 128,
+                                      "minLength": 1,
+                                      "type": "string"
+                                    },
+                                    "code": {
+                                      "type": "string"
+                                    },
+                                    "evaluation": {
+                                      "enum": [
+                                        "accepted",
+                                        "rejected"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "id": {
+                                      "maxLength": 128,
+                                      "minLength": 1,
+                                      "type": "string"
+                                    },
+                                    "lotId": {
+                                      "maxLength": 128,
+                                      "minLength": 1,
+                                      "type": "string"
+                                    },
+                                    "occurredAt": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": 0,
+                                      "type": "integer"
+                                    },
+                                    "reason": {
+                                      "type": "string"
+                                    },
+                                    "recordedAt": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": 0,
+                                      "type": "integer"
+                                    },
+                                    "recordedBy": {
+                                      "maxLength": 128,
+                                      "minLength": 1,
+                                      "type": "string"
+                                    },
+                                    "rejection": {
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "code": {
+                                          "type": "string"
+                                        },
+                                        "message": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "code",
+                                        "message"
+                                      ],
+                                      "type": "object"
+                                    },
+                                    "revision": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": 0,
+                                      "type": "integer"
+                                    },
+                                    "sample": {
+                                      "maximum": 9007199254740991,
+                                      "minimum": 1,
+                                      "type": "integer"
+                                    },
+                                    "sorRef": {
+                                      "type": "string"
+                                    },
+                                    "station": {
+                                      "type": "string"
+                                    },
+                                    "supersededBy": {
+                                      "maxLength": 128,
+                                      "minLength": 1,
+                                      "type": "string"
+                                    },
+                                    "supersedes": {
+                                      "maxLength": 128,
+                                      "minLength": 1,
+                                      "type": "string"
+                                    },
+                                    "sync": {
+                                      "enum": [
+                                        "pending",
+                                        "accepted",
+                                        "rejected"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "value": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "revision",
+                                    "lotId",
+                                    "characteristicId",
+                                    "sample",
+                                    "evaluation",
+                                    "occurredAt",
+                                    "recordedAt",
+                                    "recordedBy",
+                                    "capture",
+                                    "sync"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "sampleSize": {
+                                "maximum": 50,
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              "target": {
+                                "type": "number"
+                              },
+                              "text": {
+                                "maxLength": 200,
+                                "type": "string"
+                              },
+                              "unit": {
+                                "maxLength": 16,
+                                "type": "string"
+                              },
+                              "upper": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "code",
+                              "text",
+                              "kind",
+                              "sampleSize",
+                              "results"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "decision": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "enum": [
+                                "accept",
+                                "reject",
+                                "conditional"
+                              ],
+                              "type": "string"
+                            },
+                            "decidedAt": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "decidedBy": {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "note": {
+                              "type": "string"
+                            },
+                            "rejection": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "code": {
+                                  "type": "string"
+                                },
+                                "message": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "message"
+                              ],
+                              "type": "object"
+                            },
+                            "sorRef": {
+                              "type": "string"
+                            },
+                            "sync": {
+                              "enum": [
+                                "pending",
+                                "accepted",
+                                "rejected"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "decidedBy",
+                            "decidedAt",
+                            "sync"
+                          ],
+                          "type": "object"
+                        },
+                        "defects": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "characteristicId": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "lotId": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "note": {
+                                "type": "string"
+                              },
+                              "quantity": {
+                                "maximum": 9007199254740991,
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              "recordedAt": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "recordedBy": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "rejection": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "code",
+                                  "message"
+                                ],
+                                "type": "object"
+                              },
+                              "revision": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "sorRef": {
+                                "type": "string"
+                              },
+                              "sync": {
+                                "enum": [
+                                  "pending",
+                                  "accepted",
+                                  "rejected"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "revision",
+                              "lotId",
+                              "code",
+                              "quantity",
+                              "recordedBy",
+                              "recordedAt",
+                              "sync"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "material": {
+                          "type": "string"
+                        },
+                        "materialText": {
+                          "type": "string"
+                        },
+                        "next": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "characteristicId": {
+                                  "maxLength": 128,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "sample": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 1,
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "characteristicId",
+                                "sample"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "outOfTolerance": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "pendingSync": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "plant": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "quantity": {
+                          "type": "number"
+                        },
+                        "recorded": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "rejectedSync": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "required": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "status": {
+                          "enum": [
+                            "open",
+                            "decided",
+                            "closed"
+                          ],
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "plant",
+                        "material",
+                        "materialText",
+                        "quantity",
+                        "unit",
+                        "status",
+                        "recorded",
+                        "required",
+                        "outOfTolerance",
+                        "pendingSync",
+                        "rejectedSync",
+                        "characteristics",
+                        "defects",
+                        "next"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/inspection.lot.list": {
+      "post": {
+        "operationId": "inspection.lot.list",
+        "summary": "List inspection lots at plants where you hold a role, with capture progress and synchronization counts. Authorization precedes filtering, counting and pagination.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      "offset": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "plant": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "search": {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      "status": {
+                        "enum": [
+                          "open",
+                          "decided",
+                          "closed"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "count": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "batch": {
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "material": {
+                                "type": "string"
+                              },
+                              "materialText": {
+                                "type": "string"
+                              },
+                              "outOfTolerance": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "pendingSync": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "plant": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "quantity": {
+                                "type": "number"
+                              },
+                              "recorded": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "rejectedSync": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "required": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "revision": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "status": {
+                                "enum": [
+                                  "open",
+                                  "decided",
+                                  "closed"
+                                ],
+                                "type": "string"
+                              },
+                              "unit": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "revision",
+                              "plant",
+                              "material",
+                              "materialText",
+                              "quantity",
+                              "unit",
+                              "status",
+                              "recorded",
+                              "required",
+                              "outOfTolerance",
+                              "pendingSync",
+                              "rejectedSync"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "count"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/inspection.lot.sync": {
+      "post": {
+        "operationId": "inspection.lot.sync",
+        "summary": "Integration principal only: apply a batch of lots and code groups from the quality system and advance the watermark. A stale from watermark conflicts.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "codeGroups": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "codes": {
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "maxLength": 32,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "text": {
+                                    "maxLength": 200,
+                                    "type": "string"
+                                  },
+                                  "valuation": {
+                                    "enum": [
+                                      "accepted",
+                                      "rejected"
+                                    ],
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "code",
+                                  "text",
+                                  "valuation"
+                                ],
+                                "type": "object"
+                              },
+                              "maxItems": 200,
+                              "type": "array"
+                            },
+                            "id": {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "codes"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 100,
+                        "type": "array"
+                      },
+                      "from": {
+                        "maxLength": 256,
+                        "type": "string"
+                      },
+                      "lots": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "batch": {
+                              "maxLength": 64,
+                              "type": "string"
+                            },
+                            "characteristics": {
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "maxLength": 64,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "codeGroup": {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "decimals": {
+                                    "maximum": 6,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "id": {
+                                    "maxLength": 128,
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "enum": [
+                                      "quantitative",
+                                      "qualitative"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "lower": {
+                                    "type": "number"
+                                  },
+                                  "sampleSize": {
+                                    "maximum": 50,
+                                    "minimum": 1,
+                                    "type": "integer"
+                                  },
+                                  "target": {
+                                    "type": "number"
+                                  },
+                                  "text": {
+                                    "maxLength": 200,
+                                    "type": "string"
+                                  },
+                                  "unit": {
+                                    "maxLength": 16,
+                                    "type": "string"
+                                  },
+                                  "upper": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "code",
+                                  "text",
+                                  "kind",
+                                  "sampleSize"
+                                ],
+                                "type": "object"
+                              },
+                              "maxItems": 50,
+                              "minItems": 1,
+                              "type": "array"
+                            },
+                            "closed": {
+                              "type": "boolean"
+                            },
+                            "id": {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "material": {
+                              "maxLength": 64,
+                              "type": "string"
+                            },
+                            "materialText": {
+                              "maxLength": 200,
+                              "type": "string"
+                            },
+                            "plant": {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "quantity": {
+                              "minimum": 0,
+                              "type": "number"
+                            },
+                            "unit": {
+                              "maxLength": 16,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "plant",
+                            "material",
+                            "materialText",
+                            "quantity",
+                            "unit",
+                            "characteristics",
+                            "closed"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 200,
+                        "type": "array"
+                      },
+                      "to": {
+                        "maxLength": 256,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "to",
+                      "lots"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "lots": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "watermark": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "watermark",
+                        "lots"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/inspection.metrics.summary": {
+      "post": {
+        "operationId": "inspection.metrics.summary",
+        "summary": "Summarize capture economics for your plants: datapoints captured by humans and by agents with median and 90th-percentile milliseconds from ready to commit, corrections, out-of-tolerance results, and how long the quality system took to accept forwarded records.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "plant": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "since": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "agent": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "count": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "medianMs": {
+                              "type": "number"
+                            },
+                            "p90Ms": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "count"
+                          ],
+                          "type": "object"
+                        },
+                        "corrections": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "datapoints": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "forwarding": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "accepted": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "count": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": -9007199254740991,
+                                  "type": "integer"
+                                },
+                                "medianMs": {
+                                  "type": "number"
+                                },
+                                "p90Ms": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "count"
+                              ],
+                              "type": "object"
+                            },
+                            "pending": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "rejected": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "pending",
+                            "rejected",
+                            "accepted"
+                          ],
+                          "type": "object"
+                        },
+                        "human": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "count": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "medianMs": {
+                              "type": "number"
+                            },
+                            "p90Ms": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "count"
+                          ],
+                          "type": "object"
+                        },
+                        "outOfTolerance": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "datapoints",
+                        "human",
+                        "agent",
+                        "corrections",
+                        "outOfTolerance",
+                        "forwarding"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/inspection.plant.list": {
+      "post": {
+        "operationId": "inspection.plant.list",
+        "summary": "List plants where you hold a role. Supervisors also see the plant membership.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {},
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "members": {
+                                "additionalProperties": {
+                                  "enum": [
+                                    "inspector",
+                                    "supervisor",
+                                    "viewer"
+                                  ],
+                                  "type": "string"
+                                },
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "type": "object"
+                              },
+                              "plant": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "role": {
+                                "enum": [
+                                  "inspector",
+                                  "supervisor",
+                                  "viewer"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "plant",
+                              "role"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "items"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/inspection.plant.set-member": {
+      "post": {
+        "operationId": "inspection.plant.set-member",
+        "summary": "Grant or remove a plant role as supervisor of that plant. A null role removes access. You cannot change your own role. Permission changes invalidate affected views.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "plant": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "principalId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "role": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "inspector",
+                              "supervisor",
+                              "viewer"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "plant",
+                      "principalId",
+                      "role"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "members": {
+                          "additionalProperties": {
+                            "enum": [
+                              "inspector",
+                              "supervisor",
+                              "viewer"
+                            ],
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        "plant": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "plant",
+                        "members"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/inspection.result.correct": {
+      "post": {
+        "operationId": "inspection.result.correct",
+        "summary": "Supersede a result with a corrected value or code and a reason. Supervisors may correct any result at their plant; inspectors only their own. The original is retained for audit. Use this to resolve a quality-system rejection.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "code": {
+                        "maxLength": 32,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "occurredAt": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "reason": {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "resultId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "resultId",
+                      "reason"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "capture": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "actor": {
+                              "enum": [
+                                "human",
+                                "agent"
+                              ],
+                              "type": "string"
+                            },
+                            "durationMs": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "input": {
+                              "enum": [
+                                "keyboard",
+                                "scanner",
+                                "instrument",
+                                "touch"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "actor"
+                          ],
+                          "type": "object"
+                        },
+                        "characteristicId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "evaluation": {
+                          "enum": [
+                            "accepted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "lotId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "occurredAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "reason": {
+                          "type": "string"
+                        },
+                        "recordedAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "recordedBy": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "rejection": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "message"
+                          ],
+                          "type": "object"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "sample": {
+                          "maximum": 9007199254740991,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "sorRef": {
+                          "type": "string"
+                        },
+                        "station": {
+                          "type": "string"
+                        },
+                        "supersededBy": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "supersedes": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "sync": {
+                          "enum": [
+                            "pending",
+                            "accepted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "lotId",
+                        "characteristicId",
+                        "sample",
+                        "evaluation",
+                        "occurredAt",
+                        "recordedAt",
+                        "recordedBy",
+                        "capture",
+                        "sync"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/inspection.result.record": {
+      "post": {
+        "operationId": "inspection.result.record",
+        "summary": "Record one measured value (quantitative) or code (qualitative) for a characteristic sample of an open lot as inspector or supervisor. occurredAt is when the measurement happened (epoch ms, at most 24 h old). Omit sample to use the next open one. The receipt proves the local commit; the quality system accepts or rejects it later.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "capture": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "durationMs": {
+                            "maximum": 3600000,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "input": {
+                            "enum": [
+                              "keyboard",
+                              "scanner",
+                              "instrument",
+                              "touch"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "durationMs",
+                          "input"
+                        ],
+                        "type": "object"
+                      },
+                      "characteristicId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "code": {
+                        "maxLength": 32,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "lotId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "occurredAt": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "sample": {
+                        "maximum": 50,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      "station": {
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "lotId",
+                      "characteristicId",
+                      "occurredAt"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "capture": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "actor": {
+                              "enum": [
+                                "human",
+                                "agent"
+                              ],
+                              "type": "string"
+                            },
+                            "durationMs": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "input": {
+                              "enum": [
+                                "keyboard",
+                                "scanner",
+                                "instrument",
+                                "touch"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "actor"
+                          ],
+                          "type": "object"
+                        },
+                        "characteristicId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "evaluation": {
+                          "enum": [
+                            "accepted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "lotId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "occurredAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "reason": {
+                          "type": "string"
+                        },
+                        "recordedAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "recordedBy": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "rejection": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "message"
+                          ],
+                          "type": "object"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "sample": {
+                          "maximum": 9007199254740991,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "sorRef": {
+                          "type": "string"
+                        },
+                        "station": {
+                          "type": "string"
+                        },
+                        "supersededBy": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "supersedes": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "sync": {
+                          "enum": [
+                            "pending",
+                            "accepted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "lotId",
+                        "characteristicId",
+                        "sample",
+                        "evaluation",
+                        "occurredAt",
+                        "recordedAt",
+                        "recordedBy",
+                        "capture",
+                        "sync"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/inspection.result.record-batch": {
+      "post": {
+        "operationId": "inspection.result.record-batch",
+        "summary": "Record up to 100 measurements for one open lot in a single commit, for example from an instrument export. All succeed or none do. Each result is forwarded to the quality system separately.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "lotId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "results": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "capture": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "durationMs": {
+                                  "maximum": 3600000,
+                                  "minimum": 0,
+                                  "type": "integer"
+                                },
+                                "input": {
+                                  "enum": [
+                                    "keyboard",
+                                    "scanner",
+                                    "instrument",
+                                    "touch"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "durationMs",
+                                "input"
+                              ],
+                              "type": "object"
+                            },
+                            "characteristicId": {
+                              "maxLength": 128,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "code": {
+                              "maxLength": 32,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "occurredAt": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "sample": {
+                              "maximum": 50,
+                              "minimum": 1,
+                              "type": "integer"
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "characteristicId",
+                            "occurredAt"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 100,
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "station": {
+                        "maxLength": 64,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "lotId",
+                      "results"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "capture": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "actor": {
+                                    "enum": [
+                                      "human",
+                                      "agent"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "durationMs": {
+                                    "maximum": 9007199254740991,
+                                    "minimum": 0,
+                                    "type": "integer"
+                                  },
+                                  "input": {
+                                    "enum": [
+                                      "keyboard",
+                                      "scanner",
+                                      "instrument",
+                                      "touch"
+                                    ],
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "actor"
+                                ],
+                                "type": "object"
+                              },
+                              "characteristicId": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              },
+                              "evaluation": {
+                                "enum": [
+                                  "accepted",
+                                  "rejected"
+                                ],
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "lotId": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "occurredAt": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "reason": {
+                                "type": "string"
+                              },
+                              "recordedAt": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "recordedBy": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "rejection": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "code",
+                                  "message"
+                                ],
+                                "type": "object"
+                              },
+                              "revision": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "sample": {
+                                "maximum": 9007199254740991,
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              "sorRef": {
+                                "type": "string"
+                              },
+                              "station": {
+                                "type": "string"
+                              },
+                              "supersededBy": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "supersedes": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "sync": {
+                                "enum": [
+                                  "pending",
+                                  "accepted",
+                                  "rejected"
+                                ],
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "revision",
+                              "lotId",
+                              "characteristicId",
+                              "sample",
+                              "evaluation",
+                              "occurredAt",
+                              "recordedAt",
+                              "recordedBy",
+                              "capture",
+                              "sync"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "items"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/inspection.sync.status": {
+      "post": {
+        "operationId": "inspection.sync.status",
+        "summary": "Summarize synchronization with the quality system for your plants: pending, accepted and rejected records, the oldest pending item, recent rejections and the last master-data sync.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {},
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "accepted": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "lastSyncAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "oldestPendingAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "pending": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "rejected": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "rejections": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "lotId": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              },
+                              "resource": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "resource",
+                              "lotId",
+                              "code",
+                              "message"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "retrying": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "watermark": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "pending",
+                        "accepted",
+                        "rejected",
+                        "retrying",
+                        "rejections"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/inspection.worklist": {
+      "post": {
+        "operationId": "inspection.worklist",
+        "summary": "Return the next characteristic and sample to measure for an open lot, and how many samples remain. Call it after each recorded result to drive capture.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "lotId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "lotId"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "lotId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "next": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "characteristicId": {
+                                  "maxLength": 128,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "sample": {
+                                  "maximum": 9007199254740991,
+                                  "minimum": 1,
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "characteristicId",
+                                "sample"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "remaining": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "lotId",
+                        "next",
+                        "remaining"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    }
+  }
+}

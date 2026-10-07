@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun ../../scripts/dev-example.ts quality-inspection"
+    "dev": "bun ../../scripts/dev-example.ts --port 4322"
   },
   "exports": {
+    "./screens": "./screens.tsx",
     "./*": "./*.ts"
   }
 }

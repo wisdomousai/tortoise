@@ -14,7 +14,7 @@
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["./apps/web/src/*", "./packages/operator-ui/src/*"]
+      "@/*": ["./apps/web/src/*", "./packages/frame/src/*", "./packages/operator-ui/src/*"]
     }
   },
   "include": ["packages", "apps", "examples", "scripts", "tests", "playwright.config.ts"],

@@ -6,6 +6,7 @@
   "description": "Thick-finger operator input primitives, distributed as a shadcn registry.",
   "exports": {
     "./hooks/*": "./src/hooks/*.ts",
-    "./components/*": "./src/components/*.tsx"
+    "./components/*": "./src/components/*.tsx",
+    "./package.json": "./package.json"
   }
 }

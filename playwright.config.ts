@@ -2,6 +2,8 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests/e2e',
   testMatch: '**/*.pw.ts',
+  // Each spec runs one application, so every example's web build must exist.
+  globalSetup: './scripts/build-web-examples.ts',
   timeout: 30_000,
   workers: 1,
   use: {

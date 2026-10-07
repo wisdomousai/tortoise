@@ -1,0 +1,13 @@
+{
+  "name": "@agent-native/frame",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Web frame for one application (session, routing, palette, run panel), distributed as a shadcn registry.",
+  "exports": {
+    "./screens": "./src/screens.ts",
+    "./vite": "./vite.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./lib/*": "./src/lib/*.ts"
+  }
+}

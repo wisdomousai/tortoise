@@ -1,19 +1,38 @@
-import { chmod, mkdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { readApplicationIdentity } from '../apps/desktop/src/application-identity';
-import { optionalHostPackages } from '../apps/service/src/optional-packages';
+import { chmod, mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { readApplicationIdentity } from '@agent-native/host/config';
+import { optionalHostPackages } from '@agent-native/host/optional-packages';
+import { writeApplicationEntry } from './application-entry';
 
 const root = resolve(import.meta.dir, '..');
 
 /**
- * Compile the application CLI (`apps/service/src/cli.ts`) into one self-contained executable.
- * It needs no Bun, Node or package install on the target, so a sandbox image only copies this
- * file. The sandbox test compiles through this same function, so the gate checks the shipped
- * build configuration. Fails with the bundler's messages when compilation fails.
+ * Compile the configured application's CLI (or `application`'s) into one self-contained
+ * executable. It needs no Bun, Node or package install on the target, so a sandbox image only
+ * copies this file. The sandbox test compiles through this same function, so the gate checks the
+ * shipped build configuration. Fails with the bundler's messages when compilation fails.
  */
-export async function compileCli(outfile: string, target?: string): Promise<string> {
+export async function compileCli(
+  outfile: string,
+  target?: string,
+  application?: string,
+): Promise<string> {
+  const directory = await mkdtemp(join(tmpdir(), 'agent-native-cli-entry-'));
+  try {
+    return await compile(
+      await writeApplicationEntry('cli', directory, application),
+      outfile,
+      target,
+    );
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+async function compile(entry: string, outfile: string, target?: string) {
   const build = await Bun.build({
-    entrypoints: [resolve(root, 'apps/service/src/cli.ts')],
+    entrypoints: [entry],
     compile: {
       outfile,
       ...(target ? { target: target as 'bun-linux-x64' } : {}),

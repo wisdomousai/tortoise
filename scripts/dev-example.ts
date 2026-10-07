@@ -1,58 +1,48 @@
 /**
- * Start the reference service for one example, from that example's directory.
+ * Start the starter with one example as its application, from that example's directory:
  *
  *   cd examples/quality-inspection && bun run dev
- *   bun scripts/dev-example.ts quality-inspection
+ *   bun scripts/dev-example.ts examples/quality-inspection [--port 4322]
  *
- * Builds the web app, then runs the same authority as `bun run dev` with a workspace and port of
- * its own (`examples/<name>/.workspace`, ignored by git), so the examples can run side by side.
- * The service composes every example; the name only picks the workspace, the port, the demo
- * dependencies and the screen to open first. `line-station` also starts the fake HMI with
- * simulation endpoints in this process and bridges it; counters come from the simulator unless
- * a vision model or perception worker is configured. Explicit `PORT`, `WORKSPACE_PATH` and
- * `STATION_*` / `DEMO_*` variables win. Demo only: nothing is discovered and no credential is read.
+ * The example is the package in the current (or given) directory; it becomes the starter's
+ * application through `AGENT_NATIVE_APPLICATION` for both the web build and the service (P11),
+ * so only its catalog, screens and integrations load. The workspace is `<example>/.workspace`
+ * (ignored by git) and each example's `dev` script passes its own port, so examples run side by
+ * side. An optional `<example>/dev.ts` runs first to start demo dependencies, such as the fake HMI.
+ * Explicit `PORT`, `WORKSPACE_PATH` and demo variables win. Nothing is discovered and no
+ * credential is read.
  */
-import { resolve } from 'node:path';
-import { serve } from '../apps/service/src/serve';
-import { startFakeHmi } from '../examples/line-station/fake-hmi/server';
+import { join, resolve } from 'node:path';
+import { configuredApplication } from '../apps/service/src/application';
+import { runService } from '../apps/service/src/index';
 
-const examples = {
-  'project-tasks': { port: 4321, screen: 'Projects' },
-  'quality-inspection': { port: 4322, screen: 'Inspection' },
-  'line-station': { port: 4323, screen: 'Station', hmi: true },
-} as const satisfies Record<string, { port: number; screen: string; hmi?: boolean }>;
-
-const name = process.argv[2];
-if (!name || !Object.hasOwn(examples, name)) {
-  console.error(`Usage: bun scripts/dev-example.ts <${Object.keys(examples).join('|')}>`);
+const args = process.argv.slice(2);
+const portFlag = args.indexOf('--port');
+const port = portFlag < 0 ? undefined : args.splice(portFlag, 2)[1];
+const directory = resolve(args[0] ?? process.cwd());
+const manifest = (await Bun.file(join(directory, 'package.json'))
+  .json()
+  .catch(() => undefined)) as { name?: string } | undefined;
+if (!manifest?.name || !(await Bun.file(join(directory, 'application.ts')).exists())) {
+  console.error(`${directory} is not an example: it needs a package.json and an application.ts`);
   process.exit(1);
 }
-const example: { port: number; screen: string; hmi?: boolean } =
-  examples[name as keyof typeof examples];
+process.env.AGENT_NATIVE_APPLICATION = manifest.name;
 
-// Relative defaults (web root, station profile) resolve against the repository root.
+// The web build, the default web root and relative station profiles resolve against the root.
 const root = resolve(import.meta.dir, '..');
 process.chdir(root);
-
 const build = Bun.spawnSync(['bun', 'run', 'build:web'], { stdout: 'inherit', stderr: 'inherit' });
 if (build.exitCode !== 0) process.exit(build.exitCode ?? 1);
 
-if (example.hmi) {
-  const hmi = startFakeHmi({ simulationEndpoints: true });
-  process.env.STATION_HMI_URL ??= hmi.url;
-  if (!process.env.STATION_VISION_BASE_URL && !process.env.STATION_PERCEPTION_WORKER)
-    process.env.STATION_SIMULATOR ??= '1';
-  console.log(`Fake HMI: ${hmi.url} (simulation endpoints under /__sim/)`);
-}
+if (await Bun.file(join(directory, 'dev.ts')).exists()) await import(join(directory, 'dev.ts'));
 
-const host = await serve({
-  workspacePath: resolve(process.env.WORKSPACE_PATH ?? `examples/${name}/.workspace`),
-  port: Number(process.env.PORT ?? example.port),
-  webRoot: resolve('dist/web'),
-  runtimeManifest: process.env.AGENT_RUNTIME_MANIFEST,
-});
+process.env.WORKSPACE_PATH ??= join(directory, '.workspace');
+if (port) process.env.PORT ??= port;
+const application = await configuredApplication();
+const host = await runService(application);
 console.log(
-  `\n${name}: open ${host.launchUrl}\n` +
+  `\n${application.manifest.title}: open ${host.launchUrl}\n` +
     `  The link signs you in once and expires after one minute; restart for a fresh one.\n` +
-    `  Then go to ${example.screen}. CLI: AGENT_NATIVE_CONNECTION=${host.connectionFile} bun run cli list\n`,
+    `  CLI: AGENT_NATIVE_APPLICATION=${manifest.name} AGENT_NATIVE_CONNECTION=${host.connectionFile} bun run cli list\n`,
 );

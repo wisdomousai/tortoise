@@ -10,7 +10,10 @@
         "@agent-native/client": "workspace:*",
         "@agent-native/contracts": "workspace:*",
         "@agent-native/devices": "workspace:*",
+        "@agent-native/frame": "workspace:*",
+        "@agent-native/host": "workspace:*",
         "@agent-native/integration": "workspace:*",
+        "@agent-native/line-station": "workspace:*",
         "@agent-native/operator-ui": "workspace:*",
         "@agent-native/project-tasks": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
@@ -102,6 +105,14 @@
       "name": "@agent-native/devices",
       "version": "0.1.0",
     },
+    "packages/frame": {
+      "name": "@agent-native/frame",
+      "version": "0.1.0",
+    },
+    "packages/host": {
+      "name": "@agent-native/host",
+      "version": "0.1.0",
+    },
     "packages/integration": {
       "name": "@agent-native/integration",
       "version": "0.1.0",
@@ -146,6 +157,10 @@
     "@agent-native/desktop": ["@agent-native/desktop@workspace:apps/desktop"],
 
     "@agent-native/devices": ["@agent-native/devices@workspace:packages/devices"],
+
+    "@agent-native/frame": ["@agent-native/frame@workspace:packages/frame"],
+
+    "@agent-native/host": ["@agent-native/host@workspace:packages/host"],
 
     "@agent-native/integration": ["@agent-native/integration@workspace:packages/integration"],
 

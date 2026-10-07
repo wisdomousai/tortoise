@@ -1,13 +1,26 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 
-/** Start the real service entrypoint on an ephemeral port and wait for its listening line. */
-export async function startService(workspace: string, env: Record<string, string> = {}) {
+/**
+ * Start the real starter service for one application on an ephemeral port and wait for its
+ * listening line. It serves that application's web build (`globalSetup` builds every example).
+ */
+export async function startService(
+  application: string,
+  workspace: string,
+  env: Record<string, string> = {},
+) {
   let child: ChildProcess | undefined;
   const started = await new Promise<{ launchUrl: string; connectionFile: string }>(
     (resolveStarted, reject) => {
       child = spawn('bun', ['apps/service/src/index.ts'], {
         cwd: process.cwd(),
-        env: { ...process.env, WORKSPACE_PATH: workspace, PORT: '0', ...env },
+        env: {
+          ...process.env,
+          AGENT_NATIVE_APPLICATION: application,
+          WORKSPACE_PATH: workspace,
+          PORT: '0',
+          ...env,
+        },
         stdio: ['ignore', 'pipe', 'pipe'],
       });
       let buffer = '';

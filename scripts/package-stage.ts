@@ -5,7 +5,7 @@ import {
   desktopTargets,
   type DesktopTarget,
   type RuntimeManifest,
-} from '../apps/desktop/src/runtime-manifest';
+} from '@agent-native/host/runtime-manifest';
 import {
   downloadNativePackage,
   listFiles,
@@ -13,8 +13,10 @@ import {
   sha256,
   targetPackages,
 } from './package-assets';
-import { readApplicationIdentity } from '../apps/desktop/src/application-identity';
-import { optionalHostPackages } from '../apps/service/src/optional-packages';
+import { readApplicationIdentity } from '@agent-native/host/config';
+import { optionalHostPackages } from '@agent-native/host/optional-packages';
+import { loadManifest, readStarterConfig } from '@agent-native/host/config';
+import { writeApplicationEntry } from './application-entry';
 
 export async function stageDesktop(target: DesktopTarget, output?: string) {
   if (!desktopTargets.includes(target)) throw new Error(`Unsupported target ${target}`);
@@ -54,7 +56,7 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   // loader. Initialization precedes importing the service composition root.
   await writeFile(
     entry,
-    `import { installNativeCredentialBinding } from ${JSON.stringify(resolve(root, 'packages/agents/src/credentials.ts'))};\nconst binding = require(${JSON.stringify(keyring)});\ninstallNativeCredentialBinding(binding);\nawait import(${JSON.stringify(resolve(root, 'apps/service/src/index.ts'))});\n`,
+    `import { installNativeCredentialBinding } from ${JSON.stringify(resolve(root, 'packages/agents/src/credentials.ts'))};\nconst binding = require(${JSON.stringify(keyring)});\ninstallNativeCredentialBinding(binding);\nawait import(${JSON.stringify(await writeApplicationEntry('service', stage))});\n`,
   );
   const service = resolve(resources, target.startsWith('win32') ? 'service.exe' : 'service');
   const bunTarget =
@@ -68,7 +70,9 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   });
   if (!build.success) throw new Error(build.logs.map((log) => log.message).join('\n'));
   await chmod(service, 0o755);
-  await cp(resolve(root, 'dist/web'), resolve(resources, 'web'), { recursive: true });
+  const { id } = await loadManifest(readStarterConfig(resolve(root, 'app.config.json')));
+  // The web build of the hosted application (`bun run build:web`).
+  await cp(resolve(root, 'dist/web', id), resolve(resources, 'web'), { recursive: true });
   const runtime = async (name: 'codex' | 'claude', executable: string) => ({
     executable: rel(executable),
     version: runtimeVersions[name],

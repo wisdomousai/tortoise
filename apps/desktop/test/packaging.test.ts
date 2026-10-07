@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-import { resourcePath } from '../src/runtime-manifest';
+import { resourcePath } from '@agent-native/host/runtime-manifest';
 import { validateLoopbackEndpoint } from '../src/service-lifecycle';
 import { readNpmTarball, targetPackages, verifyIntegrity } from '../../../scripts/package-assets';
 function tar(path: string, type = '0') {

@@ -39,9 +39,9 @@ async function wedge(page: Page, text: string) {
 
 async function openKit(page: Page) {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-station-kit-'));
-  const host = await startService(workspace);
+  const host = await startService('@agent-native/line-station', workspace);
   await page.goto(host.launchUrl);
-  await expect(page.getByRole('link', { name: 'Inspection', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Stations', exact: true })).toBeVisible();
   await page.goto(`${host.origin}/#/station/kit`);
   await expect(page.getByRole('heading', { name: 'Operator kit' })).toBeVisible();
   return async () => {
@@ -212,7 +212,7 @@ test.describe('line station', () => {
   }) => {
     const workspace = await mkdtemp(join(tmpdir(), 'agent-native-line-station-'));
     const hmi = await startHmi();
-    const host = await startService(workspace, {
+    const host = await startService('@agent-native/line-station', workspace, {
       STATION_HMI_URL: hmi.url,
       STATION_SIMULATOR: '1',
       STATION_OBSERVE_MS: '250',

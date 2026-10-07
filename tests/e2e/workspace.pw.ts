@@ -13,7 +13,7 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
   let host: Awaited<ReturnType<typeof startService>> | undefined;
   let mcp: Client | undefined;
   try {
-    host = await startService(workspace);
+    host = await startService('@agent-native/project-tasks', workspace);
     await page.goto(host.launchUrl);
     await page.getByLabel('New project').fill('Launch workspace');
     await page.getByRole('button', { name: 'Create project', exact: true }).click();
@@ -28,9 +28,8 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
       }),
     );
     const tools = await mcp.listTools();
-    // Project tasks (12), quality inspection (15), line station (19) and device configuration (4)
-    // compose into one contract.
-    expect(tools.tools.length).toBe(50);
+    // The authority hosts one application: only the project-tasks capabilities are tools.
+    expect(tools.tools.length).toBe(12);
     const projects = await mcp.callTool({ name: 'project_list', arguments: { input: {} } });
     const data = projects.structuredContent as { data: { items: { id: string }[] } };
     const projectId = data.data.items[0]!.id;
@@ -106,7 +105,7 @@ test('tasks after the first page stay reachable and totals come from authorized 
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-e2e-'));
   let host: Awaited<ReturnType<typeof startService>> | undefined;
   try {
-    host = await startService(workspace);
+    host = await startService('@agent-native/project-tasks', workspace);
     await page.goto(host.launchUrl);
     await page.getByLabel('New project').fill('Large backlog');
     await page.getByRole('button', { name: 'Create project', exact: true }).click();
