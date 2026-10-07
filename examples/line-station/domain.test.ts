@@ -228,6 +228,13 @@ describe('line station: observe, annotate, actuate', () => {
     const station = await query('line.station.get', { station: 'line-1' });
     expect(station.desired).toMatchObject({ sync: 'accepted', converged: true });
     expect(station.order).toMatchObject({ id: 'ORD-7002', status: 'active' });
+    // Loading the next order completes the one the station leaves, with its own journal entry.
+    const { cursor } = await env.app.events(0, supervisor);
+    await command('line.order.start', { station: 'line-1', orderId: 'ORD-7001' });
+    expect(await deliver()).toMatchObject({ accepted: 1 });
+    const changed = (await env.app.events(cursor, supervisor)).events.map((e) => e.resource);
+    expect(changed).toContain('order:ORD-7002');
+    expect((await query('line.station.get', { station: 'line-1' })).order.id).toBe('ORD-7001');
   });
 
   test('monitor-only and operator seat keep effects pending without touching the screen', async () => {

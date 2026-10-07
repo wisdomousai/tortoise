@@ -164,7 +164,10 @@ function applyOutcome(ctx: Context, effect: Effect, outcome: EffectOutcome): Syn
   // The station loaded the recipe: the order is now the active one there.
   if (station?.desired && outcome.status === 'accepted') {
     const previous = station.orderId ? own(ctx.state.orders, station.orderId) : undefined;
-    if (previous && previous.id !== station.desired.orderId) previous.status = 'completed';
+    if (previous && previous.id !== station.desired.orderId) {
+      previous.status = 'completed';
+      ctx.change(`order:${previous.id}`);
+    }
     const order = own(ctx.state.orders, station.desired.orderId);
     if (order) {
       order.status = 'active';

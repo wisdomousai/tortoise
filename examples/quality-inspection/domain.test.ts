@@ -12,7 +12,7 @@ import {
   qualityInspectionModule,
   qualityPolicy,
 } from './server';
-import { FakeQualitySystem, toSyncInput } from './fake-sor';
+import { demoSeed, FakeQualitySystem, toSyncInput } from './fake-sor';
 
 const T0 = 1_760_000_000_000;
 const workspaceId = 'plant-floor';
@@ -437,5 +437,64 @@ describe('quality inspection on top of a system of record', () => {
     });
     // A viewer at another plant sees nothing; scoping precedes aggregation.
     expect((await query('inspection.metrics.summary', {}, as('stranger'))).datapoints).toBe(0);
+  });
+
+  test('a reduced sample plan counts only the samples it still requires', async () => {
+    const { command, query, sor, inbound } = await setup();
+    const record = (characteristicId: string, sample: number, extra: object = { value: 220 }) =>
+      command('inspection.result.record', {
+        lotId: '4000001',
+        characteristicId,
+        sample,
+        occurredAt: T0 - 1_000,
+        ...extra,
+      });
+    for (const sample of [1, 2, 3]) {
+      await record('C10', sample);
+      await record('C20', sample, { value: 22 });
+    }
+    await record('C30', 2, { value: 0.01 });
+    await record('C40', 1, { code: 'OK' });
+    // The SoR now requires only RUNOUT sample 1, which nobody measured.
+    const lot = demoSeed().lots.find((item) => item.id === '4000001')!;
+    sor.publishLot({
+      ...lot,
+      characteristics: lot.characteristics.map((item) =>
+        item.id === 'C30' ? { ...item, sampleSize: 1 } : item,
+      ),
+    });
+    await inbound.runOnce();
+    expect(await query('inspection.worklist', { lotId: '4000001' })).toEqual({
+      lotId: '4000001',
+      next: { characteristicId: 'C30', sample: 1 },
+      remaining: 1,
+    });
+    await expect(
+      command('inspection.decision.set', { lotId: '4000001', code: 'accept' }, supervisor),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+  });
+
+  test('delivery aggregates apply plant and lot scope to every effect resource', async () => {
+    const { command, query, dispatcher, sor } = await setup();
+    await command('inspection.defect.record', { lotId: '4000001', code: 'D01', quantity: 1 });
+    await command('inspection.result.record', { lotId: '4000001', ...measure('C10', 220) });
+    sor.faults.unavailable = true;
+    await dispatcher.runOnce();
+    // Defect and lot effects resolve to their lot like result effects do.
+    expect((await query('inspection.metrics.summary', {}, as('stranger'))).forwarding).toEqual({
+      pending: 0,
+      rejected: 0,
+      accepted: { count: 0 },
+    });
+    expect((await query('inspection.metrics.summary', {}, supervisor)).forwarding.pending).toBe(2);
+    // A delegation limited to another lot sees none of this lot's retry timing.
+    const otherLot = {
+      ...inspector,
+      grant: { operations: ['inspection.sync.status'], resources: ['lot:4000002'] },
+    };
+    const status = await query('inspection.sync.status', {}, otherLot);
+    expect(status).toMatchObject({ pending: 0, retrying: 0 });
+    expect(status.oldestPendingAt).toBeUndefined();
+    expect(await query('inspection.sync.status', {})).toMatchObject({ pending: 2, retrying: 2 });
   });
 });
