@@ -260,6 +260,22 @@ describe('authorized atomic command runtime', () => {
     expect((await app.events(0, { ...owner, grant: { operations: [] } })).events).toEqual([]);
     expect((await app.query({ operation: 'counter.get', input: {} }, owner)).data).toBe(1);
   });
+  test('shared memory is refused so a rejected transaction cannot leak through an alias', async () => {
+    const shared = new Uint8Array(new SharedArrayBuffer(1));
+    const aliased = createMemoryStorage<{ bytes: Uint8Array }>({ bytes: shared });
+    await expect(
+      aliased.read('workspace', async (snapshot) => snapshot.state),
+    ).rejects.toMatchObject({
+      code: 'INTERNAL',
+    });
+    const storage = createMemoryStorage<{ bytes?: Uint8Array }>({});
+    await expect(
+      storage.transact('workspace', async (snapshot) => {
+        snapshot.state.bytes = new Uint8Array(new SharedArrayBuffer(1));
+      }),
+    ).rejects.toMatchObject({ code: 'INTERNAL' });
+    expect(await storage.read('workspace', async (snapshot) => snapshot.state)).toEqual({});
+  });
   test('authorization revision commits with policy-changing state', async () => {
     const { app } = fixture({
       handle: (_, ctx) => {

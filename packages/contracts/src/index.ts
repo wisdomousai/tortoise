@@ -56,7 +56,11 @@ export function assertJson(value: unknown, path = '$'): asserts value is JsonVal
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return;
   if (typeof value === 'number' && Number.isFinite(value)) return;
   if (Array.isArray(value)) {
-    value.forEach((item, i) => assertJson(item, `${path}[${i}]`));
+    // `forEach` skips holes, which JSON would turn into null; a sparse array is not JSON.
+    for (let i = 0; i < value.length; i++) {
+      if (!Object.hasOwn(value, i)) throw new TypeError(`Sparse array at ${path}[${i}]`);
+      assertJson(value[i], `${path}[${i}]`);
+    }
     return;
   }
   if (typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {

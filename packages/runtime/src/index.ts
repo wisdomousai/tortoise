@@ -42,7 +42,27 @@ export function createWorkspaceSnapshot<State>(state: State): WorkspaceSnapshot<
   };
 }
 
-/** Reference adapter. Serial callbacks and isolated copies model the same atomic boundary as durable adapters. */
+/**
+ * Shared memory survives `structuredClone` by reference, so a draft could change committed state
+ * outside the transaction. Find a SharedArrayBuffer or a view on one anywhere in a value.
+ */
+function sharesMemory(value: unknown, seen = new Set<object>()): boolean {
+  if (value === null || typeof value !== 'object' || seen.has(value)) return false;
+  seen.add(value);
+  if (typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer) return true;
+  if (ArrayBuffer.isView(value))
+    return typeof SharedArrayBuffer !== 'undefined' && value.buffer instanceof SharedArrayBuffer;
+  if (value instanceof Map)
+    return [...value].some(([key, item]) => sharesMemory(key, seen) || sharesMemory(item, seen));
+  if (value instanceof Set) return [...value].some((item) => sharesMemory(item, seen));
+  return Object.values(value).some((item) => sharesMemory(item, seen));
+}
+
+/**
+ * Reference adapter. Serial callbacks and isolated copies model the same atomic boundary as
+ * durable adapters. State must be structured-clone compatible without shared memory: an initial
+ * state or a commit that holds a SharedArrayBuffer is refused, because its copies would alias.
+ */
 export function createMemoryStorage<State>(
   initial: State | ((workspaceId: string) => State),
 ): Storage<State> {
@@ -69,6 +89,8 @@ export function createMemoryStorage<State>(
       value = createWorkspaceSnapshot(
         typeof initial === 'function' ? (initial as (id: string) => State)(id) : initial,
       );
+      if (sharesMemory(value.state))
+        throw new ApplicationError('INTERNAL', 'Feature state must not hold shared memory');
       workspaces.set(id, value);
     }
     return value;
@@ -78,6 +100,9 @@ export function createMemoryStorage<State>(
       locked(id, async () => {
         const draft = structuredClone(get(id));
         const result = await fn(draft);
+        // Refused before anything is stored, so the committed copy keeps its previous state.
+        if (sharesMemory(draft.state))
+          throw new ApplicationError('INTERNAL', 'Feature state must not hold shared memory');
         const committed = structuredClone(draft);
         const isolatedResult = structuredClone(result);
         workspaces.set(id, committed);
