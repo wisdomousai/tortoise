@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet } from '@tanstack/react-router';
-import { ClipboardCheck, FolderKanban, RefreshCw, Search } from 'lucide-react';
+import { ClipboardCheck, Factory, FolderKanban, RefreshCw, Search } from 'lucide-react';
 import { Kbd } from '@/components/ui/kbd';
 import { CommandPalette } from '@/components/command-palette';
 import { SyncBadge } from '@/components/sync-status';
@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 const navigation = [
   { to: '/projects', label: 'Projects', icon: FolderKanban },
   { to: '/inspection', label: 'Inspection', icon: ClipboardCheck },
+  { to: '/station', label: 'Stations', icon: Factory },
   { to: '/sync', label: 'Synchronization', icon: RefreshCw },
 ] as const;
 

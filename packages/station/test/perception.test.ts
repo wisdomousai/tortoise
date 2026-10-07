@@ -1,0 +1,193 @@
+import { expect, test } from 'bun:test';
+import { fileURLToPath } from 'node:url';
+import { runGolden, type GoldenFrame } from '../src/golden';
+import { createAccessibilityExtractor } from '../src/perception/accessibility';
+import { createFixtureExtractor } from '../src/perception/fixture';
+import {
+  createOpenAiCompatibleVisionExtractor,
+  visionEndpoint,
+} from '../src/perception/openai-compatible-vision';
+import { createWorkerExtractor } from '../src/perception/worker';
+import type { ExtractionField, Frame } from '../src/ports';
+import { toAccessibility } from '../src/transports/playwright';
+import { createHmi, profile } from './support';
+
+const signal = new AbortController().signal;
+const pixels: Frame = {
+  capturedAt: 1,
+  width: 1024,
+  height: 768,
+  digest: 'f1',
+  image: new Uint8Array([1, 2, 3]),
+};
+const fields: ExtractionField[] = [
+  { id: 'count', type: 'number', decimals: 0 },
+  { id: 'machine', type: 'enum', options: ['STOPPED', 'RUNNING'] },
+];
+
+test('vision endpoints must be loopback or explicitly allowlisted, without embedded credentials', () => {
+  expect(visionEndpoint('http://127.0.0.1:11434/v1').href).toBe(
+    'http://127.0.0.1:11434/v1/chat/completions',
+  );
+  expect(visionEndpoint('http://localhost:8080/v1/').href).toBe(
+    'http://localhost:8080/v1/chat/completions',
+  );
+  expect(() => visionEndpoint('https://api.example.com/v1')).toThrow(
+    'neither loopback nor allowlisted',
+  );
+  expect(visionEndpoint('http://gpu-box.plant.local/v1', ['gpu-box.plant.local']).hostname).toBe(
+    'gpu-box.plant.local',
+  );
+  expect(() => visionEndpoint('http://user:pw@localhost/v1')).toThrow('credentials');
+  expect(() => visionEndpoint('file:///etc/passwd')).toThrow('http');
+});
+
+test('vision confidence is agreement across reads, and off-type answers are not read', async () => {
+  const answers = [
+    { count: 1200, machine: 'stopped' },
+    { count: 1200, machine: 'RUNNING' },
+    { count: '1 200', machine: 'Exploded' },
+  ];
+  const requests: any[] = [];
+  const extractor = createOpenAiCompatibleVisionExtractor({
+    baseUrl: 'http://127.0.0.1:11434/v1',
+    model: 'qwen2.5vl:7b',
+    reads: 3,
+    fetch: (async (_url: URL, init: RequestInit) => {
+      requests.push(JSON.parse(String(init.body)));
+      return Response.json({
+        choices: [{ message: { content: JSON.stringify(answers[requests.length - 1]) } }],
+      });
+    }) as unknown as typeof fetch,
+  });
+  const readings = await extractor.extract(pixels, fields, signal);
+  expect(readings).toEqual([
+    { field: 'count', value: 1200, confidence: 1 },
+    // 'stopped' normalizes to STOPPED; 'Exploded' is not an option and counts as not read.
+    { field: 'machine', value: 'STOPPED', confidence: 1 / 3 },
+  ]);
+  expect(requests[0].messages[0].content[1].image_url.url).toStartWith('data:image/png;base64,');
+  expect(requests[0].response_format.json_schema.schema.required).toEqual(['count', 'machine']);
+  expect(extractor.model).toEqual({ id: 'qwen2.5vl:7b' });
+});
+
+test('a single vision read is never confident enough to become a fact by default', async () => {
+  const extractor = createOpenAiCompatibleVisionExtractor({
+    baseUrl: 'http://[::1]:8000/v1',
+    model: 'local-vlm',
+    fetch: (async () =>
+      Response.json({
+        choices: [{ message: { content: '```json\n{"count": 7, "machine": null}\n```' } }],
+      })) as unknown as typeof fetch,
+  });
+  expect(await extractor.extract(pixels, fields, signal)).toEqual([
+    { field: 'count', value: 7, confidence: 0.5 },
+    { field: 'machine', value: null, confidence: 0 },
+  ]);
+});
+
+test('vision errors report status only', async () => {
+  const extractor = createOpenAiCompatibleVisionExtractor({
+    baseUrl: 'http://127.0.0.1:1/v1',
+    model: 'm',
+    fetch: (async () =>
+      new Response('secret prompt echo', { status: 500 })) as unknown as typeof fetch,
+  });
+  await expect(extractor.extract(pixels, fields, signal)).rejects.toThrow(
+    /^Vision endpoint answered 500$/,
+  );
+});
+
+test('a JSON-lines worker reports its model and answers only requested fields', async () => {
+  const worker = createWorkerExtractor({
+    id: 'worker-ocr',
+    modality: 'ocr',
+    command: [
+      process.execPath,
+      fileURLToPath(new URL('./fixtures/echo-worker.ts', import.meta.url)),
+    ],
+    startupTimeoutMs: 10_000,
+  });
+  try {
+    expect(await worker.extract(pixels, fields, signal)).toEqual([
+      { field: 'count', value: 42, confidence: 0.8 },
+      { field: 'machine', value: 'machine:pixels', confidence: 0.8 },
+    ]);
+    expect(worker.model).toEqual({ id: 'echo-ocr', version: '0.1' });
+    await expect(worker.extract(pixels, [{ id: 'boom', type: 'text' }], signal)).rejects.toThrow(
+      'worker-ocr: cannot read',
+    );
+  } finally {
+    await worker.close();
+  }
+});
+
+test('Playwright aria JSON maps to accessibility nodes with boxes', () => {
+  expect(
+    toAccessibility([
+      {
+        role: 'dialog',
+        name: 'Load recipe',
+        box: { x: 1, y: 2, width: 3, height: 4 },
+        children: [
+          'Pick one',
+          { role: 'textbox', name: 'Recipe', text: 'R-1', disabled: true },
+          { nope: 1 },
+        ],
+      },
+    ]),
+  ).toEqual([
+    {
+      role: 'dialog',
+      name: 'Load recipe',
+      box: { x: 1, y: 2, width: 3, height: 4 },
+      children: [
+        { role: 'text', text: 'Pick one' },
+        { role: 'textbox', name: 'Recipe', text: 'R-1' },
+      ],
+    },
+  ]);
+});
+
+test('golden frames gate on confident misreads, not on uncertainty', async () => {
+  const hmi = createHmi();
+  const main = await hmi.transport.capture(signal);
+  hmi.state.screen = 'popup';
+  const popup = await hmi.transport.capture(signal);
+  const recorded = (count: number, confidence: number) =>
+    createFixtureExtractor(
+      { [main.digest]: { count: { value: count, confidence } } },
+      { id: 'ocr', modality: 'ocr' },
+    );
+  const frames: GoldenFrame[] = [
+    {
+      name: 'main',
+      frame: main,
+      screen: 'main',
+      expected: { machine: 'STOPPED', recipe: 'R-10', count: 1200 },
+    },
+    { name: 'popup', frame: popup, screen: null, expected: {} },
+  ];
+
+  const unsure = await runGolden(
+    profile,
+    [createAccessibilityExtractor(), recorded(1290, 0.5)],
+    frames,
+  );
+  expect(unsure.pass).toBe(true);
+  expect(unsure.fields.find((field) => field.field === 'count')).toMatchObject({
+    correct: 0,
+    confident: 0,
+  });
+
+  const wrong = await runGolden(
+    profile,
+    [createAccessibilityExtractor(), recorded(1290, 0.95)],
+    frames,
+  );
+  expect(wrong.pass).toBe(false);
+  expect(wrong.fields.find((field) => field.field === 'count')).toMatchObject({
+    wrongButConfident: 1,
+  });
+  expect(wrong.screens).toEqual({ frames: 2, correct: 2 });
+});

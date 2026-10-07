@@ -28,8 +28,9 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
       }),
     );
     const tools = await mcp.listTools();
-    // Project tasks (12) and quality inspection (15) compose into one contract.
-    expect(tools.tools.length).toBe(27);
+    // Project tasks (12), quality inspection (15), line station (19) and device configuration (4)
+    // compose into one contract.
+    expect(tools.tools.length).toBe(50);
     const projects = await mcp.callTool({ name: 'project_list', arguments: { input: {} } });
     const data = projects.structuredContent as { data: { items: { id: string }[] } };
     const projectId = data.data.items[0]!.id;

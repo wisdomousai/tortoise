@@ -1,6 +1,6 @@
 import type { ExecutionContext } from '@agent-native/runtime';
 import { startHost } from './host';
-import { demoSystemOfRecord } from './demo';
+import { demoStations, demoSystemOfRecord } from './demo';
 
 /**
  * Run the HTTP authority until SIGINT/SIGTERM. The first stdout line is a `listening` JSON
@@ -13,7 +13,11 @@ export async function serve(options: {
   runtimeManifest?: string;
   agentConnection?: { context: ExecutionContext; path: string };
 }) {
-  const host = await startHost({ ...options, systemOfRecord: demoSystemOfRecord() });
+  const host = await startHost({
+    ...options,
+    systemOfRecord: demoSystemOfRecord(),
+    lineStation: { stations: demoStations() },
+  });
   console.log(
     JSON.stringify({
       type: 'listening',

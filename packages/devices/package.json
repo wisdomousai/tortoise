@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/devices",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "description": "Point-of-work device logic: scanner profiles, decoding, calibration, sources and the device configuration module."
+}

@@ -4,6 +4,9 @@ import { useCaptureLoop, useScannerInput } from '@agent-native/react/capture';
 import { useCapabilityForm } from '@agent-native/react/form';
 import { operations } from '../../../../examples/quality-inspection/contracts';
 import { SyncMarker } from '@/components/sync-status';
+import { ToleranceGauge } from '@/components/numeric-pad';
+import { parseEntry } from '@/lib/numeric-entry';
+import { TilePicker } from '@/components/tile-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
@@ -92,18 +95,7 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_22rem]">
-      <section
-        aria-label="Capture"
-        className="space-y-6 rounded-2xl border bg-card p-6 shadow-sm"
-        onKeyDown={(event) => {
-          if (characteristic.kind !== 'qualitative') return;
-          const index = Number(event.key) - 1;
-          if (Number.isInteger(index) && codes[index]) {
-            event.preventDefault();
-            submitCode(codes[index].code);
-          }
-        }}
-      >
+      <section aria-label="Capture" className="space-y-6 rounded-2xl border bg-card p-6 shadow-sm">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div>
             <p className="text-xs font-medium tracking-widest text-muted-foreground">
@@ -170,27 +162,22 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
             <form.Field name="code">
               {(field) => (
                 <div className="space-y-3">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {codes.map((code, index) => (
-                      <Button
-                        key={code.code}
-                        type="button"
-                        ref={index === 0 ? (valueField as never) : undefined}
-                        variant="outline"
-                        className={cn(
-                          'h-20 flex-col items-start gap-1 px-4 text-left whitespace-normal',
-                          code.valuation === 'rejected' && 'border-destructive/40',
-                        )}
-                        onClick={() => submitCode(code.code)}
-                      >
-                        <span className="flex w-full items-center justify-between font-mono">
-                          {code.code}
-                          {index < 9 && <Kbd>{index + 1}</Kbd>}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{code.text}</span>
-                      </Button>
-                    ))}
-                  </div>
+                  {/* Registry tile picker: digit hotkeys, paging and a tap guard against double taps. */}
+                  <form.Subscribe selector={(state) => state.isSubmitting}>
+                    {(submitting) => (
+                      <TilePicker
+                        label={`Code for ${characteristic.text}`}
+                        pending={submitting}
+                        tiles={codes.map((code) => ({
+                          value: code.code,
+                          label: <span className="font-mono">{code.code}</span>,
+                          detail: code.text,
+                          tone: code.valuation === 'rejected' ? 'negative' : 'neutral',
+                        }))}
+                        onPick={submitCode}
+                      />
+                    )}
+                  </form.Subscribe>
                   {field.state.meta.errors.length > 0 && (
                     <p role="alert" className="text-sm text-destructive">
                       {field.state.meta.errors.join(', ')}
@@ -228,7 +215,7 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
   );
 }
 
-/** Specification limits with a live gauge of where the typed value falls. */
+/** Target and tolerance with the registry gauge of where the typed value falls. */
 function Specification({
   characteristic,
   value,
@@ -237,53 +224,20 @@ function Specification({
   value: string;
 }) {
   const { lower, upper, target, unit, decimals } = characteristic;
-  const parsed = Number(value.replace(',', '.'));
-  const typed = value.trim() !== '' && Number.isFinite(parsed);
-  const inside =
-    typed && (lower === undefined || parsed >= lower) && (upper === undefined || parsed <= upper);
-  const span = lower !== undefined && upper !== undefined ? upper - lower : undefined;
-  const position =
-    typed && span
-      ? Math.min(100, Math.max(0, ((parsed - (lower! - span / 2)) / (span * 2)) * 100))
-      : undefined;
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
-        {target !== undefined && (
-          <span>
-            Target <strong className="tabular text-foreground">{format(target, decimals)}</strong>{' '}
-            {unit}
-          </span>
-        )}
-        {lower !== undefined && upper !== undefined && (
-          <span>
-            Tolerance{' '}
-            <strong className="tabular text-foreground">
-              {format(lower, decimals)} – {format(upper, decimals)}
-            </strong>{' '}
-            {unit}
-          </span>
-        )}
-        {typed && (
-          <span className={cn('font-medium', inside ? 'text-success' : 'text-destructive')}>
-            {inside ? 'In tolerance' : 'Out of tolerance'}
-          </span>
-        )}
-      </div>
-      {span !== undefined && (
-        <div aria-hidden className="relative h-3 rounded-full bg-destructive/15">
-          <div className="absolute inset-y-0 left-1/4 w-1/2 rounded-full bg-success/25" />
-          {position !== undefined && (
-            <div
-              className={cn(
-                'absolute -top-1 h-5 w-1 -translate-x-1/2 rounded-full',
-                inside ? 'bg-success' : 'bg-destructive',
-              )}
-              style={{ left: `${position}%` }}
-            />
-          )}
-        </div>
+      {target !== undefined && (
+        <p className="text-sm text-muted-foreground">
+          Target <strong className="tabular text-foreground">{format(target, decimals)}</strong>{' '}
+          {unit}
+        </p>
       )}
+      <ToleranceGauge
+        value={parseEntry(value.trim())}
+        tolerance={{ lower, upper, target }}
+        unit={unit}
+        decimals={decimals}
+      />
     </div>
   );
 }

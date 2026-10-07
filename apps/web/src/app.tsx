@@ -13,6 +13,9 @@ import { ProjectsScreen } from '@/routes/projects';
 import { InspectionScreen } from '@/routes/inspection';
 import { CaptureScreen } from '@/routes/capture';
 import { SyncScreen } from '@/routes/sync';
+import { StationKitScreen } from '@/routes/station-kit';
+import { StationScreen, StationsScreen } from '@/routes/station';
+import { StationBridgeScreen, StationDevicesScreen } from '@/routes/station-admin';
 import { live, queryClient } from '@/lib/session';
 
 // Code-based routes keep the screen registry explicit: each route names the capabilities it
@@ -45,6 +48,33 @@ const syncRoute = createRoute({
   path: 'sync',
   component: SyncScreen,
 });
+const stationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'station',
+  component: StationsScreen,
+});
+// Static `station/kit` ranks above `station/$stationId`, so the gallery is never a station id.
+const stationKitRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'station/kit',
+  component: StationKitScreen,
+});
+// line.station.* bindings: the glove surface, scanner setup (device.*) and the bridge view.
+const stationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'station/$stationId',
+  component: StationScreen,
+});
+const stationDevicesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'station/$stationId/devices',
+  component: StationDevicesScreen,
+});
+const stationBridgeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'station/$stationId/bridge',
+  component: StationBridgeScreen,
+});
 
 // Hash history: the local authority serves a flat static directory without SPA fallbacks, and
 // Electron loads the same build; deep links still work on reload.
@@ -55,6 +85,11 @@ const router = createRouter({
     inspectionRoute,
     captureRoute,
     syncRoute,
+    stationsRoute,
+    stationKitRoute,
+    stationRoute,
+    stationDevicesRoute,
+    stationBridgeRoute,
   ]),
   history: createHashHistory(),
   defaultPreload: 'intent',

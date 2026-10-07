@@ -1,0 +1,291 @@
+import { expect, test } from 'bun:test';
+import { z } from 'zod';
+import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import {
+  DeliveryFailure,
+  DeliveryUncertain,
+  createEffectDispatcher,
+} from '@agent-native/integration';
+import {
+  createApplication,
+  createHandlerFactory,
+  createMemoryStorage,
+  type EffectOutcome,
+} from '@agent-native/runtime';
+import { createStationConnector, type BridgeControl } from '../src/controller';
+import { createAccessibilityExtractor } from '../src/perception/accessibility';
+import { createScriptedDriver } from '../src/scripted-driver';
+import { createCounterModel, createHmi, effect, profile } from './support';
+
+const present = { recipe: 'R-12', presence: { confirmedBy: 'op-7' } };
+
+function connectorFixture(initial: Partial<BridgeControl> = {}) {
+  const hmi = createHmi();
+  const control: { -readonly [K in keyof BridgeControl]: BridgeControl[K] } & {
+    onRead?: (reads: number) => Partial<BridgeControl> | void;
+  } = {
+    mode: 'actuate',
+    seat: 'agent',
+    ...initial,
+  };
+  let reads = 0;
+  const connector = createStationConnector({
+    profile,
+    transport: hmi.transport,
+    extractors: [createAccessibilityExtractor(), createCounterModel(hmi).extractor],
+    driver: createScriptedDriver(),
+    control: async () => {
+      Object.assign(control, control.onRead?.(++reads) ?? {});
+      return { mode: control.mode, seat: control.seat };
+    },
+    now: () => hmi.state.clock,
+    sleep: async () => {
+      hmi.state.clock += 100;
+    },
+  });
+  return { hmi, control, connector, signal: new AbortController().signal };
+}
+
+test('a procedure runs through the screen and is accepted by readback', async () => {
+  const { hmi, connector, signal } = connectorFixture();
+  const outcome = await connector.deliver(effect(present), signal);
+  expect(outcome).toMatchObject({
+    status: 'accepted',
+    externalRef: expect.stringMatching(/^readback:/),
+  });
+  expect(hmi.state.recipe).toBe('R-12');
+  expect(hmi.state.actions.map((action) => action.kind)).toEqual([
+    'click',
+    'click',
+    'type',
+    'click',
+  ]);
+  expect(hmi.state.estopResets).toBe(0);
+});
+
+test('a station already showing the desired state is accepted without acting', async () => {
+  const { hmi, connector, signal } = connectorFixture();
+  hmi.state.recipe = 'R-12';
+  expect(await connector.deliver(effect(present), signal)).toMatchObject({ status: 'accepted' });
+  expect(hmi.state.actions).toHaveLength(0);
+});
+
+test('unmet preconditions and missing presence are rejected without acting', async () => {
+  const { hmi, connector, signal } = connectorFixture();
+  expect(await connector.deliver(effect({ recipe: 'R-12' }), signal)).toMatchObject({
+    status: 'rejected',
+    code: 'PRECONDITION',
+  });
+  hmi.state.machine = 'RUNNING';
+  expect(await connector.deliver(effect(present), signal)).toMatchObject({
+    status: 'rejected',
+    code: 'PRECONDITION',
+    message: expect.stringContaining('machine is RUNNING'),
+  });
+  expect(await connector.deliver(effect(present, { type: 'machine.jog' }), signal)).toMatchObject({
+    status: 'rejected',
+    code: 'UNSUPPORTED',
+  });
+  expect(hmi.state.actions).toHaveLength(0);
+});
+
+test('monitor-only, assist for hazardous procedures, and an operator seat block without acting', async () => {
+  for (const control of [
+    { mode: 'monitor-only' as const },
+    { mode: 'assist' as const },
+    { seat: 'operator' as const },
+  ]) {
+    const { hmi, connector, signal } = connectorFixture(control);
+    const attempt = connector.deliver(effect(present), signal);
+    await expect(attempt).rejects.toBeInstanceOf(DeliveryFailure);
+    await expect(attempt).rejects.not.toBeInstanceOf(DeliveryUncertain);
+    expect(hmi.state.actions).toHaveLength(0);
+  }
+});
+
+test('an unexpected popup mid-procedure makes the delivery uncertain', async () => {
+  const { hmi, connector, signal } = connectorFixture();
+  hmi.state.popupAfter = 1;
+  await expect(connector.deliver(effect(present), signal)).rejects.toBeInstanceOf(
+    DeliveryUncertain,
+  );
+  expect(hmi.state.actions).toHaveLength(1);
+  // Lookup cannot tell whether the dialog took effect: the station shows neither result nor start.
+  expect(await connector.lookup!('e1', signal, effect(present, { attempts: 1 }))).toMatchObject({
+    status: 'uncertain',
+  });
+  // Once someone closed the popup and the start screen is back without the recipe, deliver again.
+  hmi.state.screen = 'main';
+  expect(await connector.lookup!('e1', signal, effect(present, { attempts: 1 }))).toBeUndefined();
+});
+
+test('local input at the station stops the procedure before the next action', async () => {
+  const { hmi, connector, signal } = connectorFixture();
+  hmi.state.localInputAfter = 2;
+  await expect(connector.deliver(effect(present), signal)).rejects.toThrow(
+    'Someone used the station',
+  );
+  expect(hmi.state.actions).toHaveLength(2);
+});
+
+test('a confirm that does not stick fails readback as uncertain', async () => {
+  const { hmi, connector, signal } = connectorFixture();
+  hmi.state.swallowConfirm = true;
+  await expect(connector.deliver(effect(present), signal)).rejects.toThrow(
+    'does not show the result',
+  );
+  expect(hmi.state.recipe).toBe('R-10');
+});
+
+test('the runtime refuses a resolved point inside a forbidden region', async () => {
+  const { hmi, connector, signal } = connectorFixture();
+  // A driver (or a moved button) that resolves onto the e-stop reset is stopped before acting.
+  const box = hmi.boxes.load;
+  Object.assign(box, { x: 800, y: 680 });
+  await expect(connector.deliver(effect(present), signal)).rejects.toThrow('forbidden estop-reset');
+  expect(hmi.state.actions).toHaveLength(0);
+  expect(hmi.state.estopResets).toBe(0);
+});
+
+test('lookup: converged is accepted, untouched attempts and fresh effects deliver', async () => {
+  const { hmi, connector, control, signal } = connectorFixture({ seat: 'operator' });
+  await expect(connector.deliver(effect(present), signal)).rejects.toBeInstanceOf(DeliveryFailure);
+  hmi.state.screen = 'recipe';
+  // Attempted by this process but never touched the screen: safe to deliver again.
+  expect(await connector.lookup!('e1', signal, effect(present, { attempts: 1 }))).toBeUndefined();
+  // After a restart nothing is remembered: the same screen is uncertain.
+  const restarted = connectorFixture();
+  restarted.hmi.state.screen = 'recipe';
+  expect(
+    await restarted.connector.lookup!('e1', signal, effect(present, { attempts: 1 })),
+  ).toMatchObject({
+    status: 'uncertain',
+  });
+  expect(await restarted.connector.lookup!('e1', signal, effect(present))).toBeUndefined();
+  hmi.state.screen = 'main';
+  hmi.state.recipe = 'R-12';
+  control.seat = 'agent';
+  expect(await connector.lookup!('e1', signal, effect(present, { attempts: 3 }))).toMatchObject({
+    status: 'accepted',
+  });
+});
+
+const outcome = z.union([
+  z.strictObject({ status: z.literal('accepted'), externalRef: z.string().optional() }),
+  z.strictObject({ status: z.literal('rejected'), code: z.string(), message: z.string() }),
+]);
+const start = defineCapability({
+  id: 'recipe.start',
+  kind: 'command',
+  input: jsonSchema(z.strictObject({ recipe: z.string(), confirmedBy: z.string() })),
+  output: jsonSchema(z.strictObject({ effectId: z.string() })),
+  permission: { action: 'start', resourceType: 'station' },
+  ui: { exception: 'test fixture' },
+  integration: { target: 'legacy-hmi', delivery: 'outbox' },
+});
+const settle = defineCapability({
+  id: 'recipe.settle',
+  kind: 'command',
+  input: jsonSchema(z.strictObject({ effectId: z.string(), outcome })),
+  output: jsonSchema(z.strictObject({ status: z.string() })),
+  permission: { action: 'settle', resourceType: 'station' },
+  ui: { exception: 'integration principal' },
+});
+const reconcile = defineCapability({
+  id: 'recipe.reconcile',
+  kind: 'command',
+  input: jsonSchema(z.strictObject({ effectId: z.string(), applied: z.boolean() })),
+  output: jsonSchema(z.strictObject({ status: z.string() })),
+  permission: { action: 'reconcile', resourceType: 'station' },
+  ui: { exception: 'test fixture' },
+});
+
+test('operator takeover mid-procedure holds the effect until a person reconciles it', async () => {
+  const bind = createHandlerFactory<{ status: string }, {}>();
+  let ids = 0;
+  const app = createApplication({
+    modules: [defineModule({ id: 'station', capabilities: [start, settle, reconcile] })],
+    storage: createMemoryStorage<{ status: string }>({ status: 'idle' }),
+    services: {},
+    newEffectId: () => `e${++ids}`,
+    authorization: {
+      authorize: ({ capability, context }) => ({
+        allowed:
+          (context.principalId === 'station-bridge:line-1') === (capability.id === 'recipe.settle'),
+      }),
+      canReadEvent: () => true,
+    },
+    handlers: [
+      bind(start, (input, ctx) => {
+        ctx.change('station:1');
+        return {
+          effectId: ctx.enqueue({
+            target: 'legacy-hmi',
+            type: 'recipe.load',
+            resource: 'station:1',
+            payload: { recipe: input.recipe, presence: { confirmedBy: input.confirmedBy } },
+          }),
+        };
+      }),
+      bind(settle, (input, ctx) => {
+        const settled = ctx.settleEffect(input.effectId, input.outcome as EffectOutcome);
+        ctx.state.status = settled.status;
+        ctx.change(settled.resource);
+        return { status: settled.status };
+      }),
+      bind(reconcile, (input, ctx) => {
+        const resolved = input.applied
+          ? ctx.settleEffect(input.effectId, { status: 'accepted', externalRef: 'operator' })
+          : ctx.releaseEffect(input.effectId);
+        ctx.change(resolved.resource);
+        return { status: resolved.status };
+      }),
+    ],
+  });
+  const operator = { workspaceId: 'w', principalId: 'operator' };
+  const bridge = { workspaceId: 'w', principalId: 'station-bridge:line-1' };
+  const { hmi, control, connector } = connectorFixture();
+  // The operator presses "Take over" while the agent is between the dialog's click and typing.
+  control.onRead = (reads) => (reads === 4 ? { seat: 'operator' } : undefined);
+  const dispatcher = createEffectDispatcher({
+    application: app,
+    port: connector,
+    context: bridge,
+    settleOperation: 'recipe.settle',
+  });
+  const { result } = await app.invoke(
+    {
+      operation: 'recipe.start',
+      input: { recipe: 'R-12', confirmedBy: 'op-7' },
+      idempotencyKey: 's1',
+    },
+    operator,
+  );
+  expect(await dispatcher.runOnce()).toMatchObject({ held: 1 });
+  expect(hmi.state.screen).toBe('recipe');
+  const [held] = await app.pendingEffects(bridge, { includeHeld: true });
+  expect(held).toMatchObject({ holdReason: 'The operator has the station' });
+
+  // Held effects are not redelivered, even after the operator hands back.
+  control.onRead = undefined;
+  control.seat = 'agent';
+  expect(await dispatcher.runOnce(undefined, { ignoreBackoff: true })).toMatchObject({
+    held: 0,
+    accepted: 0,
+  });
+
+  // The operator cancels the dialog and reports it was not applied: delivered again, accepted.
+  hmi.state.screen = 'main';
+  await app.invoke(
+    {
+      operation: 'recipe.reconcile',
+      input: { effectId: result.effectId, applied: false },
+      idempotencyKey: 'r1',
+    },
+    operator,
+  );
+  expect(await dispatcher.runOnce(undefined, { ignoreBackoff: true })).toMatchObject({
+    accepted: 1,
+  });
+  expect(hmi.state.recipe).toBe('R-12');
+});

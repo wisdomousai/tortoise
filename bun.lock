@@ -9,12 +9,15 @@
         "@agent-native/agents": "workspace:*",
         "@agent-native/client": "workspace:*",
         "@agent-native/contracts": "workspace:*",
+        "@agent-native/devices": "workspace:*",
         "@agent-native/integration": "workspace:*",
+        "@agent-native/operator-ui": "workspace:*",
         "@agent-native/project-tasks": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
         "@agent-native/react": "workspace:*",
         "@agent-native/runtime": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
+        "@agent-native/station": "workspace:*",
         "@agent-native/testing": "workspace:*",
         "@ai-sdk/openai": "4.0.86",
         "@anthropic-ai/claude-agent-sdk": "0.3.292",
@@ -26,6 +29,7 @@
         "@tanstack/react-router": "1.170.41",
         "@tanstack/react-table": "9.2.6",
         "ai": "7.0.130",
+        "bwip-js": "4.11.4",
         "class-variance-authority": "0.7.1",
         "cmdk": "1.1.1",
         "cn": "0.4.0",
@@ -66,6 +70,10 @@
       "name": "@agent-native/web",
       "version": "0.1.0",
     },
+    "examples/line-station": {
+      "name": "@agent-native/line-station",
+      "version": "0.1.0",
+    },
     "examples/project-tasks": {
       "name": "@agent-native/project-tasks",
       "version": "0.1.0",
@@ -90,8 +98,16 @@
       "name": "@agent-native/contracts",
       "version": "0.1.0",
     },
+    "packages/devices": {
+      "name": "@agent-native/devices",
+      "version": "0.1.0",
+    },
     "packages/integration": {
       "name": "@agent-native/integration",
+      "version": "0.1.0",
+    },
+    "packages/operator-ui": {
+      "name": "@agent-native/operator-ui",
       "version": "0.1.0",
     },
     "packages/react": {
@@ -104,6 +120,10 @@
     },
     "packages/scaffold": {
       "name": "@agent-native/scaffold",
+      "version": "0.1.0",
+    },
+    "packages/station": {
+      "name": "@agent-native/station",
       "version": "0.1.0",
     },
     "packages/testing": {
@@ -125,7 +145,13 @@
 
     "@agent-native/desktop": ["@agent-native/desktop@workspace:apps/desktop"],
 
+    "@agent-native/devices": ["@agent-native/devices@workspace:packages/devices"],
+
     "@agent-native/integration": ["@agent-native/integration@workspace:packages/integration"],
+
+    "@agent-native/line-station": ["@agent-native/line-station@workspace:examples/line-station"],
+
+    "@agent-native/operator-ui": ["@agent-native/operator-ui@workspace:packages/operator-ui"],
 
     "@agent-native/project-tasks": ["@agent-native/project-tasks@workspace:examples/project-tasks"],
 
@@ -138,6 +164,8 @@
     "@agent-native/scaffold": ["@agent-native/scaffold@workspace:packages/scaffold"],
 
     "@agent-native/service": ["@agent-native/service@workspace:apps/service"],
+
+    "@agent-native/station": ["@agent-native/station@workspace:packages/station"],
 
     "@agent-native/testing": ["@agent-native/testing@workspace:packages/testing"],
 
@@ -699,6 +727,8 @@
 
     "bundle-name": ["bundle-name@4.1.1", "https://registry.yarnpkg.com/bundle-name/-/bundle-name-4.1.1.tgz", { "dependencies": { "run-applescript": "^7.0.0" } }, "sha512-DdH81/zPLVS11EUgWq3tEu/xn+EzljlMYooDNdzWEnFha3R3NBMpMV1UqYIpjYHV/SgpFKMIX1Oh7o06SjM/oA=="],
 
+    "bwip-js": ["bwip-js@4.11.4", "https://registry.yarnpkg.com/bwip-js/-/bwip-js-4.11.4.tgz", { "bin": { "bwip-js": "bin/bwip-js.js" } }, "sha512-FOXnOQkinxog8FwxdnPB+8k2wRqwPnqXwxX37KcXOtMNW+9CinOkGv9MtIoRC4HX/UyogT0/9lIp6FDm2DcquQ=="],
+
     "bytes": ["bytes@3.1.2", "https://registry.yarnpkg.com/bytes/-/bytes-3.1.2.tgz", {}, "sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg=="],
 
     "bytestreamjs": ["bytestreamjs@2.0.1", "https://registry.yarnpkg.com/bytestreamjs/-/bytestreamjs-2.0.1.tgz", {}, "sha512-U1Z/ob71V/bXfVABvNr/Kumf5VyeQRBEm6Txb0PQ6S7V5GpBM3w4Cbqz/xPDicR5tN0uvDifng8C+5qECeGwyQ=="],
@@ -735,7 +765,7 @@
 
     "cmdk": ["cmdk@1.1.1", "https://registry.yarnpkg.com/cmdk/-/cmdk-1.1.1.tgz", { "dependencies": { "@radix-ui/react-compose-refs": "^1.1.1", "@radix-ui/react-dialog": "^1.1.6", "@radix-ui/react-id": "^1.1.0", "@radix-ui/react-primitive": "^2.0.2" }, "peerDependencies": { "react": "^18 || ^19 || ^19.0.0-rc", "react-dom": "^18 || ^19 || ^19.0.0-rc" } }, "sha512-Vsv7kFaXm+ptHDMZ7izaRsP70GgrW9NBNGswt9OZaVBLlE0SNpDq8eu/VGXyF9r7M0azK3Wy7OlYXsuyYLFzHg=="],
 
-    "cn": ["cn@0.4.0", "", { "bin": { "cn": "bin/cn.mjs" } }, "sha512-qOAeUhPwPzBxx6jaeQdo646XIKliKHc2j1ZF7Ngb1o0pJZKH5gq8FkA0aVdUdPFUDXNXyUCXpCtoJISo6dhizg=="],
+    "cn": ["cn@0.4.0", "https://registry.yarnpkg.com/cn/-/cn-0.4.0.tgz", { "bin": { "cn": "bin/cn.mjs" } }, "sha512-qOAeUhPwPzBxx6jaeQdo646XIKliKHc2j1ZF7Ngb1o0pJZKH5gq8FkA0aVdUdPFUDXNXyUCXpCtoJISo6dhizg=="],
 
     "code-block-writer": ["code-block-writer@13.0.3", "https://registry.yarnpkg.com/code-block-writer/-/code-block-writer-13.0.3.tgz", {}, "sha512-Oofo0pq3IKnsFtuHqSF7TqBfr71aeyZDVJ0HpmqB7FBM2qEigL0iPONSCZSO9pE9dZTAxANe5XHG9Uy0YMv8cg=="],
 

@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@/*": ["./src/*", "../../packages/operator-ui/src/*"] }
   },
   "include": ["src", "vite.config.ts"]
 }

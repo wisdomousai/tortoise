@@ -29,16 +29,39 @@ import {
 import { operations as quality } from '../../../examples/quality-inspection/contracts';
 import type { QualityState } from '../../../examples/quality-inspection/domain';
 import { toSyncInput, type QualityItem } from '../../../examples/quality-inspection/fake-sor';
+import {
+  createLineHandlers,
+  createLineState,
+  lineStationModule,
+  linePolicy,
+  type LineServices,
+} from '../../../examples/line-station/server';
+import { operations as line } from '../../../examples/line-station/contracts';
+import { stationRole, type LineState } from '../../../examples/line-station/domain';
+import {
+  toSyncInput as toMesSyncInput,
+  type MesItem,
+} from '../../../examples/line-station/fake-mes';
+import {
+  createDeviceHandlers,
+  createDeviceState,
+  deviceAuthorizationRoute,
+  type DeviceState,
+} from '@agent-native/devices/server';
 import { applicationModules } from './modules';
 
 /** Composed feature state. Each module's handlers and policy see only their own slice. */
 export interface ApplicationState {
   projectTasks: ProjectTaskState;
   quality: QualityState;
+  lineStation: LineState;
+  devices: DeviceState;
 }
-export type ApplicationServices = ProjectTaskServices & QualityServices;
+export type ApplicationServices = ProjectTaskServices & QualityServices & LineServices;
 
 export const INTEGRATION_PRINCIPAL = 'integration';
+/** The homebrew MES integration; separate from the quality integration and every station bridge. */
+export const MES_PRINCIPAL = 'mes-integration';
 
 export function createApplicationState(ownerId = 'owner'): ApplicationState {
   return {
@@ -47,6 +70,13 @@ export function createApplicationState(ownerId = 'owner'): ApplicationState {
       supervisorId: ownerId,
       integrationPrincipalId: INTEGRATION_PRINCIPAL,
     }),
+    lineStation: createLineState({
+      mesPrincipalId: MES_PRINCIPAL,
+      stations: [
+        { id: 'line-1', name: 'Filler 1', line: 'Line 1', members: { [ownerId]: 'supervisor' } },
+      ],
+    }),
+    devices: createDeviceState(),
   };
 }
 
@@ -63,6 +93,8 @@ export function upgradeApplicationState(state: unknown, ownerId = 'owner'): Appl
         ? (value as unknown as ProjectTaskState)
         : ((value.projectTasks as ProjectTaskState | undefined) ?? fresh.projectTasks),
     quality: (value.quality as QualityState | undefined) ?? fresh.quality,
+    lineStation: (value.lineStation as LineState | undefined) ?? fresh.lineStation,
+    devices: (value.devices as DeviceState | undefined) ?? fresh.devices,
   };
 }
 
@@ -81,6 +113,20 @@ export const applicationAuthorization = composeAuthorization<ApplicationState>([
     ['lot', 'result', 'defect', 'plant', 'sync'],
     qualityPolicy,
   ),
+  authorizationRoute(
+    'lineStation',
+    lineStationModule,
+    ['station', 'stop', 'count', 'attention', 'order', 'counters', 'mes'],
+    linePolicy,
+  ),
+  // Device configuration follows station roles: supervisors administer, everyone else reads.
+  deviceAuthorizationRoute<ApplicationState>((state) => ({
+    config: state.devices,
+    access(principalId, station) {
+      const role = stationRole(state.lineStation, principalId, station);
+      return role === 'supervisor' ? 'administer' : role ? 'read' : undefined;
+    },
+  })),
 ]);
 
 /** Compose the application once; HTTP, embedded MCP and tests all use this definition. */
@@ -100,6 +146,14 @@ export function createApplicationRuntime(options: {
       ...sliceHandlers<ApplicationState, 'quality', ApplicationServices>(
         'quality',
         createQualityHandlers(),
+      ),
+      ...sliceHandlers<ApplicationState, 'lineStation', ApplicationServices>(
+        'lineStation',
+        createLineHandlers(),
+      ),
+      ...sliceHandlers<ApplicationState, 'devices', ApplicationServices>(
+        'devices',
+        createDeviceHandlers(),
       ),
     ],
     storage: options.storage,
@@ -149,6 +203,53 @@ export function createQualityIntegration(options: {
       (await options.application.query({ operation: 'inspection.sync.status', input: {} }, context))
         .data.watermark,
     toInput: toSyncInput,
+  });
+  return {
+    dispatcher,
+    inbound,
+    start(intervals: { deliverMs?: number; syncMs?: number } = {}) {
+      inbound.start(intervals.syncMs ?? 5_000);
+      dispatcher.start(intervals.deliverMs ?? 1_000);
+    },
+    async stop() {
+      await Promise.all([inbound.stop(), dispatcher.stop()]);
+    },
+  };
+}
+
+/**
+ * Wire the homebrew MES to its outbox dispatcher and inbound order/reason sync, under the MES
+ * principal. Its grant cannot reach station screens, observations or any people's command.
+ */
+export function createLineIntegration(options: {
+  application: ApplicationRuntime;
+  port: SystemOfRecordPort<MesItem>;
+  workspaceId: string;
+}) {
+  const context: ExecutionContext = {
+    workspaceId: options.workspaceId,
+    principalId: MES_PRINCIPAL,
+    grant: {
+      operations: [line.mesSync.id, line.effectSettle.id, line.syncStatus.id],
+      principalId: MES_PRINCIPAL,
+      workspaceId: options.workspaceId,
+    },
+  };
+  const dispatcher = createEffectDispatcher({
+    application: options.application,
+    port: options.port,
+    context,
+    settleOperation: line.effectSettle.id,
+  });
+  const inbound = createInboundSync<MesItem>({
+    application: options.application,
+    port: options.port,
+    context,
+    syncOperation: line.mesSync.id,
+    readCursor: async () =>
+      (await options.application.query({ operation: 'line.sync.status', input: {} }, context)).data
+        .watermark,
+    toInput: toMesSyncInput,
   });
   return {
     dispatcher,

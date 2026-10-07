@@ -29,13 +29,45 @@ function applicationTitle(): Plugin {
   };
 }
 
+/**
+ * `@/` resolves against this app first, then against the operator registry sources. Registry
+ * items import `@/components/ui/button` and `@/hooks/use-scanner` exactly as they will after
+ * `shadcn add`; here they are used in place, so the app's own primitives and `lib/utils` satisfy
+ * their imports and the registry copies never drift from what consumers pull.
+ */
+function registryFallback(roots: readonly string[]): Plugin {
+  return {
+    name: 'registry-fallback-alias',
+    enforce: 'pre',
+    async resolveId(source, importer, options) {
+      if (!source.startsWith('@/')) return null;
+      for (const base of roots) {
+        const resolved = await this.resolve(resolve(base, source.slice(2)), importer, {
+          ...options,
+          skipSelf: true,
+        });
+        if (resolved) return resolved;
+      }
+      return null;
+    },
+  };
+}
+
 // Output stays at dist/web with flat file names: the local authority serves a flat directory
 // under a strict CSP (no inline scripts or styles), and Electron packages it unchanged.
 export default defineConfig({
   root: import.meta.dirname,
   base: './',
-  plugins: [browserBoundary(repository), react(), tailwindcss(), applicationTitle()],
-  resolve: { alias: { '@': resolve(import.meta.dirname, 'src') } },
+  plugins: [
+    registryFallback([
+      resolve(import.meta.dirname, 'src'),
+      resolve(repository, 'packages/operator-ui/src'),
+    ]),
+    browserBoundary(repository),
+    react(),
+    tailwindcss(),
+    applicationTitle(),
+  ],
   build: {
     outDir: resolve(repository, 'dist/web'),
     emptyOutDir: true,

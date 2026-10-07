@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/station",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Server-only bridge to legacy station software through its screen: profiles, observer, gated controller connector and perception adapters.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

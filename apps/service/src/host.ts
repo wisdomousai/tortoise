@@ -16,9 +16,12 @@ import { UiSessionStore, type UiContextInput } from '@agent-native/adapters/ui-s
 import type { UiIntent } from '@agent-native/react';
 import {
   createApplicationRuntime,
+  createLineIntegration,
   createQualityIntegration,
   selectableResources,
 } from './composition';
+import { FakeMes, type MesItem } from '../../../examples/line-station/fake-mes';
+import { startStationBridge, type StationBridgeConfig } from './station-bridge';
 import { LOCAL_WORKSPACE, workspaceStorage } from './embedded';
 import { FakeQualitySystem, type QualityItem } from '../../../examples/quality-inspection/fake-sor';
 import { createRunSupervisor } from '@agent-native/agents/supervisor';
@@ -74,6 +77,11 @@ export async function startHost(options: {
    * without enterprise credentials; a real adapter is injected by the deploying application.
    */
   systemOfRecord?: SystemOfRecordPort<QualityItem>;
+  /**
+   * Line stations: the MES port (defaults to the in-memory homebrew MES fake) and, when given,
+   * the station screens to bridge. Without `stations` nothing touches any station software.
+   */
+  lineStation?: { mes?: SystemOfRecordPort<MesItem>; stations?: readonly StationBridgeConfig[] };
   /** Background delivery/sync cadence; tests may disable the loops and drive passes directly. */
   integration?: { deliverMs?: number; syncMs?: number } | false;
   /**
@@ -99,6 +107,17 @@ export async function startHost(options: {
       workspaceId: LOCAL_WORKSPACE,
     });
     startupCleanup.unshift(() => integration.stop());
+    const mes = options.lineStation?.mes ?? new FakeMes();
+    const lineIntegration = createLineIntegration({
+      application,
+      port: mes,
+      workspaceId: LOCAL_WORKSPACE,
+    });
+    startupCleanup.unshift(() => lineIntegration.stop());
+    const bridges: { stop(): Promise<void> }[] = [];
+    startupCleanup.unshift(async () => {
+      await Promise.all(bridges.map((bridge) => bridge.stop()));
+    });
     const sessions = new Sessions();
     let origin = '';
     const providers = await createProviderAccess({
@@ -477,7 +496,20 @@ export async function startHost(options: {
       await chmod(agentConnection.path, 0o600);
       startupCleanup.unshift(() => unlink(agentConnection.path).catch(() => {}));
     }
-    if (options.integration !== false) integration.start(options.integration);
+    if (options.integration !== false) {
+      integration.start(options.integration);
+      lineIntegration.start(options.integration);
+      for (const config of options.lineStation?.stations ?? [])
+        bridges.push(
+          await startStationBridge({
+            application,
+            workspaceId: LOCAL_WORKSPACE,
+            config,
+            // A failed observation pass is retried; its details stay in the host log.
+            onError: (error) => console.error(`Station ${config.station}:`, error),
+          }),
+        );
+    }
     let stopped = false;
     async function closeHost() {
       if (stopped) return;
@@ -486,7 +518,8 @@ export async function startHost(options: {
         if (!['succeeded', 'failed', 'cancelled', 'interrupted'].includes(run.state))
           await supervisor.cancel(run.id);
       server.stop(true);
-      await integration.stop();
+      await Promise.all(bridges.map((bridge) => bridge.stop()));
+      await Promise.all([integration.stop(), lineIntegration.stop()]);
       providers.close();
       await storage.close();
       runStore.close();
@@ -504,6 +537,7 @@ export async function startHost(options: {
       application,
       supervisor,
       integration: { ...integration, systemOfRecord },
+      lineIntegration: { ...lineIntegration, mes },
       close: closeHost,
     };
   } catch (error) {

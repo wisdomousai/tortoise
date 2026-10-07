@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/operator-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Thick-finger operator input primitives, distributed as a shadcn registry.",
+  "exports": {
+    "./hooks/*": "./src/hooks/*.ts",
+    "./components/*": "./src/components/*.tsx"
+  }
+}

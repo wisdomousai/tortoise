@@ -4,7 +4,7 @@
  * plugin that checks the real browser dependency graph.
  */
 export const forbiddenBrowserImport =
-  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration)(?:\/|$)|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
+  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|station)(?:\/|$)|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
 /** Resolved source paths of server-only framework packages. */
 export const hostSourcePath =
-  /(?:^|[\\/])packages[\\/](?:agents|adapters|runtime|integration)[\\/]src[\\/]/;
+  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|station)[\\/]src[\\/]|devices[\\/]src[\\/]server\.ts$)/;

@@ -1,45 +1,13 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { ScanDetector } from '@agent-native/devices/scanner/wedge';
 
 export type CaptureInput = 'keyboard' | 'scanner' | 'instrument' | 'touch';
 
 /**
- * Distinguishes a keyboard-wedge burst (barcode scanner, digital gauge) from typing. Wedge
- * devices emit a whole code within a few milliseconds per key and finish with a terminator;
- * people type far slower. Pure and clock-injected so it is deterministic in tests.
+ * Keyboard-wedge burst detection lives with the other scanner logic in `@agent-native/devices`;
+ * it is re-exported here so existing capture screens keep their import.
  */
-export class ScanDetector {
-  private buffer = '';
-  private last = -Infinity;
-  private slow = false;
-  constructor(
-    private readonly options: {
-      /** Longest gap between keys inside a burst. */
-      readonly maxGapMs?: number;
-      readonly minLength?: number;
-      readonly terminator?: string;
-    } = {},
-  ) {}
-  /** Feed one key. Returns the code when a terminator completes a burst. */
-  push(key: string, at: number): { kind: 'scan'; code: string } | { kind: 'typing' } | undefined {
-    const { maxGapMs = 35, minLength = 3, terminator = 'Enter' } = this.options;
-    if (key === terminator) {
-      const burst = !this.slow && this.buffer.length >= minLength;
-      const code = this.buffer;
-      this.reset();
-      return burst ? { kind: 'scan', code } : code ? { kind: 'typing' } : undefined;
-    }
-    if (key.length !== 1) return undefined;
-    if (this.buffer && at - this.last > maxGapMs) this.slow = true;
-    this.buffer += key;
-    this.last = at;
-    return undefined;
-  }
-  reset(): void {
-    this.buffer = '';
-    this.last = -Infinity;
-    this.slow = false;
-  }
-}
+export { ScanDetector } from '@agent-native/devices/scanner/wedge';
 
 const editable = (target: EventTarget | null) =>
   target instanceof HTMLElement &&

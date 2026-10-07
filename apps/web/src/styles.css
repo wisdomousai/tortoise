@@ -3,6 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Operator registry: theme tokens and component sources used in place (see vite.config.ts). */
+@import '../../../packages/operator-ui/src/styles/operator.css';
+@source '../../../packages/operator-ui/src';
+
 /*
  * shadcn/ui neutral tokens plus semantic capture states. `success`/`warning`/`destructive` carry
  * meaning on the capture station (in tolerance, pending sync, out of tolerance or rejected), so

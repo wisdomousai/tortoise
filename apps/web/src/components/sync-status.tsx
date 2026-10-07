@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { CircleAlert, CircleCheck, Clock3 } from 'lucide-react';
 import { operations } from '../../../../examples/quality-inspection/contracts';
-import { Badge } from '@/components/ui/badge';
+import { DeliveryBadge } from '@/components/status-strip';
 import { live } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
@@ -46,21 +46,5 @@ export function SyncMarker({
   sorRef?: string;
   rejection?: { code: string; message: string };
 }) {
-  if (sync === 'accepted')
-    return (
-      <Badge variant="outline" className="border-success/40 text-success" title={sorRef}>
-        {sorRef ?? 'Accepted'}
-      </Badge>
-    );
-  if (sync === 'rejected')
-    return (
-      <Badge variant="destructive" title={rejection?.message}>
-        {rejection?.code ?? 'Rejected'}
-      </Badge>
-    );
-  return (
-    <Badge variant="outline" className="border-warning/50 text-warning">
-      Pending
-    </Badge>
-  );
+  return <DeliveryBadge state={sync} reference={sorRef} reason={rejection} />;
 }

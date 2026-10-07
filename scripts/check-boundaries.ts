@@ -21,6 +21,8 @@ const browserRoots = [
   'packages/contracts/',
   'packages/client/',
   'packages/react/',
+  'packages/devices/src/',
+  'packages/operator-ui/',
   'apps/web/src/',
 ];
 for (const file of all) {
@@ -36,6 +38,8 @@ for (const file of all) {
       errors.push(`${name}: framework imports feature ${dependency}`);
     if (
       browserRoots.some((prefix) => name.startsWith(prefix)) &&
+      // A server entrypoint inside a browser-safe package (devices/server) is itself host code.
+      !hostSourcePath.test(file) &&
       (forbiddenBrowserImport.test(dependency) ||
         hostSourcePath.test(resolve(file, '..', dependency)))
     )

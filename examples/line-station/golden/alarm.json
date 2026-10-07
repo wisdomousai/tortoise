@@ -1,0 +1,112 @@
+{
+  "capturedAt": 0,
+  "width": 1024,
+  "height": 768,
+  "digest": "e7293ba0e9232688d57a668ac18b71cc2eeea9d9cc4d0647cc02ac5566c4c49a",
+  "accessibility": [
+    {
+      "role": "main",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 0
+      },
+      "children": [
+        {
+          "role": "heading",
+          "name": "Filler 1 overview",
+          "box": {
+            "x": 24,
+            "y": 16,
+            "width": 600,
+            "height": 40
+          }
+        },
+        {
+          "role": "status",
+          "name": "Machine state",
+          "text": "ALARM",
+          "box": {
+            "x": 96,
+            "y": 80,
+            "width": 228,
+            "height": 48
+          }
+        },
+        {
+          "role": "status",
+          "name": "Loaded recipe",
+          "text": "R-500",
+          "box": {
+            "x": 96,
+            "y": 144,
+            "width": 228,
+            "height": 40
+          }
+        },
+        {
+          "role": "status",
+          "name": "Alarm",
+          "text": "E-214 Bottle jam at infeed",
+          "box": {
+            "x": 96,
+            "y": 200,
+            "width": 488,
+            "height": 40
+          }
+        },
+        {
+          "role": "button",
+          "name": "Load recipe",
+          "box": {
+            "x": 800,
+            "y": 80,
+            "width": 200,
+            "height": 56
+          }
+        },
+        {
+          "role": "button",
+          "name": "Start",
+          "box": {
+            "x": 800,
+            "y": 160,
+            "width": 200,
+            "height": 56
+          }
+        },
+        {
+          "role": "button",
+          "name": "Stop",
+          "box": {
+            "x": 800,
+            "y": 240,
+            "width": 200,
+            "height": 56
+          }
+        },
+        {
+          "role": "button",
+          "name": "Jog",
+          "box": {
+            "x": 800,
+            "y": 560,
+            "width": 200,
+            "height": 56
+          }
+        },
+        {
+          "role": "button",
+          "name": "Reset e-stop",
+          "box": {
+            "x": 800,
+            "y": 680,
+            "width": 200,
+            "height": 56
+          }
+        }
+      ]
+    }
+  ]
+}
