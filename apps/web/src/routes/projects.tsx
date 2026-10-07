@@ -19,15 +19,41 @@ import { client, live } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
 type Task = OutputOf<typeof operations.taskGet>;
+const PAGE = 50;
 
 /** Projects and tasks. No domain state changes locally on command success; data arrives live. */
 export function ProjectsScreen() {
-  const projects = useQuery(live.liveQueryOptions(operations.projectList, {}));
-  const [selected, setSelected] = useState('');
-  const active =
-    projects.data?.items.find((project) => project.id === selected) ?? projects.data?.items[0];
+  const [projectOffset, setProjectOffset] = useState(0);
+  const [taskOffset, setTaskOffset] = useState(0);
+  const projects = useQuery(
+    live.liveQueryOptions(operations.projectList, { offset: projectOffset, limit: PAGE }),
+  );
+  const [selected, setSelectedId] = useState('');
+  const setSelected = (id: string) => {
+    setSelectedId(id);
+    setTaskOffset(0);
+  };
+  const listed = projects.data?.items.find((project) => project.id === selected);
+  // A selection outside the visible page (another page, or one restored from UI context) is
+  // read on its own rather than silently replaced by the first listed project.
+  const fetched = useQuery({
+    ...live.liveQueryOptions(operations.projectGet, { id: selected }),
+    enabled: !!selected && projects.data !== undefined && !listed,
+  });
+  const active = listed ?? (selected ? fetched.data : undefined) ?? projects.data?.items[0];
   const tasks = useQuery({
-    ...live.liveQueryOptions(operations.taskList, active ? { projectId: active.id } : {}),
+    ...live.liveQueryOptions(
+      operations.taskList,
+      active ? { projectId: active.id, offset: taskOffset, limit: PAGE } : {},
+    ),
+    enabled: active !== undefined,
+  });
+  // Totals come from authorized counts, not from the rows on the visible page.
+  const done = useQuery({
+    ...live.liveQueryOptions(
+      operations.taskList,
+      active ? { projectId: active.id, status: 'done', limit: 1 } : {},
+    ),
     enabled: active !== undefined,
   });
   const [projectName, setProjectName] = useState('');
@@ -60,7 +86,7 @@ export function ProjectsScreen() {
       setBusy(false);
     }
   }
-  const completed = tasks.data?.items.filter((task) => task.status === 'done').length ?? 0;
+  const completed = done.data?.count ?? 0;
   const failure = error || projects.error?.message || tasks.error?.message;
   return (
     <div className="grid gap-8 xl:grid-cols-[14rem_1fr]">
@@ -87,6 +113,12 @@ export function ProjectsScreen() {
             </button>
           ))}
         </nav>
+        <Pager
+          label="Projects"
+          offset={projectOffset}
+          count={projects.data?.count}
+          onChange={setProjectOffset}
+        />
         <form
           className="space-y-2"
           onSubmit={(event) => {
@@ -198,6 +230,12 @@ export function ProjectsScreen() {
                   />
                 ))}
               </div>
+              <Pager
+                label="Tasks"
+                offset={taskOffset}
+                count={tasks.data?.count}
+                onChange={setTaskOffset}
+              />
               {active && <ProjectAccess id={active.id} onError={setError} />}
             </CardContent>
           </Card>
@@ -296,6 +334,42 @@ export function ProjectsScreen() {
 }
 
 /** A dirty draft retains its original base revision even when committed data updates. */
+/** Previous/next paging over an authorized list; hidden when everything fits on one page. */
+function Pager(props: {
+  label: string;
+  offset: number;
+  count: number | undefined;
+  onChange(offset: number): void;
+}) {
+  const { label, offset, count, onChange } = props;
+  if (count === undefined || (offset === 0 && count <= PAGE)) return null;
+  return (
+    <nav aria-label={`${label} pages`} className="flex items-center justify-between gap-2 text-sm">
+      <span className="text-muted-foreground">
+        {Math.min(offset + 1, count)}–{Math.min(offset + PAGE, count)} of {count}
+      </span>
+      <span className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={offset === 0}
+          onClick={() => onChange(Math.max(0, offset - PAGE))}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={offset + PAGE >= count}
+          onClick={() => onChange(offset + PAGE)}
+        >
+          Next
+        </Button>
+      </span>
+    </nav>
+  );
+}
+
 function TaskRow({
   task,
   archived,

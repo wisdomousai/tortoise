@@ -99,3 +99,48 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
     await rm(workspace, { recursive: true, force: true });
   }
 });
+
+test('tasks after the first page stay reachable and totals come from authorized counts', async ({
+  page,
+}) => {
+  const workspace = await mkdtemp(join(tmpdir(), 'agent-native-e2e-'));
+  let host: Awaited<ReturnType<typeof startService>> | undefined;
+  try {
+    host = await startService(workspace);
+    await page.goto(host.launchUrl);
+    await page.getByLabel('New project').fill('Large backlog');
+    await page.getByRole('button', { name: 'Create project', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Large backlog' })).toBeVisible();
+    const call = async (kind: 'commands' | 'queries', operation: string, body: object) => {
+      const response = await page.request.post(`${host!.origin}/api/v1/${kind}/${operation}`, {
+        headers: { Origin: host!.origin },
+        data: body,
+      });
+      expect(response.ok()).toBe(true);
+      return response.json();
+    };
+    const projectId = (await call('queries', 'project.list', { input: {} })).data.items[0].id;
+    // 55 tasks sort by title; the last five, and three done tasks among them, sit on page two.
+    for (let index = 1; index <= 55; index++) {
+      const { result } = await call('commands', 'task.create', {
+        idempotencyKey: `bulk-${index}`,
+        input: { projectId, title: `Task ${String(index).padStart(2, '0')}` },
+      });
+      if (index > 52)
+        await call('commands', 'task.set-status', {
+          idempotencyKey: `done-${index}`,
+          input: { id: result.id, status: 'done' },
+        });
+    }
+    await expect(page.getByText('3 complete · 55 tasks')).toBeVisible();
+    const pages = page.getByRole('navigation', { name: 'Tasks pages' });
+    await expect(pages.getByText('1–50 of 55')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Task 55', exact: true })).toHaveCount(0);
+    await pages.getByRole('button', { name: 'Next' }).click();
+    await expect(pages.getByText('51–55 of 55')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Task 55', exact: true })).toBeVisible();
+  } finally {
+    await host?.stop();
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
