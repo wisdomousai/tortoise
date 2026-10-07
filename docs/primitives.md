@@ -158,9 +158,9 @@ _Maps one surface onto the authority's raw command and query entry points._
 
 HTTP, MCP, the CLI and in-process calls are thin translations. They carry no business logic and keep no operation list, so adding a capability adds it to all of them.
 
-Guarantees: MCP tool names, CLI subcommands and typed flags are derived from the catalog. Errors keep their meaning across surfaces: HTTP status, MCP tool error and CLI exit code map from the same code.
+Guarantees: MCP tool names, CLI subcommands and typed flags are derived from the catalog. Errors keep their meaning across surfaces: HTTP status, MCP tool error and CLI exit code map from the same code. A per-request signal only adds to the trusted context's cancellation (`withSignal`). Direct and HTTP cursors both carry the authorization revision they were issued under, so a subscription resets when access changed after the snapshot.
 
-Serves P1 · implemented · `packages/adapters` · `createHttpHandler`, `createMcpServer`, `runCli`, `createDirectTransport`, `exitCodes`
+Serves P1, P5 · implemented · `packages/adapters` · `createHttpHandler`, `createMcpServer`, `runCli`, `createDirectTransport`, `withSignal`, `exitCodes`
 
 ### Capability binding
 

@@ -123,3 +123,21 @@ test('process death before commit rolls back, and death after commit retains rec
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('SQLite never exposes the initial-state factory result to a transaction', async () => {
+  const seed = { count: 1 };
+  const storage = new SQLiteStorage(':memory:', () => seed);
+  try {
+    await expect(
+      storage.transact('a', async (snapshot) => {
+        snapshot.state.count = 9;
+        throw new Error('rolled back');
+      }),
+    ).rejects.toThrow('rolled back');
+    expect(seed.count).toBe(1);
+    expect(await storage.read('a', async (snapshot) => snapshot.state.count)).toBe(1);
+    expect(await storage.read('b', async (snapshot) => snapshot.state.count)).toBe(1);
+  } finally {
+    await storage.close();
+  }
+});

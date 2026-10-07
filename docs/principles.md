@@ -34,7 +34,7 @@ One authority owns each workspace. UIs, tools, jobs, connectors and observers su
 
 **Rules out:** direct database writes, dual writers, write-then-notify sequences that can lose the notification, side effects inside a transaction.
 
-**Enforced by:** `packages/runtime/test/runtime.test.ts` (undeclared changes cannot commit, expected revisions cannot lose updates, scoped idempotency); `packages/testing/test/storage-conformance.test.ts` (memory and SQLite commit state, receipts and outbox atomically); `packages/adapters/src/ownership.test.ts` (one owner per workspace). **Convention only:** that no new code path writes state outside a handler.
+**Enforced by:** `packages/runtime/test/runtime.test.ts` (undeclared changes cannot commit, expected revisions cannot lose updates, scoped idempotency); `packages/testing/test/storage-conformance.test.ts` (memory and SQLite commit state, receipts and outbox atomically); `packages/adapters/src/sqlite.test.ts` (a rolled-back transaction leaves the initial-state factory untouched); `packages/adapters/src/ownership.test.ts` (one owner per workspace). **Convention only:** that no new code path writes state outside a handler.
 
 ### P5 — Every committed change reaches every authorized view, whatever its origin
 
@@ -42,7 +42,7 @@ A change committed by a person, an agent, a job or an inbound sync flows through
 
 **Rules out:** polling as the consistency model, per-surface caches that miss other surfaces' writes, event payloads carrying protected record contents.
 
-**Enforced by:** `packages/client/src/client.test.ts` (snapshot cursor closes the subscription race, revocation resets, stale responses are fenced); `packages/react/src/bindings.test.ts` (dependency-indexed refetch, permission change clears cache); `tests/e2e/workspace.pw.ts` and `inspection.pw.ts` (an external write appears without refresh, drafts survive).
+**Enforced by:** `packages/client/src/client.test.ts` (snapshot cursor closes the subscription race, revocation resets, stale responses are fenced); `packages/testing/test/direct-transport.test.ts` (the in-process transport resets after a revocation between snapshot and subscription, and never lifts launcher cancellation); `packages/react/src/bindings.test.ts` (dependency-indexed refetch, permission change clears cache); `tests/e2e/workspace.pw.ts` and `inspection.pw.ts` (an external write appears without refresh, drafts survive).
 
 ### P6 — Status reports what is known, not what is hoped
 
