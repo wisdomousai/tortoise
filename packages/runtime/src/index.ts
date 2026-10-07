@@ -14,6 +14,9 @@ import {
 import type {
   AuthorizationPort,
   CommandReceipt,
+  Effect,
+  EffectOutcome,
+  EffectRequest,
   ExecutionContext,
   HandlerContribution,
   HandlerContext,
@@ -25,6 +28,7 @@ import type {
 } from './types.js';
 import { sameState } from './state-equality.js';
 export * from './types.js';
+export * from './compose.js';
 
 export function createWorkspaceSnapshot<State>(state: State): WorkspaceSnapshot<State> {
   return {
@@ -34,6 +38,7 @@ export function createWorkspaceSnapshot<State>(state: State): WorkspaceSnapshot<
     resourceRevisions: {},
     receipts: {},
     journal: [],
+    effects: {},
   };
 }
 
@@ -98,6 +103,8 @@ export interface ApplicationOptions<State, Services, Modules extends readonly Ca
   readonly services: Services;
   readonly now?: () => number;
   readonly contractVersion?: string;
+  /** Outbox effect identifiers; they must be globally unique because targets deduplicate by them. */
+  readonly newEffectId?: () => string;
 }
 
 /** Compose pure capability definitions with private host implementations. No transport owns business execution. */
@@ -123,6 +130,32 @@ export function createApplication<
   for (const id of capabilities.keys())
     if (!handlers.has(id)) throw new Error(`Missing handler: ${id}`);
   const now = options.now ?? Date.now;
+  const newEffectId = options.newEffectId ?? (() => crypto.randomUUID());
+  const ownEffect = (snapshot: WorkspaceSnapshot<State>, id: string): Effect | undefined =>
+    Object.hasOwn(snapshot.effects, id) ? snapshot.effects[id] : undefined;
+  // Defined properties keep untrusted identifiers such as "__proto__" from touching prototypes.
+  const putEffect = (snapshot: WorkspaceSnapshot<State>, effect: Effect): void => {
+    Object.defineProperty(snapshot.effects, effect.id, {
+      value: effect,
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+  };
+  const text = (value: unknown, max: number): value is string =>
+    typeof value === 'string' && value.length > 0 && value.length <= max;
+  function validOutcome(outcome: EffectOutcome): EffectOutcome {
+    if (
+      outcome?.status === 'accepted' &&
+      (outcome.externalRef === undefined || text(outcome.externalRef, 256))
+    )
+      return outcome.externalRef === undefined
+        ? { status: 'accepted' }
+        : { status: 'accepted', externalRef: outcome.externalRef };
+    if (outcome?.status === 'rejected' && text(outcome.code, 128) && text(outcome.message, 2000))
+      return { status: 'rejected', code: outcome.code, message: outcome.message };
+    throw new ApplicationError('INVALID_INPUT', 'Invalid effect outcome');
+  }
   const revisionOf = (snapshot: WorkspaceSnapshot<State>, resource: string): number =>
     Object.hasOwn(snapshot.resourceRevisions, resource) ? snapshot.resourceRevisions[resource]! : 0;
   function trusted(context: ExecutionContext): void {
@@ -209,6 +242,8 @@ export function createApplication<
     context: ExecutionContext,
     changes: Map<string, string>,
     query: boolean,
+    operation: string,
+    touchedEffects: Effect[] = [],
   ): HandlerContext<State, Services> => ({
     state: snapshot.state,
     services: options.services,
@@ -225,6 +260,61 @@ export function createApplication<
       if (context.grant?.resources && !context.grant.resources.includes(resource))
         throw new ApplicationError('FORBIDDEN', 'Delegation does not permit changed resource');
       changes.set(resource, type);
+    },
+    enqueue(request: EffectRequest) {
+      if (query) throw new ApplicationError('INTERNAL', 'Queries cannot enqueue effects');
+      if (!text(request?.target, 128) || !text(request.type, 128) || !text(request.resource, 512))
+        throw new ApplicationError('INTERNAL', 'Effect requires target, type and resource');
+      try {
+        assertJson(request.payload);
+      } catch {
+        throw new ApplicationError('INTERNAL', 'Effect payload must be JSON');
+      }
+      const id = newEffectId();
+      if (!text(id, 256) || ownEffect(snapshot, id))
+        throw new ApplicationError('INTERNAL', 'Effect identifier is unavailable');
+      const effect: Effect = {
+        id,
+        target: request.target,
+        type: request.type,
+        resource: request.resource,
+        payload: structuredClone(request.payload),
+        operation,
+        principalId: context.principalId,
+        createdAt: now(),
+        status: 'pending',
+        attempts: 0,
+      };
+      putEffect(snapshot, effect);
+      touchedEffects.push(effect);
+      return id;
+    },
+    settleEffect(id: string, outcome: EffectOutcome) {
+      if (query) throw new ApplicationError('INTERNAL', 'Queries cannot settle effects');
+      const effect = ownEffect(snapshot, id);
+      if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
+      if (effect.status !== 'pending')
+        throw new ApplicationError('CONFLICT', 'Effect already settled');
+      const settled: Effect = {
+        ...effect,
+        status: validOutcome(outcome).status,
+        outcome: validOutcome(outcome),
+        settledAt: now(),
+      };
+      putEffect(snapshot, settled);
+      touchedEffects.push(settled);
+      return structuredClone(settled);
+    },
+    effects(filter = {}) {
+      return structuredClone(
+        Object.values(snapshot.effects)
+          .filter(
+            (effect) =>
+              (filter.status === undefined || effect.status === filter.status) &&
+              (filter.target === undefined || effect.target === filter.target),
+          )
+          .sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+      );
     },
   });
 
@@ -292,7 +382,14 @@ export function createApplication<
       const previousState = structuredClone(snapshot.state);
       const previousAuthorizationRevision = snapshot.authorizationRevision;
       const changes = new Map<string, string>();
-      const output = await handler.handle(input, makeContext(snapshot, context, changes, false));
+      const touchedEffects: Effect[] = [];
+      const output = await handler.handle(
+        input,
+        makeContext(snapshot, context, changes, false, capability.id, touchedEffects),
+      );
+      // Outbox writes ride on a declared business change so subscribers observe the same commit.
+      if (touchedEffects.some((effect) => !changes.has(effect.resource)))
+        throw new ApplicationError('INTERNAL', 'Effects require a declared changed resource');
       if (
         changes.size === 0 &&
         snapshot.authorizationRevision === previousAuthorizationRevision &&
@@ -337,6 +434,13 @@ export function createApplication<
         cursor: snapshot.cursor,
         authorizationRevision: snapshot.authorizationRevision,
         revisions,
+        ...(touchedEffects.some((effect) => effect.status === 'pending')
+          ? {
+              effects: touchedEffects
+                .filter((effect) => effect.status === 'pending')
+                .map((effect) => effect.id),
+            }
+          : {}),
       };
       if (key !== undefined) {
         assertJson(input);
@@ -357,7 +461,10 @@ export function createApplication<
       const snapshot = structuredClone(readonlySnapshot);
       await authorize(capability, input, context, snapshot, 'invoke');
       const before = structuredClone(snapshot.state);
-      const output = await handler.handle(input, makeContext(snapshot, context, new Map(), true));
+      const output = await handler.handle(
+        input,
+        makeContext(snapshot, context, new Map(), true, capability.id),
+      );
       if (!sameState(snapshot.state, before))
         throw new ApplicationError('INTERNAL', 'Query mutated feature state');
       const result = await project(capability, input, context, snapshot, output);
@@ -434,6 +541,62 @@ export function createApplication<
         throw new ApplicationError('INTERNAL', 'Event delivery callback must be synchronous');
     });
   }
+  /**
+   * Host-only outbox read for a trusted dispatcher. Transports must not expose it: payloads are
+   * unprojected. Business visibility of synchronization goes through authorized domain queries.
+   */
+  async function pendingEffects(
+    context: ExecutionContext,
+    filter: { readonly target?: string; readonly limit?: number } = {},
+  ): Promise<readonly Effect[]> {
+    trusted(context);
+    const limit = filter.limit ?? 100;
+    if (!Number.isSafeInteger(limit) || limit < 1)
+      throw new ApplicationError('INVALID_INPUT', 'Invalid effect limit');
+    return options.storage.read(context.workspaceId, async (snapshot) =>
+      Object.values(snapshot.effects)
+        .filter(
+          (effect) =>
+            effect.status === 'pending' &&
+            (filter.target === undefined || effect.target === filter.target),
+        )
+        .sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+        .slice(0, limit),
+    );
+  }
+  /**
+   * Host-only record of a transient delivery failure. It changes framework metadata, not feature
+   * state, so the resource revision is unchanged (editors see no false conflict). A journal entry
+   * at the current revision still lets authorized subscribers show retry progress.
+   */
+  async function recordAttempt(
+    context: ExecutionContext,
+    id: string,
+    failure: string,
+  ): Promise<Effect> {
+    trusted(context);
+    return options.storage.transact(context.workspaceId, async (snapshot) => {
+      const effect = ownEffect(snapshot, id);
+      if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
+      if (effect.status !== 'pending')
+        throw new ApplicationError('CONFLICT', 'Effect already settled');
+      const next: Effect = {
+        ...effect,
+        attempts: effect.attempts + 1,
+        lastAttemptAt: now(),
+        lastFailure: (failure || 'Delivery failed').slice(0, 500),
+      };
+      putEffect(snapshot, next);
+      snapshot.journal.push({
+        cursor: ++snapshot.cursor,
+        resource: effect.resource,
+        revision: revisionOf(snapshot, effect.resource),
+        type: 'effect.attempted',
+        operation: effect.operation,
+      });
+      return next;
+    });
+  }
   function discover(context: ExecutionContext) {
     trusted(context);
     return {
@@ -449,5 +612,16 @@ export function createApplication<
       })),
     };
   }
-  return { catalog, invoke, query, invokeRaw, queryRaw, events, deliverEvents, discover };
+  return {
+    catalog,
+    invoke,
+    query,
+    invokeRaw,
+    queryRaw,
+    events,
+    deliverEvents,
+    discover,
+    pendingEffects,
+    recordAttempt,
+  };
 }

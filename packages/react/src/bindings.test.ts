@@ -1,0 +1,135 @@
+import { expect, test } from 'bun:test';
+import { QueryClient, QueryObserver } from '@tanstack/react-query';
+import { z } from 'zod';
+import { defineCapability, jsonSchema } from '@agent-native/contracts';
+import type { ChangeBatch, Snapshot, Transport } from '@agent-native/client';
+import { ScanDetector } from './capture';
+import { changedResourceTypes, createLiveBindings, isAffected } from './query';
+
+const query = (id: string, dependencies?: string[]) =>
+  defineCapability({
+    id,
+    kind: 'query',
+    input: jsonSchema(z.strictObject({})),
+    output: jsonSchema(z.strictObject({ n: z.number() })),
+    permission: { action: 'read', resourceType: 'x' },
+    ui: { exception: 'test fixture' },
+    ...(dependencies ? { dependencies } : {}),
+  });
+const lots = query('lot.list', ['lot', 'result']);
+const plants = query('plant.list', ['plant']);
+const undeclared = query('misc.get');
+
+function fixture() {
+  const calls: string[] = [];
+  let revision = 0;
+  const pending: ((value: Snapshot<unknown>) => void)[] = [];
+  let hold = false;
+  const transport: Transport = {
+    query: async <T>(operation: string) => {
+      calls.push(operation);
+      const snapshot = { data: { n: calls.length }, cursor: 'c', authorizationRevision: revision };
+      if (hold) return new Promise<Snapshot<T>>((resolve) => pending.push(resolve as never));
+      return snapshot as Snapshot<T>;
+    },
+    command: async () => {
+      throw new Error('unused');
+    },
+    events: async function* () {},
+  };
+  const client = new QueryClient();
+  const live = createLiveBindings(transport);
+  const observe = (capability: typeof lots) => {
+    const observer = new QueryObserver(client, live.liveQueryOptions(capability, {}));
+    const unsubscribe = observer.subscribe(() => {});
+    return { observer, unsubscribe };
+  };
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 10));
+  return {
+    calls,
+    client,
+    live,
+    observe,
+    settle,
+    setRevision: (value: number) => (revision = value),
+    hold: (value: boolean) => (hold = value),
+    release: (snapshot: Snapshot<unknown>) => pending.shift()!(snapshot),
+  };
+}
+const batch = (partial: Partial<ChangeBatch>): ChangeBatch => ({
+  cursor: 'next',
+  authorizationRevision: 0,
+  reset: false,
+  changes: [],
+  ...partial,
+});
+const change = (resource: string) => ({ resource, type: 'x', operation: 'op', revision: 1 });
+
+test('dependency matching is conservative for undeclared queries', () => {
+  const types = changedResourceTypes({ changes: [change('lot:1'), change('lot:2')] });
+  expect([...types]).toEqual(['lot']);
+  expect(isAffected(['lot', 'result'], types)).toBe(true);
+  expect(isAffected(['plant'], types)).toBe(false);
+  expect(isAffected(undefined, types)).toBe(true);
+  expect(isAffected([], types)).toBe(true);
+});
+
+test('a change batch refetches only active queries whose dependencies changed, once', async () => {
+  const { calls, client, live, observe, settle } = fixture();
+  observe(lots);
+  observe(plants);
+  observe(undeclared);
+  await settle();
+  expect(calls.sort()).toEqual(['lot.list', 'misc.get', 'plant.list']);
+  calls.length = 0;
+  await live.applyBatch(client, batch({ reset: true }));
+  await settle();
+  expect(calls.length).toBe(3);
+  calls.length = 0;
+  // Three lot/result changes coalesce into one refetch per affected query.
+  await live.applyBatch(
+    client,
+    batch({ changes: [change('lot:1'), change('result:9'), change('lot:2')] }),
+  );
+  await settle();
+  expect(calls.sort()).toEqual(['lot.list', 'misc.get']);
+});
+
+test('a permission change clears cached data before refetching', async () => {
+  const { client, live, observe, settle, setRevision } = fixture();
+  const { observer } = observe(lots);
+  await live.applyBatch(client, batch({ reset: true }));
+  await settle();
+  expect(observer.getCurrentResult().data).toBeDefined();
+  setRevision(1);
+  const reset = live.applyBatch(client, batch({ reset: true, authorizationRevision: 1 }));
+  // resetQueries drops the data synchronously; the refetch then fills it under revision 1.
+  expect(observer.getCurrentResult().data).toBeUndefined();
+  await reset;
+  await settle();
+  expect(observer.getCurrentResult().data).toBeDefined();
+});
+
+test('a snapshot from before a revocation is never cached', async () => {
+  const { client, live, observe, settle, hold, release } = fixture();
+  await live.applyBatch(client, batch({ reset: true, authorizationRevision: 1 }));
+  hold(true);
+  const { observer } = observe(lots);
+  await settle();
+  release({ data: { n: 99 }, cursor: 'old', authorizationRevision: 0 });
+  await settle();
+  expect(observer.getCurrentResult().data).toBeUndefined();
+});
+
+test('scanner bursts are told apart from typing', () => {
+  const detector = new ScanDetector({ maxGapMs: 30 });
+  let t = 0;
+  for (const key of '4000001') detector.push(key, (t += 8));
+  expect(detector.push('Enter', (t += 8))).toEqual({ kind: 'scan', code: '4000001' });
+  for (const key of '220.02') detector.push(key, (t += 180));
+  expect(detector.push('Enter', (t += 150))).toEqual({ kind: 'typing' });
+  expect(detector.push('Enter', (t += 5))).toBeUndefined();
+  detector.push('Shift', (t += 1));
+  for (const key of 'AB') detector.push(key, (t += 5));
+  expect(detector.push('Enter', (t += 5))).toEqual({ kind: 'typing' });
+});

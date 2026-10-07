@@ -29,6 +29,38 @@ export interface CommandReceipt<T = unknown> {
   readonly cursor: number;
   readonly authorizationRevision: number;
   readonly revisions: Readonly<Record<string, number>>;
+  /** Outbox effect IDs committed with this command; present only when the command enqueued any. */
+  readonly effects?: readonly string[];
+}
+/**
+ * A post-commit request to an external system of record. It is committed atomically with the
+ * command that enqueues it, so a rejected command never produces an effect and a committed one
+ * cannot lose it. Delivery happens later, outside any transaction, at least once.
+ */
+export interface EffectRequest {
+  readonly target: string;
+  readonly type: string;
+  readonly payload: JsonValue;
+  /** A changed business resource the effect reports on. Its read policy governs delivery events. */
+  readonly resource: string;
+}
+/** The system of record's answer. A rejection is business data, not a transport failure. */
+export type EffectOutcome =
+  | { readonly status: 'accepted'; readonly externalRef?: string }
+  | { readonly status: 'rejected'; readonly code: string; readonly message: string };
+export interface Effect extends EffectRequest {
+  /** Stable for the life of the effect; dispatchers use it as the target's idempotency key. */
+  readonly id: string;
+  readonly operation: string;
+  readonly principalId: string;
+  readonly createdAt: number;
+  readonly status: 'pending' | EffectOutcome['status'];
+  readonly attempts: number;
+  readonly lastAttemptAt?: number;
+  /** Caller-safe, bounded transient failure text from the most recent delivery attempt. */
+  readonly lastFailure?: string;
+  readonly settledAt?: number;
+  readonly outcome?: EffectOutcome;
 }
 export interface StoredReceipt {
   readonly fingerprint: string;
@@ -44,6 +76,8 @@ export interface WorkspaceSnapshot<State> {
   resourceRevisions: Record<string, number>;
   receipts: Record<string, StoredReceipt>;
   journal: ChangeEvent[];
+  /** Transactional outbox. Storage adapters load documents without it as an empty record. */
+  effects: Record<string, Effect>;
 }
 /** A successful callback atomically commits all fields. Rejected callbacks commit nothing. */
 export interface Storage<State> {
@@ -89,6 +123,21 @@ export interface HandlerContext<State, Services> {
   change(resource: string, eventType?: string): void;
   /** Invalidate discovery and protected caches in the same transaction as a policy change. */
   invalidateAuthorization(): void;
+  /**
+   * Queue an outbox effect in this command's transaction and return its stable ID. The effect's
+   * resource must also be declared through `change`. Commands only; never call the target here.
+   */
+  enqueue(effect: EffectRequest): string;
+  /**
+   * Record a target's outcome for a pending effect inside an ordinary settlement command, so the
+   * outcome commits with the domain update it causes. Settling twice fails with CONFLICT.
+   */
+  settleEffect(id: string, outcome: EffectOutcome): Effect;
+  /** Read outbox state, for example to summarize synchronization in a query. */
+  effects(filter?: {
+    readonly status?: Effect['status'];
+    readonly target?: string;
+  }): readonly Effect[];
 }
 export interface HandlerContribution<State, Services, C extends AnyCapability = AnyCapability> {
   readonly capability: C;

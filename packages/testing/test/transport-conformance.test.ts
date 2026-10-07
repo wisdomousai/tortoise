@@ -106,7 +106,7 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
       '--key',
       'cli-denied',
     ]);
-    expect(deniedCli.exitCode).toBe(1);
+    expect(deniedCli.exitCode).toBe(4);
     expect(deniedCli.value.error.code).toBe('FORBIDDEN');
     const deniedMcp = await viewerMcp.callTool({
       name: 'task_update',

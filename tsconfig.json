@@ -12,7 +12,10 @@
     "noEmit": true,
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": ["./apps/web/src/*"]
+    }
   },
   "include": ["packages", "apps", "examples", "scripts", "tests", "playwright.config.ts"],
   "exclude": ["node_modules", "dist", "artifacts"]

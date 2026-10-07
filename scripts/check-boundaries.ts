@@ -1,5 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { resolve, relative, dirname, extname } from 'node:path';
+import { resolve, relative } from 'node:path';
+import { build } from 'vite';
+import { forbiddenBrowserImport, hostSourcePath } from './boundary-rules.ts';
 
 const root = resolve(import.meta.dir, '..');
 const errors: string[] = [];
@@ -15,9 +17,12 @@ async function files(directory: string): Promise<string[]> {
   return result;
 }
 const all = await files(root);
-const browserRoots = ['packages/contracts/', 'packages/client/', 'packages/react/', 'apps/web/'];
-const forbidden =
-  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters)(?:\/|$)|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
+const browserRoots = [
+  'packages/contracts/',
+  'packages/client/',
+  'packages/react/',
+  'apps/web/src/',
+];
 for (const file of all) {
   const name = relative(root, file).replaceAll('\\', '/');
   const source = await readFile(file, 'utf8');
@@ -31,17 +36,22 @@ for (const file of all) {
       errors.push(`${name}: framework imports feature ${dependency}`);
     if (
       browserRoots.some((prefix) => name.startsWith(prefix)) &&
-      (forbidden.test(dependency) ||
-        /(?:packages\/)?(?:agents|adapters|runtime)\/src/.test(dependency))
+      (forbiddenBrowserImport.test(dependency) ||
+        hostSourcePath.test(resolve(file, '..', dependency)))
     )
       errors.push(`${name}: browser imports host module ${dependency}`);
   }
 }
-// Bundling the actual application catches transitive host dependencies as well as direct ones.
-const build = await Bun.build({
-  entrypoints: [resolve(root, 'apps/web/src/main.tsx')],
-  target: 'browser',
-});
-if (!build.success) errors.push(...build.logs.map((log) => log.message));
+// Bundling the actual application with its real config catches transitive host dependencies as
+// well as direct ones: the boundary plugin in apps/web/vite.config.ts fails the graph.
+try {
+  await build({
+    configFile: resolve(root, 'apps/web/vite.config.ts'),
+    logLevel: 'silent',
+    build: { write: false, sourcemap: false },
+  });
+} catch (error) {
+  errors.push(error instanceof Error ? error.message : String(error));
+}
 if (errors.length) throw new Error(errors.join('\n'));
 console.log(`Checked ${all.length} source files and browser dependency graph`);

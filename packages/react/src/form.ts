@@ -1,0 +1,141 @@
+import { useRef } from 'react';
+import { useForm } from '@tanstack/react-form';
+import {
+  ApplicationError,
+  canonicalJson,
+  type AnyCapability,
+  type InputOf,
+  type OutputOf,
+} from '@agent-native/contracts';
+import type { Receipt, Transport } from '@agent-native/client';
+
+const newKey = () => crypto.randomUUID();
+
+/** Top-level input field named by a Standard Schema issue path, if any. */
+function issueField(path: readonly unknown[] | undefined): string | undefined {
+  const first = path?.[0];
+  const key = typeof first === 'object' && first !== null ? (first as { key: unknown }).key : first;
+  return typeof key === 'string' ? key : undefined;
+}
+
+/** Field errors keyed by form field, plus a form-level message, in TanStack Form's shape. */
+type SubmitErrors = { form?: string; fields: Record<string, string> };
+
+export interface CapabilityFormOptions<C extends AnyCapability, Values> {
+  readonly defaultValues: Values;
+  /**
+   * Map form values to the command input, for example parsing a numeric text field or stamping
+   * `occurredAt`. It runs once per attempt: retries with unchanged values reuse the same input,
+   * so a time-dependent mapping cannot turn a replay into an idempotency conflict.
+   */
+  readonly toInput: (values: Values) => InputOf<C>;
+  /** Base revisions of what the user is editing; a newer commit elsewhere conflicts. */
+  readonly expectedRevisions?: (values: Values) => Readonly<Record<string, number>> | undefined;
+  /** Map an input field named by the schema or `ApplicationError.details.field` to a form field. */
+  readonly fieldFor?: (inputField: string) => string | undefined;
+  readonly onCommitted?: (receipt: Receipt<OutputOf<C>>, values: Values) => void;
+}
+
+/**
+ * A TanStack Form bound to one command capability.
+ *
+ * Guarantees:
+ * - Input is validated with the capability's own schema (the same one the authority enforces),
+ *   via Standard Schema, before any request.
+ * - The idempotency key is minted when the form opens and reused for every retry until the
+ *   command commits, so double taps, scanner double-sends and retries after a lost response
+ *   record one datapoint. A new key is minted only after a commit.
+ * - The mapped input is frozen per attempt: a retry with unchanged values sends byte-identical
+ *   input under the same key and replays the original receipt.
+ * - Server validation (`ApplicationError.details.field`) lands on the offending field when the
+ *   form has that field; other failures, including CONFLICT, become a form error and the draft
+ *   is kept.
+ *
+ * The authority still authorizes and validates; nothing here is a security boundary.
+ */
+export function useCapabilityForm<C extends AnyCapability, Values extends object>(
+  transport: Transport,
+  capability: C & { kind: 'command' },
+  options: CapabilityFormOptions<C, Values>,
+) {
+  const key = useRef<string>(undefined);
+  key.current ??= newKey();
+  const latest = useRef(options);
+  latest.current = options;
+  const receipt = useRef<Receipt<OutputOf<C>>>(undefined);
+  const attempt = useRef<{ values: string; input: InputOf<C> }>(undefined);
+  const rotate = () => {
+    key.current = newKey();
+    attempt.current = undefined;
+  };
+  const field = (name: string | undefined) => {
+    const mapped = name === undefined ? undefined : (latest.current.fieldFor?.(name) ?? name);
+    return mapped !== undefined && Object.hasOwn(latest.current.defaultValues, mapped)
+      ? mapped
+      : undefined;
+  };
+
+  const form = useForm({
+    defaultValues: options.defaultValues,
+    validators: {
+      // Validation and the command run together so server field errors use the same channel.
+      onSubmitAsync: async ({ value }): Promise<SubmitErrors | undefined> => {
+        const values = canonicalJson(value);
+        let input: InputOf<C>;
+        try {
+          input =
+            attempt.current?.values === values
+              ? attempt.current.input
+              : latest.current.toInput(value);
+        } catch (error) {
+          return { form: error instanceof Error ? error.message : 'Invalid input', fields: {} };
+        }
+        attempt.current = { values, input };
+        const checked = await capability.input['~standard'].validate(input);
+        if (checked.issues) {
+          const errors: SubmitErrors = { fields: {} };
+          for (const issue of checked.issues) {
+            const name = field(issueField(issue.path));
+            if (name) errors.fields[name] ??= issue.message;
+            else errors.form ??= issue.message;
+          }
+          return errors;
+        }
+        try {
+          receipt.current = await transport.command<OutputOf<C>>(capability.id, input, {
+            idempotencyKey: key.current!,
+            ...(latest.current.expectedRevisions?.(value)
+              ? { expectedRevisions: latest.current.expectedRevisions(value) }
+              : {}),
+          });
+          return undefined;
+        } catch (error) {
+          if (!(error instanceof ApplicationError))
+            // Unknown outcome (network): keep the key so a retry replays instead of duplicating.
+            return { form: 'Not saved yet. Check the connection and retry.', fields: {} };
+          // The key already committed different input; that commit stands, so start fresh.
+          if (error.code === 'IDEMPOTENCY_CONFLICT') {
+            rotate();
+            return {
+              form: 'An earlier attempt from this form was already saved. Review the latest data.',
+              fields: {},
+            };
+          }
+          // Nothing committed: the next submit maps the (possibly edited) values afresh.
+          attempt.current = undefined;
+          const details = error.details as { field?: unknown } | undefined;
+          const name = typeof details?.field === 'string' ? field(details.field) : undefined;
+          return name ? { fields: { [name]: error.message } } : { form: error.message, fields: {} };
+        }
+      },
+    },
+    onSubmit: ({ value }) => {
+      const committed = receipt.current;
+      if (!committed) return;
+      receipt.current = undefined;
+      rotate();
+      latest.current.onCommitted?.(committed, value);
+    },
+  });
+  return { form, idempotencyKey: () => key.current! };
+}

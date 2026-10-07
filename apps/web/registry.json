@@ -1,0 +1,173 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "agent-native",
+  "homepage": "https://registry.example.invalid/agent-native",
+  "items": [
+    {
+      "name": "session",
+      "type": "registry:lib",
+      "title": "Session bindings",
+      "description": "One authenticated transport, typed client, TanStack Query client and live invalidation bindings for the local authority.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@agent-native/react",
+        "@agent-native/client",
+        "@agent-native/contracts"
+      ],
+      "files": [
+        {
+          "path": "src/lib/session.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "native-dialog",
+      "type": "registry:ui",
+      "title": "Native dialog",
+      "description": "Modal on the native <dialog> element: focus trap, Escape and inert background without injected <style> tags, so it works under a strict CSP.",
+      "files": [
+        {
+          "path": "src/components/ui/native-dialog.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "capability-form",
+      "type": "registry:component",
+      "title": "Capability form",
+      "description": "A complete form for any command capability, generated from its JSON Schema, with contract validation, a per-form idempotency key and field-level server errors.",
+      "dependencies": [
+        "@tanstack/react-form",
+        "@agent-native/react",
+        "@agent-native/client",
+        "@agent-native/contracts"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "label",
+        "native-select",
+        "textarea",
+        "@agent-native/session"
+      ],
+      "files": [
+        {
+          "path": "src/components/capability-form.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "live-data-table",
+      "type": "registry:component",
+      "title": "Live data table",
+      "description": "TanStack Table over a server-scoped, server-paginated capability query; never filters or counts client-side.",
+      "dependencies": ["@tanstack/react-table"],
+      "registryDependencies": ["button", "table"],
+      "files": [
+        {
+          "path": "src/components/live-data-table.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "conflict-banner",
+      "type": "registry:component",
+      "title": "Conflict banner",
+      "description": "Shown when committed data moved past a draft's base revision; rebase or discard, never overwrite.",
+      "registryDependencies": ["alert", "button"],
+      "files": [
+        {
+          "path": "src/components/conflict-banner.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "run-panel",
+      "type": "registry:component",
+      "title": "Agent run panel",
+      "description": "Recent agent runs with inline answers to questions and approvals.",
+      "dependencies": ["@tanstack/react-query"],
+      "registryDependencies": ["badge", "button", "input"],
+      "files": [
+        {
+          "path": "src/components/run-panel.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/host-client.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "command-palette",
+      "type": "registry:component",
+      "title": "Capability palette",
+      "description": "\u2318K palette over the discovered contract: the human mirror of an agent's tool list.",
+      "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "cmdk"],
+      "registryDependencies": ["command", "@agent-native/native-dialog", "@agent-native/session"],
+      "files": [
+        {
+          "path": "src/components/command-palette.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "sync-status",
+      "type": "registry:component",
+      "title": "Sync status",
+      "description": "Outbox badge and per-record markers: a receipt proves the local commit, these show system-of-record acceptance. Bound to the quality-inspection example contracts; adapt the query.",
+      "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "lucide-react"],
+      "registryDependencies": ["badge", "@agent-native/session"],
+      "files": [
+        {
+          "path": "src/components/sync-status.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "capture-station",
+      "type": "registry:block",
+      "title": "Capture station",
+      "description": "Keyboard-first capture surface: worklist-driven focus, Enter to record, wedge-scanner detection, tolerance gauge, one-tap codes and time-to-commit telemetry. Reference block bound to the quality-inspection contracts.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@tanstack/react-router",
+        "lucide-react",
+        "@agent-native/react",
+        "@agent-native/client",
+        "@agent-native/contracts"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "kbd",
+        "badge",
+        "card",
+        "alert",
+        "label",
+        "native-select",
+        "progress",
+        "@agent-native/session",
+        "@agent-native/sync-status"
+      ],
+      "files": [
+        {
+          "path": "src/components/capture-station.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/routes/capture.tsx",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
+}

@@ -84,4 +84,38 @@ describe('portable application catalog', () => {
     expect(schema.parse({ title: 'x' })).toEqual({ title: 'x' });
     expect(() => schema.parse({ title: 'x', restricted: undefined })).toThrow();
   });
+  test('Standard Schema validation matches parse and reports field paths without throwing', () => {
+    const schema = jsonSchema(
+      z.strictObject({ title: z.string().min(1), note: z.string().optional() }),
+    );
+    const standard = schema['~standard'];
+    expect(standard.version).toBe(1);
+    expect(standard.validate({ title: 'x' })).toEqual({ value: { title: 'x' } });
+    // Form state may hold undefined for an empty optional field; JSON encoding drops it.
+    expect(standard.validate({ title: 'x', note: undefined })).toEqual({ value: { title: 'x' } });
+    const invalid = standard.validate({ title: '' });
+    expect(invalid.issues?.[0]?.path).toEqual(['title']);
+    expect(standard.validate({ title: 'x', extra: 1 }).issues?.length).toBeGreaterThan(0);
+    expect(standard.validate({ title: 'x', n: Infinity }).issues?.length).toBeGreaterThan(0);
+  });
+  test('integration declarations are cataloged only for outbox commands', () => {
+    const command = {
+      ...capability('result.record'),
+      integration: { target: 'quality-system', delivery: 'outbox' as const },
+    };
+    const catalog = buildCatalog([defineModule({ id: 'a', capabilities: [command] })]);
+    expect(catalog.operations[0]?.integration).toEqual({
+      target: 'quality-system',
+      delivery: 'outbox',
+    });
+    expect(
+      'integration' in
+        buildCatalog([defineModule({ id: 'a', capabilities: [capability('a.b')] })]).operations[0]!,
+    ).toBe(false);
+    expect(() =>
+      buildCatalog([
+        defineModule({ id: 'a', capabilities: [{ ...command, kind: 'query' as const }] }),
+      ]),
+    ).toThrow('Integration requires a command');
+  });
 });

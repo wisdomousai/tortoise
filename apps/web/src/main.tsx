@@ -1,11 +1,13 @@
 import { createRoot } from 'react-dom/client';
-import { App } from './workspace';
-import './style.css';
+import { App } from './app';
+import './styles.css';
 
 async function start() {
+  // A launch link carries a one-time credential in the fragment; exchange it for the session
+  // cookie and drop it from the address bar before any route renders.
   const launch = new URLSearchParams(location.hash.slice(1)).get('launch');
-  history.replaceState(null, '', location.pathname);
   if (launch) {
+    history.replaceState(null, '', location.pathname);
     const response = await fetch('/api/v1/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

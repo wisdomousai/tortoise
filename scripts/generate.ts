@@ -1,11 +1,17 @@
 import { buildCatalog, canonicalJson } from '@agent-native/contracts';
-import { projectTasksModule } from '../examples/project-tasks/contracts';
+import { commandWords, synopsis } from '@agent-native/adapters/cli-syntax';
+import { applicationModules } from '../apps/service/src/modules';
+import identity from '../app.config.json';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 
 // Only pure contracts are imported here. Generating documentation must never start a
 // host, open a workspace, acquire credentials or load a provider SDK.
-const catalog = buildCatalog([projectTasksModule]);
+const catalog = buildCatalog(applicationModules);
+// The compiled CLI is named after the application (`bun run build:cli`).
+const program = identity.name;
+const cliCommand = (id: string) =>
+  `${program} ${commandWords(catalog.operations.find((operation) => operation.id === id)!).join(' ')}`;
 const paths = Object.fromEntries(
   catalog.operations.map((operation) => [
     `/api/v1/${operation.kind === 'command' ? 'commands' : 'queries'}/${operation.id}`,
@@ -80,7 +86,7 @@ const outputs = new Map([
       catalog.operations
         .map(
           (operation) =>
-            `## ${operation.id}\n\n${operation.description || operation.id}\n\n- Kind: ${operation.kind}\n- MCP: \`${operation.mcpName}\`\n- Permission: \`${operation.permission.action}\` on \`${operation.permission.resourceType}\`\n- UI: ${operation.ui.binding ?? operation.ui.exception}\n- CLI: \`bun run cli call ${operation.id} '<input JSON>'\`\n\nInput:\n\n\`\`\`json\n${JSON.stringify(operation.inputSchema, null, 2)}\n\`\`\`\n\nOutput:\n\n\`\`\`json\n${JSON.stringify(operation.outputSchema, null, 2)}\n\`\`\`\n`,
+            `## ${operation.id}\n\n${operation.description || operation.id}\n\n- Kind: ${operation.kind}\n- MCP: \`${operation.mcpName}\`\n- Permission: \`${operation.permission.action}\` on \`${operation.permission.resourceType}\`\n- UI: ${operation.ui.binding ?? operation.ui.exception}\n${operation.integration ? `- System of record: forwarded to \`${operation.integration.target}\` through the outbox. A receipt proves the local commit, not acceptance by the target.\n` : ''}- CLI: \`${synopsis(operation, program)}\`\n\nInput:\n\n\`\`\`json\n${JSON.stringify(operation.inputSchema, null, 2)}\n\`\`\`\n\nOutput:\n\n\`\`\`json\n${JSON.stringify(operation.outputSchema, null, 2)}\n\`\`\`\n`,
         )
         .join('\n'),
   ],
@@ -97,10 +103,11 @@ const outputs = new Map([
   [
     'application-skill/SKILL.md',
     '---\nname: use-application\ndescription: Operate this application through its registered MCP capabilities, inspect scoped data, and apply authorized business commands. Use when asked to work in the connected application.\n---\n\n# Use the application\n\nRead the `app://contract` MCP resource and discover current tools before acting. Identity and delegation come from the host; never supply roles or principals in tool arguments. Query the current object and revision before changing it.\n\nQuery tools take `{ "input": ... }`. Commands take `{ "input": ..., "idempotencyKey": "unique-request-id", "expectedRevisions": { "type:id": 1 } }`. Keep the same key and exact request when retrying after a lost response. A conflict requires a new query and deliberate reconciliation. A successful command receipt proves committed work; streamed agent text does not.\n\n' +
+      `## From a shell\n\nThe same operations are subcommands of the \`${program}\` binary. Run \`${program} help\` and \`${program} help <command>\` for generated flags; \`help\`, \`schema\` and \`workflows\` work without an authority. Add \`--embedded --workspace <dir>\` to run in-process in a sandbox, or attach to a running authority with \`--connection <file>\`; your identity comes from that file or the launcher's grant file, never from flags. Pass \`--key <id>\` on commands and reuse it when retrying, \`--dry-run\` to validate first, and \`--output text\` for tables. Branch on the exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, 6 idempotency conflict, 7 cancelled. Before a sandbox is discarded, \`${program} drain\` must exit 0; 75 means captured work has not reached the system of record yet.\n\n` +
       catalog.workflows
         .map(
           (workflow) =>
-            `## ${workflow.id}\n\n${workflow.text}\n\nTools: ${workflow.operations.map((id) => `\`${catalog.operations.find((operation) => operation.id === id)!.mcpName}\``).join(', ')}.\n`,
+            `## ${workflow.id}\n\n${workflow.text}\n\nTools: ${workflow.operations.map((id) => `\`${catalog.operations.find((operation) => operation.id === id)!.mcpName}\``).join(', ')}.\n\nCLI: ${workflow.operations.map((id) => `\`${cliCommand(id)}\``).join(', ')}.\n`,
         )
         .join('\n'),
   ],

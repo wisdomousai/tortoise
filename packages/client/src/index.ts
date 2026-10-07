@@ -5,7 +5,7 @@ import {
   type InputOf,
   type OutputOf,
   type Catalog,
-  type ErrorCode,
+  type ErrorEnvelope,
 } from '@agent-native/contracts';
 
 /** Opaque host cursor. A restart or unknown cursor causes a fresh snapshot. */
@@ -61,10 +61,13 @@ export function createHttpTransport(options: {
     });
     const payload = await response.json();
     if (!response.ok) {
-      const error = payload as { error?: { code: ErrorCode; message: string } };
+      // `details` is caller-safe structured context (for example the offending input field);
+      // keep it so forms can attach server validation to the right control.
+      const error = payload as { error?: ErrorEnvelope };
       throw new ApplicationError(
         error.error?.code ?? 'INTERNAL',
         error.error?.message ?? `HTTP ${response.status}`,
+        error.error?.details,
       );
     }
     return payload as T;

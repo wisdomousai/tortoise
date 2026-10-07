@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { hostJson } from './host-client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 
 export interface AgentSelection {
   harnessId: 'deterministic' | 'codex' | 'claude' | 'ai-sdk';
@@ -48,7 +52,7 @@ export function Accounts({
     setAuthorizationUrl('');
   }
   return (
-    <details className="accounts">
+    <details className="space-y-2 rounded-lg border p-3 text-sm [&_summary]:cursor-pointer [&_summary]:font-medium">
       <summary>
         Agent account{' '}
         <span>
@@ -59,10 +63,13 @@ export function Accounts({
               : 'API key'}
         </span>
       </summary>
-      <p>Choose how a model is funded. Your workspace permissions remain the same.</p>
-      <div className="account-actions">
-        <button
-          className="secondary"
+      <p className="text-muted-foreground">
+        Choose how a model is funded. Your workspace permissions remain the same.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant="outline"
           disabled={busy}
           onClick={() =>
             void work(async () => {
@@ -75,10 +82,10 @@ export function Accounts({
           }
         >
           Sign in with ChatGPT
-        </button>
-        <button className="secondary" disabled={busy} onClick={() => void work(loadProfiles)}>
+        </Button>
+        <Button size="sm" variant="outline" disabled={busy} onClick={() => void work(loadProfiles)}>
           Load saved accounts
-        </button>
+        </Button>
       </div>
       {authorizationUrl && (
         <p>
@@ -86,15 +93,20 @@ export function Accounts({
             Continue in your browser ↗
           </a>
           <br />
-          <button className="secondary" disabled={busy} onClick={() => void work(loadProfiles)}>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => void work(loadProfiles)}
+          >
             Refresh after signing in
-          </button>
+          </Button>
         </p>
       )}
       {profiles.length > 0 && (
         <>
-          <label htmlFor="chatgpt-profile">ChatGPT account</label>
-          <select
+          <Label htmlFor="chatgpt-profile">ChatGPT account</Label>
+          <NativeSelect
             id="chatgpt-profile"
             value={profileId}
             onChange={(event) => {
@@ -122,11 +134,11 @@ export function Accounts({
                 {!profile.planUsageEnabled ? '(plan access unavailable)' : ''}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           {models.length > 0 && (
             <>
-              <label htmlFor="chatgpt-model">Available model</label>
-              <select
+              <Label htmlFor="chatgpt-model">Available model</Label>
+              <NativeSelect
                 id="chatgpt-model"
                 value={selection.harnessId === 'codex' ? selection.model : ''}
                 onChange={(event) => {
@@ -144,12 +156,13 @@ export function Accounts({
                     {model.title}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </>
           )}
           {profileId && (
-            <button
-              className="secondary"
+            <Button
+              size="sm"
+              variant="outline"
               disabled={busy}
               onClick={() =>
                 void work(async () => {
@@ -162,15 +175,15 @@ export function Accounts({
               }
             >
               Disconnect account
-            </button>
+            </Button>
           )}
         </>
       )}
-      <details>
+      <details className="space-y-2 rounded-md bg-muted/50 p-2">
         <summary>Use an API key</summary>
-        <p>API-key usage is billed by the selected provider.</p>
-        <label htmlFor="key-provider">Provider</label>
-        <select
+        <p className="text-muted-foreground">API-key usage is billed by the selected provider.</p>
+        <Label htmlFor="key-provider">Provider</Label>
+        <NativeSelect
           id="key-provider"
           value={apiProvider}
           onChange={(event) => {
@@ -180,25 +193,26 @@ export function Accounts({
         >
           <option value="claude">Claude</option>
           <option value="ai-sdk">OpenAI via AI SDK</option>
-        </select>
-        <label htmlFor="api-model">Model ID</label>
-        <input
+        </NativeSelect>
+        <Label htmlFor="api-model">Model ID</Label>
+        <Input
           id="api-model"
           value={apiModel}
           onChange={(event) => setApiModel(event.target.value)}
           placeholder="Provider model ID"
         />
-        <label htmlFor="provider-key">API key</label>
-        <input
+        <Label htmlFor="provider-key">API key</Label>
+        <Input
           id="provider-key"
           type="password"
           autoComplete="off"
           value={key}
           onChange={(event) => setKey(event.target.value)}
         />
-        <div className="account-actions">
-          <button
-            className="secondary"
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="outline"
             disabled={busy || !key || !apiModel}
             onClick={() =>
               void work(async () => {
@@ -212,9 +226,10 @@ export function Accounts({
             }
           >
             Store and select key
-          </button>
-          <button
-            className="secondary"
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             disabled={busy || !apiModel}
             onClick={() =>
               void work(async () => {
@@ -224,12 +239,12 @@ export function Accounts({
             }
           >
             Use saved key
-          </button>
+          </Button>
         </div>
       </details>
-      <button className="secondary" onClick={() => onSelect({ harnessId: 'deterministic' })}>
+      <Button size="sm" variant="outline" onClick={() => onSelect({ harnessId: 'deterministic' })}>
         Use deterministic demo
-      </button>
+      </Button>
     </details>
   );
 }

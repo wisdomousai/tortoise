@@ -1,47 +1,19 @@
 import { test, expect } from '@playwright/test';
-import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdtemp, rm, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { startService } from './service';
 
 test('UI, external MCP and deterministic agent share live state; drafts retain their base revision', async ({
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-e2e-'));
-  let child: ChildProcess | undefined;
+  let host: Awaited<ReturnType<typeof startService>> | undefined;
   let mcp: Client | undefined;
   try {
-    const started = new Promise<{ launchUrl: string; connectionFile: string }>(
-      (resolveStarted, reject) => {
-        child = spawn('bun', ['apps/service/src/index.ts'], {
-          cwd: process.cwd(),
-          env: { ...process.env, WORKSPACE_PATH: workspace, PORT: '0' },
-          stdio: ['ignore', 'pipe', 'pipe'],
-        });
-        let buffer = '';
-        let errors = '';
-        child.stderr!.on('data', (data) => {
-          errors += data.toString();
-        });
-        child.stdout!.on('data', (data) => {
-          buffer += data.toString();
-          const line = buffer.split('\n').find((value) => value.startsWith('{'));
-          if (line) {
-            try {
-              const value = JSON.parse(line);
-              if (value.type === 'listening') resolveStarted(value);
-            } catch {}
-          }
-        });
-        child.on('error', reject);
-        child.on('exit', (code) => {
-          if (code) reject(new Error(`Service exited: ${errors}`));
-        });
-      },
-    );
-    const host = await started;
+    host = await startService(workspace);
     await page.goto(host.launchUrl);
     await page.getByLabel('New project').fill('Launch workspace');
     await page.getByRole('button', { name: 'Create project', exact: true }).click();
@@ -56,7 +28,8 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
       }),
     );
     const tools = await mcp.listTools();
-    expect(tools.tools.length).toBe(12);
+    // Project tasks (12) and quality inspection (15) compose into one contract.
+    expect(tools.tools.length).toBe(27);
     const projects = await mcp.callTool({ name: 'project_list', arguments: { input: {} } });
     const data = projects.structuredContent as { data: { items: { id: string }[] } };
     const projectId = data.data.items[0]!.id;
@@ -103,8 +76,8 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
       page.getByRole('button', { name: 'Verify every surface', exact: true }),
     ).toBeVisible();
     await expect(page.getByText('succeeded', { exact: true })).toBeVisible();
-    const questionRun = await page.request.post(`${new URL(host.launchUrl).origin}/api/v1/runs`, {
-      headers: { Origin: new URL(host.launchUrl).origin },
+    const questionRun = await page.request.post(`${host.origin}/api/v1/runs`, {
+      headers: { Origin: host.origin },
       data: {
         harnessId: 'deterministic',
         prompt: JSON.stringify({ commands: [], question: 'Name the next step' }),
@@ -121,11 +94,7 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
     await expect(page.getByRole('button', { name: 'My unsaved draft', exact: true })).toBeVisible();
   } finally {
     await mcp?.close();
-    if (child && child.exitCode === null) {
-      const stopped = new Promise((resolve) => child!.once('exit', resolve));
-      child.kill('SIGTERM');
-      await stopped;
-    }
+    await host?.stop();
     await rm(workspace, { recursive: true, force: true });
   }
 });

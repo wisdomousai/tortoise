@@ -1,5 +1,11 @@
 import { expect, test } from 'bun:test';
-import { LiveQuery, type ChangeBatch, type Snapshot, type Transport } from './index';
+import {
+  createHttpTransport,
+  LiveQuery,
+  type ChangeBatch,
+  type Snapshot,
+  type Transport,
+} from './index';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -152,4 +158,20 @@ test('an older failed refresh cannot erase a newer successful snapshot', async (
   } finally {
     f.unsubscribe();
   }
+});
+
+test('HTTP errors keep caller-safe details for field-level form errors', async () => {
+  const transport = createHttpTransport({
+    baseUrl: 'http://127.0.0.1:1',
+    fetch: (async () =>
+      Response.json(
+        { error: { code: 'INVALID_INPUT', message: 'Enter a value', details: { field: 'value' } } },
+        { status: 400 },
+      )) as unknown as typeof fetch,
+  });
+  await expect(transport.command('x.record', {})).rejects.toMatchObject({
+    code: 'INVALID_INPUT',
+    message: 'Enter a value',
+    details: { field: 'value' },
+  });
 });

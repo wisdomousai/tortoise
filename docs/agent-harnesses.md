@@ -25,6 +25,8 @@ Cancellation aborts the active signal and adapter work. The transaction boundary
 
 The default task profile exposes application tools and denies shell/filesystem approval. A process under the same OS user is not a security sandbox: use a stronger host isolation adapter when running untrusted executable code. Credentials and process APIs remain outside browser imports.
 
+The target [task/workflow pattern](task-workflow-pattern.md) also permits a harness to compose approved CLIs and MCP processes inside an enforced execution boundary. CLI/MCP transports do not provide that boundary themselves. A broker must route business effects through authorized capabilities and keep upstream credentials outside the sandbox. This execution-host/broker layer is in the [next reference plan](system-of-record-reference-plan.md); it is not implemented by the provider adapters above. The application binary supplies the tool side: `mcp --embedded` with a launcher-written grant file, and catalog-generated CLI subcommands with mapped exit codes (see the [system-of-record reference](system-of-record-pattern.md)).
+
 See [provider integration](providers.md) for current login/funding limits and [desktop packaging](desktop-packaging.md) for native resource resolution. Protocol fixtures and actual provider calls are separate evidence categories.
 
 ## Background jobs

@@ -7,6 +7,8 @@ description: Create a local agent-native application from this framework, or add
 
 Preserve the user's actual business domain. The scaffolder exports a complete runnable project/task reference; replacing that example with the requested domain is authored implementation work.
 
+For a bounded task or workflow over existing systems of record, read [the task/workflow pattern](../../docs/task-workflow-pattern.md). Establish the real-world trigger, record ownership, capture/acceptance distinction and exception path before shaping the UI. The [system-of-record reference](../../docs/system-of-record-pattern.md) shows what exists: outbox delivery and inbound sync (`packages/integration`), the quality-inspection example, the TanStack + shadcn capture kit and the sandbox CLI/MCP binary. The [next reference plan](../../docs/system-of-record-reference-plan.md) lists what does not: reconciliation of uncertain outcomes, a sandbox isolation backend or broker, and package lifecycle.
+
 For a new application, read [the setup reference](references/new-application.md), export into an absent target using the repository's `bun run scaffold` command, then shape the domain and product flow. Ask only for choices that materially change implementation; use explicit ports for storage, identity, authorization and provider integration.
 
 For an existing application or a new capability, read [the extension reference](references/add-capability.md) and the application's `docs/capability-authoring.md`. Keep browser-safe contracts, server handlers and UI contributions separate. Every business write goes through the existing runtime; derive agent/API/CLI/schema/documentation surfaces from its catalog.

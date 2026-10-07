@@ -4,10 +4,52 @@ export type JsonValue =
   null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 export type JsonObject = { [key: string]: JsonValue };
 
+/** One validation issue in the Standard Schema v1 shape; paths address form fields. */
+export interface StandardIssue {
+  readonly message: string;
+  readonly path?: readonly (PropertyKey | { readonly key: PropertyKey })[];
+}
+/**
+ * Standard Schema v1 (https://standardschema.dev) so form libraries can validate with the same
+ * contract as the runtime. Declared locally: the public contract has no schema-library types.
+ */
+export interface StandardSchemaProps<T> {
+  readonly version: 1;
+  readonly vendor: string;
+  validate(
+    value: unknown,
+  ):
+    | { readonly value: T; readonly issues?: undefined }
+    | { readonly issues: readonly StandardIssue[] };
+  readonly types?: { readonly input: T; readonly output: T };
+}
+
 /** A JSON-only validator with a portable schema. Executable validation stays out of catalog JSON. */
 export interface Schema<T = unknown> {
   readonly jsonSchema: JsonObject;
   parse(value: unknown): T;
+  /**
+   * Pre-submission validation for UI forms. It applies `parse` rules to the value that would be
+   * serialized: keys holding `undefined` are dropped first, exactly as JSON encoding drops them.
+   * It never throws for invalid input; the runtime's `parse` remains the authoritative check.
+   */
+  readonly '~standard': StandardSchemaProps<T>;
+}
+
+/** Remove `undefined` object members recursively, mirroring JSON serialization of form state. */
+function withoutUndefined(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withoutUndefined);
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    Object.getPrototypeOf(value) === Object.prototype
+  )
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, item]) => item !== undefined)
+        .map(([key, item]) => [key, withoutUndefined(item)]),
+    );
+  return value;
 }
 
 export function assertJson(value: unknown, path = '$'): asserts value is JsonValue {
@@ -86,16 +128,40 @@ export function jsonSchema<Z extends z.ZodType>(schema: Z): Schema<z.output<Z>> 
     io: 'output',
   }) as JsonObject;
   assertJson(exported);
+  const parse = (value: unknown): z.output<Z> => {
+    assertJson(value);
+    const result = schema.parse(value);
+    assertJson(result);
+    if (canonicalJson(value) !== canonicalJson(result))
+      throw new TypeError('Schema must validate JSON without stripping or transforming values');
+    return result;
+  };
   return Object.freeze({
     jsonSchema: exported,
-    parse(value: unknown) {
-      assertJson(value);
-      const result = schema.parse(value);
-      assertJson(result);
-      if (canonicalJson(value) !== canonicalJson(result))
-        throw new TypeError('Schema must validate JSON without stripping or transforming values');
-      return result;
-    },
+    parse,
+    '~standard': Object.freeze({
+      version: 1 as const,
+      vendor: 'agent-native',
+      validate(value: unknown) {
+        const candidate = withoutUndefined(value);
+        // Zod's safe parse supplies field paths; the JSON checks below keep parity with `parse`.
+        const checked = schema.safeParse(candidate);
+        if (!checked.success)
+          return {
+            issues: checked.error.issues.map((issue) => ({
+              message: issue.message,
+              path: issue.path,
+            })),
+          };
+        try {
+          return { value: parse(candidate) };
+        } catch (error) {
+          return {
+            issues: [{ message: error instanceof Error ? error.message : 'Invalid value' }],
+          };
+        }
+      },
+    }),
   });
 }
 
@@ -103,6 +169,15 @@ export interface PermissionRequirement {
   readonly action: string;
   readonly resourceType: string;
   readonly fields?: readonly string[];
+}
+/**
+ * Declares that a command's committed result is forwarded to an external system of record through
+ * the transactional outbox. A receipt proves the local commit only; acceptance by `target` arrives
+ * later through a settlement command and may be a rejection.
+ */
+export interface IntegrationDeclaration {
+  readonly target: string;
+  readonly delivery: 'outbox';
 }
 export interface Capability<
   Id extends string = string,
@@ -119,6 +194,7 @@ export interface Capability<
   readonly dependencies?: readonly string[];
   readonly ui?: { readonly binding?: string; readonly exception?: string };
   readonly errors?: readonly string[];
+  readonly integration?: IntegrationDeclaration;
 }
 export type AnyCapability = Capability<string, 'command' | 'query', unknown, unknown>;
 export type InputOf<C> =
@@ -164,6 +240,7 @@ export interface CatalogOperation {
   readonly dependencies: readonly string[];
   readonly errors: readonly string[];
   readonly ui: { readonly binding?: string; readonly exception?: string };
+  readonly integration?: IntegrationDeclaration;
 }
 export interface Catalog {
   readonly formatVersion: 1;
@@ -215,6 +292,13 @@ export function buildCatalog(modules: readonly CapabilityModule[]): Catalog {
       mcpNames.add(mcpName);
       if (!capability.ui?.binding && !capability.ui?.exception)
         throw new Error(`Missing UI binding or exception: ${capability.id}`);
+      if (
+        capability.integration &&
+        (capability.kind !== 'command' ||
+          !capability.integration.target ||
+          capability.integration.delivery !== 'outbox')
+      )
+        throw new Error(`Integration requires a command with an outbox target: ${capability.id}`);
       operations.push({
         id: capability.id,
         kind: capability.kind,
@@ -227,6 +311,8 @@ export function buildCatalog(modules: readonly CapabilityModule[]): Catalog {
         dependencies: capability.dependencies ?? [],
         errors: capability.errors ?? [],
         ui: capability.ui,
+        // Omitted rather than undefined: the catalog is canonical JSON.
+        ...(capability.integration ? { integration: capability.integration } : {}),
       });
     }
   }

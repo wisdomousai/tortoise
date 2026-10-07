@@ -11,7 +11,7 @@ bun test
 bun run build
 ```
 
-`generate` writes deterministic contract, operation, workflow and OpenAPI references. `check:generated` fails when those files drift. `check:boundaries` checks imports and bundles the browser dependency graph to reject transitive host dependencies. A successful browser build is separate from a browser interaction or packaged desktop launch.
+`generate` writes deterministic contract, operation, workflow and OpenAPI references and the application skill, including CLI forms. `check:generated` fails when those files drift. `check:boundaries` checks imports and runs the Vite build graph with a plugin that rejects host-only modules and transitive Node built-ins in browser code. `build` runs the Vite web build into `dist/web` (flat, because the host serves only a flat directory) and builds the shadcn registry into `dist/registry`. `build:cli` compiles the application CLI into `dist/bin/<name>`; it is not part of `check`. A successful browser build is separate from a browser interaction or packaged desktop launch.
 
 For focused work, use these scripts:
 
@@ -21,6 +21,8 @@ For focused work, use these scripts:
 | `bun run test:conformance`                    | Policy, repositories, adapters and example-domain scenarios.                                                           |
 | `bun run test:service`                        | HTTP boundary and actual loopback authority behavior.                                                                  |
 | `bun run test:harness`                        | Provider-independent harness/supervision fixtures.                                                                     |
+| `bun run test:integration`                    | Outbox dispatcher and inbound sync against fake system-of-record ports.                                                |
+| `bun run test:sandbox`                        | Compiles the single CLI binary and runs the embedded MCP/drain/serve scenario with an empty environment.               |
 | `bun run test:e2e`                            | Real browser acceptance, configured by Playwright.                                                                     |
 | `bun run test:package`                        | Desktop/sidecar packaging checks available on the current platform.                                                    |
 | `bun run test:scaffold`                       | Deterministic export and overwrite/privacy safeguards.                                                                 |
@@ -43,6 +45,8 @@ Durability checks kill isolated subprocesses before and after commit. The former
 HTTP checks cover Host/Origin validation, single-use launch credentials, revoked sessions, body identity spoofing, cookie write validation, session-bound cursors and private-field projection. Real host tests verify delegated agent runs cannot expand their initiating grant and that run access is scoped by principal and workspace. Query/subscription-gap checks commit after a snapshot, then subscribe from its cursor and observe the intervening change. Revocation checks assert a reset without newly forbidden resource identifiers.
 
 Controlled client iterators exercise responses that finish out of order, revocation while a refresh is pending, stale errors, and unsubscribe while a response is pending. UI context tests keep captured targets stable across selection changes, reject cross-session access, fence delayed updates and exercise intent acknowledgement/expiry.
+
+Outbox tests check that effects commit only with their command and survive replay without duplication; dispatcher tests drive transient failure, rejection, lost settlement and non-idempotent targets against fake ports. The capture e2e test records with the keyboard only, simulates a wedge-scanner burst and a double Enter, and asserts through the API that exactly one result exists per sample.
 
 MCP/CLI conformance must invoke the actual transport adapter and compare business results and structured error codes with HTTP/direct invocation. Catalog discovery is insufficient evidence: a listed operation still needs invocation authorization. Browser/Electron acceptance additionally verifies that external writes change open views without refresh and that a dirty editor preserves its draft while reporting a revision conflict.
 

@@ -48,7 +48,8 @@ export function createMcpServer(client: Transport & { catalog(): Promise<Catalog
           readOnlyHint: operation.kind === 'query',
           destructiveHint: operation.kind === 'command',
           idempotentHint: true,
-          openWorldHint: false,
+          // Outbox commands reach an external system of record after the local commit.
+          openWorldHint: operation.integration !== undefined,
         },
       })),
     };

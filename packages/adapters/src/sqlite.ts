@@ -6,9 +6,15 @@ import type { Storage, WorkspaceSnapshot } from '../../runtime/src/index';
 export class SQLiteStorage<State> implements Storage<State> {
   private readonly db: Database;
   private tail: Promise<unknown> = Promise.resolve();
+  /**
+   * `upgrade` maps a persisted feature state written by an earlier application version to the
+   * current shape. It runs inside the same read/transaction boundary on load; the upgraded state
+   * is persisted by the next commit. It must be deterministic and must not drop data silently.
+   */
   constructor(
     path: string,
     private readonly initialState: () => State,
+    private readonly options: { readonly upgrade?: (state: unknown) => State } = {},
   ) {
     this.db = new Database(path, { create: true });
     this.db.exec(
@@ -41,7 +47,7 @@ export class SQLiteStorage<State> implements Storage<State> {
       .query('SELECT document FROM workspace_snapshots WHERE workspace_id = ?')
       .get(workspaceId) as { document: string } | null;
     const snapshot: WorkspaceSnapshot<State> = row
-      ? JSON.parse(row.document)
+      ? (JSON.parse(row.document) as WorkspaceSnapshot<State>)
       : {
           state: this.initialState(),
           cursor: 0,
@@ -49,7 +55,12 @@ export class SQLiteStorage<State> implements Storage<State> {
           resourceRevisions: {},
           receipts: {},
           journal: [],
+          effects: {},
         };
+    // Documents written before the transactional outbox existed load with an empty outbox.
+    // The next commit persists the field; the schema version stays compatible.
+    if (!Object.hasOwn(snapshot, 'effects')) snapshot.effects = {};
+    if (row && this.options.upgrade) snapshot.state = this.options.upgrade(snapshot.state);
     assertJson(snapshot);
     return snapshot;
   }

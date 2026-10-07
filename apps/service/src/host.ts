@@ -1,13 +1,9 @@
 import { Database } from 'bun:sqlite';
 import { mkdir, writeFile, chmod, unlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import {
-  createApplication,
-  type ExecutionContext,
-  type DelegationGrant,
-} from '@agent-native/runtime';
+import { type ExecutionContext, type DelegationGrant } from '@agent-native/runtime';
+import type { SystemOfRecordPort } from '@agent-native/integration';
 import { ApplicationError, canonicalJson } from '@agent-native/contracts';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
 import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
 import {
   createHttpHandler,
@@ -19,11 +15,12 @@ import {
 import { UiSessionStore, type UiContextInput } from '@agent-native/adapters/ui-sessions';
 import type { UiIntent } from '@agent-native/react';
 import {
-  createProjectTaskHandlers,
-  createProjectTaskState,
-  projectTaskPolicy,
-  projectTasksModule,
-} from '../../../examples/project-tasks/server';
+  createApplicationRuntime,
+  createQualityIntegration,
+  selectableResources,
+} from './composition';
+import { LOCAL_WORKSPACE, workspaceStorage } from './embedded';
+import { FakeQualitySystem, type QualityItem } from '../../../examples/quality-inspection/fake-sor';
 import { createRunSupervisor } from '@agent-native/agents/supervisor';
 import { DeterministicHarness } from '@agent-native/agents/deterministic';
 import type { Harness, RunSnapshot, RunStore } from '@agent-native/agents/types';
@@ -72,25 +69,36 @@ export async function startHost(options: {
   harnesses?: readonly Harness[];
   runtimeManifest?: string;
   pollMs?: number;
+  /**
+   * Quality system of record. Defaults to the deterministic in-memory fake so the reference runs
+   * without enterprise credentials; a real adapter is injected by the deploying application.
+   */
+  systemOfRecord?: SystemOfRecordPort<QualityItem>;
+  /** Background delivery/sync cadence; tests may disable the loops and drive passes directly. */
+  integration?: { deliverMs?: number; syncMs?: number } | false;
+  /**
+   * Issue a second connection file bound to a delegated context, for an agent that runs as a
+   * different OS user and must not read the owner's credential. The context comes from trusted
+   * launcher configuration (see `readGrantFile`); the session expires with the grant.
+   */
+  agentConnection?: { context: ExecutionContext; path: string };
 }) {
   await mkdir(options.workspacePath, { recursive: true });
   const ownership = await acquireWorkspaceOwnership(options.workspacePath);
   const startupCleanup: (() => void | Promise<void>)[] = [() => ownership.release()];
   try {
-    const storage = new SQLiteStorage(
-      join(ownership.canonicalPath, 'workspace.sqlite'),
-      createProjectTaskState,
-    );
+    const storage = workspaceStorage(ownership.canonicalPath);
     startupCleanup.unshift(() => storage.close());
     const runStore = new SQLiteRunStore(join(ownership.canonicalPath, 'runs.sqlite'));
     startupCleanup.unshift(() => runStore.close());
-    const application = createApplication({
-      modules: [projectTasksModule],
-      handlers: createProjectTaskHandlers(),
-      storage,
-      authorization: projectTaskPolicy,
-      services: {},
+    const application = createApplicationRuntime({ storage });
+    const systemOfRecord = options.systemOfRecord ?? new FakeQualitySystem();
+    const integration = createQualityIntegration({
+      application,
+      port: systemOfRecord,
+      workspaceId: LOCAL_WORKSPACE,
     });
+    startupCleanup.unshift(() => integration.stop());
     const sessions = new Sessions();
     let origin = '';
     const providers = await createProviderAccess({
@@ -101,19 +109,19 @@ export async function startHost(options: {
     });
     startupCleanup.unshift(() => providers.close());
     const ownerSession = sessions.create(
-      { workspaceId: 'local', principalId: 'owner' },
+      { workspaceId: LOCAL_WORKSPACE, principalId: 'owner' },
       365 * 86_400_000,
     );
     async function validateResources(context: ExecutionContext, input: UiContextInput) {
       for (const resource of input.selectedResources) {
         const [kind, ...idParts] = resource.split(':');
         const id = idParts.join(':');
-        if (!['project', 'task'].includes(kind ?? '') || !id)
+        const operation = Object.hasOwn(selectableResources, kind ?? '')
+          ? selectableResources[kind!]
+          : undefined;
+        if (!operation || !id)
           throw new ApplicationError('INVALID_INPUT', 'Unknown selected resource type');
-        const snapshot = await application.queryRaw(
-          { operation: `${kind}.get`, input: { id } },
-          context,
-        );
+        const snapshot = await application.queryRaw({ operation, input: { id } }, context);
         const revision = (snapshot.data as { revision: number }).revision;
         if ((input.observedRevisions[resource] ?? 0) > revision)
           throw new ApplicationError('CONFLICT', 'Observed revision is ahead of authority');
@@ -454,6 +462,22 @@ export async function startHost(options: {
       { mode: 0o600 },
     );
     await chmod(connectionFile, 0o600);
+    const agentConnection = options.agentConnection;
+    if (agentConnection) {
+      const expiresAt = agentConnection.context.grant?.expiresAt;
+      const agentSession = sessions.create(
+        agentConnection.context,
+        expiresAt === undefined ? 30 * 86_400_000 : Math.max(0, expiresAt - Date.now()),
+      );
+      await writeFile(
+        agentConnection.path,
+        JSON.stringify({ endpoint: origin, token: agentSession.token }),
+        { mode: 0o600 },
+      );
+      await chmod(agentConnection.path, 0o600);
+      startupCleanup.unshift(() => unlink(agentConnection.path).catch(() => {}));
+    }
+    if (options.integration !== false) integration.start(options.integration);
     let stopped = false;
     async function closeHost() {
       if (stopped) return;
@@ -462,10 +486,12 @@ export async function startHost(options: {
         if (!['succeeded', 'failed', 'cancelled', 'interrupted'].includes(run.state))
           await supervisor.cancel(run.id);
       server.stop(true);
+      await integration.stop();
       providers.close();
       await storage.close();
       runStore.close();
       await unlink(connectionFile).catch(() => {});
+      if (agentConnection) await unlink(agentConnection.path).catch(() => {});
       await ownership.release();
     }
     return {
@@ -477,6 +503,7 @@ export async function startHost(options: {
       sessions,
       application,
       supervisor,
+      integration: { ...integration, systemOfRecord },
       close: closeHost,
     };
   } catch (error) {
