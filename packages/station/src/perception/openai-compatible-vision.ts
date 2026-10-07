@@ -94,6 +94,9 @@ export function createOpenAiCompatibleVisionExtractor(options: VisionExtractorOp
     const timeout = AbortSignal.timeout(options.timeoutMs ?? 60_000);
     const response = await fetcher(endpoint, {
       method: 'POST',
+      // The allowlist is the user's control over where screen content goes; a redirect would
+      // forward the screenshot to a host that was never validated.
+      redirect: 'error',
       signal: AbortSignal.any([signal, timeout]),
       headers: {
         'content-type': 'application/json',

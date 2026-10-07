@@ -20,6 +20,18 @@ export interface ApplicationPort {
   ): Promise<void>;
   discover(context: ExecutionContext): Catalog;
 }
+/**
+ * Attach a per-request cancellation signal to a trusted context. A signal the launcher or host
+ * already put on the context still applies: the result aborts when either does, so a request can
+ * only narrow cancellation, never lift it.
+ */
+export function withSignal(context: ExecutionContext, signal?: AbortSignal): ExecutionContext {
+  if (!signal) return context;
+  return {
+    ...context,
+    signal: context.signal ? AbortSignal.any([context.signal, signal]) : signal,
+  };
+}
 export interface HostSession {
   token: string;
   context: ExecutionContext;
@@ -165,7 +177,7 @@ export function createHttpHandler(options: {
         throw new ApplicationError('FORBIDDEN', 'Browser writes require same-origin validation');
       const session = options.sessions.get(bearer ?? cookie ?? '');
       if (!session) throw new ApplicationError('FORBIDDEN', 'Local session required');
-      const context = { ...session.context, channel: 'http' as const, signal: request.signal };
+      const context = withSignal({ ...session.context, channel: 'http' }, request.signal);
       if (url.pathname === '/api/v1/launch' && request.method === 'POST')
         return jsonResponse({ launch: options.sessions.launch(session) });
       if (url.pathname === '/api/v1/contract' && request.method === 'GET')

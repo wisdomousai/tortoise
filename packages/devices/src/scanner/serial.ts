@@ -10,16 +10,22 @@ import { ScannerUnsupported, type ScannerSource } from './source';
 export class LineAssembler {
   private readonly decoder = new TextDecoder();
   private pending = '';
+  // The previous chunk ended a line with CR; an LF opening this chunk completes that terminator.
+  private afterCr = false;
   push(chunk: Uint8Array): string[] {
     this.pending += this.decoder.decode(chunk, { stream: true });
+    if (this.afterCr && this.pending.length) {
+      if (this.pending[0] === '\n') this.pending = this.pending.slice(1);
+      this.afterCr = false;
+    }
     const lines: string[] = [];
     for (;;) {
       const index = this.pending.search(/[\r\n]/);
       if (index < 0) break;
       const line = this.pending.slice(0, index);
+      // A scan ends at its first terminator, so CR-only scanners emit immediately.
+      if (this.pending[index] === '\r' && index === this.pending.length - 1) this.afterCr = true;
       const skip = this.pending[index] === '\r' && this.pending[index + 1] === '\n' ? 2 : 1;
-      // A CR at the very end may be followed by LF in the next chunk; wait for it.
-      if (this.pending[index] === '\r' && index === this.pending.length - 1) break;
       this.pending = this.pending.slice(index + skip);
       if (line) lines.push(line);
     }

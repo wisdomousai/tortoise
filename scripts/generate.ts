@@ -1,9 +1,7 @@
-import { buildCatalog, canonicalJson } from '@agent-native/contracts';
+import { canonicalJson } from '@agent-native/contracts';
 import { commandWords, synopsis } from '@agent-native/adapters/cli-syntax';
-import { applicationModules } from '../apps/service/src/modules';
-import { hostComponents } from '../apps/service/src/components';
-import identity from '../app.config.json';
-import rootPackage from '../package.json';
+import { loadManifest, readStarterConfig, type ApplicationManifest } from '@agent-native/host';
+import { deploymentCatalog, deploymentComponents } from '@agent-native/host/components';
 import {
   controls,
   controlsMarkdown,
@@ -11,138 +9,203 @@ import {
   dataFlowsMarkdown,
   securityManifest,
 } from '@agent-native/assurance';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import rootPackage from '../package.json';
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { join, dirname, resolve } from 'node:path';
 
-// Only pure contracts are imported here. Generating documentation must never start a
-// host, open a workspace, acquire credentials or load a provider SDK.
-const catalog = buildCatalog(applicationModules, { components: hostComponents });
-// The compiled CLI is named after the application (`bun run build:cli`).
-const program = identity.name;
-const cliCommand = (id: string) =>
-  `${program} ${commandWords(catalog.operations.find((operation) => operation.id === id)!).join(' ')}`;
-const paths = Object.fromEntries(
-  catalog.operations.map((operation) => [
-    `/api/v1/${operation.kind === 'command' ? 'commands' : 'queries'}/${operation.id}`,
-    {
-      post: {
-        operationId: operation.id,
-        summary: operation.description || operation.id,
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  input: operation.inputSchema,
-                  ...(operation.kind === 'command'
-                    ? {
-                        idempotencyKey: { type: 'string' },
-                        expectedRevisions: {
-                          type: 'object',
-                          additionalProperties: { type: 'integer', minimum: 0 },
-                        },
-                      }
-                    : {}),
-                },
-                required: operation.kind === 'command' ? ['input', 'idempotencyKey'] : ['input'],
-              },
-            },
-          },
-        },
-        responses: {
-          '200': {
-            description: 'Authorized result and snapshot cursor',
+// Only pure manifests and contracts are imported here. Generating documentation must never start
+// a host, open a workspace, acquire credentials or load a provider SDK.
+const root = resolve(import.meta.dir, '..');
+const config = readStarterConfig(join(root, 'app.config.json'), {});
+// The compiled CLI is named after the starter (`bun run build:cli`).
+const program = config.name;
+
+/**
+ * Every application this checkout can host: the configured one and each example. The catalog,
+ * and so every generated artifact, belongs to one application (P11).
+ */
+async function applications(): Promise<ApplicationManifest[]> {
+  const found = new Map<string, ApplicationManifest>();
+  const configured = await loadManifest(config);
+  found.set(configured.id, configured);
+  const examples = await readdir(join(root, 'examples'), { withFileTypes: true }).catch(() => []);
+  for (const entry of examples)
+    if (
+      entry.isDirectory() &&
+      (await Bun.file(join(root, 'examples', entry.name, 'manifest.ts')).exists())
+    ) {
+      const manifest = await loadManifest({
+        ...config,
+        application: join(root, 'examples', entry.name),
+      });
+      found.set(manifest.id, manifest);
+    }
+  return [...found.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
+}
+
+const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
+const lock = await readFile(join(root, 'bun.lock'), 'utf8');
+
+function artifacts(manifest: ApplicationManifest) {
+  // The deployment catalog: modules plus the host's and the application's components, so the
+  // contract and the security artifacts show every declared destination, device and process.
+  const catalog = deploymentCatalog(manifest);
+  // Declarations, not a site's bindings: `security export --site` applies a policy (P13).
+  const security = securityManifest({
+    application: manifest.id,
+    catalog,
+    components: deploymentComponents(manifest),
+  });
+  const cliCommand = (id: string) =>
+    `${program} ${commandWords(catalog.operations.find((operation) => operation.id === id)!).join(' ')}`;
+  const paths = Object.fromEntries(
+    catalog.operations.map((operation) => [
+      `/api/v1/${operation.kind === 'command' ? 'commands' : 'queries'}/${operation.id}`,
+      {
+        post: {
+          operationId: operation.id,
+          summary: operation.description || operation.id,
+          requestBody: {
+            required: true,
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
-                    [operation.kind === 'command' ? 'result' : 'data']: operation.outputSchema,
-                    cursor: { type: 'string' },
-                    authorizationRevision: { type: 'integer' },
+                    input: operation.inputSchema,
+                    ...(operation.kind === 'command'
+                      ? {
+                          idempotencyKey: { type: 'string' },
+                          expectedRevisions: {
+                            type: 'object',
+                            additionalProperties: { type: 'integer', minimum: 0 },
+                          },
+                        }
+                      : {}),
                   },
-                  required: [
-                    operation.kind === 'command' ? 'result' : 'data',
-                    'cursor',
-                    'authorizationRevision',
-                  ],
+                  required: operation.kind === 'command' ? ['input', 'idempotencyKey'] : ['input'],
                 },
               },
             },
           },
-          '403': { description: 'Current authority does not permit operation' },
-          '409': { description: 'Revision or idempotency conflict' },
+          responses: {
+            '200': {
+              description: 'Authorized result and snapshot cursor',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      [operation.kind === 'command' ? 'result' : 'data']: operation.outputSchema,
+                      cursor: { type: 'string' },
+                      authorizationRevision: { type: 'integer' },
+                    },
+                    required: [
+                      operation.kind === 'command' ? 'result' : 'data',
+                      'cursor',
+                      'authorizationRevision',
+                    ],
+                  },
+                },
+              },
+            },
+            '403': { description: 'Current authority does not permit operation' },
+            '409': { description: 'Revision or idempotency conflict' },
+          },
         },
       },
-    },
-  ]),
-);
-// Security assurance artifacts come from the same composed catalog plus the lockfile. They are
-// declarations, not a site's bindings: `security export --site` applies a policy.
-const manifest = securityManifest({
-  application: identity.name,
-  catalog,
-  components: hostComponents,
-});
-const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
-const lock = await readFile(join(import.meta.dir, '..', 'bun.lock'), 'utf8');
-const outputs = new Map([
-  ['contract.json', JSON.stringify(JSON.parse(canonicalJson(catalog)), null, 2) + '\n'],
-  [
-    'openapi.json',
-    JSON.stringify(
-      { openapi: '3.1.0', info: { title: 'Application interaction API', version: '1.0.0' }, paths },
-      null,
-      2,
-    ) + '\n',
-  ],
-  [
-    'operations.md',
-    '# Generated operation reference\n\nGenerated by `bun run generate`. Change feature descriptors, then regenerate.\n\n' +
-      catalog.operations
-        .map(
-          (operation) =>
-            `## ${operation.id}\n\n${operation.description || operation.id}\n\n- Kind: ${operation.kind}\n- MCP: \`${operation.mcpName}\`\n- Permission: \`${operation.permission.action}\` on \`${operation.permission.resourceType}\`\n- UI: ${operation.ui.binding ?? operation.ui.exception}\n${operation.integration ? `- System of record: forwarded to \`${operation.integration.target}\` through the outbox. A receipt proves the local commit, not acceptance by the target.\n` : ''}- CLI: \`${synopsis(operation, program)}\`\n\nInput:\n\n\`\`\`json\n${JSON.stringify(operation.inputSchema, null, 2)}\n\`\`\`\n\nOutput:\n\n\`\`\`json\n${JSON.stringify(operation.outputSchema, null, 2)}\n\`\`\`\n`,
-        )
-        .join('\n'),
-  ],
-  [
-    'workflows.md',
-    '# Application workflows\n\n' +
-      catalog.workflows
-        .map(
-          (workflow) =>
-            `## ${workflow.id}\n\n${workflow.text}\n\nOperations: ${workflow.operations.map((id) => `\`${id}\``).join(', ')}.\n`,
-        )
-        .join('\n'),
-  ],
-  ['security-manifest.json', json(manifest)],
-  ['data-flows.md', dataFlowsMarkdown(manifest)],
+    ]),
+  );
+  return new Map([
+    ['contract.json', JSON.stringify(JSON.parse(canonicalJson(catalog)), null, 2) + '\n'],
+    [
+      'openapi.json',
+      JSON.stringify(
+        {
+          openapi: '3.1.0',
+          info: { title: `${manifest.title} interaction API`, version: '1.0.0' },
+          paths,
+        },
+        null,
+        2,
+      ) + '\n',
+    ],
+    [
+      'operations.md',
+      '# Generated operation reference\n\nGenerated by `bun run generate`. Change feature descriptors, then regenerate.\n\n' +
+        catalog.operations
+          .map(
+            (operation) =>
+              `## ${operation.id}\n\n${operation.description || operation.id}\n\n- Kind: ${operation.kind}\n- MCP: \`${operation.mcpName}\`\n- Permission: \`${operation.permission.action}\` on \`${operation.permission.resourceType}\`\n- UI: ${operation.ui.binding ?? operation.ui.exception}\n${operation.integration ? `- System of record: forwarded to \`${operation.integration.target}\` through the outbox. A receipt proves the local commit, not acceptance by the target.\n` : ''}- CLI: \`${synopsis(operation, program)}\`\n\nInput:\n\n\`\`\`json\n${JSON.stringify(operation.inputSchema, null, 2)}\n\`\`\`\n\nOutput:\n\n\`\`\`json\n${JSON.stringify(operation.outputSchema, null, 2)}\n\`\`\`\n`,
+          )
+          .join('\n'),
+    ],
+    [
+      'workflows.md',
+      '# Application workflows\n\n' +
+        catalog.workflows
+          .map(
+            (workflow) =>
+              `## ${workflow.id}\n\n${workflow.text}\n\nOperations: ${workflow.operations.map((id) => `\`${id}\``).join(', ')}.\n`,
+          )
+          .join('\n'),
+    ],
+    ['security-manifest.json', json(security)],
+    ['data-flows.md', dataFlowsMarkdown(security)],
+    [
+      'sbom.cdx.json',
+      json(
+        cycloneDx({
+          application: manifest.id,
+          version: rootPackage.version,
+          lock,
+          manifest: security,
+        }),
+      ),
+    ],
+    [
+      'application-skill/SKILL.md',
+      '---\nname: use-application\ndescription: Operate this application through its registered MCP capabilities, inspect scoped data, and apply authorized business commands. Use when asked to work in the connected application.\n---\n\n# Use the application\n\nRead the `app://contract` MCP resource and discover current tools before acting. Identity and delegation come from the host; never supply roles or principals in tool arguments. Query the current object and revision before changing it.\n\nQuery tools take `{ "input": ... }`. Commands take `{ "input": ..., "idempotencyKey": "unique-request-id", "expectedRevisions": { "type:id": 1 } }`. Keep the same key and exact request when retrying after a lost response. A conflict requires a new query and deliberate reconciliation. A successful command receipt proves committed work; streamed agent text does not.\n\n' +
+        `## From a shell\n\nThe same operations are subcommands of the \`${program}\` binary. Run \`${program} help\` and \`${program} help <command>\` for generated flags; \`help\`, \`schema\` and \`workflows\` work without an authority. Add \`--embedded --workspace <dir>\` to run in-process in a sandbox, or attach to a running authority with \`--connection <file>\`; your identity comes from that file or the launcher's grant file, never from flags. Pass \`--key <id>\` on commands and reuse it when retrying, \`--dry-run\` to validate first, and \`--output text\` for tables. Branch on the exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, 6 idempotency conflict, 7 cancelled, 8 unavailable (for example the audit log in fail-closed mode). Before a sandbox is discarded, \`${program} drain\` must exit 0; 75 means captured work has not reached the system of record yet.\n\n` +
+        catalog.workflows
+          .map(
+            (workflow) =>
+              `## ${workflow.id}\n\n${workflow.text}\n\nTools: ${workflow.operations.map((id) => `\`${catalog.operations.find((operation) => operation.id === id)!.mcpName}\``).join(', ')}.\n\nCLI: ${workflow.operations.map((id) => `\`${cliCommand(id)}\``).join(', ')}.\n`,
+          )
+          .join('\n'),
+    ],
+  ]);
+}
+
+const check = process.argv.includes('--check');
+const directory = join(root, 'docs', 'reference');
+await mkdir(directory, { recursive: true });
+const manifests = await applications();
+// The control mapping is the framework's, not one application's.
+const shared = new Map([
   ['controls.json', json(controls)],
   ['controls.md', controlsMarkdown(controls)],
-  [
-    'sbom.cdx.json',
-    json(cycloneDx({ application: identity.name, version: rootPackage.version, lock, manifest })),
-  ],
-  [
-    'application-skill/SKILL.md',
-    '---\nname: use-application\ndescription: Operate this application through its registered MCP capabilities, inspect scoped data, and apply authorized business commands. Use when asked to work in the connected application.\n---\n\n# Use the application\n\nRead the `app://contract` MCP resource and discover current tools before acting. Identity and delegation come from the host; never supply roles or principals in tool arguments. Query the current object and revision before changing it.\n\nQuery tools take `{ "input": ... }`. Commands take `{ "input": ..., "idempotencyKey": "unique-request-id", "expectedRevisions": { "type:id": 1 } }`. Keep the same key and exact request when retrying after a lost response. A conflict requires a new query and deliberate reconciliation. A successful command receipt proves committed work; streamed agent text does not.\n\n' +
-      `## From a shell\n\nThe same operations are subcommands of the \`${program}\` binary. Run \`${program} help\` and \`${program} help <command>\` for generated flags; \`help\`, \`schema\` and \`workflows\` work without an authority. Add \`--embedded --workspace <dir>\` to run in-process in a sandbox, or attach to a running authority with \`--connection <file>\`; your identity comes from that file or the launcher's grant file, never from flags. Pass \`--key <id>\` on commands and reuse it when retrying, \`--dry-run\` to validate first, and \`--output text\` for tables. Branch on the exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, 6 idempotency conflict, 7 cancelled, 8 unavailable (for example the audit log in fail-closed mode). Before a sandbox is discarded, \`${program} drain\` must exit 0; 75 means captured work has not reached the system of record yet.\n\n` +
-      catalog.workflows
-        .map(
-          (workflow) =>
-            `## ${workflow.id}\n\n${workflow.text}\n\nTools: ${workflow.operations.map((id) => `\`${catalog.operations.find((operation) => operation.id === id)!.mcpName}\``).join(', ')}.\n\nCLI: ${workflow.operations.map((id) => `\`${cliCommand(id)}\``).join(', ')}.\n`,
-        )
-        .join('\n'),
-  ],
 ]);
-const directory = join(import.meta.dir, '..', 'docs', 'reference');
-await mkdir(directory, { recursive: true });
+const expected = new Set([...manifests.map((manifest) => manifest.id), ...shared.keys()]);
+const stale = (await readdir(directory)).filter((name) => !expected.has(name));
+if (stale.length) {
+  if (check)
+    throw new Error(
+      `Generated artifact drift: stale ${stale.map((name) => join(directory, name)).join(', ')}`,
+    );
+  for (const name of stale) await rm(join(directory, name), { recursive: true, force: true });
+}
+let count = 0;
+const outputs = [
+  ...[...shared].map(([name, content]) => [name, content] as const),
+  ...manifests.flatMap((manifest) =>
+    [...artifacts(manifest)].map(([name, content]) => [join(manifest.id, name), content] as const),
+  ),
+];
 for (const [name, content] of outputs) {
   const path = join(directory, name);
-  if (process.argv.includes('--check')) {
+  count++;
+  if (check) {
     if ((await readFile(path, 'utf8').catch(() => '')) !== content)
       throw new Error(`Generated artifact drift: ${path}`);
   } else {
@@ -151,5 +214,5 @@ for (const [name, content] of outputs) {
   }
 }
 console.log(
-  `${process.argv.includes('--check') ? 'Checked' : 'Generated'} ${outputs.size} catalog artifacts`,
+  `${check ? 'Checked' : 'Generated'} ${count} catalog artifacts for ${manifests.length} applications`,
 );

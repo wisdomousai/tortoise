@@ -1,0 +1,2305 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Projects interaction API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/queries/assurance.events.list": {
+      "post": {
+        "operationId": "assurance.events.list",
+        "summary": "Page through the audit log in sequence order. Filter by event kinds (for example egress.denied or command.denied) and outcome; pass the returned nextAfterSeq to continue. Inputs appear only as digests unless a capability allow-lists a field.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "afterSeq": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "kinds": {
+                        "items": {
+                          "maxLength": 64,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "maxItems": 20,
+                        "type": "array"
+                      },
+                      "limit": {
+                        "maximum": 200,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      "newest": {
+                        "type": "boolean"
+                      },
+                      "outcome": {
+                        "enum": [
+                          "accepted",
+                          "committed",
+                          "recovered",
+                          "aborted",
+                          "denied",
+                          "failed",
+                          "allowed",
+                          "completed",
+                          "info"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "headSeq": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "actor": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "principalId": {
+                                    "type": "string"
+                                  },
+                                  "runId": {
+                                    "type": "string"
+                                  },
+                                  "via": {
+                                    "type": "string"
+                                  },
+                                  "workspaceId": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "principalId"
+                                ],
+                                "type": "object"
+                              },
+                              "at": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "causationId": {
+                                "type": "string"
+                              },
+                              "correlationId": {
+                                "type": "string"
+                              },
+                              "cursor": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "data": {
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": [
+                                        "string",
+                                        "number",
+                                        "boolean",
+                                        "null"
+                                      ]
+                                    },
+                                    {
+                                      "items": {
+                                        "anyOf": [
+                                          {
+                                            "type": [
+                                              "string",
+                                              "number",
+                                              "boolean",
+                                              "null"
+                                            ]
+                                          },
+                                          {
+                                            "additionalProperties": {
+                                              "type": [
+                                                "string",
+                                                "number",
+                                                "boolean",
+                                                "null"
+                                              ]
+                                            },
+                                            "propertyNames": {
+                                              "type": "string"
+                                            },
+                                            "type": "object"
+                                          }
+                                        ]
+                                      },
+                                      "type": "array"
+                                    },
+                                    {
+                                      "additionalProperties": {
+                                        "anyOf": [
+                                          {
+                                            "type": [
+                                              "string",
+                                              "number",
+                                              "boolean",
+                                              "null"
+                                            ]
+                                          },
+                                          {
+                                            "items": {
+                                              "type": [
+                                                "string",
+                                                "number",
+                                                "boolean",
+                                                "null"
+                                              ]
+                                            },
+                                            "type": "array"
+                                          },
+                                          {
+                                            "additionalProperties": {
+                                              "type": [
+                                                "string",
+                                                "number",
+                                                "boolean",
+                                                "null"
+                                              ]
+                                            },
+                                            "propertyNames": {
+                                              "type": "string"
+                                            },
+                                            "type": "object"
+                                          }
+                                        ]
+                                      },
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "type": "object"
+                                    }
+                                  ]
+                                },
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "type": "object"
+                              },
+                              "hash": {
+                                "type": "string"
+                              },
+                              "inputDigest": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string"
+                              },
+                              "operation": {
+                                "type": "string"
+                              },
+                              "outcome": {
+                                "enum": [
+                                  "accepted",
+                                  "committed",
+                                  "recovered",
+                                  "aborted",
+                                  "denied",
+                                  "failed",
+                                  "allowed",
+                                  "completed",
+                                  "info"
+                                ],
+                                "type": "string"
+                              },
+                              "prev": {
+                                "type": "string"
+                              },
+                              "reason": {
+                                "type": "string"
+                              },
+                              "resources": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
+                              "seq": {
+                                "maximum": 9007199254740991,
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              "source": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "component": {
+                                    "type": "string"
+                                  },
+                                  "instance": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "component",
+                                  "instance"
+                                ],
+                                "type": "object"
+                              }
+                            },
+                            "required": [
+                              "seq",
+                              "at",
+                              "kind",
+                              "outcome",
+                              "source",
+                              "prev",
+                              "hash"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "nextAfterSeq": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "nextAfterSeq",
+                        "headSeq"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/assurance.log.verify": {
+      "post": {
+        "operationId": "assurance.log.verify",
+        "summary": "Recompute the audit log hash chain up to the current head and report any edited, removed, reordered or truncated events. A clean result proves internal consistency; compare the head with an off-host copy to rule out a full rewrite.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {},
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "checkpoints": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "events": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "headSeq": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "ok": {
+                          "type": "boolean"
+                        },
+                        "problems": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "line": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "problem": {
+                                "type": "string"
+                              },
+                              "segment": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "segment",
+                              "line",
+                              "problem"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "segments": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "ok",
+                        "segments",
+                        "events",
+                        "checkpoints",
+                        "headSeq",
+                        "problems"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/assurance.posture.get": {
+      "post": {
+        "operationId": "assurance.posture.get",
+        "summary": "Read the current security posture: hardening profile, network mode, every declared destination with whether it is bound, disabled or isolated and how often it was used or denied, policy findings, audit-chain integrity and audit forwarding health. Use it to answer what this installation can reach and whether its audit trail is intact.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {},
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "auditMode": {
+                          "enum": [
+                            "fail-closed",
+                            "best-effort"
+                          ],
+                          "type": "string"
+                        },
+                        "catalogDigest": {
+                          "pattern": "^[0-9a-f]{64}$|^unavailable$",
+                          "type": "string"
+                        },
+                        "checkedAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "checks": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "enum": [
+                                  "pass",
+                                  "info",
+                                  "warn",
+                                  "fail"
+                                ],
+                                "type": "string"
+                              },
+                              "summary": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "status",
+                              "summary"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "destinations": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "allowed": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "availability": {
+                                "enum": [
+                                  "required",
+                                  "optional"
+                                ],
+                                "type": "string"
+                              },
+                              "denied": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "direction": {
+                                "enum": [
+                                  "egress",
+                                  "ingress"
+                                ],
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "lastUsedAt": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "offline": {
+                                "enum": [
+                                  "queue",
+                                  "degrade",
+                                  "unavailable"
+                                ],
+                                "type": "string"
+                              },
+                              "origin": {
+                                "type": "string"
+                              },
+                              "owner": {
+                                "type": "string"
+                              },
+                              "scope": {
+                                "enum": [
+                                  "loopback",
+                                  "site",
+                                  "internet"
+                                ],
+                                "type": "string"
+                              },
+                              "state": {
+                                "enum": [
+                                  "bound",
+                                  "disabled",
+                                  "unbound",
+                                  "isolated",
+                                  "local"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "owner",
+                              "direction",
+                              "scope",
+                              "availability",
+                              "state",
+                              "allowed",
+                              "denied"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "executableDigest": {
+                          "pattern": "^[0-9a-f]{64}$|^unavailable$",
+                          "type": "string"
+                        },
+                        "findings": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "destination": {
+                                "type": "string"
+                              },
+                              "level": {
+                                "enum": [
+                                  "error",
+                                  "warning",
+                                  "info"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "level",
+                              "code"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "forwarding": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "destination": {
+                              "type": "string"
+                            },
+                            "dropped": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "failures": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "forwarded": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "pending": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "destination",
+                            "forwarded",
+                            "dropped",
+                            "failures",
+                            "pending"
+                          ],
+                          "type": "object"
+                        },
+                        "log": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "checkpoints": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "headSeq": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "problems": {
+                              "maximum": 9007199254740991,
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            "verified": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "headSeq",
+                            "verified",
+                            "problems",
+                            "checkpoints"
+                          ],
+                          "type": "object"
+                        },
+                        "networkMode": {
+                          "enum": [
+                            "isolated",
+                            "connected"
+                          ],
+                          "type": "string"
+                        },
+                        "policyDigest": {
+                          "pattern": "^[0-9a-f]{64}$|^unavailable$",
+                          "type": "string"
+                        },
+                        "profile": {
+                          "enum": [
+                            "desktop-local",
+                            "sandbox",
+                            "zero-trust"
+                          ],
+                          "type": "string"
+                        },
+                        "status": {
+                          "enum": [
+                            "ok",
+                            "attention",
+                            "failing"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "checkedAt",
+                        "status",
+                        "profile",
+                        "networkMode",
+                        "auditMode",
+                        "policyDigest",
+                        "checks",
+                        "destinations",
+                        "findings",
+                        "log"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/project.archive": {
+      "post": {
+        "operationId": "project.archive",
+        "summary": "Archive a project as its owner. Tasks remain readable, but task edits are blocked until the project is restored. Supply project:<id> in expectedRevisions to detect concurrent edits.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "archived": {
+                          "type": "boolean"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "members": {
+                          "additionalProperties": {
+                            "enum": [
+                              "owner",
+                              "editor",
+                              "viewer"
+                            ],
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "name",
+                        "archived"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/project.create": {
+      "post": {
+        "operationId": "project.create",
+        "summary": "Create a project as workspace owner. The creator becomes a project owner. Returns the project and its committed revision.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "maxLength": 200,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "archived": {
+                          "type": "boolean"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "members": {
+                          "additionalProperties": {
+                            "enum": [
+                              "owner",
+                              "editor",
+                              "viewer"
+                            ],
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "name",
+                        "archived"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/project.get": {
+      "post": {
+        "operationId": "project.get",
+        "summary": "Read one accessible project and its current revision. The membership map is included only for project owners.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "archived": {
+                          "type": "boolean"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "members": {
+                          "additionalProperties": {
+                            "enum": [
+                              "owner",
+                              "editor",
+                              "viewer"
+                            ],
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "name",
+                        "archived"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/project.list": {
+      "post": {
+        "operationId": "project.list",
+        "summary": "List accessible projects with optional archive filtering. Authorization is applied before pagination and the count includes only accessible matching projects.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "archived": {
+                        "type": "boolean"
+                      },
+                      "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      "offset": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "count": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "archived": {
+                                "type": "boolean"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "members": {
+                                "additionalProperties": {
+                                  "enum": [
+                                    "owner",
+                                    "editor",
+                                    "viewer"
+                                  ],
+                                  "type": "string"
+                                },
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "type": "object"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "revision": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "revision",
+                              "name",
+                              "archived"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "count"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/project.restore": {
+      "post": {
+        "operationId": "project.restore",
+        "summary": "Restore an archived project as its owner, permitting ordinary task edits again. Supply project:<id> in expectedRevisions to detect concurrent edits.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "archived": {
+                          "type": "boolean"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "members": {
+                          "additionalProperties": {
+                            "enum": [
+                              "owner",
+                              "editor",
+                              "viewer"
+                            ],
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "name",
+                        "archived"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/project.set-member": {
+      "post": {
+        "operationId": "project.set-member",
+        "summary": "Set or remove a project membership as project owner. A null role removes access; workspace-owner membership is fixed. Permission changes invalidate affected views. Supply project:<id> in expectedRevisions.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "principalId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "role": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "owner",
+                              "editor",
+                              "viewer"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "principalId",
+                      "role"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "archived": {
+                          "type": "boolean"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "members": {
+                          "additionalProperties": {
+                            "enum": [
+                              "owner",
+                              "editor",
+                              "viewer"
+                            ],
+                            "type": "string"
+                          },
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "name",
+                        "archived"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/task.create": {
+      "post": {
+        "operationId": "task.create",
+        "summary": "Create a todo task in an accessible, active project as owner or editor. Only owners may supply privateNote. Returns the task and its committed revision.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "description": {
+                        "maxLength": 10000,
+                        "type": "string"
+                      },
+                      "privateNote": {
+                        "maxLength": 10000,
+                        "type": "string"
+                      },
+                      "projectId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "title": {
+                        "maxLength": 200,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "projectId",
+                      "title"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "privateNote": {
+                          "type": "string"
+                        },
+                        "projectId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "status": {
+                          "enum": [
+                            "todo",
+                            "doing",
+                            "done"
+                          ],
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "projectId",
+                        "title",
+                        "description",
+                        "status"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/task.delete": {
+      "post": {
+        "operationId": "task.delete",
+        "summary": "Remove a task from an active project as owner or editor. This capability has no restore operation. Supply task:<id> in expectedRevisions to detect concurrent changes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/task.get": {
+      "post": {
+        "operationId": "task.get",
+        "summary": "Read one accessible task and its current revision. privateNote is included only for project owners. Use this revision in a later mutation expectedRevisions map.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "privateNote": {
+                          "type": "string"
+                        },
+                        "projectId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "status": {
+                          "enum": [
+                            "todo",
+                            "doing",
+                            "done"
+                          ],
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "projectId",
+                        "title",
+                        "description",
+                        "status"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/task.list": {
+      "post": {
+        "operationId": "task.list",
+        "summary": "List tasks in accessible projects, with public-field search, status/project filters and pagination. Authorization precedes filtering and count calculation. privateNote is owner-only and cannot be searched or sorted.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      "offset": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "projectId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "search": {
+                        "maxLength": 200,
+                        "type": "string"
+                      },
+                      "sort": {
+                        "enum": [
+                          "title",
+                          "status"
+                        ],
+                        "type": "string"
+                      },
+                      "status": {
+                        "enum": [
+                          "todo",
+                          "doing",
+                          "done"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "count": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "description": {
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "privateNote": {
+                                "type": "string"
+                              },
+                              "projectId": {
+                                "maxLength": 128,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "revision": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "status": {
+                                "enum": [
+                                  "todo",
+                                  "doing",
+                                  "done"
+                                ],
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "revision",
+                              "projectId",
+                              "title",
+                              "description",
+                              "status"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "count"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/task.set-status": {
+      "post": {
+        "operationId": "task.set-status",
+        "summary": "Set a task to todo, doing or done in an active project as owner or editor. Supply task:<id> in expectedRevisions to detect concurrent changes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "status": {
+                        "enum": [
+                          "todo",
+                          "doing",
+                          "done"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "status"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "privateNote": {
+                          "type": "string"
+                        },
+                        "projectId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "status": {
+                          "enum": [
+                            "todo",
+                            "doing",
+                            "done"
+                          ],
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "projectId",
+                        "title",
+                        "description",
+                        "status"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/task.update": {
+      "post": {
+        "operationId": "task.update",
+        "summary": "Edit task title or description in an active project as owner or editor; privateNote is owner-only. Project reassignment is not accepted. Supply task:<id> in expectedRevisions to prevent overwriting a concurrent edit.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "description": {
+                        "maxLength": 10000,
+                        "type": "string"
+                      },
+                      "id": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "privateNote": {
+                        "maxLength": 10000,
+                        "type": "string"
+                      },
+                      "title": {
+                        "maxLength": 200,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "privateNote": {
+                          "type": "string"
+                        },
+                        "projectId": {
+                          "maxLength": 128,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "revision": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "status": {
+                          "enum": [
+                            "todo",
+                            "doing",
+                            "done"
+                          ],
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "revision",
+                        "projectId",
+                        "title",
+                        "description",
+                        "status"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    }
+  }
+}

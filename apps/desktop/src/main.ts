@@ -3,8 +3,12 @@ import { mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureService, type ServiceHandle } from './service-lifecycle';
-import { loadRuntimeManifest, resourcePath, verifyRuntimeFiles } from './runtime-manifest';
-import { readApplicationIdentity } from './application-identity';
+import {
+  loadRuntimeManifest,
+  resourcePath,
+  verifyRuntimeFiles,
+} from '@agent-native/host/runtime-manifest';
+import { readApplicationIdentity } from '@agent-native/host/config';
 
 let service: ServiceHandle | undefined;
 let window: BrowserWindow | undefined;

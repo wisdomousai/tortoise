@@ -1,0 +1,145 @@
+{
+  "format": 1,
+  "application": "project-tasks",
+  "owners": [
+    {
+      "id": "anthropic",
+      "kind": "component",
+      "description": "Claude Agent SDK harness with API-key funding."
+    },
+    {
+      "id": "assurance",
+      "kind": "module"
+    },
+    {
+      "id": "authority",
+      "kind": "component",
+      "description": "Local authority service: HTTP/SSE API, MCP attach and audit forwarding."
+    },
+    {
+      "id": "openai",
+      "kind": "component",
+      "description": "ChatGPT plan sign-in, model catalog, Codex app-server and AI SDK inference."
+    },
+    {
+      "id": "project-tasks",
+      "kind": "module"
+    }
+  ],
+  "network": [
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "prompt",
+        "application-context",
+        "tool-results"
+      ],
+      "direction": "egress",
+      "host": "api.anthropic.com",
+      "id": "anthropic-api",
+      "offline": "unavailable",
+      "owner": "anthropic",
+      "protocol": "https",
+      "purpose": "Inference for Claude runs.",
+      "scope": "internet"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "audit-event"
+      ],
+      "direction": "egress",
+      "id": "audit-collector",
+      "offline": "degrade",
+      "owner": "authority",
+      "protocol": "tcp",
+      "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
+      "scope": "site"
+    },
+    {
+      "availability": "required",
+      "dataClasses": [],
+      "direction": "ingress",
+      "id": "authority-http",
+      "owner": "authority",
+      "protocol": "http",
+      "purpose": "Serve the frontend, API, events and attach connections.",
+      "scope": "loopback"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "prompt",
+        "application-context",
+        "tool-results"
+      ],
+      "direction": "egress",
+      "host": "api.openai.com",
+      "id": "openai-api",
+      "offline": "unavailable",
+      "owner": "openai",
+      "protocol": "https",
+      "purpose": "Model catalog and inference for Codex and AI SDK runs.",
+      "scope": "internet"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "oauth-authorization",
+        "identity-token"
+      ],
+      "direction": "egress",
+      "host": "auth.openai.com",
+      "id": "openai-auth",
+      "offline": "unavailable",
+      "owner": "openai",
+      "protocol": "https",
+      "purpose": "ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.",
+      "scope": "internet"
+    }
+  ],
+  "devices": [],
+  "processes": [
+    {
+      "availability": "optional",
+      "executable": "claude",
+      "id": "claude-code",
+      "network": [
+        "anthropic-api"
+      ],
+      "owner": "anthropic",
+      "purpose": "Claude Code process driven by the Agent SDK."
+    },
+    {
+      "availability": "optional",
+      "executable": "codex",
+      "id": "codex-app-server",
+      "network": [
+        "openai-api"
+      ],
+      "owner": "openai",
+      "purpose": "Codex app-server harness under a delegated grant."
+    }
+  ],
+  "flows": [],
+  "summary": {
+    "egress": 4,
+    "ingress": 1,
+    "internet": [
+      "anthropic-api",
+      "openai-api",
+      "openai-auth"
+    ],
+    "required": [
+      "authority-http"
+    ],
+    "dataClasses": [
+      "application-context",
+      "audit-event",
+      "identity-token",
+      "oauth-authorization",
+      "prompt",
+      "tool-results"
+    ]
+  }
+}

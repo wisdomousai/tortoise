@@ -1,0 +1,320 @@
+{
+  "format": 1,
+  "application": "line-station",
+  "owners": [
+    {
+      "id": "anthropic",
+      "kind": "component",
+      "description": "Claude Agent SDK harness with API-key funding."
+    },
+    {
+      "id": "assurance",
+      "kind": "module"
+    },
+    {
+      "id": "authority",
+      "kind": "component",
+      "description": "Local authority service: HTTP/SSE API, MCP attach and audit forwarding."
+    },
+    {
+      "id": "device-config",
+      "kind": "module"
+    },
+    {
+      "id": "line-station",
+      "kind": "module"
+    },
+    {
+      "id": "openai",
+      "kind": "component",
+      "description": "ChatGPT plan sign-in, model catalog, Codex app-server and AI SDK inference."
+    },
+    {
+      "id": "scanner-devices",
+      "kind": "component",
+      "description": "Barcode scanner sources beyond keyboard wedge: serial, HID POS, camera and vendor SDKs."
+    },
+    {
+      "id": "station-bridge",
+      "kind": "component",
+      "description": "Reads station screens with local perception models and runs declared screen procedures behind the outbox."
+    },
+    {
+      "id": "station-browser",
+      "kind": "component",
+      "description": "Browser for the line-station screen bridge."
+    }
+  ],
+  "network": [
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "prompt",
+        "application-context",
+        "tool-results"
+      ],
+      "direction": "egress",
+      "host": "api.anthropic.com",
+      "id": "anthropic-api",
+      "offline": "unavailable",
+      "owner": "anthropic",
+      "protocol": "https",
+      "purpose": "Inference for Claude runs.",
+      "scope": "internet"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "audit-event"
+      ],
+      "direction": "egress",
+      "id": "audit-collector",
+      "offline": "degrade",
+      "owner": "authority",
+      "protocol": "tcp",
+      "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
+      "scope": "site"
+    },
+    {
+      "availability": "required",
+      "dataClasses": [],
+      "direction": "ingress",
+      "id": "authority-http",
+      "owner": "authority",
+      "protocol": "http",
+      "purpose": "Serve the frontend, API, events and attach connections.",
+      "scope": "loopback"
+    },
+    {
+      "availability": "required",
+      "dataClasses": [
+        "stop-classification",
+        "count-confirmation"
+      ],
+      "direction": "egress",
+      "id": "mes-api",
+      "offline": "queue",
+      "owner": "line-station",
+      "protocol": "https",
+      "purpose": "Forward stop classifications and count confirmations to the MES and pull orders and reasons.",
+      "scope": "site",
+      "targets": [
+        "mes"
+      ]
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "prompt",
+        "application-context",
+        "tool-results"
+      ],
+      "direction": "egress",
+      "host": "api.openai.com",
+      "id": "openai-api",
+      "offline": "unavailable",
+      "owner": "openai",
+      "protocol": "https",
+      "purpose": "Model catalog and inference for Codex and AI SDK runs.",
+      "scope": "internet"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "oauth-authorization",
+        "identity-token"
+      ],
+      "direction": "egress",
+      "host": "auth.openai.com",
+      "id": "openai-auth",
+      "offline": "unavailable",
+      "owner": "openai",
+      "protocol": "https",
+      "purpose": "ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.",
+      "scope": "internet"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "screen-input",
+        "recipe-selection"
+      ],
+      "direction": "egress",
+      "id": "station-screen",
+      "offline": "queue",
+      "owner": "line-station",
+      "protocol": "https",
+      "purpose": "Reach the legacy station software screen to observe it and run declared procedures (web HMI, VNC or RDP, per site).",
+      "scope": "site",
+      "targets": [
+        "legacy-hmi"
+      ]
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "screen-frame"
+      ],
+      "direction": "egress",
+      "id": "station-vision",
+      "offline": "degrade",
+      "owner": "station-bridge",
+      "protocol": "http",
+      "purpose": "Local OpenAI-compatible vision model reading counters and other pixel-only fields.",
+      "scope": "loopback"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "screen-frame"
+      ],
+      "direction": "egress",
+      "id": "station-vision-site",
+      "offline": "degrade",
+      "owner": "station-bridge",
+      "protocol": "https",
+      "purpose": "Vision model on a site host the deployment allowlists explicitly (STATION_VISION_ALLOWED_HOSTS).",
+      "scope": "site"
+    }
+  ],
+  "devices": [
+    {
+      "availability": "optional",
+      "id": "scanner-camera",
+      "kind": "camera",
+      "owner": "scanner-devices",
+      "purpose": "Camera barcode decoding at the station."
+    },
+    {
+      "availability": "optional",
+      "id": "scanner-hid-pos",
+      "kind": "hid",
+      "owner": "scanner-devices",
+      "purpose": "HID POS barcode scanners (usage page 0x8C) through WebHID."
+    },
+    {
+      "availability": "optional",
+      "id": "scanner-serial",
+      "kind": "serial",
+      "owner": "scanner-devices",
+      "purpose": "USB-COM/CDC or RS-232 barcode scanners through Web Serial."
+    },
+    {
+      "availability": "optional",
+      "id": "scanner-vendor-sdk",
+      "kind": "vendor-sdk",
+      "owner": "scanner-devices",
+      "purpose": "Vendor scanner SDKs on the station PC through the host scanner bridge."
+    }
+  ],
+  "processes": [
+    {
+      "availability": "optional",
+      "executable": "claude",
+      "id": "claude-code",
+      "network": [
+        "anthropic-api"
+      ],
+      "owner": "anthropic",
+      "purpose": "Claude Code process driven by the Agent SDK."
+    },
+    {
+      "availability": "optional",
+      "executable": "codex",
+      "id": "codex-app-server",
+      "network": [
+        "openai-api"
+      ],
+      "owner": "openai",
+      "purpose": "Codex app-server harness under a delegated grant."
+    },
+    {
+      "availability": "optional",
+      "executable": "configured",
+      "id": "perception-worker",
+      "network": [],
+      "owner": "station-bridge",
+      "purpose": "JSON-lines perception worker for local OCR, classifier or audio models."
+    },
+    {
+      "availability": "optional",
+      "executable": "chromium (Playwright)",
+      "id": "station-bridge-browser",
+      "network": [
+        "station-screen"
+      ],
+      "owner": "station-browser",
+      "purpose": "Browser that reaches a web-based station HMI for the screen bridge."
+    }
+  ],
+  "flows": [
+    {
+      "operation": "line.count.confirm",
+      "kind": "command",
+      "module": "line-station",
+      "target": "mes",
+      "destinations": [
+        "mes-api"
+      ],
+      "dataClasses": [
+        "count-confirmation",
+        "stop-classification"
+      ],
+      "auditFields": []
+    },
+    {
+      "operation": "line.order.start",
+      "kind": "command",
+      "module": "line-station",
+      "target": "legacy-hmi",
+      "destinations": [
+        "station-screen"
+      ],
+      "dataClasses": [
+        "recipe-selection",
+        "screen-input"
+      ],
+      "auditFields": []
+    },
+    {
+      "operation": "line.stop.classify",
+      "kind": "command",
+      "module": "line-station",
+      "target": "mes",
+      "destinations": [
+        "mes-api"
+      ],
+      "dataClasses": [
+        "count-confirmation",
+        "stop-classification"
+      ],
+      "auditFields": []
+    }
+  ],
+  "summary": {
+    "egress": 8,
+    "ingress": 1,
+    "internet": [
+      "anthropic-api",
+      "openai-api",
+      "openai-auth"
+    ],
+    "required": [
+      "authority-http",
+      "mes-api"
+    ],
+    "dataClasses": [
+      "application-context",
+      "audit-event",
+      "count-confirmation",
+      "identity-token",
+      "oauth-authorization",
+      "prompt",
+      "recipe-selection",
+      "screen-frame",
+      "screen-input",
+      "stop-classification",
+      "tool-results"
+    ]
+  }
+}

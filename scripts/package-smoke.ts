@@ -6,7 +6,7 @@ import {
   loadRuntimeManifest,
   resourcePath,
   verifyRuntimeFiles,
-} from '../apps/desktop/src/runtime-manifest';
+} from '@agent-native/host/runtime-manifest';
 import { ensureService } from '../apps/desktop/src/service-lifecycle';
 import { nativeEnvironment } from '../packages/agents/src/process';
 /** Offline platform acceptance: real shipped native versions and compiled service.

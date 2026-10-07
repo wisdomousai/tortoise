@@ -1,13 +1,14 @@
 /**
  * Modules that must never reach the browser bundle: host runtimes, provider SDKs, credential
- * stores and the server-only framework packages. Shared by the static import scan and the Vite
+ * stores and the server-only framework packages (of `@agent-native/host`, only the manifest is
+ * browser-safe). Shared by the static import scan and the Vite
  * plugin that checks the real browser dependency graph.
  */
 export const forbiddenBrowserImport =
-  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|station|event-log|egress)(?:\/|$)|@agent-native\/assurance(?:$|\/(?!contracts$))|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
+  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|egress)(?:\/|$)|@agent-native\/station(?!\/requirements$)(?:\/|$)|@agent-native\/host(?!\/manifest$)(?:\/|$)|@agent-native\/assurance(?:$|\/(?!contracts$))|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
 /** Resolved source paths of server-only framework packages. */
 export const hostSourcePath =
-  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|station|event-log|egress)[\\/]src[\\/]|assurance[\\/]src[\\/](?!contracts\.ts$)|devices[\\/]src[\\/]server\.ts$)/;
+  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|egress)[\\/]src[\\/]|station[\\/]src[\\/](?!requirements\.ts$)|host[\\/]src[\\/](?!manifest\.ts$)|assurance[\\/]src[\\/](?!contracts\.ts$)|devices[\\/]src[\\/]server\.ts$)/;
 
 /**
  * Direct network and process APIs. Server code reaches other hosts only through
@@ -34,11 +35,14 @@ export const directEgress: readonly { readonly api: string; readonly pattern: Re
       /import\s+(?!\{\s*(?:type\s+)?isIP(?:v4|v6)?(?:\s*,\s*(?:type\s+)?isIP(?:v4|v6)?)*\s*,?\s*\})[^;]*?from\s*['"](?:node:)?net['"]/,
   },
 ];
-/** Server source the egress rule applies to. Browser packages cannot open sockets at all. */
+/**
+ * Server source the egress rule applies to. Browser code (packages, the frame, content screens)
+ * reaches only its own origin and cannot open sockets, so it is out of scope.
+ */
 export const serverSource =
   /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|examples\/)/;
 export const browserSource =
-  /^(?:packages\/(?:contracts|client|react|operator-ui)\/|packages\/devices\/src\/(?!server\.ts$))/;
+  /^(?:packages\/(?:contracts|client|react|operator-ui|frame)\/|packages\/devices\/src\/(?!server\.ts$)|examples\/[^/]+\/(?:ui\/|screens\.tsx$))/;
 
 /**
  * Reviewed exceptions, each with the reason it is safe. Keep this list short: it is what an
@@ -55,11 +59,11 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Falls back to global fetch only when constructed without one; the host injects the guard.',
   'packages/agents/src/oidc.ts':
     'Falls back to global fetch only when constructed without one; the host injects the guard.',
-  'apps/service/src/providers.ts':
+  'packages/host/src/providers.ts':
     'Falls back to global fetch only when constructed without one; the host injects the guard.',
   'apps/desktop/src/service-lifecycle.ts':
     'The desktop shell starts its own authority sidecar, which listens on loopback.',
-  'apps/service/src/station-bridge.ts':
+  'examples/line-station/station-bridge.ts':
     'Launches Chromium for the station screen and reads simulator counters; to be routed through the station-screen destination.',
   'packages/station/src/perception/worker.ts':
     'Starts the declared perception-worker process with an empty environment.',

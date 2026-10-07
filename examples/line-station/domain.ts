@@ -40,8 +40,18 @@ export interface Reading {
   source: string;
   model?: { id: string; version?: string; digest?: string };
   observedAt: number;
+  /** Frame and profile behind an observed value; absent for an operator's confirmation. */
+  frameDigest?: string;
+  profile?: { id: string; version: string };
   status: 'observed' | 'operator-verified';
   verifiedBy?: string;
+}
+/** A field's declared value type, as the station profile states it. */
+export interface FieldDeclaration {
+  type: 'number' | 'text' | 'enum' | 'boolean';
+  options?: string[];
+  decimals?: number;
+  unit?: string;
 }
 export interface Station {
   id: string;
@@ -114,6 +124,9 @@ export interface AttentionItem {
   source: string;
   model?: Reading['model'];
   observedAt: number;
+  frameDigest?: string;
+  profile?: { id: string; version: string };
+  declared?: FieldDeclaration;
   createdAt: number;
   /** Kept after resolution, so who confirmed what remains auditable. */
   resolvedAt?: number;

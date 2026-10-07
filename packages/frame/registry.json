@@ -1,0 +1,240 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "agent-native",
+  "homepage": "https://registry.example.invalid/agent-native",
+  "items": [
+    {
+      "name": "session",
+      "type": "registry:lib",
+      "title": "Session bindings",
+      "description": "One authenticated transport, typed client, TanStack Query client and live invalidation bindings for the local authority.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@agent-native/react",
+        "@agent-native/client",
+        "@agent-native/contracts"
+      ],
+      "files": [
+        {
+          "path": "src/lib/session.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "native-dialog",
+      "type": "registry:ui",
+      "title": "Native dialog",
+      "description": "Modal on the native <dialog> element: focus trap, Escape and inert background without injected <style> tags, so it works under a strict CSP.",
+      "files": [
+        {
+          "path": "src/components/ui/native-dialog.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "capability-form",
+      "type": "registry:component",
+      "title": "Capability form",
+      "description": "A complete form for any command capability, generated from its JSON Schema, with contract validation, a per-form idempotency key and field-level server errors.",
+      "dependencies": [
+        "@tanstack/react-form",
+        "@agent-native/react",
+        "@agent-native/client",
+        "@agent-native/contracts"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "label",
+        "native-select",
+        "textarea",
+        "@agent-native/session"
+      ],
+      "files": [
+        {
+          "path": "src/components/capability-form.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "live-data-table",
+      "type": "registry:component",
+      "title": "Live data table",
+      "description": "TanStack Table over a server-scoped, server-paginated capability query; never filters or counts client-side.",
+      "dependencies": ["@tanstack/react-table"],
+      "registryDependencies": ["button", "table"],
+      "files": [
+        {
+          "path": "src/components/live-data-table.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "security-screen",
+      "type": "registry:component",
+      "title": "Security screen",
+      "description": "Read-only security posture for auditors: bound, disabled and used destinations, recent denials and audit-chain status, from the assurance.* queries. Polls; each read is itself audited.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@agent-native/assurance",
+        "@agent-native/contracts"
+      ],
+      "registryDependencies": ["badge", "button", "card", "table", "@agent-native/session"],
+      "files": [
+        {
+          "path": "src/components/security-screen.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "conflict-banner",
+      "type": "registry:component",
+      "title": "Conflict banner",
+      "description": "Shown when committed data moved past a draft's base revision; rebase or discard, never overwrite.",
+      "registryDependencies": ["alert", "button"],
+      "files": [
+        {
+          "path": "src/components/conflict-banner.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "run-panel",
+      "type": "registry:component",
+      "title": "Agent run panel",
+      "description": "Recent agent runs with inline answers to questions and approvals.",
+      "dependencies": ["@tanstack/react-query"],
+      "registryDependencies": ["badge", "button", "input"],
+      "files": [
+        {
+          "path": "src/components/run-panel.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/lib/host-client.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "command-palette",
+      "type": "registry:component",
+      "title": "Capability palette",
+      "description": "\u2318K palette over the discovered contract: the human mirror of an agent's tool list.",
+      "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "cmdk"],
+      "registryDependencies": [
+        "command",
+        "@agent-native/native-dialog",
+        "@agent-native/session",
+        "@agent-native/screens"
+      ],
+      "files": [
+        {
+          "path": "src/components/command-palette.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "screens",
+      "type": "registry:lib",
+      "title": "Application screens contract",
+      "description": "The declaration an application hands the frame: routes, navigation, the screen each capability family opens, and a sidebar status slot.",
+      "files": [
+        {
+          "path": "src/screens.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "ui-session",
+      "type": "registry:lib",
+      "title": "UI session",
+      "description": "Registers the screen's selection with the authority so an agent run captures what the person sees, and receives intents the agent sends back.",
+      "dependencies": ["@agent-native/react"],
+      "files": [
+        {
+          "path": "src/lib/ui-session.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "src/lib/host-client.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "accounts",
+      "type": "registry:component",
+      "title": "Provider accounts",
+      "description": "Connects agent provider accounts through the authority; the browser only ever sees safe metadata.",
+      "registryDependencies": [
+        "badge",
+        "button",
+        "input",
+        "native-select",
+        "@agent-native/ui-session"
+      ],
+      "files": [
+        {
+          "path": "src/components/accounts.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "app-shell",
+      "type": "registry:component",
+      "title": "App shell",
+      "description": "Sidebar with the application's navigation and status slot, and the capability palette (\u2318K).",
+      "dependencies": ["@tanstack/react-router", "lucide-react"],
+      "registryDependencies": ["kbd", "@agent-native/command-palette", "@agent-native/frame"],
+      "files": [
+        {
+          "path": "src/components/app-shell.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "frame",
+      "type": "registry:block",
+      "title": "Application frame",
+      "description": "Session-scoped query cache, live invalidation and hash routing around an application's screens, plus the launch-link exchange.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@tanstack/react-router",
+        "@agent-native/react",
+        "@agent-native/client",
+        "@agent-native/contracts"
+      ],
+      "registryDependencies": [
+        "tooltip",
+        "@agent-native/session",
+        "@agent-native/screens",
+        "@agent-native/app-shell"
+      ],
+      "files": [
+        {
+          "path": "src/frame.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/screens-context.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/launch.ts",
+          "type": "registry:lib"
+        }
+      ]
+    }
+  ]
+}

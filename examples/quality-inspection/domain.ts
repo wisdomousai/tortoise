@@ -177,9 +177,15 @@ export function progress(state: QualityState, lot: InspectionLot) {
   let required = 0;
   for (const characteristic of lot.characteristics) {
     required += characteristic.sampleSize;
+    // Only required slots count: a sample plan reduced after capture leaves results beyond
+    // `sampleSize` on record, but they cannot complete the slots the plan still requires.
     const samples = new Set(
       results
-        .filter((result) => result.characteristicId === characteristic.id)
+        .filter(
+          (result) =>
+            result.characteristicId === characteristic.id &&
+            result.sample <= characteristic.sampleSize,
+        )
         .map((result) => result.sample),
     );
     recorded += samples.size;

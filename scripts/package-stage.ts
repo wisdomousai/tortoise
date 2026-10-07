@@ -5,7 +5,7 @@ import {
   desktopTargets,
   type DesktopTarget,
   type RuntimeManifest,
-} from '../apps/desktop/src/runtime-manifest';
+} from '@agent-native/host/runtime-manifest';
 import {
   downloadNativePackage,
   listFiles,
@@ -13,7 +13,10 @@ import {
   sha256,
   targetPackages,
 } from './package-assets';
-import { readApplicationIdentity } from '../apps/desktop/src/application-identity';
+import { readApplicationIdentity } from '@agent-native/host/config';
+import { optionalHostPackages } from '@agent-native/host/optional-packages';
+import { loadManifest, readStarterConfig } from '@agent-native/host/config';
+import { writeApplicationEntry } from './application-entry';
 
 export async function stageDesktop(target: DesktopTarget, output?: string) {
   if (!desktopTargets.includes(target)) throw new Error(`Unsupported target ${target}`);
@@ -30,28 +33,30 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
     await downloadNativePackage(packages[name], resolve(resources, 'runtimes', name));
   }
   const files = await listFiles(resources);
+  // Match on resource-relative POSIX paths: listFiles returns native paths, which use `\` on Windows.
+  const rel = (path: string) => relative(resources, path).split('\\').join('/');
   const find = (predicate: (file: string) => boolean) => {
-    const matches = files.filter(predicate);
+    const matches = files.filter((file) => predicate(rel(file)));
     if (matches.length !== 1)
       throw new Error(`Expected exactly one native resource, found ${matches.length}`);
     return matches[0]!;
   };
   const nativeName = target.startsWith('win32') ? 'codex.exe' : 'codex';
   const codex = find(
-    (file) => file.includes('/runtimes/codex/') && file.endsWith(`/bin/${nativeName}`),
+    (file) => file.startsWith('runtimes/codex/') && file.endsWith(`/bin/${nativeName}`),
   );
   const claude = find(
     (file) =>
-      file.includes('/runtimes/claude/') &&
+      file.startsWith('runtimes/claude/') &&
       file.endsWith(target.startsWith('win32') ? '/claude.exe' : '/claude'),
   );
-  const keyring = find((file) => file.includes('/runtimes/keyring/') && file.endsWith('.node'));
+  const keyring = find((file) => file.startsWith('runtimes/keyring/') && file.endsWith('.node'));
   const entry = resolve(stage, 'service-entry.ts');
   // Direct .node require is statically visible to Bun, unlike npm's dynamic platform
   // loader. Initialization precedes importing the service composition root.
   await writeFile(
     entry,
-    `import { installNativeCredentialBinding } from ${JSON.stringify(resolve(root, 'packages/agents/src/credentials.ts'))};\nconst binding = require(${JSON.stringify(keyring)});\ninstallNativeCredentialBinding(binding);\nawait import(${JSON.stringify(resolve(root, 'apps/service/src/index.ts'))});\n`,
+    `import { installNativeCredentialBinding } from ${JSON.stringify(resolve(root, 'packages/agents/src/credentials.ts'))};\nconst binding = require(${JSON.stringify(keyring)});\ninstallNativeCredentialBinding(binding);\nawait import(${JSON.stringify(await writeApplicationEntry('service', stage))});\n`,
   );
   const service = resolve(resources, target.startsWith('win32') ? 'service.exe' : 'service');
   const bunTarget =
@@ -59,20 +64,23 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   const build = await Bun.build({
     entrypoints: [entry],
     compile: { target: bunTarget, outfile: service, autoloadDotenv: false, autoloadBunfig: false },
+    // Optional adapters load these at runtime; they are never compiled in.
+    external: [...optionalHostPackages],
     minify: true,
   });
   if (!build.success) throw new Error(build.logs.map((log) => log.message).join('\n'));
   await chmod(service, 0o755);
-  await cp(resolve(root, 'dist/web'), resolve(resources, 'web'), { recursive: true });
+  const { id } = await loadManifest(readStarterConfig(resolve(root, 'app.config.json')));
+  // The web build of the hosted application (`bun run build:web`).
+  await cp(resolve(root, 'dist/web', id), resolve(resources, 'web'), { recursive: true });
   const sitePolicy = resolve(resources, 'site-policy.json');
   await cp(resolve(root, 'apps/desktop/site-policy.json'), sitePolicy);
-  const rel = (path: string) => relative(resources, path).split('\\').join('/');
   const runtime = async (name: 'codex' | 'claude', executable: string) => ({
     executable: rel(executable),
     version: runtimeVersions[name],
     files: await Promise.all(
       files
-        .filter((file) => file.includes(`/runtimes/${name}/`))
+        .filter((file) => rel(file).startsWith(`runtimes/${name}/`))
         .map(async (file) => ({ path: rel(file), sha256: await sha256(file) })),
     ),
   });

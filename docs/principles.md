@@ -10,7 +10,7 @@ Each operation has one handler. Every surface reaches it with the same validatio
 
 **Rules out:** UI-only endpoints, agent-only tools, admin scripts that write the database, business logic inside a transport or component.
 
-**Enforced by:** catalog validation rejects an operation without a UI binding or declared exception (`packages/contracts/test/contracts.test.ts`); the same scenarios run through direct, HTTP, CLI subprocess and MCP and must agree (`packages/testing/test/transport-conformance.test.ts`, `inspection-conformance.test.ts`, `station-conformance.test.ts`). **Convention only:** that a UI binding declaration is actually rendered; browser specs cover the reference screens, not every operation.
+**Enforced by:** catalog validation rejects an operation without a UI binding or declared exception (`packages/contracts/test/contracts.test.ts`); the same scenarios run through direct, HTTP, CLI subprocess and MCP and must agree (`examples/project-tasks/test/transport-conformance.test.ts` and each example's `test/conformance.test.ts`). Each example's `test/ui-bindings.test.ts` (`@agent-native/testing/ui-bindings`) fails when an operation claims a UI binding that none of its screens references. **Convention only:** that a referenced binding is actually rendered; browser specs cover the reference screens, not every operation.
 
 ### P2 — The catalog is the only description of what the application can do
 
@@ -26,7 +26,7 @@ The host derives principal, workspace and grant; operation input cannot select o
 
 **Rules out:** role or principal fields in operation input, checks only at the edge, counts that leak hidden rows, cached decisions reused after revocation.
 
-**Enforced by:** `packages/testing/src/security-conformance.test.ts` (grants constrain rows, replay and events; interruptions cannot commit or leak); the role matrices in each `examples/*/domain.test.ts`; `packages/adapters/src/casl.test.ts` (scope agreement across CASL, memory and SQL, fail-closed rules); `packages/runtime/test/runtime.test.ts` (current authorization governs retries); `apps/service/hardening.test.ts` (a hardened site admits only expiring launcher grants, refuses to fall back to the local owner, and its mTLS listener still requires a session token).
+**Enforced by:** `examples/project-tasks/test/security-conformance.test.ts` (grants constrain rows, replay and events; interruptions cannot commit or leak); the role matrices in each `examples/*/domain.test.ts`; `packages/adapters/src/casl.test.ts` (scope agreement across CASL, memory and SQL, fail-closed rules); `packages/runtime/test/runtime.test.ts` (current authorization governs retries); `packages/agents/test/adapters.test.ts` (each provider model sees the captured selection, never the run's identity or grant); `examples/project-tasks/test/hardening.test.ts` (a hardened site admits only expiring launcher grants, refuses to fall back to the local owner, and its mTLS listener still requires a session token).
 
 ### P4 — Every write is a command to the single authority of its workspace
 
@@ -34,7 +34,7 @@ One authority owns each workspace. UIs, tools, jobs, connectors and observers su
 
 **Rules out:** direct database writes, dual writers, write-then-notify sequences that can lose the notification, side effects inside a transaction.
 
-**Enforced by:** `packages/runtime/test/runtime.test.ts` (undeclared changes cannot commit, expected revisions cannot lose updates, scoped idempotency); `packages/testing/test/storage-conformance.test.ts` (memory and SQLite commit state, receipts and outbox atomically); `packages/adapters/src/ownership.test.ts` (one owner per workspace). **Convention only:** that no new code path writes state outside a handler.
+**Enforced by:** `packages/runtime/test/runtime.test.ts` (undeclared changes cannot commit, expected revisions cannot lose updates, scoped idempotency); `packages/testing/test/storage-conformance.test.ts` (memory and SQLite commit state, receipts and outbox atomically); `packages/adapters/src/sqlite.test.ts` (a rolled-back transaction leaves the initial-state factory untouched); `packages/adapters/src/ownership.test.ts` (one owner per workspace). **Convention only:** that no new code path writes state outside a handler.
 
 ### P5 — Every committed change reaches every authorized view, whatever its origin
 
@@ -42,7 +42,7 @@ A change committed by a person, an agent, a job or an inbound sync flows through
 
 **Rules out:** polling as the consistency model, per-surface caches that miss other surfaces' writes, event payloads carrying protected record contents.
 
-**Enforced by:** `packages/client/src/client.test.ts` (snapshot cursor closes the subscription race, revocation resets, stale responses are fenced); `packages/react/src/bindings.test.ts` (dependency-indexed refetch, permission change clears cache); `tests/e2e/workspace.pw.ts` and `inspection.pw.ts` (an external write appears without refresh, drafts survive).
+**Enforced by:** `packages/client/src/client.test.ts` (snapshot cursor closes the subscription race, revocation resets, stale responses are fenced); `examples/project-tasks/test/direct-transport.test.ts` (the in-process transport resets after a revocation between snapshot and subscription, and never lifts launcher cancellation); `packages/react/src/bindings.test.ts` (dependency-indexed refetch, permission change clears cache, also behind a hung refetch and for data cached before the stream's first batch); `examples/project-tasks/e2e/workspace.pw.ts` and `examples/quality-inspection/e2e/inspection.pw.ts` (an external write appears without refresh, drafts survive, a draft keeps its sample and shows a conflict when another caller records that sample first). **Convention only:** that each draft screen pins its target and base revision; `ScannerSetup` saves against the revision it was loaded from but has no browser spec.
 
 ### P6 — Status reports what is known, not what is hoped
 
@@ -50,7 +50,7 @@ Draft, committed, dispatched, accepted, rejected and uncertain are distinct stat
 
 **Rules out:** optimistic "done" before acceptance, inferring success from narration, silently overwriting state with a low-confidence reading.
 
-**Enforced by:** `packages/runtime/test/outbox.test.ts` and `packages/integration/test/held.test.ts` (delivery states, uncertain outcomes held, not resent); `packages/station/test/observer.test.ts` (only stable readings become current, unsure readings stay uncertain); `packages/agents/test/supervisor.test.ts` (run state separate from commits). **Convention only:** that every screen and tool shows the delivery state rather than a receipt.
+**Enforced by:** `packages/runtime/test/outbox.test.ts` and `packages/integration/test/held.test.ts` (delivery states, uncertain outcomes held, not resent, including when shutdown interrupts delivery; a drain reports outbox work for targets it cannot deliver); `examples/quality-inspection/test/sandbox.test.ts` and each example's `test/application.test.ts` (`drain` exits non-zero until every target the application declares is empty); `packages/station/test/observer.test.ts` (only stable readings become current, unsure readings stay uncertain); `packages/agents/test/supervisor.test.ts` (run state separate from commits). **Convention only:** that every screen and tool shows the delivery state rather than a receipt.
 
 ### P7 — Other systems are reached only through durable intents
 
@@ -58,15 +58,15 @@ Systems of record keep ownership of their records. A command commits an intent w
 
 **Rules out:** calling a remote system from a handler, distributed transactions, connectors that hold business tools, retrying an unknown outcome as if it failed.
 
-**Enforced by:** `packages/runtime/test/outbox.test.ts` (effects commit with the command, replay never re-enqueues); `packages/integration/test/dispatcher.test.ts` (delivery outside the transaction, lookup before resend, integration grant limits, watermark-bound sync); `packages/station/test/controller.test.ts` (gate, readback, uncertain procedures held); lane separation in `station-conformance.test.ts`.
+**Enforced by:** `packages/runtime/test/outbox.test.ts` (effects commit with the command, replay never re-enqueues); `packages/integration/test/dispatcher.test.ts` (delivery outside the transaction, lookup before resend, integration grant limits, watermark-bound sync); `packages/station/test/controller.test.ts` (per-action screen gate, stable readback, uncertain procedures held); lane separation in `examples/line-station/test/conformance.test.ts`.
 
 ### P8 — Specialization is composition and configuration, never a fork
 
-The framework packages are domain-neutral. Domains live in modules and examples, composed explicitly with their own state slice and routed policy; a domain concept becomes a primitive only when a second application needs it. What differs per site (station profiles, scanner profiles, scan routes, connector mappings) is versioned, schema-validated data, gated by a replayable check where it drives perception or actuation. Reusable UI ships as shadcn registries composed from stock primitives.
+The framework packages and the starter are domain-neutral (P11). Domains live in modules, composed explicitly into an application with their own state slice and routed policy; a domain concept becomes a primitive only when a second application needs it. What differs per site (station profiles, scanner profiles, scan routes, connector mappings) is versioned, schema-validated data, gated by a replayable check where it drives perception or actuation. Reusable UI ships as shadcn registries composed from stock primitives.
 
 **Rules out:** domain names in `packages/*`, customer forks, site logic in code, forked or hand-styled UI primitives.
 
-**Enforced by:** `bun run check:boundaries` rejects imports from `packages/*` into `examples/` or `apps/`; `packages/runtime/test/compose.test.ts` (modules see only their slice, unrouted operations fail closed); `packages/station/test/profile.test.ts` and `bun run station:golden` (profiles validated and gated); `bun run check:registry:operator` (registry manifest drift). **Convention only:** that package code names no business domain, and the second-application promotion rule.
+**Enforced by:** `bun run check:boundaries` rejects imports from `packages/*` into `examples/` or `apps/`, whether by relative path or by workspace package name; `packages/runtime/test/compose.test.ts` (modules see only their slice, unrouted operations fail closed); `packages/station/test/profile.test.ts` and `bun run station:golden` in `examples/line-station` (profiles validated and gated); `bun run check:registry:operator` (registry manifest drift). **Convention only:** that package code names no business domain, and the second-application promotion rule.
 
 ### P9 — Every external dependency sits behind a port
 
@@ -74,7 +74,7 @@ Storage, policy, identity, transport, agent harness, inference, system-of-record
 
 **Rules out:** provider types in contracts, storage assumptions in handlers, a model or vendor that cannot be swapped without touching domain code.
 
-**Enforced by:** `packages/testing/test/storage-conformance.test.ts` (memory and SQLite give identical outcomes); `bun run check:boundaries` keeps provider SDKs and host runtimes out of browser code; harness adapters pass shared fixtures (`packages/agents/test/adapters.test.ts`). **Convention only:** that vendor types stay inside adapters and the core takes no cloud dependency.
+**Enforced by:** `examples/project-tasks/test/storage-conformance.test.ts` (memory and SQLite give identical outcomes); `bun run check:boundaries` keeps provider SDKs and host runtimes out of browser code; harness adapters pass shared fixtures (`packages/agents/test/adapters.test.ts`). **Convention only:** that vendor types stay inside adapters and the core takes no cloud dependency.
 
 ### P10 — A claim is only as strong as its evidence
 
@@ -82,15 +82,23 @@ Every operation has behavioral scenarios that run through each surface it suppor
 
 **Rules out:** calling a mock-tested adapter live, a single blended pass/fail, undocumented drift between docs and code.
 
-**Enforced by:** the implementation ledger records deterministic, browser, native, device and live-provider evidence separately; `bun run test:sandbox` runs the compiled binary with an empty environment. **Convention only:** most of this principle is review discipline; no tool can tell a mocked pass from a live one.
+**Enforced by:** the implementation ledger records deterministic, browser, native, device and live-provider evidence separately; `bun run test:sandbox`, part of `bun run check`, compiles the binary with the shipped build configuration and runs it with an empty environment. **Convention only:** most of this principle is review discipline; no tool can tell a mocked pass from a live one.
 
-### P11 — The application reaches only what it declares and the site binds, and records what it does
+### P11 — Framework, starter and content are separate layers, and an authority runs one application
+
+The framework (`packages/*`) provides domain-neutral primitives, ports and adapters, including the generic host (`@agent-native/host`) and web frame (`@agent-native/frame`). The starter (`apps/*`) is a thin boilerplate its owner forks or generates and extends: wiring, `app.config.json`, entrypoints, the web root and stock primitives, styles and the desktop wrapper. Content (`examples/*`, or the owner's own modules) is applications that implement framework contracts through three entrypoints: a browser-safe `manifest`, a server `application` definition (state, policy, handlers, connections, demo fakes) and `screens`. The starter learns its content only from configuration, which the host and frame resolve (inversion of control). Content depends on framework contracts and never on the starter. A catalog, its generated artifacts, web build, workspace and launch belong to one application; several modules may form one application, but separate applications never share a process ([ADR 005](decisions/005-framework-shell-content.md)).
+
+**Rules out:** a starter that imports an example, edits to the framework or starter to add an application, one process serving several applications' catalogs, a demo fake or screen of one application visible in another, framework tests that need an example.
+
+**Enforced by:** `bun run check:boundaries` rejects framework → starter/content, starter → content and content → starter imports by relative path or workspace package name, and bundles every example's screens through the starter's real Vite config; `packages/host` runs only an `ApplicationDefinition` it is given; a single-example export (`bun run scaffold … --example <name>`) installs, typechecks and tests without the other examples (`packages/scaffold/src/scaffold.test.ts` covers the file selection; the full export run is recorded in the implementation status). **Convention only:** that content screens use only the stock primitives and frame registry paths behind the `@/` alias, which the boundary check cannot tell apart from starter files.
+
+### P13 — The application reaches only what it declares and the site binds, and records what it does
 
 Every network destination, device and child process is declared in the catalog with its purpose and the data classes it carries. A site policy binds declarations to addresses. Without one the application runs isolated and offline, queuing what it cannot deliver and saying what is unavailable. Server code reaches the network only through the egress guard, which refuses anything unbound and records every decision. Every action, denial and connection goes into a tamper-evident log, and by default a command that cannot be recorded does not commit. Hardening profiles are floors: the host refuses to start below one rather than weaken identity, transport or audit. The evidence an auditor checks is generated from the same declarations.
 
 **Rules out:** direct `fetch`, sockets or process spawning in server code; site endpoints in code; a feature that silently needs the network; commits without an audit record; falling back to the local owner or plain transport when a floor is not met.
 
-**Enforced by:** catalog validation of requirements, including outbox targets without a queuing destination (`packages/contracts/test/contracts.test.ts`); `bun run check:boundaries` fails on direct network and process APIs outside `packages/egress` and flags stale exemptions; `packages/egress/test/egress.test.ts` (host, port, scheme, redirect and DNS escapes refused; profile floors); `packages/runtime/test/audit.test.ts` (a failed required append rolls back the commit; crash recovery); `packages/event-log/test/event-log.test.ts` (tampering, gaps, truncation, one writer); `apps/service/hardening.test.ts` (startup floors, mTLS); `bun run test:isolated` (the suite makes no non-loopback connection); `bun run test:sandbox` (the compiled binary's audit chain verifies with no egress); `bun run check:generated` (security manifest, data flows, controls and SBOM match the code). **Convention only:** device access is declared but not mediated; containment of children that ignore proxy settings depends on the deployment applying the exported OS rules; `audit.fields` allow-lists are reviewed by hand.
+**Enforced by:** catalog validation of requirements, including outbox targets without a queuing destination (`packages/contracts/test/contracts.test.ts`); `bun run check:boundaries` fails on direct network and process APIs outside `packages/egress` and flags stale exemptions; `packages/egress/test/egress.test.ts` (host, port, scheme, redirect and DNS escapes refused; profile floors); `packages/runtime/test/audit.test.ts` (a failed required append rolls back the commit; crash recovery); `packages/event-log/test/event-log.test.ts` (tampering, gaps, truncation, one writer); `examples/project-tasks/test/hardening.test.ts` (startup floors, mTLS); `bun run test:isolated` (the suite makes no non-loopback connection); `bun run test:sandbox` (the compiled binary's audit chain verifies with no egress); `bun run check:generated` (security manifest, data flows, controls and SBOM match the code). **Convention only:** device access is declared but not mediated; containment of children that ignore proxy settings depends on the deployment applying the exported OS rules; `audit.fields` allow-lists are reviewed by hand.
 
 ## Keeping this current
 
@@ -103,8 +111,11 @@ Principles change rarely and on purpose. The [primitives](primitives.md) documen
 
 ## Changelog
 
-- 2026-10-07 — Added P11 (declared reach, site binding and a recorded, fail-closed audit trail) for the egress guard, site policy and event log; see ADR 005. P3 now lists the hardening tests.
+- 2026-10-07 — Added P13 (declared reach, site binding and a recorded, fail-closed audit trail) for the egress guard, site policy and event log; see ADR 007. P3 now lists the hardening tests.
 
+- 2026-10-07 — Amended P11 for the starter model (ADR 005 revised): the shell is a thin starter owned by its user, the generic host and frame are framework packages, and content is resolved from configuration. P11 is now enforced (starter → content and content → starter imports fail); P1, P4–P9 name the moved tests.
+
+- 2026-10-07 — Added P11 (framework, shell and content; one application per authority, ADR 005). P8 now names the shell as domain-neutral and composes domains into an application.
 - 2026-10-07 — Replaced each principle's primitive list with what enforces it; primitives name their principles in one place.
 - 2026-10-07 — Rewritten as ten architectural invariants, each with what it rules out and the primitives it requires. Replaces the same-day drafts before anything external cited them.
 - 2026-10-07 — First draft from the implementation plan invariants, ADRs 001–004 and the pattern documents.

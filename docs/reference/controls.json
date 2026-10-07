@@ -29,8 +29,8 @@
         "packages/contracts/test/contracts.test.ts"
       ],
       "artifacts": [
-        "docs/reference/security-manifest.json",
-        "docs/reference/data-flows.md"
+        "docs/reference/quality-inspection/security-manifest.json",
+        "docs/reference/quality-inspection/data-flows.md"
       ],
       "events": [
         "policy.loaded"
@@ -64,7 +64,7 @@
     "evidence": {
       "tests": [
         "packages/egress/test/egress.test.ts",
-        "apps/service/security.test.ts"
+        "examples/project-tasks/test/security.test.ts"
       ],
       "artifacts": [],
       "events": [
@@ -131,11 +131,11 @@
     },
     "evidence": {
       "tests": [
-        "apps/service/security.test.ts",
+        "examples/project-tasks/test/security.test.ts",
         "packages/egress/test/egress.test.ts"
       ],
       "artifacts": [
-        "docs/reference/data-flows.md"
+        "docs/reference/quality-inspection/data-flows.md"
       ],
       "events": [
         "policy.loaded",
@@ -170,7 +170,7 @@
         "packages/egress/test/egress.test.ts"
       ],
       "artifacts": [
-        "docs/reference/data-flows.md"
+        "docs/reference/quality-inspection/data-flows.md"
       ],
       "events": [
         "egress.allowed",
@@ -238,7 +238,7 @@
     "evidence": {
       "tests": [
         "packages/runtime/test/audit.test.ts",
-        "apps/service/security.test.ts"
+        "examples/project-tasks/test/security.test.ts"
       ],
       "artifacts": [],
       "events": [
@@ -311,7 +311,8 @@
     },
     "evidence": {
       "tests": [
-        "packages/event-log/test/event-log.test.ts"
+        "packages/event-log/test/event-log.test.ts",
+        "examples/quality-inspection/test/security.test.ts"
       ],
       "artifacts": [
         "audit verify --log <dir>"
@@ -381,10 +382,10 @@
     "evidence": {
       "tests": [
         "packages/runtime/test/audit.test.ts",
-        "apps/service/security.test.ts"
+        "examples/project-tasks/test/security.test.ts"
       ],
       "artifacts": [
-        "docs/reference/data-flows.md"
+        "docs/reference/quality-inspection/data-flows.md"
       ],
       "events": [
         "command.accepted"
@@ -481,10 +482,10 @@
     "evidence": {
       "tests": [
         "packages/runtime/test/runtime.test.ts",
-        "packages/testing/src/security-conformance.test.ts"
+        "examples/project-tasks/test/security-conformance.test.ts"
       ],
       "artifacts": [
-        "docs/reference/contract.json"
+        "docs/reference/quality-inspection/contract.json"
       ],
       "events": [
         "command.denied",
@@ -522,8 +523,8 @@
     "evidence": {
       "tests": [
         "packages/egress/test/egress.test.ts",
-        "apps/service/security.test.ts",
-        "apps/service/hardening.test.ts"
+        "examples/project-tasks/test/security.test.ts",
+        "examples/project-tasks/test/hardening.test.ts"
       ],
       "artifacts": [
         "security export --format k8s-networkpolicy|nftables"
@@ -558,7 +559,8 @@
     },
     "evidence": {
       "tests": [
-        "apps/service/security.test.ts",
+        "examples/project-tasks/test/security.test.ts",
+        "examples/quality-inspection/test/security.test.ts",
         "packages/egress/test/egress.test.ts"
       ],
       "artifacts": [
@@ -598,7 +600,7 @@
         "packages/assurance/test/assurance.test.ts"
       ],
       "artifacts": [
-        "docs/reference/sbom.cdx.json"
+        "docs/reference/quality-inspection/sbom.cdx.json"
       ],
       "events": []
     }
@@ -657,8 +659,8 @@
         "scripts/check-boundaries.ts"
       ],
       "artifacts": [
-        "docs/reference/contract.json",
-        "docs/reference/security-manifest.json"
+        "docs/reference/quality-inspection/contract.json",
+        "docs/reference/quality-inspection/security-manifest.json"
       ],
       "events": []
     }
@@ -685,10 +687,10 @@
     },
     "evidence": {
       "tests": [
-        "packages/testing/test/transport-conformance.test.ts"
+        "examples/project-tasks/test/transport-conformance.test.ts"
       ],
       "artifacts": [
-        "docs/reference/openapi.json"
+        "docs/reference/quality-inspection/openapi.json"
       ],
       "events": [
         "command.failed"

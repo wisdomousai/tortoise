@@ -1,6 +1,6 @@
 # Operator workstations: legacy station software as a screen-mediated authority
 
-This pattern extends the [system-of-record capture reference](system-of-record-pattern.md) to the point where work meets machines. On many shop floors, controller-level hardware sits behind proprietary station software: a vendor HMI, a test-bench program, a measurement application or a homebrew MES client. That software has no usable API, is often validated or under warranty, and must not be modified. The only stable interface is its screen.
+This pattern extends the [system-of-record capture reference](system-of-record-pattern.md) to the point where work meets machines. On many shop floors, controller-level hardware sits behind proprietary station software: a vendor HMI, a test-bench program, a measurement application or a homebrew MES client. That software rarely has a usable API, is often validated or under warranty, and must not be modified. This pattern covers the case where the only stable interface is its screen. Where the software exposes an automation interface such as COM, a local RPC service, files or a decodable network protocol, the same ports apply with a different adapter; [edge applications](edge-applications.md#reaching-control-software) compares the routes.
 
 The goal is instrumentation on top of that stack. Monitor the station, let operators and agents act through the application's interaction contract, and reach the legacy software only through its screen, by way of a background computer-use agent that the application controls. The hardware stays behind the legacy software, which keeps all controller interaction.
 
@@ -74,15 +74,15 @@ A held effect stays visible as "needs reconciliation". The operator states wheth
 
 The reference implementation ships a deterministic scripted driver that resolves targets from locators. A live computer-use model implements the same port later. Local models, such as open UI-grounding models, and cloud models can then be swapped without changing the gate.
 
-### Seat lease
+### Seat
 
-The operator and the agent share one legacy screen. Exactly one holds it at a time: `operator`, `agent` or `idle`. The operator always preempts. The station UI's takeover command changes the desired seat in domain state, and the controller reads it through its control query. Where the transport detects local keyboard or mouse input, the controller aborts immediately and reports the seat as `operator`. An aborted procedure is uncertain and follows the reconciliation rules above.
+The operator and the agent share one legacy screen. Exactly one holds it at a time: `operator`, `agent` or `idle`. The operator always preempts. The seat is recorded state, not a lease: it has no expiry and no fencing token, so a holder that disappears keeps it until someone changes it. The station UI's takeover command changes the desired seat in domain state, and the controller reads it through its control query. Where the transport detects local keyboard or mouse input, the controller aborts immediately and reports the seat as `operator`. An aborted procedure is uncertain and follows the reconciliation rules above.
 
 ## Observation and local models
 
 Prefer the most deterministic source available, in this order:
 
-1. Vendor exports, log files or the station's own database, as a regular inbound connector where one exists.
+1. Vendor exports, log files, the station's own database, or an automation interface such as COM or local RPC, as a regular inbound connector or extractor where one exists.
 2. The accessibility tree of the legacy application (UI Automation on Windows). This is often available on old Win32 software and is exact.
 3. OCR and vision on screen pixels, through local models.
 4. Audio, for example classifying alarm horns or spoken notes.

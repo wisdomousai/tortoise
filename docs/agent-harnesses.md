@@ -2,7 +2,7 @@
 
 `packages/agents` exposes `Harness`, `HarnessTurn`, `ToolPort`, `RunStore` and `createRunSupervisor`. The public contracts contain no vendor SDK types. Each adapter translates native lifecycle events into text/progress/tool events; domain changes remain command receipts and change-journal entries.
 
-The supervisor serializes turns by conversation ID while independent runs may execute concurrently. It records queued, running, awaiting-question, awaiting-approval, succeeded, failed, cancelled and interrupted states. Output is bounded and known credential formats are redacted. A terminal provider result is required for success. Partial text followed by a provider failure remains a failed run.
+The supervisor serializes turns by conversation ID while independent runs may execute concurrently. It records queued, running, awaiting-question, awaiting-approval, succeeded, failed, cancelled and interrupted states. Output is bounded and known credential formats are redacted, including a secret split across streamed text deltas: the supervisor holds back a short raw tail until the next delta or event and never persists it unscrubbed. Redaction is a guard, not a reason to let credentials reach a run. A terminal provider result is required for success. Partial text followed by a provider failure remains a failed run.
 
 The host stores run snapshots in a separate SQLite database. On startup, unsettled runs become interrupted. Recovery is explicit: the host never silently repeats a model turn or a completed command. Resume identifiers are provider-specific; they are not a portable conversation format.
 
@@ -31,4 +31,4 @@ See [provider integration](providers.md) for current login/funding limits and [d
 
 ## Background jobs
 
-Jobs are ordinary clients with a trusted scoped identity and grant. `scripts/job.ts` demonstrates a deterministic status transition against the running authority; it reads current task revisions and submits commands with stable keys. Schedulers, retries and queues can be replaced independently of domain handlers. A job must not write the SQLite snapshot directly.
+Jobs are ordinary clients with a trusted scoped identity and grant. `examples/project-tasks/job.ts` (`bun run job` there) demonstrates a deterministic status transition against the running authority; it reads current task revisions and submits commands with stable keys. Schedulers, retries and queues can be replaced independently of domain handlers. A job must not write the SQLite snapshot directly.

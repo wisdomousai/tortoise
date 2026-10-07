@@ -23,7 +23,7 @@ import {
   type Synchronized,
   type UsageDecision,
 } from './domain';
-import { plantOfResource } from './policy';
+import { lotOfResource } from './policy';
 
 export interface QualityServices {
   newId?: () => string;
@@ -104,6 +104,30 @@ function accessiblePlants(ctx: Context): Set<string> {
 /** Resource-limited delegations name lots; list queries honor them before counting. */
 function grantAllowsLot(ctx: Context, lotId: string): boolean {
   return !ctx.context.grant?.resources || ctx.context.grant.resources.includes(`lot:${lotId}`);
+}
+/**
+ * Whether the caller may see data owned by `lotId`: its plant is one the caller holds a role at,
+ * matches the optional plant filter, and a resource-limited delegation names the lot. Rows,
+ * counts, timings and effect aggregates all pass through this before anything is aggregated.
+ */
+function lotVisible(ctx: Context, plants: ReadonlySet<string>, lotId: string, plant?: string) {
+  const owner = own(ctx.state.lots, lotId)?.plant;
+  return (
+    owner !== undefined &&
+    plants.has(owner) &&
+    (plant === undefined || owner === plant) &&
+    grantAllowsLot(ctx, lotId)
+  );
+}
+/** Visibility of a journal or outbox resource, through the lot that owns it. */
+function resourceVisible(
+  ctx: Context,
+  plants: ReadonlySet<string>,
+  resource: string,
+  plant?: string,
+) {
+  const lotId = lotOfResource(ctx.state, resource);
+  return lotId !== undefined && lotVisible(ctx, plants, lotId, plant);
 }
 
 /**
@@ -291,11 +315,6 @@ export function createQualityHandlers(): HandlerContribution<QualityState, Quali
     })),
     handler(operations.syncStatus, (_, ctx) => {
       const plants = accessiblePlants(ctx);
-      const visible = (resource: string) => {
-        const plant = plantOfResource(ctx.state, resource);
-        const lotId = resource.startsWith('lot:') ? resource.slice(4) : undefined;
-        return plant !== undefined && plants.has(plant) && (!lotId || grantAllowsLot(ctx, lotId));
-      };
       const records: { resource: string; lotId: string; record: Synchronized; active: boolean }[] =
         [
           ...Object.values(ctx.state.results).map((result) => ({
@@ -315,10 +334,10 @@ export function createQualityHandlers(): HandlerContribution<QualityState, Quali
               ? [{ resource: `lot:${lot.id}`, lotId: lot.id, record: lot.decision, active: true }]
               : [],
           ),
-        ].filter((entry) => visible(entry.resource) && grantAllowsLot(ctx, entry.lotId));
+        ].filter((entry) => lotVisible(ctx, plants, entry.lotId));
       const pendingEffects = ctx
         .effects({ status: 'pending', target: TARGET })
-        .filter((effect) => visible(effect.resource));
+        .filter((effect) => resourceVisible(ctx, plants, effect.resource));
       const count = (status: Synchronized['sync']) =>
         records.filter((entry) => entry.record.sync === status).length;
       return compact({
@@ -344,15 +363,7 @@ export function createQualityHandlers(): HandlerContribution<QualityState, Quali
     handler(operations.metricsSummary, (input, ctx) => {
       const plants = accessiblePlants(ctx);
       const since = input.since ?? 0;
-      const inScope = (lotId: string) => {
-        const plant = own(ctx.state.lots, lotId)?.plant;
-        return (
-          plant !== undefined &&
-          plants.has(plant) &&
-          (input.plant === undefined || plant === input.plant) &&
-          grantAllowsLot(ctx, lotId)
-        );
-      };
+      const inScope = (lotId: string) => lotVisible(ctx, plants, lotId, input.plant);
       const results = Object.values(ctx.state.results).filter(
         (result) => result.recordedAt >= since && inScope(result.lotId),
       );
@@ -369,16 +380,12 @@ export function createQualityHandlers(): HandlerContribution<QualityState, Quali
           p90Ms: percentile(samples, 0.9),
         });
       };
-      const visible = (resource: string) => {
-        const plant = plantOfResource(ctx.state, resource);
-        const lotId = resource.startsWith('result:')
-          ? own(ctx.state.results, resource.slice(7))?.lotId
-          : undefined;
-        return plant !== undefined && (lotId === undefined || inScope(lotId));
-      };
       const effects = ctx
         .effects({ target: TARGET })
-        .filter((effect) => effect.createdAt >= since && visible(effect.resource));
+        .filter(
+          (effect) =>
+            effect.createdAt >= since && resourceVisible(ctx, plants, effect.resource, input.plant),
+        );
       const acceptance = effects.flatMap((effect) =>
         effect.status === 'accepted' && effect.settledAt !== undefined
           ? [effect.settledAt - effect.createdAt]

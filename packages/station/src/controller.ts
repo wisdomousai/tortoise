@@ -19,6 +19,7 @@ import {
   contains,
   findNode,
   resolveBinding,
+  type Condition,
   type Procedure,
   type StationProfile,
 } from './profile';
@@ -70,9 +71,13 @@ const rejected = (code: string, message: string): EffectOutcome => ({
  * 2. If the screen already shows the desired state, the effect is accepted without acting
  *    (convergence makes screen actions idempotent).
  * 3. Unmet preconditions reject the effect as business data (`PRECONDITION`); nothing is done.
- * 4. Before every action the control state and local input are checked again, the expected screen
- *    is verified, and the resolved point is refused inside any forbidden region.
- * 5. Acceptance is a readback: observed values matching the request, never "the clicks worked".
+ * 4. Before every click, type and key action the control state and local input are checked again,
+ *    the screen the procedure expects at that point is verified on a fresh capture (for a click, the
+ *    capture its target was resolved on), and the resolved point is refused inside any forbidden
+ *    region.
+ * 5. Acceptance is a readback: observed values matching the request on as many consecutive views
+ *    as the fields' `stableReads` require, never "the clicks worked" or one transient reading. The
+ *    same standard applies to convergence, preconditions and lookup.
  * 6. Once anything was done, an interruption is `DeliveryUncertain` (held for a person to
  *    reconcile) unless the procedure is declared `rerunnable`.
  */
@@ -111,19 +116,50 @@ export function createStationConnector(options: StationConnectorOptions): System
     return undefined;
   }
 
-  /** Poll until the predicate holds; on timeout returns the last view, unmatched. */
+  /**
+   * Poll until the predicate holds on `required` consecutive views; on timeout returns the last
+   * view, unmatched.
+   */
   async function waitFor(
     predicate: (view: View) => boolean,
     timeoutMs: number,
     signal: AbortSignal,
+    required = 1,
   ): Promise<{ readonly view: View; readonly matched: boolean }> {
     const deadline = now() + timeoutMs;
+    let streak = 0;
     for (;;) {
       const view = await observe(signal);
-      if (predicate(view)) return { view, matched: true };
+      streak = predicate(view) ? streak + 1 : 0;
+      if (streak >= required) return { view, matched: true };
       if (now() >= deadline || signal.aborted) return { view, matched: false };
       await sleep(pollMs, signal);
     }
+  }
+
+  /** Consecutive agreeing views a condition set needs: the most `stableReads` among its fields. */
+  const readsFor = (conditions: readonly Condition[]) =>
+    Math.max(1, ...conditions.map((item) => perception.field(item.field)?.stableReads ?? 1));
+
+  /**
+   * Evaluate conditions to the profile's standard, the same one the observer applies: met only
+   * when `readsFor` consecutive views all meet them, so one confident transient reading cannot
+   * establish a state. Stops at the first view that does not, and reports that view's result.
+   */
+  async function confirm(
+    conditions: readonly Condition[],
+    input: unknown,
+    first: View,
+    signal: AbortSignal,
+  ) {
+    let view = first;
+    let result = evaluate(perception, view, conditions, input);
+    for (let read = 1; result.met && read < readsFor(conditions); read++) {
+      await sleep(pollMs, signal);
+      view = await observe(signal);
+      result = evaluate(perception, view, conditions, input);
+    }
+    return { view, ...result };
   }
   const showing = (view: View) => `the station shows ${view.screen ?? 'an unknown screen'}`;
 
@@ -151,13 +187,15 @@ export function createStationConnector(options: StationConnectorOptions): System
     const blocked = blockedBy(initial, procedure);
     if (blocked) throw new DeliveryFailure(blocked);
 
-    let view = await observe(signal);
-    if (evaluate(perception, view, procedure.readback, input).met) return accepted(view);
+    const converged = await confirm(procedure.readback, input, await observe(signal), signal);
+    if (converged.met) return accepted(converged.view);
+    let view = converged.view;
     if (view.screen !== procedure.startScreen)
       throw new DeliveryFailure(
         `Station shows ${view.screen ?? 'an unknown screen'}; ${procedure.title} starts on ${procedure.startScreen}`,
       );
-    const preconditions = evaluate(perception, view, procedure.preconditions, input);
+    const preconditions = await confirm(procedure.preconditions, input, view, signal);
+    view = preconditions.view;
     if (preconditions.unknown.length)
       throw new DeliveryFailure(`Cannot read ${preconditions.unknown.join(', ')} with confidence`);
     if (preconditions.unmet.length)
@@ -185,8 +223,20 @@ export function createStationConnector(options: StationConnectorOptions): System
       if (await options.transport.localInputSince?.(since, signal))
         throw stop('Someone used the station during the procedure');
     };
-    const act = async (action: ScreenAction) => {
+    // The screen the next action must find: the start screen, then whatever the last
+    // `expect-screen` or `wait-for` step established. A popup or vendor dialog that appears after
+    // an action is caught before the next one, never typed into.
+    let expected = procedure.startScreen;
+    const act = async (action: ScreenAction, at: string, frame?: Frame) => {
       await guard();
+      const shown = await perception.identify(
+        frame ?? (await options.transport.capture(signal)),
+        signal,
+      );
+      if (shown !== expected)
+        throw stop(
+          `Expected ${expected} before the ${action.kind} at ${at}, found ${shown ?? 'an unknown screen'}`,
+        );
       acted = true;
       touched.add(effect.id);
       await options.transport.act(action, signal);
@@ -203,6 +253,7 @@ export function createStationConnector(options: StationConnectorOptions): System
               throw stop(
                 `Expected ${step.screen} at ${at}, found ${view.screen ?? 'an unknown screen'}`,
               );
+            expected = step.screen;
             break;
           }
           case 'click': {
@@ -214,14 +265,14 @@ export function createStationConnector(options: StationConnectorOptions): System
             if (!point) throw stop(`Target not found at ${at}`);
             const zone = forbiddenAt(frame, point);
             if (zone) throw stop(`Refused to act inside forbidden ${zone} at ${at}`);
-            await act({ kind: 'click', point });
+            await act({ kind: 'click', point }, at, frame);
             break;
           }
           case 'type':
-            await act({ kind: 'type', text: String(resolveBinding(step.text, input)) });
+            await act({ kind: 'type', text: String(resolveBinding(step.text, input)) }, at);
             break;
           case 'key':
-            await act({ kind: 'key', key: step.key });
+            await act({ kind: 'key', key: step.key }, at);
             break;
           case 'wait-for': {
             const { field, equals } = step;
@@ -240,6 +291,7 @@ export function createStationConnector(options: StationConnectorOptions): System
             if (!reached.matched)
               throw stop(`Timed out waiting at ${at}; ${showing(reached.view)}`);
             view = reached.view;
+            if (step.screen !== undefined) expected = step.screen;
             break;
           }
         }
@@ -249,6 +301,7 @@ export function createStationConnector(options: StationConnectorOptions): System
         (candidate) => evaluate(perception, candidate, procedure.readback, input).met,
         Math.max(pollMs, procedure.timeoutMs - (now() - started)),
         signal,
+        readsFor(procedure.readback),
       );
       if (!confirmed.matched)
         throw stop(
@@ -279,8 +332,14 @@ export function createStationConnector(options: StationConnectorOptions): System
   ): Promise<LookupResult> {
     const procedure = effect && procedures.get(effect.type);
     if (!effect || !procedure) return undefined;
-    const view = await observe(signal);
-    if (evaluate(perception, view, procedure.readback, effect.payload).met) return accepted(view);
+    const readback = await confirm(
+      procedure.readback,
+      effect.payload,
+      await observe(signal),
+      signal,
+    );
+    if (readback.met) return accepted(readback.view);
+    const view = readback.view;
     const untouched = attempted.has(effect.id) && !touched.has(effect.id);
     if (
       effect.attempts === 0 ||

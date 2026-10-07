@@ -1,8 +1,8 @@
 import { build, Platform, Arch } from 'electron-builder';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
-import { desktopTargets, type DesktopTarget } from '../apps/desktop/src/runtime-manifest';
-import { readApplicationIdentity } from '../apps/desktop/src/application-identity';
+import { desktopTargets, type DesktopTarget } from '@agent-native/host/runtime-manifest';
+import { readApplicationIdentity } from '@agent-native/host/config';
 
 /** Packages an already staged immutable target. Provider/runtime acquisition and
  * compilation are separate so a packaging failure does not rebuild trusted assets. */

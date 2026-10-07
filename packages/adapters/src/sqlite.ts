@@ -49,7 +49,9 @@ export class SQLiteStorage<State> implements Storage<State> {
     const snapshot: WorkspaceSnapshot<State> = row
       ? (JSON.parse(row.document) as WorkspaceSnapshot<State>)
       : {
-          state: this.initialState(),
+          // A factory may hand out the same object every time; a rolled-back transaction must
+          // not leave its mutations on it.
+          state: structuredClone(this.initialState()),
           cursor: 0,
           authorizationRevision: 0,
           resourceRevisions: {},

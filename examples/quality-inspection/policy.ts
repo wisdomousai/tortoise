@@ -21,20 +21,31 @@ function lotIdOf(state: QualityState, operation: string, args: Record<string, un
   return typeof args.lotId === 'string' ? args.lotId : undefined;
 }
 
-/** Resolve the plant that governs read access to a journal resource. */
-export function plantOfResource(state: QualityState, resource: string): string | undefined {
+/**
+ * Resolve the lot that owns a journal or outbox resource (`lot:`, `result:`, `defect:`), or
+ * undefined for resources no lot owns. Every lot-scoped visibility check goes through this one
+ * mapping, so rows, counts and effect aggregates cannot disagree about ownership.
+ */
+export function lotOfResource(state: QualityState, resource: string): string | undefined {
   const separator = resource.indexOf(':');
   const type = resource.slice(0, separator);
   const id = resource.slice(separator + 1);
-  if (type === 'plant') return own(state.plants, id) ? id : undefined;
-  const lotId =
-    type === 'lot'
-      ? id
-      : type === 'result'
-        ? own(state.results, id)?.lotId
-        : type === 'defect'
-          ? own(state.defects, id)?.lotId
-          : undefined;
+  return type === 'lot'
+    ? id
+    : type === 'result'
+      ? own(state.results, id)?.lotId
+      : type === 'defect'
+        ? own(state.defects, id)?.lotId
+        : undefined;
+}
+
+/** Resolve the plant that governs read access to a journal resource. */
+export function plantOfResource(state: QualityState, resource: string): string | undefined {
+  if (resource.startsWith('plant:')) {
+    const id = resource.slice(6);
+    return own(state.plants, id) ? id : undefined;
+  }
+  const lotId = lotOfResource(state, resource);
   return lotId === undefined ? undefined : own(state.lots, lotId)?.plant;
 }
 

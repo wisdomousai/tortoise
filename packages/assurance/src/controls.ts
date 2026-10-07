@@ -25,7 +25,10 @@ export interface Control {
   readonly evidence: {
     /** Test files that demonstrate the behaviour; `bun test <file>` re-runs them. */
     readonly tests: readonly string[];
-    /** Generated or exported artifacts (paths under `docs/reference`, or CLI exports). */
+    /**
+     * Generated or exported artifacts: paths under `docs/reference` (per-application artifacts
+     * cite the quality-inspection reference application), or CLI exports.
+     */
     readonly artifacts: readonly string[];
     /** Audit event kinds that show the control operating at runtime. */
     readonly events: readonly string[];
@@ -47,7 +50,10 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['packages/contracts/test/contracts.test.ts'],
-      artifacts: ['docs/reference/security-manifest.json', 'docs/reference/data-flows.md'],
+      artifacts: [
+        'docs/reference/quality-inspection/security-manifest.json',
+        'docs/reference/quality-inspection/data-flows.md',
+      ],
       events: ['policy.loaded'],
     },
   },
@@ -66,7 +72,10 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 5.1'],
     },
     evidence: {
-      tests: ['packages/egress/test/egress.test.ts', 'apps/service/security.test.ts'],
+      tests: [
+        'packages/egress/test/egress.test.ts',
+        'examples/project-tasks/test/security.test.ts',
+      ],
       artifacts: [],
       events: ['egress.allowed', 'egress.denied', 'egress.completed'],
     },
@@ -104,8 +113,11 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 7.7'],
     },
     evidence: {
-      tests: ['apps/service/security.test.ts', 'packages/egress/test/egress.test.ts'],
-      artifacts: ['docs/reference/data-flows.md'],
+      tests: [
+        'examples/project-tasks/test/security.test.ts',
+        'packages/egress/test/egress.test.ts',
+      ],
+      artifacts: ['docs/reference/quality-inspection/data-flows.md'],
       events: ['policy.loaded', 'effect.enqueued'],
     },
   },
@@ -124,7 +136,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['packages/egress/test/egress.test.ts'],
-      artifacts: ['docs/reference/data-flows.md'],
+      artifacts: ['docs/reference/quality-inspection/data-flows.md'],
       events: ['egress.allowed', 'egress.denied'],
     },
   },
@@ -159,7 +171,10 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 2.8'],
     },
     evidence: {
-      tests: ['packages/runtime/test/audit.test.ts', 'apps/service/security.test.ts'],
+      tests: [
+        'packages/runtime/test/audit.test.ts',
+        'examples/project-tasks/test/security.test.ts',
+      ],
       artifacts: [],
       events: [
         'command.accepted',
@@ -204,7 +219,10 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 2.12', 'CR 3.9'],
     },
     evidence: {
-      tests: ['packages/event-log/test/event-log.test.ts'],
+      tests: [
+        'packages/event-log/test/event-log.test.ts',
+        'examples/quality-inspection/test/security.test.ts',
+      ],
       artifacts: ['audit verify --log <dir>'],
       events: ['log.opened', 'log.checkpoint'],
     },
@@ -242,8 +260,11 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 4.1'],
     },
     evidence: {
-      tests: ['packages/runtime/test/audit.test.ts', 'apps/service/security.test.ts'],
-      artifacts: ['docs/reference/data-flows.md'],
+      tests: [
+        'packages/runtime/test/audit.test.ts',
+        'examples/project-tasks/test/security.test.ts',
+      ],
+      artifacts: ['docs/reference/quality-inspection/data-flows.md'],
       events: ['command.accepted'],
     },
   },
@@ -299,9 +320,9 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: [
         'packages/runtime/test/runtime.test.ts',
-        'packages/testing/src/security-conformance.test.ts',
+        'examples/project-tasks/test/security-conformance.test.ts',
       ],
-      artifacts: ['docs/reference/contract.json'],
+      artifacts: ['docs/reference/quality-inspection/contract.json'],
       events: ['command.denied', 'query.denied'],
     },
   },
@@ -322,8 +343,8 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: [
         'packages/egress/test/egress.test.ts',
-        'apps/service/security.test.ts',
-        'apps/service/hardening.test.ts',
+        'examples/project-tasks/test/security.test.ts',
+        'examples/project-tasks/test/hardening.test.ts',
       ],
       artifacts: ['security export --format k8s-networkpolicy|nftables'],
       events: ['config.loaded'],
@@ -342,7 +363,11 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 3.4', 'CR 7.6'],
     },
     evidence: {
-      tests: ['apps/service/security.test.ts', 'packages/egress/test/egress.test.ts'],
+      tests: [
+        'examples/project-tasks/test/security.test.ts',
+        'examples/quality-inspection/test/security.test.ts',
+        'packages/egress/test/egress.test.ts',
+      ],
       artifacts: ['security check --site <file>'],
       events: ['config.loaded', 'policy.loaded'],
     },
@@ -363,7 +388,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['packages/assurance/test/assurance.test.ts'],
-      artifacts: ['docs/reference/sbom.cdx.json'],
+      artifacts: ['docs/reference/quality-inspection/sbom.cdx.json'],
       events: [],
     },
   },
@@ -401,7 +426,10 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['scripts/check-boundaries.ts'],
-      artifacts: ['docs/reference/contract.json', 'docs/reference/security-manifest.json'],
+      artifacts: [
+        'docs/reference/quality-inspection/contract.json',
+        'docs/reference/quality-inspection/security-manifest.json',
+      ],
       events: [],
     },
   },
@@ -418,8 +446,8 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 3.5'],
     },
     evidence: {
-      tests: ['packages/testing/test/transport-conformance.test.ts'],
-      artifacts: ['docs/reference/openapi.json'],
+      tests: ['examples/project-tasks/test/transport-conformance.test.ts'],
+      artifacts: ['docs/reference/quality-inspection/openapi.json'],
       events: ['command.failed'],
     },
   },

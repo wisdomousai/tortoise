@@ -74,7 +74,7 @@ export class DeliveryUncertain extends DeliveryFailure {
 export interface DispatcherApplication {
   pendingEffects(
     context: ExecutionContext,
-    filter?: { readonly target?: string; readonly limit?: number },
+    filter?: { readonly target?: string; readonly limit?: number; readonly includeHeld?: boolean },
   ): Promise<readonly Effect[]>;
   recordAttempt(
     context: ExecutionContext,
@@ -205,8 +205,11 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
         }
         outcome ??= await options.port.deliver(effect, signal);
       } catch (error) {
-        if (signal.aborted) break;
         const uncertain = error instanceof DeliveryUncertain;
+        // An uncertain outcome is recorded even during shutdown: the target may have changed, and
+        // an unrecorded attempt looks fresh (`attempts === 0`) to the next process, which would
+        // deliver again. Recording uses the dispatcher's own context, not the cancelled signal.
+        if (signal.aborted && !uncertain) break;
         await options.application.recordAttempt(
           options.context,
           effect.id,
@@ -215,6 +218,7 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
         );
         if (uncertain) report.held++;
         else report.retried++;
+        if (signal.aborted) break;
         continue;
       }
       try {
@@ -245,21 +249,82 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
    * Deliver until nothing is pending or the timeout passes, ignoring backoff. Returns the number of
    * effects still awaiting delivery; held effects await reconciliation and are not counted. An
    * ephemeral host calls this before teardown so captured data is not silently abandoned.
+   * The deadline aborts a delivery still in flight, so a hung target cannot hang the drain; an
+   * adapter that already acted reports that as `DeliveryUncertain`, which is held, not retried.
    */
   async function drain(timeoutMs: number, pollMs = 200): Promise<number> {
     // A timeout is elapsed time; the injected clock may be frozen or skewed for backoff tests.
-    const deadline = performance.now() + timeoutMs;
     const controller = new AbortController();
-    for (;;) {
-      await runOnce(controller.signal, { ignoreBackoff: true });
-      const remaining = (
-        await options.application.pendingEffects(options.context, { target: description.target })
-      ).length;
-      if (remaining === 0 || performance.now() >= deadline) return remaining;
-      await new Promise((resolve) => setTimeout(resolve, pollMs));
+    const deadline = setTimeout(() => controller.abort(), Math.max(0, timeoutMs));
+    const pause = (ms: number) =>
+      new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, ms);
+        controller.signal.addEventListener('abort', () => (clearTimeout(timer), resolve()), {
+          once: true,
+        });
+      });
+    try {
+      for (;;) {
+        await runOnce(controller.signal, { ignoreBackoff: true });
+        const remaining = (
+          await options.application.pendingEffects(options.context, {
+            target: description.target,
+          })
+        ).length;
+        if (remaining === 0 || controller.signal.aborted) return remaining;
+        await pause(pollMs);
+      }
+    } finally {
+      clearTimeout(deadline);
     }
   }
   return { target: description.target, runOnce, drain, ...createLoop((signal) => runOnce(signal)) };
+}
+
+export interface TargetBacklog {
+  readonly target: string;
+  /** Effects still awaiting delivery. */
+  readonly pending: number;
+  /** Effects whose outcome is unknown; they wait for reconciliation, not delivery. */
+  readonly held: number;
+  /** Whether a dispatcher in this process delivers to the target. */
+  readonly deliverable: boolean;
+}
+
+/**
+ * Drain every dispatcher a host composed, concurrently under one deadline, then account for the
+ * whole outbox by target. A target with pending effects but no dispatcher here (a screen bridge
+ * that only a running host owns, say) is reported as not deliverable instead of being left out,
+ * so `pending` is zero only when nothing in the workspace still awaits delivery. Held effects
+ * are reported but not counted: they wait for a reconciliation command. `context` is the trusted
+ * host identity that reads the outbox; it needs no business grant. Counts stop at 10 000 per
+ * read, which still reports a backlog as non-zero.
+ */
+export async function drainTargets(options: {
+  readonly application: Pick<DispatcherApplication, 'pendingEffects'>;
+  readonly context: ExecutionContext;
+  readonly dispatchers: readonly { readonly target: string; drain(ms: number): Promise<number> }[];
+  readonly timeoutMs: number;
+}): Promise<{ pending: number; targets: TargetBacklog[] }> {
+  await Promise.all(options.dispatchers.map((dispatcher) => dispatcher.drain(options.timeoutMs)));
+  const backlog = new Map<string, { pending: number; held: number }>(
+    options.dispatchers.map((dispatcher) => [dispatcher.target, { pending: 0, held: 0 }]),
+  );
+  const effects = await options.application.pendingEffects(options.context, {
+    limit: 10_000,
+    includeHeld: true,
+  });
+  for (const effect of effects) {
+    const entry = backlog.get(effect.target) ?? { pending: 0, held: 0 };
+    if (effect.heldAt === undefined) entry.pending++;
+    else entry.held++;
+    backlog.set(effect.target, entry);
+  }
+  const deliverable = new Set(options.dispatchers.map((dispatcher) => dispatcher.target));
+  const targets = [...backlog]
+    .map(([target, counts]) => ({ target, ...counts, deliverable: deliverable.has(target) }))
+    .sort((a, b) => (a.target < b.target ? -1 : a.target > b.target ? 1 : 0));
+  return { pending: targets.reduce((sum, target) => sum + target.pending, 0), targets };
 }
 
 export interface InboundSyncOptions<Item> {
@@ -313,5 +378,69 @@ export function createInboundSync<Item>(options: InboundSyncOptions<Item>) {
     }
     return { batches, items };
   }
-  return { runOnce, ...createLoop(runOnce) };
+  return { target: options.port.describe().target, runOnce, ...createLoop(runOnce) };
 }
+
+export interface TargetIntegrationOptions<Item> {
+  readonly application: DispatcherApplication & {
+    query(
+      request: { readonly operation: string; readonly input: unknown },
+      context: ExecutionContext,
+    ): Promise<{ readonly data: unknown }>;
+  };
+  readonly port: SystemOfRecordPort<Item>;
+  /**
+   * Trusted identity for both directions. Grant it only the settle, sync and status operations,
+   * so a misbehaving adapter cannot drive business commands or read other features.
+   */
+  readonly context: ExecutionContext;
+  readonly settleOperation: string;
+  readonly syncOperation: string;
+  /** Authorized query whose result carries the stored inbound `watermark`. */
+  readonly statusOperation: string;
+  readonly toInput: InboundSyncOptions<Item>['toInput'];
+}
+
+/**
+ * One system of record wired in both directions: the outbox dispatcher delivers committed effects
+ * to the port and the inbound sync pulls its changes, both under one trusted identity. It owns no
+ * state; every write goes through the application's settle and sync commands. `start` runs the
+ * background loops (sync every 5 s and delivery every 1 s by default); `stop` waits for both.
+ */
+export function createTargetIntegration<Item>(options: TargetIntegrationOptions<Item>) {
+  const dispatcher = createEffectDispatcher({
+    application: options.application,
+    port: options.port,
+    context: options.context,
+    settleOperation: options.settleOperation,
+  });
+  const inbound = createInboundSync<Item>({
+    application: options.application,
+    port: options.port,
+    context: options.context,
+    syncOperation: options.syncOperation,
+    readCursor: async () =>
+      (
+        (await options.application.query(
+          { operation: options.statusOperation, input: {} },
+          options.context,
+        )) as { data: { watermark?: string } }
+      ).data.watermark,
+    toInput: options.toInput,
+  });
+  return {
+    target: dispatcher.target,
+    port: options.port,
+    context: options.context,
+    dispatcher,
+    inbound,
+    start(intervals: { readonly deliverMs?: number; readonly syncMs?: number } = {}) {
+      inbound.start(intervals.syncMs ?? 5_000);
+      dispatcher.start(intervals.deliverMs ?? 1_000);
+    },
+    async stop() {
+      await Promise.all([inbound.stop(), dispatcher.stop()]);
+    },
+  };
+}
+export type TargetIntegration<Item = unknown> = ReturnType<typeof createTargetIntegration<Item>>;

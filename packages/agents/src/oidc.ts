@@ -78,6 +78,9 @@ export class OidcAccountConnection {
   private readonly key: JWTVerifyGetKey;
   private readonly fetcher: typeof fetch;
   private readonly now: () => number;
+  // Credential writes run one at a time, like the ChatGPT account: a logout queued behind an
+  // in-flight refresh or sign-in removes what that operation stored, never the other way round.
+  private writes: Promise<unknown> = Promise.resolve();
   constructor(
     private readonly config: OidcConfiguration,
     private readonly vault: CredentialVault,
@@ -113,6 +116,11 @@ export class OidcAccountConnection {
       });
     this.fetcher = options.fetch ?? fetch;
     this.now = options.now ?? Date.now;
+  }
+  private serial<T>(work: () => Promise<T>): Promise<T> {
+    const result = this.writes.catch(() => {}).then(work);
+    this.writes = result;
+    return result;
   }
   begin(localSessionId: string): { authorizationUrl: string; expiresAt: number } {
     if (!localSessionId) throw new Error('Trusted local session required');
@@ -162,7 +170,13 @@ export class OidcAccountConnection {
       throw new Error('Provider did not grant the required scopes');
     return scopes;
   }
-  async complete(
+  complete(
+    callbackUrl: string,
+    localSessionId: string,
+  ): Promise<{ subject: string; scopes: string[]; expiresAt: number }> {
+    return this.serial(() => this.completeNow(callbackUrl, localSessionId));
+  }
+  private async completeNow(
     callbackUrl: string,
     localSessionId: string,
   ): Promise<{ subject: string; scopes: string[]; expiresAt: number }> {
@@ -241,7 +255,10 @@ export class OidcAccountConnection {
       throw new Error('Stored provider profile does not match configured issuer');
     return value;
   }
-  async refresh(): Promise<{ expiresAt: number; scopes: string[] }> {
+  refresh(): Promise<{ expiresAt: number; scopes: string[] }> {
+    return this.serial(() => this.refreshNow());
+  }
+  private async refreshNow(): Promise<{ expiresAt: number; scopes: string[] }> {
     const previous = await this.credentials();
     if (!previous?.refreshToken) throw new Error('Provider profile has no refresh grant');
     const data = await this.tokenRequest({
@@ -266,8 +283,8 @@ export class OidcAccountConnection {
     await this.vault.set(this.account, JSON.stringify(next));
     return { expiresAt: next.expiresAt, scopes };
   }
-  async logout() {
+  logout(): Promise<boolean> {
     this.pending.clear();
-    return this.vault.remove(this.account);
+    return this.serial(() => this.vault.remove(this.account));
   }
 }

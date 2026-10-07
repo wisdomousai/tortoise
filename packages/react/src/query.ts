@@ -47,10 +47,14 @@ export function createLiveBindings(transport: Transport) {
   // Revision last applied from the stream; a higher one resets every cached query, including
   // queries whose own snapshot already reached it (other entries may predate the change).
   let streamRevision = -1;
+  // Lowest revision of any snapshot cached before the stream's first batch, which has no earlier
+  // stream revision to compare against.
+  let oldestSnapshot = Infinity;
   const fence = <T>(snapshot: Snapshot<T>): Snapshot<T> => {
     if (snapshot.authorizationRevision < fenceRevision)
       throw new Error('Snapshot superseded by a permission change');
     fenceRevision = snapshot.authorizationRevision;
+    oldestSnapshot = Math.min(oldestSnapshot, fenceRevision);
     return snapshot;
   };
 
@@ -82,16 +86,22 @@ export function createLiveBindings(transport: Transport) {
    * only active queries whose declared dependencies intersect the changed resource types. A
    * reset invalidates everything; an authorization change resets cached data first, so screens
    * show loading rather than data the principal may no longer read.
+   *
+   * Every cache decision happens synchronously before the first await: the returned promise only
+   * tracks the refetches, so a caller may drop it without delaying the reset.
    */
   async function applyBatch(queryClient: QueryClient, batch: ChangeBatch): Promise<void> {
-    const previous = streamRevision;
-    if (batch.authorizationRevision < previous) return;
+    const first = streamRevision < 0;
+    // The first batch compares with the snapshots cached before the stream started.
+    const previous = first ? oldestSnapshot : streamRevision;
+    if (batch.authorizationRevision < streamRevision) return;
     streamRevision = batch.authorizationRevision;
     fenceRevision = Math.max(fenceRevision, streamRevision);
     const filter = { queryKey: [CAPABILITY_QUERY_KEY] };
-    if (previous >= 0 && streamRevision > previous) return queryClient.resetQueries(filter);
+    // Reset, not invalidate: invalidation keeps showing the old data while it refetches.
+    if (streamRevision > previous) return queryClient.resetQueries(filter);
     // A stream's first batch is a reset at the authority's current position.
-    if (batch.reset || previous < 0) return queryClient.invalidateQueries(filter);
+    if (batch.reset || first) return queryClient.invalidateQueries(filter);
     if (!batch.changes.length) return;
     const types = changedResourceTypes(batch);
     await queryClient.invalidateQueries({
@@ -113,7 +123,9 @@ export function createLiveBindings(transport: Transport) {
         for await (const batch of transport.events(cursor, signal)) {
           if (signal.aborted) return;
           cursor = batch.cursor;
-          await applyBatch(queryClient, batch);
+          // Not awaited: a refetch that never answers must not hold back a later revocation.
+          // applyBatch changes the cache before its first await, so batches still apply in order.
+          void applyBatch(queryClient, batch);
         }
       } catch {
         if (signal.aborted) return;

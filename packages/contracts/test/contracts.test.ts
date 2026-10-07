@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
 import {
+  assertJson,
   buildCatalog,
   canonicalJson,
   defineCapability,
@@ -241,4 +242,10 @@ describe('declared requirements', () => {
       ]),
     ).toThrow('Audit field secret');
   });
+});
+
+test('sparse arrays are not JSON, so they cannot reload as null', () => {
+  expect(() => assertJson(new Array(1))).toThrow('Sparse array at $[0]');
+  expect(() => assertJson({ list: [1, , 3] })).toThrow('Sparse array at $.list[1]');
+  expect(() => assertJson([null, 1])).not.toThrow();
 });

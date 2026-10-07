@@ -322,3 +322,97 @@ for (const fixture of ['tool-envelope', 'turn-status', 'thread-response'] as con
     expect(closed).toBe(true);
     expect(calls.length).toBe(0);
   });
+
+test('every adapter shows the model the captured selection and nothing else from the run context', async () => {
+  const context = {
+    principalId: 'owner',
+    workspaceId: 'local',
+    grant: { operations: ['task.update'], principalId: 'owner' },
+    providerProfile: 'profile-secret',
+    uiContext: {
+      sessionId: 'ui-1',
+      version: 3,
+      selectedResources: ['task:id-3'],
+      observedRevisions: { 'task:id-3': 4 },
+    },
+  };
+  const selected = { ...turn(), prompt: 'Rename the selected task.', context };
+  const prompts: string[] = [];
+
+  const rpc: any = {
+    request: async (method: string, params: any) => {
+      if (method === 'thread/start') return { thread: { id: 'thread' } };
+      if (method === 'turn/start') {
+        prompts.push(params.input[0].text);
+        setTimeout(() =>
+          rpc.onMessage({
+            method: 'turn/completed',
+            params: { threadId: 'thread', turn: { id: 'turn', status: 'completed' } },
+          }),
+        );
+        return { turn: { id: 'turn' } };
+      }
+      return {};
+    },
+    notify() {},
+    close() {},
+  };
+  await collect(
+    new CodexHarness({
+      executable: process.execPath,
+      cwd: process.cwd(),
+      home: '/fixture',
+      environment: {},
+      createRpc: () => rpc,
+    }).run(selected),
+  );
+
+  const query: any = ({ prompt }: any) => {
+    prompts.push(prompt);
+    return Object.assign(
+      (async function* () {
+        yield { type: 'system', subtype: 'init', session_id: 's' };
+        yield { type: 'result', subtype: 'success', is_error: false };
+      })(),
+      { close() {} },
+    );
+  };
+  await collect(
+    new ClaudeHarness({
+      executable: process.execPath,
+      cwd: process.cwd(),
+      home: '/isolated',
+      apiKey: 'explicit-fixture',
+      query,
+    }).run(selected),
+  );
+
+  const model = new MockLanguageModelV4({
+    doStream: {
+      stream: new ReadableStream({
+        start(controller) {
+          controller.enqueue({ type: 'stream-start', warnings: [] });
+          controller.enqueue({
+            type: 'finish',
+            usage: {
+              inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+              outputTokens: { total: 1, text: 1, reasoning: 0 },
+            },
+            finishReason: { unified: 'stop', raw: 'stop' },
+          });
+          controller.close();
+        },
+      }),
+    } as any,
+  });
+  await collect(new AiSdkHarness({ model }).run(selected));
+  prompts.push(JSON.stringify(model.doStreamCalls[0]!.prompt));
+
+  expect(prompts).toHaveLength(3);
+  for (const prompt of prompts) {
+    expect(prompt).toContain('Rename the selected task.');
+    expect(prompt).toContain('task:id-3 (revision 4)');
+    for (const hidden of ['task.update', 'profile-secret', 'owner', 'ui-1'])
+      expect(prompt).not.toContain(hidden);
+  }
+});

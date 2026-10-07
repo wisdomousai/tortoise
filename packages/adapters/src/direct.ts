@@ -2,13 +2,19 @@ import { readFile } from 'node:fs/promises';
 import type { ChangeBatch, Cursor, Transport } from '@agent-native/client';
 import { ApplicationError, type Catalog } from '@agent-native/contracts';
 import type { DelegationGrant, ExecutionContext } from '@agent-native/runtime';
-import type { ApplicationPort } from './http';
+import { withSignal, type ApplicationPort } from './http';
+
+/** Direct cursors are `<journal position>.<authorization revision>`; no session exists to seal them. */
+const cursorOf = (position: number, authorizationRevision: number) =>
+  `${position}.${authorizationRevision}`;
 
 /**
  * In-process transport for an embedded authority (stdio MCP or a one-shot CLI in a sandbox).
  * The launcher fixes `context` once; nothing a caller passes per request can change identity or
- * delegation. Results match the HTTP transport, except cursors are plain journal positions
- * because no network session exists to bind them to.
+ * delegation, and a per-request signal only adds cancellation to the launcher's. Results match the
+ * HTTP transport, except cursors are readable journal positions because no network session exists
+ * to bind them to. A cursor carries the authorization revision it was issued under, so a
+ * subscription resets when access changed between a snapshot and the stream, like HTTP.
  */
 export function createDirectTransport(
   application: ApplicationPort,
@@ -20,11 +26,12 @@ export function createDirectTransport(
       return application.discover(context);
     },
     async query<T>(operation: string, input: unknown, signal?: AbortSignal) {
-      const result = await application.queryRaw(
-        { operation, input },
-        signal ? { ...context, signal } : context,
-      );
-      return { ...result, data: result.data as T, cursor: String(result.cursor) };
+      const result = await application.queryRaw({ operation, input }, withSignal(context, signal));
+      return {
+        ...result,
+        data: result.data as T,
+        cursor: cursorOf(result.cursor, result.authorizationRevision),
+      };
     },
     async command<T>(
       operation: string,
@@ -42,28 +49,29 @@ export function createDirectTransport(
             ? { expectedRevisions: commandOptions.expectedRevisions }
             : {}),
         },
-        commandOptions.signal ? { ...context, signal: commandOptions.signal } : context,
+        withSignal(context, commandOptions.signal),
       );
       return {
         operation: receipt.operation,
         result: receipt.result as T,
-        cursor: String(receipt.cursor),
+        cursor: cursorOf(receipt.cursor, receipt.authorizationRevision),
         authorizationRevision: receipt.authorizationRevision,
         revisions: { ...receipt.revisions },
+        ...(receipt.effects ? { effects: [...receipt.effects] } : {}),
       };
     },
     async *events(cursor: Cursor, signal: AbortSignal): AsyncIterable<ChangeBatch> {
-      // An empty or foreign cursor starts with a reset at the current position, like HTTP.
-      let after = /^\d+$/.test(cursor) ? Number(cursor) : undefined;
-      let revision: number | undefined;
+      // An empty, foreign or revision-less cursor starts with a reset at the current position.
+      const parsed = /^(\d+)\.(\d+)$/.exec(cursor);
+      let after = parsed ? Number(parsed[1]) : undefined;
+      let revision = parsed ? Number(parsed[2]) : undefined;
+      const subscribed = withSignal(context, signal);
       while (!signal.aborted) {
-        const batch = await application.events(after ?? 0, { ...context, signal });
-        const reset =
-          after === undefined ||
-          (revision !== undefined && revision !== batch.authorizationRevision);
+        const batch = await application.events(after ?? 0, subscribed);
+        const reset = after === undefined || revision !== batch.authorizationRevision;
         if (reset || batch.events.length)
           yield {
-            cursor: String(batch.cursor),
+            cursor: cursorOf(batch.cursor, batch.authorizationRevision),
             authorizationRevision: batch.authorizationRevision,
             reset,
             changes: reset
@@ -78,8 +86,13 @@ export function createDirectTransport(
         after = batch.cursor;
         revision = batch.authorizationRevision;
         await new Promise<void>((resolve) => {
-          const timer = setTimeout(resolve, options.pollMs ?? 250);
-          signal.addEventListener('abort', () => (clearTimeout(timer), resolve()), { once: true });
+          const done = () => {
+            clearTimeout(timer);
+            signal.removeEventListener('abort', done);
+            resolve();
+          };
+          const timer = setTimeout(done, options.pollMs ?? 250);
+          signal.addEventListener('abort', done, { once: true });
         });
       }
     },

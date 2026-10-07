@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/host",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Generic local authority: hosts one application definition over HTTP, MCP and CLI.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

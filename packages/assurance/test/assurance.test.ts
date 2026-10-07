@@ -262,7 +262,7 @@ describe('generated assurance artifacts', () => {
   });
 
   test('the published SBOM covers the repository lock', async () => {
-    const bom = JSON.parse(await readFile(join(root, 'docs/reference/sbom.cdx.json'), 'utf8'));
+    const bom = JSON.parse(await readFile(join(root, 'docs/reference/quality-inspection/sbom.cdx.json'), 'utf8'));
     expect(bom.components.length).toBeGreaterThan(100);
     expect(
       bom.components.every((item: any) => item.purl || item['bom-ref'].startsWith('workspace:')),

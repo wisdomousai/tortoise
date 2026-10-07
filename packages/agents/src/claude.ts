@@ -7,7 +7,7 @@ import {
 } from '@anthropic-ai/claude-agent-sdk';
 import { z } from 'zod';
 import type { Harness, HarnessEvent, HarnessTurn } from './types';
-import { toolName } from './types';
+import { modelPrompt, toolName } from './types';
 import { spawn } from 'node:child_process';
 import { executableAvailable, nativeEnvironment, terminateProcessTree } from './process';
 
@@ -137,7 +137,7 @@ export class ClaudeHarness implements Harness {
       },
     };
     let complete = false;
-    const messages = (this.options.query ?? query)({ prompt: turn.prompt, options });
+    const messages = (this.options.query ?? query)({ prompt: modelPrompt(turn), options });
     try {
       for await (const message of messages) {
         turn.signal.throwIfAborted();

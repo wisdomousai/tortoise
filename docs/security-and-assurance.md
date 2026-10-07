@@ -1,6 +1,6 @@
 # Security and assurance
 
-This guide is for teams that must admit the application into a restricted network. It covers what the app may reach, how that is enforced, how every action is recorded, and how an auditor checks all of it, both before deployment and while the app runs. The design decision is recorded in [ADR 005](decisions/005-declared-egress-and-audit-log.md).
+This guide is for teams that must admit the application into a restricted network. It covers what the app may reach, how that is enforced, how every action is recorded, and how an auditor checks all of it, both before deployment and while the app runs. The design decision is recorded in [ADR 007](decisions/007-declared-egress-and-audit-log.md).
 
 The model has four parts:
 
@@ -11,7 +11,7 @@ The model has four parts:
 
 ## 1. Declarations
 
-Each capability module and host component declares `requirements` (`packages/contracts/src/requirements.ts`):
+Each capability module and host component declares `requirements` (`packages/contracts/src/requirements.ts`). The host adds its own components (`hostComponents` in `packages/host/src/components.ts`); an application adds the components it brings, such as a screen bridge or device drivers, through `components` in its manifest. `deploymentCatalog(manifest)` composes all three:
 
 ```ts
 defineHostComponent({
@@ -41,7 +41,7 @@ defineHostComponent({
 - `processes[].network` lists the only destinations a child process may reach.
 - A capability's `audit.fields` names input fields that are safe to record in plain text. All other input is recorded only as a SHA-256 digest.
 
-`buildCatalog` checks that IDs are unique and references resolve. The composed declarations appear in `docs/reference/contract.json` and in the generated security manifest.
+`buildCatalog` checks that IDs are unique and references resolve. The composed declarations appear in each application's `docs/reference/<id>/contract.json` and in its generated security manifest.
 
 ## 2. Site policy
 
@@ -68,7 +68,7 @@ Validation rules:
 - `ca` replaces the trust store for a destination. `certificatePins` pin server certificates by SHA-256 fingerprint.
 - In `connected` mode, every `required` destination must be bound or explicitly disabled. Every closed destination is listed with its offline consequence.
 
-`apps/service/site-policy.sandbox.json` is a complete sandbox example for the reference app. `apps/desktop/site-policy.json` ships with the desktop build and binds only the provider endpoints.
+`examples/quality-inspection/site-policy.sandbox.json` is a complete sandbox example for the quality-inspection application. `apps/desktop/site-policy.json` ships with the desktop build and binds only the provider endpoints.
 
 ### Profiles
 
@@ -151,7 +151,7 @@ The JSONL adapter (`packages/event-log`):
 
 ## 5. Assurance bundle
 
-`bun run generate` writes these files to `docs/reference/`. CI fails if they drift from the code.
+`bun run generate` writes these files to `docs/reference/<id>/` for each application, and the shared control catalog to `docs/reference/`. CI fails if they drift from the code.
 
 | File                           | Contents                                                                                                                                                                                 |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -164,7 +164,7 @@ The control mappings are indicative. They name the requirement each control cont
 
 ## 6. Checking it
 
-These commands work offline and need no authority or workspace:
+Every application's CLI has these commands (`packages/host/src/assurance-cli.ts`). They work offline and need no authority or workspace:
 
 ```sh
 app security check --site site-policy.json            # exit 2 on any error finding
@@ -181,7 +181,7 @@ Auditors see the result through three read-only queries:
 - `assurance.events.list` (paged; filter by kind or outcome; newest first)
 - `assurance.log.verify`
 
-The **Security** screen in the web app uses the same queries and shows a denial within seconds. Only principals listed as auditors may read these. A delegated grant must name the operation and, if it is limited to specific resources, `audit:log`.
+The **Security** screen (`security-screen` in the frame registry, routed at `/security` by each example) uses the same queries and shows a denial within seconds. Only principals listed as auditors may read these. A delegated grant must name the operation and, if it is limited to specific resources, `audit:log`.
 
 ## 7. Offline first
 

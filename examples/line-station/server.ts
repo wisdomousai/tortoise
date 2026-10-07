@@ -27,6 +27,8 @@ import {
   usable,
   type AttentionItem,
   type CountReport,
+  type FieldDeclaration,
+  type FieldValue,
   type LineState,
   type Reading,
   type Station,
@@ -111,6 +113,25 @@ function summary(ctx: Context, station: Station, changed = false) {
     stale: isStale(ctx, station),
   });
 }
+/** The declared type, or one inferred from the proposed value when the bridge sent none. */
+function declaration(item: AttentionItem): FieldDeclaration {
+  if (item.declared) return item.declared;
+  const type = typeof item.proposed;
+  return { type: type === 'number' ? 'number' : type === 'boolean' ? 'boolean' : 'text' };
+}
+/** A correction must match the field's declared type; a blank or wrong-typed value is refused. */
+function acceptsValue(declared: FieldDeclaration, value: FieldValue) {
+  switch (declared.type) {
+    case 'number':
+      return typeof value === 'number' && Number.isFinite(value);
+    case 'boolean':
+      return typeof value === 'boolean';
+    case 'enum':
+      return typeof value === 'string' && (declared.options ?? []).includes(value);
+    case 'text':
+      return typeof value === 'string' && value.trim() !== '';
+  }
+}
 /** Unsure readings and held screen procedures: everything that waits for a person. */
 function attentionItems(ctx: Context, station: Station) {
   const readings = openAttention(ctx.state, station.id)
@@ -124,8 +145,11 @@ function attentionItems(ctx: Context, station: Station) {
         detail: `The station screen was read as ${JSON.stringify(item.proposed)} with ${Math.round(item.confidence * 100)}% confidence.`,
         field: item.field,
         proposed: item.proposed,
+        value: declaration(item),
         confidence: item.confidence,
         source: item.source,
+        frameDigest: item.frameDigest,
+        profile: item.profile,
         createdAt: item.createdAt,
       }),
     );
@@ -164,7 +188,10 @@ function applyOutcome(ctx: Context, effect: Effect, outcome: EffectOutcome): Syn
   // The station loaded the recipe: the order is now the active one there.
   if (station?.desired && outcome.status === 'accepted') {
     const previous = station.orderId ? own(ctx.state.orders, station.orderId) : undefined;
-    if (previous && previous.id !== station.desired.orderId) previous.status = 'completed';
+    if (previous && previous.id !== station.desired.orderId) {
+      previous.status = 'completed';
+      ctx.change(`order:${previous.id}`);
+    }
     const order = own(ctx.state.orders, station.desired.orderId);
     if (order) {
       order.status = 'active';
@@ -440,8 +467,15 @@ export function createLineHandlers(): HandlerContribution<LineState, LineService
     handler(operations.readingConfirm, (input, ctx) => {
       const item = own(ctx.state.attention, input.attentionId);
       if (!item) throw new ApplicationError('NOT_FOUND', 'Attention item unavailable');
-      if (typeof item.proposed === 'number' && typeof input.value !== 'number')
-        throw new ApplicationError('INVALID_INPUT', 'Enter a number', { field: 'value' });
+      const declared = declaration(item);
+      if (!acceptsValue(declared, input.value))
+        throw new ApplicationError(
+          'INVALID_INPUT',
+          declared.type === 'enum'
+            ? `Choose one of: ${(declared.options ?? []).join(', ')}`
+            : `Enter a ${declared.type === 'text' ? 'non-empty text' : declared.type} value`,
+          { field: 'value' },
+        );
       const station = stationOf(ctx.state, item.station);
       const reading: Reading = {
         value: input.value,
@@ -527,6 +561,7 @@ export function createLineHandlers(): HandlerContribution<LineState, LineService
         return { station: station.id, applied: false };
       station.screen = input.screen;
       station.observedAt = input.observedAt;
+      // The station keeps the latest profile; each reading keeps the one that produced it.
       station.profile = { ...input.profile };
       if (input.localInput) station.localInputAt = input.observedAt;
       const previousMachine = own(station.readings, FIELDS.machine)?.value;
@@ -545,6 +580,8 @@ export function createLineHandlers(): HandlerContribution<LineState, LineService
               source: reading.extractor,
               model: reading.model,
               observedAt: reading.observedAt,
+              frameDigest: reading.frameDigest,
+              profile: { ...input.profile },
               status: 'observed' as const,
             }),
           );
@@ -570,6 +607,9 @@ export function createLineHandlers(): HandlerContribution<LineState, LineService
           source: reading.extractor,
           model: reading.model,
           observedAt: reading.observedAt,
+          frameDigest: reading.frameDigest,
+          profile: { ...input.profile },
+          declared: reading.declared && structuredClone(reading.declared),
           createdAt: open?.createdAt ?? now(ctx),
         });
         put(ctx.state.attention, item.id, item);

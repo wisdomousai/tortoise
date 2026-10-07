@@ -86,6 +86,33 @@ export const terminalStates = new Set<RunState>([
   'interrupted',
 ]);
 
+/**
+ * The text a provider adapter sends to its model: the user's prompt plus the selection the host
+ * captured from their screen when the run started. Only resource references and the revisions the
+ * user saw leave the run context; identity, grant, provider selection and the UI session ID stay
+ * with the host. The host validated each reference with an authorized query at capture, and the
+ * model reads contents only through application tools, which authorize at call time. A context
+ * without a well-formed selection adds nothing.
+ */
+export function modelPrompt(turn: Pick<HarnessTurn, 'prompt' | 'context'>): string {
+  const ui = turn.context.uiContext as
+    { selectedResources?: unknown; observedRevisions?: unknown } | undefined;
+  const selected = Array.isArray(ui?.selectedResources)
+    ? ui.selectedResources.filter((resource): resource is string => typeof resource === 'string')
+    : [];
+  if (!selected.length) return turn.prompt;
+  const revisions = (
+    typeof ui?.observedRevisions === 'object' && ui.observedRevisions !== null
+      ? ui.observedRevisions
+      : {}
+  ) as Record<string, unknown>;
+  const lines = selected.map((resource) => {
+    const revision = revisions[resource];
+    return typeof revision === 'number' ? `- ${resource} (revision ${revision})` : `- ${resource}`;
+  });
+  return `${turn.prompt}\n\nSelected in the application when this request was made (read them with the application tools before acting; they may have changed since):\n${lines.join('\n')}`;
+}
+
 /** Native providers have tighter naming rules than capability IDs. The hexadecimal
  * encoding is reversible and collision-free, unlike replacing punctuation. */
 export function toolName(operation: string): string {

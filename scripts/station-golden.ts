@@ -1,7 +1,8 @@
 /**
  * Gate a station profile and its perception models on labeled golden frames.
  *
- *   bun scripts/station-golden.ts examples/line-station/golden
+ *   bun scripts/station-golden.ts <golden directory>
+ *   cd examples/line-station && bun run station:golden
  *
  * Accessibility fields are read from each frame's recorded tree. Pixel fields use, in order:
  * - STATION_VISION_BASE_URL + STATION_VISION_MODEL: a local OpenAI-compatible vision model
@@ -37,7 +38,8 @@ interface Manifest {
   }[];
 }
 
-const directory = resolve(process.argv[2] ?? 'examples/line-station/golden');
+if (!process.argv[2]) throw new Error('Usage: bun scripts/station-golden.ts <golden directory>');
+const directory = resolve(process.argv[2]);
 const manifest = JSON.parse(readFileSync(resolve(directory, 'manifest.json'), 'utf8')) as Manifest;
 const profile = parseProfile(
   JSON.parse(readFileSync(resolve(directory, manifest.profile), 'utf8')),

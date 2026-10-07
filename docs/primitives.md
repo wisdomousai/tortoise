@@ -4,7 +4,7 @@ At its core the framework is one idea: **a capability catalog over a logical CQR
 
 AI is not the center of this design and not a special case. An agent is a caller like any other, reaching the catalog through MCP or the CLI under a delegated grant. Where models work inside the system, reading a screen or proposing a click, they sit behind ports and only propose; deterministic code validates, acts and verifies. Everything here works without a model.
 
-The other primitives extend that core in three directions: **callers** reaching it from every surface, **edges** connecting it to systems that keep their own records, and the **trust, configuration and proof** that let one framework serve many sites. Each primitive exists because a [principle](principles.md) requires it.
+The other primitives extend that core in three directions: **callers** reaching it from every surface, **edges** connecting it to systems that keep their own records, and the **trust, configuration and proof** that let one framework serve many sites. Each primitive exists because a [principle](principles.md) requires it. [Edge applications](edge-applications.md) describes the deployment these primitives are built for: the authority, agent harness and connectors on or beside the machine where work happens.
 
 ```mermaid
 flowchart LR
@@ -52,7 +52,7 @@ Serves P1, P2 · implemented · `packages/contracts` · `defineCapability`, `jso
 
 _The unit a domain contributes: capabilities, handlers, a state slice, a policy route, workflows and scenarios._
 
-Modules are how one framework hosts many task applications. Each is composed explicitly at the root, owns its slice of state and routes its own policy, so a quality-inspection module and a line-station module can share one authority without seeing each other's data.
+Modules are how an application is assembled from independently authored parts. Each is composed explicitly in the application definition, owns its slice of state and routes its own policy, so the line-station module and the reusable device configuration module share one authority without seeing each other's data.
 
 Guarantees: nothing is discovered or registered globally. Handlers see only their module's slice. Operations and resources no module claims are denied.
 
@@ -72,9 +72,9 @@ Serves P1, P2 · implemented · `packages/contracts` · `buildCatalog`, `Catalog
 
 _A pure transformation from the catalog to a checked-in artifact._
 
-JSON Schema, OpenAPI, the operation and workflow references, the application skill with CLI forms, and the security manifest, data flows, control mapping and SBOM are generated, not written. Agents and auditors learn the application from the same source the UI is built from.
+JSON Schema, OpenAPI, the operation and workflow references, the application skill with CLI forms, and the security manifest, data flows and SBOM are generated, not written. Agents and auditors learn the application from the same source the UI is built from. Each application gets its own set under `docs/reference/<id>/`, built from its browser-safe manifest; the control mapping is the framework's and sits beside them.
 
-Guarantees: generation opens no workspace, reads no credential and starts no server. Drift fails the build, and a boundary check keeps contract and browser code free of host-only modules.
+Guarantees: generation opens no workspace, reads no credential, starts no server and loads no handler. Drift fails the build, including a reference directory no application produces any more. A boundary check keeps contract and browser code free of host-only modules, keeps the starter from importing content and content from importing the starter, and bundles every application's web entry to prove its browser graph.
 
 Serves P2 · implemented · `scripts` · `generate`, `check-boundaries`, `boundary-rules`
 
@@ -146,9 +146,49 @@ _The ordered record of committed changes, and the client machinery that follows 
 
 The journal closes the CQRS loop: whatever wrote the change, every view that may see it learns about it and re-reads through an authorized query. That is why a change made by an agent over MCP appears on an operator's screen without a refresh.
 
-Guarantees: events carry resource references and revisions, never record contents, and are filtered by current access. Clients subscribe from their query's cursor, so nothing falls between snapshot and stream. Invalidation follows the catalog's resource dependencies and is coalesced. An authorization change resets views without leaking identifiers.
+Guarantees: events carry resource references and revisions, never record contents, and are filtered by current access. Clients subscribe from their query's cursor, so nothing falls between snapshot and stream. Invalidation follows the catalog's resource dependencies and is coalesced. An authorization change resets views without leaking identifiers. It clears cached data at once, even while a refetch is still pending, and it covers snapshots cached before the stream's first batch.
 
 Serves P5 · implemented · `packages/runtime` `packages/client` `packages/react` · `ChangeEvent`, `EventBatch`, `createClient`, `LiveQuery`, `createLiveBindings`
+
+### Application
+
+_One unit of content: the definition a host runs._
+
+An application is a package with three entrypoints. `manifest` is browser-safe: its id, title, composed modules and the components it brings (a screen bridge, device drivers), with their declared requirements. `application` is server code: state factory and upgrades, composed policy, handlers, services, selectable resources and `connect`, which wires systems of record (demo fakes included) and observers once per authority. `screens` is browser code: routes, navigation, capability screens and a status slot. The starter names one application in its configuration and the host and frame resolve these entrypoints, so adding an application changes no framework or starter code (P11). Each example in `examples/*` is one application.
+
+Guarantees: one catalog, generated reference set, web bundle and workspace per application. `defineApplication` fails when a selectable resource names an operation the manifest does not compose; `defineManifest` rejects an invalid id or a duplicate module; `defineScreens` rejects a navigation target with no route. A definition is trusted code; only callers are untrusted.
+
+Serves P2, P8, P11, P13 · implemented · `packages/host` `packages/frame` · `defineManifest`, `ApplicationManifest`, `defineApplication`, `ApplicationDefinition`, `ApplicationConnections`, `defineScreens`, `ApplicationScreens`
+
+### Host
+
+_The domain-neutral authority process that runs one application definition._
+
+The host owns everything an application should not rewrite: workspace ownership, storage, launch and sessions, HTTP/SSE, embedded MCP, the CLI, run supervision and background delivery. It receives a definition and composes the runtime, integrations and observers from it; it names no domain. It also applies one security layer to every definition: the site policy and its profile floors, the audit log, the egress guard and the `security`/`audit` CLI verbs (P13).
+
+Guarantees: one authority per workspace, enforced by the same OS lock for a serving host and an embedded one. Embedded authorities never start observers. Observers start only after the host listens, and a failed start stops the ones already running. `loadApplication` and `loadManifest` resolve the configured application at runtime; compiled builds use a generated static entry because a binary cannot follow that import.
+
+Serves P1, P4, P11, P13 · implemented · `packages/host` · `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `loadApplication`, `loadManifest`, `openSecurity`, `assertIdentity`, `securityFromEnvironment`, `deploymentCatalog`, `hostComponents`, `assuranceCommand`
+
+### Web frame
+
+_The domain-neutral browser shell around one application's screens._
+
+The frame supplies session and launch exchange, routing, navigation, the command palette, the run panel and accounts, and fills them from the application's screens. Its Vite plugin binds the configured application's `screens` entry to a virtual module and resolves `@/` imports from the starter first, then the frame, then the operator registry, so a starter file at the same path replaces the frame's.
+
+Guarantees: the frame imports no application; the boundary check bundles every application through it. The same parts ship as a shadcn registry, so a starter can copy and own any of them.
+
+Serves P1, P11 · implemented · `packages/frame` · `Frame`, `ScreensProvider`, `useScreens`, `screenForCapability`, `exchangeLaunch`, `frame`
+
+### Starter
+
+_The thin application a team forks or generates and then owns._
+
+The starter wires framework to content: `app.config.json` names its identity and the application it hosts, `apps/service` serves it, `apps/web` frames its screens and `apps/desktop` wraps both. It holds no domain and no generic host code, so changing it never forks the framework; extending it is the owner's business. `AGENT_NATIVE_APPLICATION` overrides the configured application for one developer's launch.
+
+Guarantees: the starter imports no content statically; the boundary check fails a direct import from `examples/*`.
+
+Serves P11 · implemented · `apps/service` `apps/web` `apps/desktop` `app.config.json` · `configuredApplication`, `runService`
 
 ## Callers: every surface on the same contract
 
@@ -158,9 +198,9 @@ _Maps one surface onto the authority's raw command and query entry points._
 
 HTTP, MCP, the CLI and in-process calls are thin translations. They carry no business logic and keep no operation list, so adding a capability adds it to all of them.
 
-Guarantees: MCP tool names, CLI subcommands and typed flags are derived from the catalog. Errors keep their meaning across surfaces: HTTP status, MCP tool error and CLI exit code map from the same code.
+Guarantees: MCP tool names, CLI subcommands and typed flags are derived from the catalog. Errors keep their meaning across surfaces: HTTP status, MCP tool error and CLI exit code map from the same code. A per-request signal only adds to the trusted context's cancellation (`withSignal`). Direct and HTTP cursors both carry the authorization revision they were issued under, so a subscription resets when access changed after the snapshot.
 
-Serves P1 · implemented · `packages/adapters` · `createHttpHandler`, `createMcpServer`, `runCli`, `createDirectTransport`, `exitCodes`
+Serves P1, P5 · implemented · `packages/adapters` · `createHttpHandler`, `createMcpServer`, `runCli`, `createDirectTransport`, `withSignal`, `exitCodes`
 
 ### Capability binding
 
@@ -168,7 +208,9 @@ _A UI control bound to a capability through the typed client._
 
 The UI's equivalent of a tool call. It turns a person's intent into exactly one command, however many times they tap.
 
-Guarantees: one idempotency key per intent, kept across retries until commit. Validation uses the contract's schema and field errors map back to inputs. Drafts stay separate from committed data and conflict explicitly.
+Guarantees: one idempotency key per intent, kept across retries until commit. Validation uses the contract's schema and field errors map back to inputs. Drafts stay separate from committed data and conflict explicitly: a draft pins the object it edits (capture pins its characteristic and sample; scanner setup keeps the revision it loaded and saves with it as the expected revision), so an external write shows a conflict instead of retargeting or discarding the entry. Every operation that claims a UI binding is referenced by a screen of its application; an operation no screen offers declares an exception instead.
+
+Gaps: the reference check proves a screen names the capability, not that a control renders it.
 
 Serves P1, P4 · implemented · `packages/react` · `useCapabilityForm`, `useCommand`, `useLiveQuery`
 
@@ -178,9 +220,9 @@ _What a person is looking at, captured for an agent, and the intents an agent ca
 
 This is the bridge between a person and an agent working on the same screen. The agent acts on what the person selected, at the revision they saw, and can ask the frontend to open or select something.
 
-Guarantees: the host issues and binds sessions. Capture revalidates access and freezes the target, so later selection changes cannot retarget a run. Intents expire, are acknowledged and never write business records.
+Guarantees: the host issues and binds sessions. Capture revalidates access and freezes the target, so later selection changes cannot retarget a run. Intents expire, are acknowledged and never write business records. Every provider adapter shows its model the captured selection through `modelPrompt`: resource references and the revisions the person saw, never identity, grant, provider selection or session ID. Contents still come only through tools.
 
-Serves P3 · implemented · `packages/adapters` `packages/react` · `UiSessionStore`, `captureUiContext`
+Serves P3 · implemented · `packages/adapters` `packages/react` `packages/agents` · `UiSessionStore`, `captureUiContext`, `modelPrompt`
 
 ### Agent run
 
@@ -204,7 +246,7 @@ Each non-wedge source is declared as a device requirement, so the security manif
 
 Gaps: no source has been checked on real hardware. Device access is declared but not mediated.
 
-Serves P1, P8, P11 · implemented · `packages/devices` · `ScannerSource`, `ScanEvent`, `decodeScan`, `calibrate`, `createScanRouter`, `createWedgeSource`, `createSerialSource`, `createHidPosSource`, `createCameraSource`, `scannerDevicesComponent`
+Serves P1, P8, P13 · implemented · `packages/devices` · `ScannerSource`, `ScanEvent`, `decodeScan`, `calibrate`, `createScanRouter`, `createWedgeSource`, `createSerialSource`, `createHidPosSource`, `createCameraSource`, `scannerDevicesComponent`
 
 ### UI registry
 
@@ -214,9 +256,9 @@ Specialized interfaces are cheap only if their parts are shared. Apps pull regis
 
 Guarantees: no shadcn primitive is forked; sizing comes from tokens and `cva` variants. The registry manifest is generated and drift-checked. Operator items follow the point-of-work rules: glove-sized targets, hold-to-confirm for consequential actions, state as icon plus text.
 
-Gaps: `capture-station` and `sync-status` still bind to quality-inspection contracts. No scratch-app `shadcn add` acceptance test.
+Gaps: no scratch-app `shadcn add` acceptance test.
 
-Serves P1, P8 · implemented · `packages/operator-ui` `apps/web/src/components` · `operator-surface`, `big-action`, `use-press-and-hold`, `use-tap-guard`, `status-strip`, `capability-form`, `live-data-table`, `sync-status`
+Serves P1, P8 · implemented · `packages/operator-ui` `packages/frame` · `operator-surface`, `big-action`, `use-press-and-hold`, `use-tap-guard`, `status-strip`, `capability-form`, `live-data-table`, `security-screen`, `run-panel`, `command-palette`, `app-shell`, `frame`
 
 ## Edges: systems that keep their own records
 
@@ -244,11 +286,13 @@ Serves P7, P9 · implemented · `packages/integration` `packages/station` · `Sy
 
 _The worker that delivers pending effects and settles them under a narrow integration principal._
 
-Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending.
+Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending, and its deadline aborts a delivery in flight. `drainTargets` drains every dispatcher a host composed and accounts for the whole outbox by target, so a target with work but no dispatcher in this process is reported as not deliverable instead of being left out. An uncertain outcome is recorded and held even when shutdown interrupts the pass.
+
+`createTargetIntegration` builds one target's connector, integration context, dispatcher and inbound sync from a port, so an application's `connect` declares targets instead of wiring workers.
 
 Gaps: no worker claims or fencing, no upstream-pending state, no cancel-before-dispatch, no dispatch-time recheck of the original actor's authority.
 
-Serves P6, P7 · partial · `packages/integration` · `createEffectDispatcher`, `DeliveryFailure`, `DispatchReport`
+Serves P6, P7 · partial · `packages/integration` · `createEffectDispatcher`, `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DeliveryFailure`, `DispatchReport`
 
 ### Inbound sync
 
@@ -268,13 +312,13 @@ _A reading from a source that cannot be queried, submitted through an ingest com
 
 Observation is the inbound counterpart for systems with no feed, such as a vendor HMI read by accessibility, OCR or a local vision model. The observer never writes storage; it submits readings like any caller.
 
-Guarantees: each reading carries its source, model identity and digest, frame digest, time and confidence. It becomes current only after it is stable across consecutive reads. A low-confidence reading becomes an attention item for a person.
+Guarantees: each reading carries its source, model identity and digest, frame digest, time and confidence. It becomes current only after it is stable across consecutive reads. A low-confidence reading becomes an attention item for a person. Unchanged content is resubmitted at most once per heartbeat window, and each submission's idempotency key fingerprints its exact payload. A vision endpoint never follows a redirect, so screenshots reach only the validated host, and a perception worker that exits is restarted with a fresh handshake.
 
 Gaps: implemented for screens only; promote out of `packages/station` when a second kind of source needs it.
 
 The station's vision endpoints and perception worker are declared requirements; a site binds a vision service or the observer degrades.
 
-Serves P4, P6, P11 · implemented · `packages/station` · `createStationObserver`, `StabilityGate`, `Reading`, `ModelIdentity`, `stationBridgeComponent`
+Serves P4, P6, P13 · implemented · `packages/station` · `createStationObserver`, `StabilityGate`, `Reading`, `ModelIdentity`, `stationBridgeComponent`
 
 ### Gated actuator
 
@@ -282,7 +326,7 @@ _Lets a model propose screen actions while deterministic code executes and verif
 
 This is how a computer-use model can operate legacy software without becoming a privileged caller. It sits inside a connector, behind the outbox. A driver resolves targets or proposes actions; the controller decides.
 
-Guarantees: the controller performs every action itself, after a gate covering the expected screen, forbidden regions, the allowed set, step budget, timeout, bridge mode and seat lease. Acceptance requires a matching readback. An interrupted procedure that is not declared rerunnable is held, never re-run.
+Guarantees: the controller performs every action itself, after a gate covering the expected screen (verified before every click, type and key), forbidden regions, the allowed set, step budget, timeout, bridge mode and seat (recorded state without expiry). Acceptance requires a matching readback on as many consecutive views as the fields' `stableReads` declare; convergence, preconditions and lookup use the same standard. An interrupted procedure that is not declared rerunnable is held, never re-run.
 
 Gaps: no live computer-use model driver; no VNC, RDP, KVM or UI Automation transport.
 
@@ -310,7 +354,7 @@ _The port for provider secrets._
 
 Provider credentials pay for inference; they never grant workspace access. The vault keeps them in the operating system's store.
 
-Guarantees: fails closed when the store is unavailable. Secrets never reach browser state, domain data, model context or run logs, and are never discovered or reused implicitly.
+Guarantees: fails closed when the store is unavailable. Secrets never reach browser state, domain data, model context or run logs, and are never discovered or reused implicitly. Account connections (`OidcAccountConnection`, the ChatGPT account) serialize credential writes, so a logout cannot be undone by a sign-in or refresh already in flight.
 
 Serves P3, P9 · implemented · `packages/agents` · `CredentialVault`, `OsCredentialVault`, `MemoryCredentialVault`
 
@@ -322,7 +366,7 @@ Security teams admit software when they can see what it talks to and what data l
 
 Guarantees: declarations are browser-safe data, composed with their owners. Composition rejects duplicate IDs, a process that names an undeclared destination, and an outbox target that no destination carries or whose destination does not queue offline. A capability's input is logged in plain text only for the fields its `audit.fields` names.
 
-Serves P2, P11 · implemented · `packages/contracts` · `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `HostComponent`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`
+Serves P2, P13 · implemented · `packages/contracts` · `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `HostComponent`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`
 
 ### Site policy
 
@@ -334,7 +378,7 @@ Guarantees: bindings must name declared destinations and match their protocol, h
 
 Gaps: `external` identity refuses to start because no workforce identity adapter exists. No certificate issuance or rotation.
 
-Serves P3, P8, P11 · implemented · `packages/egress` · `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`
+Serves P3, P8, P13 · implemented · `packages/egress` · `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`
 
 ### Egress guard
 
@@ -344,7 +388,7 @@ Guarantees: a destination-scoped fetch allows only the bound scheme, host and po
 
 Gaps: an in-process control, not an isolation boundary. A child that ignores proxy settings, or a compromised process, is contained only once the exported OS rules are applied.
 
-Serves P9, P11 · implemented · `packages/egress` `scripts` · `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`, `directEgress`, `egressExemptions`
+Serves P9, P13 · implemented · `packages/egress` `scripts` · `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`, `directEgress`, `egressExemptions`
 
 ### Event log
 
@@ -356,7 +400,7 @@ Guarantees: events carry the actor and channel, operation, a safe reason code, c
 
 Gaps: removing the newest events is detectable only against an anchor or a forwarded copy. No off-host collector has been exercised.
 
-Serves P6, P10, P11 · implemented · `packages/contracts` `packages/runtime` `packages/event-log` · `EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`, `createMemoryEventLog`, `openJsonlEventLog`, `verifyEventLog`, `unresolvedCommands`, `readEvents`, `forwardingEventLog`
+Serves P6, P10, P13 · implemented · `packages/contracts` `packages/runtime` `packages/event-log` · `EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`, `createMemoryEventLog`, `openJsonlEventLog`, `verifyEventLog`, `unresolvedCommands`, `readEvents`, `forwardingEventLog`
 
 ### Execution host
 
@@ -366,7 +410,7 @@ The egress guard confines declared children to their destinations, launchers fix
 
 Gaps: no isolation backend applies those rules, and there is no credential broker.
 
-Serves P3, P9, P11 · partial · `packages/egress` `packages/assurance` · `startEgressProxy`, `exportRules`
+Serves P3, P9, P13 · partial · `packages/egress` `packages/assurance` · `startEgressProxy`, `exportRules`
 
 ### Profile
 
@@ -388,11 +432,11 @@ Serves P1, P8 · implemented · `packages/devices` · `deviceConfigModule`, `cre
 
 ### Golden check
 
-_Replays labeled inputs through a profile and its extractors before activation._
+_Replays labeled inputs through a profile and its extractors, as a separate procedure run before a profile or model change is used._
 
 Guarantees: reports per-field accuracy and confidence and fails on a confident misread.
 
-Gaps: the current golden set exercises recorded expectations, not a model.
+Gaps: the current golden set exercises recorded expectations, not a model. Activation does not require a passing report: nothing ties a running profile to a golden result, so the check is a procedure, not a gate.
 
 Serves P8, P10 · implemented · `packages/station` · `runGolden`, `GoldenReport`
 
@@ -400,11 +444,11 @@ Serves P8, P10 · implemented · `packages/station` · `runGolden`, `GoldenRepor
 
 _The evidence an auditor checks, generated from the catalog and site policy and re-checked while the application runs._
 
-Guarantees: the security manifest, data flows, control mapping (ISO/IEC 27001 Annex A, NIST SP 800-53 and CSF, IEC 62443-4-2) and CycloneDX SBOM are deterministic and drift-checked. Rule exports for nftables, Windows Firewall, systemd, Kubernetes, Compose and JSON are default-deny, carry the policy digest and list what they could not enforce. A posture monitor re-verifies the log and records `posture.checked`. Listed auditors read it through the `assurance.*` queries, which have scenarios and a Security screen. The reference CLI adds `security check|export` and `audit verify|report`, which work offline.
+Guarantees: the security manifest, data flows, control mapping (ISO/IEC 27001 Annex A, NIST SP 800-53 and CSF, IEC 62443-4-2) and CycloneDX SBOM are deterministic and drift-checked. Rule exports for nftables, Windows Firewall, systemd, Kubernetes, Compose and JSON are default-deny, carry the policy digest and list what they could not enforce. A posture monitor re-verifies the log and records `posture.checked`. Each application composes the `assurance` module; listed auditors read it through the `assurance.*` queries, which have scenarios and the frame's Security screen. Every application's CLI adds `security check|export` and `audit verify|report`, which work offline.
 
 Gaps: exports are compared as text, not loaded into a firewall or cluster. Control mappings are indicative, not a certification.
 
-Serves P2, P10, P11 · implemented · `packages/assurance` `apps/service` `apps/web` · `securityManifest`, `dataFlowsMarkdown`, `controls`, `cycloneDx`, `networkRules`, `exportRules`, `assessPosture`, `createPostureMonitor`, `assuranceModule`, `createAssuranceHandlers`, `assuranceCommand`
+Serves P2, P10, P13 · implemented · `packages/assurance` `packages/host` `packages/frame` · `securityManifest`, `dataFlowsMarkdown`, `controls`, `cycloneDx`, `networkRules`, `exportRules`, `assessPosture`, `createPostureMonitor`, `assuranceModule`, `createAssuranceHandlers`, `assuranceCommand`, `deploymentCatalog`, `security-screen`
 
 ### Behavioral scenario
 
@@ -418,11 +462,15 @@ Serves P1, P3, P10 · implemented · `packages/testing` · `BehavioralScenario`,
 
 ### Scaffold
 
-_Exports the framework and canonical example as a standalone application._
+_Exports the framework, the starter and content as a standalone application._
 
-Guarantees: a versioned file-hash manifest; no credentials, workspace data or build output; never overwrites an existing target.
+`--example <name>` exports one example as the hosted application and leaves the others, their reference sets, root dependencies and lockfile entries out.
 
-Serves P8 · implemented · `packages/scaffold` · `scaffold`, `ScaffoldManifest`
+Guarantees: a versioned file-hash manifest; no credentials, workspace data or build output; never overwrites an existing target. A single-example export installs frozen and passes its own checks.
+
+Gaps: framework packages are unpublished, so an export vendors `packages/*` instead of depending on published versions.
+
+Serves P8, P11 · implemented · `packages/scaffold` · `scaffold`, `ScaffoldManifest`
 
 ### Task package
 
