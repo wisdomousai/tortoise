@@ -34,7 +34,7 @@ One authority owns each workspace. UIs, tools, jobs, connectors and observers su
 
 **Rules out:** direct database writes, dual writers, write-then-notify sequences that can lose the notification, side effects inside a transaction.
 
-**Enforced by:** `packages/runtime/test/runtime.test.ts` (undeclared changes cannot commit, expected revisions cannot lose updates, scoped idempotency); `packages/testing/test/storage-conformance.test.ts` (memory and SQLite commit state, receipts and outbox atomically); `packages/adapters/src/sqlite.test.ts` (a rolled-back transaction leaves the initial-state factory untouched); `packages/adapters/src/ownership.test.ts` (one owner per workspace). **Convention only:** that no new code path writes state outside a handler.
+**Enforced by:** `packages/runtime/test/runtime.test.ts` (undeclared changes cannot commit, expected revisions cannot lose updates, scoped idempotency); `examples/project-tasks/test/storage-conformance.test.ts` (memory and SQLite commit state, receipts and outbox atomically); `packages/adapters/src/sqlite.test.ts` (a rolled-back transaction leaves the initial-state factory untouched); `packages/adapters/src/ownership.test.ts` (one owner per workspace). **Convention only:** that no new code path writes state outside a handler.
 
 ### P5 — Every committed change reaches every authorized view, whatever its origin
 
