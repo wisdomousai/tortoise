@@ -1,0 +1,7 @@
+# 004 — Legacy station software is a screen-mediated authority behind the outbox
+
+Accepted: a computer-use agent that operates legacy station software is a connector, not an application harness. It implements `SystemOfRecordPort` for its station target and receives work only as outbox effects. Its observer submits readings through an ingest command. Its integration principal may only ingest observations, settle that target's effects and read its control state. Frontends, MCP clients and agents address the catalog and never the computer-use agent.
+
+The connector settles `accepted` only when an observed readback matches the desired state. It rejects without acting when preconditions fail, and checks convergence before every run, so a redelivery is harmless. When a procedure is interrupted and the readback does not match, the effect is held for operator reconciliation unless the procedure is declared rerunnable. The controller executes every screen action itself, after a policy gate covering forbidden regions, the expected screen, step budget, timeout, bridge mode and seat lease. A driver only resolves targets or proposes actions. Station-specific knowledge lives in versioned, validated profiles.
+
+This keeps one CQRS contract for every surface, bounds what a misbehaving model can reach, and lets scripted, local and cloud computer-use drivers be exchanged without changing domain code. It does not make the bridge a safety system; safety functions stay with the machine.

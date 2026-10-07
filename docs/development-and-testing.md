@@ -24,6 +24,10 @@ For focused work, use these scripts:
 | `bun run test:integration`                    | Outbox dispatcher and inbound sync against fake system-of-record ports.                                                |
 | `bun run test:sandbox`                        | Compiles the single CLI binary and runs the embedded MCP/drain/serve scenario with an empty environment.               |
 | `bun run test:e2e`                            | Real browser acceptance, configured by Playwright.                                                                     |
+| `bun run station:golden`                      | Station profile and perception gate on the labeled golden frames in `examples/line-station/golden`.                    |
+| `bun run station:record-golden`               | Re-record golden frames from the fake HMI in Chromium after changing the simulator or profile.                         |
+| `bun run dev:hmi`                             | Start the fake station HMI on port 4610 with simulation endpoints, for the demo.                                       |
+| `bun run build:registry:operator`             | Generate and build the `operator` shadcn registry into `dist/registry/operator`.                                       |
 | `bun run test:package`                        | Desktop/sidecar packaging checks available on the current platform.                                                    |
 | `bun run test:scaffold`                       | Deterministic export and overwrite/privacy safeguards.                                                                 |
 | `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` | Fresh source export, frozen pinned dependency installation, independent typecheck/build/tests and an added capability. |
@@ -33,6 +37,19 @@ The complete scaffold acceptance is opt-in so exported tests do not recursively 
 Service tests bind loopback ports. A sandbox that blocks listening sockets can report `EADDRINUSE` even for port zero; run the authorized local integration checks in an environment that permits loopback listeners. Subprocess tests use temporary workspaces and terminate only processes they start.
 
 Native acceptance requires an already packaged application. Set `DESKTOP_EXECUTABLE` to its executable and run `bunx playwright test tests/e2e/desktop.pw.ts`. Without that variable the two native tests explicitly skip. They launch real Electron with a minimal runtime `PATH`, use isolated workspaces whose paths contain spaces, verify external changes in the native window and renderer isolation, reopen persisted data after owned-sidecar shutdown, and confirm that closing an attached frontend preserves a pre-existing authority. Rerun against the final packaged bytes after any service, frontend or desktop change.
+
+## Station bridge demo and opt-in perception
+
+The service starts a station bridge only when `STATION_HMI_URL` is set. Nothing is discovered. Run `bun run dev:hmi`, then start the service with `STATION_HMI_URL=http://127.0.0.1:4610`. The bridge drives the HMI page through Playwright Chromium. Counters are pixel-only on the fake HMI, so they need a perception source:
+
+| Variable                                                                                                  | Effect                                                                                                                                   |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `STATION_SIMULATOR=1`                                                                                     | Counters come from the simulator's ground truth, and its local-input probe is used. Demo and tests only.                                 |
+| `STATION_VISION_BASE_URL`, `STATION_VISION_MODEL`, `STATION_VISION_ALLOWED_HOSTS`, `STATION_VISION_READS` | A local OpenAI-compatible vision model. Loopback only, unless the host is allowlisted. Confidence is agreement across reads (default 3). |
+| `STATION_PERCEPTION_WORKER`                                                                               | A JSON array command for a JSON-lines perception worker (OCR, classifiers, audio). Spawned with an empty environment.                    |
+| `STATION_ID`, `STATION_PROFILE`, `STATION_OBSERVE_MS`                                                     | Station id (default `line-1`), profile path (default `examples/line-station/station-profile.json`) and observe interval.                 |
+
+The vision and worker variables also select the pixel extractor for `station:golden`; without them the gate replays recorded expectations, which checks wiring only. Source exports copy text files only, so exported applications have no golden PNGs: the wiring check still passes, and a configured model refuses to run until `bun run station:record-golden` has recorded them. Record live-model golden results separately in the implementation status document; a model gate is never implied by the deterministic one.
 
 ## Behavioral evidence
 
