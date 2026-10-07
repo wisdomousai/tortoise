@@ -1,4 +1,14 @@
 import { z } from 'zod';
+import {
+  collectRequirements,
+  destinationsForTarget,
+  type CatalogRequirements,
+  type HostComponent,
+  type Requirements,
+} from './requirements';
+
+export * from './requirements';
+export * from './audit';
 
 export type JsonValue =
   null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
@@ -195,6 +205,11 @@ export interface Capability<
   readonly ui?: { readonly binding?: string; readonly exception?: string };
   readonly errors?: readonly string[];
   readonly integration?: IntegrationDeclaration;
+  /**
+   * Top-level input fields that are safe to record in the event log in plain text. Everything
+   * else is logged only as a digest; never list credentials, personal data or free text here.
+   */
+  readonly audit?: { readonly fields?: readonly string[] };
 }
 export type AnyCapability = Capability<string, 'command' | 'query', unknown, unknown>;
 export type InputOf<C> =
@@ -213,6 +228,8 @@ export interface CapabilityModule<C extends readonly AnyCapability[] = readonly 
   readonly id: string;
   readonly capabilities: C;
   readonly requires?: readonly string[];
+  /** Network destinations, devices and child processes this module needs. See `Requirements`. */
+  readonly requirements?: Requirements;
   readonly workflows?: readonly {
     readonly id: string;
     readonly operations: readonly string[];
@@ -241,10 +258,14 @@ export interface CatalogOperation {
   readonly errors: readonly string[];
   readonly ui: { readonly binding?: string; readonly exception?: string };
   readonly integration?: IntegrationDeclaration;
+  /** Network destinations the operation's effects reach, derived from its outbox target. */
+  readonly destinations?: readonly string[];
+  readonly audit?: { readonly fields?: readonly string[] };
 }
 export interface Catalog {
   readonly formatVersion: 1;
   readonly operations: readonly CatalogOperation[];
+  readonly requirements: CatalogRequirements;
   readonly workflows: readonly {
     readonly id: string;
     readonly operations: readonly string[];
@@ -253,7 +274,14 @@ export interface Catalog {
 }
 
 /** Generators consume this pure representation, never application handlers or host services. */
-export function buildCatalog(modules: readonly CapabilityModule[]): Catalog {
+export interface BuildCatalogOptions {
+  /** Non-module parts of the deployment whose requirements belong in the same manifest. */
+  readonly components?: readonly HostComponent[];
+}
+export function buildCatalog(
+  modules: readonly CapabilityModule[],
+  options: BuildCatalogOptions = {},
+): Catalog {
   const moduleIds = new Set<string>();
   const ids = new Set<string>();
   const mcpNames = new Set<string>();
@@ -276,6 +304,10 @@ export function buildCatalog(modules: readonly CapabilityModule[]): Catalog {
     visited.add(id);
   };
   for (const id of moduleIds) checkDependencies(id);
+  for (const component of options.components ?? [])
+    if (moduleIds.has(component.id))
+      throw new Error(`Host component and module share an ID: ${component.id}`);
+  const requirements = collectRequirements([...modules, ...(options.components ?? [])]);
   const operations: CatalogOperation[] = [];
   for (const module of modules) {
     for (const required of module.requires ?? [])
@@ -299,6 +331,21 @@ export function buildCatalog(modules: readonly CapabilityModule[]): Catalog {
           capability.integration.delivery !== 'outbox')
       )
         throw new Error(`Integration requires a command with an outbox target: ${capability.id}`);
+      // Every outbox target must travel over a declared destination, so the data-flow manifest
+      // and the egress guard cover each system of record a command can reach.
+      const destinations = capability.integration
+        ? destinationsForTarget(requirements, capability.integration.target)
+        : [];
+      if (capability.integration && destinations.length === 0)
+        throw new Error(
+          `Outbox target ${capability.integration.target} has no declared network destination: ${capability.id}`,
+        );
+      const inputFields = Object.keys(
+        (capability.input.jsonSchema.properties as JsonObject | undefined) ?? {},
+      );
+      for (const field of capability.audit?.fields ?? [])
+        if (!inputFields.includes(field))
+          throw new Error(`Audit field ${field} is not a top-level input field: ${capability.id}`);
       operations.push({
         id: capability.id,
         kind: capability.kind,
@@ -313,6 +360,8 @@ export function buildCatalog(modules: readonly CapabilityModule[]): Catalog {
         ui: capability.ui,
         // Omitted rather than undefined: the catalog is canonical JSON.
         ...(capability.integration ? { integration: capability.integration } : {}),
+        ...(destinations.length ? { destinations } : {}),
+        ...(capability.audit ? { audit: capability.audit } : {}),
       });
     }
   }
@@ -332,6 +381,7 @@ export function buildCatalog(modules: readonly CapabilityModule[]): Catalog {
     formatVersion: 1,
     operations: operations.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
     workflows,
+    requirements,
   };
   // Copy metadata so later application mutations cannot silently alter a built catalog.
   return JSON.parse(canonicalJson(catalog)) as Catalog;

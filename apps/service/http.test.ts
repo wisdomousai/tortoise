@@ -63,7 +63,12 @@ function fixture() {
       deliver({ events: [], cursor: 0, authorizationRevision: 0 });
     },
     discover() {
-      return { formatVersion: 1, operations: [], workflows: [] };
+      return {
+        formatVersion: 1,
+        operations: [],
+        workflows: [],
+        requirements: { network: [], devices: [], processes: [] },
+      };
     },
   };
   const sessions = new Sessions();

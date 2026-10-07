@@ -4,8 +4,10 @@ import {
   buildCatalog,
   canonicalJson,
   defineCapability,
+  defineHostComponent,
   defineModule,
   jsonSchema,
+  type NetworkDestination,
 } from '../src/index';
 
 const capability = (id: string) =>
@@ -103,19 +105,140 @@ describe('portable application catalog', () => {
       ...capability('result.record'),
       integration: { target: 'quality-system', delivery: 'outbox' as const },
     };
-    const catalog = buildCatalog([defineModule({ id: 'a', capabilities: [command] })]);
+    const catalog = buildCatalog([
+      defineModule({ id: 'a', capabilities: [command], requirements: { network: [qualityApi] } }),
+    ]);
     expect(catalog.operations[0]?.integration).toEqual({
       target: 'quality-system',
       delivery: 'outbox',
     });
+    expect(catalog.operations[0]?.destinations).toEqual(['quality-api']);
     expect(
       'integration' in
         buildCatalog([defineModule({ id: 'a', capabilities: [capability('a.b')] })]).operations[0]!,
     ).toBe(false);
     expect(() =>
       buildCatalog([
-        defineModule({ id: 'a', capabilities: [{ ...command, kind: 'query' as const }] }),
+        defineModule({
+          id: 'a',
+          capabilities: [{ ...command, kind: 'query' as const }],
+          requirements: { network: [qualityApi] },
+        }),
       ]),
     ).toThrow('Integration requires a command');
+    // An outbox target that travels over no declared destination is undeclared egress.
+    expect(() => buildCatalog([defineModule({ id: 'a', capabilities: [command] })])).toThrow(
+      'no declared network destination',
+    );
+  });
+});
+
+const qualityApi: NetworkDestination = {
+  id: 'quality-api',
+  purpose: 'Forward results',
+  direction: 'egress',
+  scope: 'site',
+  protocol: 'https',
+  targets: ['quality-system'],
+  dataClasses: ['inspection-result'],
+  availability: 'required',
+  offline: 'queue',
+};
+const withNetwork = (...network: NetworkDestination[]) =>
+  buildCatalog([defineModule({ id: 'a', capabilities: [], requirements: { network } })]);
+
+describe('declared requirements', () => {
+  test('modules and host components merge into one sorted manifest with owners', () => {
+    const provider = defineHostComponent({
+      id: 'provider',
+      description: 'Inference provider',
+      requirements: {
+        network: [
+          {
+            id: 'provider-api',
+            purpose: 'Inference',
+            direction: 'egress',
+            scope: 'internet',
+            protocol: 'https',
+            host: 'api.example.com',
+            dataClasses: ['prompt'],
+            availability: 'optional',
+            offline: 'unavailable',
+          },
+        ],
+        processes: [
+          {
+            id: 'agent-cli',
+            executable: 'agent',
+            purpose: 'Harness',
+            availability: 'optional',
+            network: ['provider-api'],
+          },
+        ],
+      },
+    });
+    const catalog = buildCatalog(
+      [defineModule({ id: 'a', capabilities: [], requirements: { network: [qualityApi] } })],
+      { components: [provider] },
+    );
+    expect(catalog.requirements.network.map(({ id, owner }) => [id, owner])).toEqual([
+      ['provider-api', 'provider'],
+      ['quality-api', 'a'],
+    ]);
+    expect(catalog.requirements.processes[0]?.owner).toBe('provider');
+  });
+  test('invalid declarations fail when the catalog is built', () => {
+    expect(() => withNetwork(qualityApi, qualityApi)).toThrow('Duplicate network');
+    expect(() => withNetwork({ ...qualityApi, id: 'Bad ID' })).toThrow('Invalid network');
+    expect(() => withNetwork({ ...qualityApi, dataClasses: [] })).toThrow('data classes');
+    expect(() => withNetwork({ ...qualityApi, offline: undefined })).toThrow('offline');
+    expect(() => withNetwork({ ...qualityApi, offline: 'degrade' })).toThrow('must queue');
+    expect(() => withNetwork({ ...qualityApi, port: 70000 })).toThrow('port');
+    expect(() => withNetwork({ ...qualityApi, host: 'https://x/y' })).toThrow('bare host');
+    expect(() =>
+      withNetwork({ ...qualityApi, targets: [], scope: 'loopback', host: 'example.com' }),
+    ).toThrow('non-loopback');
+    // Loopback traffic stays on the machine, so it needs no data classes.
+    expect(() =>
+      withNetwork({ ...qualityApi, targets: [], scope: 'loopback', dataClasses: [] }),
+    ).not.toThrow();
+    expect(() =>
+      buildCatalog([
+        defineModule({
+          id: 'a',
+          capabilities: [],
+          requirements: {
+            processes: [
+              {
+                id: 'worker',
+                executable: 'w',
+                purpose: 'p',
+                availability: 'optional',
+                network: ['nowhere'],
+              },
+            ],
+          },
+        }),
+      ]),
+    ).toThrow('undeclared destination');
+    expect(() =>
+      buildCatalog([defineModule({ id: 'a', capabilities: [] })], {
+        components: [defineHostComponent({ id: 'a', description: 'clash', requirements: {} })],
+      }),
+    ).toThrow('share an ID');
+  });
+  test('audit fields must name top-level input fields', () => {
+    const audited = { ...capability('a.audited'), audit: { fields: ['title'] } };
+    expect(
+      buildCatalog([defineModule({ id: 'a', capabilities: [audited] })]).operations[0]?.audit,
+    ).toEqual({ fields: ['title'] });
+    expect(() =>
+      buildCatalog([
+        defineModule({
+          id: 'a',
+          capabilities: [{ ...audited, audit: { fields: ['secret'] } }],
+        }),
+      ]),
+    ).toThrow('Audit field secret');
   });
 });

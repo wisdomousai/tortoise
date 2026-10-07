@@ -204,7 +204,27 @@ test('operator takeover mid-procedure holds the effect until a person reconciles
   const bind = createHandlerFactory<{ status: string }, {}>();
   let ids = 0;
   const app = createApplication({
-    modules: [defineModule({ id: 'station', capabilities: [start, settle, reconcile] })],
+    modules: [
+      defineModule({
+        id: 'station',
+        capabilities: [start, settle, reconcile],
+        requirements: {
+          network: [
+            {
+              id: 'legacy-hmi-api',
+              purpose: 'Test system of record',
+              direction: 'egress',
+              scope: 'site',
+              protocol: 'https',
+              targets: ['legacy-hmi'],
+              dataClasses: ['test-record'],
+              availability: 'required',
+              offline: 'queue',
+            },
+          ],
+        },
+      }),
+    ],
     storage: createMemoryStorage<{ status: string }>({ status: 'idle' }),
     services: {},
     newEffectId: () => `e${++ids}`,

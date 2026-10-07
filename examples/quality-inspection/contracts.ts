@@ -414,6 +414,22 @@ export const operations = {
 export const qualityInspectionModule = defineModule({
   id: 'quality-inspection',
   capabilities: Object.values(operations),
+  requirements: {
+    network: [
+      {
+        id: 'quality-system-api',
+        purpose:
+          'Forward results, defects and usage decisions to the quality system and pull lots and characteristics from it.',
+        direction: 'egress',
+        scope: 'site',
+        protocol: 'https',
+        targets: ['quality-system'],
+        dataClasses: ['inspection-result', 'defect', 'usage-decision'],
+        availability: 'required',
+        offline: 'queue',
+      },
+    ],
+  },
   workflows: [
     {
       id: 'inspect-lot',

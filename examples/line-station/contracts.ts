@@ -444,6 +444,34 @@ export const operations = {
 export const lineStationModule = defineModule({
   id: 'line-station',
   capabilities: Object.values(operations),
+  requirements: {
+    network: [
+      {
+        id: 'station-screen',
+        purpose:
+          'Reach the legacy station software screen to observe it and run declared procedures (web HMI, VNC or RDP, per site).',
+        direction: 'egress',
+        scope: 'site',
+        protocol: 'https',
+        targets: ['legacy-hmi'],
+        dataClasses: ['screen-input', 'recipe-selection'],
+        availability: 'optional',
+        offline: 'queue',
+      },
+      {
+        id: 'mes-api',
+        purpose:
+          'Forward stop classifications and count confirmations to the MES and pull orders and reasons.',
+        direction: 'egress',
+        scope: 'site',
+        protocol: 'https',
+        targets: ['mes'],
+        dataClasses: ['stop-classification', 'count-confirmation'],
+        availability: 'required',
+        offline: 'queue',
+      },
+    ],
+  },
   workflows: [
     {
       id: 'explain-stop',

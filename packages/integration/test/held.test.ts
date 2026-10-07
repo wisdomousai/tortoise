@@ -58,7 +58,27 @@ function fixture() {
   let ids = 0;
   const bind = createHandlerFactory<State, {}>();
   return createApplication({
-    modules: [defineModule({ id: 'station', capabilities: [load, settle, reconcile] })],
+    modules: [
+      defineModule({
+        id: 'station',
+        capabilities: [load, settle, reconcile],
+        requirements: {
+          network: [
+            {
+              id: 'legacy-hmi-api',
+              purpose: 'Test system of record',
+              direction: 'egress',
+              scope: 'site',
+              protocol: 'https',
+              targets: ['legacy-hmi'],
+              dataClasses: ['test-record'],
+              availability: 'required',
+              offline: 'queue',
+            },
+          ],
+        },
+      }),
+    ],
     storage: createMemoryStorage<State>({ status: 'idle' }),
     services: {},
     newEffectId: () => `e${++ids}`,

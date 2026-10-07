@@ -1240,6 +1240,9 @@
         "lot"
       ],
       "description": "Set the usage decision for a fully inspected open lot as supervisor. Supply lot:<id> in expectedRevisions so results recorded after you reviewed the lot cause a conflict instead of being ignored.",
+      "destinations": [
+        "quality-system-api"
+      ],
       "errors": [],
       "id": "inspection.decision.set",
       "inputSchema": {
@@ -1373,6 +1376,9 @@
         "defect"
       ],
       "description": "Record a defect with a catalog code and quantity for an open lot as inspector or supervisor.",
+      "destinations": [
+        "quality-system-api"
+      ],
       "errors": [],
       "id": "inspection.defect.record",
       "inputSchema": {
@@ -2825,6 +2831,9 @@
         "result"
       ],
       "description": "Supersede a result with a corrected value or code and a reason. Supervisors may correct any result at their plant; inspectors only their own. The original is retained for audit. Use this to resolve a quality-system rejection.",
+      "destinations": [
+        "quality-system-api"
+      ],
       "errors": [],
       "id": "inspection.result.correct",
       "inputSchema": {
@@ -3028,6 +3037,9 @@
         "result"
       ],
       "description": "Record one measured value (quantitative) or code (qualitative) for a characteristic sample of an open lot as inspector or supervisor. occurredAt is when the measurement happened (epoch ms, at most 24 h old). Omit sample to use the next open one. The receipt proves the local commit; the quality system accepts or rejects it later.",
+      "destinations": [
+        "quality-system-api"
+      ],
       "errors": [],
       "id": "inspection.result.record",
       "inputSchema": {
@@ -3265,6 +3277,9 @@
         "result"
       ],
       "description": "Record up to 100 measurements for one open lot in a single commit, for example from an instrument export. All succeed or none do. Each result is forwarded to the quality system separately.",
+      "destinations": [
+        "quality-system-api"
+      ],
       "errors": [],
       "id": "inspection.result.record-batch",
       "inputSchema": {
@@ -3959,6 +3974,9 @@
         "count"
       ],
       "description": "Confirm the good and scrap counters the station shows for the active order and forward them to the MES. Uses only confident or operator-verified readings; pass counters:<id> (countersRevision from line.station.get) in expectedRevisions so counts that changed after you looked conflict instead of being sent.",
+      "destinations": [
+        "mes-api"
+      ],
       "errors": [],
       "id": "line.count.confirm",
       "inputSchema": {
@@ -4696,6 +4714,9 @@
         "order"
       ],
       "description": "Start a released MES order at a station: records the desired recipe and asks the station bridge to load it through the station screen. Needs a person at the station (operator or supervisor, not an agent): the receipt proves the request, the station shows the result later. Starts only when the machine is stopped.",
+      "destinations": [
+        "station-screen"
+      ],
       "errors": [],
       "id": "line.order.start",
       "inputSchema": {
@@ -5777,6 +5798,9 @@
         "stop"
       ],
       "description": "Classify a detected machine stop with an MES stop reason as operator or supervisor. The classification is forwarded to the MES; a rejected classification can be classified again.",
+      "destinations": [
+        "mes-api"
+      ],
       "errors": [],
       "id": "line.stop.classify",
       "inputSchema": {
@@ -7232,6 +7256,64 @@
       }
     }
   ],
+  "requirements": {
+    "devices": [],
+    "network": [
+      {
+        "availability": "required",
+        "dataClasses": [
+          "stop-classification",
+          "count-confirmation"
+        ],
+        "direction": "egress",
+        "id": "mes-api",
+        "offline": "queue",
+        "owner": "line-station",
+        "protocol": "https",
+        "purpose": "Forward stop classifications and count confirmations to the MES and pull orders and reasons.",
+        "scope": "site",
+        "targets": [
+          "mes"
+        ]
+      },
+      {
+        "availability": "required",
+        "dataClasses": [
+          "inspection-result",
+          "defect",
+          "usage-decision"
+        ],
+        "direction": "egress",
+        "id": "quality-system-api",
+        "offline": "queue",
+        "owner": "quality-inspection",
+        "protocol": "https",
+        "purpose": "Forward results, defects and usage decisions to the quality system and pull lots and characteristics from it.",
+        "scope": "site",
+        "targets": [
+          "quality-system"
+        ]
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "screen-input",
+          "recipe-selection"
+        ],
+        "direction": "egress",
+        "id": "station-screen",
+        "offline": "queue",
+        "owner": "line-station",
+        "protocol": "https",
+        "purpose": "Reach the legacy station software screen to observe it and run declared procedures (web HMI, VNC or RDP, per site).",
+        "scope": "site",
+        "targets": [
+          "legacy-hmi"
+        ]
+      }
+    ],
+    "processes": []
+  },
   "workflows": [
     {
       "id": "configure-scanner",

@@ -37,7 +37,25 @@ const status = defineCapability({
   permission: { action: 'read', resourceType: 'result' },
   ui: { exception: 'test fixture' },
 });
-const module = defineModule({ id: 'results', capabilities: [record, settle, status] });
+const module = defineModule({
+  id: 'results',
+  capabilities: [record, settle, status],
+  requirements: {
+    network: [
+      {
+        id: 'sor-api',
+        purpose: 'Test system of record',
+        direction: 'egress',
+        scope: 'site',
+        protocol: 'https',
+        targets: ['sor'],
+        dataClasses: ['test-record'],
+        availability: 'required',
+        offline: 'queue',
+      },
+    ],
+  },
+});
 type State = { results: Record<string, { value: number; sync: string; effectId: string }> };
 const owner = { workspaceId: 'w', principalId: 'inspector' };
 const integration = { workspaceId: 'w', principalId: 'integration' };

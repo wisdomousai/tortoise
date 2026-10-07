@@ -68,7 +68,27 @@ function application(options: { failSettlements?: number; now?: () => number } =
   let ids = 0;
   const bind = createHandlerFactory<State, {}>();
   const app = createApplication({
-    modules: [defineModule({ id: 'readings', capabilities: [record, settle, sync] })],
+    modules: [
+      defineModule({
+        id: 'readings',
+        capabilities: [record, settle, sync],
+        requirements: {
+          network: [
+            {
+              id: 'erp-api',
+              purpose: 'Test system of record',
+              direction: 'egress',
+              scope: 'site',
+              protocol: 'https',
+              targets: ['erp'],
+              dataClasses: ['test-record'],
+              availability: 'required',
+              offline: 'queue',
+            },
+          ],
+        },
+      }),
+    ],
     storage: createMemoryStorage<State>({ readings: {}, catalog: [] }),
     services: {},
     newEffectId: () => `e${++ids}`,
