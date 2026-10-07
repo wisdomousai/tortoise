@@ -17,7 +17,7 @@ This repository implements a third option: small task applications on one shared
 
 Each operation is declared once in a catalog. HTTP, MCP, CLI, the typed UI client and the reference documentation are generated from that catalog. The same operation is therefore available to a person in the UI, an agent over MCP, a script over the CLI and another service over HTTP, with identical validation and authorization. Handing part of a workflow to an agent or a script needs no second implementation and no wider credentials.
 
-These applications run at the edge for three reasons, covered in [edge applications](edge-applications.md#why-at-the-edge): agent harnesses run locally and work through CLIs; the software that stayed on the desktop is control software for long-lived, expensive equipment; and reaching that software (COM, RPC, files, network protocols, the screen) needs code on the machine or its network segment. The authority, the agent harness and the connectors therefore run on the edge host, and central systems are reached only through the outbox and inbound sync.
+These applications run at the edge for three reasons, covered in [edge applications](edge-applications.md#why-at-the-edge): agent harnesses run locally and work through CLIs; the software that stayed on the desktop is control software for long-lived, expensive equipment; and reaching that software (COM, RPC, files, network protocols, the screen) needs code on the machine or its network segment. The application and its connectors therefore run on the edge host, next to the agents that call it, and central systems are reached only through the outbox and inbound sync.
 
 The repository makes this approach concrete enough to evaluate: which guarantees the framework must give, what an application author writes, and where the approach stops. Whether it saves money for a given workflow is not measured here. The [task and workflow pattern](task-workflow-pattern.md) gives the cost model and the conditions under which it does not pay off.
 
@@ -122,7 +122,7 @@ All surfaces call the same runtime. Principal, workspace and grant come from the
 | CLI          | Generated subcommands, or `call <id> '<json>' --key <k>`                          | Connection file, or a grant file with `--embedded`                                                  |
 | React        | `packages/client` and `packages/react` typed bindings                             | Browser session                                                                                     |
 
-Commands require an idempotency key over HTTP, MCP and CLI. One process owns a workspace (OS file lock). The CLI and MCP server attach to that process, or run the runtime in-process with `--embedded` when no host holds the lock. `bun run build:cli` compiles the CLI and MCP server into one executable for sandbox images. The [edge applications](edge-applications.md#agents-at-the-edge) document describes when to use each topology.
+Commands require an idempotency key over HTTP, MCP and CLI. One process owns a workspace (OS file lock). The CLI and MCP server attach to that process, or run the runtime in-process with `--embedded` when no host holds the lock. `bun run build:cli` compiles the CLI and MCP server into one executable for sandbox images. At the edge, agents use a grant-bound connection to the running application ([agents at the edge](edge-applications.md#agents-at-the-edge)); `--embedded` serves sandbox images.
 
 ## Command execution
 
@@ -216,6 +216,8 @@ Summaries of the [principles](principles.md). Each principle there lists what it
 | P9  | Storage, policy, identity, harness, inference, connectors, perception and devices sit behind ports           |
 | P10 | Deterministic, browser, native, device and live-provider evidence are recorded separately                    |
 | P11 | Framework, starter and content are separate layers; one application per authority, selected by configuration |
+| P12 | Applications run beside the work; commits never wait for a system of record, a wider network or a model      |
+| P13 | The application reaches only what it declares and the site binds, and records what it does                   |
 
 ## Examples
 

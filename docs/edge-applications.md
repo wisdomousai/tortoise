@@ -14,7 +14,7 @@ For years the direction was to move business software to the web. For this class
 
 **Reaching that software requires presence.** Control software can often be instrumented: through COM or another automation interface, local RPC, its files and database, a decoded network protocol, or its screen. Each of these routes needs code running on that machine or on its network segment. Plant networks are segmented, often without internet access, and the connection to enterprise systems can be slow or interrupted. A cloud service cannot do this work directly.
 
-The result is an application whose authority, agent harness and connectors all run at the edge, and which talks to central systems only through a durable outbox and inbound sync.
+The result is an application that runs at the edge with its connectors, next to the agents that call it, and talks to central systems only through a durable outbox and inbound sync.
 
 ## The loop: execute, interpret, report
 
@@ -25,14 +25,14 @@ flowchart LR
   subgraph Edge[Edge host]
     Person[Operator] --> Surfaces
     Agent[Agent harness] -->|CLI / MCP, delegated grant| Surfaces
-    Surfaces[Catalog operations] --> Authority[(Local authority: state, journal, outbox)]
-    Authority --> Connector[Connector: declared procedures]
+    Surfaces[Catalog operations] --> App[(Application: state, journal, outbox)]
+    App --> Connector[Connector: declared procedures]
     Connector -->|execute| Control[Control software]
     Control -->|observe| Observer[Observer: extractors, local models]
-    Observer -->|ingest command| Authority
+    Observer -->|ingest command| App
   end
-  Authority -->|outbox delivery| SoR[(System of record: ERP, MES, QMS)]
-  SoR -->|inbound sync| Authority
+  App -->|outbox delivery| SoR[(System of record: ERP, MES, QMS)]
+  SoR -->|inbound sync| App
 ```
 
 **Execute.** Something runs locally: a person records a measurement, an agent runs a script that reads the station's result files, a connector loads a recipe through a declared procedure. Reads are free to explore within the caller's sandbox and grant. Anything that changes state in the application goes through a catalog command. Anything that changes state in the control software goes through an outbox effect delivered by a connector, never through an ad hoc script.
@@ -58,7 +58,7 @@ Choose the most structured route the software supports. Prefer reading to writin
 
 Every route maps onto the same ports, so replacing one route with another changes an adapter and leaves contracts, handlers and screens unchanged ([P9](principles.md#p9--every-external-dependency-sits-behind-a-port)):
 
-- **Observation** (reads that track live state) runs through `createStationObserver` and `Extractor` implementations, and enters the authority through an ingest command.
+- **Observation** (reads that track live state) runs through `createStationObserver` and `Extractor` implementations, and enters the application through an ingest command.
 - **Inbound sync** (reads of records owned elsewhere) runs through `SystemOfRecordPort.pull`.
 - **Actuation** (writes) runs through `SystemOfRecordPort.deliver` as a declared procedure, with `lookup` or readback deciding whether a retry is safe.
 
@@ -66,12 +66,9 @@ Writes to control software follow the rules of the [operator workstation pattern
 
 ## Agents at the edge
 
-An agent harness runs on the edge host beside the authority. It reaches the application in one of two ways ([system-of-record reference](system-of-record-pattern.md#topologies)):
+An agent harness runs on the edge host beside the application and is one of its callers. It reaches the running application through the CLI or MCP with a connection file bound to a delegated grant. The host issues that file (`serve --grant-file <file> --grant-connection <out>`), so the harness can run as another OS user without reading the owner's credential.
 
-- **Attached.** The host runs `serve` and writes a connection file bound to a delegated grant. The harness, possibly running as a different OS user, uses the CLI or MCP with that file.
-- **Embedded.** The harness starts `mcp --embedded --grant-file <file>` or one-shot CLI calls inside its sandbox. The authority runs in that process without a network listener. `bun run build:cli` produces one executable for this, with no runtime install. Observers never start in an embedded authority (`ApplicationConnections.observe` runs only in a serving host), so a station that needs live observation runs the attached topology.
-
-In both cases the grant names the operations, resources, expiry and run it covers, and can only narrow the permissions of the person who started the run ([P3](principles.md#p3--authority-comes-from-trusted-context-never-from-input-and-is-enforced-at-commit)). The agent sees the same catalog as the UI. It gets no private tools and no upstream credentials; the connector holds those.
+The grant names the operations, resources, expiry and run it covers, and can only narrow the permissions of the person who started the run ([P3](principles.md#p3--authority-comes-from-trusted-context-never-from-input-and-is-enforced-at-commit)). The agent sees the same catalog as the UI. It gets no private tools and no upstream credentials; the connector holds those.
 
 An agent at the edge typically:
 
@@ -86,7 +83,7 @@ A harness that executes scripts needs containment. That comes from the operating
 
 ## Deployment
 
-Three placements cover most sites. All of them run one authority per application and workspace.
+Three placements cover most sites. In each, one running application process owns a workspace.
 
 | Placement          | When                                                                   | Reaches the control software through                       |
 | ------------------ | ---------------------------------------------------------------------- | ---------------------------------------------------------- |
@@ -106,8 +103,8 @@ Constraints that shape these choices:
 
 | Part of the concept                                              | Status                                                                                                     |
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Local authority, outbox, inbound sync, live updates              | Implemented and tested against in-memory fakes                                                             |
-| Attached and embedded CLI/MCP with delegated grants              | Implemented; compiled binary tested with an empty environment                                              |
+| Local commit, outbox, inbound sync, live updates                 | Implemented and tested against in-memory fakes                                                             |
+| CLI and MCP with grant-bound connections                         | Implemented; tested with an agent running as another OS user                                               |
 | Screen route: observer, controller, profiles, seat, held effects | Implemented against a fake HMI in Chromium; no live computer-use model                                     |
 | Local perception models                                          | Adapters exist (accessibility, worker subprocess, OpenAI-compatible vision); none run against a real model |
 | Scanner and device input                                         | Implemented in software; no hardware checked                                                               |

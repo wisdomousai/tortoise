@@ -4,7 +4,7 @@ At its core the framework is one idea: **a capability catalog over a logical CQR
 
 AI is not the center of this design and not a special case. An agent is a caller like any other, reaching the catalog through MCP or the CLI under a delegated grant. Where models work inside the system, reading a screen or proposing a click, they sit behind ports and only propose; deterministic code validates, acts and verifies. Everything here works without a model.
 
-The other primitives extend that core in three directions: **callers** reaching it from every surface, **edges** connecting it to systems that keep their own records, and the **trust, configuration and proof** that let one framework serve many sites. Each primitive exists because a [principle](principles.md) requires it. [Edge applications](edge-applications.md) describes the deployment these primitives are built for: the authority, agent harness and connectors on or beside the machine where work happens.
+The other primitives extend that core in three directions: **callers** reaching it from every surface, **integrations** connecting it to systems that keep their own records, and the **trust, configuration and proof** that let one framework serve many sites. Each primitive exists because a [principle](principles.md) requires it. [Edge applications](edge-applications.md) describes the deployment these primitives are built for: the application, its connectors and the agents that call it, on or beside the machine where work happens.
 
 ```mermaid
 flowchart LR
@@ -168,7 +168,7 @@ The host owns everything an application should not rewrite: workspace ownership,
 
 Guarantees: one authority per workspace, enforced by the same OS lock for a serving host and an embedded one. Embedded authorities never start observers. Observers start only after the host listens, and a failed start stops the ones already running. `loadApplication` and `loadManifest` resolve the configured application at runtime; compiled builds use a generated static entry because a binary cannot follow that import.
 
-Serves P1, P4, P11, P13 · implemented · `packages/host` · `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `loadApplication`, `loadManifest`, `openSecurity`, `assertIdentity`, `securityFromEnvironment`, `deploymentCatalog`, `hostComponents`, `assuranceCommand`
+Serves P1, P4, P11, P12, P13 · implemented · `packages/host` · `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `loadApplication`, `loadManifest`, `openSecurity`, `assertIdentity`, `securityFromEnvironment`, `deploymentCatalog`, `hostComponents`, `assuranceCommand`
 
 ### Web frame
 
@@ -260,7 +260,7 @@ Gaps: no scratch-app `shadcn add` acceptance test.
 
 Serves P1, P8 · implemented · `packages/operator-ui` `packages/frame` · `operator-surface`, `big-action`, `use-press-and-hold`, `use-tap-guard`, `status-strip`, `capability-form`, `live-data-table`, `security-screen`, `run-panel`, `command-palette`, `app-shell`, `frame`
 
-## Edges: systems that keep their own records
+## Integrations: systems that keep their own records
 
 ### Outbox effect
 
@@ -270,7 +270,7 @@ The outbox extends the write side past the authority's own transaction without p
 
 Guarantees: the effect commits with its command or not at all. Its ID derives from the receipt, so a replay never enqueues twice, and it doubles as the target's idempotency key. It is settled exactly once. A held effect waits for a person and returns to delivery only through a reconciliation command.
 
-Serves P4, P6, P7 · implemented · `packages/runtime` · `Effect`, `EffectRequest`, `EffectOutcome`, `HandlerContext`
+Serves P4, P6, P7, P12 · implemented · `packages/runtime` · `Effect`, `EffectRequest`, `EffectOutcome`, `HandlerContext`
 
 ### Connector
 
@@ -292,7 +292,7 @@ Guarantees: at-least-once delivery with backoff and journaled attempts, so scree
 
 Gaps: no worker claims or fencing, no upstream-pending state, no cancel-before-dispatch, no dispatch-time recheck of the original actor's authority.
 
-Serves P6, P7 · partial · `packages/integration` · `createEffectDispatcher`, `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DeliveryFailure`, `DispatchReport`
+Serves P6, P7, P12 · partial · `packages/integration` · `createEffectDispatcher`, `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DeliveryFailure`, `DispatchReport`
 
 ### Inbound sync
 
@@ -318,7 +318,7 @@ Gaps: implemented for screens only; promote out of `packages/station` when a sec
 
 The station's vision endpoints and perception worker are declared requirements; a site binds a vision service or the observer degrades.
 
-Serves P4, P6, P13 · implemented · `packages/station` · `createStationObserver`, `StabilityGate`, `Reading`, `ModelIdentity`, `stationBridgeComponent`
+Serves P4, P6, P12, P13 · implemented · `packages/station` · `createStationObserver`, `StabilityGate`, `Reading`, `ModelIdentity`, `stationBridgeComponent`
 
 ### Gated actuator
 

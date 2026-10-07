@@ -2,7 +2,7 @@
 
 Each principle is an architectural invariant that a design either keeps or breaks. **Rules out** names what a violation looks like. **Enforced by** names the checks and tests that fail when the invariant breaks, and marks what is still **convention only**, kept by authors and reviewers. The building blocks that deliver each principle are explained in [primitives](primitives.md).
 
-Mechanism detail lives in the [architecture](architecture.md), [interaction contract](interaction-contract.md), [authorization](authorization.md), [state and reactivity](state-and-reactivity.md), [system-of-record](system-of-record-pattern.md), [operator workstation](operator-workstation-pattern.md) and [security and assurance](security-and-assurance.md) documents and the [decision records](decisions/).
+Mechanism detail lives in the [architecture](architecture.md), [interaction contract](interaction-contract.md), [authorization](authorization.md), [state and reactivity](state-and-reactivity.md), [system-of-record](system-of-record-pattern.md), [operator workstation](operator-workstation-pattern.md), [edge applications](edge-applications.md) and [security and assurance](security-and-assurance.md) documents and the [decision records](decisions/).
 
 ### P1 — Every operation is executable from UI, MCP, CLI and API
 
@@ -92,6 +92,14 @@ The framework (`packages/*`) provides domain-neutral primitives, ports and adapt
 
 **Enforced by:** `bun run check:boundaries` rejects framework → starter/content, starter → content and content → starter imports by relative path or workspace package name, and bundles every example's screens through the starter's real Vite config; `packages/host` runs only an `ApplicationDefinition` it is given; a single-example export (`bun run scaffold … --example <name>`) installs, typechecks and tests without the other examples (`packages/scaffold/src/scaffold.test.ts` covers the file selection; the full export run is recorded in the implementation status). **Convention only:** that content screens use only the stock primitives and frame registry paths behind the `@/` alias, which the boundary check cannot tell apart from starter files.
 
+### P12 — An application runs beside the work and keeps working without central systems or a model
+
+The application, its connectors and observers, and the agents that call it run on or beside the machine where work happens. A command commits locally and never waits for a system of record, a wider network or a model: upstream delivery is queued in the outbox, its state stays visible, and inbound sync resumes from its watermark. Control software is reached by edge adapters behind the connector, extractor and screen ports, never by a central service. Every task keeps a deterministic path that needs no inference; models propose and deterministic code acts. Model and upstream endpoints are explicit configuration, loopback or allowlisted ([ADR 006](decisions/006-edge-placement.md), [edge applications](edge-applications.md)).
+
+**Rules out:** a command that fails because the system of record or the internet is unreachable, a cloud service in the commit path, a task that can only be completed through a model turn, a central service that drives control software inside a plant network, implicit outbound endpoints.
+
+**Enforced by:** `packages/integration/test/dispatcher.test.ts` (delivery outside the transaction; `drain` reports what remains while the target stays unavailable); `examples/quality-inspection/test/sandbox.test.ts` (`serve` issues a grant-bound connection for an agent running as another OS user); `packages/station/test/perception.test.ts` (vision endpoints must be loopback or explicitly allowlisted); `examples/project-tasks/e2e/workspace.pw.ts` (the deterministic harness works without a provider account). **Convention only:** that every task keeps a deterministic path, and that connectors to control software run on the edge host. Offline operation has not been exercised on a disconnected device.
+
 ### P13 — The application reaches only what it declares and the site binds, and records what it does
 
 Every network destination, device and child process is declared in the catalog with its purpose and the data classes it carries. A site policy binds declarations to addresses. Without one the application runs isolated and offline, queuing what it cannot deliver and saying what is unavailable. Server code reaches the network only through the egress guard, which refuses anything unbound and records every decision. Every action, denial and connection goes into a tamper-evident log, and by default a command that cannot be recorded does not commit. Hardening profiles are floors: the host refuses to start below one rather than weaken identity, transport or audit. The evidence an auditor checks is generated from the same declarations.
@@ -112,7 +120,7 @@ Principles change rarely and on purpose. The [primitives](primitives.md) documen
 ## Changelog
 
 - 2026-10-07 — Added P13 (declared reach, site binding and a recorded, fail-closed audit trail) for the egress guard, site policy and event log; see ADR 007. P3 now lists the hardening tests.
-
+- 2026-10-07 — Added P12 (applications run beside the work and keep working without central systems or a model; ADR 006).
 - 2026-10-07 — Amended P11 for the starter model (ADR 005 revised): the shell is a thin starter owned by its user, the generic host and frame are framework packages, and content is resolved from configuration. P11 is now enforced (starter → content and content → starter imports fail); P1, P4–P9 name the moved tests.
 
 - 2026-10-07 — Added P11 (framework, shell and content; one application per authority, ADR 005). P8 now names the shell as domain-neutral and composes domains into an application.
