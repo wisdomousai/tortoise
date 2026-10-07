@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { mkdtemp, rm, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startService } from './service';
+import { startService } from '../../../tests/e2e/service';
 
 /** Read committed lot state through the same authority API the screen uses. */
 async function lot(page: Page, origin: string, id: string) {

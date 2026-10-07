@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { startService } from './service';
+import { startService } from '../../../tests/e2e/service';
 
 test('UI, external MCP and deterministic agent share live state; drafts retain their base revision', async ({
   page,

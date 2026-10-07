@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startService } from './service';
+import { startService } from '../../../tests/e2e/service';
 
 /**
  * Emit a keyboard-wedge burst the way a scanner does: physical key codes with Shift for capitals,

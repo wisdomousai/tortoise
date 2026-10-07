@@ -31,4 +31,4 @@ See [provider integration](providers.md) for current login/funding limits and [d
 
 ## Background jobs
 
-Jobs are ordinary clients with a trusted scoped identity and grant. `scripts/job.ts` demonstrates a deterministic status transition against the running authority; it reads current task revisions and submits commands with stable keys. Schedulers, retries and queues can be replaced independently of domain handlers. A job must not write the SQLite snapshot directly.
+Jobs are ordinary clients with a trusted scoped identity and grant. `examples/project-tasks/job.ts` (`bun run job` there) demonstrates a deterministic status transition against the running authority; it reads current task revisions and submits commands with stable keys. Schedulers, retries and queues can be replaced independently of domain handlers. A job must not write the SQLite snapshot directly.

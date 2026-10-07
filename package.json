@@ -34,17 +34,13 @@
     "package:stage": "bun scripts/package-stage.ts",
     "package:desktop": "bun scripts/package-desktop.ts",
     "test:scaffold:full": "SCAFFOLD_ACCEPTANCE=1 bun test packages/scaffold",
-    "job": "bun scripts/job.ts",
     "format": "prettier --write .",
     "check:format": "prettier --check .",
     "build:registry": "shadcn build registry.json --output ../../dist/registry --cwd packages/frame",
     "build:cli": "bun scripts/build-cli.ts",
     "test:sandbox": "SANDBOX_BINARY=1 bun test examples/quality-inspection/test/sandbox.test.ts",
     "build:registry:operator": "bun scripts/build-operator-registry.ts && shadcn build registry.json --output ../../dist/registry/operator --cwd packages/operator-ui",
-    "check:registry:operator": "bun scripts/build-operator-registry.ts --check",
-    "station:golden": "bun scripts/station-golden.ts examples/line-station/golden",
-    "station:record-golden": "bun examples/line-station/fake-hmi/record-golden.ts",
-    "dev:hmi": "bun examples/line-station/fake-hmi/server.ts --simulation-endpoints"
+    "check:registry:operator": "bun scripts/build-operator-registry.ts --check"
   },
   "dependencies": {
     "@agent-native/adapters": "workspace:*",

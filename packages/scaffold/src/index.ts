@@ -80,6 +80,12 @@ export interface ScaffoldOptions {
   readonly name: string;
   readonly displayName?: string;
   readonly sourceRoot?: string;
+  /**
+   * Export only this example (`examples/<example>`) as the application's content, configured as
+   * the application the starter hosts. Without it, every example is exported and the source's
+   * configured application is kept.
+   */
+  readonly example?: string;
 }
 export interface ScaffoldManifest {
   readonly formatVersion: 1;
@@ -88,7 +94,11 @@ export interface ScaffoldManifest {
     readonly name: string;
     readonly displayName: string;
     readonly appId: string;
+    /** The content the starter hosts (`app.config.json` `application`). */
+    readonly application?: string;
   };
+  /** The single example exported as content, when one was selected. */
+  readonly example?: string;
   readonly files: readonly { readonly path: string; readonly sha256: string }[];
 }
 
@@ -141,6 +151,51 @@ async function targetPath(path: string): Promise<string> {
   }
 }
 
+interface ExcludedExample {
+  readonly directory: string;
+  readonly packageName: string;
+  readonly applicationId?: string;
+}
+
+/**
+ * The examples a single-example export leaves out, with the package and application ids that
+ * the root manifest, lockfile and generated references name. Reads text only; no content code
+ * is loaded.
+ */
+async function excludedExamples(sourceRoot: string, example: string): Promise<ExcludedExample[]> {
+  const entries = await readdir(join(sourceRoot, 'examples'), { withFileTypes: true }).catch(
+    () => [],
+  );
+  if (!entries.some((entry) => entry.isDirectory() && entry.name === example))
+    throw new Error(`Unknown example "${example}"`);
+  const excluded: ExcludedExample[] = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name === example) continue;
+    const directory = `examples/${entry.name}`;
+    const manifest = JSON.parse(await readFile(join(sourceRoot, directory, 'package.json'), 'utf8'))
+      .name as string;
+    const id = (
+      await readFile(join(sourceRoot, directory, 'manifest.ts'), 'utf8').catch(() => '')
+    ).match(/\bid:\s*'([a-z0-9-]+)'/)?.[1];
+    excluded.push({ directory, packageName: manifest, ...(id ? { applicationId: id } : {}) });
+  }
+  return excluded;
+}
+
+/** Drop excluded workspaces from Bun's text lockfile so `--frozen-lockfile` installs still pass. */
+function pruneLockfile(content: string, excluded: readonly ExcludedExample[]): string {
+  let result = content;
+  for (const { directory, packageName } of excluded) {
+    const name = packageName.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
+    const path = directory.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
+    result = result
+      .replace(new RegExp(`\\n {8}"${name}": "workspace:\\*",`, 'g'), '')
+      .replace(new RegExp(`\\n {4}"${path}": \\{[\\s\\S]*?\\n {4}\\},`), '')
+      .replace(new RegExp(`\\n {4}"${name}": \\["${name}@workspace:${path}"\\],`), '');
+  }
+  return result;
+}
+
 /** Export the complete canonical starter as local source; it does not invent a new business domain. */
 export async function scaffold(options: ScaffoldOptions): Promise<ScaffoldManifest> {
   if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(options.name) || options.name.length > 100)
@@ -176,8 +231,28 @@ export async function scaffold(options: ScaffoldOptions): Promise<ScaffoldManife
       .join(' ');
   if (!displayName.trim() || displayName.length > 120 || /[\r\n\x00-\x1f]/.test(displayName))
     throw new Error('Display name must be nonempty single-line text of at most 120 characters');
-  const application = { name: options.name, displayName, appId: `dev.agentnative.${options.name}` };
-  const paths = await collect(sourceRoot);
+  const sourceConfig = JSON.parse(
+    await readFile(join(sourceRoot, 'app.config.json'), 'utf8').catch(() => '{}'),
+  ) as { application?: string };
+  const excluded = options.example ? await excludedExamples(sourceRoot, options.example) : [];
+  const hosted = options.example
+    ? (JSON.parse(
+        await readFile(join(sourceRoot, 'examples', options.example, 'package.json'), 'utf8'),
+      ).name as string)
+    : sourceConfig.application;
+  const application = {
+    name: options.name,
+    displayName,
+    appId: `dev.agentnative.${options.name}`,
+    ...(hosted ? { application: hosted } : {}),
+  };
+  const left = (path: string) =>
+    excluded.some(
+      ({ directory, applicationId }) =>
+        path.startsWith(`${directory}/`) ||
+        (applicationId !== undefined && path.startsWith(`docs/reference/${applicationId}/`)),
+    );
+  const paths = (await collect(sourceRoot)).filter((path) => !left(path));
   const files: { path: string; content: string; sha256: string }[] = [];
   for (const path of paths) {
     let content = await readFile(join(sourceRoot, path), 'utf8');
@@ -191,12 +266,19 @@ export async function scaffold(options: ScaffoldOptions): Promise<ScaffoldManife
         `<title>${displayName.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}</title>`,
       );
     if (path === 'app.config.json') content = JSON.stringify(application, null, 2) + '\n';
+    if (path === 'package.json' && excluded.length) {
+      const root = JSON.parse(content) as { dependencies?: Record<string, string> };
+      for (const { packageName } of excluded) delete root.dependencies?.[packageName];
+      content = JSON.stringify(root, null, 2) + '\n';
+    }
+    if (path === 'bun.lock' && excluded.length) content = pruneLockfile(content, excluded);
     files.push({ path, content, sha256: createHash('sha256').update(content).digest('hex') });
   }
   const manifest: ScaffoldManifest = {
     formatVersion: 1,
     frameworkVersion: sourcePackage.version,
     application,
+    ...(options.example ? { example: options.example } : {}),
     files: files.map(({ path, sha256 }) => ({ path, sha256 })),
   };
   // Prepare all bytes before reserving the target. An exclusive mkdir refuses existing targets,
@@ -236,9 +318,15 @@ if (import.meta.main) {
   const name = option('--name');
   if (!target || !name)
     throw new Error(
-      'Usage: bun run scaffold <absent-target-directory> --name <app-name> [--display-name <label>]',
+      'Usage: bun run scaffold <absent-target-directory> --name <app-name> [--display-name <label>] [--example <name>]',
     );
-  const manifest = await scaffold({ target, name, displayName: option('--display-name') });
+  const example = option('--example');
+  const manifest = await scaffold({
+    target,
+    name,
+    displayName: option('--display-name'),
+    ...(example ? { example } : {}),
+  });
   console.log(
     `Exported ${manifest.files.length} source files for ${manifest.application.name} to ${resolve(target)}`,
   );

@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun ../../scripts/dev-example.ts --port 4321"
+    "dev": "bun ../../scripts/dev-example.ts --port 4321",
+    "job": "bun job.ts"
   },
   "exports": {
     "./screens": "./screens.tsx",
