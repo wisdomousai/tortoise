@@ -8,10 +8,11 @@ bun run generate
 bun run check:generated
 bun run check:boundaries
 bun test
+bun run test:sandbox
 bun run build
 ```
 
-`generate` writes deterministic contract, operation, workflow and OpenAPI references and the application skill, including CLI forms. `check:generated` fails when those files drift. `check:boundaries` checks imports and runs the Vite build graph with a plugin that rejects host-only modules and transitive Node built-ins in browser code. `build` runs the Vite web build into `dist/web` (flat, because the host serves only a flat directory) and builds the shadcn registry into `dist/registry`. `build:cli` compiles the application CLI into `dist/bin/<name>`; it is not part of `check`. A successful browser build is separate from a browser interaction or packaged desktop launch.
+`generate` writes deterministic contract, operation, workflow and OpenAPI references and the application skill, including CLI forms. `check:generated` fails when those files drift. `check:boundaries` checks imports and runs the Vite build graph with a plugin that rejects host-only modules and transitive Node built-ins in browser code. `build` runs the Vite web build into `dist/web` (flat, because the host serves only a flat directory) and builds the shadcn registry into `dist/registry`. `build:cli` compiles the application CLI into `dist/bin/<name>`. `check` also runs `test:sandbox`, which compiles that binary through the same `compileCli` function and runs it, because a source run cannot show that the standalone build resolves. Packages that optional adapters load at runtime are listed in `apps/service/src/optional-packages.ts` and stay external to every standalone build. A successful browser build is separate from a browser interaction or packaged desktop launch.
 
 For focused work, use these scripts:
 

@@ -14,6 +14,7 @@ import {
   targetPackages,
 } from './package-assets';
 import { readApplicationIdentity } from '../apps/desktop/src/application-identity';
+import { optionalHostPackages } from '../apps/service/src/optional-packages';
 
 export async function stageDesktop(target: DesktopTarget, output?: string) {
   if (!desktopTargets.includes(target)) throw new Error(`Unsupported target ${target}`);
@@ -61,6 +62,8 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   const build = await Bun.build({
     entrypoints: [entry],
     compile: { target: bunTarget, outfile: service, autoloadDotenv: false, autoloadBunfig: false },
+    // Optional adapters load these at runtime; they are never compiled in.
+    external: [...optionalHostPackages],
     minify: true,
   });
   if (!build.success) throw new Error(build.logs.map((log) => log.message).join('\n'));

@@ -82,7 +82,7 @@ Every operation has behavioral scenarios that run through each surface it suppor
 
 **Rules out:** calling a mock-tested adapter live, a single blended pass/fail, undocumented drift between docs and code.
 
-**Enforced by:** the implementation ledger records deterministic, browser, native, device and live-provider evidence separately; `bun run test:sandbox` runs the compiled binary with an empty environment. **Convention only:** most of this principle is review discipline; no tool can tell a mocked pass from a live one.
+**Enforced by:** the implementation ledger records deterministic, browser, native, device and live-provider evidence separately; `bun run test:sandbox`, part of `bun run check`, compiles the binary with the shipped build configuration and runs it with an empty environment. **Convention only:** most of this principle is review discipline; no tool can tell a mocked pass from a live one.
 
 ## Keeping this current
 

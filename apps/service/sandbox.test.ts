@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, expect, test } from 'bun:test';
-import { chmod, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -18,15 +18,9 @@ let command: string[] = [];
 beforeAll(async () => {
   directory = await mkdtemp(join(tmpdir(), 'agent-sandbox-'));
   if (process.env.SANDBOX_BINARY === '1') {
-    const outfile = join(directory, 'app');
-    const build = await Bun.build({
-      entrypoints: [entry],
-      compile: { outfile, autoloadDotenv: false, autoloadBunfig: false },
-      minify: true,
-    });
-    if (!build.success) throw new Error(build.logs.map((log) => log.message).join('\n'));
-    await chmod(outfile, 0o755);
-    command = [outfile];
+    // The shipped build configuration, not a copy of it.
+    const { compileCli } = await import('../../scripts/build-cli');
+    command = [await compileCli(join(directory, 'app'))];
   } else command = [process.execPath, entry];
 }, 120_000);
 afterAll(async () => {

@@ -82,7 +82,12 @@ export async function startStationBridge(options: {
 }) {
   const { config } = options;
   const profile = config.profilePath ? loadProfile(config.profilePath) : filler;
-  const { chromium } = await import('@playwright/test');
+  // Optional and external to standalone builds (see optional-packages.ts).
+  const { chromium } = await import('@playwright/test').catch(() => {
+    throw new Error(
+      'The browser station bridge needs @playwright/test installed where the service runs',
+    );
+  });
   const browser = await chromium.launch();
   const closers: (() => Promise<void>)[] = [() => browser.close()];
   try {
