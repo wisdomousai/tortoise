@@ -24,6 +24,8 @@ export class ClaudeHarness implements Harness {
       model?: string;
       maxTurns?: number;
       query?: QueryFactory;
+      /** Host-supplied variables, e.g. the egress proxy for this declared process. */
+      environment?: Record<string, string>;
     },
   ) {}
   async availability() {
@@ -70,6 +72,7 @@ export class ClaudeHarness implements Harness {
       cwd: this.options.cwd,
       abortController: controller,
       env: nativeEnvironment({
+        ...this.options.environment,
         HOME: this.options.home,
         USERPROFILE: this.options.home,
         CLAUDE_CONFIG_DIR: this.options.home,

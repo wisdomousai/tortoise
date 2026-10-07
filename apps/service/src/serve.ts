@@ -1,5 +1,6 @@
 import type { ExecutionContext } from '@agent-native/runtime';
 import { startHost } from './host';
+import type { SecurityOptions } from './security';
 import { demoStations, demoSystemOfRecord } from './demo';
 
 /**
@@ -12,6 +13,7 @@ export async function serve(options: {
   webRoot?: string;
   runtimeManifest?: string;
   agentConnection?: { context: ExecutionContext; path: string };
+  security?: SecurityOptions;
 }) {
   const host = await startHost({
     ...options,
@@ -27,6 +29,9 @@ export async function serve(options: {
       connectionFile: host.connectionFile,
       ...(options.agentConnection ? { agentConnectionFile: options.agentConnection.path } : {}),
       instance: host.instance,
+      profile: host.security.policy.profile,
+      network: host.security.policy.mode,
+      auditLog: host.security.logDirectory,
     }),
   );
   let stopping = false;

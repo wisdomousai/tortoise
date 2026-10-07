@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { ApplicationError } from '@agent-native/contracts';
 import { SQLiteStorage } from '@agent-native/adapters/sqlite';
 import { acquireWorkspaceOwnership, WorkspaceOwnedError } from '@agent-native/adapters/ownership';
+import { openSecurity, type SecurityOptions } from './security';
 import type { SystemOfRecordPort } from '@agent-native/integration';
 import {
   createApplicationRuntime,
@@ -28,10 +29,15 @@ export function workspaceStorage(canonicalPath: string) {
  * Open the workspace in this process with no network listener, for stdio MCP and one-shot CLI
  * use inside a sandbox. Ownership is the same OS lock the HTTP host takes, so an embedded process
  * and a running host can never both write one workspace. Fails with CONFLICT when one is live.
+ *
+ * The same site policy and audit log apply as for the HTTP host: the policy is checked before
+ * the workspace opens, every command is audited, and crash-orphaned audit entries are resolved
+ * before the first call. The audit log has its own writer lock, so it also cannot fork.
  */
 export async function openEmbeddedAuthority(options: {
   workspacePath: string;
   systemOfRecord: SystemOfRecordPort<QualityItem>;
+  security?: SecurityOptions;
 }) {
   const ownership = await acquireWorkspaceOwnership(options.workspacePath).catch((error) => {
     if (error instanceof WorkspaceOwnedError)
@@ -41,8 +47,26 @@ export async function openEmbeddedAuthority(options: {
       );
     throw error;
   });
+  const security = await openSecurity({
+    ...options.security,
+    workspacePath: ownership.canonicalPath,
+    component: 'embedded',
+    instance: ownership.instance,
+  }).catch(async (error) => {
+    await ownership.release();
+    throw error;
+  });
   const storage = workspaceStorage(ownership.canonicalPath);
-  const application = createApplicationRuntime({ storage });
+  const application = createApplicationRuntime({ storage, eventLog: security.eventLog });
+  try {
+    await security.attest({ instance: ownership.instance });
+    await security.recover(application);
+  } catch (error) {
+    await storage.close();
+    await security.close();
+    await ownership.release();
+    throw error;
+  }
   const integration = createQualityIntegration({
     application,
     port: options.systemOfRecord,
@@ -52,13 +76,15 @@ export async function openEmbeddedAuthority(options: {
   return {
     application,
     integration,
+    security,
     workspacePath: ownership.canonicalPath,
-    /** Stop background delivery, then release storage before the ownership lock. */
+    /** Stop background delivery, release storage and the audit log, then the ownership lock. */
     async close() {
       if (closed) return;
       closed = true;
       await integration.stop();
       await storage.close();
+      await security.close();
       await ownership.release();
     },
   };

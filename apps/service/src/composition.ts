@@ -1,3 +1,4 @@
+import type { EventLogPort } from '@agent-native/contracts';
 import {
   authorizationRoute,
   composeAuthorization,
@@ -49,6 +50,7 @@ import {
   type DeviceState,
 } from '@agent-native/devices/server';
 import { applicationModules } from './modules';
+import { hostComponents } from './components';
 
 /** Composed feature state. Each module's handlers and policy see only their own slice. */
 export interface ApplicationState {
@@ -135,9 +137,12 @@ export function createApplicationRuntime(options: {
   services?: ApplicationServices;
   now?: () => number;
   newEffectId?: () => string;
+  /** Audit sink; the host passes the deployment's event log (see `openSecurity`). */
+  eventLog?: EventLogPort;
 }) {
   return createApplication({
     modules: applicationModules,
+    components: hostComponents,
     handlers: [
       ...sliceHandlers<ApplicationState, 'projectTasks', ApplicationServices>(
         'projectTasks',
@@ -161,6 +166,7 @@ export function createApplicationRuntime(options: {
     services: options.services ?? {},
     ...(options.now ? { now: options.now } : {}),
     ...(options.newEffectId ? { newEffectId: options.newEffectId } : {}),
+    ...(options.eventLog ? { eventLog: options.eventLog } : {}),
   });
 }
 export type ApplicationRuntime = ReturnType<typeof createApplicationRuntime>;
@@ -173,6 +179,7 @@ export function integrationContext(workspaceId: string): ExecutionContext {
   return {
     workspaceId,
     principalId: INTEGRATION_PRINCIPAL,
+    channel: 'integration',
     grant: {
       operations: [quality.lotSync.id, quality.effectSettle.id, quality.syncStatus.id],
       principalId: INTEGRATION_PRINCIPAL,
@@ -229,6 +236,7 @@ export function createLineIntegration(options: {
   const context: ExecutionContext = {
     workspaceId: options.workspaceId,
     principalId: MES_PRINCIPAL,
+    channel: 'integration',
     grant: {
       operations: [line.mesSync.id, line.effectSettle.id, line.syncStatus.id],
       principalId: MES_PRINCIPAL,

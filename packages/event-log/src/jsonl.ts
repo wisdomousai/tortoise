@@ -1,5 +1,6 @@
 import { mkdir, open, readdir, readFile, truncate, type FileHandle } from 'node:fs/promises';
 import { join } from 'node:path';
+import { Database } from 'bun:sqlite';
 import {
   failClosedAuditMode,
   type AuditEvent,
@@ -26,6 +27,14 @@ export interface JsonlEventLog extends EventLogPort {
   close(): Promise<void>;
 }
 
+/** Another process holds this log open for writing; a chain has exactly one writer. */
+export class EventLogLockedError extends Error {
+  constructor(readonly directory: string) {
+    super('Event log is open in another process');
+    this.name = 'EventLogLockedError';
+  }
+}
+
 const segmentPattern = /^events-(\d{6})\.jsonl$/;
 export const segmentName = (index: number) => `events-${String(index).padStart(6, '0')}.jsonl`;
 
@@ -44,6 +53,10 @@ export async function listSegments(directory: string): Promise<string[]> {
  * never resolved (its caller saw a failure and did not proceed); opening the log truncates it and
  * records the truncation in `log.opened`.
  *
+ * One writer per directory: an open log holds an OS lock (a live SQLite EXCLUSIVE transaction on
+ * `.writer-lock.sqlite`, the same mechanism as workspace ownership) and a second open fails with
+ * `EventLogLockedError` instead of forking the chain. The lock dies with the process.
+ *
  * Files are created 0600 in a 0700 directory. Integrity against a privileged local attacker
  * requires forwarding to an off-host sink; the hash chain makes edits detectable, not impossible.
  */
@@ -53,6 +66,21 @@ export async function openJsonlEventLog(options: JsonlEventLogOptions): Promise<
   const checkpointEvery = options.checkpointEvery ?? 1000;
   const now = options.now ?? Date.now;
   await mkdir(directory, { recursive: true, mode: 0o700 });
+  const lock = new Database(join(directory, '.writer-lock.sqlite'), { create: true });
+  try {
+    lock.exec('PRAGMA busy_timeout = 0; PRAGMA journal_mode = DELETE; BEGIN EXCLUSIVE;');
+  } catch {
+    lock.close();
+    throw new EventLogLockedError(directory);
+  }
+  const releaseLock = () => {
+    try {
+      lock.exec('ROLLBACK');
+    } catch {
+      /* already released */
+    }
+    lock.close(true);
+  };
 
   let head: ChainHead = genesisHead;
   let segment = 1;
@@ -114,21 +142,27 @@ export async function openJsonlEventLog(options: JsonlEventLogOptions): Promise<
   };
 
   const exclusive = serialized();
-  await recover();
-  await write(
-    sealEvents(
-      [
-        {
-          kind: 'log.opened',
-          outcome: 'info',
-          data: { resumedSeq: head.seq, segment: segmentName(segment), truncatedBytes },
-        },
-      ],
-      head,
-      source,
-      now,
-    ),
-  );
+  try {
+    await recover();
+    await write(
+      sealEvents(
+        [
+          {
+            kind: 'log.opened',
+            outcome: 'info',
+            data: { resumedSeq: head.seq, segment: segmentName(segment), truncatedBytes },
+          },
+        ],
+        head,
+        source,
+        now,
+      ),
+    );
+  } catch (error) {
+    await handle?.close().catch(() => undefined);
+    releaseLock();
+    throw error;
+  }
 
   return {
     mode: options.mode ?? failClosedAuditMode,
@@ -159,6 +193,11 @@ export async function openJsonlEventLog(options: JsonlEventLogOptions): Promise<
         await write([...sealed, ...checkpoint]);
         return sealed;
       }),
-    close: () => exclusive(async () => void (await handle?.close())),
+    close: () =>
+      exclusive(async () => {
+        await handle?.close();
+        handle = undefined;
+        releaseLock();
+      }),
   };
 }

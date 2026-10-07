@@ -9,6 +9,7 @@ import {
   type AuditRecord,
   type AuditRequirement,
   type EventLogPort,
+  type HostComponent,
   type JsonObject,
   type CapabilityModule,
   type CapabilitiesOf,
@@ -103,6 +104,11 @@ export function createHandlerFactory<State, Services>() {
 
 export interface ApplicationOptions<State, Services, Modules extends readonly CapabilityModule[]> {
   readonly modules: Modules;
+  /**
+   * Non-module parts of the deployment (listener, provider SDKs, child processes). Only their
+   * declared requirements enter the catalog, so the published manifest covers the whole host.
+   */
+  readonly components?: readonly HostComponent[];
   readonly handlers: readonly HandlerContribution<State, Services>[];
   readonly storage: Storage<State>;
   readonly authorization: AuthorizationPort<State>;
@@ -128,7 +134,7 @@ export function createApplication<
   Services,
   const Modules extends readonly CapabilityModule[],
 >(options: ApplicationOptions<State, Services, Modules>) {
-  const catalog = buildCatalog(options.modules);
+  const catalog = buildCatalog(options.modules, { components: options.components ?? [] });
   const capabilities = new Map(
     options.modules
       .flatMap((module) => module.capabilities)

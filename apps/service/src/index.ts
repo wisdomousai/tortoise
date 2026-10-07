@@ -9,4 +9,12 @@ await serve({
   port: Number(process.env.PORT ?? 4317),
   webRoot: resolve(process.env.WEB_ROOT ?? 'dist/web'),
   runtimeManifest: process.env.AGENT_RUNTIME_MANIFEST,
+  security: {
+    ...(process.env.AGENT_NATIVE_SITE_POLICY
+      ? { sitePolicy: resolve(process.env.AGENT_NATIVE_SITE_POLICY) }
+      : {}),
+    ...(process.env.AGENT_NATIVE_AUDIT_LOG
+      ? { eventLogDirectory: resolve(process.env.AGENT_NATIVE_AUDIT_LOG) }
+      : {}),
+  },
 });

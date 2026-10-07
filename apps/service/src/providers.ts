@@ -31,6 +31,11 @@ export interface ProviderAccessOptions {
   readonly appName?: string;
   readonly now?: () => number;
   readonly fetch?: typeof fetch;
+  /**
+   * Environment for a declared provider child process (`codex-app-server`, `claude-code`),
+   * normally the egress proxy settings. Never carries credentials.
+   */
+  readonly childEnvironment?: (processId: string) => Record<string, string>;
   /** Fixture seams do not discover ambient credentials or execute native providers. */
   readonly factories?: {
     readonly chatgpt?: (options: ChatGptConnectionOptions) => Connection;
@@ -330,11 +335,16 @@ export async function createProviderAccess(options: ProviderAccessOptions) {
       const tokens = await credentials(key, selection.profileId!);
       const executable = await runtime('codex');
       const paths = await directories(turn, 'codex', key);
+      const codexOptions = chatGptCodexOptions(tokens.accessToken, appName);
       return (options.factories?.codex ?? ((config) => new CodexHarness(config)))({
         executable,
         ...paths,
         model: selection.model,
-        ...chatGptCodexOptions(tokens.accessToken, appName),
+        ...codexOptions,
+        environment: {
+          ...options.childEnvironment?.('codex-app-server'),
+          ...codexOptions.environment,
+        },
       });
     }),
     lazy('claude', { questions: false, approvals: false, resume: true }, async (turn, key) => {
@@ -347,6 +357,9 @@ export async function createProviderAccess(options: ProviderAccessOptions) {
         model: model(turn.context.model),
         executable: await runtime('claude'),
         ...(await directories(turn, 'claude', key)),
+        ...(options.childEnvironment
+          ? { environment: options.childEnvironment('claude-code') }
+          : {}),
       });
     }),
     lazy('ai-sdk', { questions: false, approvals: false, resume: false }, async (turn, key) => {

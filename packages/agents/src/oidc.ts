@@ -1,5 +1,11 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from 'jose';
+import {
+  createRemoteJWKSet,
+  customFetch,
+  jwtVerify,
+  type FetchImplementation,
+  type JWTVerifyGetKey,
+} from 'jose';
 import type { CredentialVault } from './credentials';
 
 export interface OidcConfiguration {
@@ -98,7 +104,13 @@ export class OidcAccountConnection {
       throw new Error('OIDC client ID and openid scope are required');
     this.key =
       options.keyResolver ??
-      createRemoteJWKSet(new URL(config.jwksUri), { timeoutDuration: 5_000 });
+      createRemoteJWKSet(new URL(config.jwksUri), {
+        timeoutDuration: 5_000,
+        // Key fetches use the injected (egress-guarded) fetch too, not jose's global one.
+        ...(options.fetch
+          ? { [customFetch]: options.fetch as unknown as FetchImplementation }
+          : {}),
+      });
     this.fetcher = options.fetch ?? fetch;
     this.now = options.now ?? Date.now;
   }

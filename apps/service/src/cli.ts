@@ -17,6 +17,8 @@ import identity from '../../../app.config.json';
 import { demoSystemOfRecord } from './demo';
 import { LOCAL_WORKSPACE, openEmbeddedAuthority, type EmbeddedAuthority } from './embedded';
 import { applicationModules } from './modules';
+import { hostComponents } from './components';
+import type { SecurityOptions } from './security';
 
 /**
  * Application command line, compiled into one binary by `bun run build:cli`.
@@ -35,12 +37,26 @@ const authorityUsage = `Authority:
   ${program} sync [--workspace dir]               pull master data from the system of record once
   ${program} drain [--workspace dir] [--timeout ms]  deliver pending effects; exit ${PENDING_EXIT_CODE} if any remain
 
+Security (serve, mcp --embedded, sync, drain and --embedded operations):
+  --site-policy file   bind declared destinations (AGENT_NATIVE_SITE_POLICY); absent: isolated
+  --audit-log dir      audit event log directory (AGENT_NATIVE_AUDIT_LOG); default <workspace>/audit
+
 Operations run against a live authority (--connection or AGENT_NATIVE_CONNECTION), or in-process
 with --embedded [--workspace dir] [--grant-file f]. help, list, schema and workflows work offline.
 `;
 
 const workspaceOf = (args: string[]) =>
   resolve(takeFlag(args, 'workspace') ?? process.env.WORKSPACE_PATH ?? '.workspace');
+
+/** Trusted launcher configuration: where the site policy and audit log are. */
+function securityOf(args: string[]): SecurityOptions {
+  const sitePolicy = takeFlag(args, 'site-policy') ?? process.env.AGENT_NATIVE_SITE_POLICY;
+  const eventLogDirectory = takeFlag(args, 'audit-log') ?? process.env.AGENT_NATIVE_AUDIT_LOG;
+  return {
+    ...(sitePolicy ? { sitePolicy: resolve(sitePolicy) } : {}),
+    ...(eventLogDirectory ? { eventLogDirectory: resolve(eventLogDirectory) } : {}),
+  };
+}
 
 function finite(value: string | undefined, fallback: number, name: string) {
   if (value === undefined) return fallback;
@@ -61,11 +77,13 @@ function report(value: unknown) {
 
 async function withEmbedded<T>(
   workspacePath: string,
+  security: SecurityOptions,
   use: (authority: EmbeddedAuthority) => Promise<T>,
 ): Promise<T> {
   const authority = await openEmbeddedAuthority({
     workspacePath,
     systemOfRecord: demoSystemOfRecord(),
+    security,
   });
   try {
     return await use(authority);
@@ -76,6 +94,7 @@ async function withEmbedded<T>(
 
 async function serveCommand(args: string[]) {
   const workspacePath = workspaceOf(args);
+  const security = securityOf(args);
   const port = finite(takeFlag(args, 'port'), 4317, 'port');
   const webRoot = takeFlag(args, 'web-root');
   const grantFile = takeFlag(args, 'grant-file');
@@ -93,6 +112,7 @@ async function serveCommand(args: string[]) {
     port,
     ...(webRoot ? { webRoot: resolve(webRoot) } : {}),
     runtimeManifest: process.env.AGENT_RUNTIME_MANIFEST,
+    security,
     ...(grantFile
       ? {
           agentConnection: {
@@ -116,15 +136,20 @@ async function mcpCommand(args: string[]) {
     return new Promise<number>(() => {});
   }
   const workspacePath = workspaceOf(args);
+  const security = securityOf(args);
   const grantFile = takeFlag(args, 'grant-file') ?? process.env.AGENT_NATIVE_GRANT_FILE;
   rejectRemaining(args);
   // MCP is the agent surface, so an embedded server always runs under an explicit delegation.
   if (!grantFile)
     throw new ApplicationError('INVALID_INPUT', 'mcp --embedded requires --grant-file');
-  const context = await readGrantFile(grantFile, LOCAL_WORKSPACE);
+  const context = {
+    ...(await readGrantFile(grantFile, LOCAL_WORKSPACE)),
+    channel: 'mcp' as const,
+  };
   const authority = await openEmbeddedAuthority({
     workspacePath,
     systemOfRecord: demoSystemOfRecord(),
+    security,
   });
   // Load master data before the first tool call so the worklist is not empty on a fresh sandbox.
   // An unreachable system of record must not block capture; the background loop retries.
@@ -151,9 +176,10 @@ async function mcpCommand(args: string[]) {
 
 async function drainCommand(args: string[]) {
   const workspacePath = workspaceOf(args);
+  const security = securityOf(args);
   const timeout = finite(takeFlag(args, 'timeout'), 30_000, 'timeout');
   rejectRemaining(args);
-  return withEmbedded(workspacePath, async ({ integration }) => {
+  return withEmbedded(workspacePath, security, async ({ integration }) => {
     const pending = await integration.dispatcher.drain(timeout);
     report({ target: integration.dispatcher.target, pending });
     return pending ? PENDING_EXIT_CODE : 0;
@@ -162,8 +188,9 @@ async function drainCommand(args: string[]) {
 
 async function syncCommand(args: string[]) {
   const workspacePath = workspaceOf(args);
+  const security = securityOf(args);
   rejectRemaining(args);
-  return withEmbedded(workspacePath, async ({ integration }) => {
+  return withEmbedded(workspacePath, security, async ({ integration }) => {
     report(await integration.inbound.runOnce());
     return 0;
   });
@@ -173,7 +200,7 @@ const offlineVerbs = new Set(['help', 'list', 'schema', 'workflows']);
 
 /** The published contract, for discovery without any authority. Executing is refused. */
 function offlineClient(): CliClient {
-  const catalog = buildCatalog(applicationModules);
+  const catalog = buildCatalog(applicationModules, { components: hostComponents });
   const unavailable = () => {
     throw new ApplicationError(
       'INVALID_INPUT',
@@ -215,15 +242,20 @@ async function operationCommand(args: string[]) {
     );
   }
   const workspacePath = workspaceOf(args);
+  const security = securityOf(args);
   let authority: EmbeddedAuthority | undefined;
   try {
     return await runCliMain(
       args,
       async () => {
-        const context = grantFile ? await readGrantFile(grantFile, LOCAL_WORKSPACE) : OWNER;
+        const context = {
+          ...(grantFile ? await readGrantFile(grantFile, LOCAL_WORKSPACE) : OWNER),
+          channel: 'cli' as const,
+        };
         authority = await openEmbeddedAuthority({
           workspacePath,
           systemOfRecord: demoSystemOfRecord(),
+          security,
         });
         // Commits stay in the workspace outbox; `drain`, `mcp --embedded` or `serve` deliver them.
         return createDirectTransport(authority.application, context);

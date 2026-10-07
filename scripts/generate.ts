@@ -1,13 +1,14 @@
 import { buildCatalog, canonicalJson } from '@agent-native/contracts';
 import { commandWords, synopsis } from '@agent-native/adapters/cli-syntax';
 import { applicationModules } from '../apps/service/src/modules';
+import { hostComponents } from '../apps/service/src/components';
 import identity from '../app.config.json';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 
 // Only pure contracts are imported here. Generating documentation must never start a
 // host, open a workspace, acquire credentials or load a provider SDK.
-const catalog = buildCatalog(applicationModules);
+const catalog = buildCatalog(applicationModules, { components: hostComponents });
 // The compiled CLI is named after the application (`bun run build:cli`).
 const program = identity.name;
 const cliCommand = (id: string) =>

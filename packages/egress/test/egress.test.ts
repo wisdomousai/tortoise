@@ -37,6 +37,7 @@ const requirements = collectRequirements([
       network: [
         site('mes-api', { availability: 'required', targets: ['mes'], offline: 'queue' }),
         site('station-screen'),
+        site('vendor-api', { scope: 'internet', host: 'api.vendor.example' }),
         site('local-model', { scope: 'loopback', protocol: 'http', dataClasses: [] }),
         site('legacy-tcp', { protocol: 'tcp' }),
         site('loopback-tcp', { scope: 'loopback', protocol: 'tcp', dataClasses: [] }),
@@ -221,6 +222,33 @@ describe('egress guard', () => {
     );
     expect(await reason(egress.client('local-model').fetch('/away'))).toBe('REDIRECT_NOT_ALLOWED');
     expect(log.events().filter((event) => event.kind === 'egress.denied')).toHaveLength(4);
+  });
+
+  test('a routed fetch picks the bound destination by origin and explains refusals', async () => {
+    const log = createMemoryEventLog();
+    const routed = local(log).routedFetch(['local-model', 'vendor-api']);
+    const response = await routed(
+      new Request(`http://127.0.0.1:${server.port}/ok`, { method: 'POST', body: 'x' }),
+    );
+    expect(await response.text()).toBe('ok');
+    expect(log.events()[0]).toMatchObject({
+      kind: 'egress.allowed',
+      data: { destination: 'local-model', method: 'POST' },
+    });
+    const refusal = (url: string) =>
+      routed(url).then(
+        () => undefined,
+        (error: unknown) => error,
+      );
+    // A fixed vendor host that is declared but unbound reports UNBOUND, not a generic mismatch.
+    expect(await refusal('https://api.vendor.example/v1')).toMatchObject({
+      code: 'UNAVAILABLE',
+      reason: 'UNBOUND',
+      destination: 'vendor-api',
+    });
+    expect(await refusal('https://elsewhere.example/')).toMatchObject({
+      reason: 'ORIGIN_MISMATCH',
+    });
   });
 
   test('responses larger than the cap error instead of filling memory', async () => {

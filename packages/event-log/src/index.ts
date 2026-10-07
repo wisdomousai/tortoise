@@ -14,6 +14,7 @@ export {
 export { createMemoryEventLog, type MemoryEventLog, type MemoryEventLogOptions } from './memory';
 export {
   listSegments,
+  EventLogLockedError,
   openJsonlEventLog,
   segmentName,
   type JsonlEventLog,

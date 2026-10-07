@@ -78,6 +78,8 @@ export async function ensureService(options: {
   args?: string[];
   webRoot: string;
   runtimeManifest?: string;
+  /** Site policy file for the service; absent leaves the service isolated (loopback only). */
+  sitePolicy?: string;
   startupTimeoutMs?: number;
 }): Promise<ServiceHandle> {
   const workspace = await realpath(options.workspace);
@@ -110,6 +112,7 @@ export async function ensureService(options: {
     if (process.env[key]) env[key] = process.env[key];
   Object.assign(env, { PORT: '0', WORKSPACE_PATH: workspace, WEB_ROOT: options.webRoot });
   if (options.runtimeManifest) env.AGENT_RUNTIME_MANIFEST = options.runtimeManifest;
+  if (options.sitePolicy) env.AGENT_NATIVE_SITE_POLICY = options.sitePolicy;
   const child = spawn(options.executable, options.args ?? [], {
     cwd: workspace,
     env,

@@ -1,5 +1,10 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { createRemoteJWKSet, type JWTVerifyGetKey } from 'jose';
+import {
+  createRemoteJWKSet,
+  customFetch,
+  type FetchImplementation,
+  type JWTVerifyGetKey,
+} from 'jose';
 import type { CredentialVault } from './credentials';
 import { sameSecret, verifyOidcIdentity } from './oidc';
 
@@ -80,7 +85,13 @@ export class ChatGptAccountConnection {
     this.fetcher = options.fetch ?? fetch;
     this.key =
       options.keyResolver ??
-      createRemoteJWKSet(new URL(`${issuer}/.well-known/jwks.json`), { timeoutDuration: 5_000 });
+      createRemoteJWKSet(new URL(`${issuer}/.well-known/jwks.json`), {
+        timeoutDuration: 5_000,
+        // Key fetches use the injected (egress-guarded) fetch too, not jose's global one.
+        ...(options.fetch
+          ? { [customFetch]: options.fetch as unknown as FetchImplementation }
+          : {}),
+      });
     this.now = options.now ?? Date.now;
   }
   private serial<T>(work: () => Promise<T>): Promise<T> {

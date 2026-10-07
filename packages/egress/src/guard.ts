@@ -1,12 +1,13 @@
 import { lookup as dnsLookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import type { PeerCertificate } from 'node:tls';
-import type {
-  AuditRecord,
-  AuditRequirement,
-  CatalogRequirements,
-  EventLogPort,
-  ProcessRequirement,
+import {
+  ApplicationError,
+  type AuditRecord,
+  type AuditRequirement,
+  type CatalogRequirements,
+  type EventLogPort,
+  type ProcessRequirement,
 } from '@agent-native/contracts';
 import { cidrContains, isLoopbackAddress, isLoopbackHost } from './cidr';
 import { portOf, type ResolvedBinding, type ResolvedPolicy } from './policy';
@@ -25,12 +26,17 @@ export type DenialReason =
   | 'PROCESS_NOT_DECLARED'
   | 'PROCESS_NOT_PERMITTED'
   | 'AUDIT_UNAVAILABLE';
-export class EgressDenied extends Error {
+/**
+ * A refused connection. It is an `UNAVAILABLE` application error so transports report it as a
+ * missing dependency (HTTP 503, CLI exit 8), never as a server fault. The message carries only
+ * the destination ID and reason code, which are declared, non-secret names.
+ */
+export class EgressDenied extends ApplicationError {
   constructor(
     readonly reason: DenialReason,
     readonly destination: string,
   ) {
-    super(`Egress to ${destination} denied: ${reason}`);
+    super('UNAVAILABLE', `Egress to ${destination} denied: ${reason}`, { destination, reason });
     this.name = 'EgressDenied';
   }
 }
@@ -62,6 +68,11 @@ export interface DestinationClient {
 
 export interface Egress {
   client(destinationId: string): DestinationClient;
+  /**
+   * A drop-in `fetch` for SDKs that call several origins (an OAuth issuer and an API). Each
+   * request goes to whichever listed destination is bound to its origin; anything else is denied.
+   */
+  routedFetch(destinationIds: readonly string[]): typeof fetch;
   /** Authorize and open a TCP socket to a bound `tcp` destination (VNC, RDP, vendor protocols). */
   socket<Data = undefined>(
     destinationId: string,
@@ -299,8 +310,40 @@ export function createEgress(options: EgressOptions): Egress {
     return deny('PROCESS_NOT_PERMITTED', `process:${processId}`, { host: wanted, port });
   }
 
+  function routedFetch(destinationIds: readonly string[]): typeof fetch {
+    const routed = async (input: string | URL | Request, init: RequestInit = {}) => {
+      const request = input instanceof Request ? input : undefined;
+      const url = new URL(request ? request.url : input.toString());
+      const merged: RequestInit = request
+        ? {
+            method: request.method,
+            headers: request.headers,
+            ...(request.body ? { body: request.body } : {}),
+            signal: request.signal,
+            ...init,
+          }
+        : init;
+      const host = url.hostname.toLowerCase();
+      // A bound origin routes the request. Otherwise a listed destination declared for this
+      // fixed host reports its own denial (DISABLED, UNBOUND) so callers can say why.
+      const destination =
+        destinationIds.find((id) => {
+          const binding = policy.bindings.get(id);
+          return binding && originOf(binding.url) === originOf(url);
+        }) ??
+        destinationIds.find(
+          (id) => !policy.bindings.has(id) && policy.declared.get(id)?.host?.toLowerCase() === host,
+        );
+      if (!destination)
+        return deny('ORIGIN_MISMATCH', destinationIds.join('|') || 'none', { origin: url.origin });
+      return client(destination).fetch(url, merged);
+    };
+    return routed as typeof fetch;
+  }
+
   return {
     client,
+    routedFetch,
     socket,
     authorizeProcessTarget,
     process(processId) {

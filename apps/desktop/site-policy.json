@@ -1,0 +1,18 @@
+{
+  "profile": "desktop-local",
+  "mode": "connected",
+  "destinations": {
+    "openai-auth": { "url": "https://auth.openai.com" },
+    "openai-api": { "url": "https://api.openai.com" },
+    "anthropic-api": { "url": "https://api.anthropic.com" },
+    "quality-system-api": {
+      "disabled": true,
+      "reason": "The reference desktop build uses the in-process demo quality system."
+    },
+    "mes-api": {
+      "disabled": true,
+      "reason": "The reference desktop build uses the in-process demo MES."
+    }
+  },
+  "audit": { "mode": "fail-closed" }
+}

@@ -42,16 +42,33 @@ else {
         ? resolve(process.env.AGENT_NATIVE_WORKSPACE)
         : resolve(app.getPath('userData'), 'workspace');
       await mkdir(workspace, { recursive: true, mode: 0o700 });
+      // The packaged policy (digest-verified above) binds only the provider endpoints. An
+      // operator can substitute a site policy through the trusted host environment, as with
+      // the workspace; without either the service runs isolated.
+      const sitePolicy = process.env.AGENT_NATIVE_SITE_POLICY
+        ? resolve(process.env.AGENT_NATIVE_SITE_POLICY)
+        : manifest.sitePolicy
+          ? resourcePath(resources, manifest.sitePolicy.path)
+          : undefined;
       service = await ensureService({
         workspace,
         executable: resourcePath(resources, manifest.service.executable),
         webRoot: resourcePath(resources, manifest.webRoot),
         runtimeManifest: resolve(resources, 'runtime-manifest.json'),
+        ...(sitePolicy ? { sitePolicy } : {}),
       });
       const origin = service.endpoint;
       const uiSession = session.fromPartition('application-window');
       uiSession.setPermissionCheckHandler(() => false);
       uiSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
+      // Renderer egress: network requests may reach only the local authority. CSP says the same
+      // for page content; this also covers requests CSP does not govern. Provider sign-in runs in
+      // the user's browser (below), so the window itself never contacts the internet.
+      uiSession.webRequest.onBeforeRequest((details, callback) => {
+        const target = new URL(details.url);
+        const network = /^(?:https?|wss?):$/.test(target.protocol);
+        callback({ cancel: network && target.origin !== origin });
+      });
       uiSession.webRequest.onHeadersReceived((details, callback) => {
         const headers = { ...details.responseHeaders };
         if (new URL(details.url).origin === origin) {

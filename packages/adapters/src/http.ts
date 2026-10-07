@@ -165,7 +165,7 @@ export function createHttpHandler(options: {
         throw new ApplicationError('FORBIDDEN', 'Browser writes require same-origin validation');
       const session = options.sessions.get(bearer ?? cookie ?? '');
       if (!session) throw new ApplicationError('FORBIDDEN', 'Local session required');
-      const context = { ...session.context, signal: request.signal };
+      const context = { ...session.context, channel: 'http' as const, signal: request.signal };
       if (url.pathname === '/api/v1/launch' && request.method === 'POST')
         return jsonResponse({ launch: options.sessions.launch(session) });
       if (url.pathname === '/api/v1/contract' && request.method === 'GET')

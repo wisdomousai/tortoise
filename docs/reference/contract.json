@@ -7260,6 +7260,45 @@
     "devices": [],
     "network": [
       {
+        "availability": "optional",
+        "dataClasses": [
+          "prompt",
+          "application-context",
+          "tool-results"
+        ],
+        "direction": "egress",
+        "host": "api.anthropic.com",
+        "id": "anthropic-api",
+        "offline": "unavailable",
+        "owner": "anthropic",
+        "protocol": "https",
+        "purpose": "Inference for Claude runs.",
+        "scope": "internet"
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "audit-event"
+        ],
+        "direction": "egress",
+        "id": "audit-collector",
+        "offline": "degrade",
+        "owner": "authority",
+        "protocol": "tcp",
+        "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
+        "scope": "site"
+      },
+      {
+        "availability": "required",
+        "dataClasses": [],
+        "direction": "ingress",
+        "id": "authority-http",
+        "owner": "authority",
+        "protocol": "http",
+        "purpose": "Serve the frontend, API, events and attach connections.",
+        "scope": "loopback"
+      },
+      {
         "availability": "required",
         "dataClasses": [
           "stop-classification",
@@ -7275,6 +7314,37 @@
         "targets": [
           "mes"
         ]
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "prompt",
+          "application-context",
+          "tool-results"
+        ],
+        "direction": "egress",
+        "host": "api.openai.com",
+        "id": "openai-api",
+        "offline": "unavailable",
+        "owner": "openai",
+        "protocol": "https",
+        "purpose": "Model catalog and inference for Codex and AI SDK runs.",
+        "scope": "internet"
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "oauth-authorization",
+          "identity-token"
+        ],
+        "direction": "egress",
+        "host": "auth.openai.com",
+        "id": "openai-auth",
+        "offline": "unavailable",
+        "owner": "openai",
+        "protocol": "https",
+        "purpose": "ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.",
+        "scope": "internet"
       },
       {
         "availability": "required",
@@ -7312,7 +7382,38 @@
         ]
       }
     ],
-    "processes": []
+    "processes": [
+      {
+        "availability": "optional",
+        "executable": "claude",
+        "id": "claude-code",
+        "network": [
+          "anthropic-api"
+        ],
+        "owner": "anthropic",
+        "purpose": "Claude Code process driven by the Agent SDK."
+      },
+      {
+        "availability": "optional",
+        "executable": "codex",
+        "id": "codex-app-server",
+        "network": [
+          "openai-api"
+        ],
+        "owner": "openai",
+        "purpose": "Codex app-server harness under a delegated grant."
+      },
+      {
+        "availability": "optional",
+        "executable": "chromium (Playwright)",
+        "id": "station-bridge-browser",
+        "network": [
+          "station-screen"
+        ],
+        "owner": "authority",
+        "purpose": "Browser that reaches a web-based station HMI for the screen bridge."
+      }
+    ]
   },
   "workflows": [
     {

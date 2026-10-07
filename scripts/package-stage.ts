@@ -64,6 +64,8 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   if (!build.success) throw new Error(build.logs.map((log) => log.message).join('\n'));
   await chmod(service, 0o755);
   await cp(resolve(root, 'dist/web'), resolve(resources, 'web'), { recursive: true });
+  const sitePolicy = resolve(resources, 'site-policy.json');
+  await cp(resolve(root, 'apps/desktop/site-policy.json'), sitePolicy);
   const rel = (path: string) => relative(resources, path).split('\\').join('/');
   const runtime = async (name: 'codex' | 'claude', executable: string) => ({
     executable: rel(executable),
@@ -79,6 +81,7 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
     target,
     service: { executable: rel(service), sha256: await sha256(service) },
     webRoot: 'web',
+    sitePolicy: { path: rel(sitePolicy), sha256: await sha256(sitePolicy) },
     runtimes: { codex: await runtime('codex', codex), claude: await runtime('claude', claude) },
   };
   await writeFile(

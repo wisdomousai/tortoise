@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import type { AuditEvent } from '@agent-native/contracts';
 import {
   createMemoryEventLog,
+  EventLogLockedError,
   forwardingEventLog,
   listSegments,
   openJsonlEventLog,
@@ -151,6 +152,22 @@ describe('JSON-lines event log', () => {
       ).rejects.toThrow();
       await log.append([record(1)]);
       await log.close();
+      expect((await verifyEventLog(directory)).ok).toBe(true);
+    });
+  });
+});
+
+describe('JSON-lines writer lock', () => {
+  test('a second writer is refused until the first closes', async () => {
+    await withDirectory(async (directory) => {
+      const first = await openJsonlEventLog({ directory, source, now });
+      await expect(openJsonlEventLog({ directory, source, now })).rejects.toBeInstanceOf(
+        EventLogLockedError,
+      );
+      await first.close();
+      const second = await openJsonlEventLog({ directory, source, now });
+      await second.append([record(1)]);
+      await second.close();
       expect((await verifyEventLog(directory)).ok).toBe(true);
     });
   });

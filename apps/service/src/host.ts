@@ -28,6 +28,7 @@ import { createRunSupervisor } from '@agent-native/agents/supervisor';
 import { DeterministicHarness } from '@agent-native/agents/deterministic';
 import type { Harness, RunSnapshot, RunStore } from '@agent-native/agents/types';
 import { createProviderAccess } from './providers';
+import { openSecurity, type SecurityOptions } from './security';
 
 /** Run snapshots are separate from business transactions; a completed run is never a commit receipt. */
 class SQLiteRunStore implements RunStore {
@@ -90,16 +91,36 @@ export async function startHost(options: {
    * launcher configuration (see `readGrantFile`); the session expires with the grant.
    */
   agentConnection?: { context: ExecutionContext; path: string };
+  /**
+   * Site policy and audit log location. Absent: isolated network posture and a fail-closed log in
+   * `<workspace>/audit`. Every outbound connection of the host goes through the egress guard
+   * built from this policy, and every business action is recorded in the log.
+   */
+  security?: SecurityOptions;
 }) {
   await mkdir(options.workspacePath, { recursive: true });
   const ownership = await acquireWorkspaceOwnership(options.workspacePath);
   const startupCleanup: (() => void | Promise<void>)[] = [() => ownership.release()];
   try {
+    // Policy first: an unusable policy or an unwritable audit log stops startup before the
+    // workspace is opened. Closed last, after everything that might still audit.
+    const security = await openSecurity({
+      ...options.security,
+      workspacePath: ownership.canonicalPath,
+      component: 'authority',
+      instance: ownership.instance,
+      childProxy: true,
+    });
+    startupCleanup.unshift(() => security.close());
     const storage = workspaceStorage(ownership.canonicalPath);
     startupCleanup.unshift(() => storage.close());
     const runStore = new SQLiteRunStore(join(ownership.canonicalPath, 'runs.sqlite'));
     startupCleanup.unshift(() => runStore.close());
-    const application = createApplicationRuntime({ storage });
+    const application = createApplicationRuntime({ storage, eventLog: security.eventLog });
+    // Attest what is running, then resolve audit entries a crash left open. Both precede any
+    // integration pass or request, so no new command reuses a cursor recovery compares against.
+    await security.attest({ instance: ownership.instance });
+    await security.recover(application);
     const systemOfRecord = options.systemOfRecord ?? new FakeQualitySystem();
     const integration = createQualityIntegration({
       application,
@@ -125,6 +146,10 @@ export async function startHost(options: {
       origin: () => origin,
       sessions: (token) => sessions.get(token),
       runtimeManifest: options.runtimeManifest,
+      // Provider SDKs reach only the bound OpenAI destinations; provider CLIs get proxy settings
+      // that tunnel only to the destinations their process declaration lists.
+      fetch: security.egress.routedFetch(['openai-auth', 'openai-api']),
+      childEnvironment: (processId) => security.proxy!.childEnvironment(processId),
     });
     startupCleanup.unshift(() => providers.close());
     const ownerSession = sessions.create(
@@ -201,6 +226,7 @@ export async function startHost(options: {
             principalId: run.context.principalId,
             workspaceId: run.context.workspaceId,
             runId: run.id,
+            channel: 'harness',
             signal: toolContext.signal,
             grant: {
               ...initiatingGrant,
@@ -525,6 +551,7 @@ export async function startHost(options: {
       runStore.close();
       await unlink(connectionFile).catch(() => {});
       if (agentConnection) await unlink(agentConnection.path).catch(() => {});
+      await security.close();
       await ownership.release();
     }
     return {
@@ -535,6 +562,7 @@ export async function startHost(options: {
       launchUrl: `${origin}/#launch=${sessions.launch(ownerSession)}`,
       sessions,
       application,
+      security,
       supervisor,
       integration: { ...integration, systemOfRecord },
       lineIntegration: { ...lineIntegration, mes },
