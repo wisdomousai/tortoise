@@ -1,6 +1,6 @@
 # Architecture
 
-The [principles](principles.md) state the commitments this architecture serves; the [primitive catalog](primitives.md) maps each to its package and exports.
+The [principles](principles.md) state the commitments this architecture serves; [primitives](primitives.md) explains the concepts that deliver them and where each lives in code.
 
 The intended product unit is a bounded task or workflow interface over existing systems of record. See the [task/workflow pattern](task-workflow-pattern.md) for ownership, point-of-work capture and execution boundaries. The architecture below describes the implemented local kernel. The [system-of-record reference](system-of-record-pattern.md) describes the implemented outbox, inbound sync, capture kit and sandbox CLI/MCP; the [operator workstation pattern](operator-workstation-pattern.md) treats screen-only station software as a connector behind the same outbox ([ADR 004](decisions/004-screen-mediated-authority.md)); the [next reference plan](system-of-record-reference-plan.md) covers the remaining delivery and execution-boundary gates.
 

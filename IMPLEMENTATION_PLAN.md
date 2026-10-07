@@ -27,7 +27,7 @@ The first implementation is local-first: desktop and browser clients connect to 
 
 ## 2. Architectural invariants
 
-These invariants are the decision baseline. Their maintained form is [docs/principles.md](docs/principles.md), with the derived [primitive catalog](docs/primitives.md); update those, not this list, as the design evolves.
+These invariants are the decision baseline. Their maintained form is [docs/principles.md](docs/principles.md), with the derived [primitives](docs/primitives.md); update those, not this list, as the design evolves.
 
 - **One business implementation:** transports and UI bindings invoke the same registered command and query handlers.
 - **One catalog:** modules contribute contracts to one validated application catalog. Individual surfaces do not maintain separate operation lists.

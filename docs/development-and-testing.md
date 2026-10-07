@@ -7,12 +7,11 @@ bun run typecheck
 bun run generate
 bun run check:generated
 bun run check:boundaries
-bun run check:principles
 bun test
 bun run build
 ```
 
-`generate` writes deterministic contract, operation, workflow and OpenAPI references and the application skill, including CLI forms. `check:generated` fails when those files drift. `check:boundaries` checks imports and runs the Vite build graph with a plugin that rejects host-only modules and transitive Node built-ins in browser code. `check:principles` fails when [docs/primitives.md](primitives.md) names a symbol or location that no longer exists, cites an unknown or retired principle from [docs/principles.md](principles.md), omits a package, or leaves a principle without an implemented primitive. `build` runs the Vite web build into `dist/web` (flat, because the host serves only a flat directory) and builds the shadcn registry into `dist/registry`. `build:cli` compiles the application CLI into `dist/bin/<name>`; it is not part of `check`. A successful browser build is separate from a browser interaction or packaged desktop launch.
+`generate` writes deterministic contract, operation, workflow and OpenAPI references and the application skill, including CLI forms. `check:generated` fails when those files drift. `check:boundaries` checks imports and runs the Vite build graph with a plugin that rejects host-only modules and transitive Node built-ins in browser code. `build` runs the Vite web build into `dist/web` (flat, because the host serves only a flat directory) and builds the shadcn registry into `dist/registry`. `build:cli` compiles the application CLI into `dist/bin/<name>`; it is not part of `check`. A successful browser build is separate from a browser interaction or packaged desktop launch.
 
 For focused work, use these scripts:
 
