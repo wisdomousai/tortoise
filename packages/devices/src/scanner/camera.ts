@@ -64,16 +64,29 @@ export function createCameraSource(
         video: { facingMode: 'environment' },
         audio: false,
       });
+      const release = () => {
+        for (const track of stream.getTracks()) track.stop();
+        video.srcObject = null;
+      };
       video.srcObject = stream;
       video.muted = true;
-      await video.play();
+      try {
+        await video.play();
+      } catch (error) {
+        // The camera was acquired; a failed start must not leave it running.
+        release();
+        throw error;
+      }
       const filter = new RepeatFilter(profile.repeatSuppressMs ?? 1500);
       let busy = false;
+      let stopped = false;
       const timer = setInterval(() => {
         if (busy || video.readyState < 2) return;
         busy = true;
         decoder(video)
           .then((codes) => {
+            // A decode that finishes after stop belongs to a closed session; drop it.
+            if (stopped) return;
             const at = performance.now();
             for (const code of codes)
               if (filter.accept(code.rawValue, at))
@@ -84,15 +97,17 @@ export function createCameraSource(
                   }),
                 );
           })
-          .catch((error) => onError?.(error instanceof Error ? error : new Error(String(error))))
+          .catch((error) => {
+            if (!stopped) onError?.(error instanceof Error ? error : new Error(String(error)));
+          })
           .finally(() => {
             busy = false;
           });
       }, options.intervalMs ?? 150);
       return () => {
+        stopped = true;
         clearInterval(timer);
-        for (const track of stream.getTracks()) track.stop();
-        video.srcObject = null;
+        release();
       };
     },
   };

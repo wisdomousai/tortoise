@@ -7,6 +7,7 @@ import {
   RepeatFilter,
   ScanDetector,
   calibrate,
+  createCameraSource,
   createFakeHostBridge,
   createHostPluginSource,
   createScanRouter,
@@ -225,6 +226,50 @@ describe('sources and routing', () => {
     expect(filter.accept('A', 500)).toBe(false);
     expect(filter.accept('B', 600)).toBe(true);
     expect(filter.accept('A', 1600)).toBe(true);
+  });
+
+  test('camera sessions release the stream on a failed start and drop decodes after stop', async () => {
+    const stopped: string[] = [];
+    const stream = { getTracks: () => [{ stop: () => stopped.push('track') }] };
+    const navigatorProperty = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      value: { mediaDevices: { getUserMedia: async () => stream } },
+    });
+    try {
+      const failing = {
+        play: () => Promise.reject(new Error('not allowed')),
+      } as unknown as HTMLVideoElement;
+      const decoder = async () => [];
+      await expect(
+        createCameraSource(defaultWedgeProfile(), { video: failing, decoder }).start({
+          onScan: () => {},
+        }),
+      ).rejects.toThrow('not allowed');
+      expect(stopped).toEqual(['track']);
+      expect(failing.srcObject).toBeNull();
+
+      let finish: (codes: { rawValue: string; format: string }[]) => void = () => {};
+      const slow = () =>
+        new Promise<{ rawValue: string; format: string }[]>((resolve) => (finish = resolve));
+      const video = { play: async () => {}, readyState: 4 } as unknown as HTMLVideoElement;
+      const scans: unknown[] = [];
+      const errors: unknown[] = [];
+      const stop = await createCameraSource(defaultWedgeProfile(), {
+        video,
+        decoder: slow,
+        intervalMs: 1,
+      }).start({ onScan: (scan) => scans.push(scan), onError: (error) => errors.push(error) });
+      await Bun.sleep(5);
+      stop();
+      finish([{ rawValue: 'WO1', format: 'code_128' }]);
+      await Bun.sleep(5);
+      expect(scans).toEqual([]);
+      expect(errors).toEqual([]);
+      expect(stopped).toEqual(['track', 'track']);
+    } finally {
+      if (navigatorProperty) Object.defineProperty(globalThis, 'navigator', navigatorProperty);
+    }
   });
 
   test('wedge source intercepts a burst outside fields and decodes it', async () => {
