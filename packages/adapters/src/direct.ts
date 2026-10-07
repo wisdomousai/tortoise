@@ -57,6 +57,7 @@ export function createDirectTransport(
         cursor: cursorOf(receipt.cursor, receipt.authorizationRevision),
         authorizationRevision: receipt.authorizationRevision,
         revisions: { ...receipt.revisions },
+        ...(receipt.effects ? { effects: [...receipt.effects] } : {}),
       };
     },
     async *events(cursor: Cursor, signal: AbortSignal): AsyncIterable<ChangeBatch> {

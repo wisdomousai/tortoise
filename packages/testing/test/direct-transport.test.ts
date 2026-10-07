@@ -1,5 +1,11 @@
 import { expect, test } from 'bun:test';
-import { createApplication, createMemoryStorage } from '@agent-native/runtime';
+import { z } from 'zod';
+import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import {
+  createApplication,
+  createHandlerFactory,
+  createMemoryStorage,
+} from '@agent-native/runtime';
 import { createDirectTransport } from '../../adapters/src/direct';
 import {
   createProjectTaskHandlers,
@@ -92,3 +98,42 @@ test('a subscription from a current snapshot cursor resumes without a reset', as
     controller.abort();
   }
 }, 2_000);
+
+test('direct receipts carry committed outbox effects like HTTP receipts', async () => {
+  const post = defineCapability({
+    id: 'note.post',
+    kind: 'command',
+    input: jsonSchema(z.strictObject({ id: z.string() })),
+    output: jsonSchema(z.strictObject({ id: z.string() })),
+    permission: { action: 'create', resourceType: 'note' },
+    ui: { exception: 'test fixture' },
+    integration: { target: 'sor', delivery: 'outbox' },
+  });
+  const bind = createHandlerFactory<{ notes: string[] }, {}>();
+  const app = createApplication({
+    modules: [defineModule({ id: 'notes', capabilities: [post] })],
+    storage: createMemoryStorage({ notes: [] as string[] }),
+    authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
+    services: {},
+    newEffectId: () => 'effect-1',
+    handlers: [
+      bind(post, (input, ctx) => {
+        ctx.state.notes.push(input.id);
+        ctx.enqueue({
+          target: 'sor',
+          type: 'note.post',
+          resource: `note:${input.id}`,
+          payload: {},
+        });
+        ctx.change(`note:${input.id}`);
+        return { id: input.id };
+      }),
+    ],
+  });
+  const receipt = await createDirectTransport(app, owner).command(
+    'note.post',
+    { id: 'n1' },
+    { idempotencyKey: 'post-n1' },
+  );
+  expect(receipt.effects).toEqual(['effect-1']);
+});

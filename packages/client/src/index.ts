@@ -21,6 +21,11 @@ export interface Receipt<T> {
   authorizationRevision: number;
   revisions: Record<string, number>;
   operation: string;
+  /**
+   * Outbox effects this command committed for delivery to another system. Their presence proves
+   * the local commit only; delivery and acceptance are reported later through the effect state.
+   */
+  effects?: readonly string[];
 }
 export interface ChangeBatch {
   cursor: Cursor;
