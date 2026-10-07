@@ -1,7 +1,14 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 import { build } from 'vite';
-import { forbiddenBrowserImport, hostSourcePath } from './boundary-rules.ts';
+import {
+  browserSource,
+  directEgress,
+  egressExemptions,
+  forbiddenBrowserImport,
+  hostSourcePath,
+  serverSource,
+} from './boundary-rules.ts';
 
 const root = resolve(import.meta.dir, '..');
 const errors: string[] = [];
@@ -46,6 +53,24 @@ for (const file of all) {
       errors.push(`${name}: browser imports host module ${dependency}`);
   }
 }
+// Server code connects to other hosts only through the egress guard; see `egressExemptions`.
+const exemptionUsed = new Set<string>();
+for (const file of all) {
+  const name = relative(root, file).replaceAll('\\', '/');
+  if (!serverSource.test(name) || browserSource.test(name)) continue;
+  // Comments mention APIs without calling them.
+  const source = (await readFile(file, 'utf8'))
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  const found = directEgress.filter((rule) => rule.pattern.test(source)).map((rule) => rule.api);
+  if (!found.length) continue;
+  const exemption = Object.keys(egressExemptions).find((prefix) => name.startsWith(prefix));
+  if (exemption) exemptionUsed.add(exemption);
+  else errors.push(`${name}: direct ${found.join(', ')} bypasses the egress guard`);
+}
+for (const exemption of Object.keys(egressExemptions))
+  if (!exemptionUsed.has(exemption))
+    errors.push(`scripts/boundary-rules.ts: stale egress exemption ${exemption}`);
 // Bundling the actual application with its real config catches transitive host dependencies as
 // well as direct ones: the boundary plugin in apps/web/vite.config.ts fails the graph.
 try {

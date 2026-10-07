@@ -26,6 +26,14 @@ Framework packages never import the example domain. Feature contracts never impo
 
 The reference host is a Bun loopback service with exclusive OS workspace ownership. It persists a JSON feature-state snapshot and framework receipts/revisions/journal in SQLite. Browser clients use a one-use launch exchange and HttpOnly session cookie; process clients use a narrow host-issued bearer connection. The MCP bridge and CLI attach to the host rather than opening another writable database, or run the runtime embedded under the same exclusive workspace lock (`--embedded`). Electron supervises the local service and loads the shared frontend. Workspace ownership and trusted local sessions are reference deployment choices, separate from feature behavior.
 
+Network, devices and child processes are declared, not discovered. Modules and host components declare `requirements`; the catalog composes them with their owners. The host:
+
+- opens its site policy before anything else;
+- routes every outbound connection through the egress guard (`packages/egress`);
+- injects the hash-chained event log (`packages/event-log`) into the runtime, so commands, queries, denials, outbox transitions and connections are recorded.
+
+With no policy the host runs isolated. See [security-and-assurance.md](security-and-assurance.md) and [ADR 005](decisions/005-declared-egress-and-audit-log.md).
+
 Storage is generic `Storage<State>` with atomic transaction/read callbacks; there is no universal domain-record ORM. State must be structured-clone-compatible in the core. The memory adapter supports cloneable state such as Maps; the SQLite snapshot adapter deliberately accepts only JSON state. The example uses project/task dictionaries directly. This is a small snapshot reference, not an implemented relational repository framework or a demonstrated large-dataset backend. Replacing storage requires preserving the atomic receipt/journal/revision and snapshot guarantees in its conformance suite.
 
 A remote system of record is a separate authority, connected through a business integration port rather than disguised as local transactional storage. An external-write workflow distinguishes local capture/intent commit from remote acceptance, then publishes connector acknowledgements and imported changes through runtime commands. The runtime commits outbox effects with the receipt (`ctx.enqueue`) and records outcomes through domain settle commands (`ctx.settleEffect`); `packages/integration` delivers them outside transactions and pulls inbound changes. Delivery is at least once, using the target's idempotency or lookup; there are no cross-system transactions or reconciliation of uncertain outcomes.

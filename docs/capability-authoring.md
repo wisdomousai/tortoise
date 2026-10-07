@@ -44,6 +44,14 @@ Compose `createApplication({ modules: [notes], handlers: [renameHandler], storag
 
 Every feature-state mutation declares its changed resources through `ctx.change`; undeclared mutations fail instead of producing invisible writes. Use request `expectedRevisions` for updates based on observed state. UI drafts remain separate from committed queries, and conflicts require reconciliation. Do not call a provider or network service while a transaction is held. External preparation may perform authorized reads or computation before a command; it must not make an unaudited business write before command authorization. For external business effects, use the [durable intent and outcome pattern](task-workflow-pattern.md): call `ctx.enqueue({ target, type, payload, resource })` on a declared changed resource, let the `packages/integration` dispatcher deliver it outside the transaction, and record the outcome in a domain settle command that calls `ctx.settleEffect` under the integration principal. Declare `integration: { target, delivery: 'outbox' }` on the capability so generated docs and MCP annotations state that a receipt is not acceptance. `examples/quality-inspection/server.ts` is the worked reference.
 
+Declare what the module needs outside the process on the module itself:
+
+- `requirements.network`: destinations, with purpose, scope, protocol, data classes, availability and offline behavior;
+- `requirements.devices`;
+- `requirements.processes`.
+
+The catalog build rejects an outbox target that no destination carries. Its destination must declare `offline: 'queue'`. Mark input fields that are safe to record in plain text with `audit: { fields: [...] }`; everything else is logged as a digest. Server code never calls `fetch` or opens sockets directly. Connectors receive a fetch from the egress guard, and `check:boundaries` enforces this. After `bun run generate`, review the change in `docs/reference/security-manifest.json` and `data-flows.md`. See [security-and-assurance.md](security-and-assurance.md).
+
 Protected output fields must be optional or represented through explicit public view variants. `projectOutput` filters by current permissions, and the final DTO must validate against the output schema. Removing a required field fails and rolls back the command. Replayed receipts are projected again under current access.
 
 Add the React action/live query against the typed client, with a matching UI binding declaration. TanStack-based screens use `live.liveQueryOptions(capability, input)` and `useCapabilityForm(transport, capability, …)`, which reuses one idempotency key per form until it commits. The runtime catalog verifies declaration coverage; actual binding and rendering need UI checks. Add workflow text referencing canonical IDs when agent users need a sequence, and document intentional headless exceptions. MCP/API/CLI handlers must dispatch through the runtime rather than reimplementing behavior.
