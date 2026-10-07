@@ -1,6 +1,6 @@
 import { isStepCount, jsonSchema, streamText, tool, type LanguageModel, type ToolSet } from 'ai';
 import type { Harness, HarnessEvent, HarnessTurn } from './types';
-import { toolName } from './types';
+import { modelPrompt, toolName } from './types';
 
 /** The host constructs the model with explicitly chosen credentials. No string model
  * aliases or default gateway are accepted because those may discover ambient keys. */
@@ -41,7 +41,7 @@ export class AiSdkHarness implements Harness {
     );
     const result = streamText({
       model: this.options.model,
-      prompt: turn.prompt,
+      prompt: modelPrompt(turn),
       tools,
       stopWhen: isStepCount(this.options.maxSteps ?? 12),
       maxOutputTokens: this.options.maxOutputTokens ?? 4_096,

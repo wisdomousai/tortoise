@@ -1,5 +1,5 @@
 import type { Harness, HarnessEvent, HarnessTurn } from './types';
-import { toolName } from './types';
+import { modelPrompt, toolName } from './types';
 import {
   AsyncChannel,
   StdioJsonRpc,
@@ -240,7 +240,7 @@ export class CodexHarness implements Harness {
       yield { type: 'resume-data', data: { threadId } };
       const started = await rpc.request('turn/start', {
         threadId,
-        input: [{ type: 'text', text: turn.prompt, textElements: [] }],
+        input: [{ type: 'text', text: modelPrompt(turn), textElements: [] }],
       });
       turnId = nativeId(started, 'turn');
       for await (const event of channel) {

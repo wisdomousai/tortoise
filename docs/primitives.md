@@ -180,9 +180,9 @@ _What a person is looking at, captured for an agent, and the intents an agent ca
 
 This is the bridge between a person and an agent working on the same screen. The agent acts on what the person selected, at the revision they saw, and can ask the frontend to open or select something.
 
-Guarantees: the host issues and binds sessions. Capture revalidates access and freezes the target, so later selection changes cannot retarget a run. Intents expire, are acknowledged and never write business records.
+Guarantees: the host issues and binds sessions. Capture revalidates access and freezes the target, so later selection changes cannot retarget a run. Intents expire, are acknowledged and never write business records. Every provider adapter shows its model the captured selection through `modelPrompt`: resource references and the revisions the person saw, never identity, grant, provider selection or session ID. Contents still come only through tools.
 
-Serves P3 · implemented · `packages/adapters` `packages/react` · `UiSessionStore`, `captureUiContext`
+Serves P3 · implemented · `packages/adapters` `packages/react` `packages/agents` · `UiSessionStore`, `captureUiContext`, `modelPrompt`
 
 ### Agent run
 

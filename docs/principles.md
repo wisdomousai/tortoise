@@ -26,7 +26,7 @@ The host derives principal, workspace and grant; operation input cannot select o
 
 **Rules out:** role or principal fields in operation input, checks only at the edge, counts that leak hidden rows, cached decisions reused after revocation.
 
-**Enforced by:** `packages/testing/src/security-conformance.test.ts` (grants constrain rows, replay and events; interruptions cannot commit or leak); the role matrices in each `examples/*/domain.test.ts`; `packages/adapters/src/casl.test.ts` (scope agreement across CASL, memory and SQL, fail-closed rules); `packages/runtime/test/runtime.test.ts` (current authorization governs retries).
+**Enforced by:** `packages/testing/src/security-conformance.test.ts` (grants constrain rows, replay and events; interruptions cannot commit or leak); the role matrices in each `examples/*/domain.test.ts`; `packages/adapters/src/casl.test.ts` (scope agreement across CASL, memory and SQL, fail-closed rules); `packages/runtime/test/runtime.test.ts` (current authorization governs retries); `packages/agents/test/adapters.test.ts` (each provider model sees the captured selection, never the run's identity or grant).
 
 ### P4 — Every write is a command to the single authority of its workspace
 
