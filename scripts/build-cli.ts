@@ -24,6 +24,10 @@ const build = await Bun.build({
     autoloadBunfig: false,
   },
   minify: true,
+  // The station screen bridge loads a browser only when stations are configured. Playwright
+  // cannot be compiled into one file; a deployment that bridges screens installs it beside the
+  // binary, and every other deployment never loads it.
+  external: ['@playwright/test'],
 });
 if (!build.success) throw new Error(build.logs.map((log) => log.message).join('\n'));
 await chmod(outfile, 0o755);

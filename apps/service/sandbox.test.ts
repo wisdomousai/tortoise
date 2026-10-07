@@ -23,6 +23,8 @@ beforeAll(async () => {
       entrypoints: [entry],
       compile: { outfile, autoloadDotenv: false, autoloadBunfig: false },
       minify: true,
+      // As `scripts/build-cli.ts`: the station bridge's browser is loaded only when configured.
+      external: ['@playwright/test'],
     });
     if (!build.success) throw new Error(build.logs.map((log) => log.message).join('\n'));
     await chmod(outfile, 0o755);
@@ -204,6 +206,18 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
     human: { count: 1 },
     forwarding: { pending: 1, rejected: 0, accepted: { count: 3 } },
   });
+
+  // Every process above wrote to one chained log. With no site policy the sandbox ran isolated,
+  // and the log proves it: intact chain, isolated network, no egress attempted or denied.
+  const auditLog = join(workspace, 'audit');
+  const verified = await run(['audit', 'verify', '--log', auditLog]);
+  expect(verified.exitCode).toBe(0);
+  expect(verified.value).toMatchObject({ ok: true, problems: [] });
+  const report = await run(['audit', 'report', '--log', auditLog, '--format', 'json']);
+  expect(report.exitCode).toBe(0);
+  expect(report.value.posture).toMatchObject({ networkMode: 'isolated', log: { verified: true } });
+  for (const destination of report.value.posture.destinations)
+    expect(destination).toMatchObject({ allowed: 0, denied: 0 });
 }, 60_000);
 
 test('serve issues a grant-bound connection for an agent running as another OS user', async () => {

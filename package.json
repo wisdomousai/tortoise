@@ -39,6 +39,7 @@
     "build:registry": "shadcn build registry.json --output ../../dist/registry --cwd apps/web",
     "build:cli": "bun scripts/build-cli.ts",
     "test:sandbox": "SANDBOX_BINARY=1 bun test apps/service/sandbox.test.ts",
+    "test:isolated": "bun test --preload ./scripts/isolated-preload.ts",
     "build:registry:operator": "bun scripts/build-operator-registry.ts && shadcn build registry.json --output ../../dist/registry/operator --cwd packages/operator-ui",
     "check:registry:operator": "bun scripts/build-operator-registry.ts --check",
     "station:golden": "bun scripts/station-golden.ts examples/line-station/golden",
