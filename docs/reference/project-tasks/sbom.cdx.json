@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:f9f15c09-6e57-5dce-9fed-76c59cee66f2",
+  "serialNumber": "urn:uuid:f26b0a4e-8b8a-5419-b92a-e431bd14021f",
   "version": 1,
   "metadata": {
     "tools": {
@@ -11158,6 +11158,7 @@
       "dependsOn": [
         "pkg:npm/%40ai-sdk/openai@4.0.86",
         "pkg:npm/%40anthropic-ai/claude-agent-sdk@0.3.292",
+        "pkg:npm/%40babel/parser@7.29.9",
         "pkg:npm/%40casl/ability@7.0.1",
         "pkg:npm/%40fontsource-variable/ibm-plex-sans@5.3.0",
         "pkg:npm/%40fontsource/ibm-plex-mono@5.3.0",
