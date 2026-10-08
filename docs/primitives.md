@@ -34,7 +34,7 @@ Each entry gives a one-line definition, the problem the primitive solves and how
 
 `Serves <principles> · <status> · <locations> · <symbols>`
 
-Each `packages/*` and `apps/*` location has a README that links back to every entry naming it and documents the package's entrypoints, trust boundary, dependencies and tests; `bun run check:readmes` fails when the two directions disagree (P10).
+Each `packages/*` and `apps/*` location has a README that links back to every entry naming it and documents the package's entrypoints, trust boundary, dependencies and tests; `bun run check:readmes` fails when the two directions disagree (P10). A location's symbols are its public exports. Where an entry module has grown a same-named folder of internals (P14), the README's Entrypoints section maps that folder; the symbols and subpaths here do not change.
 
 Status is `implemented`, `partial` or `proposed`, and changes only with evidence in the [implementation ledger](implementation-status.md) (P10). Adapters, such as SQLite storage or the Codex harness, are listed with the port they implement. Domain code in `examples/*` is not a primitive (P8); a domain concept is promoted only when a second application needs it.
 

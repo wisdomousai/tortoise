@@ -65,6 +65,18 @@ Checked on 7 October 2026 on macOS arm64. Deterministic, browser, device and liv
 
 Not part of this reference: a live computer-use driver (the `ComputerUseDriver` port and a scripted driver exist), VNC/RDP/KVM-over-IP/UI Automation transports, vendor scanner SDKs, vendor programming-barcode sheets, live microphone capture and a scratch-app `shadcn add` acceptance test. `@agent-native/devices` and `@agent-native/station` are unpublished workspace packages. Nothing here is a safety-rated or validated system.
 
+## Module size and cohesion
+
+Checked on 8 October 2026 on macOS arm64, after splitting every oversized module ([P14](principles.md#p14--every-module-has-one-reason-to-change), [ADR 008](decisions/008-module-size-and-cohesion.md)). The refactor changed no behavior and no public API. No existing test was edited.
+
+| Kind          | Evidence                                                                                                                                                                                                                                              |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deterministic | `bun run check` passes, including `check:size` over 403 source files with three data-allowlist entries: 335 tests passed, 1 skipped, 0 failed across 55 files. `bun run generate` produces no diff, and `test:sandbox` passes as the compiled binary. |
+| Public API    | The runtime export names of all 128 public modules that existed before the refactor (package `src/*` files and example entrypoints) are identical before and after. The 26 modules added are new entry files.                                         |
+| Browser       | `bun run test:e2e` in Chromium: line-station 5, project-tasks 2, quality-inspection 3, all passing. The two packaged-desktop specs were skipped because no `DESKTOP_EXECUTABLE` was set.                                                              |
+| Golden gate   | `bun run station:golden` in `examples/line-station` passes after the station connector split.                                                                                                                                                         |
+| Native, live  | None. No packaged desktop launch, device or live provider was exercised for this change.                                                                                                                                                              |
+
 ## Security evidence limits
 
 The exported rules were compared as text only. They were not loaded into nftables, Windows Firewall, systemd (`systemd-analyze verify`) or a Kubernetes cluster. No off-host syslog collector, live provider egress through the guard, or zero-trust deployment was exercised. Zero trust refuses to start until a workforce identity adapter exists. Control mappings are indicative, not a certification. `bun run test:sandbox` passes in full: the compiled binary runs the embedded MCP, drain and `serve` scenarios with an empty environment, and its audit log then verifies with no egress allowed or denied.

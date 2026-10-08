@@ -108,6 +108,14 @@ Every network destination, device and child process is declared in the catalog w
 
 **Enforced by:** catalog validation of requirements, including outbox targets without a queuing destination (`packages/contracts/test/contracts.test.ts`); `bun run check:boundaries` fails on direct network and process APIs outside `packages/egress` and flags stale exemptions; `packages/egress/test/egress.test.ts` (host, port, scheme, redirect and DNS escapes refused; profile floors); `packages/runtime/test/audit.test.ts` (a failed required append rolls back the commit; crash recovery); `packages/event-log/test/event-log.test.ts` (tampering, gaps, truncation, one writer); `examples/project-tasks/test/hardening.test.ts` (startup floors, mTLS); `bun run test:isolated` (the suite makes no non-loopback connection); `bun run test:sandbox` (the compiled binary's audit chain verifies with no egress); `bun run check:generated` (security manifest, data flows, controls and SBOM match the code). **Convention only:** device access is declared but not mediated; containment of children that ignore proxy settings depends on the deployment applying the exported OS rules; `audit.fields` allow-lists are reviewed by hand.
 
+### P14 — Every module has one reason to change
+
+A file, factory or component does one job, and its name says which. A factory composes collaborators that each own one responsibility and receive their dependencies as explicit arguments. It does not hold every responsibility as inner functions over shared closure state. Package `index.ts` files only re-export. Splitting never changes a public subpath: an existing file becomes the entry for a same-named folder of internals ([ADR 008](decisions/008-module-size-and-cohesion.md)).
+
+**Rules out:** implementation in a package barrel; one factory, handler list or component holding several responsibilities; a file over 300 lines or a function over 80 lines outside the declared data allowlist; an allowlist entry for logic.
+
+**Enforced by:** `bun run check:size` (`scripts/check-size.ts` with limits and the data allowlist in `scripts/size-rules.ts`) fails on an oversized file or function, on any declaration in `packages/*/src/index.ts`, and on a stale allowlist entry. **Convention only:** that a split follows responsibility rather than line count, and that state a component owns stays with the component whose lifetime it shares.
+
 ## Keeping this current
 
 Principles change rarely and on purpose. The [primitives](primitives.md) document changes whenever a public building block does. [AGENTS.md](../AGENTS.md#principles-and-primitives) gives the working rules.
@@ -119,6 +127,7 @@ Principles change rarely and on purpose. The [primitives](primitives.md) documen
 
 ## Changelog
 
+- 2026-10-08 — Added P14 (one reason to change per module; ADR 008), enforced by `bun run check:size`.
 - 2026-10-08 — P10 now lists `bun run check:readmes` (workspace READMEs agree with package exports and primitive entries).
 - 2026-10-07 — Added P13 (declared reach, site binding and a recorded, fail-closed audit trail) for the egress guard, site policy and event log; see ADR 007. P3 now lists the hardening tests.
 - 2026-10-07 — Added P12 (applications run beside the work and keep working without central systems or a model; ADR 006).

@@ -6,6 +6,7 @@ Read `docs/principles.md`, `docs/primitives.md`, `IMPLEMENTATION_PLAN.md` and `d
 - Every business write uses the application runtime. Never write feature state from a transport or harness.
 - Authorize current operation, object and fields inside the transaction. Filter rows before pagination/counts. Recheck delegated grants and event access.
 - Generated MCP, API, schema and documentation come from the composed catalog. Run `bun run generate` after changing contracts.
+- Keep one responsibility per module (P14). Split a factory into module-level functions that take explicit dependencies, keep existing files as entry modules over a same-named folder, and keep barrels re-export only. `bun run check:size` enforces the limits.
 - Preserve literal capability types. Add a behavioral scenario and a UI binding or explicit exception when adding an operation.
 - Document public exports with purpose, trust boundaries, guarantees and failure behavior. Explain transaction/auth ordering in inline comments.
 - Every workspace in `packages/*`, `apps/*` and `examples/*` has a `README.md` with the sections Primitives, Entrypoints, Trust boundary, Dependencies and Tests. It links to the primitive entries and explains what the code does not show on its own; it does not copy guarantees from `docs/primitives.md`. Update it in the same change as the code. `bun run check:readmes` fails on a missing README, an undocumented export, an unlinked primitive entry or a dead link.
@@ -20,7 +21,7 @@ Three layers (P11, ADR 005): **framework** `packages/*` (including `@agent-nativ
 
 ## Principles and primitives
 
-`docs/principles.md` states the architectural invariants (P1–P13), starting with: every operation is executable from UI, MCP, CLI and API. Each principle says what it rules out and which checks and tests enforce it, and marks what is still convention. `docs/primitives.md` documents each primitive as a concept: the core is a capability catalog over a logical CQRS authority where people, agents, scripts and devices are equal callers, extended by callers, integrations with other systems, and trust, configuration and proof. Each entry gives the guarantees, gaps, the principles it serves and its code. Both evolve with the code. Update them in the same change, not afterwards.
+`docs/principles.md` states the architectural invariants (P1–P14), starting with: every operation is executable from UI, MCP, CLI and API. Each principle says what it rules out and which checks and tests enforce it, and marks what is still convention. `docs/primitives.md` documents each primitive as a concept: the core is a capability catalog over a logical CQRS authority where people, agents, scripts and devices are equal callers, extended by callers, integrations with other systems, and trust, configuration and proof. Each entry gives the guarantees, gaps, the principles it serves and its code. Both evolve with the code. Update them in the same change, not afterwards.
 
 - Before designing, find the principles that apply and the primitives that already exist. Extend or extract before adding something new.
 - When you add, rename, move or remove a public export, package, registry item or enforcing script, update its primitive entry. Do the same when its guarantees or gaps change. No tool checks these documents; reviewers check that the code change and the entry agree.
