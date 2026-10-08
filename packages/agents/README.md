@@ -30,6 +30,13 @@ Read the [harness guide](../../docs/agent-harnesses.md), [providers](../../docs/
 | `@agent-native/agents/process`       | server only | Process-tree termination, explicit native environments, stdio JSON-RPC.               |
 | `@agent-native/agents/requirements`  | server only | `providerComponents`: the provider destinations and processes as data. Loads no SDK.  |
 
+Four entries are composers over a folder of parts that are imported only from inside the package:
+
+- `src/supervisor/`: the in-memory run store, bounded event queue, redaction, the run record and its persisted events, turn execution, replay and the run lifecycle (start, cancel, pending requests, interrupted-run recovery).
+- `src/codex/`: the app-server process and thread setup, and the translation of its messages (tool calls, questions, completion).
+- `src/claude/`: the in-process MCP server that exposes the application's tools. The SDK process launch stays in `claude.ts`, the egress-exempt file.
+- `src/chatgpt/`: the vault-backed profile store, the PKCE authorization request and callback checks, and the token and revocation endpoints. The default `fetch` is chosen only in `chatgpt.ts`.
+
 ## Trust boundary
 
 Tools are catalog operations only; tool implementations derive identity and grant from the run, never from model arguments, and recheck cancellation at their commit boundary. A duplicate invocation ID executes once. Text and progress stream separately from commits, partial output never turns a failed run into a success, and secrets are redacted before persistence, including a secret split across streamed deltas. Cancellation stops future work without undoing commits; a restart marks unfinished runs interrupted instead of replaying them.
