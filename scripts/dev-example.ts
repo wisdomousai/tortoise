@@ -55,7 +55,10 @@ export async function prepareDevelopment(argv: string[]): Promise<PreparedDevelo
 
   // The web build, the default web root and relative station profiles resolve against the root.
   process.chdir(root);
+  // Pass the environment explicitly: Bun.spawnSync does not see the
+  // AGENT_NATIVE_APPLICATION assignment above otherwise, and would build the configured app.
   const build = Bun.spawnSync(['bun', 'run', 'build:web'], {
+    env: { ...process.env },
     stdout: 'inherit',
     stderr: 'inherit',
   });

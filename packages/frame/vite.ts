@@ -59,6 +59,21 @@ export async function frame(options: { appSource: string; configPath: string; ou
       },
     },
     {
+      // Tailwind only scans the Vite root and explicit `@source` paths. The frame and the
+      // application's screens live outside the starter, so without this their classes (the
+      // shell layout among them) are never generated. Added to the stylesheet that imports
+      // Tailwind, before the Tailwind plugin reads it.
+      name: 'agent-native-tailwind-sources',
+      enforce: 'pre',
+      async transform(code, id) {
+        if (!id.endsWith('.css') || !/@import\s+['"]tailwindcss['"]/.test(code)) return null;
+        const entry = await this.resolve(screens, join(options.appSource, 'main.tsx'));
+        if (!entry) throw new Error(`Cannot resolve the application's screens: ${screens}`);
+        const sources = [join(import.meta.dirname, 'src'), dirname(entry.id)];
+        return `${code}\n${sources.map((path) => `@source ${JSON.stringify(path)};`).join('\n')}\n`;
+      },
+    },
+    {
       name: 'application-title',
       transformIndexHtml(html) {
         if (!/<title>[\s\S]*?<\/title>/i.test(html))
