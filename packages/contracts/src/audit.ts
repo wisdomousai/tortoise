@@ -1,4 +1,4 @@
-import type { JsonObject } from './index';
+import type { JsonObject } from './json';
 
 /**
  * Audit event envelope shared by the event-log port, its adapters, verifiers and UI. It is

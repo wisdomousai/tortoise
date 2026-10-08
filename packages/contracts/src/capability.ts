@@ -1,0 +1,72 @@
+import type { Schema } from './schema';
+import type { Requirements } from './requirements';
+
+export interface PermissionRequirement {
+  readonly action: string;
+  readonly resourceType: string;
+  readonly fields?: readonly string[];
+}
+/**
+ * Declares that a command's committed result is forwarded to an external system of record through
+ * the transactional outbox. A receipt proves the local commit only; acceptance by `target` arrives
+ * later through a settlement command and may be a rejection.
+ */
+export interface IntegrationDeclaration {
+  readonly target: string;
+  readonly delivery: 'outbox';
+}
+export interface Capability<
+  Id extends string = string,
+  Kind extends 'command' | 'query' = 'command' | 'query',
+  Input = unknown,
+  Output = unknown,
+> {
+  readonly id: Id;
+  readonly kind: Kind;
+  readonly input: Schema<Input>;
+  readonly output: Schema<Output>;
+  readonly description?: string;
+  readonly permission: PermissionRequirement;
+  readonly dependencies?: readonly string[];
+  readonly ui?: { readonly binding?: string; readonly exception?: string };
+  readonly errors?: readonly string[];
+  readonly integration?: IntegrationDeclaration;
+  /**
+   * Top-level input fields that are safe to record in the event log in plain text. Everything
+   * else is logged only as a digest; never list credentials, personal data or free text here.
+   */
+  readonly audit?: { readonly fields?: readonly string[] };
+}
+export type AnyCapability = Capability<string, 'command' | 'query', unknown, unknown>;
+export type InputOf<C> =
+  C extends Capability<string, 'command' | 'query', infer I, unknown> ? I : never;
+export type OutputOf<C> =
+  C extends Capability<string, 'command' | 'query', unknown, infer O> ? O : never;
+export function defineCapability<
+  const Id extends string,
+  const Kind extends 'command' | 'query',
+  I,
+  O,
+>(capability: Capability<Id, Kind, I, O>): Capability<Id, Kind, I, O> {
+  return Object.freeze(capability);
+}
+export interface CapabilityModule<C extends readonly AnyCapability[] = readonly AnyCapability[]> {
+  readonly id: string;
+  readonly capabilities: C;
+  readonly requires?: readonly string[];
+  /** Network destinations, devices and child processes this module needs. See `Requirements`. */
+  readonly requirements?: Requirements;
+  readonly workflows?: readonly {
+    readonly id: string;
+    readonly operations: readonly string[];
+    readonly text: string;
+  }[];
+}
+export function defineModule<const C extends readonly AnyCapability[]>(
+  module: CapabilityModule<C>,
+): CapabilityModule<C> {
+  return Object.freeze(module);
+}
+export type CapabilitiesOf<M extends readonly CapabilityModule[]> =
+  M[number]['capabilities'][number];
+export type CapabilityById<C extends AnyCapability, Id extends C['id']> = Extract<C, { id: Id }>;

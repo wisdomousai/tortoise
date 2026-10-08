@@ -17,10 +17,10 @@ The worked example is [`examples/project-tasks/contracts.ts`](../../examples/pro
 
 ## Entrypoints
 
-| Import                      | Runs in            | Contents                                                                                                |
-| --------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------- |
-| `@agent-native/contracts`   | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers.    |
-| `@agent-native/contracts/*` | browser and server | One source file, for example `@agent-native/contracts/requirements` or `@agent-native/contracts/audit`. |
+| Import                      | Runs in            | Contents                                                                                             |
+| --------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
+| `@agent-native/contracts`   | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers. |
+| `@agent-native/contracts/*` | browser and server | One source file: `json`, `schema`, `capability`, `catalog`, `errors`, `requirements` or `audit`.     |
 
 ## Trust boundary
 
