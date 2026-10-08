@@ -26,6 +26,8 @@ Read the [operator workstation pattern](../../docs/operator-workstation-pattern.
 
 `contracts` composes `contracts/schemas`, `contracts/operation` (descriptions and the capability helper), `contracts/queries` and `contracts/commands`, which are browser-safe like it. `server` concatenates one handler group per concern from `handlers/` (queries, production, attention, administration, observation, integration). Those groups share `server/`: the handler context and clock, station access, DTOs, attention items and outcome settlement. Every handler checks state and authorization inside its own command, exactly as before the split.
 
+`ui/station` re-exports the station screens from `ui/station/`: the overview, MES status, and the station surface with one part per region (header, machine banner, stop reasons, correction, counters, order task, recent stops, requested recipe). `StationSurface` keeps the command in flight and the open correction, via `useStationCommands` and `useAttention`, so live updates do not reset them. Files that issue commands are `.tsx`, because the UI-binding test only reads screen files. `ui/station-kit/` holds the gallery's demo state. The gallery screen owns that state because the inactive tab unmounts.
+
 | Command (in this directory)       | Purpose                                                                                        |
 | --------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `bun run dev` / `bun run dev:web` | Desktop window or browser on port 4323, with the fake HMI started in-process and bridged.      |
