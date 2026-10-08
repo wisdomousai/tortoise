@@ -13,7 +13,7 @@ Layer: framework (`packages/*`). Test code; production code never imports it.
 | Import                              | Runs in        | Contents                                                                                    |
 | ----------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
 | `@agent-native/testing`             | server (tests) | `ScenarioDriver`, `BehavioralScenario`, `directDriver`, `runScenarios`, `assertEquivalent`. |
-| `@agent-native/testing/*`           | server (tests) | One source file, for example `@agent-native/testing/ui-bindings`.                           |
+| `@agent-native/testing/*`           | server (tests) | One source file: `scenarios` (what the root exports) or `ui-bindings`.                      |
 | `@agent-native/testing/ui-bindings` | server (tests) | `referencedCapabilities`, `unboundOperations`: static scan of an application's screens.     |
 
 Each example uses both: `examples/<name>/test/conformance.test.ts` runs its scenarios through every driver, and `examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty.

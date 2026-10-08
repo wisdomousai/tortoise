@@ -21,6 +21,47 @@ function issueField(path: readonly unknown[] | undefined): string | undefined {
 /** Field errors keyed by form field, plus a form-level message, in TanStack Form's shape. */
 type SubmitErrors = { form?: string; fields: Record<string, string> };
 
+/** Schema issues on the fields the form has; the rest become the form-level message. */
+function issueErrors(
+  issues: readonly { readonly message: string; readonly path?: readonly unknown[] }[],
+  field: (name: string | undefined) => string | undefined,
+): SubmitErrors {
+  const errors: SubmitErrors = { fields: {} };
+  for (const issue of issues) {
+    const name = field(issueField(issue.path));
+    if (name) errors.fields[name] ??= issue.message;
+    else errors.form ??= issue.message;
+  }
+  return errors;
+}
+
+/**
+ * Map a failed command to form errors. `rotate` starts a fresh idempotency key; `retryFresh`
+ * drops the frozen input so the next submit maps the (possibly edited) values again.
+ */
+function failureErrors(
+  error: unknown,
+  field: (name: string | undefined) => string | undefined,
+  attempts: { rotate(): void; retryFresh(): void },
+): SubmitErrors {
+  if (!(error instanceof ApplicationError))
+    // Unknown outcome (network): keep the key so a retry replays instead of duplicating.
+    return { form: 'Not saved yet. Check the connection and retry.', fields: {} };
+  // The key already committed different input; that commit stands, so start fresh.
+  if (error.code === 'IDEMPOTENCY_CONFLICT') {
+    attempts.rotate();
+    return {
+      form: 'An earlier attempt from this form was already saved. Review the latest data.',
+      fields: {},
+    };
+  }
+  // Nothing committed: the next submit maps the (possibly edited) values afresh.
+  attempts.retryFresh();
+  const details = error.details as { field?: unknown } | undefined;
+  const name = typeof details?.field === 'string' ? field(details.field) : undefined;
+  return name ? { fields: { [name]: error.message } } : { form: error.message, fields: {} };
+}
+
 export interface CapabilityFormOptions<C extends AnyCapability, Values> {
   readonly defaultValues: Values;
   /**
@@ -92,15 +133,7 @@ export function useCapabilityForm<C extends AnyCapability, Values extends object
         }
         attempt.current = { values, input };
         const checked = await capability.input['~standard'].validate(input);
-        if (checked.issues) {
-          const errors: SubmitErrors = { fields: {} };
-          for (const issue of checked.issues) {
-            const name = field(issueField(issue.path));
-            if (name) errors.fields[name] ??= issue.message;
-            else errors.form ??= issue.message;
-          }
-          return errors;
-        }
+        if (checked.issues) return issueErrors(checked.issues, field);
         try {
           receipt.current = await transport.command<OutputOf<C>>(capability.id, input, {
             idempotencyKey: key.current!,
@@ -110,22 +143,10 @@ export function useCapabilityForm<C extends AnyCapability, Values extends object
           });
           return undefined;
         } catch (error) {
-          if (!(error instanceof ApplicationError))
-            // Unknown outcome (network): keep the key so a retry replays instead of duplicating.
-            return { form: 'Not saved yet. Check the connection and retry.', fields: {} };
-          // The key already committed different input; that commit stands, so start fresh.
-          if (error.code === 'IDEMPOTENCY_CONFLICT') {
-            rotate();
-            return {
-              form: 'An earlier attempt from this form was already saved. Review the latest data.',
-              fields: {},
-            };
-          }
-          // Nothing committed: the next submit maps the (possibly edited) values afresh.
-          attempt.current = undefined;
-          const details = error.details as { field?: unknown } | undefined;
-          const name = typeof details?.field === 'string' ? field(details.field) : undefined;
-          return name ? { fields: { [name]: error.message } } : { form: error.message, fields: {} };
+          return failureErrors(error, field, {
+            rotate,
+            retryFresh: () => (attempt.current = undefined),
+          });
         }
       },
     },

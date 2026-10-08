@@ -15,7 +15,7 @@ Layer: framework (`packages/*`). Browser-safe.
 | Import                   | Runs in            | Contents                                                                                     |
 | ------------------------ | ------------------ | -------------------------------------------------------------------------------------------- |
 | `@agent-native/client`   | browser and server | `Transport`, `createHttpTransport`, `createClient`, `LiveQuery`, `LiveState` and wire types. |
-| `@agent-native/client/*` | browser and server | The same file by path (`@agent-native/client/index`); the package has one source file.       |
+| `@agent-native/client/*` | browser and server | One source file: `types`, `http-transport`, `client` or `live-query`.                        |
 
 ## Trust boundary
 
