@@ -32,6 +32,13 @@ Each example's `manifest.ts` and `application.ts` show the two content entrypoin
 
 `host`, `integrations` and `assurance-cli` are also importable by path; prefer the root export.
 
+Four entries are thin composers over a folder of parts that are imported only from inside the package:
+
+- `src/host/`: `startHost`'s steps (authority, agents, listener, connection files, cleanup stack) and its routes (`routes/` with shutdown, UI sessions and runs), plus the SQLite run store and the agent tool port.
+- `src/providers/`: shared `ProviderState`, owner scope and vault namespacing, profile selection, the verified native runtime, lazy harnesses, the provider account routes, the model catalog and the OAuth callback. The default `fetch` is chosen only in `providers.ts`, which is the egress-exempt file; the parts call it through the state.
+- `src/security/`: the audit channel (log, forwarder, egress guard and child proxy), the syslog sink, attestation records and the executable digest.
+- `src/cli/`: one module per command group (`serve`, `mcp`, `sync`/`drain`, operations) and shared argument parsing.
+
 ## Trust boundary
 
 An application definition is trusted code: its policy, handlers and connections run inside the authority with the host's privileges. Only callers are untrusted. The host derives every `ExecutionContext` from a session, connection file or grant file. Launch credentials are single-use and expire; connection files are written for local clients and are credentials.
