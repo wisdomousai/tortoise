@@ -24,6 +24,8 @@ The generated [operation reference](../../docs/reference/project-tasks/operation
 | `@agent-native/project-tasks/screens`     | browser            | Default export: `defineScreens` with the Projects and Security screens.                             |
 | `@agent-native/project-tasks/*`           | see file           | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`.                    |
 
+`server` concatenates `handlers/projects` and `handlers/tasks`, which share the handler context, lookups, paging and DTOs in `server/context`. `ui/projects` re-exports the screens from `ui/projects/`: one file per component, with `useTaskDraft` in the task row and `useAction` and `useProjectSession` in the project screen. Drafts whose forms collapse (a new project name, a new task title) stay in the parent screen, so collapsing a form does not lose what was typed.
+
 Run it on its own port and workspace with `bun run dev` (desktop) or `bun run dev:web` (browser) in this directory; port 4321. `bun run job` runs the demonstration job, which uses stable revision-bound idempotency keys and never opens the database.
 
 ## Trust boundary
