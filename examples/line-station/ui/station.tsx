@@ -1,7 +1,15 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { Cpu, PackageCheck, ScanBarcode, Volume2, VolumeX } from 'lucide-react';
+import {
+  ChevronLeft,
+  Cpu,
+  OctagonAlert,
+  PackageCheck,
+  ScanBarcode,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 import type { OutputOf } from '@agent-native/contracts';
 import { defaultWedgeProfile, type ScannerProfile, type ScanRoute } from '@agent-native/devices';
 import { deviceOperations } from '@agent-native/devices/contracts';
@@ -9,22 +17,21 @@ import { operations } from '../contracts';
 import { type AttentionItem } from '@/components/attention-queue';
 import { BigAction } from '@/components/big-action';
 import { NumericPad } from '@/components/numeric-pad';
-import { OperatorStation } from '@/components/operator-station';
+import { OperatorPanel, OperatorStation } from '@/components/operator-station';
 import { ScanPrompt, type ScanOutcome } from '@/components/scan-prompt';
 import {
   DeliveryBadge,
   Freshness,
-  StatusPill,
+  SignalBanner,
   type StationSignal,
 } from '@/components/status-strip';
 import { TilePicker } from '@/components/tile-picker';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFeedback } from '@/hooks/use-feedback';
 import { useScanner } from '@/hooks/use-scanner';
 import { client, live } from '@/lib/session';
+import { cn } from '@/lib/utils';
 
 type Station = OutputOf<typeof operations.stationGet>;
 type Reading = Station['readings'][string];
@@ -48,46 +55,147 @@ const shown = (value: Reading | undefined) =>
   value === undefined || value.value === null ? '—' : String(value.value);
 const message = (cause: unknown) => (cause instanceof Error ? cause.message : 'Request failed');
 
-/** Stations where the signed-in person holds a role. */
+/** What a station card and the banner say about the machine. */
+const machineWord = (machine: string | undefined, stale: boolean) =>
+  stale ? 'Not seen' : (machine ?? 'Unknown').toLowerCase();
+const cardTone = (machine: string | undefined, stale: boolean) =>
+  stale
+    ? 'bg-op-idle text-op-idle-foreground'
+    : machine === 'RUNNING'
+      ? 'bg-op-ok text-op-ok-foreground'
+      : machine === 'ALARM'
+        ? 'bg-op-fault text-op-fault-foreground'
+        : machine === 'STOPPED'
+          ? 'bg-op-attention text-op-attention-foreground'
+          : 'bg-op-idle text-op-idle-foreground';
+const modeWord: Record<Station['mode'], string> = {
+  'monitor-only': 'Watching only',
+  assist: 'Assists',
+  actuate: 'Loads recipes',
+};
+
+/** Stations where the signed-in person holds a role; each opens full window at the machine. */
 export function StationsScreen() {
   const stations = useQuery(live.liveQueryOptions(operations.stationList, {}));
+  const items = stations.data?.items ?? [];
+  const count = (test: (station: (typeof items)[number]) => boolean) => items.filter(test).length;
   return (
-    <div className="space-y-6">
-      <header>
-        <p className="text-xs font-medium tracking-widest text-muted-foreground">LINE STATIONS</p>
-        <h1 className="text-2xl font-semibold">Stations</h1>
-        <p className="text-sm text-muted-foreground">
-          Machine state is read from each station screen by its bridge. Orders and stop reasons come
-          from the MES; classifications and counts are forwarded to it.
-        </p>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-[1.75rem] font-semibold tracking-tight">Stations</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Read live from each station&apos;s own screen. Open one to run it full screen at the
+            machine.
+          </p>
+        </div>
+        {items.length > 0 && (
+          <span className="text-sm text-muted-foreground">
+            {[
+              [count((station) => !station.stale && station.machine !== 'RUNNING'), 'stopped'],
+              [count((station) => !station.stale && station.machine === 'RUNNING'), 'running'],
+              [count((station) => station.stale), 'not seen'],
+            ]
+              .filter(([value]) => value)
+              .map(([value, word]) => `${value} ${word}`)
+              .join(' · ')}
+          </span>
+        )}
       </header>
       {stations.error && <p role="alert">{stations.error.message}</p>}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {stations.data?.items.map((station) => (
-          <Card key={station.id}>
-            <CardHeader>
-              <CardDescription>{station.line}</CardDescription>
-              <CardTitle>
-                <Link to="/station/$stationId" params={{ stationId: station.id }}>
-                  {station.name}
-                </Link>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-1">
-              <Badge variant={station.machine === 'RUNNING' ? 'secondary' : 'destructive'}>
-                {station.stale ? 'No recent observation' : (station.machine ?? 'Unknown')}
-              </Badge>
-              {station.openStop && <Badge variant="outline">Open stop</Badge>}
-              {station.attention > 0 && (
-                <Badge variant="outline">{station.attention} to check</Badge>
+      <div className="grid gap-4 sm:grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]">
+        {items.map((station) => {
+          const needsPerson = station.openStop || station.attention > 0;
+          return (
+            <Link
+              key={station.id}
+              to="/station/$stationId"
+              params={{ stationId: station.id }}
+              aria-label={`${station.name}, ${machineWord(station.machine, station.stale)}`}
+              className={cn(
+                'flex flex-col overflow-hidden rounded-2xl border bg-card hover:shadow-md',
+                needsPerson && 'border-2 border-op-attention',
               )}
-              <Badge variant="outline">{station.mode}</Badge>
-              <Badge variant="outline">{station.role}</Badge>
-            </CardContent>
-          </Card>
-        ))}
-        {stations.data?.items.length === 0 && <p>You hold no station role.</p>}
+            >
+              <div
+                className={cn(
+                  'flex items-center gap-3 px-4.5 py-4 text-xl font-bold tracking-wide uppercase',
+                  cardTone(station.machine, station.stale),
+                )}
+              >
+                {machineWord(station.machine, station.stale)}
+              </div>
+              <div className="flex flex-col gap-2 px-4.5 py-4">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-xl font-semibold">{station.name}</span>
+                  <span className="text-sm text-muted-foreground">{station.line}</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {station.openStop && <Chip tone="attention">Stop not classified</Chip>}
+                  {station.attention > 0 && (
+                    <Chip tone="attention">
+                      {station.attention} {station.attention === 1 ? 'reading' : 'readings'} to
+                      check
+                    </Chip>
+                  )}
+                  <Chip>{modeWord[station.mode]}</Chip>
+                  <Chip>{station.role}</Chip>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+        {stations.data && items.length === 0 && <p>You hold no station role.</p>}
       </div>
+    </div>
+  );
+}
+
+function Chip({ tone, children }: { tone?: 'attention'; children: ReactNode }) {
+  return (
+    <span
+      className={cn(
+        'rounded-full px-2.5 py-0.5 text-[0.8rem]',
+        tone === 'attention' ? 'bg-op-attention/20 font-medium' : 'bg-muted',
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+/** Sidebar status: what the MES and the station screens still have to accept. */
+export function MesStatus() {
+  const sync = useQuery(live.liveQueryOptions(operations.syncStatus, {}));
+  if (!sync.data) return null;
+  const totals = sync.data.targets.reduce(
+    (sum, target) => ({
+      open: sum.open + target.pending + target.retrying,
+      held: sum.held + target.held,
+      rejected: sum.rejected + target.rejected,
+    }),
+    { open: 0, held: 0, rejected: 0 },
+  );
+  return (
+    <div className="space-y-1">
+      <p className="font-medium text-sidebar-foreground">
+        {totals.rejected
+          ? `${totals.rejected} rejected`
+          : totals.held
+            ? `${totals.held} to reconcile`
+            : totals.open
+              ? `${totals.open} sending`
+              : 'MES: all sent'}
+      </p>
+      {sync.data.lastSyncAt !== undefined && (
+        <p>
+          Orders synced{' '}
+          {new Date(sync.data.lastSyncAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </p>
+      )}
     </div>
   );
 }
@@ -98,7 +206,7 @@ export function StationsScreen() {
  * an agent could request over MCP, except the commands that need a person at the station.
  */
 export function StationScreen() {
-  const { stationId } = useParams({ from: '/station/$stationId' });
+  const { stationId } = useParams({ strict: false }) as { stationId: string };
   const station = useQuery(live.liveQueryOptions(operations.stationGet, { station: stationId }));
   const attention = useQuery(
     live.liveQueryOptions(operations.attentionList, { station: stationId }),
@@ -204,35 +312,46 @@ function StationSurface({
       : bridge.seat === 'operator'
         ? 'Operator has the screen'
         : 'Screen idle';
+  const classify = stop && (!stop.reason || stop.sync === 'rejected') && person;
+  const running = !bridge.stale && machine?.value === 'RUNNING';
+  const headerButton =
+    'h-(--operator-target) min-w-(--operator-target) border-0 bg-background/15 text-(length:--operator-text) text-background hover:bg-background/25 hover:text-background';
   return (
     <OperatorStation
       title={station.name}
-      context={`${station.line} · ${order ? `${order.id} · ${order.materialText}` : 'no active order'}`}
+      context={`${station.line} · ${station.role}`}
+      back={
+        <Button asChild className={headerButton}>
+          <Link to="/station" aria-label="All stations">
+            <ChevronLeft className="size-8" aria-hidden />
+          </Link>
+        </Button>
+      }
       headerActions={
         <>
-          <Button
-            asChild
-            variant="outline"
-            className="h-(--operator-target) text-(length:--operator-text)"
-          >
+          {!person || bridge.mode === 'monitor-only' ? (
+            <span className="hidden text-base leading-tight opacity-80 md:block">
+              {seatLabel}
+              <br />
+              {bridge.mode === 'monitor-only'
+                ? 'Watching the station screen'
+                : modeWord[bridge.mode]}
+            </span>
+          ) : null}
+          <Button asChild className={headerButton}>
             <Link to="/station/$stationId/devices" params={{ stationId: station.id }}>
               <ScanBarcode aria-hidden /> Scanner
             </Link>
           </Button>
           {station.role === 'supervisor' && (
-            <Button
-              asChild
-              variant="outline"
-              className="h-(--operator-target) text-(length:--operator-text)"
-            >
+            <Button asChild className={headerButton}>
               <Link to="/station/$stationId/bridge" params={{ stationId: station.id }}>
                 <Cpu aria-hidden /> Bridge
               </Link>
             </Button>
           )}
           <Button
-            variant="outline"
-            className="h-(--operator-target) min-w-(--operator-target)"
+            className={headerButton}
             aria-label={feedback.muted ? 'Unmute feedback' : 'Mute feedback'}
             onClick={() => feedback.setMuted(!feedback.muted)}
           >
@@ -240,34 +359,59 @@ function StationSurface({
           </Button>
         </>
       }
-      status={
-        <>
-          <StatusPill
+      banner={
+        <section aria-label="Machine" className="flex flex-wrap gap-(--operator-gap)">
+          <SignalBanner
+            className="flex-[1_1_22rem]"
             signal={bridge.stale ? 'idle' : machineSignal(machine?.value)}
-            label={bridge.stale ? 'No recent observation' : shown(machine)}
+            label={bridge.stale ? 'Not seen' : shown(machine)}
             detail={
-              <Freshness
-                observedAt={machine?.observedAt}
-                staleAfterMs={FRESH_MS}
-                confidence={machine?.confidence}
-              />
+              <>
+                {stop && !stop.endedAt && !bridge.stale && <>for {since(stop.startedAt)} · </>}
+                seen{' '}
+                <Freshness
+                  observedAt={machine?.observedAt}
+                  staleAfterMs={FRESH_MS}
+                  confidence={machine?.confidence}
+                />
+              </>
             }
           />
-          {alarm?.value ? (
-            <StatusPill signal="fault" label={String(alarm.value)} detail="Alarm" />
-          ) : null}
-          <StatusPill
-            signal="idle"
-            label={`Recipe ${shown(reading(station, 'recipe'))}`}
-            detail="On the station screen"
-          />
-          <StatusPill
-            signal={bridge.mode === 'monitor-only' ? 'idle' : 'pending'}
-            label={bridge.mode}
-            detail="Bridge mode"
-          />
-          <StatusPill signal={bridge.seat === 'agent' ? 'attention' : 'idle'} label={seatLabel} />
-        </>
+          <div className="flex min-w-0 flex-[2_1_30rem] items-center gap-4 rounded-2xl bg-card px-6 py-5">
+            {alarm?.value ? (
+              <>
+                <span className="flex size-14 flex-none items-center justify-center rounded-xl bg-op-fault/15 text-op-fault">
+                  <OctagonAlert className="size-8" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-muted-foreground">Alarm on the station screen</div>
+                  <div className="text-(length:--operator-text-lg) font-semibold">
+                    {String(alarm.value)}
+                  </div>
+                  <OrderLine station={station} />
+                  <RecipeLine station={station} />
+                </div>
+              </>
+            ) : (
+              <div className="min-w-0 space-y-1">
+                <div className="text-muted-foreground">Order</div>
+                {order ? (
+                  <div className="flex flex-wrap items-baseline gap-x-4">
+                    <span className="font-mono text-(length:--operator-text-lg) font-semibold">
+                      {order.id}
+                    </span>
+                    <span>{order.materialText}</span>
+                  </div>
+                ) : (
+                  <div className="text-(length:--operator-text-lg) font-semibold">
+                    No active order
+                  </div>
+                )}
+                <RecipeLine station={station} />
+              </div>
+            )}
+          </div>
+        </section>
       }
       attention={items}
       onResolveAttention={person ? resolve : undefined}
@@ -292,67 +436,130 @@ function StationSurface({
             }
           : undefined
       }
+      footer={<RecentStops station={station.id} />}
     >
       {error && (
-        <p role="alert" className="text-(length:--operator-text) font-semibold text-op-fault">
+        <p
+          role="alert"
+          className="rounded-2xl bg-op-fault/10 px-6 py-4 text-(length:--operator-text) font-semibold text-op-fault"
+        >
           {error}
         </p>
       )}
       {correcting ? (
-        <CorrectionEditor
-          item={correcting}
-          draft={correction}
-          onDraft={setCorrection}
-          pending={pending === `attention:${correcting.id}`}
-          onSubmit={(value) =>
-            void run(`attention:${correcting.id}`, () =>
-              client.command(operations.readingConfirm, { attentionId: correcting.id, value }),
-            ).then((ok) => ok && setCorrecting(undefined))
-          }
-        />
-      ) : stop && (!stop.reason || stop.sync === 'rejected') && person ? (
-        <TilePicker
-          label={`Why did the machine stop?${stop.alarm ? ` Alarm: ${stop.alarm}` : ''}`}
-          tiles={(reasons.data?.items ?? []).map((reason) => ({
-            value: reason.code,
-            label: reason.text,
-            detail: reason.code,
-            tone: reason.category === 'quality' ? ('caution' as const) : undefined,
-          }))}
-          selected={stop.reason}
-          pending={pending === 'classify'}
-          onPick={(reason) =>
-            void run('classify', () =>
-              client.command(operations.stopClassify, { stopId: stop.id, reason }),
-            )
-          }
-        />
+        <OperatorPanel title={correcting.title} aside="Enter what the machine shows">
+          <CorrectionEditor
+            item={correcting}
+            draft={correction}
+            onDraft={setCorrection}
+            pending={pending === `attention:${correcting.id}`}
+            onSubmit={(value) =>
+              void run(`attention:${correcting.id}`, () =>
+                client.command(operations.readingConfirm, { attentionId: correcting.id, value }),
+              ).then((ok) => ok && setCorrecting(undefined))
+            }
+          />
+        </OperatorPanel>
+      ) : classify ? (
+        <OperatorPanel
+          title="Why did it stop?"
+          aside="Tap a reason or press its number. It goes to the MES."
+        >
+          {stop.sync === 'rejected' && stop.rejection && (
+            <p className="font-semibold text-op-fault">
+              The MES refused {stop.reason}: {stop.rejection.message}. Choose again.
+            </p>
+          )}
+          <TilePicker
+            label={`Why did the machine stop?${stop.alarm ? ` Alarm: ${stop.alarm}` : ''}`}
+            tiles={(reasons.data?.items ?? []).map((reason) => ({
+              value: reason.code,
+              label: reason.text,
+              detail: categoryWord[reason.category],
+              tone: reason.category === 'quality' ? ('caution' as const) : undefined,
+            }))}
+            selected={stop.reason}
+            pending={pending === 'classify'}
+            onPick={(reason) =>
+              void run('classify', () =>
+                client.command(operations.stopClassify, { stopId: stop.id, reason }),
+              )
+            }
+          />
+        </OperatorPanel>
       ) : (
-        <OrderTask
-          station={station}
-          person={person}
-          pending={pending}
-          run={run}
-          profile={devices.data?.scanners[0]}
-          routes={devices.data?.routes.length ? devices.data.routes : defaultRoutes}
-        />
+        <>
+          {order?.status === 'active' && (
+            <Counters station={station} person={person} pending={pending} run={run} />
+          )}
+          {running && order?.status !== 'active' && (
+            <OperatorPanel title="Nothing to do here">
+              <p className="text-muted-foreground">
+                The machine runs without an active MES order. Counters appear here once an order is
+                active; a new order can be started when the machine stops.
+              </p>
+            </OperatorPanel>
+          )}
+          {!running && (
+            <OrderTask
+              station={station}
+              person={person}
+              pending={pending}
+              run={run}
+              profile={devices.data?.scanners[0]}
+              routes={devices.data?.routes.length ? devices.data.routes : defaultRoutes}
+            />
+          )}
+        </>
       )}
       {desired && (
         <section
           aria-label="Requested recipe"
-          className="flex flex-wrap items-center gap-3 text-(length:--operator-text)"
+          className="flex flex-wrap items-center gap-3 rounded-2xl bg-card px-6 py-4 text-(length:--operator-text)"
         >
           <span>
             Recipe <strong>{desired.recipe}</strong> for {desired.orderId}, requested by{' '}
             {desired.requestedBy}
           </span>
           <DeliveryBadge state={desired.sync} reason={desired.rejection} />
-          {desired.holdReason && <span className="text-op-attention">{desired.holdReason}</span>}
+          {desired.holdReason && (
+            <span className="font-medium text-op-attention-foreground">{desired.holdReason}</span>
+          )}
         </section>
       )}
-      <Counters station={station} person={person} pending={pending} run={run} />
-      <RecentStops station={station.id} />
     </OperatorStation>
+  );
+}
+
+const categoryWord: Record<string, string> = {
+  planned: 'Planned',
+  unplanned: 'Unplanned',
+  quality: 'Quality',
+};
+
+/** "3 min", "1 h 12 min": how long a state has held. Re-renders twice a minute. */
+function since(at: number) {
+  const minutes = Math.max(0, Math.round((Date.now() - at) / 60_000));
+  if (minutes < 1) return 'under a minute';
+  if (minutes < 60) return `${minutes} min`;
+  return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+}
+
+/** The recipe the station screen shows, as last read; announced when it changes. */
+function RecipeLine({ station }: { station: Station }) {
+  return (
+    <div role="status" className="text-[0.8em] text-muted-foreground">
+      Recipe {shown(reading(station, 'recipe'))} on the station screen
+    </div>
+  );
+}
+
+function OrderLine({ station }: { station: Station }) {
+  if (!station.order) return null;
+  return (
+    <div className="text-muted-foreground">
+      {station.order.id} · {station.order.materialText} · {station.order.recipe}
+    </div>
   );
 }
 
@@ -454,73 +661,110 @@ function Counters({
   const scrap = reading(station, 'scrap');
   const usable = (value: Reading | undefined) =>
     value !== undefined && value.value !== null && !value.stale;
+  const ready = usable(good) && usable(scrap);
   return (
-    <section
-      aria-label="Counters"
-      className="grid gap-(--operator-gap) sm:grid-cols-[1fr_1fr_auto]"
-    >
-      {(
-        [
-          ['Good', good],
-          ['Scrap', scrap],
-        ] as const
-      ).map(([label, value]) => (
-        <div key={label} className="rounded-xl border p-4">
-          <div className="text-sm text-muted-foreground">{label}</div>
-          <div className="tabular text-4xl font-semibold">{shown(value)}</div>
-          <Freshness
-            observedAt={value?.observedAt}
-            staleAfterMs={FRESH_MS}
-            confidence={value?.confidence}
+    <OperatorPanel aria-label="Counters">
+      <div className="grid gap-(--operator-gap) sm:grid-cols-2">
+        {(
+          [
+            ['Good', good],
+            ['Scrap', scrap],
+          ] as const
+        ).map(([label, value]) => (
+          <div
+            key={label}
+            className={cn(
+              'rounded-xl bg-muted p-5',
+              !usable(value) && 'bg-op-attention/15 ring-3 ring-op-attention ring-inset',
+            )}
+          >
+            <div className="text-muted-foreground">{label}</div>
+            <div className="font-mono text-[4.5rem] leading-none font-semibold tabular-nums">
+              {shown(value)}
+            </div>
+            <div className="mt-1 text-[0.75em] text-muted-foreground">
+              {value?.status === 'operator-verified' ? (
+                <>Checked by {value.verifiedBy}</>
+              ) : (
+                <>
+                  read from the screen{' '}
+                  <Freshness
+                    observedAt={value?.observedAt}
+                    staleAfterMs={FRESH_MS}
+                    confidence={value?.confidence}
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      {person && (
+        <>
+          <BigAction
+            hold
+            label="Hold to send counts to MES"
+            disabled={!ready}
+            pending={pending === 'counts'}
+            onAction={() =>
+              void run('counts', () =>
+                client.command(
+                  operations.countConfirm,
+                  { station: station.id },
+                  // The counters the operator looked at; changed counts conflict instead of sending.
+                  { expectedRevisions: { [`counters:${station.id}`]: station.countersRevision } },
+                ),
+              )
+            }
           />
-          {value?.status === 'operator-verified' && (
-            <div className="text-sm">Checked by {value.verifiedBy}</div>
+          {!ready && (
+            <p className="text-center text-muted-foreground">
+              Sending is held until both numbers are sure and fresh.
+            </p>
           )}
-        </div>
-      ))}
-      {person && station.order?.status === 'active' && (
-        <BigAction
-          hold
-          label="Confirm counts"
-          description="Send these counters to the MES"
-          disabled={!usable(good) || !usable(scrap)}
-          pending={pending === 'counts'}
-          onAction={() =>
-            void run('counts', () =>
-              client.command(
-                operations.countConfirm,
-                { station: station.id },
-                // The counters the operator looked at; changed counts conflict instead of sending.
-                { expectedRevisions: { [`counters:${station.id}`]: station.countersRevision } },
-              ),
-            )
-          }
-        />
+        </>
       )}
-    </section>
+    </OperatorPanel>
   );
 }
 
+/** The last stops, collapsed under the task so they never push it off screen. */
 function RecentStops({ station }: { station: string }) {
   const stops = useQuery(live.liveQueryOptions(operations.stopList, { station, limit: 5 }));
-  if (!stops.data?.items.length) return null;
+  const items = stops.data?.items ?? [];
+  const last = items[0];
+  if (!last) return <span className="text-muted-foreground">No stops recorded</span>;
   return (
-    <section aria-label="Recent stops" className="space-y-2">
-      <h2 className="text-(length:--operator-text) font-semibold">Recent stops</h2>
-      <ul className="divide-y rounded-xl border">
-        {stops.data.items.map((stop) => (
-          <li key={stop.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-            <span className="tabular">{new Date(stop.startedAt).toLocaleTimeString()}</span>
-            <span>{stop.state}</span>
-            {stop.alarm && <span className="text-muted-foreground">{stop.alarm}</span>}
-            <span className="flex-1">{stop.reason ?? 'Not classified'}</span>
-            {stop.sync && (
-              <DeliveryBadge state={stop.sync} reference={stop.sorRef} reason={stop.rejection} />
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
+    <details className="group">
+      <summary className="flex min-h-12 cursor-pointer list-none flex-wrap items-center gap-x-6 gap-y-2">
+        <span className="text-muted-foreground">
+          Last stop{' '}
+          {new Date(last.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{' '}
+          · {last.reason ?? 'not classified'}
+        </span>
+        <span className="ml-auto rounded-lg bg-muted px-4 py-2 font-medium group-open:hidden">
+          Recent stops ({items.length})
+        </span>
+        <span className="ml-auto hidden rounded-lg bg-muted px-4 py-2 font-medium group-open:inline">
+          Hide stops
+        </span>
+      </summary>
+      <section aria-label="Recent stops" className="mt-3">
+        <ul className="divide-y rounded-xl border">
+          {items.map((stop) => (
+            <li key={stop.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+              <span className="tabular">{new Date(stop.startedAt).toLocaleTimeString()}</span>
+              <span>{stop.state}</span>
+              {stop.alarm && <span className="text-muted-foreground">{stop.alarm}</span>}
+              <span className="flex-1">{stop.reason ?? 'Not classified'}</span>
+              {stop.sync && (
+                <DeliveryBadge state={stop.sync} reference={stop.sorRef} reason={stop.rejection} />
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </details>
   );
 }
 

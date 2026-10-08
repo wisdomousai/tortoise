@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import {
+  type AnyRoute,
   createHashHistory,
   createRootRoute,
   createRoute,
@@ -21,7 +22,7 @@ import { live, queryClient } from '@/lib/session';
  * Electron loads the same build; deep links still work on reload.
  */
 function createFrameRouter(screens: ApplicationScreens) {
-  const rootRoute = createRootRoute({ component: AppShell });
+  const rootRoute = createRootRoute();
   const indexRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/',
@@ -29,16 +30,31 @@ function createFrameRouter(screens: ApplicationScreens) {
       throw redirect({ to: screens.home });
     },
   });
-  // Static segments rank above `$param` ones (`station/kit` before `station/$stationId`).
-  const routes = screens.routes.map((screen) =>
-    createRoute({
-      getParentRoute: () => rootRoute,
-      path: screen.path.replace(/^\//, ''),
-      component: screen.component,
-    }),
-  );
+  // Pathless layouts add no URL segment, so a screen keeps its path whether it renders in the
+  // shell (sidebar and palette) or full window (a station screen that owns the display).
+  const shellRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    id: 'shell',
+    component: AppShell,
+  });
+  const fullRoute = createRoute({ getParentRoute: () => rootRoute, id: 'full' });
+  const routesIn = (layout: 'shell' | 'full', parent: AnyRoute) =>
+    // Static segments rank above `$param` ones (`station/kit` before `station/$stationId`).
+    screens.routes
+      .filter((screen) => (screen.layout ?? 'shell') === layout)
+      .map((screen) =>
+        createRoute({
+          getParentRoute: () => parent,
+          path: screen.path.replace(/^\//, ''),
+          component: screen.component,
+        }),
+      );
   return createRouter({
-    routeTree: rootRoute.addChildren([indexRoute, ...routes]),
+    routeTree: rootRoute.addChildren([
+      indexRoute,
+      shellRoute.addChildren(routesIn('shell', shellRoute)),
+      fullRoute.addChildren(routesIn('full', fullRoute)),
+    ]),
     history: createHashHistory(),
     defaultPreload: 'intent',
   });

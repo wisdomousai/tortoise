@@ -21,7 +21,7 @@ const message = (cause: unknown) => (cause instanceof Error ? cause.message : 'R
  * supervisor, which the authority enforces (the screen only reports the refusal).
  */
 export function StationDevicesScreen() {
-  const { stationId } = useParams({ from: '/station/$stationId/devices' });
+  const { stationId } = useParams({ strict: false }) as { stationId: string };
   const config = useQuery(
     live.liveQueryOptions(deviceOperations.configGet, { station: stationId }),
   );
@@ -79,7 +79,7 @@ export function StationDevicesScreen() {
  * were produced and what is waiting to reach the MES or the station software.
  */
 export function StationBridgeScreen() {
-  const { stationId } = useParams({ from: '/station/$stationId/bridge' });
+  const { stationId } = useParams({ strict: false }) as { stationId: string };
   const station = useQuery(live.liveQueryOptions(operations.stationGet, { station: stationId }));
   const sync = useQuery(live.liveQueryOptions(operations.syncStatus, {}));
   const [error, setError] = useState<string>();

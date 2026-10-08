@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+/* Variants the radix-nova components use (data-active, data-horizontal and others). */
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -14,13 +16,13 @@
  */
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.985 0.002 247);
+  --background: oklch(0.967 0.003 265);
   --foreground: oklch(0.17 0.01 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.17 0.01 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.17 0.01 260);
-  --primary: oklch(0.24 0.02 260);
+  --primary: oklch(0.53 0.18 260);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.955 0.004 260);
   --secondary-foreground: oklch(0.24 0.02 260);
@@ -28,16 +30,16 @@
   --muted-foreground: oklch(0.5 0.015 260);
   --accent: oklch(0.955 0.004 260);
   --accent-foreground: oklch(0.24 0.02 260);
-  --destructive: oklch(0.577 0.245 27.325);
-  --success: oklch(0.56 0.14 155);
-  --warning: oklch(0.72 0.16 70);
+  --destructive: oklch(0.53 0.19 25);
+  --success: oklch(0.52 0.14 150);
+  --warning: oklch(0.56 0.15 58);
   --border: oklch(0.91 0.005 260);
   --input: oklch(0.91 0.005 260);
-  --ring: oklch(0.62 0.03 260);
-  --sidebar: oklch(0.205 0.015 260);
+  --ring: oklch(0.53 0.18 260);
+  --sidebar: oklch(0.2 0.01 260);
   --sidebar-foreground: oklch(0.93 0.005 260);
-  --sidebar-muted: oklch(0.68 0.015 260);
-  --sidebar-accent: oklch(0.28 0.02 260);
+  --sidebar-muted: oklch(0.71 0.015 260);
+  --sidebar-accent: oklch(0.29 0.012 260);
 }
 
 .dark {
@@ -92,8 +94,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: 'IBM Plex Sans Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 }
 
 @layer base {

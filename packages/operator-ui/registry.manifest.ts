@@ -258,7 +258,7 @@ export const items: readonly ManifestItem[] = [
     type: 'registry:component',
     title: 'Status strip',
     description:
-      'Icon-and-word station signals, delivery badges for outbox states and freshness of observed values.',
+      'Icon-and-word station signals, a large signal banner for machine state, delivery badges for outbox states and freshness of observed values.',
     dependencies: ['lucide-react'],
     registryDependencies: ['badge', 'utils', 'operator:operator-theme'],
     files: ['src/components/status-strip.tsx'],
@@ -314,7 +314,7 @@ export const items: readonly ManifestItem[] = [
     type: 'registry:block',
     title: 'Operator station',
     description:
-      'Station layout: header with context, status strip, primary work area, attention queue and seat control.',
+      'Full-window station layout: dark header with back link, context, seat control and actions; machine banner; primary work area beside the attention queue; footer. Includes the station panel.',
     registryDependencies: [
       'utils',
       'operator:operator-surface',

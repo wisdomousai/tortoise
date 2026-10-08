@@ -132,12 +132,15 @@ test('tasks after the first page stay reachable and totals come from authorized 
           input: { id: result.id, status: 'done' },
         });
     }
-    await expect(page.getByText('3 complete · 55 tasks')).toBeVisible();
-    const pages = page.getByRole('navigation', { name: 'Tasks pages' });
-    await expect(pages.getByText('1–50 of 55')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Task 55', exact: true })).toHaveCount(0);
+    await expect(page.getByText('3 of 55 done')).toBeVisible();
+    // Each status group pages on its own server count: 52 to do, 3 done.
+    const pages = page.getByRole('navigation', { name: 'To do pages' });
+    await expect(pages.getByText('1–50 of 52')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Task 52', exact: true })).toHaveCount(0);
     await pages.getByRole('button', { name: 'Next' }).click();
-    await expect(pages.getByText('51–55 of 55')).toBeVisible();
+    await expect(pages.getByText('51–52 of 52')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Task 52', exact: true })).toBeVisible();
+    await page.getByText('Done · 3').click();
     await expect(page.getByRole('button', { name: 'Task 55', exact: true })).toBeVisible();
   } finally {
     await host?.stop();

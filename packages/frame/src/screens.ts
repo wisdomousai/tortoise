@@ -1,9 +1,15 @@
 import type { ComponentType, ReactNode } from 'react';
 
-/** One routed screen. `path` is relative to the frame root and may hold `$param` segments. */
+/**
+ * One routed screen. `path` is relative to the frame root and may hold `$param` segments; read
+ * them with `useParams({ strict: false })`, since the route id also names the layout.
+ * `layout: 'full'` renders it without the application sidebar and palette, for a station or
+ * kiosk screen that owns the whole window; it keeps the session, live invalidation and routing.
+ */
 export interface ScreenRoute {
   readonly path: string;
   readonly component: () => ReactNode;
+  readonly layout?: 'shell' | 'full';
 }
 
 /** A sidebar and palette entry pointing at a parameterless screen. */
@@ -11,20 +17,32 @@ export interface NavigationItem {
   readonly to: string;
   readonly label: string;
   readonly icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
+  /**
+   * A live count or marker beside the label, for example open rejections. It renders inside the
+   * frame's query context, so it reads the same authorized queries as a screen; render nothing
+   * when there is nothing to show.
+   */
+  readonly badge?: ComponentType;
 }
 
 /**
  * What an application contributes to the web frame (P11): its screens, navigation, the screen
- * each capability family opens from the palette, and an optional sidebar status slot. The frame
- * owns routing, session, palette and run panel; it renders whatever this declares.
+ * each capability family opens from the palette, and optional sidebar slots. The frame owns
+ * routing, session, palette and run panel; it renders whatever this declares.
  */
 export interface ApplicationScreens {
+  /** The application's name in the sidebar, usually its manifest title. */
+  readonly title?: string;
   /** Where `/` redirects. */
   readonly home: string;
   readonly routes: readonly ScreenRoute[];
   readonly navigation: readonly NavigationItem[];
   /** Capability id prefixes and the screen that binds them; the longest matching prefix wins. */
   readonly capabilityScreens?: readonly { readonly prefix: string; readonly to: string }[];
+  /** Under the title: where and as whom the person works, for example plant and role. */
+  readonly context?: ComponentType;
+  /** A sidebar section above the navigation for live lists, such as the projects to open. */
+  readonly sidebar?: ComponentType;
   /** Rendered in the sidebar footer, for example synchronization state. */
   readonly status?: ComponentType;
 }

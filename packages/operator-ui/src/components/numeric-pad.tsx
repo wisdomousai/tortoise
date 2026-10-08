@@ -42,7 +42,10 @@ function ToleranceGauge({
       </div>
       {tolerance.lower !== undefined && tolerance.upper !== undefined && (
         <div aria-hidden className="relative h-4 rounded-full bg-op-fault/20">
-          <div className="absolute inset-y-0 left-1/4 w-1/2 rounded-full bg-op-ok/30" />
+          {/* Opaque underlay, so the in-tolerance band is green rather than mixed with the red track. */}
+          <div className="absolute inset-y-0 left-1/4 w-1/2 bg-background">
+            <div className="size-full bg-op-ok/35" />
+          </div>
           {position !== undefined && (
             <div
               className={cn(

@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:f60e8537-a54a-5777-8b95-b269c4200892",
+  "serialNumber": "urn:uuid:f9f15c09-6e57-5dce-9fed-76c59cee66f2",
   "version": 1,
   "metadata": {
     "tools": {
@@ -900,6 +900,34 @@
         {
           "alg": "SHA-512",
           "content": "1e90a8f2d996ccb55a779b36775f44840cf9ceaaeb43ab3af6a77a9a83cc42f90eb92c034f562045f59256e7387a79eaae0bf7387a6988e18c43ba02d77c88c3"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40fontsource-variable/ibm-plex-sans@5.3.0",
+      "name": "@fontsource-variable/ibm-plex-sans",
+      "version": "5.3.0",
+      "purl": "pkg:npm/%40fontsource-variable/ibm-plex-sans@5.3.0",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6a01bcb57144a34843f7e27b9e96b8bdb6d6ba5b79d9e30b55a43a59046586cfe2080a23acc0287a3aeef395bd1d35571dfc948fde8a33b829fca1804bced769"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40fontsource/ibm-plex-mono@5.3.0",
+      "name": "@fontsource/ibm-plex-mono",
+      "version": "5.3.0",
+      "purl": "pkg:npm/%40fontsource/ibm-plex-mono@5.3.0",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7938276636441a4d50b43dd9b2d17e55c968d872c09e2f18332df8fc3c6597066fcb3d6547fd5117fc53880aae3813bb32fa81c7c0f6220d9608f3157dd66eed"
         }
       ],
       "scope": "required"
@@ -11131,6 +11159,8 @@
         "pkg:npm/%40ai-sdk/openai@4.0.86",
         "pkg:npm/%40anthropic-ai/claude-agent-sdk@0.3.292",
         "pkg:npm/%40casl/ability@7.0.1",
+        "pkg:npm/%40fontsource-variable/ibm-plex-sans@5.3.0",
+        "pkg:npm/%40fontsource/ibm-plex-mono@5.3.0",
         "pkg:npm/%40modelcontextprotocol/sdk@1.32.1",
         "pkg:npm/%40napi-rs/keyring@2.1.0",
         "pkg:npm/%40playwright/test@1.63.0",
@@ -11652,6 +11682,14 @@
     },
     {
       "ref": "pkg:npm/%40floating-ui/utils@0.2.12",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40fontsource-variable/ibm-plex-sans@5.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40fontsource/ibm-plex-mono@5.3.0",
       "dependsOn": []
     },
     {

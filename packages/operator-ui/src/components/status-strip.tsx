@@ -78,6 +78,48 @@ function StatusPill({
   );
 }
 
+/**
+ * The one signal that matters most on a station, readable from the machine: a large word on a
+ * signal color, with how long it has held and how fresh the reading is. Announced politely.
+ */
+function SignalBanner({
+  signal,
+  label,
+  detail,
+  icon,
+  className,
+  ...props
+}: Omit<React.ComponentProps<'div'>, 'children'> & {
+  signal: StationSignal;
+  label: React.ReactNode;
+  detail?: React.ReactNode;
+  icon?: React.ReactNode;
+}) {
+  const Icon = signalIcon[signal];
+  return (
+    <div
+      data-slot="signal-banner"
+      data-signal={signal}
+      role="status"
+      aria-live="polite"
+      className={cn(
+        'flex items-center gap-5 rounded-2xl border-2 px-6 py-5',
+        signalClass[signal],
+        className,
+      )}
+      {...props}
+    >
+      {icon ?? <Icon className="size-12 shrink-0" aria-hidden />}
+      <div className="min-w-0">
+        <div className="text-(length:--operator-text-xl) leading-none font-bold tracking-wide uppercase">
+          {label}
+        </div>
+        {detail && <div className="mt-1.5 text-(length:--operator-text) opacity-90">{detail}</div>}
+      </div>
+    </div>
+  );
+}
+
 /** Outbox state of one local write, as reported by the owning feature. */
 export type DeliveryState = 'pending' | 'retrying' | 'held' | 'accepted' | 'rejected';
 
@@ -209,4 +251,4 @@ function Freshness({
   );
 }
 
-export { StatusStrip, StatusPill, DeliveryBadge, Freshness };
+export { StatusStrip, StatusPill, SignalBanner, DeliveryBadge, Freshness };

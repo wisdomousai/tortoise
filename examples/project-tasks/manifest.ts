@@ -5,6 +5,6 @@ import { projectTasksModule } from './contracts';
 /** Browser-safe identity of the project-tasks application: what generators and screens read. */
 export default defineManifest({
   id: 'project-tasks',
-  title: 'Projects',
+  title: 'Project tasks',
   modules: [projectTasksModule, assuranceModule],
 });

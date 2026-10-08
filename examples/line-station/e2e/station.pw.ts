@@ -232,6 +232,8 @@ test.describe('line station', () => {
       const why = page.getByRole('group', { name: /Why did the machine stop/ });
       await expect(why).toBeVisible({ timeout: 10_000 });
       await why.getByRole('button', { name: /Jam or blockage/ }).click();
+      // The stop history sits collapsed under the task, so it never pushes the task off screen.
+      await page.getByText(/^Recent stops \(/).click();
       const stops = page.getByRole('region', { name: 'Recent stops' });
       await expect(stops).toContainText('JAM');
       await expect(stops.locator('[data-slot=delivery-badge][data-state=accepted]')).toBeVisible({
@@ -262,7 +264,7 @@ test.describe('line station', () => {
 
       // Taking over the screen is one tap; the next procedure waits until it is handed back.
       await page.getByRole('button', { name: /Take over/ }).click();
-      await expect(page.getByText('Operator has the screen')).toBeVisible();
+      await expect(page.getByRole('button', { name: /Hand back to agent/ })).toBeVisible();
       await page.getByRole('button', { name: /ORD-7001/ }).click();
       await hold(page, /Start ORD-7001/);
       await expect(requested).toContainText('R-500');

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import bwipjs from 'bwip-js/browser';
 import { CircleAlert, CircleCheck, Plug, ScanLine, Wand2 } from 'lucide-react';
 import {
   CALIBRATION_CODE,
@@ -32,23 +31,35 @@ function CalibrationCode({ className }: { className?: string }) {
   const canvas = React.useRef<HTMLCanvasElement>(null);
   const [error, setError] = React.useState<string>();
   React.useEffect(() => {
-    if (!canvas.current) return;
-    try {
-      bwipjs.toCanvas(canvas.current, {
-        bcid: 'code128',
-        // `parse` turns ^029 into the ASCII group separator inside the symbol.
-        text: CALIBRATION_CODE.replaceAll(GROUP_SEPARATOR, '^029'),
-        parse: true,
-        scale: 3,
-        height: 14,
-        paddingwidth: 10,
-        paddingheight: 6,
-        backgroundcolor: 'ffffff',
-      });
-      setError(undefined);
-    } catch (failure) {
-      setError(failure instanceof Error ? failure.message : String(failure));
-    }
+    let cancelled = false;
+    // The barcode encoder is over 2 MB; load it when the code is first drawn, not with every station.
+    void import('bwip-js/browser').then(
+      ({ default: bwipjs }) => {
+        if (cancelled || !canvas.current) return;
+        try {
+          bwipjs.toCanvas(canvas.current, {
+            bcid: 'code128',
+            // `parse` turns ^029 into the ASCII group separator inside the symbol.
+            text: CALIBRATION_CODE.replaceAll(GROUP_SEPARATOR, '^029'),
+            parse: true,
+            scale: 3,
+            height: 14,
+            paddingwidth: 10,
+            paddingheight: 6,
+            backgroundcolor: 'ffffff',
+          });
+          setError(undefined);
+        } catch (failure) {
+          setError(failure instanceof Error ? failure.message : String(failure));
+        }
+      },
+      (failure: unknown) => {
+        if (!cancelled) setError(failure instanceof Error ? failure.message : String(failure));
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
   }, []);
   return error ? (
     <p className="text-op-fault">Calibration code could not be drawn: {error}</p>

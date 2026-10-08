@@ -8,7 +8,6 @@ import { ToleranceGauge } from '@/components/numeric-pad';
 import { parseEntry } from '@/lib/numeric-entry';
 import { TilePicker } from '@/components/tile-picker';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
 import { cn } from '@/lib/utils';
 import { transport } from '@/lib/session';
@@ -93,7 +92,7 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
 
   if (!target || !characteristic)
     return (
-      <div className="rounded-xl border border-dashed p-10 text-center">
+      <div className="rounded-2xl border border-dashed bg-card p-10 text-center">
         <h2 className="text-lg font-semibold">
           {lot.status === 'open' ? 'All samples recorded' : `Lot is ${lot.status}`}
         </h2>
@@ -106,22 +105,35 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
     );
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_22rem]">
-      <section aria-label="Capture" className="space-y-6 rounded-2xl border bg-card p-6 shadow-sm">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <section aria-label="Capture" className="space-y-5 rounded-2xl border bg-card p-7">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium tracking-widest text-muted-foreground">
+            <p className="text-xs font-semibold tracking-widest text-primary">
               NOW MEASURING · SAMPLE {target.sample} OF {characteristic.sampleSize}
             </p>
-            <h2 className="text-3xl font-semibold">
+            <h2 className="mt-1.5 text-[2rem] leading-tight font-semibold tracking-tight">
               {characteristic.text}{' '}
-              <span className="font-mono text-lg text-muted-foreground">{characteristic.code}</span>
+              <span className="font-mono text-lg font-medium text-muted-foreground">
+                {characteristic.code}
+              </span>
             </h2>
+            {override && !taken && (
+              <Button variant="link" className="h-auto px-0" onClick={discard}>
+                Back to worklist order
+              </Button>
+            )}
           </div>
-          {override && !taken && (
-            <Button variant="ghost" size="sm" onClick={discard}>
-              Back to worklist order
-            </Button>
+          {characteristic.target !== undefined && (
+            <div className="text-right">
+              <div className="text-sm text-muted-foreground">Target</div>
+              <div className="font-mono text-2xl font-semibold">
+                {format(characteristic.target, characteristic.decimals)}{' '}
+                <span className="text-base font-normal text-muted-foreground">
+                  {characteristic.unit}
+                </span>
+              </div>
+            </div>
           )}
         </div>
         {taken && (
@@ -155,40 +167,40 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
               {(field) => (
                 <div className="space-y-3">
                   <Specification characteristic={characteristic} value={field.state.value} />
-                  <div className="flex items-stretch gap-3">
-                    <Input
-                      ref={valueField}
-                      id="capture-value"
-                      aria-label={`Measured ${characteristic.text}`}
-                      aria-invalid={field.state.meta.errors.length > 0}
-                      inputMode="decimal"
-                      autoComplete="off"
-                      className="tabular h-16 text-3xl md:text-3xl"
-                      value={field.state.value}
-                      onChange={(event) => {
-                        const value = event.target.value;
-                        // Typing pins the slot; clearing the field releases it.
-                        setPinned(value ? (current) => current ?? target : undefined);
-                        field.handleChange(value);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Escape') {
-                          setPinned(undefined);
-                          field.handleChange('');
-                        }
-                      }}
-                    />
-                    <span className="self-center text-xl text-muted-foreground">
-                      {characteristic.unit}
-                    </span>
+                  <div className="flex flex-wrap items-stretch gap-3">
+                    <div className="flex h-20 min-w-0 flex-[1_1_16rem] items-center gap-3 rounded-xl border-2 border-input px-5 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15">
+                      <input
+                        ref={valueField}
+                        id="capture-value"
+                        aria-label={`Measured ${characteristic.text}`}
+                        aria-invalid={field.state.meta.errors.length > 0}
+                        inputMode="decimal"
+                        autoComplete="off"
+                        className="tabular min-w-0 flex-1 bg-transparent font-mono text-[2.5rem] font-medium outline-none"
+                        value={field.state.value}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          // Typing pins the slot; clearing the field releases it.
+                          setPinned(value ? (current) => current ?? target : undefined);
+                          field.handleChange(value);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Escape') {
+                            setPinned(undefined);
+                            field.handleChange('');
+                          }
+                        }}
+                      />
+                      <span className="text-xl text-muted-foreground">{characteristic.unit}</span>
+                    </div>
                     <form.Subscribe selector={(state) => state.isSubmitting}>
                       {(submitting) => (
                         <Button
                           type="submit"
-                          className="h-16 px-6 text-base"
+                          className="h-20 rounded-xl px-7 text-lg"
                           disabled={submitting || taken !== undefined}
                         >
-                          Record <Kbd className="ml-2">↵</Kbd>
+                          Record <Kbd className="ml-1 bg-white/20 text-primary-foreground">↵</Kbd>
                         </Button>
                       )}
                     </form.Subscribe>
@@ -240,11 +252,24 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
             }
           </form.Subscribe>
         </form>
-        <p role="status" aria-live="polite" className="min-h-5 text-sm text-muted-foreground">
+        <p
+          role="status"
+          aria-live="polite"
+          className="min-h-11 rounded-lg bg-muted/70 px-3.5 py-2.5 text-sm empty:bg-transparent"
+        >
           {announcement}
         </p>
+        <p className="flex flex-wrap gap-x-4 gap-y-1 text-[0.8rem] text-muted-foreground">
+          <span>
+            <Kbd>Enter</Kbd> record
+          </span>
+          <span>
+            <Kbd>Esc</Kbd> clear
+          </span>
+          <span>Gauge or scanner input goes straight into the value field</span>
+        </p>
       </section>
-      <aside aria-label="Characteristics" className="space-y-3">
+      <aside aria-label="Characteristics" className="space-y-2.5">
         {lot.characteristics.map((item) => (
           <CharacteristicSamples
             key={item.id}
@@ -269,12 +294,6 @@ function Specification({
   const { lower, upper, target, unit, decimals } = characteristic;
   return (
     <div className="space-y-2">
-      {target !== undefined && (
-        <p className="text-sm text-muted-foreground">
-          Target <strong className="tabular text-foreground">{format(target, decimals)}</strong>{' '}
-          {unit}
-        </p>
-      )}
       <ToleranceGauge
         value={parseEntry(value.trim())}
         tolerance={{ lower, upper, target }}
@@ -283,6 +302,16 @@ function Specification({
       />
     </div>
   );
+}
+
+/** The specification limits in the rail, for example `· 219.90–220.10` or `· ≤ 0.05`. */
+function spec({ kind, lower, upper, decimals }: Characteristic) {
+  if (kind === 'qualitative') return ' · code';
+  if (lower !== undefined && upper !== undefined)
+    return ` · ${format(lower, decimals)}–${format(upper, decimals)}`;
+  if (upper !== undefined) return ` · ≤ ${format(upper, decimals)}`;
+  if (lower !== undefined) return ` · ≥ ${format(lower, decimals)}`;
+  return '';
 }
 
 function CharacteristicSamples({
@@ -296,10 +325,18 @@ function CharacteristicSamples({
 }) {
   const bySample = new Map(characteristic.results.map((result) => [result.sample, result]));
   return (
-    <div className="rounded-xl border bg-card p-3">
-      <div className="mb-2 flex items-baseline justify-between gap-2 text-sm">
-        <span className="font-medium">{characteristic.text}</span>
-        <span className="font-mono text-xs text-muted-foreground">{characteristic.code}</span>
+    <div
+      className={cn(
+        'rounded-xl border bg-card px-4 py-3.5',
+        target.characteristicId === characteristic.id && 'border-2 border-primary',
+      )}
+    >
+      <div className="mb-2.5 flex items-baseline justify-between gap-2 text-sm">
+        <span className="font-semibold">{characteristic.text}</span>
+        <span className="font-mono text-xs text-muted-foreground">
+          {characteristic.code}
+          {spec(characteristic)}
+        </span>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {Array.from({ length: characteristic.sampleSize }, (_, index) => index + 1).map(
@@ -312,13 +349,13 @@ function CharacteristicSamples({
                 key={sample}
                 title={`Sample ${sample}`}
                 className={cn(
-                  'flex min-w-14 flex-col items-center rounded-md border px-2 py-1 text-xs',
+                  'flex min-w-18 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-xs',
                   result.evaluation === 'accepted'
-                    ? 'border-success/40 bg-success/10'
-                    : 'border-destructive/40 bg-destructive/10',
+                    ? 'bg-success/10 text-success'
+                    : 'bg-destructive/10 text-destructive',
                 )}
               >
-                <span className="tabular font-medium">
+                <span className="font-mono text-[0.8rem] font-semibold">
                   {result.value !== undefined
                     ? format(result.value, characteristic.decimals)
                     : result.code}
@@ -337,9 +374,9 @@ function CharacteristicSamples({
                 aria-current={current ? 'step' : undefined}
                 onClick={() => onSelect(sample)}
                 className={cn(
-                  'flex min-h-11 min-w-14 items-center justify-center rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted',
+                  'flex min-h-11 min-w-18 items-center justify-center rounded-lg border border-dashed font-mono text-[0.8rem] text-muted-foreground hover:bg-muted',
                   current &&
-                    'border-solid border-primary bg-primary/5 text-foreground ring-2 ring-primary/30',
+                    'border-2 border-solid border-primary bg-primary/10 font-semibold text-primary',
                 )}
               >
                 {sample}
