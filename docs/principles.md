@@ -82,7 +82,7 @@ Every operation has behavioral scenarios that run through each surface it suppor
 
 **Rules out:** calling a mock-tested adapter live, a single blended pass/fail, undocumented drift between docs and code.
 
-**Enforced by:** the implementation ledger records deterministic, browser, native, device and live-provider evidence separately; `bun run test:sandbox`, part of `bun run check`, compiles the binary with the shipped build configuration and runs it with an empty environment. **Convention only:** most of this principle is review discipline; no tool can tell a mocked pass from a live one.
+**Enforced by:** the implementation ledger records deterministic, browser, native, device and live-provider evidence separately; `bun run test:sandbox`, part of `bun run check`, compiles the binary with the shipped build configuration and runs it with an empty environment; `bun run check:readmes` fails when a workspace in `packages/*`, `apps/*` or `examples/*` has no README, when its README omits a `package.json` export or a primitive entry that names the workspace, or when it links to a file or heading that no longer exists. **Convention only:** most of this principle is review discipline; no tool can tell a mocked pass from a live one, and `check:readmes` checks references, not whether the prose is still true.
 
 ### P11 — Framework, starter and content are separate layers, and an authority runs one application
 
@@ -119,6 +119,7 @@ Principles change rarely and on purpose. The [primitives](primitives.md) documen
 
 ## Changelog
 
+- 2026-10-08 — P10 now lists `bun run check:readmes` (workspace READMEs agree with package exports and primitive entries).
 - 2026-10-07 — Added P13 (declared reach, site binding and a recorded, fail-closed audit trail) for the egress guard, site policy and event log; see ADR 007. P3 now lists the hardening tests.
 - 2026-10-07 — Added P12 (applications run beside the work and keep working without central systems or a model; ADR 006).
 - 2026-10-07 — Amended P11 for the starter model (ADR 005 revised): the shell is a thin starter owned by its user, the generic host and frame are framework packages, and content is resolved from configuration. P11 is now enforced (starter → content and content → starter imports fail); P1, P4–P9 name the moved tests.

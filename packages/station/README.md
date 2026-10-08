@@ -1,0 +1,51 @@
+# @agent-native/station
+
+A bridge to legacy station software that can only be read and driven through its screen. Observations enter the application through a domain ingest command (`createStationObserver`). Actions leave through the outbox as a system-of-record connector (`createStationConnector`), where a gated controller runs declared procedures and accepts them only on stable readback. A model may read the screen or propose targets; deterministic code acts and verifies. Nothing here writes application state directly.
+
+Layer: framework (`packages/*`). Server only, except `requirements`. Domain-neutral: the station screen and the outbox targets are declared by the domain module, for example `examples/line-station`.
+
+## Primitives
+
+- [Observation](../../docs/primitives.md#observation): `createStationObserver`, `StabilityGate`, `Reading`, `ModelIdentity`, `stationBridgeComponent`.
+- [Gated actuator](../../docs/primitives.md#gated-actuator): `ComputerUseDriver`, `ScreenTransport`, `BridgeControl`, `createScriptedDriver`, `createPlaywrightTransport`.
+- [Connector](../../docs/primitives.md#connector): `createStationConnector` implements the system-of-record port for a screen.
+- [Profile](../../docs/primitives.md#profile): `StationProfile`, `stationProfileSchema`, `validateProfile`, `parseProfile`.
+- [Golden check](../../docs/primitives.md#golden-check): `runGolden`, `GoldenReport`.
+
+The [operator workstation pattern](../../docs/operator-workstation-pattern.md) and [ADR 004](../../docs/decisions/004-screen-mediated-authority.md) explain the design.
+
+## Entrypoints
+
+| Import                               | Runs in            | Contents                                                                                                      |
+| ------------------------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/station`              | server only        | Ports, profiles, perception, observer, connector, scripted driver, golden check, extractors and transport.    |
+| `@agent-native/station/*`            | see below          | One source file, for example `@agent-native/station/perception/worker`.                                       |
+| `@agent-native/station/requirements` | browser and server | `stationBridgeComponent`: vision endpoints and the perception worker as declared requirements. Loads nothing. |
+
+Extractors: `createAccessibilityExtractor` (accessibility tree), `createWorkerExtractor` (a JSON-lines worker process for OCR, classifiers or local models), `createOpenAiCompatibleVisionExtractor` (a local OpenAI-compatible vision endpoint) and `createFixtureExtractor` (replays recorded readings in CI). The Playwright transport is typed structurally, so this package does not depend on Playwright.
+
+## Trust boundary
+
+The bridge reaches station software only through its ports. Each reading carries its source, model identity and digest, frame digest, time and confidence, and becomes current only after it is stable across consecutive reads. A low-confidence reading is submitted as uncertain, for a person to confirm. Unchanged content is resubmitted at most once per heartbeat window, and each submission's idempotency key fingerprints its exact payload.
+
+The controller performs every action itself after a gate covering the expected screen (checked before every click, type and key), forbidden regions, the allowed set, step budget, timeout, bridge mode (`monitor-only`, `assist`, `actuate`) and seat. Local input at the station stops a procedure; an operator takeover holds the effect for reconciliation. Acceptance needs matching readback on as many consecutive views as the fields' `stableReads` declare. An interrupted procedure that is not declared rerunnable is held, never re-run.
+
+Vision endpoints must be loopback or explicitly allowlisted and never follow a redirect, so screenshots reach only the validated host. Model output is untrusted and schema-validated; confidence is agreement across reads, not the model's claim. The perception worker starts with an empty environment and is restarted with a fresh handshake if it exits. `perception/worker.ts` and `perception/openai-compatible-vision.ts` are reviewed egress exemptions in `scripts/boundary-rules.ts`.
+
+Gaps: observation covers screens only; no live computer-use model driver; no VNC, RDP, KVM or UI Automation transport; activation does not require a passing golden report.
+
+## Dependencies
+
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/integration`. External: `zod`.
+
+## Tests
+
+```sh
+bun test packages/station
+cd examples/line-station && bun run station:golden
+```
+
+- `test/controller.test.ts` enforces [P7](../../docs/principles.md#p7--other-systems-are-reached-only-through-durable-intents): per-action screen gate, stable readback, popups and local input stop procedures, uncertain procedures held.
+- `test/observer.test.ts` enforces [P6](../../docs/principles.md#p6--status-reports-what-is-known-not-what-is-hoped): only stable readings become current; unsure readings stay uncertain.
+- `test/perception.test.ts` enforces [P12](../../docs/principles.md#p12--an-application-runs-beside-the-work-and-keeps-working-without-central-systems-or-a-model): vision endpoints are loopback or allowlisted; also worker restart, redirects and golden gating.
+- `test/profile.test.ts` enforces [P8](../../docs/principles.md#p8--specialization-is-composition-and-configuration-never-a-fork): procedures cannot target forbidden regions or unknown fields.

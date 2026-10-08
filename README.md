@@ -59,17 +59,25 @@ The target must not exist. The scaffolder exports the starter, the framework sou
 
 ## Architecture and extension points
 
-| Layer                               | Responsibility                                                        |
-| ----------------------------------- | --------------------------------------------------------------------- |
-| `packages/contracts`                | Portable schemas, capability descriptors and catalog validation       |
-| `packages/runtime`                  | Authorization, transactions, revisions, receipts and journal delivery |
-| `packages/host`, `packages/frame`   | Generic authority host and web frame for one configured application   |
-| `packages/adapters`                 | CASL, SQLite, host ownership, HTTP/SSE, MCP, CLI and UI sessions      |
-| `packages/client`, `packages/react` | Typed bindings, live queries, cache fences and UI primitives          |
-| `packages/agents`                   | Run supervision, Codex, Claude, AI SDK and protected account flows    |
-| `packages/testing`                  | Shared scenarios and independent security/transport verification      |
-| `packages/scaffold`                 | Deterministic source export                                           |
-| `examples/*`                        | Applications: manifest, application definition, screens and tests     |
+Each package's README covers its primitives, entrypoints, trust boundary, dependencies and tests.
+
+| Package                                                                                                                                                                                          | Responsibility                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| [`packages/contracts`](packages/contracts/README.md)                                                                                                                                             | Portable schemas, capability descriptors, requirements and catalog validation |
+| [`packages/runtime`](packages/runtime/README.md)                                                                                                                                                 | Authorization, transactions, revisions, receipts, journal and outbox          |
+| [`packages/host`](packages/host/README.md), [`packages/frame`](packages/frame/README.md)                                                                                                         | Generic authority host and web frame for one configured application           |
+| [`packages/adapters`](packages/adapters/README.md)                                                                                                                                               | CASL, SQLite, host ownership, HTTP/SSE, MCP, CLI and UI sessions              |
+| [`packages/client`](packages/client/README.md), [`packages/react`](packages/react/README.md)                                                                                                     | Typed bindings, live queries, cache fences, forms and capture helpers         |
+| [`packages/agents`](packages/agents/README.md)                                                                                                                                                   | Run supervision, Codex, Claude, AI SDK and protected account flows            |
+| [`packages/integration`](packages/integration/README.md)                                                                                                                                         | Outbox dispatcher, connectors and inbound sync for systems of record          |
+| [`packages/station`](packages/station/README.md)                                                                                                                                                 | Screen bridge to station software: observation, gated actuation, golden check |
+| [`packages/devices`](packages/devices/README.md), [`packages/operator-ui`](packages/operator-ui/README.md)                                                                                       | Scanner input and configuration; the operator shadcn registry                 |
+| [`packages/egress`](packages/egress/README.md), [`packages/event-log`](packages/event-log/README.md)                                                                                             | Site policy and egress guard; the hash-chained audit log                      |
+| [`packages/assurance`](packages/assurance/README.md)                                                                                                                                             | Security manifest, control mapping, SBOM, rule exports and posture            |
+| [`packages/testing`](packages/testing/README.md)                                                                                                                                                 | Shared scenarios and UI-binding checks                                        |
+| [`packages/scaffold`](packages/scaffold/README.md)                                                                                                                                               | Deterministic source export                                                   |
+| [`apps/service`](apps/service/README.md), [`apps/web`](apps/web/README.md), [`apps/desktop`](apps/desktop/README.md)                                                                             | The starter: service, web root and Electron shell                             |
+| [`examples/project-tasks`](examples/project-tasks/README.md), [`examples/quality-inspection`](examples/quality-inspection/README.md), [`examples/line-station`](examples/line-station/README.md) | Applications: manifest, application definition, screens and tests             |
 
 The runtime treats feature state as opaque. The reference SQLite adapter serializes a complete JSON snapshot, including receipts and journal, in one transaction. Storage adapters can map the snapshot to existing tables; handlers receive materialized state. Large applications may need a different unit-of-work adapter and transaction-bound repository design rather than loading the whole workspace. The framework does not impose an ORM or cloud platform.
 

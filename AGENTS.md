@@ -8,6 +8,7 @@ Read `docs/principles.md`, `docs/primitives.md`, `IMPLEMENTATION_PLAN.md` and `d
 - Generated MCP, API, schema and documentation come from the composed catalog. Run `bun run generate` after changing contracts.
 - Preserve literal capability types. Add a behavioral scenario and a UI binding or explicit exception when adding an operation.
 - Document public exports with purpose, trust boundaries, guarantees and failure behavior. Explain transaction/auth ordering in inline comments.
+- Every workspace in `packages/*`, `apps/*` and `examples/*` has a `README.md` with the sections Primitives, Entrypoints, Trust boundary, Dependencies and Tests. It links to the primitive entries and explains what the code does not show on its own; it does not copy guarantees from `docs/primitives.md`. Update it in the same change as the code. `bun run check:readmes` fails on a missing README, an undocumented export, an unlinked primitive entry or a dead link.
 - Use `npx ctx7@latest library <name> '<specific question>'`, then `npx ctx7@latest docs <resolved-id> '<question>'` for current library APIs. Run network documentation requests outside the sandbox.
 - Run the checks in `docs/development-and-testing.md`. Distinguish deterministic tests, native platform smoke tests and live provider evidence.
 - Do not discover or reuse provider credentials. Live probes require explicit configured accounts. Never commit keys, data directories or generated local launch credentials.
