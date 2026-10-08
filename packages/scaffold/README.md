@@ -12,12 +12,12 @@ The root [README](../../README.md#create-another-app) shows the full flow, and t
 
 ## Entrypoints
 
-| Import                     | Runs in     | Contents                                                    |
-| -------------------------- | ----------- | ----------------------------------------------------------- |
-| `@agent-native/scaffold`   | server only | `scaffold(options)`, `ScaffoldOptions`, `ScaffoldManifest`. |
-| `@agent-native/scaffold/*` | server only | The same file by path; the package has one source file.     |
+| Import                     | Runs in     | Contents                                                                                                    |
+| -------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
+| `@agent-native/scaffold`   | server only | `scaffold(options)`, `ScaffoldOptions`, `ScaffoldManifest`.                                                 |
+| `@agent-native/scaffold/*` | server only | One source file: `scaffold`, `file-rules` (what is exported), `examples` (single-example pruning) or `cli`. |
 
-From the command line:
+From the command line (`src/cli.ts`):
 
 ```sh
 bun run scaffold <absent-target-directory> --name <app-name> [--display-name <label>] [--example <name>]

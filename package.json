@@ -33,7 +33,7 @@
     "check": "bun run check:format && bun run typecheck && bun run check:boundaries && bun run check:readmes && bun run check:size && bun run check:generated && bun run check:registry:operator && bun test && bun run test:sandbox && bun run build",
     "cli": "bun apps/service/src/cli.ts",
     "mcp": "bun packages/adapters/src/mcp.ts",
-    "scaffold": "bun packages/scaffold/src/index.ts",
+    "scaffold": "bun packages/scaffold/src/cli.ts",
     "package:stage": "bun scripts/package-stage.ts",
     "package:desktop": "bun scripts/package-desktop.ts",
     "test:scaffold:full": "SCAFFOLD_ACCEPTANCE=1 bun test packages/scaffold",
