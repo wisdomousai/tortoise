@@ -29,7 +29,8 @@
     "check:generated": "bun scripts/generate.ts --check",
     "check:boundaries": "bun scripts/check-boundaries.ts",
     "check:readmes": "bun scripts/check-readmes.ts",
-    "check": "bun run check:format && bun run typecheck && bun run check:boundaries && bun run check:readmes && bun run check:generated && bun run check:registry:operator && bun test && bun run test:sandbox && bun run build",
+    "check:size": "bun scripts/check-size.ts",
+    "check": "bun run check:format && bun run typecheck && bun run check:boundaries && bun run check:readmes && bun run check:size && bun run check:generated && bun run check:registry:operator && bun test && bun run test:sandbox && bun run build",
     "cli": "bun apps/service/src/cli.ts",
     "mcp": "bun packages/adapters/src/mcp.ts",
     "scaffold": "bun packages/scaffold/src/index.ts",
@@ -90,6 +91,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@babel/parser": "7.29.9",
     "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "4.3.3",
     "@types/bun": "1.4.2",
