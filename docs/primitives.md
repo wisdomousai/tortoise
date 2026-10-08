@@ -184,9 +184,9 @@ Serves P1, P11 · implemented · `packages/frame` · `Frame`, `ScreensProvider`,
 
 _The thin application a team forks or generates and then owns._
 
-The starter wires framework to content: `app.config.json` names its identity and the application it hosts, `apps/service` serves it, `apps/web` frames its screens and `apps/desktop` wraps both. It holds no domain and no generic host code, so changing it never forks the framework; extending it is the owner's business. `AGENT_NATIVE_APPLICATION` overrides the configured application for one developer's launch.
+The starter wires framework to content: `app.config.json` names its identity and the application it hosts, `apps/service` serves it, `apps/web` frames its screens and `apps/desktop` wraps both. It holds no domain and no generic host code, so changing it never forks the framework; extending it is the owner's business. `AGENT_NATIVE_APPLICATION` overrides the configured application for one developer's launch. `bun run dev` opens that desktop window against the source service; a packaged build is the integrity-checked distribution of the same window.
 
-Guarantees: the starter imports no content statically; the boundary check fails a direct import from `examples/*`.
+Guarantees: the starter imports no content statically; the boundary check fails a direct import from `examples/*`. A development desktop launch cannot skip packaged digest checks: the development flag is honored only when Electron reports the app is unpackaged (`apps/desktop/test/development-launch.test.ts`).
 
 Serves P11 · implemented · `apps/service` `apps/web` `apps/desktop` `app.config.json` · `configuredApplication`, `runService`
 

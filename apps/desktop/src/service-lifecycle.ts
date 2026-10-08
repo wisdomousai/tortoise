@@ -71,7 +71,10 @@ async function connect(
 }
 
 /** Attach first; otherwise let the service's OS-held workspace lock arbitrate startup.
- * Only the exact child process launched here is owned and eligible for shutdown. */
+ * Only the exact child process launched here is owned and eligible for shutdown.
+ * `extraEnv` is for the source development launch. Workspace, port, web root, runtime
+ * manifest and site policy are applied after it, so those keys cannot be overridden.
+ * Packaged startup does not set `extraEnv`. */
 export async function ensureService(options: {
   workspace: string;
   executable: string;
@@ -81,6 +84,14 @@ export async function ensureService(options: {
   /** Site policy file for the service; absent leaves the service isolated (loopback only). */
   sitePolicy?: string;
   startupTimeoutMs?: number;
+  /** Listen port for a service this host starts. Packaged startup leaves this unset (`0`). */
+  port?: string;
+  /** Repository root for a source service. The packaged executable ignores `cwd`. */
+  cwd?: string;
+  /** Developer environment for a source service. Applied before the host-owned keys. */
+  extraEnv?: Record<string, string>;
+  /** Copy the child authority's output to this process. Development launches use this. */
+  mirror?: boolean;
 }): Promise<ServiceHandle> {
   const workspace = await realpath(options.workspace);
   try {
@@ -110,18 +121,25 @@ export async function ensureService(options: {
     'XDG_DATA_HOME',
   ])
     if (process.env[key]) env[key] = process.env[key];
-  Object.assign(env, { PORT: '0', WORKSPACE_PATH: workspace, WEB_ROOT: options.webRoot });
+  if (options.extraEnv) Object.assign(env, options.extraEnv);
+  // Host-owned keys win over anything the development environment carried.
+  Object.assign(env, {
+    PORT: options.port ?? '0',
+    WORKSPACE_PATH: workspace,
+    WEB_ROOT: options.webRoot,
+  });
   if (options.runtimeManifest) env.AGENT_RUNTIME_MANIFEST = options.runtimeManifest;
   if (options.sitePolicy) env.AGENT_NATIVE_SITE_POLICY = options.sitePolicy;
   const child = spawn(options.executable, options.args ?? [], {
-    cwd: workspace,
+    cwd: options.cwd ?? workspace,
     env,
     stdio: 'pipe',
     windowsHide: true,
   });
   let stopped = false;
   let ownedInstance: string | undefined;
-  child.stderr.resume();
+  if (options.mirror) child.stderr.pipe(process.stderr);
+  else child.stderr.resume();
   const stop = async () => {
     if (stopped) return;
     stopped = true;
@@ -184,6 +202,7 @@ export async function ensureService(options: {
         reject(new Error('Local authority exited before becoming ready'));
       };
       const onData = (chunk: Buffer) => {
+        if (options.mirror) process.stdout.write(chunk);
         buffer += chunk.toString('utf8');
         if (buffer.length > 65_536) {
           cleanup();
@@ -200,7 +219,8 @@ export async function ensureService(options: {
               validateLoopbackEndpoint(event.url);
               ownedInstance = event.instance;
               cleanup();
-              child.stdout.resume();
+              if (options.mirror) child.stdout.pipe(process.stdout);
+              else child.stdout.resume();
               ready();
               return;
             }

@@ -6,6 +6,12 @@ Read `apps/desktop/src/main.ts`, `service-lifecycle.ts` and `runtime-manifest.ts
 
 `app.config.json` is the shared product identity. The browser build escapes its display name into the page title, staging copies the configuration beside desktop main/preload, and packaging uses that staged app ID and display name. Electron sets the application name before single-instance locking and resolving userData, uses the configured window title, and sets the Windows application model ID. The scaffolder rewrites this configuration for the exported application.
 
+## Development launch
+
+`bun run dev` from the repository root, or from an example directory, opens this window without a packaged stage. The launcher builds the web assets, bundles the Electron main and preload into `dist/desktop`, and starts Electron with `AGENT_NATIVE_DESKTOP_DEV=1`. Electron then starts the Bun service from source (`apps/service/src/index.ts`) in the example or repository workspace, or attaches when that workspace already has an authority. An example's `dev.ts` still runs in the launcher, so the line-station fake HMI stays up until the window closes. Closing a window that started the service stops it; closing one that only attached does not.
+
+The development flag is ignored when the app is packaged. Packaged startup still loads the runtime manifest and verifies resource digests. The source service inherits the developer environment of the launch, except Electron control variables and the workspace, port, web root, runtime manifest and site policy, which the host sets. The desktop site policy (`apps/desktop/site-policy.json`) is the default so provider sign-in matches a packaged build; set `AGENT_NATIVE_SITE_POLICY` empty to run isolated. `bun run dev:web` serves the browser and does not open the window.
+
 ## Authority ownership
 
 The service workspace is canonicalized and must reside on a local filesystem. Its dedicated authority-lock SQLite database holds an OS-backed exclusive transaction for the service lifetime, separate from business transactions. Crash exit releases the OS lock. A PID, timeout or stale descriptor never authorizes deleting a live lock. Two frontends may race to start; the service lock decides which authority owns the workspace.

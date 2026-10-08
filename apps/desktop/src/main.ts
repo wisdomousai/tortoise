@@ -4,6 +4,11 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureService, type ServiceHandle } from './service-lifecycle';
 import {
+  developmentAppName,
+  developmentServiceLaunch,
+  isDevelopmentDesktop,
+} from './development-launch';
+import {
   loadRuntimeManifest,
   resourcePath,
   verifyRuntimeFiles,
@@ -15,8 +20,16 @@ let window: BrowserWindow | undefined;
 let quitting = false;
 const sourceDir = dirname(fileURLToPath(import.meta.url));
 const identity = readApplicationIdentity(resolve(sourceDir, 'app.config.json'));
+// Source launches are unpackaged. A packaged build ignores the development flag and
+// keeps the digest-checked runtime below.
+const developmentDesktop = isDevelopmentDesktop(app.isPackaged, process.env);
 // Set stable identity before single-instance locking or userData path resolution.
-app.setName(identity.name);
+// Each development application gets its own lock so two examples can run together.
+app.setName(
+  developmentDesktop
+    ? developmentAppName(identity.name, process.env.AGENT_NATIVE_APPLICATION)
+    : identity.name,
+);
 if (process.platform === 'win32') app.setAppUserModelId(identity.appId);
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
@@ -35,32 +48,45 @@ else {
   app
     .whenReady()
     .then(async () => {
-      const resources = app.isPackaged
-        ? resolve(process.resourcesPath, 'application')
-        : resolve(sourceDir, '../resources');
-      const manifest = await loadRuntimeManifest(resources);
-      await verifyRuntimeFiles(resources, manifest);
       // Trusted host override supports isolated desktop acceptance and alternate
       // workspaces; renderer input cannot choose arbitrary filesystem paths.
       const workspace = process.env.AGENT_NATIVE_WORKSPACE
         ? resolve(process.env.AGENT_NATIVE_WORKSPACE)
         : resolve(app.getPath('userData'), 'workspace');
       await mkdir(workspace, { recursive: true, mode: 0o700 });
-      // The packaged policy (digest-verified above) binds only the provider endpoints. An
-      // operator can substitute a site policy through the trusted host environment, as with
-      // the workspace; without either the service runs isolated.
-      const sitePolicy = process.env.AGENT_NATIVE_SITE_POLICY
-        ? resolve(process.env.AGENT_NATIVE_SITE_POLICY)
-        : manifest.sitePolicy
-          ? resourcePath(resources, manifest.sitePolicy.path)
-          : undefined;
-      service = await ensureService({
-        workspace,
-        executable: resourcePath(resources, manifest.service.executable),
-        webRoot: resourcePath(resources, manifest.webRoot),
-        runtimeManifest: resolve(resources, 'runtime-manifest.json'),
-        ...(sitePolicy ? { sitePolicy } : {}),
-      });
+      if (developmentDesktop) {
+        // Bun runs the service from this checkout. Digest checks stay on the packaged stage.
+        service = await ensureService(developmentServiceLaunch(process.env, workspace));
+      } else {
+        const resources = app.isPackaged
+          ? resolve(process.resourcesPath, 'application')
+          : resolve(sourceDir, '../resources');
+        const manifest = await loadRuntimeManifest(resources);
+        await verifyRuntimeFiles(resources, manifest);
+        // The packaged policy (digest-verified above) binds only the provider endpoints. An
+        // operator can substitute a site policy through the trusted host environment, as with
+        // the workspace; without either the service runs isolated.
+        const sitePolicy = process.env.AGENT_NATIVE_SITE_POLICY
+          ? resolve(process.env.AGENT_NATIVE_SITE_POLICY)
+          : manifest.sitePolicy
+            ? resourcePath(resources, manifest.sitePolicy.path)
+            : undefined;
+        service = await ensureService({
+          workspace,
+          executable: resourcePath(resources, manifest.service.executable),
+          webRoot: resourcePath(resources, manifest.webRoot),
+          runtimeManifest: resolve(resources, 'runtime-manifest.json'),
+          ...(sitePolicy ? { sitePolicy } : {}),
+        });
+      }
+      if (developmentDesktop) {
+        const application = process.env.AGENT_NATIVE_APPLICATION ?? identity.name;
+        console.log(
+          `\n${identity.displayName}: open ${service.launchUrl}\n` +
+            `  The desktop window is this app. The link signs a browser in once and expires after one minute.\n` +
+            `  CLI: AGENT_NATIVE_APPLICATION=${application} AGENT_NATIVE_CONNECTION=${resolve(workspace, '.connection.json')} bun run cli list\n`,
+        );
+      }
       const origin = service.endpoint;
       const uiSession = session.fromPartition('application-window');
       uiSession.setPermissionCheckHandler(() => false);

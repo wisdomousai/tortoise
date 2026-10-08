@@ -227,7 +227,7 @@ Summaries of the [principles](principles.md). Each principle there lists what it
 | [`quality-inspection`](../examples/quality-inspection) | Outbox delivery and inbound sync against an in-memory mock quality system; keyboard capture UI; sandboxed CLI/MCP binary ([reference](system-of-record-pattern.md))                                            |
 | [`line-station`](../examples/line-station)             | Control software driven through its screen as an outbox connector; MES sync; scanner routing; held effects ([pattern](operator-workstation-pattern.md), [ADR 004](decisions/004-screen-mediated-authority.md)) |
 
-Run one with `cd examples/<name> && bun run dev` (ports 4321, 4322, 4323; each has its own workspace, and line-station starts its fake HMI).
+Run one with `cd examples/<name> && bun run dev` (ports 4321, 4322, 4323; each has its own workspace and desktop window, and line-station starts its fake HMI). `dev:web` in the same directory serves the browser without the window.
 
 ## Verification status
 
@@ -239,7 +239,7 @@ Not verified: any real enterprise connector, live model inference, scanner hardw
 
 ```sh
 bun install --frozen-lockfile
-bun run dev                      # build web, start the configured application, print launchUrl
+bun run dev                      # build web and open the desktop window
 bun run cli list                 # list operations
 bun run cli call project.create '{"name":"Launch"}' --key k1
 bun run mcp                      # MCP over stdio

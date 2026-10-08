@@ -21,13 +21,13 @@ bun install --frozen-lockfile
 bun run dev
 ```
 
-Open the `launchUrl` printed by the service. Its launch credential is single-use and expires after one minute. The service stores workspace data in `.workspace/` by default; set `WORKSPACE_PATH` to use another directory and `PORT=0` to select an available port.
+The desktop window opens. The service also prints a `launchUrl` for a browser; that launch credential is single-use and expires after one minute. The service stores workspace data in `.workspace/` by default; set `WORKSPACE_PATH` to use another directory and `PORT=0` to select an available port. `bun run dev:web` serves the browser without opening the window.
 
 Create a project, add a task, then use **Create tasks from brief**. This deterministic harness turns each line into a command and needs no provider account. The task list updates when commands commit. Editing a task preserves its draft if another client changes the committed record.
 
 Open **Inspection** for the system-of-record example. Lots arrive from a deterministic mock quality system; choose a lot and capture values with the keyboard (Enter records and advances). Each result is forwarded through the outbox, and its quality-system reference or rejection appears without a refresh. Set `DEMO_QUALITY_LOCKED_LOTS=4000002` to see a rejection, then resolve it under **Synchronization**.
 
-Only one authority may own a workspace. Electron attaches to an existing authority or starts one. The MCP bridge and CLI attach to the service, or run the authority in-process with `--embedded` when no service owns the workspace.
+Only one authority may own a workspace. The desktop window starts that authority, or attaches to one that is already running. Closing a window that started the authority stops it; closing an attached window leaves the existing authority running. The MCP bridge and CLI attach to the service, or run the authority in-process with `--embedded` when no service owns the workspace.
 
 ## Use the same app through tools
 

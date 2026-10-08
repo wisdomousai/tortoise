@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun ../../scripts/dev-example.ts --port 4322"
+    "dev": "bun ../../scripts/dev-desktop.ts --port 4322",
+    "dev:web": "bun ../../scripts/dev-example.ts --port 4322"
   },
   "exports": {
     "./screens": "./screens.tsx",
