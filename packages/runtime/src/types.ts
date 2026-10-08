@@ -4,6 +4,7 @@ import type {
   InputOf,
   OutputOf,
   JsonValue,
+  RemoteReadDeclaration,
 } from '@agent-native/contracts';
 
 export interface DelegationGrant {
@@ -169,6 +170,55 @@ export interface HandlerContribution<State, Services, C extends AnyCapability = 
     input: InputOf<C>,
     context: HandlerContext<State, Services>,
   ): OutputOf<C> | Promise<OutputOf<C>>;
+  /** Present exactly when the capability declares `remote`; the runtime then never calls `handle`. */
+  readonly remote?: RemoteHandler<State, Services, C>;
+}
+/** One item of a remote query's `items` output. */
+export type RemoteItemOf<C> =
+  OutputOf<C> extends { readonly items: readonly (infer I)[] } ? I : never;
+/**
+ * The pure parts of a remote query. Both run inside a read snapshot and must not perform I/O or
+ * mutate state; the runtime calls the source between them, outside any transaction (P7).
+ */
+export interface RemoteHandler<State, Services, C extends AnyCapability = AnyCapability> {
+  /** Build the query sent to the source from validated input and local state. */
+  request(input: InputOf<C>, context: HandlerContext<State, Services>): JsonValue;
+  /**
+   * Turn one item the source returned into an output item, for example marking records already
+   * held locally, or drop it by returning `undefined`. Runs after the source answered, in a fresh
+   * snapshot under a repeated authorization. Output projection and validation follow.
+   */
+  item(found: unknown, context: HandlerContext<State, Services>): RemoteItemOf<C> | undefined;
+}
+/** What a remote query asks its source: the operation and the query its handler built. */
+export interface SourceRequest {
+  readonly operation: string;
+  readonly query: JsonValue;
+}
+export interface SourceCall {
+  /** The caller. A source acts with this principal's credential in the target when it has one. */
+  readonly context: ExecutionContext;
+  /** What the capability permits; a source must not fall back to a service credential under `caller`. */
+  readonly identity: RemoteReadDeclaration['identity'];
+  /** Aborts on caller cancellation and at the runtime's deadline. */
+  readonly signal: AbortSignal;
+}
+export interface SourceAnswer {
+  readonly items: readonly unknown[];
+  /** Opaque cursor of the next page (at most 512 characters); absent on the last page. */
+  readonly next?: string;
+  /** The credential the source acted with. */
+  readonly identity: 'caller' | 'service';
+}
+/**
+ * Port that answers remote queries for one target. It never writes application state. Throw an
+ * `ApplicationError` with code `UNAVAILABLE` and a caller-safe message when the target cannot be
+ * reached; an error that is not an `ApplicationError` is reported generically. Other codes reach
+ * the caller as errors: `FORBIDDEN` when the caller has no credential for the target,
+ * `INVALID_INPUT` for a page cursor the source does not accept from this caller.
+ */
+export interface RemoteSource {
+  search(request: SourceRequest, call: SourceCall): Promise<SourceAnswer>;
 }
 export interface Invocation<I = unknown> {
   readonly operation: string;

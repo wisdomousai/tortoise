@@ -5,8 +5,8 @@
  * only bound declarations, and firewall/hardening exports are generated from the same data, so the
  * reviewed manifest, the in-process guard and the OS rules cannot drift apart.
  *
- * Validation fails closed: unknown references, undeclared outbox targets and destinations that
- * would send data without naming its classes are rejected when the catalog is built.
+ * Validation fails closed: unknown references, undeclared outbox or remote-read targets and
+ * destinations that would send data without naming its classes are rejected when the catalog is built.
  */
 
 /** Where a destination lives. `site` is a customer network (plant LAN, MES host); never the internet. */
@@ -36,6 +36,8 @@ export interface NetworkDestination {
   readonly host?: string;
   /** Outbox targets whose effects travel over this destination. */
   readonly targets?: readonly string[];
+  /** Targets whose remote queries read over this destination (`RemoteReadDeclaration`). */
+  readonly reads?: readonly string[];
   /** Classes of data sent to this destination, for the data-flow inventory. */
   readonly dataClasses: readonly string[];
   readonly availability: Availability;
@@ -141,6 +143,8 @@ export function collectRequirements(
         if (destination.offline !== 'queue')
           throw new Error(`Outbox destination must queue while offline: ${where}`);
       }
+      if (destination.reads?.length && destination.direction !== 'egress')
+        throw new Error(`Remote reads require an egress destination: ${where}`);
       network.push({ ...destination, owner });
     }
     for (const device of requirements?.devices ?? []) {
@@ -171,5 +175,15 @@ export function destinationsForTarget(
 ): readonly string[] {
   return requirements.network
     .filter((destination) => destination.targets?.includes(target))
+    .map((destination) => destination.id);
+}
+
+/** Destinations that remote queries of `target` read over. */
+export function destinationsForRead(
+  requirements: CatalogRequirements,
+  target: string,
+): readonly string[] {
+  return requirements.network
+    .filter((destination) => destination.reads?.includes(target))
     .map((destination) => destination.id);
 }

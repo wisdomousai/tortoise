@@ -12,6 +12,8 @@ export interface DataFlow {
   readonly kind: 'command' | 'query';
   readonly module: string;
   readonly target: string;
+  /** `outbox`: forwarded after commit. `remote-read`: the request goes out when called; nothing is stored. */
+  readonly path: 'outbox' | 'remote-read';
   readonly destinations: readonly string[];
   readonly dataClasses: readonly string[];
   /** Input fields recorded in plain text in the audit log; all others only as a digest. */
@@ -68,12 +70,15 @@ export function securityManifest(options: {
       : { id, kind: 'module' as const },
   );
   const flows = catalog.operations
-    .filter((operation) => operation.integration && operation.destinations?.length)
+    .filter(
+      (operation) => (operation.integration || operation.remote) && operation.destinations?.length,
+    )
     .map((operation) => ({
       operation: operation.id,
       kind: operation.kind,
       module: operation.module,
-      target: operation.integration!.target,
+      target: (operation.integration ?? operation.remote)!.target,
+      path: operation.integration ? ('outbox' as const) : ('remote-read' as const),
       destinations: [...operation.destinations!],
       dataClasses: sorted(operation.destinations!.flatMap((id) => byId.get(id)?.dataClasses ?? [])),
       auditFields: [...(operation.audit?.fields ?? [])],
@@ -148,13 +153,13 @@ function destinationTables(manifest: SecurityManifest): string[] {
     '',
     '## Operations that leave the host',
     '',
-    'Each is committed locally first and forwarded through the outbox; a receipt proves the local commit, not acceptance by the target.',
+    'An `outbox` operation is committed locally first and forwarded through the outbox; a receipt proves the local commit, not acceptance by the target. A `remote-read` query sends its request to the target when called, with the caller’s credential, and stores nothing it receives.',
     '',
-    '| Operation | Target | Destinations | Data classes | Audited fields |',
-    '| --- | --- | --- | --- | --- |',
+    '| Operation | Target | Path | Destinations | Data classes | Audited fields |',
+    '| --- | --- | --- | --- | --- | --- |',
     ...manifest.flows.map(
       (flow) =>
-        `| \`${flow.operation}\` | ${flow.target} | ${flow.destinations.map((id) => `\`${id}\``).join(', ')} | ${cell(flow.dataClasses.join(', '))} | ${flow.auditFields.join(', ') || 'digest only'} |`,
+        `| \`${flow.operation}\` | ${flow.target} | ${flow.path} | ${flow.destinations.map((id) => `\`${id}\``).join(', ')} | ${cell(flow.dataClasses.join(', '))} | ${flow.auditFields.join(', ') || 'digest only'} |`,
     ),
     '',
   ];

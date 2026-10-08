@@ -45,10 +45,10 @@ flowchart LR
 
 ## Operations that leave the host
 
-Each is committed locally first and forwarded through the outbox; a receipt proves the local commit, not acceptance by the target.
+An `outbox` operation is committed locally first and forwarded through the outbox; a receipt proves the local commit, not acceptance by the target. A `remote-read` query sends its request to the target when called, with the caller’s credential, and stores nothing it receives.
 
-| Operation | Target | Destinations | Data classes | Audited fields |
-| --- | --- | --- | --- | --- |
+| Operation | Target | Path | Destinations | Data classes | Audited fields |
+| --- | --- | --- | --- | --- | --- |
 
 ## Child processes
 

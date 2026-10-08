@@ -1,4 +1,4 @@
-import type { Effect, EffectOutcome } from '@agent-native/runtime';
+import type { Effect, EffectOutcome, SourceRequest } from '@agent-native/runtime';
 
 /** Delivery guarantees a target offers; they decide how retries avoid duplicate external records. */
 export interface TargetDescription {
@@ -15,11 +15,29 @@ export interface PullBatch<Item> {
 }
 
 /**
+ * One page of a search. `next` is the target's own opaque cursor (at most 512 characters), which
+ * the caller sends back as `cursor`. Bind it to the query and the credential that produced it,
+ * and reject it as `INVALID_INPUT` otherwise, so a cursor never widens what a caller can read.
+ */
+export interface SearchPage {
+  readonly items: readonly unknown[];
+  readonly next?: string;
+}
+
+/** The credential a search acts with, and whose it is. */
+export interface SearchAccess<Credential = unknown> {
+  readonly credential: Credential;
+  /** `caller`: the requesting principal's own credential. `service`: a technical account. */
+  readonly identity: 'caller' | 'service';
+}
+
+/**
  * Port to one external system of record (for example an ERP or CRM). Implementations own protocol,
  * credentials and field mapping; they never write application state themselves. Results return
- * through domain commands submitted by the dispatcher or inbound sync, under the integration principal.
+ * through domain commands submitted by the dispatcher or inbound sync, under the integration
+ * principal, or, for `search`, as the transient answer of a remote query.
  */
-export interface SystemOfRecordPort<Item = unknown> {
+export interface SystemOfRecordPort<Item = unknown, Credential = unknown> {
   describe(): TargetDescription;
   /**
    * Deliver one effect at least once. Return the target's business outcome, including rejection.
@@ -38,6 +56,16 @@ export interface SystemOfRecordPort<Item = unknown> {
   lookup?(effectId: string, signal: AbortSignal, effect?: Readonly<Effect>): Promise<LookupResult>;
   /** Changes after `cursor` (undefined for an initial load). Required for inbound sync. */
   pull?(cursor: string | undefined, signal: AbortSignal): Promise<PullBatch<Item>>;
+  /**
+   * Answer a remote query (`request.operation` names it) with the target's records, acting with
+   * `access.credential` so the target applies its own sharing rules. Read-only. Throw
+   * `DeliveryFailure` for a caller-safe unavailability message. Required for remote sources.
+   */
+  search?(
+    request: SourceRequest,
+    access: SearchAccess<Credential>,
+    signal: AbortSignal,
+  ): Promise<SearchPage>;
 }
 
 /** What a target knows about an earlier delivery. */

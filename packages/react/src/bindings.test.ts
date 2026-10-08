@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { QueryClient, QueryObserver } from '@tanstack/react-query';
+import { InfiniteQueryObserver, QueryClient, QueryObserver } from '@tanstack/react-query';
 import { z } from 'zod';
 import { defineCapability, jsonSchema } from '@agent-native/contracts';
 import type { ChangeBatch, Snapshot, Transport } from '@agent-native/client';
@@ -19,9 +19,14 @@ const query = (id: string, dependencies?: string[]) =>
 const lots = query('lot.list', ['lot', 'result']);
 const plants = query('plant.list', ['plant']);
 const undeclared = query('misc.get');
+const search = {
+  ...query('crm.account.search'),
+  remote: { target: 'crm', identity: 'caller' },
+} as const;
 
 function fixture() {
   const calls: string[] = [];
+  const signals: (AbortSignal | undefined)[] = [];
   let revision = 0;
   const pending: ((value: Snapshot<unknown>) => void)[] = [];
   let hold = false;
@@ -29,8 +34,9 @@ function fixture() {
   const stream: ChangeBatch[] = [];
   let wake: (() => void) | undefined;
   const transport: Transport = {
-    query: async <T>(operation: string) => {
+    query: async <T>(operation: string, _input: unknown, signal?: AbortSignal) => {
       calls.push(operation);
+      signals.push(signal);
       const snapshot = { data: { n: calls.length }, cursor: 'c', authorizationRevision: revision };
       if (hold) return new Promise<Snapshot<T>>((resolve) => pending.push(resolve as never));
       return snapshot as Snapshot<T>;
@@ -56,6 +62,7 @@ function fixture() {
   const settle = () => new Promise((resolve) => setTimeout(resolve, 10));
   return {
     calls,
+    signals,
     client,
     live,
     observe,
@@ -103,6 +110,60 @@ test('a change batch refetches only active queries whose dependencies changed, o
   );
   await settle();
   expect(calls.sort()).toEqual(['lot.list', 'misc.get']);
+});
+
+test('a remote query ignores local changes, keeps its signal and resets on a permission change', async () => {
+  const { calls, signals, client, live, settle, setRevision } = fixture();
+  const observer = new QueryObserver(client, live.remoteQueryOptions(search, {}));
+  observer.subscribe(() => {});
+  await settle();
+  expect(calls).toEqual(['crm.account.search']);
+  expect(signals[0]).toBeInstanceOf(AbortSignal);
+  // Neither a stream reset nor any change calls the target again.
+  await live.applyBatch(client, batch({ reset: true }));
+  await live.applyBatch(client, batch({ changes: [change('account:1')] }));
+  await settle();
+  expect(calls).toEqual(['crm.account.search']);
+  setRevision(1);
+  const reset = live.applyBatch(client, batch({ reset: true, authorizationRevision: 1 }));
+  expect(observer.getCurrentResult().data).toBeUndefined();
+  await reset;
+  await settle();
+  expect(calls).toEqual(['crm.account.search', 'crm.account.search']);
+});
+
+test('a paged remote query follows next cursors, stops at the last page and ignores changes', async () => {
+  const inputs: unknown[] = [];
+  const transport: Transport = {
+    query: async <T>(_operation: string, input: unknown) => {
+      inputs.push(input);
+      const data = (input as { cursor?: string }).cursor
+        ? { items: [2] }
+        : { items: [1], next: 'p2' };
+      return { data, cursor: 'c', authorizationRevision: 0 } as Snapshot<T>;
+    },
+    command: async () => {
+      throw new Error('unused');
+    },
+    events: async function* () {},
+  };
+  const client = new QueryClient();
+  const live = createLiveBindings(transport);
+  const observer = new InfiniteQueryObserver(client, live.remoteInfiniteQueryOptions(search, {}));
+  observer.subscribe(() => {});
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  expect(observer.getCurrentResult().hasNextPage).toBe(true);
+  await observer.fetchNextPage();
+  expect(observer.getCurrentResult().data as unknown).toEqual([
+    { items: [1], next: 'p2' },
+    { items: [2] },
+  ]);
+  expect(observer.getCurrentResult().hasNextPage).toBe(false);
+  // The first page sends no cursor; the second sends the first page's `next`.
+  expect(inputs).toEqual([{}, { cursor: 'p2' }]);
+  await live.applyBatch(client, batch({ reset: true }));
+  await live.applyBatch(client, batch({ changes: [change('account:1')] }));
+  expect(inputs).toHaveLength(2);
 });
 
 test('a permission change clears cached data before refetching', async () => {

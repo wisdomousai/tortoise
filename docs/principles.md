@@ -38,7 +38,7 @@ One authority owns each workspace. UIs, tools, jobs, connectors and observers su
 
 ### P5 — Every committed change reaches every authorized view, whatever its origin
 
-A change committed by a person, an agent, a job or an inbound sync flows through the same journal to every subscribed screen and tool the caller may see, without refresh. Queries return a snapshot with a cursor so subscription closes the race. Delivery is filtered by current permissions, and an authorization change resets views without leaking identifiers. Unsaved drafts survive external updates and conflict explicitly instead of being overwritten.
+A change committed by a person, an agent, a job or an inbound sync flows through the same journal to every subscribed screen and tool the caller may see, without refresh. Queries return a snapshot with a cursor so subscription closes the race. Delivery is filtered by current permissions, and an authorization change resets views without leaking identifiers. Unsaved drafts survive external updates and conflict explicitly instead of being overwritten. A remote query's result (P7) is the exception by design: it is a point-in-time answer from another system, labelled with its fetch time, and is not refreshed by the journal. A record follows the journal once it is adopted.
 
 **Rules out:** polling as the consistency model, per-surface caches that miss other surfaces' writes, event payloads carrying protected record contents.
 
@@ -52,13 +52,15 @@ Draft, committed, dispatched, accepted, rejected and uncertain are distinct stat
 
 **Enforced by:** `packages/runtime/test/outbox.test.ts` and `packages/integration/test/held.test.ts` (delivery states, uncertain outcomes held, not resent, including when shutdown interrupts delivery; a drain reports outbox work for targets it cannot deliver); `examples/quality-inspection/test/sandbox.test.ts` and each example's `test/application.test.ts` (`drain` exits non-zero until every target the application declares is empty); `packages/station/test/observer.test.ts` (only stable readings become current, unsure readings stay uncertain); `packages/agents/test/supervisor.test.ts` (run state separate from commits). **Convention only:** that every screen and tool shows the delivery state rather than a receipt.
 
-### P7 — Other systems are reached only through durable intents
+### P7 — Other systems are changed only through durable intents
 
 Systems of record keep ownership of their records. A command commits an intent with its local change; a connector delivers it outside the transaction, at least once, relying on the target's idempotency or a lookup before resending. A narrowly granted integration principal records outcomes and imports upstream changes through ordinary commands. The contract is the same whether the target is an API, a file drop or legacy software reachable only through its screen.
 
-**Rules out:** calling a remote system from a handler, distributed transactions, connectors that hold business tools, retrying an unknown outcome as if it failed.
+A declared remote query may read another system, for example a search box over a CRM. The runtime calls the source outside any transaction with the caller's own credential, or a service credential only where the query declares that fallback, and authorizes again before returning the result. The result is never stored. It carries its source, identity and fetch time (P6), and an unreachable source is a status beside the local data, not an error (P12). A handler never calls the source. Bringing a found record into the local working set is a command that goes through the outbox and inbound sync like any other write ([ADR 009](decisions/009-remote-queries-and-adoption.md)).
 
-**Enforced by:** `packages/runtime/test/outbox.test.ts` (effects commit with the command, replay never re-enqueues); `packages/integration/test/dispatcher.test.ts` (delivery outside the transaction, lookup before resend, integration grant limits, watermark-bound sync); `packages/station/test/controller.test.ts` (per-action screen gate, stable readback, uncertain procedures held); lane separation in `examples/line-station/test/conformance.test.ts`.
+**Rules out:** calling a remote system from a handler, distributed transactions, connectors that hold business tools, retrying an unknown outcome as if it failed, a remote read that changes local state or stores what it found, a remote read under a service credential the query did not declare.
+
+**Enforced by:** `packages/runtime/test/outbox.test.ts` (effects commit with the command, replay never re-enqueues); `packages/integration/test/dispatcher.test.ts` (delivery outside the transaction, lookup before resend, integration grant limits, watermark-bound sync); `packages/station/test/controller.test.ts` (per-action screen gate, stable readback, uncertain procedures held); lane separation in `examples/line-station/test/conformance.test.ts`; `packages/runtime/test/remote-query.test.ts` (a denied caller never reaches the source, a revocation during the call drops the result, the remote steps cannot mutate state, a service answer to a caller-only query is refused, source errors become a safe status); `packages/integration/test/remote-source.test.ts` (credential order: caller, then a declared service account, otherwise refused); `packages/contracts/test/data-provider.test.ts` (a remote read needs a declared destination); `examples/crm-capture/test/application.test.ts` (adoption through follow and feed).
 
 ### P8 — Specialization is composition and configuration, never a fork
 
@@ -127,6 +129,7 @@ Principles change rarely and on purpose. The [primitives](primitives.md) documen
 
 ## Changelog
 
+- 2026-10-08 — Amended P7 to "Other systems are changed only through durable intents": a declared remote query may read another system outside any transaction, with the caller's credential, never storing what it found (ADR 009). P5 notes that remote results are point-in-time until adopted. P7 lists the remote-query, remote-source, data-provider and CRM capture tests.
 - 2026-10-08 — Added P14 (one reason to change per module; ADR 008), enforced by `bun run check:size`.
 - 2026-10-08 — P10 now lists `bun run check:readmes` (workspace READMEs agree with package exports and primitive entries).
 - 2026-10-07 — Added P13 (declared reach, site binding and a recorded, fail-closed audit trail) for the egress guard, site policy and event log; see ADR 007. P3 now lists the hardening tests.

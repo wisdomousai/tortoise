@@ -6,25 +6,27 @@ Layer: framework (`packages/*`). Domain-neutral; a domain defines its capabiliti
 
 ## Primitives
 
-- [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`.
+- [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`.
 - [Module](../../docs/primitives.md#module): `defineModule`, `CapabilityModule`.
 - [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`.
 - [Command](../../docs/primitives.md#command): the caller-safe error envelope (`ApplicationError`, `ErrorCode`, `errorEnvelope`).
-- [Requirement declaration](../../docs/primitives.md#requirement-declaration): `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`.
+- [Requirement declaration](../../docs/primitives.md#requirement-declaration): `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`, `destinationsForRead`.
+- [Remote query](../../docs/primitives.md#remote-query): the result shape every remote query returns (`remoteResultSchema`, `RemoteResult`, `remoteSourceStatusSchema`, `RemoteSourceStatus`) and its opaque page cursor (`remoteCursorSchema`).
+- [Data provider](../../docs/primitives.md#data-provider): `defineDataProvider`, `DataProvider`, `DataProviderSpec`.
 - [Event log](../../docs/primitives.md#event-log): the audit envelope and port (`EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`).
 
 The worked example is [`examples/project-tasks/contracts.ts`](../../examples/project-tasks/contracts.ts). [Capability authoring](../../docs/capability-authoring.md) walks through adding an operation.
 
 ## Entrypoints
 
-| Import                      | Runs in            | Contents                                                                                             |
-| --------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
-| `@agent-native/contracts`   | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers. |
-| `@agent-native/contracts/*` | browser and server | One source file: `json`, `schema`, `capability`, `catalog`, `errors`, `requirements` or `audit`.     |
+| Import                      | Runs in            | Contents                                                                                                          |
+| --------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/contracts`   | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers.              |
+| `@agent-native/contracts/*` | browser and server | One source file: `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit` or `data-provider`. |
 
 ## Trust boundary
 
-Contracts are trusted code but describe untrusted input. `jsonSchema` validation rejects input it would have to strip or transform, and wire values must be JSON. `buildCatalog` fails before startup on duplicate IDs, missing or cyclic dependencies, missing UI declarations, unresolved workflow references, colliding MCP names and requirement errors (an outbox target without a queuing destination, a process naming an undeclared destination). A declaration grants nothing by itself: a site policy binds it and the egress guard enforces it.
+Contracts are trusted code but describe untrusted input. `jsonSchema` validation rejects input it would have to strip or transform, and wire values must be JSON. `buildCatalog` fails before startup on duplicate IDs, missing or cyclic dependencies, missing UI declarations, unresolved workflow references, colliding MCP names and requirement errors (an outbox target without a queuing destination, a process naming an undeclared destination, a remote query whose target no destination `reads`). A declaration grants nothing by itself: a site policy binds it and the egress guard enforces it.
 
 Audit events carry references and digests. Input values appear only for the fields a capability lists in `audit.fields`.
 
@@ -37,5 +39,7 @@ External: `zod`. No framework packages. This package must stay importable by a b
 ```sh
 bun test packages/contracts
 ```
+
+`test/data-provider.test.ts` covers data providers: literal IDs and types survive, both queries declare `remote`, search pages with a cursor the provider cannot redefine, and a provider without a destination that reads its target fails composition ([P7](../../docs/principles.md#p7--other-systems-are-changed-only-through-durable-intents), [P13](../../docs/principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does)).
 
 `test/contracts.test.ts` enforces [P1](../../docs/principles.md#p1--every-operation-is-executable-from-ui-mcp-cli-and-api) (an operation without a UI binding or declared exception is rejected), [P2](../../docs/principles.md#p2--the-catalog-is-the-only-description-of-what-the-application-can-do) (duplicates, cycles, unresolved workflows, colliding MCP names) and [P13](../../docs/principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does) (requirement validation).

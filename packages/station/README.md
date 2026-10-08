@@ -47,7 +47,7 @@ bun test packages/station
 cd examples/line-station && bun run station:golden
 ```
 
-- `test/controller.test.ts` enforces [P7](../../docs/principles.md#p7--other-systems-are-reached-only-through-durable-intents): per-action screen gate, stable readback, popups and local input stop procedures, uncertain procedures held.
+- `test/controller.test.ts` enforces [P7](../../docs/principles.md#p7--other-systems-are-changed-only-through-durable-intents): per-action screen gate, stable readback, popups and local input stop procedures, uncertain procedures held.
 - `test/observer.test.ts` enforces [P6](../../docs/principles.md#p6--status-reports-what-is-known-not-what-is-hoped): only stable readings become current; unsure readings stay uncertain.
 - `test/perception.test.ts` enforces [P12](../../docs/principles.md#p12--an-application-runs-beside-the-work-and-keeps-working-without-central-systems-or-a-model): vision endpoints are loopback or allowlisted; also worker restart, redirects and golden gating.
 - `test/profile.test.ts` enforces [P8](../../docs/principles.md#p8--specialization-is-composition-and-configuration-never-a-fork): procedures cannot target forbidden regions or unknown fields.

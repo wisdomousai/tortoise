@@ -10,6 +10,7 @@
         "@agent-native/assurance": "workspace:*",
         "@agent-native/client": "workspace:*",
         "@agent-native/contracts": "workspace:*",
+        "@agent-native/crm-capture": "workspace:*",
         "@agent-native/devices": "workspace:*",
         "@agent-native/egress": "workspace:*",
         "@agent-native/event-log": "workspace:*",
@@ -77,6 +78,10 @@
     },
     "apps/web": {
       "name": "@agent-native/web",
+      "version": "0.1.0",
+    },
+    "examples/crm-capture": {
+      "name": "@agent-native/crm-capture",
       "version": "0.1.0",
     },
     "examples/line-station": {
@@ -173,6 +178,8 @@
     "@agent-native/client": ["@agent-native/client@workspace:packages/client"],
 
     "@agent-native/contracts": ["@agent-native/contracts@workspace:packages/contracts"],
+
+    "@agent-native/crm-capture": ["@agent-native/crm-capture@workspace:examples/crm-capture"],
 
     "@agent-native/desktop": ["@agent-native/desktop@workspace:apps/desktop"],
 

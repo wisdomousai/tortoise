@@ -15,6 +15,21 @@ export interface IntegrationDeclaration {
   readonly target: string;
   readonly delivery: 'outbox';
 }
+/**
+ * Declares that a query reads another system at call time instead of local state (P7). The
+ * runtime calls the target's source outside any transaction, after authorizing the caller, and
+ * returns the items with the source's status and fetch time; nothing is stored. A source that
+ * cannot be reached yields `unavailable`, never an error that hides local data.
+ */
+export interface RemoteReadDeclaration {
+  readonly target: string;
+  /**
+   * `caller`: the source must act with the caller's own credential in the target, so the target's
+   * sharing rules apply. `caller-or-service`: it may fall back to a service credential when the
+   * caller has none. Local policy projects the rows in both cases.
+   */
+  readonly identity: 'caller' | 'caller-or-service';
+}
 export interface Capability<
   Id extends string = string,
   Kind extends 'command' | 'query' = 'command' | 'query',
@@ -31,6 +46,8 @@ export interface Capability<
   readonly ui?: { readonly binding?: string; readonly exception?: string };
   readonly errors?: readonly string[];
   readonly integration?: IntegrationDeclaration;
+  /** Queries only: read `target` at call time. See `RemoteReadDeclaration`. */
+  readonly remote?: RemoteReadDeclaration;
   /**
    * Top-level input fields that are safe to record in the event log in plain text. Everything
    * else is logged only as a digest; never list credentials, personal data or free text here.

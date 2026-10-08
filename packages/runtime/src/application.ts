@@ -1,10 +1,11 @@
-import type {
-  AnyCapability,
-  CapabilitiesOf,
-  CapabilityById,
-  CapabilityModule,
-  InputOf,
-  OutputOf,
+import {
+  ApplicationError,
+  type AnyCapability,
+  type CapabilitiesOf,
+  type CapabilityById,
+  type CapabilityModule,
+  type InputOf,
+  type OutputOf,
 } from '@agent-native/contracts';
 import { createCommands } from './application/commands.js';
 import { grantPermits } from './application/delegation.js';
@@ -19,6 +20,7 @@ import type {
   HandlerContribution,
   Invocation,
   QueryResult,
+  RemoteHandler,
 } from './types.js';
 
 export type { ApplicationOptions } from './application/kernel.js';
@@ -29,6 +31,24 @@ export function createHandlerFactory<State, Services>() {
     capability: C,
     handle: HandlerContribution<State, Services, C>['handle'],
   ): HandlerContribution<State, Services, C> => ({ capability, handle });
+}
+
+/**
+ * Bind remote query handlers (capabilities that declare `remote`). The handler supplies only the
+ * pure `request` and `item` steps; the runtime calls the source between them and never calls
+ * `handle`, so a remote query cannot read the target from inside a transaction.
+ */
+export function createRemoteQueryFactory<State, Services>() {
+  return <C extends AnyCapability & { readonly kind: 'query'; readonly remote: object }>(
+    capability: C,
+    remote: RemoteHandler<State, Services, C>,
+  ): HandlerContribution<State, Services, C> => ({
+    capability,
+    remote,
+    handle: () => {
+      throw new ApplicationError('INTERNAL', 'Remote queries run through their source');
+    },
+  });
 }
 
 /** The catalog as this context may use it: operations outside a live grant are `denied`. */

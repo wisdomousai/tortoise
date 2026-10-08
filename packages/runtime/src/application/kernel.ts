@@ -11,6 +11,7 @@ import type {
   ExecutionContext,
   HandlerContribution,
   Invocation,
+  RemoteSource,
   Storage,
   WorkspaceSnapshot,
 } from '../types.js';
@@ -37,6 +38,10 @@ export interface ApplicationOptions<State, Services, Modules extends readonly Ca
    * attempt is recorded. Its `mode` decides whether an unwritable log blocks the action.
    */
   readonly eventLog?: EventLogPort;
+  /** Sources for remote queries, by target. A remote query whose target has none is `unavailable`. */
+  readonly sources?: Readonly<Record<string, RemoteSource>>;
+  /** Longest wait for a source before a remote query reports it unavailable. Defaults to 10 s. */
+  readonly remoteDeadlineMs?: number;
 }
 
 /** Pair each capability with exactly one handler that references that same capability object. */
@@ -50,6 +55,10 @@ function registerHandlers<State, Services>(
       throw new Error(`Handler does not reference registered capability: ${handler.capability.id}`);
     if (handlers.has(handler.capability.id))
       throw new Error(`Duplicate handler: ${handler.capability.id}`);
+    // A remote query must not compute output from local state alone, and a local one must not
+    // reach a source: the declaration and the handler shape have to agree.
+    if (!handler.capability.remote !== !handler.remote)
+      throw new Error(`Remote declaration and handler disagree: ${handler.capability.id}`);
     handlers.set(handler.capability.id, handler);
   }
   for (const id of capabilities.keys())

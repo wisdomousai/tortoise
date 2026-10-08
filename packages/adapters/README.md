@@ -40,7 +40,7 @@ Import a subpath. The root export holds only `adapterContractVersion`.
 
 ## Trust boundary
 
-Transports derive identity from the host session, connection file or grant file, never from the request body or tool arguments. MCP keeps transport metadata (idempotency key, expected revisions) outside the domain input, so a model cannot forge trusted context. A per-request signal only adds to the context's cancellation. Direct and HTTP cursors carry the authorization revision they were issued under, so a subscription resets when access changed after the snapshot. Errors keep their meaning across surfaces: HTTP status, MCP tool error and CLI exit code map from the same code.
+Transports derive identity from the host session, connection file or grant file, never from the request body or tool arguments. MCP keeps transport metadata (idempotency key, expected revisions) outside the domain input, so a model cannot forge trusted context. A per-request signal only adds to the context's cancellation. Direct and HTTP cursors carry the authorization revision they were issued under, so a subscription resets when access changed after the snapshot. Errors keep their meaning across surfaces: HTTP status, MCP tool error and CLI exit code map from the same code. MCP marks a tool open-world when its operation forwards to another system or reads one (`remote`), so an agent knows a search leaves the process even though it is read-only.
 
 Ownership never trusts PID files: a live `EXCLUSIVE` SQLite transaction is the lock, and a crash releases it. CASL scopes accept scalar columns only, and unsupported conditions fail closed. A connection file is a local credential.
 

@@ -39,11 +39,47 @@ Implemented delivery states are pending (with attempt count and safe failure tex
 
 `app drain [--timeout ms]` delivers to every target the application composes until nothing is pending and exits `0`, or exits `75` (EX_TEMPFAIL) while effects remain. It prints the remaining work per target: `pending` awaits delivery, `held` awaits reconciliation, and `deliverable: false` marks a target this process cannot reach (a station screen only a running host's bridge drives), whose effects still count as pending. An orchestrator must not discard an ephemeral sandbox until drain exits `0`, or it must keep the workspace on a persistent volume. `app sync` pulls master data once from each target and prints one report per target. Both need the workspace not to be owned by a live process.
 
+## Live search and adoption
+
+The outbox and inbound sync keep a working set in step with the SoR, but neither answers a question at the moment it is asked. A **remote query** does ([ADR 009](decisions/009-remote-queries-and-adoption.md)). The worked example is `examples/crm-capture`: a search box over a fake CRM that people and agents use with their own CRM access.
+
+```mermaid
+sequenceDiagram
+  participant C as Caller (screen, MCP, CLI)
+  participant R as Runtime
+  participant S as Remote source
+  participant SoR as CRM
+  C->>R: crm.account.search { q }
+  R->>R: snapshot 1: authorize, request(input)
+  R->>S: search(request, { context, identity, signal })
+  S->>SoR: caller's credential, or declared service account
+  SoR-->>S: records the credential may see
+  S-->>R: { items, identity }
+  R->>R: snapshot 2: authorize, item() per record, project, validate, authorize
+  R-->>C: { items, source: { status, identity, fetchedAt } }
+```
+
+**Declare once, call from every surface.** `defineDataProvider({ id: 'crm.account', target: 'crm', identity: 'caller-or-service', query, item })` yields `crm.account.search` and `crm.account.lookup`. They are ordinary catalog queries, so the screen (`remoteQueryOptions`), MCP (`crm_account_search`, read-only and open-world), the CLI and HTTP all return the same result. The module's network destination must list the target under `reads`, or composition fails.
+
+**The runtime calls the source, not the handler.** `implementDataProvider(provider, { item })` supplies one item mapper, which runs in a read snapshot and may consult local state: it scopes rows to the caller's regions and marks each one with its local status. `createRemoteSource({ port, credentials })` adapts the port's `search` and resolves the credential. It tries the caller's own first; an agent run resolves to its delegator. It falls back to the service account only under `caller-or-service`, and otherwise refuses with `FORBIDDEN` ("Connect your crm account to search it"). The CRM applies its own sharing to the caller's credential. Local policy projects the result whichever identity answered.
+
+**Results come in pages.** A provider's search takes an optional `cursor`, and each result carries the CRM's `next` cursor while there is more. The screen's "Show more from the CRM" (`remoteInfiniteQueryOptions`) and an agent's next tool call both send it back. The application never reads the cursor, and the CRM accepts it only for the search and the credential that produced it. A cursor the service account received cannot be continued with a person's login, and neither can be reused for another search text; either attempt is refused with `INVALID_INPUT`. A page can be shorter than the CRM's page size, or empty, because the item mapper drops rows outside the caller's regions, so only a missing `next` ends the list.
+
+**Failure is a status.** A missing, slow or failing source returns `source.status: 'unavailable'` with a safe message and no items. The screen shows the banner and keeps adopted accounts usable (P12). Provider error text is not passed on.
+
+**Nothing is stored until adopted.** Search results are point-in-time. Change batches do not refetch them, and they carry their fetch time. Picking a result runs `crm.account.adopt`, a domain command:
+
+1. It records the account as `following` and enqueues `account.follow`.
+2. The CRM checks the requester's access on delivery and accepts or rejects the effect (`NOT_VISIBLE`).
+3. The feed then delivers the followed account to `crm.account.sync`, which sets it to `adopted` and keeps it current.
+
+The record's content therefore comes from the integration principal, never from caller input. From then on the account behaves like any other local record: live on every screen, and able to carry activities forwarded through the outbox.
+
 ## Capture interface kit
 
 The web app is the starter's `apps/web` (Vite) around the web frame (`packages/frame`): TanStack Router/Query/Form/Table and shadcn components. Trust-relevant behavior lives in versioned bindings in `@agent-native/react`; presentational source is published as a shadcn registry (`packages/frame/registry.json`, built to `dist/registry`) that a starter copies and owns. The quality-inspection screens live in `examples/quality-inspection/ui`.
 
-- `@agent-native/react/query`: `liveQueryOptions(capability, input)` and one event subscription that invalidates queries by the catalog's resource-type `dependencies`. It coalesces refetches, resets all queries when the authorization revision rises, and fences responses that started before a revocation.
+- `@agent-native/react/query`: `liveQueryOptions(capability, input)` and one event subscription that invalidates queries by the catalog's resource-type `dependencies`. It coalesces refetches, resets all queries when the authorization revision rises, and fences responses that started before a revocation. `remoteQueryOptions(capability, input)` binds a remote query: it keeps the previous result while loading, passes TanStack's abort signal to the source, is fresh for 30 s and is never refetched by change batches.
 - `@agent-native/react/form`: `useCapabilityForm` validates with the contract's Standard Schema. It mints the idempotency key when the form opens and keeps it, with the exact mapped input, across retries until a commit. A double tap or a scanner sending Enter twice therefore records one datapoint. The key rotates after a commit or an `IDEMPOTENCY_CONFLICT`; `details.field` errors map onto form fields.
 - `@agent-native/react/capture`: keyboard-wedge scan detection, a capture loop that returns focus to the next worklist item, and per-item timing.
 - Registry items: `capability-form`, `live-data-table`, `conflict-banner`, `run-panel`, `command-palette`, `native-dialog`, `session`, `screens`, `ui-session`, `accounts`, `app-shell`, `frame`. The capture station and sync status screens (`examples/quality-inspection/ui/capture-station.tsx`, `sync-status.tsx`) bind to the quality-inspection contracts and serve as starting points for a new domain.
@@ -82,22 +118,28 @@ The generated application skill (`docs/reference/quality-inspection/application-
 - `FakeQualitySystem` is in-memory and per process. Each `drain` or `mcp` process starts a fresh fake, which is adequate for demonstration and deterministic tests, not a stand-in for a persistent upstream system.
 - The workspace is a single JSON snapshot rewritten per commit. It suits one station's open lots, not large master data. Table-backed storage, remote attach and operator identity are follow-on work.
 - Resource-limited grants cannot create child records whose IDs they cannot name in advance.
+- `FakeCrm` keeps demo credentials in memory. A deployment backs `CallerCredentials` with its vault; no vault adapter ships for it. The fake's page cursors encode their binding in the clear; a real CRM keeps a server-side locator.
 
 ## Evidence
 
-| Check                                                  | What it establishes                                                                                                                                                                                                  |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/runtime/test/outbox.test.ts`                 | Effects commit with the receipt, replay does not re-enqueue, rollback drops them, settlement is exactly once locally, attempts are journaled.                                                                        |
-| `packages/integration/test/dispatcher.test.ts`         | Delivery outside the transaction, backoff with safe failure text, rejection as data, idempotent redelivery after lost settlement, lookup-before-send, drain, integration grant limits, watermark-bound inbound sync. |
-| `packages/runtime/test/compose.test.ts`                | Module slices, per-module policy, fail-closed routing for unknown operations and resources.                                                                                                                          |
-| `examples/quality-inspection/test/conformance.test.ts` | Direct, HTTP, CLI and MCP agree on results, denial and idempotent retry; `openWorldHint` on forwarded commands.                                                                                                      |
-| `examples/quality-inspection/domain.test.ts`           | Role matrix, plant scoping before counts, supersession, occurrence-time bounds, metrics aggregation.                                                                                                                 |
-| `packages/react/src/bindings.test.ts`                  | Dependency-indexed invalidation, coalescing, reset on authorization change, revocation fence, scan detection.                                                                                                        |
-| `packages/adapters/src/cli.test.ts`                    | Generated subcommands and typed flags, stdin, usage errors before any call, dry-run, help, exit-code mapping, grant-file validation.                                                                                 |
-| `examples/quality-inspection/test/sandbox.test.ts`     | An agent captures over embedded MCP under a grant, retries idempotently, is refused integration operations and a concurrent writer; drain exits 75 then 0; metrics split agent and human; grant-bound `serve`.       |
-| `examples/quality-inspection/e2e/inspection.pw.ts`     | Keyboard-only capture advances focus, a wedge burst and double Enter record once, SoR references and a rejection appear live, metrics render, a generated form commits, a correction supersedes a rejection.         |
+| Check                                                  | What it establishes                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/runtime/test/outbox.test.ts`                 | Effects commit with the receipt, replay does not re-enqueue, rollback drops them, settlement is exactly once locally, attempts are journaled.                                                                                                                         |
+| `packages/integration/test/dispatcher.test.ts`         | Delivery outside the transaction, backoff with safe failure text, rejection as data, idempotent redelivery after lost settlement, lookup-before-send, drain, integration grant limits, watermark-bound inbound sync.                                                  |
+| `packages/runtime/test/compose.test.ts`                | Module slices, per-module policy, fail-closed routing for unknown operations and resources.                                                                                                                                                                           |
+| `examples/quality-inspection/test/conformance.test.ts` | Direct, HTTP, CLI and MCP agree on results, denial and idempotent retry; `openWorldHint` on forwarded commands.                                                                                                                                                       |
+| `examples/quality-inspection/domain.test.ts`           | Role matrix, plant scoping before counts, supersession, occurrence-time bounds, metrics aggregation.                                                                                                                                                                  |
+| `packages/react/src/bindings.test.ts`                  | Dependency-indexed invalidation, coalescing, reset on authorization change, revocation fence, scan detection.                                                                                                                                                         |
+| `packages/runtime/test/remote-query.test.ts`           | A denied caller never reaches the source, revocation during the call drops the result, local projection applies, a service answer to a caller-only query is refused, failures become a safe status, deadline and cancellation reach the source, no rows in the audit. |
+| `packages/integration/test/remote-source.test.ts`      | Credential order (caller, declared service account, refusal), a port without `search`, safe failure messages.                                                                                                                                                         |
+| `examples/crm-capture/test/application.test.ts`        | CRM sharing per caller, service fallback within the member's regions, adopt → follow → feed → adopted, a refused follow, activities forwarded, an unreachable CRM beside working local data, a delegated agent searching as its delegator.                            |
+| `examples/crm-capture/test/conformance.test.ts`        | One provider answers direct, HTTP, CLI and MCP with the same result; search is read-only and open-world over MCP.                                                                                                                                                     |
+| `examples/crm-capture/e2e/search.pw.ts`                | Search as you type keeps the previous result while loading, adopt turns into adopted without a refresh, the unavailable banner keeps local accounts usable.                                                                                                           |
+| `packages/adapters/src/cli.test.ts`                    | Generated subcommands and typed flags, stdin, usage errors before any call, dry-run, help, exit-code mapping, grant-file validation.                                                                                                                                  |
+| `examples/quality-inspection/test/sandbox.test.ts`     | An agent captures over embedded MCP under a grant, retries idempotently, is refused integration operations and a concurrent writer; drain exits 75 then 0; metrics split agent and human; grant-bound `serve`.                                                        |
+| `examples/quality-inspection/e2e/inspection.pw.ts`     | Keyboard-only capture advances focus, a wedge burst and double Enter record once, SoR references and a rejection appear live, metrics render, a generated form commits, a correction supersedes a rejection.                                                          |
 
-`bun run check` runs everything except the browser specs and the compiled-binary variant. Run those with `bunx playwright test examples/quality-inspection/e2e` and `bun run test:sandbox`.
+`bun run check` runs everything except the browser specs and the compiled-binary variant. Run those with `bunx playwright test examples/quality-inspection/e2e examples/crm-capture/e2e` and `bun run test:sandbox`.
 
 ## Status against the reference plan
 

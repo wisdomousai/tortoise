@@ -3,3 +3,5 @@ export * from './dispatcher.js';
 export * from './drain.js';
 export * from './inbound-sync.js';
 export * from './target.js';
+export * from './remote-source.js';
+export * from './data-provider.js';

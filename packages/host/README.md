@@ -8,6 +8,7 @@ Layer: framework (`packages/*`). The starter's `apps/service` calls it; content 
 
 - [Application](../../docs/primitives.md#application): `defineManifest`, `ApplicationManifest`, `defineApplication`, `ApplicationDefinition`, `ApplicationConnections`.
 - [Host](../../docs/primitives.md#host): `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `loadApplication`, `loadManifest`, `openSecurity`, `securityFromEnvironment`, `assertIdentity`, `hostComponents`, `deploymentCatalog`.
+- [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
 - [Assurance bundle](../../docs/primitives.md#assurance-bundle): `assuranceCommand` adds `security check|export` and `audit verify|report` to every application's CLI.
 
 Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/project-tasks/application.ts`](../../examples/project-tasks/application.ts). [ADR 005](../../docs/decisions/005-framework-shell-content.md) records the layering.

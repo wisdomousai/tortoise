@@ -49,15 +49,15 @@ flowchart LR
 
 ## Operations that leave the host
 
-Each is committed locally first and forwarded through the outbox; a receipt proves the local commit, not acceptance by the target.
+An `outbox` operation is committed locally first and forwarded through the outbox; a receipt proves the local commit, not acceptance by the target. A `remote-read` query sends its request to the target when called, with the caller’s credential, and stores nothing it receives.
 
-| Operation | Target | Destinations | Data classes | Audited fields |
-| --- | --- | --- | --- | --- |
-| `inspection.decision.set` | quality-system | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
-| `inspection.defect.record` | quality-system | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
-| `inspection.result.correct` | quality-system | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
-| `inspection.result.record` | quality-system | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
-| `inspection.result.record-batch` | quality-system | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
+| Operation | Target | Path | Destinations | Data classes | Audited fields |
+| --- | --- | --- | --- | --- | --- |
+| `inspection.decision.set` | quality-system | outbox | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
+| `inspection.defect.record` | quality-system | outbox | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
+| `inspection.result.correct` | quality-system | outbox | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
+| `inspection.result.record` | quality-system | outbox | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
+| `inspection.result.record-batch` | quality-system | outbox | `quality-system-api` | defect, inspection-result, usage-decision | digest only |
 
 ## Child processes
 

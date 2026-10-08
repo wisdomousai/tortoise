@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:f26b0a4e-8b8a-5419-b92a-e431bd14021f",
+  "serialNumber": "urn:uuid:c4e089fd-141b-5496-b1f1-5867904a1663",
   "version": 1,
   "metadata": {
     "tools": {
@@ -10780,6 +10780,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/crm-capture",
+      "name": "@agent-native/crm-capture",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "examples/crm-capture"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/desktop",
       "name": "@agent-native/desktop",
       "properties": [
@@ -11315,6 +11327,7 @@
         "workspace:@agent-native/assurance",
         "workspace:@agent-native/client",
         "workspace:@agent-native/contracts",
+        "workspace:@agent-native/crm-capture",
         "workspace:@agent-native/devices",
         "workspace:@agent-native/egress",
         "workspace:@agent-native/event-log",
@@ -16171,6 +16184,10 @@
     },
     {
       "ref": "workspace:@agent-native/contracts",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/crm-capture",
       "dependsOn": []
     },
     {

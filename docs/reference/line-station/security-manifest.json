@@ -253,6 +253,7 @@
       "kind": "command",
       "module": "line-station",
       "target": "mes",
+      "path": "outbox",
       "destinations": [
         "mes-api"
       ],
@@ -267,6 +268,7 @@
       "kind": "command",
       "module": "line-station",
       "target": "legacy-hmi",
+      "path": "outbox",
       "destinations": [
         "station-screen"
       ],
@@ -281,6 +283,7 @@
       "kind": "command",
       "module": "line-station",
       "target": "mes",
+      "path": "outbox",
       "destinations": [
         "mes-api"
       ],

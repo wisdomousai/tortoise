@@ -52,6 +52,7 @@
     "@agent-native/assurance": "workspace:*",
     "@agent-native/client": "workspace:*",
     "@agent-native/contracts": "workspace:*",
+    "@agent-native/crm-capture": "workspace:*",
     "@agent-native/devices": "workspace:*",
     "@agent-native/egress": "workspace:*",
     "@agent-native/event-log": "workspace:*",

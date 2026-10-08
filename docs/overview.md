@@ -203,31 +203,32 @@ An agent reaches the application through MCP or the CLI under a delegated grant:
 
 Summaries of the [principles](principles.md). Each principle there lists what it rules out and which checks and tests enforce it.
 
-| ID  | Rule                                                                                                         |
-| --- | ------------------------------------------------------------------------------------------------------------ |
-| P1  | Every operation runs on UI, MCP, CLI and API through one handler; a missing surface is declared              |
-| P2  | All tools, schemas and docs are generated from the catalog; contracts import no handlers or SDKs             |
-| P3  | Identity and grants come from the host; authorization is rechecked inside the transaction and at commit      |
-| P4  | All writes are commands to the workspace's single authority; no I/O inside a transaction                     |
-| P5  | Every commit reaches every authorized view through the journal; drafts are kept and conflict explicitly      |
-| P6  | Receipt, dispatch, acceptance, rejection and uncertainty are separate states                                 |
-| P7  | Other systems are reached only through outbox effects and connectors                                         |
-| P8  | Per-site differences are versioned configuration; domain code stays out of the framework and starter         |
-| P9  | Storage, policy, identity, harness, inference, connectors, perception and devices sit behind ports           |
-| P10 | Deterministic, browser, native, device and live-provider evidence are recorded separately                    |
-| P11 | Framework, starter and content are separate layers; one application per authority, selected by configuration |
-| P12 | Applications run beside the work; commits never wait for a system of record, a wider network or a model      |
-| P13 | The application reaches only what it declares and the site binds, and records what it does                   |
+| ID  | Rule                                                                                                           |
+| --- | -------------------------------------------------------------------------------------------------------------- |
+| P1  | Every operation runs on UI, MCP, CLI and API through one handler; a missing surface is declared                |
+| P2  | All tools, schemas and docs are generated from the catalog; contracts import no handlers or SDKs               |
+| P3  | Identity and grants come from the host; authorization is rechecked inside the transaction and at commit        |
+| P4  | All writes are commands to the workspace's single authority; no I/O inside a transaction                       |
+| P5  | Every commit reaches every authorized view through the journal; drafts are kept and conflict explicitly        |
+| P6  | Receipt, dispatch, acceptance, rejection and uncertainty are separate states                                   |
+| P7  | Other systems are changed only through outbox effects; declared remote queries read them live, storing nothing |
+| P8  | Per-site differences are versioned configuration; domain code stays out of the framework and starter           |
+| P9  | Storage, policy, identity, harness, inference, connectors, perception and devices sit behind ports             |
+| P10 | Deterministic, browser, native, device and live-provider evidence are recorded separately                      |
+| P11 | Framework, starter and content are separate layers; one application per authority, selected by configuration   |
+| P12 | Applications run beside the work; commits never wait for a system of record, a wider network or a model        |
+| P13 | The application reaches only what it declares and the site binds, and records what it does                     |
 
 ## Examples
 
-| Example                                                | Exercises                                                                                                                                                                                                      |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`project-tasks`](../examples/project-tasks)           | Runtime only, no external system: role-based access, field projection, revisions, live updates, a deterministic agent harness. Also the fixture for the transport, storage and security conformance suites.    |
-| [`quality-inspection`](../examples/quality-inspection) | Outbox delivery and inbound sync against an in-memory mock quality system; keyboard capture UI; sandboxed CLI/MCP binary ([reference](system-of-record-pattern.md))                                            |
-| [`line-station`](../examples/line-station)             | Control software driven through its screen as an outbox connector; MES sync; scanner routing; held effects ([pattern](operator-workstation-pattern.md), [ADR 004](decisions/004-screen-mediated-authority.md)) |
+| Example                                                | Exercises                                                                                                                                                                                                                                                               |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`project-tasks`](../examples/project-tasks)           | Runtime only, no external system: role-based access, field projection, revisions, live updates, a deterministic agent harness. Also the fixture for the transport, storage and security conformance suites.                                                             |
+| [`quality-inspection`](../examples/quality-inspection) | Outbox delivery and inbound sync against an in-memory mock quality system; keyboard capture UI; sandboxed CLI/MCP binary ([reference](system-of-record-pattern.md))                                                                                                     |
+| [`line-station`](../examples/line-station)             | Control software driven through its screen as an outbox connector; MES sync; scanner routing; held effects ([pattern](operator-workstation-pattern.md), [ADR 004](decisions/004-screen-mediated-authority.md))                                                          |
+| [`crm-capture`](../examples/crm-capture)               | Live search of a fake CRM with the caller's own access through two data providers; adopt via outbox and feed; an unreachable CRM as a status ([pattern](system-of-record-pattern.md#live-search-and-adoption), [ADR 009](decisions/009-remote-queries-and-adoption.md)) |
 
-Run one with `cd examples/<name> && bun run dev` (ports 4321, 4322, 4323; each has its own workspace and desktop window, and line-station starts its fake HMI). `dev:web` in the same directory serves the browser without the window.
+Run one with `cd examples/<name> && bun run dev` (ports 4321, 4322, 4323, 4324; each has its own workspace and desktop window, and line-station starts its fake HMI). `dev:web` in the same directory serves the browser without the window.
 
 ## Verification status
 

@@ -25,6 +25,7 @@ flowchart LR
   Store --> Outbox[Outbox effect] --> Dispatcher --> Connector
   Connector --> External[(System of record or station screen)]
   External --> Inbound[Inbound sync] --> Command
+  Query -. remote query .-> External
   External --> Observation --> Command
 ```
 
@@ -46,9 +47,9 @@ _A named command or query, defined once as data._
 
 Everything else in the framework hangs off capabilities. A capability names a business behavior with a stable ID, strict JSON schemas, the permission it needs and how the UI binds it. Because it is plain data, a browser, a generator and a test can all import it without loading handlers or drivers.
 
-Guarantees: IDs and inferred types survive composition into typed clients. Wire values are JSON only, and validation rejects input it would have to strip or transform. A command that forwards to another system declares that its receipt is not upstream acceptance.
+Guarantees: IDs and inferred types survive composition into typed clients. Wire values are JSON only, and validation rejects input it would have to strip or transform. A command that forwards to another system declares that its receipt is not upstream acceptance. A query that reads another system declares its target and the identity it may use (see [Remote query](#remote-query)).
 
-Serves P1, P2 · implemented · `packages/contracts` · `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`
+Serves P1, P2 · implemented · `packages/contracts` · `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`
 
 ### Module
 
@@ -106,7 +107,7 @@ _An authorized, side-effect-free read._
 
 The read side. Queries are computed from the same transactional state, so there is no projection lag, and each returns a cursor so a caller can follow changes from exactly that point.
 
-Guarantees: data and cursor come from one snapshot. Rows are scoped before filtering, pagination and counts. Output is projected to readable fields, then validated. Mutation inside a query fails.
+Guarantees: data and cursor come from one snapshot. Rows are scoped before filtering, pagination and counts. Output is projected to readable fields, then validated. Mutation inside a query fails. A [remote query](#remote-query) keeps every guarantee except the single snapshot: its items come from another system between two snapshots.
 
 Serves P3, P5 · implemented · `packages/runtime` · `QueryResult`
 
@@ -148,7 +149,7 @@ _The ordered record of committed changes, and the client machinery that follows 
 
 The journal closes the CQRS loop: whatever wrote the change, every view that may see it learns about it and re-reads through an authorized query. That is why a change made by an agent over MCP appears on an operator's screen without a refresh.
 
-Guarantees: events carry resource references and revisions, never record contents, and are filtered by current access. Clients subscribe from their query's cursor, so nothing falls between snapshot and stream. Invalidation follows the catalog's resource dependencies and is coalesced. An authorization change resets views without leaking identifiers. It clears cached data at once, even while a refetch is still pending, and it covers snapshots cached before the stream's first batch.
+Guarantees: events carry resource references and revisions, never record contents, and are filtered by current access. Clients subscribe from their query's cursor, so nothing falls between snapshot and stream. Invalidation follows the catalog's resource dependencies and is coalesced. An authorization change resets views without leaking identifiers. It clears cached data at once, even while a refetch is still pending, and it covers snapshots cached before the stream's first batch. Remote query results are excluded from change-driven refetches but not from that reset.
 
 Serves P5 · implemented · `packages/runtime` `packages/client` `packages/react` · `ChangeEvent`, `EventBatch`, `createClient`, `LiveQuery`, `createLiveBindings`
 
@@ -212,9 +213,11 @@ The UI's equivalent of a tool call. It turns a person's intent into exactly one 
 
 Guarantees: one idempotency key per intent, kept across retries until commit. Validation uses the contract's schema and field errors map back to inputs. Drafts stay separate from committed data and conflict explicitly: a draft pins the object it edits (capture pins its characteristic and sample; scanner setup keeps the revision it loaded and saves with it as the expected revision), so an external write shows a conflict instead of retargeting or discarding the entry. Every operation that claims a UI binding is referenced by a screen of its application; an operation no screen offers declares an exception instead.
 
+A search box binds a [remote query](#remote-query) through `remoteQueryOptions`, or `remoteInfiniteQueryOptions` for "show more" paging. It keeps the previous result on screen while the next input loads, and it aborts the superseded request at the source.
+
 Gaps: the reference check proves a screen names the capability, not that a control renders it.
 
-Serves P1, P4 · implemented · `packages/react` · `useCapabilityForm`, `useCommand`, `useLiveQuery`
+Serves P1, P4 · implemented · `packages/react` · `useCapabilityForm`, `useCommand`, `useLiveQuery`, `REMOTE_STALE_MS`
 
 ### UI session context
 
@@ -280,9 +283,9 @@ _The port that delivers effects to one target and looks up their outcome._
 
 A connector is the only code that talks to an external system. The same port covers an ERP API, a file drop and legacy station software that can only be reached through its screen.
 
-Guarantees: a target declares idempotent delivery or implements a lookup consulted before every send. A business rejection is data, never retried. An outcome the connector cannot establish is reported as uncertain, never guessed.
+Guarantees: a target declares idempotent delivery or implements a lookup consulted before every send. A business rejection is data, never retried. An outcome the connector cannot establish is reported as uncertain, never guessed. A port may also implement `search`, which a [remote query](#remote-query) calls with the access it resolved for the caller; delivery never uses it.
 
-Serves P7, P9 · implemented · `packages/integration` `packages/station` · `SystemOfRecordPort`, `TargetDescription`, `LookupResult`, `DeliveryUncertain`, `createStationConnector`
+Serves P7, P9 · implemented · `packages/integration` `packages/station` · `SystemOfRecordPort`, `SearchAccess`, `TargetDescription`, `LookupResult`, `DeliveryUncertain`, `createStationConnector`
 
 ### Dispatcher
 
@@ -307,6 +310,36 @@ Guarantees: the watermark is part of the command's input, so a stale page confli
 Gaps: no upstream versions for out-of-order feeds.
 
 Serves P5, P7 · implemented · `packages/integration` · `createInboundSync`, `PullBatch`
+
+### Remote query
+
+_A query that reads another system at the moment someone asks, with the caller's own access, and stores nothing._
+
+Outbox effects and inbound sync keep local records in step with a system of record, but neither lets a person or agent ask the system of record something now. A remote query does: the runtime calls the target's source between two read snapshots, outside any transaction. The handler only builds the request and maps what comes back, both without I/O. What the caller keeps from a result is a separate command (see [ADR 009](decisions/009-remote-queries-and-adoption.md)).
+
+Guarantees:
+
+- The order is: authorize; build the request; call the source with a deadline and the caller's signal; authorize again in a fresh snapshot; map, project and validate; authorize once more. A denied caller never reaches the source, and a revocation during the call drops the result.
+- The source receives the execution context, so it resolves the caller's credential, or the delegator's for an agent run. A service credential is used only under `caller-or-service`; a service answer to a `caller` query is refused.
+- An unreachable, slow or missing source is `source.status: 'unavailable'` with a caller-safe message. `FORBIDDEN` and cancellation propagate.
+- Results carry target, identity and fetch time and are never stored. The audit records target, status, identity, item count and whether more pages exist, never the query, the cursor or the items.
+- Paging belongs to the source. The caller passes back the opaque `next` of the previous page as `cursor`, and the runtime returns the source's next cursor untouched. A page can be short or empty after scoping, so only a missing `next` ends the list. A source binds each cursor to the search and the credential that produced it, and refuses it otherwise, so a cursor never widens what a caller reads.
+
+Gaps: proven on one example (two providers). That a source binds its cursors is a port contract, checked only by the example's fake. Credentials are resolved by the application's `CallerCredentials`; no vault adapter ships for it yet.
+
+Serves P1, P6, P7, P12, P13 · partial · `packages/contracts` `packages/runtime` `packages/integration` `packages/host` `packages/react` `examples/crm-capture` · `remoteResultSchema`, `remoteCursorSchema`, `RemoteSourceStatus`, `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceAnswer`, `createRemoteSource`, `CallerCredentials`, `SearchPage`, `ApplicationDefinition.sources`, `remoteQueryOptions`, `remoteInfiniteQueryOptions`
+
+### Data provider
+
+_One declaration of what a system of record can be searched for, which becomes ordinary catalog entries for every surface._
+
+A data provider names a target, its identity rule, a query schema and an item schema. `defineDataProvider` turns that into `<id>.search` and `<id>.lookup` remote queries, so the same provider serves a screen through TanStack Query, an agent through MCP, a script through the CLI and HTTP. `implementDataProvider` supplies the item mapper, where local state and scoping apply; `createRemoteSource` adapts a port's `search` and resolves credentials.
+
+Guarantees: capability IDs and inferred types stay literal. Both queries need `search` permission on the provider's resource type and declare `remote`, so composition requires a destination that reads the target. Search takes the provider's query plus an optional `cursor`, which a provider cannot redefine. Lookup takes only an external ID.
+
+Gaps: proven on one example with two providers. Adoption is domain code and is not generated.
+
+Serves P1, P2, P7 · partial · `packages/contracts` `packages/integration` `examples/crm-capture` · `defineDataProvider`, `DataProvider`, `DataProviderSpec`, `implementDataProvider`
 
 ### Observation
 
@@ -366,9 +399,9 @@ _What a module or host component needs outside the process, as data: network des
 
 Security teams admit software when they can see what it talks to and what data leaves. Declarations make that a property of the catalog. Each destination names its purpose, scope, protocol, data classes, availability and offline behavior, and the generated manifest, data flows and SBOM show every change to reviewers.
 
-Guarantees: declarations are browser-safe data, composed with their owners. Composition rejects duplicate IDs, a process that names an undeclared destination, and an outbox target that no destination carries or whose destination does not queue offline. A capability's input is logged in plain text only for the fields its `audit.fields` names.
+Guarantees: declarations are browser-safe data, composed with their owners. Composition rejects duplicate IDs, a process that names an undeclared destination, an outbox target that no destination carries or whose destination does not queue offline, and a remote query whose target no destination `reads`. The security manifest lists each operation that leaves the host with its path, `outbox` or `remote-read`. A capability's input is logged in plain text only for the fields its `audit.fields` names.
 
-Serves P2, P13 · implemented · `packages/contracts` · `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `HostComponent`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`
+Serves P2, P13 · implemented · `packages/contracts` · `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `HostComponent`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`, `destinationsForRead`
 
 ### Site policy
 

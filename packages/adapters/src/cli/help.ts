@@ -15,6 +15,10 @@ export function operationHelp(operation: CatalogOperation, program: string): Cli
     lines.push(
       `Forwarded to ${operation.integration.target} after commit; a receipt is not acceptance.`,
     );
+  if (operation.remote)
+    lines.push(
+      `Reads ${operation.remote.target} live when called; the result is not stored and may report the source unavailable.`,
+    );
   if (fields.length) {
     lines.push('', 'Flags:');
     const width = Math.max(...fields.map((field) => field.flag.length)) + 2;

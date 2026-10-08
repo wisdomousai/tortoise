@@ -3,10 +3,12 @@ import type {
   CapabilityModule,
   IntegrationDeclaration,
   PermissionRequirement,
+  RemoteReadDeclaration,
 } from './capability';
 import { canonicalJson, type JsonObject } from './json';
 import {
   collectRequirements,
+  destinationsForRead,
   destinationsForTarget,
   type CatalogRequirements,
   type HostComponent,
@@ -25,7 +27,8 @@ export interface CatalogOperation {
   readonly errors: readonly string[];
   readonly ui: { readonly binding?: string; readonly exception?: string };
   readonly integration?: IntegrationDeclaration;
-  /** Network destinations the operation's effects reach, derived from its outbox target. */
+  readonly remote?: RemoteReadDeclaration;
+  /** Network destinations the operation reaches, derived from its outbox or remote-read target. */
   readonly destinations?: readonly string[];
   readonly audit?: { readonly fields?: readonly string[] };
 }
@@ -120,6 +123,28 @@ function integrationDestinations(
   return destinations;
 }
 
+/** A remote query's destinations; every read target must travel over a declared destination. */
+function remoteDestinations(
+  capability: AnyCapability,
+  requirements: CatalogRequirements,
+): readonly string[] {
+  const remote = capability.remote;
+  if (!remote) return [];
+  if (
+    capability.kind !== 'query' ||
+    !remote.target ||
+    !['caller', 'caller-or-service'].includes(remote.identity)
+  )
+    throw new Error(`Remote read requires a query with a target and identity: ${capability.id}`);
+  // Like outbox targets: the data-flow manifest and egress guard must cover every remote read.
+  const destinations = destinationsForRead(requirements, remote.target);
+  if (destinations.length === 0)
+    throw new Error(
+      `Remote target ${remote.target} has no declared network destination: ${capability.id}`,
+    );
+  return destinations;
+}
+
 function checkAuditFields(capability: AnyCapability): void {
   const inputFields = Object.keys(
     (capability.input.jsonSchema.properties as JsonObject | undefined) ?? {},
@@ -149,6 +174,7 @@ function catalogOperation(
     ui: capability.ui!,
     // Omitted rather than undefined: the catalog is canonical JSON.
     ...(capability.integration ? { integration: capability.integration } : {}),
+    ...(capability.remote ? { remote: capability.remote } : {}),
     ...(destinations.length ? { destinations } : {}),
     ...(capability.audit ? { audit: capability.audit } : {}),
   };
@@ -183,7 +209,10 @@ export function buildCatalog(
         throw new Error(`Module ${module.id} requires missing module ${required}`);
     for (const capability of module.capabilities) {
       const mcpName = checkNaming(capability, seen);
-      const destinations = integrationDestinations(capability, requirements);
+      const destinations = [
+        ...integrationDestinations(capability, requirements),
+        ...remoteDestinations(capability, requirements),
+      ];
       checkAuditFields(capability);
       operations.push(catalogOperation(capability, module.id, mcpName, destinations));
     }

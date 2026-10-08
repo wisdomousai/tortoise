@@ -1,15 +1,13 @@
 import { useEffect } from 'react';
-import { queryOptions, type QueryClient } from '@tanstack/react-query';
-import {
-  canonicalJson,
-  type AnyCapability,
-  type InputOf,
-  type OutputOf,
-} from '@agent-native/contracts';
+import type { Query, QueryClient } from '@tanstack/react-query';
+import type { AnyCapability, InputOf } from '@agent-native/contracts';
 import type { ChangeBatch, Snapshot, Transport } from '@agent-native/client';
+import { CAPABILITY_QUERY_KEY, type CapabilityQueryMeta } from './query/keys';
+import { liveQueryOptions } from './query/live';
+import { remoteInfiniteQueryOptions, remoteQueryOptions, type RemoteQuery } from './query/remote';
 
-/** Root of every capability query key, so bindings never touch unrelated application caches. */
-export const CAPABILITY_QUERY_KEY = 'agent-native-capability';
+export { CAPABILITY_QUERY_KEY } from './query/keys';
+export { REMOTE_STALE_MS } from './query/remote';
 
 /** Resource types (the text before `:`) touched by a change batch. */
 export function changedResourceTypes(batch: Pick<ChangeBatch, 'changes'>): Set<string> {
@@ -29,10 +27,7 @@ export function isAffected(
   return !dependencies?.length || dependencies.some((type) => types.has(type));
 }
 
-interface CapabilityQueryMeta extends Record<string, unknown> {
-  readonly capability: string;
-  readonly dependencies?: readonly string[];
-}
+const isLocal = (query: Query) => !(query.meta as CapabilityQueryMeta | undefined)?.remote;
 
 /** What a change batch requires of the capability cache. */
 type BatchAction = 'ignore' | 'reset' | 'invalidate' | 'changes';
@@ -115,29 +110,6 @@ async function followStream(
 export function createLiveBindings(transport: Transport) {
   const fence = createAuthorizationFence();
 
-  /** Query options for a capability. Data is the committed output; drafts stay in forms. */
-  function liveQueryOptions<C extends AnyCapability>(
-    capability: C & { kind: 'query' },
-    input: InputOf<C>,
-  ) {
-    // Canonical JSON both validates the input is JSON and gives a stable key across renders.
-    const key = canonicalJson(input);
-    return queryOptions({
-      queryKey: [CAPABILITY_QUERY_KEY, capability.id, key] as const,
-      queryFn: async ({ signal }) =>
-        fence.admit(await transport.query<OutputOf<C>>(capability.id, JSON.parse(key), signal)),
-      select: (snapshot: Snapshot<OutputOf<C>>) => snapshot.data,
-      meta: {
-        capability: capability.id,
-        ...(capability.dependencies ? { dependencies: capability.dependencies } : {}),
-      } satisfies CapabilityQueryMeta,
-      // Freshness comes from the change stream, not from timers or window focus.
-      staleTime: Infinity,
-      refetchOnWindowFocus: false,
-      retry: 2,
-    });
-  }
-
   /**
    * Apply one change batch. Changes coalesce into a single invalidation per batch and refetch
    * only active queries whose declared dependencies intersect the changed resource types. A
@@ -151,12 +123,14 @@ export function createLiveBindings(transport: Transport) {
     const filter = { queryKey: [CAPABILITY_QUERY_KEY] };
     const action = fence.observe(batch);
     if (action === 'reset') return queryClient.resetQueries(filter);
-    if (action === 'invalidate') return queryClient.invalidateQueries(filter);
+    if (action === 'invalidate')
+      return queryClient.invalidateQueries({ ...filter, predicate: isLocal });
     if (action === 'ignore') return;
     const types = changedResourceTypes(batch);
     await queryClient.invalidateQueries({
       ...filter,
       predicate: (query) =>
+        isLocal(query) &&
         isAffected((query.meta as CapabilityQueryMeta | undefined)?.dependencies, types),
     });
   }
@@ -177,6 +151,23 @@ export function createLiveBindings(transport: Transport) {
     }, [queryClient]);
   }
 
-  return { liveQueryOptions, applyBatch, follow, useLiveInvalidation };
+  return {
+    /** Query options for a capability. Data is the committed output; drafts stay in forms. */
+    liveQueryOptions: <C extends AnyCapability>(
+      capability: C & { kind: 'query' },
+      input: InputOf<C>,
+    ) => liveQueryOptions(transport, fence, capability, input),
+    /** Live read of another system, fenced like local queries; see `query/remote`. */
+    remoteQueryOptions: <C extends RemoteQuery>(capability: C, input: InputOf<C>) =>
+      remoteQueryOptions(transport, fence, capability, input),
+    /** The same read one page at a time, for "show more"; see `query/remote`. */
+    remoteInfiniteQueryOptions: <C extends RemoteQuery>(
+      capability: C,
+      input: Omit<InputOf<C>, 'cursor'>,
+    ) => remoteInfiniteQueryOptions(transport, fence, capability, input),
+    applyBatch,
+    follow,
+    useLiveInvalidation,
+  };
 }
 export type LiveBindings = ReturnType<typeof createLiveBindings>;

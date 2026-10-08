@@ -145,6 +145,7 @@
       "kind": "command",
       "module": "quality-inspection",
       "target": "quality-system",
+      "path": "outbox",
       "destinations": [
         "quality-system-api"
       ],
@@ -160,6 +161,7 @@
       "kind": "command",
       "module": "quality-inspection",
       "target": "quality-system",
+      "path": "outbox",
       "destinations": [
         "quality-system-api"
       ],
@@ -175,6 +177,7 @@
       "kind": "command",
       "module": "quality-inspection",
       "target": "quality-system",
+      "path": "outbox",
       "destinations": [
         "quality-system-api"
       ],
@@ -190,6 +193,7 @@
       "kind": "command",
       "module": "quality-inspection",
       "target": "quality-system",
+      "path": "outbox",
       "destinations": [
         "quality-system-api"
       ],
@@ -205,6 +209,7 @@
       "kind": "command",
       "module": "quality-inspection",
       "target": "quality-system",
+      "path": "outbox",
       "destinations": [
         "quality-system-api"
       ],

@@ -1,19 +1,44 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError, type JsonObject } from '@agent-native/contracts';
 import type { ExecutionContext, Invocation, QueryResult } from '../types.js';
 import { sameState } from '../state-equality.js';
 import { actorOf, describeInput, failureRecord } from './audit.js';
 import { createHandlerContext } from './handler-context.js';
 import { authorize, project, resolveOperation, type Kernel } from './kernel.js';
+import { readRemoteQuery } from './remote-queries.js';
+
+/** Audit details a query adds: the input digest, and for a remote query its source status. */
+interface QueryAudit {
+  inputDigest?: string;
+  data?: JsonObject;
+}
 
 async function readQuery<State, Services>(
   kernel: Kernel<State, Services>,
   request: Invocation,
   context: ExecutionContext,
-  describe: (inputDigest: string) => void,
+  audit: QueryAudit,
 ): Promise<QueryResult> {
   const { capability, input, handler } = resolveOperation(kernel, request, 'query');
   kernel.guard.active(context, capability.id);
-  if (kernel.audit.enabled) describe(describeInput(capability, input).inputDigest);
+  if (kernel.audit.enabled) audit.inputDigest = describeInput(capability, input).inputDigest;
+  if (capability.remote) {
+    const { source, ...result } = await readRemoteQuery(
+      kernel,
+      capability,
+      input,
+      handler,
+      context,
+    );
+    // Target, status and credential kind only: never the query, items or provider text.
+    audit.data = {
+      target: source.target,
+      status: source.status,
+      ...(source.identity ? { identity: source.identity } : {}),
+      items: (result.data as { items: unknown[] }).items.length,
+      more: (result.data as { next?: string }).next !== undefined,
+    };
+    return result;
+  }
   return kernel.options.storage.read(context.workspaceId, async (readonlySnapshot) => {
     const snapshot = structuredClone(readonlySnapshot);
     await authorize(kernel, capability, input, context, snapshot, 'invoke');
@@ -54,9 +79,9 @@ export function createQueries<State, Services>(kernel: Kernel<State, Services>) 
     const correlationId = crypto.randomUUID();
     const operation = typeof request?.operation === 'string' ? request.operation : '';
     let result: QueryResult;
-    let inputDigest: string | undefined;
+    const audit: QueryAudit = {};
     try {
-      result = await readQuery(kernel, request, context, (digest) => (inputDigest = digest));
+      result = await readQuery(kernel, request, context, audit);
     } catch (error) {
       if (kernel.audit.enabled)
         await kernel.audit.after([
@@ -72,7 +97,8 @@ export function createQueries<State, Services>(kernel: Kernel<State, Services>) 
         actor: actorOf(context),
         correlationId,
         cursor: result.cursor,
-        ...(inputDigest ? { inputDigest } : {}),
+        ...(audit.inputDigest ? { inputDigest: audit.inputDigest } : {}),
+        ...(audit.data ? { data: audit.data } : {}),
       },
     ]);
     return result;

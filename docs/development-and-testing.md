@@ -30,7 +30,7 @@ For focused work, use these scripts:
 | `bun run test:e2e`                            | Real browser acceptance, configured by Playwright.                                                                                                         |
 | `bun run dev`                                 | Build the configured application and open the desktop window. The window starts the service, or attaches to one already running.                           |
 | `bun run dev:web`                             | Build and serve the configured application in a browser, without Electron.                                                                                 |
-| `cd examples/<name> && bun run dev`           | Open one example's desktop window on its own port and workspace (ports 4321-4323); `line-station` adds the fake HMI. `dev:web` serves the browser instead. |
+| `cd examples/<name> && bun run dev`           | Open one example's desktop window on its own port and workspace (ports 4321-4324); `line-station` adds the fake HMI. `dev:web` serves the browser instead. |
 | `bun run station:golden` (in `line-station`)  | Station profile and perception gate on the labeled golden frames in `examples/line-station/golden`.                                                        |
 | `bun run station:record-golden` (same)        | Re-record golden frames from the fake HMI in Chromium after changing the simulator or profile.                                                             |
 | `bun run dev:hmi` (same)                      | Start the fake station HMI on port 4610 with simulation endpoints, for the demo.                                                                           |

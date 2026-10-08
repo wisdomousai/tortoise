@@ -10,6 +10,7 @@ Layer: framework (`packages/*`). Feature state is opaque to the runtime; domains
 - [Module](../../docs/primitives.md#module): `sliceHandlers`, `composeAuthorization`, `authorizationRoute` compose independently authored modules into one state and policy.
 - [Command](../../docs/primitives.md#command): `createHandlerFactory`, `HandlerContext`, `CommandReceipt`.
 - [Query](../../docs/primitives.md#query): `QueryResult`.
+- [Remote query](../../docs/primitives.md#remote-query): `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceAnswer`, and the `sources` and `remoteDeadlineMs` options.
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
 - [Policy](../../docs/primitives.md#policy): the `AuthorizationPort` (`AuthorizationRequest`, `Decision`).
 - [Storage](../../docs/primitives.md#storage): the `Storage` port, `WorkspaceSnapshot`, `createMemoryStorage`, `createWorkspaceSnapshot`.
@@ -30,12 +31,15 @@ Read [architecture](../../docs/architecture.md), [authorization](../../docs/auth
 
 - `kernel.ts`: registry validation, operation resolution, the authorize-then-recheck step and output projection.
 - `commands.ts`, `command-request.ts`, `command-commit.ts`: the command transaction, its request validation and fingerprint, and its journal, receipt and `command.accepted` steps.
+- `remote-queries.ts`: the remote query's three steps around the source call, and the purity check on its handler steps.
 - `queries.ts`, `events.ts`, `outbox.ts`, `recovery.ts`: reads, journal delivery, the host-only outbox and crash recovery of the audit log.
 - `handler-context.ts`, `effects.ts`, `delegation.ts`, `audit.ts`, `records.ts`: what a handler sees, outbox transitions, grant checks, audit records and prototype-safe record writes.
 
 Browser code may import types from here with `import type`; a value import fails `check:boundaries`.
 
 ## Trust boundary
+
+A remote query calls `sources[target]` only between two read snapshots, never inside a transaction, and authorizes again after the source answers. Its handler steps cannot mutate state. The source's `next` cursor is returned untouched and bounded to 512 characters; an oversized or non-string cursor makes the answer malformed. Source failures become `unavailable` with a safe message; `FORBIDDEN` and cancellation propagate.
 
 The host supplies the `ExecutionContext`. Operation input can never set or widen it, and no transport may construct it from tool arguments. Authorization, grants and cancellation are checked on entry and again before commit, after every awaited step. Rows are scoped before filtering, pagination and counts, and output is projected to readable fields before validation. A command that changes state without declaring the changed resource fails, a reused idempotency key with other input conflicts, and `expectedRevisions` makes stale writes conflict. Queries that mutate state fail. No network or model call may run while a transaction is held: handlers queue effects instead.
 
@@ -50,7 +54,8 @@ bun test packages/runtime
 ```
 
 - `test/runtime.test.ts`: undeclared changes, lost updates, scoped idempotency, current authorization on retries ([P3](../../docs/principles.md#p3--authority-comes-from-trusted-context-never-from-input-and-is-enforced-at-commit), [P4](../../docs/principles.md#p4--every-write-is-a-command-to-the-single-authority-of-its-workspace)).
-- `test/outbox.test.ts`: effects commit with the command and are never re-enqueued on replay; delivery states ([P6](../../docs/principles.md#p6--status-reports-what-is-known-not-what-is-hoped), [P7](../../docs/principles.md#p7--other-systems-are-reached-only-through-durable-intents)).
+- `test/outbox.test.ts`: effects commit with the command and are never re-enqueued on replay; delivery states ([P6](../../docs/principles.md#p6--status-reports-what-is-known-not-what-is-hoped), [P7](../../docs/principles.md#p7--other-systems-are-changed-only-through-durable-intents)).
+- `test/remote-query.test.ts`: paging passes the cursor in and `next` out, even for a page that scoping emptied; a denied caller never reaches the source, a revocation during the call drops the result, policy projects the source's rows, a service answer to a caller-only query is refused, deadline and cancellation reach the source, and audit records no rows ([P7](../../docs/principles.md#p7--other-systems-are-changed-only-through-durable-intents), [P13](../../docs/principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does)).
 - `test/compose.test.ts`: modules see only their slice; unrouted operations fail closed ([P8](../../docs/principles.md#p8--specialization-is-composition-and-configuration-never-a-fork)).
 - `test/audit.test.ts`: a failed required append rolls the commit back; crash recovery ([P13](../../docs/principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does)).
 

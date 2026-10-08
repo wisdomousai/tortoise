@@ -5,3 +5,4 @@ export * from './schema';
 export * from './capability';
 export * from './catalog';
 export * from './errors';
+export * from './data-provider';

@@ -1,5 +1,10 @@
 import type { CapabilityModule } from '@agent-native/contracts';
-import type { AuthorizationPort, HandlerContribution } from './types.js';
+import type {
+  AuthorizationPort,
+  HandlerContext,
+  HandlerContribution,
+  RemoteHandler,
+} from './types.js';
 
 /**
  * Adapt handlers authored against one module's state slice to a composed application state.
@@ -11,11 +16,25 @@ export function sliceHandlers<Root, K extends keyof Root & string, Services>(
   key: K,
   handlers: readonly HandlerContribution<Root[K], Services>[],
 ): HandlerContribution<Root, Services>[] {
-  return handlers.map((handler) => ({
-    capability: handler.capability,
-    handle: (input, context) =>
-      handler.handle(input as never, { ...context, state: context.state[key] }),
-  }));
+  return handlers.map((handler) => {
+    const slice = (context: HandlerContext<Root, Services>) => ({
+      ...context,
+      state: context.state[key],
+    });
+    const remote = handler.remote;
+    return {
+      capability: handler.capability,
+      handle: (input, context) => handler.handle(input as never, slice(context)),
+      ...(remote
+        ? {
+            remote: {
+              request: (input, context) => remote.request(input as never, slice(context)),
+              item: (found, context) => remote.item(found, slice(context)),
+            } satisfies RemoteHandler<Root, Services>,
+          }
+        : {}),
+    };
+  });
 }
 
 /** One module's policy, the state slice it reads and the journal resource types it governs. */

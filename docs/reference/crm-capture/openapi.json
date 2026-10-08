@@ -1,0 +1,1733 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CRM capture interaction API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/commands/crm.account.adopt": {
+      "post": {
+        "operationId": "crm.account.adopt",
+        "summary": "Bring a CRM account found with crm.account.search into this workspace. The CRM is asked to let you follow it (with your CRM access); its details then arrive through the CRM feed and stay current. The receipt proves the local request only: the account is following until then, or rejected if the CRM refuses. Adopting an account already followed returns it unchanged.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "externalId": {
+                        "maxLength": 64,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "externalId"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "maxLength": 64,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "status": {
+                          "enum": [
+                            "following",
+                            "adopted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "status"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/crm.account.get": {
+      "post": {
+        "operationId": "crm.account.get",
+        "summary": "Read one followed account with its activities and whether the CRM accepted each one.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "maxLength": 64,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "activities": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "adoptedAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "adoptedBy": {
+                          "type": "string"
+                        },
+                        "city": {
+                          "type": "string"
+                        },
+                        "history": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "accountId": {
+                                "maxLength": 64,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "enum": [
+                                  "call",
+                                  "meeting",
+                                  "note"
+                                ],
+                                "type": "string"
+                              },
+                              "occurredAt": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "recordedBy": {
+                                "type": "string"
+                              },
+                              "rejection": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "code",
+                                  "message"
+                                ],
+                                "type": "object"
+                              },
+                              "sorRef": {
+                                "type": "string"
+                              },
+                              "summary": {
+                                "type": "string"
+                              },
+                              "sync": {
+                                "enum": [
+                                  "pending",
+                                  "accepted",
+                                  "rejected"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "accountId",
+                              "kind",
+                              "summary",
+                              "occurredAt",
+                              "recordedBy",
+                              "sync"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "id": {
+                          "maxLength": 64,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "industry": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "owner": {
+                          "type": "string"
+                        },
+                        "region": {
+                          "maxLength": 32,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "rejection": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "message"
+                          ],
+                          "type": "object"
+                        },
+                        "status": {
+                          "enum": [
+                            "following",
+                            "adopted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        },
+                        "syncedAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "status",
+                        "adoptedBy",
+                        "adoptedAt",
+                        "activities",
+                        "history"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/crm.account.list": {
+      "post": {
+        "operationId": "crm.account.list",
+        "summary": "List accounts this workspace follows, in your regions: their status (following until the CRM feed delivers them, adopted, or rejected) and activity counts. Works while the CRM is unreachable.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "status": {
+                        "enum": [
+                          "following",
+                          "adopted",
+                          "rejected"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "activities": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "adoptedAt": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "adoptedBy": {
+                                "type": "string"
+                              },
+                              "city": {
+                                "type": "string"
+                              },
+                              "id": {
+                                "maxLength": 64,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "industry": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "owner": {
+                                "type": "string"
+                              },
+                              "region": {
+                                "maxLength": 32,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "rejection": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "code",
+                                  "message"
+                                ],
+                                "type": "object"
+                              },
+                              "status": {
+                                "enum": [
+                                  "following",
+                                  "adopted",
+                                  "rejected"
+                                ],
+                                "type": "string"
+                              },
+                              "syncedAt": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "status",
+                              "adoptedBy",
+                              "adoptedAt",
+                              "activities"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "items"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/crm.account.lookup": {
+      "post": {
+        "operationId": "crm.account.lookup",
+        "summary": "Read one CRM account by its CRM ID (externalId), live, with your CRM access. An empty items list means the account does not exist or you cannot see it.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "externalId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "externalId"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "city": {
+                                "type": "string"
+                              },
+                              "externalId": {
+                                "type": "string"
+                              },
+                              "industry": {
+                                "type": "string"
+                              },
+                              "local": {
+                                "enum": [
+                                  "none",
+                                  "following",
+                                  "adopted",
+                                  "rejected"
+                                ],
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "owner": {
+                                "type": "string"
+                              },
+                              "region": {
+                                "maxLength": 32,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "externalId",
+                              "name",
+                              "industry",
+                              "city",
+                              "region",
+                              "owner",
+                              "local"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "next": {
+                          "maxLength": 512,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "source": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "fetchedAt": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "identity": {
+                              "enum": [
+                                "caller",
+                                "service"
+                              ],
+                              "type": "string"
+                            },
+                            "message": {
+                              "maxLength": 200,
+                              "type": "string"
+                            },
+                            "status": {
+                              "enum": [
+                                "ok",
+                                "unavailable"
+                              ],
+                              "type": "string"
+                            },
+                            "target": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "status",
+                            "fetchedAt"
+                          ],
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "source"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/crm.account.search": {
+      "post": {
+        "operationId": "crm.account.search",
+        "summary": "Search accounts in the CRM by name, city or industry, live, with your CRM access. Results are not stored: each carries source.fetchedAt, and local says whether this workspace already follows it. source.status unavailable means the CRM did not answer; fall back to crm.account.list. Adopt a result with crm.account.adopt before logging activities.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "cursor": {
+                        "maxLength": 512,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "limit": {
+                        "maximum": 50,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      "q": {
+                        "maxLength": 100,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "q"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "city": {
+                                "type": "string"
+                              },
+                              "externalId": {
+                                "type": "string"
+                              },
+                              "industry": {
+                                "type": "string"
+                              },
+                              "local": {
+                                "enum": [
+                                  "none",
+                                  "following",
+                                  "adopted",
+                                  "rejected"
+                                ],
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "owner": {
+                                "type": "string"
+                              },
+                              "region": {
+                                "maxLength": 32,
+                                "minLength": 1,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "externalId",
+                              "name",
+                              "industry",
+                              "city",
+                              "region",
+                              "owner",
+                              "local"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "next": {
+                          "maxLength": 512,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "source": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "fetchedAt": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "identity": {
+                              "enum": [
+                                "caller",
+                                "service"
+                              ],
+                              "type": "string"
+                            },
+                            "message": {
+                              "maxLength": 200,
+                              "type": "string"
+                            },
+                            "status": {
+                              "enum": [
+                                "ok",
+                                "unavailable"
+                              ],
+                              "type": "string"
+                            },
+                            "target": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "status",
+                            "fetchedAt"
+                          ],
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "source"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/crm.account.sync": {
+      "post": {
+        "operationId": "crm.account.sync",
+        "summary": "Integration principal only: apply CRM snapshots of followed accounts and advance the watermark. A stale from watermark conflicts.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "accounts": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "city": {
+                              "maxLength": 100,
+                              "type": "string"
+                            },
+                            "externalId": {
+                              "maxLength": 64,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "industry": {
+                              "maxLength": 100,
+                              "type": "string"
+                            },
+                            "name": {
+                              "maxLength": 200,
+                              "type": "string"
+                            },
+                            "owner": {
+                              "maxLength": 100,
+                              "type": "string"
+                            },
+                            "region": {
+                              "maxLength": 32,
+                              "minLength": 1,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "externalId",
+                            "name",
+                            "industry",
+                            "city",
+                            "region",
+                            "owner"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 500,
+                        "type": "array"
+                      },
+                      "from": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "to",
+                      "accounts"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "accounts": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "watermark": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "watermark",
+                        "accounts"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/crm.activity.log": {
+      "post": {
+        "operationId": "crm.activity.log",
+        "summary": "Record a call, meeting or note against an adopted account (epoch ms occurredAt, at most 7 days old). It is saved here first and sent to the CRM, which accepts or rejects it later.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "accountId": {
+                        "maxLength": 64,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "kind": {
+                        "enum": [
+                          "call",
+                          "meeting",
+                          "note"
+                        ],
+                        "type": "string"
+                      },
+                      "occurredAt": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "summary": {
+                        "maxLength": 2000,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "accountId",
+                      "kind",
+                      "summary",
+                      "occurredAt"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "accountId": {
+                          "maxLength": 64,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "enum": [
+                            "call",
+                            "meeting",
+                            "note"
+                          ],
+                          "type": "string"
+                        },
+                        "occurredAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "recordedBy": {
+                          "type": "string"
+                        },
+                        "rejection": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "message"
+                          ],
+                          "type": "object"
+                        },
+                        "sorRef": {
+                          "type": "string"
+                        },
+                        "summary": {
+                          "type": "string"
+                        },
+                        "sync": {
+                          "enum": [
+                            "pending",
+                            "accepted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "accountId",
+                        "kind",
+                        "summary",
+                        "occurredAt",
+                        "recordedBy",
+                        "sync"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/crm.contact.lookup": {
+      "post": {
+        "operationId": "crm.contact.lookup",
+        "summary": "Read one CRM contact by its CRM ID (externalId), live, with your CRM access.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "externalId": {
+                        "maxLength": 128,
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "externalId"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "accountId": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "externalId": {
+                                "type": "string"
+                              },
+                              "local": {
+                                "enum": [
+                                  "none",
+                                  "following",
+                                  "adopted",
+                                  "rejected"
+                                ],
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "region": {
+                                "maxLength": 32,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "externalId",
+                              "name",
+                              "title",
+                              "email",
+                              "accountId",
+                              "accountName",
+                              "region",
+                              "local"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "next": {
+                          "maxLength": 512,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "source": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "fetchedAt": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "identity": {
+                              "enum": [
+                                "caller",
+                                "service"
+                              ],
+                              "type": "string"
+                            },
+                            "message": {
+                              "maxLength": 200,
+                              "type": "string"
+                            },
+                            "status": {
+                              "enum": [
+                                "ok",
+                                "unavailable"
+                              ],
+                              "type": "string"
+                            },
+                            "target": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "status",
+                            "fetchedAt"
+                          ],
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "source"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/crm.contact.search": {
+      "post": {
+        "operationId": "crm.contact.search",
+        "summary": "Search contacts in the CRM by name, title or email, live, with your CRM access. Each contact names its account (accountId); adopt that account to log activities against it.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "cursor": {
+                        "maxLength": 512,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "limit": {
+                        "maximum": 50,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      "q": {
+                        "maxLength": 100,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "q"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "accountId": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "externalId": {
+                                "type": "string"
+                              },
+                              "local": {
+                                "enum": [
+                                  "none",
+                                  "following",
+                                  "adopted",
+                                  "rejected"
+                                ],
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "region": {
+                                "maxLength": 32,
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "externalId",
+                              "name",
+                              "title",
+                              "email",
+                              "accountId",
+                              "accountName",
+                              "region",
+                              "local"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "next": {
+                          "maxLength": 512,
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "source": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "fetchedAt": {
+                              "maximum": 9007199254740991,
+                              "minimum": -9007199254740991,
+                              "type": "integer"
+                            },
+                            "identity": {
+                              "enum": [
+                                "caller",
+                                "service"
+                              ],
+                              "type": "string"
+                            },
+                            "message": {
+                              "maxLength": 200,
+                              "type": "string"
+                            },
+                            "status": {
+                              "enum": [
+                                "ok",
+                                "unavailable"
+                              ],
+                              "type": "string"
+                            },
+                            "target": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "status",
+                            "fetchedAt"
+                          ],
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "source"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/commands/crm.effect.settle": {
+      "post": {
+        "operationId": "crm.effect.settle",
+        "summary": "Integration principal only: record the CRM outcome for a follow request or a logged activity.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "effectId": {
+                        "type": "string"
+                      },
+                      "outcome": {
+                        "anyOf": [
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "externalRef": {
+                                "maxLength": 128,
+                                "type": "string"
+                              },
+                              "status": {
+                                "const": "accepted",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "status"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "maxLength": 64,
+                                "type": "string"
+                              },
+                              "message": {
+                                "maxLength": 500,
+                                "type": "string"
+                              },
+                              "status": {
+                                "const": "rejected",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "status",
+                              "code",
+                              "message"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "effectId",
+                      "outcome"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "resource": {
+                          "type": "string"
+                        },
+                        "sync": {
+                          "enum": [
+                            "accepted",
+                            "rejected"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "resource",
+                        "sync"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/crm.sync.status": {
+      "post": {
+        "operationId": "crm.sync.status",
+        "summary": "Summarize synchronization with the CRM: accounts following, adopted and rejected, records waiting to be sent, and the last feed sync.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {},
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "adopted": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "following": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "lastSyncAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "pending": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "rejected": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "watermark": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "following",
+                        "adopted",
+                        "rejected",
+                        "pending"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    }
+  }
+}

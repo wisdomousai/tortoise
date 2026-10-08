@@ -3,6 +3,7 @@ import {
   type AuthorizationPort,
   type ExecutionContext,
   type HandlerContribution,
+  type RemoteSource,
   type Storage,
 } from '@agent-native/runtime';
 import type { CapabilityModule, EventLogPort } from '@agent-native/contracts';
@@ -33,6 +34,11 @@ export interface ApplicationDefinition<State, Services = unknown> {
    * selected `kind:id` through that query under the caller's own authority before capturing it.
    */
   readonly selectableResources?: Readonly<Record<string, string>>;
+  /**
+   * Sources for remote queries, by target (see `createRemoteSource`). Every authority built from
+   * this definition shares them; they hold credentials access, never application state.
+   */
+  readonly sources?: Readonly<Record<string, RemoteSource>>;
   /** Wire systems of record and observers once the runtime exists. Called once per authority. */
   readonly connect?: (context: ConnectContext) => ApplicationConnections;
 }
@@ -99,6 +105,7 @@ export function createApplicationRuntime(
     storage: options.storage,
     authorization: definition.authorization,
     services: options.services ?? definition.services ?? {},
+    ...(definition.sources ? { sources: definition.sources } : {}),
     ...(options.now ? { now: options.now } : {}),
     ...(options.newEffectId ? { newEffectId: options.newEffectId } : {}),
     ...(options.eventLog ? { eventLog: options.eventLog } : {}),

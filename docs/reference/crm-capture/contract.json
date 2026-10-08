@@ -1,0 +1,1493 @@
+{
+  "formatVersion": 1,
+  "operations": [
+    {
+      "dependencies": [
+        "account"
+      ],
+      "description": "Bring a CRM account found with crm.account.search into this workspace. The CRM is asked to let you follow it (with your CRM access); its details then arrive through the CRM feed and stay current. The receipt proves the local request only: the account is following until then, or rejected if the CRM refuses. Adopting an account already followed returns it unchanged.",
+      "destinations": [
+        "crm-api"
+      ],
+      "errors": [],
+      "id": "crm.account.adopt",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "externalId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "externalId"
+        ],
+        "type": "object"
+      },
+      "integration": {
+        "delivery": "outbox",
+        "target": "crm"
+      },
+      "kind": "command",
+      "mcpName": "crm_account_adopt",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "following",
+              "adopted",
+              "rejected"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "adopt",
+        "resourceType": "CrmAccount"
+      },
+      "ui": {
+        "binding": "crm.account.adopt"
+      }
+    },
+    {
+      "dependencies": [
+        "account",
+        "activity"
+      ],
+      "description": "Read one followed account with its activities and whether the CRM accepted each one.",
+      "errors": [],
+      "id": "crm.account.get",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "crm_account_get",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "activities": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "adoptedAt": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "adoptedBy": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "history": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "accountId": {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "kind": {
+                  "enum": [
+                    "call",
+                    "meeting",
+                    "note"
+                  ],
+                  "type": "string"
+                },
+                "occurredAt": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "recordedBy": {
+                  "type": "string"
+                },
+                "rejection": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "type": "object"
+                },
+                "sorRef": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string"
+                },
+                "sync": {
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "rejected"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "accountId",
+                "kind",
+                "summary",
+                "occurredAt",
+                "recordedBy",
+                "sync"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "region": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+          },
+          "rejection": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "type": "object"
+          },
+          "status": {
+            "enum": [
+              "following",
+              "adopted",
+              "rejected"
+            ],
+            "type": "string"
+          },
+          "syncedAt": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "adoptedBy",
+          "adoptedAt",
+          "activities",
+          "history"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "CrmAccount"
+      },
+      "ui": {
+        "binding": "crm.account.get"
+      }
+    },
+    {
+      "dependencies": [
+        "account",
+        "activity"
+      ],
+      "description": "List accounts this workspace follows, in your regions: their status (following until the CRM feed delivers them, adopted, or rejected) and activity counts. Works while the CRM is unreachable.",
+      "errors": [],
+      "id": "crm.account.list",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "enum": [
+              "following",
+              "adopted",
+              "rejected"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "crm_account_list",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "activities": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "adoptedAt": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "adoptedBy": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "id": {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "industry": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "owner": {
+                  "type": "string"
+                },
+                "region": {
+                  "maxLength": 32,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "rejection": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "type": "object"
+                },
+                "status": {
+                  "enum": [
+                    "following",
+                    "adopted",
+                    "rejected"
+                  ],
+                  "type": "string"
+                },
+                "syncedAt": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "id",
+                "status",
+                "adoptedBy",
+                "adoptedAt",
+                "activities"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "CrmAccount"
+      },
+      "ui": {
+        "binding": "crm.account.list"
+      }
+    },
+    {
+      "dependencies": [],
+      "description": "Read one CRM account by its CRM ID (externalId), live, with your CRM access. An empty items list means the account does not exist or you cannot see it.",
+      "destinations": [
+        "crm-api"
+      ],
+      "errors": [],
+      "id": "crm.account.lookup",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "externalId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "externalId"
+        ],
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "crm_account_lookup",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "city": {
+                  "type": "string"
+                },
+                "externalId": {
+                  "type": "string"
+                },
+                "industry": {
+                  "type": "string"
+                },
+                "local": {
+                  "enum": [
+                    "none",
+                    "following",
+                    "adopted",
+                    "rejected"
+                  ],
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "owner": {
+                  "type": "string"
+                },
+                "region": {
+                  "maxLength": 32,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "externalId",
+                "name",
+                "industry",
+                "city",
+                "region",
+                "owner",
+                "local"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "source": {
+            "additionalProperties": false,
+            "properties": {
+              "fetchedAt": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              "identity": {
+                "enum": [
+                  "caller",
+                  "service"
+                ],
+                "type": "string"
+              },
+              "message": {
+                "maxLength": 200,
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "unavailable"
+                ],
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "target",
+              "status",
+              "fetchedAt"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "items",
+          "source"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "search",
+        "resourceType": "CrmAccount"
+      },
+      "remote": {
+        "identity": "caller-or-service",
+        "target": "crm"
+      },
+      "ui": {
+        "exception": "agents resolve a CRM ID they were given; people pick from search"
+      }
+    },
+    {
+      "dependencies": [],
+      "description": "Search accounts in the CRM by name, city or industry, live, with your CRM access. Results are not stored: each carries source.fetchedAt, and local says whether this workspace already follows it. source.status unavailable means the CRM did not answer; fall back to crm.account.list. Adopt a result with crm.account.adopt before logging activities.",
+      "destinations": [
+        "crm-api"
+      ],
+      "errors": [],
+      "id": "crm.account.search",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "limit": {
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "q": {
+            "maxLength": 100,
+            "type": "string"
+          }
+        },
+        "required": [
+          "q"
+        ],
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "crm_account_search",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "city": {
+                  "type": "string"
+                },
+                "externalId": {
+                  "type": "string"
+                },
+                "industry": {
+                  "type": "string"
+                },
+                "local": {
+                  "enum": [
+                    "none",
+                    "following",
+                    "adopted",
+                    "rejected"
+                  ],
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "owner": {
+                  "type": "string"
+                },
+                "region": {
+                  "maxLength": 32,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "externalId",
+                "name",
+                "industry",
+                "city",
+                "region",
+                "owner",
+                "local"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "source": {
+            "additionalProperties": false,
+            "properties": {
+              "fetchedAt": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              "identity": {
+                "enum": [
+                  "caller",
+                  "service"
+                ],
+                "type": "string"
+              },
+              "message": {
+                "maxLength": 200,
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "unavailable"
+                ],
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "target",
+              "status",
+              "fetchedAt"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "items",
+          "source"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "search",
+        "resourceType": "CrmAccount"
+      },
+      "remote": {
+        "identity": "caller-or-service",
+        "target": "crm"
+      },
+      "ui": {
+        "binding": "crm.account.search"
+      }
+    },
+    {
+      "dependencies": [
+        "account",
+        "sync"
+      ],
+      "description": "Integration principal only: apply CRM snapshots of followed accounts and advance the watermark. A stale from watermark conflicts.",
+      "errors": [],
+      "id": "crm.account.sync",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "accounts": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "city": {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                "externalId": {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "industry": {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                "name": {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "owner": {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                "region": {
+                  "maxLength": 32,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "externalId",
+                "name",
+                "industry",
+                "city",
+                "region",
+                "owner"
+              ],
+              "type": "object"
+            },
+            "maxItems": 500,
+            "type": "array"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "to",
+          "accounts"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "crm_account_sync",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "accounts": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "watermark": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "watermark",
+          "accounts"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "sync",
+        "resourceType": "CrmSync"
+      },
+      "ui": {
+        "exception": "integration principal; the CRM feed"
+      }
+    },
+    {
+      "dependencies": [
+        "account",
+        "activity"
+      ],
+      "description": "Record a call, meeting or note against an adopted account (epoch ms occurredAt, at most 7 days old). It is saved here first and sent to the CRM, which accepts or rejects it later.",
+      "destinations": [
+        "crm-api"
+      ],
+      "errors": [],
+      "id": "crm.activity.log",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "accountId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "call",
+              "meeting",
+              "note"
+            ],
+            "type": "string"
+          },
+          "occurredAt": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "summary": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "accountId",
+          "kind",
+          "summary",
+          "occurredAt"
+        ],
+        "type": "object"
+      },
+      "integration": {
+        "delivery": "outbox",
+        "target": "crm"
+      },
+      "kind": "command",
+      "mcpName": "crm_activity_log",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "accountId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "call",
+              "meeting",
+              "note"
+            ],
+            "type": "string"
+          },
+          "occurredAt": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "recordedBy": {
+            "type": "string"
+          },
+          "rejection": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "type": "object"
+          },
+          "sorRef": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "sync": {
+            "enum": [
+              "pending",
+              "accepted",
+              "rejected"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "accountId",
+          "kind",
+          "summary",
+          "occurredAt",
+          "recordedBy",
+          "sync"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "log",
+        "resourceType": "CrmAccount"
+      },
+      "ui": {
+        "binding": "crm.activity.log"
+      }
+    },
+    {
+      "dependencies": [],
+      "description": "Read one CRM contact by its CRM ID (externalId), live, with your CRM access.",
+      "destinations": [
+        "crm-api"
+      ],
+      "errors": [],
+      "id": "crm.contact.lookup",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "externalId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "externalId"
+        ],
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "crm_contact_lookup",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "accountId": {
+                  "type": "string"
+                },
+                "accountName": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "externalId": {
+                  "type": "string"
+                },
+                "local": {
+                  "enum": [
+                    "none",
+                    "following",
+                    "adopted",
+                    "rejected"
+                  ],
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "region": {
+                  "maxLength": 32,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "externalId",
+                "name",
+                "title",
+                "email",
+                "accountId",
+                "accountName",
+                "region",
+                "local"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "source": {
+            "additionalProperties": false,
+            "properties": {
+              "fetchedAt": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              "identity": {
+                "enum": [
+                  "caller",
+                  "service"
+                ],
+                "type": "string"
+              },
+              "message": {
+                "maxLength": 200,
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "unavailable"
+                ],
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "target",
+              "status",
+              "fetchedAt"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "items",
+          "source"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "search",
+        "resourceType": "CrmContact"
+      },
+      "remote": {
+        "identity": "caller-or-service",
+        "target": "crm"
+      },
+      "ui": {
+        "exception": "agents resolve a CRM ID they were given; people pick from search"
+      }
+    },
+    {
+      "dependencies": [],
+      "description": "Search contacts in the CRM by name, title or email, live, with your CRM access. Each contact names its account (accountId); adopt that account to log activities against it.",
+      "destinations": [
+        "crm-api"
+      ],
+      "errors": [],
+      "id": "crm.contact.search",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "limit": {
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "q": {
+            "maxLength": 100,
+            "type": "string"
+          }
+        },
+        "required": [
+          "q"
+        ],
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "crm_contact_search",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "accountId": {
+                  "type": "string"
+                },
+                "accountName": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "externalId": {
+                  "type": "string"
+                },
+                "local": {
+                  "enum": [
+                    "none",
+                    "following",
+                    "adopted",
+                    "rejected"
+                  ],
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "region": {
+                  "maxLength": 32,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "externalId",
+                "name",
+                "title",
+                "email",
+                "accountId",
+                "accountName",
+                "region",
+                "local"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "source": {
+            "additionalProperties": false,
+            "properties": {
+              "fetchedAt": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              "identity": {
+                "enum": [
+                  "caller",
+                  "service"
+                ],
+                "type": "string"
+              },
+              "message": {
+                "maxLength": 200,
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "unavailable"
+                ],
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "target",
+              "status",
+              "fetchedAt"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "items",
+          "source"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "search",
+        "resourceType": "CrmContact"
+      },
+      "remote": {
+        "identity": "caller-or-service",
+        "target": "crm"
+      },
+      "ui": {
+        "binding": "crm.contact.search"
+      }
+    },
+    {
+      "dependencies": [
+        "account",
+        "activity"
+      ],
+      "description": "Integration principal only: record the CRM outcome for a follow request or a logged activity.",
+      "errors": [],
+      "id": "crm.effect.settle",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "effectId": {
+            "type": "string"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "externalRef": {
+                    "maxLength": 128,
+                    "type": "string"
+                  },
+                  "status": {
+                    "const": "accepted",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "message": {
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  "status": {
+                    "const": "rejected",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status",
+                  "code",
+                  "message"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "effectId",
+          "outcome"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "crm_effect_settle",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "resource": {
+            "type": "string"
+          },
+          "sync": {
+            "enum": [
+              "accepted",
+              "rejected"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "resource",
+          "sync"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "settle",
+        "resourceType": "CrmSync"
+      },
+      "ui": {
+        "exception": "integration principal; the outbox dispatcher"
+      }
+    },
+    {
+      "dependencies": [
+        "account",
+        "activity",
+        "sync"
+      ],
+      "description": "Summarize synchronization with the CRM: accounts following, adopted and rejected, records waiting to be sent, and the last feed sync.",
+      "errors": [],
+      "id": "crm.sync.status",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "crm_sync_status",
+      "module": "crm-capture",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "adopted": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "following": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "lastSyncAt": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "pending": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "rejected": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "watermark": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "following",
+          "adopted",
+          "rejected",
+          "pending"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "CrmSync"
+      },
+      "ui": {
+        "binding": "crm.sync.status"
+      }
+    }
+  ],
+  "requirements": {
+    "devices": [],
+    "network": [
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "prompt",
+          "application-context",
+          "tool-results"
+        ],
+        "direction": "egress",
+        "host": "api.anthropic.com",
+        "id": "anthropic-api",
+        "offline": "unavailable",
+        "owner": "anthropic",
+        "protocol": "https",
+        "purpose": "Inference for Claude runs.",
+        "scope": "internet"
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "audit-event"
+        ],
+        "direction": "egress",
+        "id": "audit-collector",
+        "offline": "degrade",
+        "owner": "authority",
+        "protocol": "tcp",
+        "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
+        "scope": "site"
+      },
+      {
+        "availability": "required",
+        "dataClasses": [],
+        "direction": "ingress",
+        "id": "authority-http",
+        "owner": "authority",
+        "protocol": "http",
+        "purpose": "Serve the frontend, API, events and attach connections.",
+        "scope": "loopback"
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "crm-search-query",
+          "crm-account",
+          "crm-activity"
+        ],
+        "direction": "egress",
+        "id": "crm-api",
+        "offline": "queue",
+        "owner": "crm-capture",
+        "protocol": "https",
+        "purpose": "Search accounts and contacts live with the caller’s CRM access, follow adopted accounts, forward logged activities and pull followed accounts.",
+        "reads": [
+          "crm"
+        ],
+        "scope": "internet",
+        "targets": [
+          "crm"
+        ]
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "prompt",
+          "application-context",
+          "tool-results"
+        ],
+        "direction": "egress",
+        "host": "api.openai.com",
+        "id": "openai-api",
+        "offline": "unavailable",
+        "owner": "openai",
+        "protocol": "https",
+        "purpose": "Model catalog and inference for Codex and AI SDK runs.",
+        "scope": "internet"
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "oauth-authorization",
+          "identity-token"
+        ],
+        "direction": "egress",
+        "host": "auth.openai.com",
+        "id": "openai-auth",
+        "offline": "unavailable",
+        "owner": "openai",
+        "protocol": "https",
+        "purpose": "ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.",
+        "scope": "internet"
+      }
+    ],
+    "processes": [
+      {
+        "availability": "optional",
+        "executable": "claude",
+        "id": "claude-code",
+        "network": [
+          "anthropic-api"
+        ],
+        "owner": "anthropic",
+        "purpose": "Claude Code process driven by the Agent SDK."
+      },
+      {
+        "availability": "optional",
+        "executable": "codex",
+        "id": "codex-app-server",
+        "network": [
+          "openai-api"
+        ],
+        "owner": "openai",
+        "purpose": "Codex app-server harness under a delegated grant."
+      }
+    ]
+  },
+  "workflows": [
+    {
+      "id": "find-and-log",
+      "operations": [
+        "crm.account.search",
+        "crm.contact.search",
+        "crm.account.lookup",
+        "crm.account.adopt",
+        "crm.account.get",
+        "crm.activity.log"
+      ],
+      "text": "Find the account with crm.account.search (or a contact with crm.contact.search, then its accountId). Results come live from the CRM and are not stored. Adopt the account with crm.account.adopt unless local already says following or adopted, then log the activity against it with crm.activity.log using the time from the source. If source.status is unavailable, use crm.account.list for accounts already adopted and say the CRM could not be searched; never invent CRM IDs."
+    },
+    {
+      "id": "review-sync",
+      "operations": [
+        "crm.sync.status",
+        "crm.account.list",
+        "crm.account.get"
+      ],
+      "text": "Read crm.sync.status, then list rejected accounts and open activities that were not accepted. Explain each rejection; do not retry by logging the same activity again."
+    }
+  ]
+}

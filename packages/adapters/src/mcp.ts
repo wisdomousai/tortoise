@@ -46,8 +46,9 @@ async function listTools(client: McpClient) {
         readOnlyHint: operation.kind === 'query',
         destructiveHint: operation.kind === 'command',
         idempotentHint: true,
-        // Outbox commands reach an external system of record after the local commit.
-        openWorldHint: operation.integration !== undefined,
+        // Outbox commands reach an external system of record after the local commit; remote
+        // queries read one at call time.
+        openWorldHint: operation.integration !== undefined || operation.remote !== undefined,
       },
     })),
   };
