@@ -60,12 +60,12 @@ test('development launch refuses relative paths and a missing flag', () => {
 });
 
 test('each development application gets its own single-instance name', () => {
-  expect(developmentAppName('agent-native-desktop-starter', '@agent-native/project-tasks')).toBe(
-    'agent-native-desktop-starter.agent-native-project-tasks',
+  // One literal: a scaffold export renames it, and the calls must not depend on its length.
+  const appName = 'agent-native-desktop-starter';
+  expect(developmentAppName(appName, '@agent-native/project-tasks')).toBe(
+    `${appName}.agent-native-project-tasks`,
   );
-  expect(developmentAppName('agent-native-desktop-starter', undefined)).toBe(
-    'agent-native-desktop-starter',
-  );
+  expect(developmentAppName(appName, undefined)).toBe(appName);
 });
 
 test('the forwarded environment drops electron control variables', () => {

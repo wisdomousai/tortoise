@@ -202,6 +202,13 @@ test('rejects checkout-specific absolute source paths before creating a target',
 
 // Explicit acceptance avoids recursively exporting/installing from the exported test suite.
 const standalone = process.env.SCAFFOLD_ACCEPTANCE === '1' ? test : test.skip;
+
+/** Apply an authoring edit to an exported file; a pattern that no longer matches fails loudly. */
+const patched = (source: string, pattern: string | RegExp, replacement: string) => {
+  const result = source.replace(pattern, replacement);
+  if (result === source) throw new Error(`Authoring patch no longer matches: ${pattern}`);
+  return result;
+};
 standalone(
   'complete source export installs pinned dependencies, typechecks, builds and tests independently',
   async () => {
@@ -251,18 +258,20 @@ standalone(
       // Exercise authoring in the exported application, not in the original checkout.
       const contractsPath = join(target, 'examples/project-tasks/contracts.ts');
       let contracts = await readFile(contractsPath, 'utf8');
-      contracts = contracts.replace(
+      contracts = patched(
+        contracts,
         'export const operations = {',
         `export const operations = {
   projectSummary: defineCapability({ id: 'project.summary', kind: 'query', input: jsonSchema(idInput), output: jsonSchema(z.strictObject({ id, taskCount: z.number().int() })), permission: { action: 'read', resourceType: 'Project' }, ui: { exception: 'Headless scaffold extension verification' } }),`,
       );
-      contracts = contracts.replace(/('task\.set-status')(,?\s*\])/, "$1, 'project.summary'$2");
+      contracts = patched(contracts, /('task\.set-status')(,?\s*\])/, "$1, 'project.summary'$2");
       await writeFile(contractsPath, contracts);
-      const handlersPath = join(target, 'examples/project-tasks/server.ts');
-      const handlers = (await readFile(handlersPath, 'utf8')).replace(
-        /return\s*\[/,
-        `return [
-    handler(operations.projectSummary, (input, ctx) => ({ id: project(ctx.state, input.id).id, taskCount: Object.values(ctx.state.tasks).filter(task => task.projectId === input.id).length })),`,
+      const handlersPath = join(target, 'examples/project-tasks/handlers/projects.ts');
+      const handlers = patched(
+        await readFile(handlersPath, 'utf8'),
+        '>[] => [',
+        `>[] => [
+  handler(operations.projectSummary, (input, ctx) => ({ id: project(ctx.state, input.id).id, taskCount: Object.values(ctx.state.tasks).filter(task => task.projectId === input.id).length })),`,
       );
       await writeFile(handlersPath, handlers);
       await writeFile(
