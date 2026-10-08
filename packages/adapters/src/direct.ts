@@ -8,6 +8,58 @@ import { withSignal, type ApplicationPort } from './http';
 const cursorOf = (position: number, authorizationRevision: number) =>
   `${position}.${authorizationRevision}`;
 
+/** Resolve after `ms`, or as soon as `signal` aborts. */
+function pause(signal: AbortSignal, ms: number) {
+  return new Promise<void>((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', done);
+      resolve();
+    };
+    const timer = setTimeout(done, ms);
+    signal.addEventListener('abort', done, { once: true });
+  });
+}
+
+/**
+ * Poll the journal after `cursor`, yielding non-empty batches. A reset is yielded when the cursor
+ * is unknown or the authorization revision changed, so stale access is never assumed.
+ */
+async function* directEvents(
+  application: ApplicationPort,
+  context: ExecutionContext,
+  cursor: Cursor,
+  signal: AbortSignal,
+  pollMs: number,
+): AsyncIterable<ChangeBatch> {
+  // An empty, foreign or revision-less cursor starts with a reset at the current position.
+  const parsed = /^(\d+)\.(\d+)$/.exec(cursor);
+  let after = parsed ? Number(parsed[1]) : undefined;
+  let revision = parsed ? Number(parsed[2]) : undefined;
+  const subscribed = withSignal(context, signal);
+  while (!signal.aborted) {
+    const batch = await application.events(after ?? 0, subscribed);
+    const reset = after === undefined || revision !== batch.authorizationRevision;
+    if (reset || batch.events.length)
+      yield {
+        cursor: cursorOf(batch.cursor, batch.authorizationRevision),
+        authorizationRevision: batch.authorizationRevision,
+        reset,
+        changes: reset
+          ? []
+          : batch.events.map(({ resource, type, operation, revision: value }) => ({
+              resource,
+              type,
+              operation,
+              revision: value,
+            })),
+      };
+    after = batch.cursor;
+    revision = batch.authorizationRevision;
+    await pause(signal, pollMs);
+  }
+}
+
 /**
  * In-process transport for an embedded authority (stdio MCP or a one-shot CLI in a sandbox).
  * The launcher fixes `context` once; nothing a caller passes per request can change identity or
@@ -60,42 +112,8 @@ export function createDirectTransport(
         ...(receipt.effects ? { effects: [...receipt.effects] } : {}),
       };
     },
-    async *events(cursor: Cursor, signal: AbortSignal): AsyncIterable<ChangeBatch> {
-      // An empty, foreign or revision-less cursor starts with a reset at the current position.
-      const parsed = /^(\d+)\.(\d+)$/.exec(cursor);
-      let after = parsed ? Number(parsed[1]) : undefined;
-      let revision = parsed ? Number(parsed[2]) : undefined;
-      const subscribed = withSignal(context, signal);
-      while (!signal.aborted) {
-        const batch = await application.events(after ?? 0, subscribed);
-        const reset = after === undefined || revision !== batch.authorizationRevision;
-        if (reset || batch.events.length)
-          yield {
-            cursor: cursorOf(batch.cursor, batch.authorizationRevision),
-            authorizationRevision: batch.authorizationRevision,
-            reset,
-            changes: reset
-              ? []
-              : batch.events.map(({ resource, type, operation, revision: value }) => ({
-                  resource,
-                  type,
-                  operation,
-                  revision: value,
-                })),
-          };
-        after = batch.cursor;
-        revision = batch.authorizationRevision;
-        await new Promise<void>((resolve) => {
-          const done = () => {
-            clearTimeout(timer);
-            signal.removeEventListener('abort', done);
-            resolve();
-          };
-          const timer = setTimeout(done, options.pollMs ?? 250);
-          signal.addEventListener('abort', done, { once: true });
-        });
-      }
-    },
+    events: (cursor: Cursor, signal: AbortSignal) =>
+      directEvents(application, context, cursor, signal, options.pollMs ?? 250),
   };
 }
 

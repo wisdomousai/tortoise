@@ -33,6 +33,11 @@ Import a subpath. The root export holds only `adapterContractVersion`.
 | `@agent-native/adapters/casl`        | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.  |
 | `@agent-native/adapters/ui-sessions` | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents.                         |
 
+`version` holds `adapterContractVersion`, which the root barrel re-exports. Two adapters are composers over a folder of parts that are imported only from inside the package:
+
+- `src/http/`: sessions, sealed cursors, response headers and status codes, bounded body parsing, the pull-based event stream and the framework's authenticated routes. `http.ts` keeps the host, origin and cross-site checks and authentication, in that order.
+- `src/cli/`: the connection file, argument parsing and coercion, help text, dry-run validation and execution, and text formatting. `cli.ts` keeps the dispatcher, exit codes and the main guard.
+
 ## Trust boundary
 
 Transports derive identity from the host session, connection file or grant file, never from the request body or tool arguments. MCP keeps transport metadata (idempotency key, expected revisions) outside the domain input, so a model cannot forge trusted context. A per-request signal only adds to the context's cancellation. Direct and HTTP cursors carry the authorization revision they were issued under, so a subscription resets when access changed after the snapshot. Errors keep their meaning across surfaces: HTTP status, MCP tool error and CLI exit code map from the same code.
