@@ -14,10 +14,10 @@ The [system-of-record pattern](../../docs/system-of-record-pattern.md) explains 
 
 ## Entrypoints
 
-| Import                        | Runs in     | Contents                                                |
-| ----------------------------- | ----------- | ------------------------------------------------------- |
-| `@agent-native/integration`   | server only | Ports, dispatcher, inbound sync and target integration. |
-| `@agent-native/integration/*` | server only | The same file by path; the package has one source file. |
+| Import                        | Runs in     | Contents                                                                            |
+| ----------------------------- | ----------- | ----------------------------------------------------------------------------------- |
+| `@agent-native/integration`   | server only | Ports, dispatcher, inbound sync and target integration.                             |
+| `@agent-native/integration/*` | server only | One source file: `port`, `dispatcher`, `drain`, `inbound-sync`, `target` or `loop`. |
 
 ## Trust boundary
 
