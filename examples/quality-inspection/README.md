@@ -24,6 +24,8 @@ Read the [system-of-record pattern](../../docs/system-of-record-pattern.md). The
 | `@agent-native/quality-inspection/screens`     | browser            | Default export: `defineScreens` with Inspection, Capture, Synchronization and Security, and the sync badge. |
 | `@agent-native/quality-inspection/*`           | see file           | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `fake-sor`.                |
 
+`contracts` composes `contracts/schemas`, `contracts/operation`, `contracts/queries` and `contracts/commands`, all browser-safe. `server` concatenates the handler groups in `handlers/`: lots, reports, capture, supervision and integration. They share `server/`, which holds the context and clock, plant and grant visibility, DTOs, and `appendResult`. That function validates a measurement, picks the sample and queues forwarding, all in the caller's transaction. Each screen in `ui/` keeps its parts in a same-named folder. Hooks that issue commands (`useCapture`, the defect and correction forms) are `.tsx`, because the UI-binding test only reads screen files.
+
 Run it with `bun run dev` or `bun run dev:web` in this directory; port 4322. `DEMO_QUALITY_LOCKED_LOTS=<lot>,<lot>` makes the fake system reject forwarded records for those lots, as if another user held a lock, and `DEMO_QUALITY_UNAVAILABLE=1` makes every delivery fail transiently. Resolve both under **Synchronization**. The framework never reads these variables.
 
 ## Trust boundary
