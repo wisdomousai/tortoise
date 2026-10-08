@@ -1,4 +1,4 @@
-import type { AuditEvent, AuditOutcome, EventLogPort } from '@agent-native/contracts';
+import type { AuditOutcome, EventLogPort } from '@agent-native/contracts';
 import type { ResolvedPolicy } from '@agent-native/egress';
 import {
   readEvents,
@@ -6,6 +6,7 @@ import {
   type ChainHead,
   type ForwardingStats,
 } from '@agent-native/event-log';
+import { auditEvents } from './audit-events';
 import type { AuditEventView, LogVerification, Posture } from './contracts';
 import { accumulateEgress, assessPosture, type EgressUsage } from './posture';
 
@@ -41,38 +42,65 @@ export interface PostureMonitorOptions {
 
 const egressKinds = ['egress.allowed', 'egress.denied'];
 
-type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
-const isScalar = (value: unknown) => value === null || typeof value !== 'object';
-const isFlatRecord = (value: unknown): value is Record<string, Json> =>
-  !!value &&
-  typeof value === 'object' &&
-  !Array.isArray(value) &&
-  Object.values(value).every(isScalar);
-const serialize = (value: unknown) => JSON.stringify(value);
-/** Shape stored event data to the published two-level schema; deeper values become JSON text. */
-function boundedEventData(data: Record<string, unknown>): AuditEventView['data'] {
-  const nested = (value: unknown) =>
-    isScalar(value) || (Array.isArray(value) && value.every(isScalar)) || isFlatRecord(value)
-      ? value
-      : serialize(value);
-  return Object.fromEntries(
-    Object.entries(data).map(([key, value]) => [
-      key,
-      isScalar(value)
-        ? value
-        : Array.isArray(value)
-          ? value.map((item) => (isScalar(item) || isFlatRecord(item) ? item : serialize(item)))
-          : Object.fromEntries(
-              Object.entries(value as Record<string, unknown>).map(([inner, item]) => [
-                inner,
-                nested(item),
-              ]),
-            ),
-    ]),
-  ) as AuditEventView['data'];
+/** Verify the chain up to the writer's head, which is read first. */
+async function verifyToHead(options: PostureMonitorOptions) {
+  const head = options.head();
+  return { head, report: await verifyEventLog(options.directory, { head }) };
 }
-const view = (event: AuditEvent): AuditEventView =>
-  (event.data ? { ...event, data: boundedEventData(event.data) } : event) as AuditEventView;
+
+/** Usage folded so far and the sequence it covers; each check reads only newer events. */
+interface UsageState {
+  usage: ReadonlyMap<string, EgressUsage>;
+  scanned: number;
+}
+
+/** One check: verify, fold new egress, assess, then record `posture.checked` (best effort). */
+async function runCheck(
+  options: PostureMonitorOptions,
+  state: UsageState,
+  now: () => number,
+): Promise<Posture> {
+  const { head, report } = await verifyToHead(options);
+  const fresh = (
+    await readEvents(options.directory, { afterSeq: state.scanned, kinds: egressKinds })
+  ).filter((event) => event.seq <= head.seq);
+  state.usage = accumulateEgress(state.usage, fresh);
+  state.scanned = head.seq;
+  const posture = assessPosture({
+    policy: options.policy,
+    verification: report,
+    ...(options.forwarding?.() ? { forwarding: options.forwarding()! } : {}),
+    usage: state.usage,
+    ...(options.attestation ? { attestation: await options.attestation() } : {}),
+    now: now(),
+  });
+  await options.eventLog
+    .append([
+      {
+        kind: 'posture.checked',
+        outcome: 'info',
+        data: {
+          status: posture.status,
+          headSeq: head.seq,
+          checks: posture.checks.map((check) => ({ id: check.id, status: check.status })),
+        },
+      },
+    ])
+    .catch(() => undefined);
+  return posture;
+}
+
+async function verification(options: PostureMonitorOptions): Promise<LogVerification> {
+  const { head, report } = await verifyToHead(options);
+  return {
+    ok: report.ok,
+    segments: report.segments,
+    events: report.events,
+    checkpoints: report.checkpoints,
+    headSeq: head.seq,
+    problems: report.problems.slice(0, 50).map((problem) => ({ ...problem })),
+  };
+}
 
 /**
  * Continuous, passive posture monitoring for a running authority. Each check verifies the
@@ -82,114 +110,25 @@ const view = (event: AuditEvent): AuditEventView =>
  */
 export function createPostureMonitor(options: PostureMonitorOptions) {
   const now = options.now ?? Date.now;
-  let usage: ReadonlyMap<string, EgressUsage> = new Map();
-  let scanned = 0;
+  const state: UsageState = { usage: new Map(), scanned: 0 };
   let latest: Posture | undefined;
   let running: Promise<Posture> | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
 
-  async function verify() {
-    const head = options.head();
-    return { head, report: await verifyEventLog(options.directory, { head }) };
-  }
-
-  async function runCheck(): Promise<Posture> {
-    const { head, report } = await verify();
-    const fresh = (
-      await readEvents(options.directory, { afterSeq: scanned, kinds: egressKinds })
-    ).filter((event) => event.seq <= head.seq);
-    usage = accumulateEgress(usage, fresh);
-    scanned = head.seq;
-    const posture = assessPosture({
-      policy: options.policy,
-      verification: report,
-      ...(options.forwarding?.() ? { forwarding: options.forwarding()! } : {}),
-      usage,
-      ...(options.attestation ? { attestation: await options.attestation() } : {}),
-      now: now(),
-    });
-    await options.eventLog
-      .append([
-        {
-          kind: 'posture.checked',
-          outcome: 'info',
-          data: {
-            status: posture.status,
-            headSeq: head.seq,
-            checks: posture.checks.map((check) => ({ id: check.id, status: check.status })),
-          },
-        },
-      ])
-      .catch(() => undefined);
-    latest = posture;
-    return posture;
-  }
-
   /** One check at a time; concurrent callers share the running one. */
   const check = () =>
-    (running ??= runCheck().finally(() => {
-      running = undefined;
-    }));
+    (running ??= runCheck(options, state, now)
+      .then((posture) => (latest = posture))
+      .finally(() => {
+        running = undefined;
+      }));
 
   const port: AssurancePort = {
     // Reuse a recent check; an older one is redone so a reader never sees stale posture.
     posture: async () =>
       latest && now() - latest.checkedAt < (options.maxAgeMs ?? 60_000) ? latest : check(),
-    async events(query) {
-      const head = options.head();
-      const limit = query.limit ?? 50;
-      if (query.newest) {
-        const matching = (
-          await readEvents(options.directory, {
-            ...(query.kinds?.length ? { kinds: query.kinds } : {}),
-          })
-        ).filter(
-          (event) => event.seq <= head.seq && (!query.outcome || event.outcome === query.outcome),
-        );
-        return {
-          items: matching.slice(-limit).map(view),
-          nextAfterSeq: head.seq,
-          headSeq: head.seq,
-        };
-      }
-      const items: AuditEvent[] = [];
-      let after = query.afterSeq ?? 0;
-      // Page until enough matching events or the head; the outcome filter is applied per page.
-      while (items.length < limit && after < head.seq) {
-        const page = (
-          await readEvents(options.directory, {
-            afterSeq: after,
-            limit: Math.max(limit, 200),
-            ...(query.kinds?.length ? { kinds: query.kinds } : {}),
-          })
-        ).filter((event) => event.seq <= head.seq);
-        if (!page.length) {
-          after = head.seq;
-          break;
-        }
-        for (const event of page) {
-          after = event.seq;
-          if (!query.outcome || event.outcome === query.outcome) items.push(event);
-          if (items.length === limit) break;
-        }
-      }
-      return {
-        items: items.map(view),
-        nextAfterSeq: items.length === limit ? items.at(-1)!.seq : Math.max(after, head.seq),
-        headSeq: head.seq,
-      };
-    },
-    async verify() {
-      const { head, report } = await verify();
-      return {
-        ok: report.ok,
-        segments: report.segments,
-        events: report.events,
-        checkpoints: report.checkpoints,
-        headSeq: head.seq,
-        problems: report.problems.slice(0, 50).map((problem) => ({ ...problem })),
-      };
-    },
+    events: async (query) => auditEvents(options.directory, options.head(), query),
+    verify: () => verification(options),
   };
 
   return {

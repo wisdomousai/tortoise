@@ -37,19 +37,10 @@ export interface PostureInput {
   readonly now: number;
 }
 
-/**
- * Judge the running posture from facts the host already has: the resolved policy, a chain
- * verification, forwarding statistics and egress usage. Never probes the network. `failing`
- * means the audit trail or policy cannot be trusted; `attention` means something a reviewer
- * should look at (denials, unforwarded events, required features switched off).
- */
-export function assessPosture(input: PostureInput): Posture {
-  const { policy, verification, forwarding } = input;
-  const usage = input.usage ?? new Map<string, EgressUsage>();
-  const checks: PostureCheck[] = [];
+function policyCheck(policy: ResolvedPolicy): PostureCheck {
   const errors = policy.findings.filter((finding) => finding.level === 'error');
   const warnings = policy.findings.filter((finding) => finding.level === 'warning');
-  checks.push({
+  return {
     id: 'policy',
     status: errors.length ? 'fail' : warnings.length ? 'warn' : 'pass',
     summary: errors.length
@@ -57,50 +48,63 @@ export function assessPosture(input: PostureInput): Posture {
       : warnings.length
         ? `${warnings.length} warning(s): ${[...new Set(warnings.map((finding) => finding.code))].join(', ')}`
         : `Site policy satisfies the ${policy.profile} profile`,
-  });
-  checks.push(
-    !verification
-      ? { id: 'audit-chain', status: 'warn', summary: 'Audit chain not verified yet' }
-      : verification.ok
-        ? {
-            id: 'audit-chain',
-            status: 'pass',
-            summary: `${verification.events} events verified up to ${verification.head?.seq ?? 0}`,
-          }
-        : {
-            id: 'audit-chain',
-            status: 'fail',
-            summary: `${verification.problems.length} integrity problem(s), first: ${verification.problems[0]!.problem}`,
-          },
-  );
-  const forwardTo = policy.policy.audit.forwardTo;
-  checks.push(
-    !forwardTo
+  };
+}
+
+function auditChainCheck(verification: VerificationReport | undefined): PostureCheck {
+  return !verification
+    ? { id: 'audit-chain', status: 'warn', summary: 'Audit chain not verified yet' }
+    : verification.ok
+      ? {
+          id: 'audit-chain',
+          status: 'pass',
+          summary: `${verification.events} events verified up to ${verification.head?.seq ?? 0}`,
+        }
+      : {
+          id: 'audit-chain',
+          status: 'fail',
+          summary: `${verification.problems.length} integrity problem(s), first: ${verification.problems[0]!.problem}`,
+        };
+}
+
+function forwardingCheck(
+  forwardTo: string | undefined,
+  forwarding: ForwardingStats | undefined,
+): PostureCheck {
+  return !forwardTo
+    ? {
+        id: 'audit-forwarding',
+        status: 'info',
+        summary: 'Events stay on this host; no off-host collector is configured',
+      }
+    : !forwarding
       ? {
           id: 'audit-forwarding',
-          status: 'info',
-          summary: 'Events stay on this host; no off-host collector is configured',
+          status: 'warn',
+          summary: `Forwarding to ${forwardTo} not started`,
         }
-      : !forwarding
+      : forwarding.dropped || forwarding.failures
         ? {
             id: 'audit-forwarding',
             status: 'warn',
-            summary: `Forwarding to ${forwardTo} not started`,
+            summary: `${forwarding.dropped} event(s) not forwarded to ${forwardTo} after ${forwarding.failures} failure(s)`,
           }
-        : forwarding.dropped || forwarding.failures
-          ? {
-              id: 'audit-forwarding',
-              status: 'warn',
-              summary: `${forwarding.dropped} event(s) not forwarded to ${forwardTo} after ${forwarding.failures} failure(s)`,
-            }
-          : {
-              id: 'audit-forwarding',
-              status: 'pass',
-              summary: `${forwarding.forwarded} event(s) forwarded to ${forwardTo}`,
-            },
-  );
+        : {
+            id: 'audit-forwarding',
+            status: 'pass',
+            summary: `${forwarding.forwarded} event(s) forwarded to ${forwardTo}`,
+          };
+}
+
+/** Denied egress, required destinations that are off, and bindings never used. */
+function egressChecks(
+  policy: ResolvedPolicy,
+  usage: ReadonlyMap<string, EgressUsage>,
+): PostureCheck[] {
   const denied = [...usage].filter(([, item]) => item.denied > 0);
-  checks.push(
+  const requiredOff = policy.consequences.filter((item) => item.availability === 'required');
+  const unused = [...policy.bindings.keys()].filter((id) => !usage.get(id)?.allowed).sort();
+  return [
     denied.length
       ? {
           id: 'egress-denials',
@@ -108,9 +112,6 @@ export function assessPosture(input: PostureInput): Posture {
           summary: `Denied egress to ${denied.map(([id, item]) => `${id} (${item.denied})`).join(', ')}`,
         }
       : { id: 'egress-denials', status: 'pass', summary: 'No egress was denied' },
-  );
-  const requiredOff = policy.consequences.filter((item) => item.availability === 'required');
-  checks.push(
     requiredOff.length
       ? {
           id: 'required-destinations',
@@ -122,18 +123,23 @@ export function assessPosture(input: PostureInput): Posture {
           status: 'pass',
           summary: 'Every required destination is bound',
         },
-  );
-  const unused = [...policy.bindings.keys()].filter((id) => !usage.get(id)?.allowed).sort();
-  checks.push({
-    id: 'unused-bindings',
-    status: 'info',
-    summary: unused.length
-      ? `Bound but not used since the log began: ${unused.join(', ')}`
-      : 'Every bound destination has been used',
-  });
+    {
+      id: 'unused-bindings',
+      status: 'info',
+      summary: unused.length
+        ? `Bound but not used since the log began: ${unused.join(', ')}`
+        : 'Every bound destination has been used',
+    },
+  ];
+}
 
+/** Every declared destination, sorted by ID, with its state and usage. */
+function destinationPostures(
+  policy: ResolvedPolicy,
+  usage: ReadonlyMap<string, EgressUsage>,
+): DestinationPosture[] {
   const consequence = new Map(policy.consequences.map((item) => [item.destination, item]));
-  const destinations: DestinationPosture[] = [...policy.declared.values()]
+  return [...policy.declared.values()]
     .sort((a, b) => (a.id < b.id ? -1 : 1))
     .map((declared) => {
       const binding = policy.bindings.get(declared.id);
@@ -161,6 +167,24 @@ export function assessPosture(input: PostureInput): Posture {
         ...(used?.lastUsedAt !== undefined ? { lastUsedAt: used.lastUsedAt } : {}),
       };
     });
+}
+
+/**
+ * Judge the running posture from facts the host already has: the resolved policy, a chain
+ * verification, forwarding statistics and egress usage. Never probes the network. `failing`
+ * means the audit trail or policy cannot be trusted; `attention` means something a reviewer
+ * should look at (denials, unforwarded events, required features switched off).
+ */
+export function assessPosture(input: PostureInput): Posture {
+  const { policy, verification, forwarding } = input;
+  const usage = input.usage ?? new Map<string, EgressUsage>();
+  const forwardTo = policy.policy.audit.forwardTo;
+  const checks: PostureCheck[] = [
+    policyCheck(policy),
+    auditChainCheck(verification),
+    forwardingCheck(forwardTo, forwarding),
+    ...egressChecks(policy, usage),
+  ];
   const status = checks.some((check) => check.status === 'fail')
     ? 'failing'
     : checks.some((check) => check.status === 'warn')
@@ -178,7 +202,7 @@ export function assessPosture(input: PostureInput): Posture {
       ? { executableDigest: input.attestation.executableDigest }
       : {}),
     checks,
-    destinations,
+    destinations: destinationPostures(policy, usage),
     findings: policy.findings.map((finding) => ({
       level: finding.level,
       code: finding.code,

@@ -23,6 +23,8 @@ Layer: framework (`packages/*`). Server only, except the capability module.
 
 `manifest`, `controls`, `sbom`, `rules`, `posture` and `monitor` are also importable by path; the root export covers them.
 
+`exporters/` has one file per format plus the shared header, YAML and service defaults. `sbom/` holds the lockfile parser and the dependency graph. `audit-events` pages the audit log for the monitor. These are imported only from inside the package.
+
 ## Trust boundary
 
 The assurance capabilities are queries only: nothing here changes configuration, and the log stays append-only. Each call needs `read` on `Audit`, which the composing application grants in its own state (`createAssuranceState`), and each call is itself audited. A host without an audit log reports unavailable, not empty.
