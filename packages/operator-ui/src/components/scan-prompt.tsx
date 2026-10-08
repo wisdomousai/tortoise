@@ -17,6 +17,88 @@ export interface ScanOutcome {
   readonly message?: React.ReactNode;
 }
 
+/** The last scan in large type, marked accepted or refused by icon, word and color. */
+function LastOutcome({ last }: { last: ScanOutcome }) {
+  const Outcome = last.ok ? CircleCheck : CircleAlert;
+  return (
+    <div
+      role="status"
+      aria-live="assertive"
+      data-ok={last.ok}
+      className={cn(
+        'flex items-center gap-3 rounded-lg border-2 px-4 py-3',
+        last.ok ? 'border-op-ok/60 bg-op-ok/10' : 'border-op-fault/60 bg-op-fault/10',
+      )}
+    >
+      <Outcome
+        className={cn('size-8 shrink-0', last.ok ? 'text-op-ok' : 'text-op-fault')}
+        aria-hidden
+      />
+      <div className="min-w-0">
+        <p className="truncate font-mono text-(length:--operator-text-lg)">{last.value}</p>
+        {last.message && <p className="text-(length:--operator-text)">{last.message}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** Typed fallback, focused when opened; Escape closes it and keeps what was typed. */
+function ManualEntry({
+  label,
+  inputMode,
+  pattern,
+  pending,
+  value,
+  onChange,
+  onSubmit,
+  onClose,
+}: {
+  label: string;
+  inputMode: 'text' | 'numeric';
+  pattern?: string;
+  pending: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: (event: React.FormEvent) => void;
+  onClose: () => void;
+}) {
+  const input = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    input.current?.focus();
+  }, []);
+  return (
+    <form onSubmit={onSubmit}>
+      <InputGroup className="h-(--operator-target)">
+        <InputGroupInput
+          ref={input}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          inputMode={inputMode}
+          pattern={pattern}
+          autoComplete="off"
+          spellCheck={false}
+          aria-label={label}
+          className="text-(length:--operator-text)"
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') onClose();
+          }}
+        />
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton
+            type="submit"
+            variant="default"
+            size="sm"
+            disabled={pending || !value.trim()}
+            className="h-[calc(var(--operator-target)-0.75rem)] px-5 text-(length:--operator-text)"
+          >
+            Use
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
+    </form>
+  );
+}
+
 /**
  * Scan-first prompt. The scanner is the normal path: the prompt names what to scan and shows the
  * last outcome in large type. Typing is the fallback for damaged labels and opens on request, so
@@ -47,10 +129,6 @@ function ScanPrompt({
 }) {
   const [manual, setManual] = React.useState(false);
   const [value, setValue] = React.useState('');
-  const input = React.useRef<HTMLInputElement>(null);
-  React.useEffect(() => {
-    if (manual) input.current?.focus();
-  }, [manual]);
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     const trimmed = value.trim();
@@ -59,7 +137,6 @@ function ScanPrompt({
     setValue('');
     setManual(false);
   };
-  const Outcome = last?.ok ? CircleCheck : CircleAlert;
   return (
     <section
       data-slot="scan-prompt"
@@ -76,57 +153,19 @@ function ScanPrompt({
           {hint && <p className="text-(length:--operator-text) text-muted-foreground">{hint}</p>}
         </div>
       </div>
-      {last && (
-        <div
-          role="status"
-          aria-live="assertive"
-          data-ok={last.ok}
-          className={cn(
-            'flex items-center gap-3 rounded-lg border-2 px-4 py-3',
-            last.ok ? 'border-op-ok/60 bg-op-ok/10' : 'border-op-fault/60 bg-op-fault/10',
-          )}
-        >
-          <Outcome
-            className={cn('size-8 shrink-0', last.ok ? 'text-op-ok' : 'text-op-fault')}
-            aria-hidden
-          />
-          <div className="min-w-0">
-            <p className="truncate font-mono text-(length:--operator-text-lg)">{last.value}</p>
-            {last.message && <p className="text-(length:--operator-text)">{last.message}</p>}
-          </div>
-        </div>
-      )}
+      {last && <LastOutcome last={last} />}
       {onManual &&
         (manual ? (
-          <form onSubmit={submit}>
-            <InputGroup className="h-(--operator-target)">
-              <InputGroupInput
-                ref={input}
-                value={value}
-                onChange={(event) => setValue(event.target.value)}
-                inputMode={inputMode}
-                pattern={pattern}
-                autoComplete="off"
-                spellCheck={false}
-                aria-label={typeof prompt === 'string' ? prompt : 'Code'}
-                className="text-(length:--operator-text)"
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape') setManual(false);
-                }}
-              />
-              <InputGroupAddon align="inline-end">
-                <InputGroupButton
-                  type="submit"
-                  variant="default"
-                  size="sm"
-                  disabled={pending || !value.trim()}
-                  className="h-[calc(var(--operator-target)-0.75rem)] px-5 text-(length:--operator-text)"
-                >
-                  Use
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
-          </form>
+          <ManualEntry
+            label={typeof prompt === 'string' ? prompt : 'Code'}
+            inputMode={inputMode}
+            pattern={pattern}
+            pending={pending}
+            value={value}
+            onChange={setValue}
+            onSubmit={submit}
+            onClose={() => setManual(false)}
+          />
         ) : (
           <Button
             type="button"

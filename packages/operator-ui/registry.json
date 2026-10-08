@@ -335,6 +335,18 @@
         {
           "path": "src/components/scanner-setup.tsx",
           "type": "registry:component"
+        },
+        {
+          "path": "src/components/scanner-calibration.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/scanner-profile-form.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/scan-readout.tsx",
+          "type": "registry:component"
         }
       ]
     },

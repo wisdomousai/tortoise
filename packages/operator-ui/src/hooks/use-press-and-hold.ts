@@ -1,5 +1,53 @@
 import * as React from 'react';
 
+const activates = (key: string) => key === ' ' || key === 'Enter';
+
+/** Whether the pointer slid more than `slopPx` outside the element it started on. */
+function outside(event: React.PointerEvent, slopPx: number) {
+  const rect = (event.currentTarget as Element).getBoundingClientRect();
+  return (
+    event.clientX < rect.left - slopPx ||
+    event.clientX > rect.right + slopPx ||
+    event.clientY < rect.top - slopPx ||
+    event.clientY > rect.bottom + slopPx
+  );
+}
+
+/** Pointer and keyboard handlers that start, abort and release one hold. */
+function holdHandlers(
+  hold: { begin: () => void; cancel: () => void; release: () => void; holding: () => boolean },
+  slopPx: number,
+) {
+  return {
+    onPointerDown: (event: React.PointerEvent) => {
+      if (event.button !== 0) return;
+      // Keep receiving pointerup even if a gloved finger slides slightly.
+      (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
+      hold.begin();
+    },
+    onPointerMove: (event: React.PointerEvent) => {
+      if (!hold.holding()) return;
+      // Pointer capture keeps events flowing after the finger leaves, so check the bounds here.
+      if (outside(event, slopPx)) hold.cancel();
+    },
+    onPointerUp: hold.release,
+    onPointerCancel: hold.release,
+    onLostPointerCapture: hold.release,
+    onKeyDown: (event: React.KeyboardEvent) => {
+      if (activates(event.key) && !event.repeat) {
+        event.preventDefault();
+        hold.begin();
+      } else if (activates(event.key)) event.preventDefault();
+    },
+    onKeyUp: (event: React.KeyboardEvent) => {
+      if (activates(event.key)) hold.release();
+    },
+    onBlur: hold.release,
+    // A long press must not open the context menu on touch panels.
+    onContextMenu: (event: React.MouseEvent) => event.preventDefault(),
+  };
+}
+
 /**
  * Hold-to-confirm for consequential actions at an operator station. A deliberate hold replaces a
  * confirmation dialog: it cannot be triggered by a brushed touch or a glove resting on the panel,
@@ -62,40 +110,9 @@ export function usePressAndHold({
   return {
     progress,
     holding: progress > 0 && progress < 1,
-    props: {
-      onPointerDown: (event: React.PointerEvent) => {
-        if (event.button !== 0) return;
-        // Keep receiving pointerup even if a gloved finger slides slightly.
-        (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
-        begin();
-      },
-      onPointerMove: (event: React.PointerEvent) => {
-        if (started.current === undefined) return;
-        // Pointer capture keeps events flowing after the finger leaves, so check the bounds here.
-        const rect = (event.currentTarget as Element).getBoundingClientRect();
-        if (
-          event.clientX < rect.left - slopPx ||
-          event.clientX > rect.right + slopPx ||
-          event.clientY < rect.top - slopPx ||
-          event.clientY > rect.bottom + slopPx
-        )
-          cancel();
-      },
-      onPointerUp: release,
-      onPointerCancel: release,
-      onLostPointerCapture: release,
-      onKeyDown: (event: React.KeyboardEvent) => {
-        if ((event.key === ' ' || event.key === 'Enter') && !event.repeat) {
-          event.preventDefault();
-          begin();
-        } else if (event.key === ' ' || event.key === 'Enter') event.preventDefault();
-      },
-      onKeyUp: (event: React.KeyboardEvent) => {
-        if (event.key === ' ' || event.key === 'Enter') release();
-      },
-      onBlur: release,
-      // A long press must not open the context menu on touch panels.
-      onContextMenu: (event: React.MouseEvent) => event.preventDefault(),
-    },
+    props: holdHandlers(
+      { begin, cancel, release, holding: () => started.current !== undefined },
+      slopPx,
+    ),
   };
 }

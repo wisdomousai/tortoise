@@ -22,6 +22,8 @@ Inside this repository, screens import the parts through the `@/` alias (`@/comp
 
 [`registry.manifest.ts`](registry.manifest.ts) is the source of truth. `bun run build:registry:operator` generates `registry.json` and `src/styles/operator.css` from it and builds the registry into `dist/registry/operator`. Do not edit the two generated files by hand.
 
+An item may ship several files that import each other. `scanner-setup` is one: `scanner-calibration` (the calibration code, key recorder and step 1), `scanner-profile-form` (step 2) and `scan-readout` (live scan and GS1 readout) are pulled with it and are not items of their own. The registry check accepts imports between files of the same item and still requires every other `@/` import to be a declared dependency.
+
 ## Trust boundary
 
 Nothing here is a security boundary. Parts hold no state beyond what input needs: every slot is data from queries and every action is a callback that issues a catalog command. The behavior they guarantee is about intent:

@@ -307,7 +307,12 @@ export const items: readonly ManifestItem[] = [
       'operator:status-strip',
       'operator:use-scanner',
     ],
-    files: ['src/components/scanner-setup.tsx'],
+    files: [
+      'src/components/scanner-setup.tsx',
+      'src/components/scanner-calibration.tsx',
+      'src/components/scanner-profile-form.tsx',
+      'src/components/scan-readout.tsx',
+    ],
   },
   {
     name: 'operator-station',

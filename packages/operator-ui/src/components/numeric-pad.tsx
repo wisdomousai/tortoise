@@ -61,6 +61,92 @@ function ToleranceGauge({
   );
 }
 
+function PadKey({
+  children,
+  onPress,
+  extra,
+  name,
+  pending,
+}: {
+  children: React.ReactNode;
+  onPress: () => void;
+  extra?: string;
+  name?: string;
+  pending: boolean;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      aria-label={name}
+      className={cn(
+        'touch-operator h-(--operator-target-lg) text-(length:--operator-text-xl) font-semibold tabular-nums',
+        extra,
+      )}
+      onClick={onPress}
+      disabled={pending}
+    >
+      {children}
+    </Button>
+  );
+}
+
+/** The 4-column key grid: digits, delete, clear, submit, sign (when allowed) and separator. */
+function Keypad({
+  press,
+  submit,
+  canSubmit,
+  pending,
+  separator,
+  allowNegative,
+  submitLabel,
+}: {
+  press: (key: string) => void;
+  submit: () => void;
+  canSubmit: boolean;
+  pending: boolean;
+  separator: string;
+  allowNegative?: boolean;
+  submitLabel: React.ReactNode;
+}) {
+  const key = (content: React.ReactNode, onPress: () => void, extra?: string, name?: string) => (
+    <PadKey onPress={onPress} extra={extra} name={name} pending={pending}>
+      {content}
+    </PadKey>
+  );
+  return (
+    <div className="grid grid-cols-4 gap-(--operator-gap)">
+      {key('7', () => press('7'))}
+      {key('8', () => press('8'))}
+      {key('9', () => press('9'))}
+      {key(<Delete className="size-8" aria-hidden />, () => press('Backspace'), '', 'Delete digit')}
+      {key('4', () => press('4'))}
+      {key('5', () => press('5'))}
+      {key('6', () => press('6'))}
+      {key('C', () => press('Escape'), 'text-(length:--operator-text-lg)', 'Clear')}
+      {key('1', () => press('1'))}
+      {key('2', () => press('2'))}
+      {key('3', () => press('3'))}
+      <Button
+        type="button"
+        className="touch-operator row-span-2 h-auto text-(length:--operator-text-lg) font-semibold"
+        disabled={!canSubmit || pending}
+        onClick={submit}
+      >
+        <span className="flex flex-col items-center gap-2">
+          <CornerDownLeft className="size-8" aria-hidden />
+          {submitLabel}
+        </span>
+      </Button>
+      {allowNegative
+        ? key('±', () => press('±'), '', 'Change sign')
+        : key('', () => undefined, 'invisible')}
+      {key('0', () => press('0'))}
+      {key(separator, () => press(separator), '', 'Decimal separator')}
+    </div>
+  );
+}
+
 /**
  * On-screen keypad for measured values with gloves on. Large keys, the unit beside the readout,
  * the configured decimal separator, and the tolerance verdict before submitting. Physical
@@ -108,21 +194,6 @@ function NumericPad({
   for (const digit of '0123456789') bindings[digit] = () => press(digit);
   useOperatorKeys(bindings, { enabled: keyboard });
 
-  const key = (content: React.ReactNode, onPress: () => void, extra?: string, name?: string) => (
-    <Button
-      type="button"
-      variant="outline"
-      aria-label={name}
-      className={cn(
-        'touch-operator h-(--operator-target-lg) text-(length:--operator-text-xl) font-semibold tabular-nums',
-        extra,
-      )}
-      onClick={onPress}
-      disabled={pending}
-    >
-      {content}
-    </Button>
-  );
   return (
     <div
       data-slot="numeric-pad"
@@ -147,40 +218,15 @@ function NumericPad({
           decimals={rules.decimals}
         />
       )}
-      <div className="grid grid-cols-4 gap-(--operator-gap)">
-        {key('7', () => press('7'))}
-        {key('8', () => press('8'))}
-        {key('9', () => press('9'))}
-        {key(
-          <Delete className="size-8" aria-hidden />,
-          () => press('Backspace'),
-          '',
-          'Delete digit',
-        )}
-        {key('4', () => press('4'))}
-        {key('5', () => press('5'))}
-        {key('6', () => press('6'))}
-        {key('C', () => press('Escape'), 'text-(length:--operator-text-lg)', 'Clear')}
-        {key('1', () => press('1'))}
-        {key('2', () => press('2'))}
-        {key('3', () => press('3'))}
-        <Button
-          type="button"
-          className="touch-operator row-span-2 h-auto text-(length:--operator-text-lg) font-semibold"
-          disabled={parsed === undefined || pending}
-          onClick={submit}
-        >
-          <span className="flex flex-col items-center gap-2">
-            <CornerDownLeft className="size-8" aria-hidden />
-            {submitLabel}
-          </span>
-        </Button>
-        {rules.allowNegative
-          ? key('±', () => press('±'), '', 'Change sign')
-          : key('', () => undefined, 'invisible')}
-        {key('0', () => press('0'))}
-        {key(separator, () => press(separator), '', 'Decimal separator')}
-      </div>
+      <Keypad
+        press={press}
+        submit={submit}
+        canSubmit={parsed !== undefined}
+        pending={pending}
+        separator={separator}
+        allowNegative={rules.allowNegative}
+        submitLabel={submitLabel}
+      />
     </div>
   );
 }

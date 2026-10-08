@@ -5,6 +5,40 @@ import { StatusStrip } from '@/components/status-strip';
 import { TakeoverButton } from '@/components/takeover-button';
 import { cn } from '@/lib/utils';
 
+/** Dark bar: back link, where and who, seat control and station actions. */
+function StationHeader({
+  title,
+  context,
+  back,
+  seat,
+  headerActions,
+}: {
+  title: React.ReactNode;
+  context?: React.ReactNode;
+  back?: React.ReactNode;
+  seat?: React.ComponentProps<typeof TakeoverButton>;
+  headerActions?: React.ReactNode;
+}) {
+  return (
+    <header
+      data-slot="operator-header"
+      className="flex flex-wrap items-center gap-(--operator-gap) bg-foreground px-(--operator-gap) py-3 text-background"
+    >
+      {back}
+      <div className="min-w-0 flex-[1_1_14rem]">
+        <h1 className="truncate text-(length:--operator-text-lg) leading-tight font-bold">
+          {title}
+        </h1>
+        {context && <div className="text-(length:--operator-text) opacity-75">{context}</div>}
+      </div>
+      {seat && <TakeoverButton className="w-auto sm:min-w-72" {...seat} />}
+      {headerActions && (
+        <div className="flex items-center gap-(--operator-gap)">{headerActions}</div>
+      )}
+    </header>
+  );
+}
+
 /**
  * Layout skeleton of a full-window station screen. The fixed order matters more than the parts:
  * a dark bar with where and who, seat control and station actions; then the machine state, large
@@ -59,22 +93,13 @@ function OperatorStation({
       contrast={contrast}
       className={cn('gap-0 bg-muted p-0', className)}
     >
-      <header
-        data-slot="operator-header"
-        className="flex flex-wrap items-center gap-(--operator-gap) bg-foreground px-(--operator-gap) py-3 text-background"
-      >
-        {back}
-        <div className="min-w-0 flex-[1_1_14rem]">
-          <h1 className="truncate text-(length:--operator-text-lg) leading-tight font-bold">
-            {title}
-          </h1>
-          {context && <div className="text-(length:--operator-text) opacity-75">{context}</div>}
-        </div>
-        {seat && <TakeoverButton className="w-auto sm:min-w-72" {...seat} />}
-        {headerActions && (
-          <div className="flex items-center gap-(--operator-gap)">{headerActions}</div>
-        )}
-      </header>
+      <StationHeader
+        title={title}
+        context={context}
+        back={back}
+        seat={seat}
+        headerActions={headerActions}
+      />
       <div className="flex flex-1 flex-col gap-(--operator-gap) p-(--operator-gap)">
         {banner}
         {status && <StatusStrip>{status}</StatusStrip>}

@@ -22,6 +22,105 @@ const toneClass: Record<NonNullable<Tile['tone']>, string> = {
   caution: 'border-op-attention/70 bg-op-attention/15',
 };
 
+function TileButton({
+  tile,
+  hotkey,
+  selected,
+  guard,
+  onPick,
+}: {
+  tile: Tile;
+  /** Digit shown on the tile, when hotkeys are on. */
+  hotkey?: number;
+  selected: boolean;
+  guard: TapGuard;
+  onPick: (event: React.MouseEvent<HTMLElement>) => void;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      disabled={tile.disabled}
+      aria-pressed={selected}
+      onPointerDown={(event) =>
+        guard.pointerDown(
+          { x: event.clientX, y: event.clientY },
+          event.currentTarget.getBoundingClientRect(),
+        )
+      }
+      onClick={onPick}
+      className={cn(
+        'touch-operator h-auto min-h-(--operator-target-lg) flex-col items-start justify-center gap-1 rounded-xl border-2 px-5 py-3 text-left whitespace-normal',
+        toneClass[tile.tone ?? 'neutral'],
+        selected && 'ring-4 ring-ring',
+      )}
+    >
+      <span className="flex w-full items-start justify-between gap-3 text-(length:--operator-text-lg) leading-tight font-semibold">
+        <span className="flex min-w-0 items-center gap-3 break-words hyphens-auto">
+          {tile.icon}
+          {tile.label}
+        </span>
+        {hotkey !== undefined && <Kbd className="h-8 min-w-8 shrink-0 text-lg">{hotkey}</Kbd>}
+      </span>
+      {tile.detail && (
+        <span className="text-(length:--operator-text) font-normal text-muted-foreground">
+          {tile.detail}
+        </span>
+      )}
+    </Button>
+  );
+}
+
+const pageButton =
+  'touch-operator h-(--operator-target) min-w-(--operator-target-lg) text-(length:--operator-text)';
+
+function PageControls({
+  page,
+  pages,
+  onPage,
+}: {
+  page: number;
+  pages: number;
+  onPage: (page: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-(--operator-gap)">
+      <Button
+        type="button"
+        variant="outline"
+        className={pageButton}
+        disabled={page === 0}
+        onClick={() => onPage(page - 1)}
+        aria-label="Previous page"
+      >
+        <ChevronLeft className="size-8" aria-hidden />
+      </Button>
+      <span className="text-(length:--operator-text) text-muted-foreground" aria-live="polite">
+        Page {page + 1} of {pages}
+      </span>
+      <Button
+        type="button"
+        variant="outline"
+        className={pageButton}
+        disabled={page === pages - 1}
+        onClick={() => onPage(page + 1)}
+        aria-label="Next page"
+      >
+        <ChevronRight className="size-8" aria-hidden />
+      </Button>
+    </div>
+  );
+}
+
+/** At most nine tiles per page; the page is clamped when the catalog shrinks. */
+function useTilePages(tiles: readonly Tile[], pageSize: number) {
+  const size = Math.min(9, Math.max(1, pageSize));
+  const pages = Math.max(1, Math.ceil(tiles.length / size));
+  const [page, setPage] = React.useState(0);
+  React.useEffect(() => setPage((current) => Math.min(current, pages - 1)), [pages]);
+  return { page, pages, setPage, visible: tiles.slice(page * size, page * size + size) };
+}
+
 /**
  * Choose one of a catalog of codes (stop reasons, scrap reasons, defect codes) with one tap or one
  * digit key. At most nine tiles per page so every tile has a hotkey; large paging buttons and
@@ -49,11 +148,7 @@ function TilePicker({
   label: string;
   className?: string;
 }) {
-  const size = Math.min(9, Math.max(1, pageSize));
-  const pages = Math.max(1, Math.ceil(tiles.length / size));
-  const [page, setPage] = React.useState(0);
-  React.useEffect(() => setPage((current) => Math.min(current, pages - 1)), [pages]);
-  const visible = tiles.slice(page * size, page * size + size);
+  const { page, pages, setPage, visible } = useTilePages(tiles, pageSize);
   const guard = React.useMemo(() => new TapGuard(), []);
   const pick = (tile: Tile, at: number, event?: React.MouseEvent<HTMLElement>) => {
     if (tile.disabled) return;
@@ -95,67 +190,17 @@ function TilePicker({
         )}
       >
         {visible.map((tile, index) => (
-          <Button
+          <TileButton
             key={tile.value}
-            type="button"
-            variant="outline"
-            disabled={tile.disabled}
-            aria-pressed={selected === tile.value}
-            onPointerDown={(event) =>
-              guard.pointerDown(
-                { x: event.clientX, y: event.clientY },
-                event.currentTarget.getBoundingClientRect(),
-              )
-            }
-            onClick={(event) => pick(tile, event.timeStamp, event)}
-            className={cn(
-              'touch-operator h-auto min-h-(--operator-target-lg) flex-col items-start justify-center gap-1 rounded-xl border-2 px-5 py-3 text-left whitespace-normal',
-              toneClass[tile.tone ?? 'neutral'],
-              selected === tile.value && 'ring-4 ring-ring',
-            )}
-          >
-            <span className="flex w-full items-start justify-between gap-3 text-(length:--operator-text-lg) leading-tight font-semibold">
-              <span className="flex min-w-0 items-center gap-3 break-words hyphens-auto">
-                {tile.icon}
-                {tile.label}
-              </span>
-              {hotkeys && <Kbd className="h-8 min-w-8 shrink-0 text-lg">{index + 1}</Kbd>}
-            </span>
-            {tile.detail && (
-              <span className="text-(length:--operator-text) font-normal text-muted-foreground">
-                {tile.detail}
-              </span>
-            )}
-          </Button>
+            tile={tile}
+            hotkey={hotkeys ? index + 1 : undefined}
+            selected={selected === tile.value}
+            guard={guard}
+            onPick={(event) => pick(tile, event.timeStamp, event)}
+          />
         ))}
       </div>
-      {pages > 1 && (
-        <div className="flex items-center justify-between gap-(--operator-gap)">
-          <Button
-            type="button"
-            variant="outline"
-            className="touch-operator h-(--operator-target) min-w-(--operator-target-lg) text-(length:--operator-text)"
-            disabled={page === 0}
-            onClick={() => setPage(page - 1)}
-            aria-label="Previous page"
-          >
-            <ChevronLeft className="size-8" aria-hidden />
-          </Button>
-          <span className="text-(length:--operator-text) text-muted-foreground" aria-live="polite">
-            Page {page + 1} of {pages}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            className="touch-operator h-(--operator-target) min-w-(--operator-target-lg) text-(length:--operator-text)"
-            disabled={page === pages - 1}
-            onClick={() => setPage(page + 1)}
-            aria-label="Next page"
-          >
-            <ChevronRight className="size-8" aria-hidden />
-          </Button>
-        </div>
-      )}
+      {pages > 1 && <PageControls page={page} pages={pages} onPage={setPage} />}
     </div>
   );
 }

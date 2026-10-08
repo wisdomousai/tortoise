@@ -6,7 +6,8 @@
  *   repository, which import the sources directly instead of pulling them.
  *
  * It also checks that every item can be pulled into an unrelated shadcn app: each `@/` import in an
- * item's files must be declared as a registry dependency, and each package import as a dependency.
+ * item's files must be declared as a registry dependency (or be another file of the same item), and
+ * each package import as a dependency.
  * An undeclared import works in this monorepo and breaks for everyone who runs `shadcn add`.
  *
  * `--check` fails when the generated files are out of date instead of writing them.
@@ -56,11 +57,16 @@ function requirement(specifier: string): { registry?: string; npm?: string } | u
 
 const problems: string[] = [];
 for (const item of items) {
+  // A block's files ship together, so they may import each other without a declaration.
+  const together = new Set(
+    (item.files ?? []).map((path) => path.replace(/^src\//, '@/').replace(/\.tsx?$/, '')),
+  );
   for (const path of item.files ?? []) {
     const source = readFileSync(join(root, path), 'utf8');
     for (const [, specifier = ''] of source.matchAll(
       /^\s*(?:import|export)[^'"]*?from\s+['"]([^'"]+)['"]/gm,
     )) {
+      if (together.has(specifier)) continue;
       const needed = requirement(specifier);
       if (!needed) continue;
       if (needed.registry === '(relative import)')

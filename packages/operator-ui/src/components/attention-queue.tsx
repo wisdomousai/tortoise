@@ -35,6 +35,55 @@ const kindLabel: Record<AttentionItem['kind'], string> = {
   reconcile: 'Confirm outcome',
 };
 
+/** The value the system believes, with where it came from and how sure it is. */
+function Proposal({ item }: { item: AttentionItem }) {
+  return (
+    <div className="rounded-lg bg-muted px-4 py-3">
+      <p className="font-mono text-(length:--operator-text-xl) font-semibold tabular-nums">
+        {item.proposed}
+      </p>
+      {(item.source || item.confidence !== undefined) && (
+        <p className="text-(length:--operator-text) text-muted-foreground">
+          {item.source}
+          {item.source && item.confidence !== undefined && ' · '}
+          {item.confidence !== undefined && `${Math.round(item.confidence * 100)} % sure`}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Choices({
+  item,
+  pending,
+  onResolve,
+}: {
+  item: AttentionItem;
+  pending: boolean;
+  onResolve: (id: string, value: string) => void;
+}) {
+  return (
+    <div
+      className={cn(
+        'grid gap-(--operator-gap)',
+        item.choices.length > 1 && 'sm:grid-cols-2',
+        item.choices.length > 2 && 'lg:grid-cols-3',
+      )}
+    >
+      {item.choices.map((choice) => (
+        <BigAction
+          key={choice.value}
+          label={choice.label}
+          tone={choice.tone ?? 'neutral'}
+          hold={choice.hold}
+          pending={pending}
+          onAction={() => onResolve(item.id, choice.value)}
+        />
+      ))}
+    </div>
+  );
+}
+
 /**
  * Items that need a person: uncertain readings, agent questions and unconfirmed screen actions.
  * Nothing in the queue is promoted to fact until the operator picks a choice; the caller turns
@@ -92,39 +141,8 @@ function AttentionQueue({
           )}
         </CardHeader>
         <CardContent className="space-y-(--operator-gap)">
-          {current.proposed !== undefined && (
-            <div className="rounded-lg bg-muted px-4 py-3">
-              <p className="font-mono text-(length:--operator-text-xl) font-semibold tabular-nums">
-                {current.proposed}
-              </p>
-              {(current.source || current.confidence !== undefined) && (
-                <p className="text-(length:--operator-text) text-muted-foreground">
-                  {current.source}
-                  {current.source && current.confidence !== undefined && ' · '}
-                  {current.confidence !== undefined &&
-                    `${Math.round(current.confidence * 100)} % sure`}
-                </p>
-              )}
-            </div>
-          )}
-          <div
-            className={cn(
-              'grid gap-(--operator-gap)',
-              current.choices.length > 1 && 'sm:grid-cols-2',
-              current.choices.length > 2 && 'lg:grid-cols-3',
-            )}
-          >
-            {current.choices.map((choice) => (
-              <BigAction
-                key={choice.value}
-                label={choice.label}
-                tone={choice.tone ?? 'neutral'}
-                hold={choice.hold}
-                pending={pending}
-                onAction={() => onResolve(current.id, choice.value)}
-              />
-            ))}
-          </div>
+          {current.proposed !== undefined && <Proposal item={current} />}
+          <Choices item={current} pending={pending} onResolve={onResolve} />
         </CardContent>
       </Card>
     </section>
