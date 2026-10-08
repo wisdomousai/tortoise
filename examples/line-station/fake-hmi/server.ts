@@ -29,81 +29,94 @@ const controls = new Set<Control>([
   'popupOk',
 ]);
 
+const json = (value: unknown, status = 200) =>
+  Response.json(value, { status, headers: { 'cache-control': 'no-store' } });
+const body = async (request: Request) =>
+  (await request.json().catch(() => ({}))) as Record<string, unknown>;
+
+/** The station page and the calls its own controls make; undefined for any other path. */
+async function screenRoute(sim: HmiSimulator, request: Request, url: URL) {
+  const path = url.pathname;
+  if (request.method === 'GET' && path === '/')
+    return new Response(page, { headers: { 'content-type': 'text/html; charset=utf-8' } });
+  if (request.method === 'GET' && path === '/state') {
+    const state = sim.tick();
+    return json({
+      ...state,
+      enabled: Object.fromEntries([...controls].map((control) => [control, sim.enabled(control)])),
+    });
+  }
+  // The page's own controls. A bridge action arrives here as a click on the page.
+  if (request.method === 'POST' && path === '/press') {
+    const { control } = await body(request);
+    if (typeof control !== 'string' || !controls.has(control as Control))
+      return json({ error: 'unknown control' }, 400);
+    sim.press(control as Control);
+    sim.afterAction();
+    return json({ ok: true });
+  }
+  if (request.method === 'POST' && path === '/draft') {
+    const { value } = await body(request);
+    sim.setDraft(String(value ?? ''));
+    return json({ ok: true });
+  }
+  if (request.method === 'POST' && path === '/key') {
+    const { key } = await body(request);
+    sim.key(String(key ?? ''));
+    sim.afterAction();
+    return json({ ok: true });
+  }
+  // Stand-in for an input hook on the station PC (keyboard/mouse use by a person there).
+  if (request.method === 'GET' && path === '/local-input') {
+    const since = Number(url.searchParams.get('since') ?? 0);
+    return json({
+      used: sim.state.localInputAt !== undefined && sim.state.localInputAt >= since,
+    });
+  }
+  return undefined;
+}
+
+/** Events at the machine and ground truth, for tests and the OCR stand-in only. */
+function simulationRoute(sim: HmiSimulator, path: string, input: Record<string, unknown>) {
+  switch (path) {
+    case '/__sim/counters':
+      sim.tick();
+      return json({ good: sim.state.good, scrap: sim.state.scrap });
+    case '/__sim/alarm':
+      sim.raiseAlarm(String(input.text ?? 'E-100 Machine alarm'));
+      return json({ ok: true });
+    case '/__sim/stop':
+      sim.stopMachine();
+      return json({ ok: true });
+    case '/__sim/start':
+      sim.startMachine();
+      return json({ ok: true });
+    case '/__sim/popup':
+      sim.showPopup(Number(input.afterActions ?? 0));
+      return json({ ok: true });
+    case '/__sim/local-input':
+      sim.localInput();
+      return json({ ok: true });
+    case '/__sim/state':
+      return json(sim.tick());
+  }
+  return undefined;
+}
+
 export function startFakeHmi(options: FakeHmiOptions = {}) {
   const now = options.now ?? Date.now;
   const sim = new HmiSimulator(now);
-  const json = (value: unknown, status = 200) =>
-    Response.json(value, { status, headers: { 'cache-control': 'no-store' } });
-  const body = async (request: Request) =>
-    (await request.json().catch(() => ({}))) as Record<string, unknown>;
   const server = Bun.serve({
     port: options.port ?? 0,
     hostname: options.hostname ?? '127.0.0.1',
     async fetch(request) {
       const url = new URL(request.url);
-      const path = url.pathname;
-      if (request.method === 'GET' && path === '/')
-        return new Response(page, { headers: { 'content-type': 'text/html; charset=utf-8' } });
-      if (request.method === 'GET' && path === '/state') {
-        const state = sim.tick();
-        return json({
-          ...state,
-          enabled: Object.fromEntries(
-            [...controls].map((control) => [control, sim.enabled(control)]),
-          ),
-        });
-      }
-      // The page's own controls. A bridge action arrives here as a click on the page.
-      if (request.method === 'POST' && path === '/press') {
-        const { control } = await body(request);
-        if (typeof control !== 'string' || !controls.has(control as Control))
-          return json({ error: 'unknown control' }, 400);
-        sim.press(control as Control);
-        sim.afterAction();
-        return json({ ok: true });
-      }
-      if (request.method === 'POST' && path === '/draft') {
-        const { value } = await body(request);
-        sim.setDraft(String(value ?? ''));
-        return json({ ok: true });
-      }
-      if (request.method === 'POST' && path === '/key') {
-        const { key } = await body(request);
-        sim.key(String(key ?? ''));
-        sim.afterAction();
-        return json({ ok: true });
-      }
-      // Stand-in for an input hook on the station PC (keyboard/mouse use by a person there).
-      if (request.method === 'GET' && path === '/local-input') {
-        const since = Number(url.searchParams.get('since') ?? 0);
-        return json({
-          used: sim.state.localInputAt !== undefined && sim.state.localInputAt >= since,
-        });
-      }
-      if (options.simulationEndpoints && path.startsWith('/__sim/')) {
+      const screen = await screenRoute(sim, request, url);
+      if (screen) return screen;
+      if (options.simulationEndpoints && url.pathname.startsWith('/__sim/')) {
         const input = request.method === 'POST' ? await body(request) : {};
-        switch (path) {
-          case '/__sim/counters':
-            sim.tick();
-            return json({ good: sim.state.good, scrap: sim.state.scrap });
-          case '/__sim/alarm':
-            sim.raiseAlarm(String(input.text ?? 'E-100 Machine alarm'));
-            return json({ ok: true });
-          case '/__sim/stop':
-            sim.stopMachine();
-            return json({ ok: true });
-          case '/__sim/start':
-            sim.startMachine();
-            return json({ ok: true });
-          case '/__sim/popup':
-            sim.showPopup(Number(input.afterActions ?? 0));
-            return json({ ok: true });
-          case '/__sim/local-input':
-            sim.localInput();
-            return json({ ok: true });
-          case '/__sim/state':
-            return json(sim.tick());
-        }
+        const simulated = simulationRoute(sim, url.pathname, input);
+        if (simulated) return simulated;
       }
       return json({ error: 'not found' }, 404);
     },

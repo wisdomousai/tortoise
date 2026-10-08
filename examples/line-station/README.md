@@ -24,6 +24,8 @@ Read the [operator workstation pattern](../../docs/operator-workstation-pattern.
 | `@agent-native/line-station/screens`     | browser            | Default export: `defineScreens` with stations, the station surface, device setup, the bridge view, the operator kit and Security. |
 | `@agent-native/line-station/*`           | see file           | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `bridge`, `station-bridge`, `fake-mes`.          |
 
+`contracts` composes `contracts/schemas`, `contracts/operation` (descriptions and the capability helper), `contracts/queries` and `contracts/commands`, which are browser-safe like it. `server` concatenates one handler group per concern from `handlers/` (queries, production, attention, administration, observation, integration). Those groups share `server/`: the handler context and clock, station access, DTOs, attention items and outcome settlement. Every handler checks state and authorization inside its own command, exactly as before the split.
+
 | Command (in this directory)       | Purpose                                                                                        |
 | --------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `bun run dev` / `bun run dev:web` | Desktop window or browser on port 4323, with the fake HMI started in-process and bridged.      |

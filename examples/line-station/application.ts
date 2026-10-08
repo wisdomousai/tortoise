@@ -95,6 +95,79 @@ export function demoStations(
   ];
 }
 
+/** A new workspace's line: one demo station whose creator is its supervisor. */
+const freshLine = (ownerId: string) =>
+  createLineState({
+    mesPrincipalId: MES_PRINCIPAL,
+    stations: [
+      { id: 'line-1', name: 'Filler 1', line: 'Line 1', members: { [ownerId]: 'supervisor' } },
+    ],
+  });
+
+/** Line, device and assurance handlers, each over its own slice of the state. */
+const lineStationHandlers = () => [
+  ...sliceHandlers<LineStationState, 'lineStation', LineServices & AssuranceServices>(
+    'lineStation',
+    createLineHandlers(),
+  ),
+  ...sliceHandlers<LineStationState, 'devices', LineServices & AssuranceServices>(
+    'devices',
+    createDeviceHandlers(),
+  ),
+  ...sliceHandlers<LineStationState, 'assurance', LineServices & AssuranceServices>(
+    'assurance',
+    createAssuranceHandlers(),
+  ),
+];
+
+/** Line policy for line resources, station roles for devices, owners for assurance. */
+const lineStationAuthorization = () =>
+  composeAuthorization<LineStationState>([
+    authorizationRoute(
+      'lineStation',
+      lineStationModule,
+      ['station', 'stop', 'count', 'attention', 'order', 'counters', 'mes'],
+      linePolicy,
+    ),
+    // Device configuration follows station roles: supervisors administer, everyone else reads.
+    deviceAuthorizationRoute<LineStationState>((state) => ({
+      config: state.devices,
+      access(principalId, station) {
+        const role = stationRole(state.lineStation, principalId, station);
+        return role === 'supervisor' ? 'administer' : role ? 'read' : undefined;
+      },
+    })),
+    assuranceAuthorizationRoute<LineStationState>((state) => state.assurance),
+  ]);
+
+type BridgeApplication = Parameters<typeof startStationBridge>[0]['application'];
+
+/** Start one bridge per station; if one cannot start, those already running stop first. */
+async function startBridges(
+  application: BridgeApplication,
+  workspaceId: string,
+  stations: readonly StationBridgeConfig[],
+  onError: (source: string, error: unknown) => void,
+) {
+  const observers: { stop(): Promise<void> }[] = [];
+  try {
+    for (const config of stations)
+      observers.push(
+        await startStationBridge({
+          application,
+          workspaceId,
+          config,
+          onError: (error) => onError(`Station ${config.station}`, error),
+        }),
+      );
+  } catch (error) {
+    // A station that cannot start fails the host; bridges already running stop first.
+    await Promise.all(observers.map((observer) => observer.stop()));
+    throw error;
+  }
+  return observers;
+}
+
 /**
  * The line-station application: stations with device configuration. `mes` is the MES port
  * (each authority gets its own in-memory homebrew MES fake without one); `stations` are the
@@ -108,13 +181,6 @@ export function createLineStationApplication(
     services?: LineServices;
   } = {},
 ) {
-  const freshLine = (ownerId: string) =>
-    createLineState({
-      mesPrincipalId: MES_PRINCIPAL,
-      stations: [
-        { id: 'line-1', name: 'Filler 1', line: 'Line 1', members: { [ownerId]: 'supervisor' } },
-      ],
-    });
   return defineApplication<LineStationState, LineServices & AssuranceServices>({
     manifest,
     createState: (ownerId) => ({
@@ -130,37 +196,8 @@ export function createLineStationApplication(
         assurance: value.assurance ?? createAssuranceState([ownerId]),
       };
     },
-    handlers: [
-      ...sliceHandlers<LineStationState, 'lineStation', LineServices & AssuranceServices>(
-        'lineStation',
-        createLineHandlers(),
-      ),
-      ...sliceHandlers<LineStationState, 'devices', LineServices & AssuranceServices>(
-        'devices',
-        createDeviceHandlers(),
-      ),
-      ...sliceHandlers<LineStationState, 'assurance', LineServices & AssuranceServices>(
-        'assurance',
-        createAssuranceHandlers(),
-      ),
-    ],
-    authorization: composeAuthorization<LineStationState>([
-      authorizationRoute(
-        'lineStation',
-        lineStationModule,
-        ['station', 'stop', 'count', 'attention', 'order', 'counters', 'mes'],
-        linePolicy,
-      ),
-      // Device configuration follows station roles: supervisors administer, everyone else reads.
-      deviceAuthorizationRoute<LineStationState>((state) => ({
-        config: state.devices,
-        access(principalId, station) {
-          const role = stationRole(state.lineStation, principalId, station);
-          return role === 'supervisor' ? 'administer' : role ? 'read' : undefined;
-        },
-      })),
-      assuranceAuthorizationRoute<LineStationState>((state) => state.assurance),
-    ]),
+    handlers: lineStationHandlers(),
+    authorization: lineStationAuthorization(),
     ...(options.services ? { services: options.services } : {}),
     connect: ({ application, workspaceId }) => ({
       integrations: [
@@ -174,25 +211,9 @@ export function createLineStationApplication(
           toInput: toSyncInput,
         }),
       ],
-      async observe(onError) {
-        const observers: { stop(): Promise<void> }[] = [];
-        try {
-          for (const config of options.stations ?? demoStations())
-            observers.push(
-              await startStationBridge({
-                application,
-                workspaceId,
-                config,
-                onError: (error) => onError(`Station ${config.station}`, error),
-              }),
-            );
-        } catch (error) {
-          // A station that cannot start fails the host; bridges already running stop first.
-          await Promise.all(observers.map((observer) => observer.stop()));
-          throw error;
-        }
-        return observers;
-      },
+      // Async, so a bad demo environment rejects like a failing bridge instead of throwing.
+      observe: async (onError) =>
+        await startBridges(application, workspaceId, options.stations ?? demoStations(), onError),
     }),
   });
 }
