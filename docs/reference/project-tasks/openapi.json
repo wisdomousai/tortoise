@@ -2300,6 +2300,230 @@
           }
         }
       }
+    },
+    "/api/v1/commands/webhook.delivery.record": {
+      "post": {
+        "operationId": "webhook.delivery.record",
+        "summary": "Record the outcome of one webhook delivery pass: the cursor reached and how many notifications were posted, or the error. Called by the plugin delivery loop as a delegated caller.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {
+                      "cursor": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "delivered": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "error": {
+                        "maxLength": 500,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "delivered"
+                    ],
+                    "type": "object"
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  },
+                  "expectedRevisions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "required": [
+                  "input",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cursor": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "delivered": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "failures": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "lastDeliveredAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "lastError": {
+                          "maxLength": 500,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "cursor",
+                        "delivered",
+                        "failures"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/queries/webhook.status.get": {
+      "post": {
+        "operationId": "webhook.status.get",
+        "summary": "Read webhook delivery status: which operations are observed, how many change notifications were delivered, the journal cursor reached, and the last delivery error. Use it to check whether the downstream system receives notifications.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "additionalProperties": false,
+                    "properties": {},
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized result and snapshot cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$schema": "https://json-schema.org/draft/2020-12/schema",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cursor": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "delivered": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "failures": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "lastDeliveredAt": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "lastError": {
+                          "maxLength": 500,
+                          "type": "string"
+                        },
+                        "observing": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "cursor",
+                        "delivered",
+                        "failures",
+                        "observing"
+                      ],
+                      "type": "object"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    },
+                    "authorizationRevision": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "cursor",
+                    "authorizationRevision"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current authority does not permit operation"
+          },
+          "409": {
+            "description": "Revision or idempotency conflict"
+          }
+        }
+      }
     }
   }
 }

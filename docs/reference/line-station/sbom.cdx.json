@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:c4e089fd-141b-5496-b1f1-5867904a1663",
+  "serialNumber": "urn:uuid:2db45867-b7fb-50b8-bdf1-cdb2c7f6dc0c",
   "version": 1,
   "metadata": {
     "tools": {
@@ -10749,7 +10749,7 @@
       "properties": [
         {
           "name": "workspace:path",
-          "value": "packages/assurance"
+          "value": "plugins/assurance"
         }
       ],
       "scope": "required"
@@ -10960,6 +10960,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/security",
+      "name": "@agent-native/security",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/security"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/service",
       "name": "@agent-native/service",
       "properties": [
@@ -11005,6 +11017,18 @@
         }
       ],
       "scope": "excluded"
+    },
+    {
+      "type": "library",
+      "bom-ref": "workspace:@agent-native/webhook",
+      "name": "@agent-native/webhook",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/webhook"
+        }
+      ],
+      "scope": "required"
     }
   ],
   "services": [
@@ -11061,7 +11085,7 @@
       "properties": [
         {
           "name": "agent-native:owner",
-          "value": "authority"
+          "value": "security"
         },
         {
           "name": "agent-native:availability",
@@ -11341,8 +11365,10 @@
         "workspace:@agent-native/react",
         "workspace:@agent-native/runtime",
         "workspace:@agent-native/scaffold",
+        "workspace:@agent-native/security",
         "workspace:@agent-native/station",
-        "workspace:@agent-native/testing"
+        "workspace:@agent-native/testing",
+        "workspace:@agent-native/webhook"
       ]
     },
     {
@@ -16247,6 +16273,10 @@
       "dependsOn": []
     },
     {
+      "ref": "workspace:@agent-native/security",
+      "dependsOn": []
+    },
+    {
       "ref": "workspace:@agent-native/service",
       "dependsOn": []
     },
@@ -16260,6 +16290,10 @@
     },
     {
       "ref": "workspace:@agent-native/web",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/webhook",
       "dependsOn": []
     }
   ]

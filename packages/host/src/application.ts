@@ -10,6 +10,14 @@ import type { CapabilityModule, EventLogPort } from '@agent-native/contracts';
 import type { TargetIntegration } from '@agent-native/integration';
 import type { ApplicationManifest } from './manifest';
 import { deploymentComponents } from './components';
+import type { AnyHostPlugin, NetworkPort } from './plugin';
+import {
+  checkPlugins,
+  composeAuthorization,
+  composeCreateState,
+  composeHandlers,
+  composeUpgradeState,
+} from './plugins/compose';
 
 /**
  * Everything the host needs to run one application, supplied by content (P11). The host never
@@ -41,6 +49,12 @@ export interface ApplicationDefinition<State, Services = unknown> {
   readonly sources?: Readonly<Record<string, RemoteSource>>;
   /** Wire systems of record and observers once the runtime exists. Called once per authority. */
   readonly connect?: (context: ConnectContext) => ApplicationConnections;
+  /**
+   * Server parts of the plugins the manifest lists, in the same order. `defineApplication`
+   * folds their state slices, handlers and policies into this definition; the host opens their
+   * lifecycles around the runtime (see `openPlugins`).
+   */
+  readonly plugins?: readonly AnyHostPlugin[];
 }
 // Definitions are stored and passed without their state type; the host is generic over it.
 export type AnyApplicationDefinition = ApplicationDefinition<any, any>;
@@ -48,6 +62,8 @@ export type AnyApplicationDefinition = ApplicationDefinition<any, any>;
 export interface ConnectContext {
   readonly application: HostedApplication;
   readonly workspaceId: string;
+  /** The deployment's network port: integrations reach their declared destinations through it. */
+  readonly network: NetworkPort;
 }
 
 /** A long-running observer, such as a station screen bridge. */
@@ -69,12 +85,19 @@ export interface ApplicationConnections {
 }
 
 /**
- * Declare an application. Fails at definition time when a selectable resource names an
- * operation the manifest does not compose, so a typo cannot silently disable run context.
+ * Declare an application. Plugins are folded in here, so storage and the runtime see one state,
+ * one handler list and one policy: each plugin's slice sits under its id, its handlers see only
+ * that slice and its policy decides only its own operations and resource types.
+ *
+ * Fails at definition time when the plugins differ from the manifest's or are out of `requires`
+ * order, or when a selectable resource names an operation the manifest does not compose, so a
+ * typo cannot silently disable run context.
  */
 export function defineApplication<State, Services = unknown>(
   definition: ApplicationDefinition<State, Services>,
 ): ApplicationDefinition<State, Services> {
+  const plugins = definition.plugins ?? [];
+  checkPlugins(definition.manifest.plugins ?? [], plugins);
   const operations = new Set(
     definition.manifest.modules.flatMap((module: CapabilityModule) =>
       module.capabilities.map((capability) => capability.id),
@@ -83,7 +106,23 @@ export function defineApplication<State, Services = unknown>(
   for (const [kind, operation] of Object.entries(definition.selectableResources ?? {}))
     if (!operations.has(operation))
       throw new Error(`Selectable resource "${kind}" names unknown operation "${operation}"`);
-  return Object.freeze(definition);
+  if (!plugins.length) return Object.freeze(definition);
+  return Object.freeze({
+    ...definition,
+    createState: composeCreateState(definition.createState, plugins) as (ownerId: string) => State,
+    upgradeState: composeUpgradeState(definition.upgradeState, plugins) as (
+      state: unknown,
+      ownerId: string,
+    ) => State,
+    handlers: composeHandlers(definition.handlers, plugins) as HandlerContribution<
+      State,
+      Services
+    >[],
+    authorization: composeAuthorization(
+      definition.authorization,
+      plugins,
+    ) as AuthorizationPort<State>,
+  });
 }
 
 /** Compose the definition into its runtime. HTTP, embedded MCP, CLI and tests all use this. */
@@ -94,7 +133,7 @@ export function createApplicationRuntime(
     services?: unknown;
     now?: () => number;
     newEffectId?: () => string;
-    /** Audit sink; the host passes the deployment's event log (see `openSecurity`). */
+    /** Audit sink; the host passes the event-log port a plugin provides, if any. */
     eventLog?: EventLogPort;
   },
 ) {

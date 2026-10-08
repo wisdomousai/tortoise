@@ -18,6 +18,7 @@ const rootFiles = new Set([
 ]);
 const sourceDirectories = new Set([
   'packages',
+  'plugins',
   'apps',
   'examples',
   'scripts',

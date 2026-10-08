@@ -10,7 +10,7 @@ Layer: framework (`packages/*`). Server only.
 - [Egress guard](../../docs/primitives.md#egress-guard): `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`.
 - [Execution host](../../docs/primitives.md#execution-host): `startEgressProxy` confines declared children to their destinations.
 
-[Security and assurance](../../docs/security-and-assurance.md) and [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) describe the model.
+[Security and assurance](../../docs/security-and-assurance.md) and [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) describe the model. The [`@agent-native/security`](../../plugins/security/README.md) plugin is the only framework caller: it loads the policy and provides the guard and proxy as the host's network port ([ADR 010](../../docs/decisions/010-host-plugins.md)).
 
 ## Entrypoints
 
@@ -25,9 +25,9 @@ Layer: framework (`packages/*`). Server only.
 
 A destination-scoped client allows only the bound scheme, host and port. It rechecks every redirect hop, checks DNS answers against the bound networks before connecting, applies CA bundles and certificate pins, and caps response size and time. Provider SDKs get a fetch routed by origin, TCP transports a scoped socket, and declared children a loopback CONNECT proxy that admits only their declared destinations, identified by a per-process credential. Every decision is logged; a refusal is an `UNAVAILABLE` error with a stable `DenialReason`. If a required egress log cannot be written, the connection stays closed.
 
-Bindings must name declared destinations and match their protocol, host and port. In connected mode every required destination is bound or explicitly disabled, and each closed destination lists its offline consequence. The `desktop-local`, `sandbox` and `zero-trust` profiles are floors on plain HTTP, ingress (loopback or mTLS), identity, grant lifetime and audit mode; the host refuses to start below its floor.
+Bindings must name declared destinations and match their protocol, host and port. In connected mode every required destination is bound or explicitly disabled, and each closed destination lists its offline consequence. The `desktop-local`, `sandbox` and `zero-trust` profiles are floors on plain HTTP, ingress (loopback or mTLS), identity, grant lifetime and audit mode; the security plugin refuses to start below its floor.
 
-This is an in-process control, not an isolation boundary. A child that ignores proxy settings, or a compromised process, is contained only once the OS rules exported by [`@agent-native/assurance`](../assurance/README.md) are applied. `external` identity refuses to start because no workforce identity adapter exists.
+This is an in-process control, not an isolation boundary. A child that ignores proxy settings, or a compromised process, is contained only once the OS rules exported by [`@agent-native/assurance`](../../plugins/assurance/README.md) are applied. `external` identity refuses to start because no workforce identity adapter exists.
 
 ## Dependencies
 

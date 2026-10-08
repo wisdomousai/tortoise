@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/security",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Security host plugin: site policy, egress guard and child proxy, fail-closed audit log with forwarding, attestation, crash recovery, identity and ingress floors.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

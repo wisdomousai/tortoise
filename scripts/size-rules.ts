@@ -8,12 +8,12 @@ export const maxFileLines = 300;
 export const maxFunctionLines = 80;
 
 /** Workspace sources that `check:size` measures. Tests, browser tests and generated output are exempt. */
-export const measuredSource = /^(?:packages|apps|examples)\/.+\.[cm]?[jt]sx?$/;
+export const measuredSource = /^(?:packages|plugins|apps|examples)\/.+\.[cm]?[jt]sx?$/;
 export const exemptSource =
   /(?:\.test\.|\.pw\.ts$|\.d\.ts$|\/test\/|\/e2e\/|\/generated\/|\/dist\/|\/node_modules\/)/;
 
 /** Package entrypoints that may only re-export (`export … from`); implementation lives beside them. */
-export const barrel = /^packages\/[^/]+\/src\/index\.tsx?$/;
+export const barrel = /^(?:packages|plugins)\/[^/]+\/src\/index\.tsx?$/;
 
 export interface SizeExemption {
   readonly path: string;
@@ -26,7 +26,7 @@ export interface SizeExemption {
 /** Declarative tables only. Logic never goes here: split it instead. */
 export const sizeExemptions: readonly SizeExemption[] = [
   {
-    path: 'packages/assurance/src/controls.ts',
+    path: 'plugins/assurance/src/controls.ts',
     reason: 'control catalog: one record per control, mapped to external frameworks',
   },
   {

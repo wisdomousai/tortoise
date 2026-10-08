@@ -40,7 +40,11 @@ test('sandbox admits only the launcher grant, never the local owner', async () =
   await withDirectory(async (directory) => {
     const sitePolicy = await writePolicy(directory, sandbox);
     const workspacePath = join(directory, 'workspace');
-    const base = { workspacePath, integration: false as const, security: { sitePolicy } };
+    const base = {
+      workspacePath,
+      integration: false as const,
+      settings: { 'site-policy': sitePolicy },
+    };
     await expect(startHost(projectTasks, base)).rejects.toThrow(/admits only delegated grants/);
     const agentPath = join(directory, 'agent.json');
     // A grant without an expiry, or longer than the policy allows, is refused before startup.
@@ -91,7 +95,7 @@ test('an external identity floor refuses to start without an identity adapter', 
       startHost(projectTasks, {
         workspacePath: join(directory, 'workspace'),
         integration: false,
-        security: { sitePolicy },
+        settings: { 'site-policy': sitePolicy },
       }),
     ).rejects.toThrow(/requires an external identity adapter; none is composed/);
   });
@@ -220,7 +224,7 @@ test.skipIf(!Bun.which('openssl'))(
       const host = await startHost(projectTasks, {
         workspacePath: join(directory, 'workspace'),
         integration: false,
-        security: { sitePolicy },
+        settings: { 'site-policy': sitePolicy },
         agentConnection: { context: delegated(Date.now() + 1800_000), path: agentPath },
       });
       try {

@@ -1,12 +1,12 @@
-import { ClipboardCheck, Factory, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ClipboardCheck, Factory, TriangleAlert } from 'lucide-react';
 import { defineScreens } from '@agent-native/frame/screens';
+import { assuranceScreens } from '@agent-native/assurance/plugin-screens';
 import manifest from './manifest';
 import { LotsScreen } from './ui/inspection';
 import { CaptureScreen } from './ui/capture';
 import { AttentionScreen } from './ui/sync';
 import { PlantScreen } from './ui/plant';
 import { PlantContext, RejectionCount, SyncBadge } from './ui/sync-status';
-import { SecurityScreen } from '@/components/security-screen';
 
 /**
  * The quality-inspection screens: lots to measure, the capture station, records the quality
@@ -20,16 +20,13 @@ export default defineScreens({
     { path: 'inspection/$lotId', component: CaptureScreen },
     { path: 'attention', component: AttentionScreen },
     { path: 'plant', component: PlantScreen },
-    { path: 'security', component: SecurityScreen },
   ],
   navigation: [
     { to: '/inspection', label: 'Lots', icon: ClipboardCheck },
     { to: '/attention', label: 'Needs attention', icon: TriangleAlert, badge: RejectionCount },
     { to: '/plant', label: 'Plant', icon: Factory },
-    { to: '/security', label: 'Security', icon: ShieldCheck },
   ],
   capabilityScreens: [
-    { prefix: 'assurance.', to: '/security' },
     { prefix: 'inspection.sync.', to: '/attention' },
     { prefix: 'inspection.result.correct', to: '/attention' },
     { prefix: 'inspection.plant.', to: '/plant' },
@@ -38,4 +35,5 @@ export default defineScreens({
   ],
   context: PlantContext,
   status: SyncBadge,
+  plugins: [assuranceScreens],
 });

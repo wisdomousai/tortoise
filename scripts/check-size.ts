@@ -1,6 +1,6 @@
 /**
  * Keeps modules small enough to hold one responsibility (P14). For every non-test source file in
- * `packages/*`, `apps/*` and `examples/*` it fails when:
+ * `packages/*`, `plugins/*`, `apps/*` and `examples/*` it fails when:
  *
  * - the file is longer than `maxFileLines`;
  * - a function, method, arrow function or component is longer than `maxFunctionLines`;
@@ -73,7 +73,9 @@ function* functions(
   }
 }
 
-const files = (await Array.fromAsync(new Bun.Glob('{packages,apps,examples}/**/*').scan(root)))
+const files = (
+  await Array.fromAsync(new Bun.Glob('{packages,plugins,apps,examples}/**/*').scan(root))
+)
   .filter((path) => measuredSource.test(path) && !exemptSource.test(path))
   .sort();
 const errors: string[] = [];

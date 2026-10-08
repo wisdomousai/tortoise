@@ -157,9 +157,9 @@ Serves P5 · implemented · `packages/runtime` `packages/client` `packages/react
 
 _One unit of content: the definition a host runs._
 
-An application is a package with three entrypoints. `manifest` is browser-safe: its id, title, composed modules and the components it brings (a screen bridge, device drivers), with their declared requirements. `application` is server code: state factory and upgrades, composed policy, handlers, services, selectable resources and `connect`, which wires systems of record (demo fakes included) and observers once per authority. `screens` is browser code: routes (each in the sidebar shell or, with `layout: 'full'`, full-window for a station), navigation with optional count badges, capability screens, and the shell's slots: title, context line, a sidebar section above the navigation, and status. Layouts are pathless routes, so screens read route params with `useParams({ strict: false })`. The starter names one application in its configuration and the host and frame resolve these entrypoints, so adding an application changes no framework or starter code (P11). Each example in `examples/*` is one application.
+An application is a package with three entrypoints. `manifest` is browser-safe: its id, title, composed modules and the components it brings (a screen bridge, device drivers), with their declared requirements. `application` is server code: state factory and upgrades, composed policy, handlers, services, selectable resources and `connect`, which wires systems of record (demo fakes included) and observers once per authority. `screens` is browser code: routes (each in the sidebar shell or, with `layout: 'full'`, full-window for a station), navigation with optional count badges, capability screens, and the shell's slots: title, context line, a sidebar section above the navigation, and status. Layouts are pathless routes, so screens read route params with `useParams({ strict: false })`. The starter names one application in its configuration and the host and frame resolve these entrypoints, so adding an application changes no framework or starter code (P11). Each example in `examples/*` is one application. Each entrypoint also lists the application's [host plugins](#host-plugin), in the same order.
 
-Guarantees: one catalog, generated reference set, web bundle and workspace per application. `defineApplication` fails when a selectable resource names an operation the manifest does not compose; `defineManifest` rejects an invalid id or a duplicate module; `defineScreens` rejects a navigation target with no route. A definition is trusted code; only callers are untrusted.
+Guarantees: one catalog, generated reference set, web bundle and workspace per application. `defineApplication` fails when a selectable resource names an operation the manifest does not compose; `defineManifest` rejects an invalid id or a duplicate module, plugin modules included; `defineApplication` rejects a plugin list that differs from the manifest's; `defineScreens` rejects a navigation target with no route, after merging plugin screens. A definition is trusted code; only callers are untrusted.
 
 Serves P2, P8, P11, P13 · implemented · `packages/host` `packages/frame` · `defineManifest`, `ApplicationManifest`, `defineApplication`, `ApplicationDefinition`, `ApplicationConnections`, `defineScreens`, `ApplicationScreens`
 
@@ -167,11 +167,23 @@ Serves P2, P8, P11, P13 · implemented · `packages/host` `packages/frame` · `d
 
 _The domain-neutral authority process that runs one application definition._
 
-The host owns everything an application should not rewrite: workspace ownership, storage, launch and sessions, HTTP/SSE, embedded MCP, the CLI, run supervision and background delivery. It receives a definition and composes the runtime, integrations and observers from it; it names no domain. It also applies one security layer to every definition: the site policy and its profile floors, the audit log, the egress guard and the `security`/`audit` CLI verbs (P13).
+The host owns everything an application should not rewrite: workspace ownership, storage, launch and sessions, HTTP/SSE, embedded MCP, the CLI, run supervision and background delivery. It receives a definition and composes the runtime, integrations and observers from it; it names no domain and no security concept. It is a kernel: what crosses the process boundary (network, ingress, caller identity, the audit log) goes through [ports](#host-plugin) whose defaults refuse the network, bind loopback and keep no log, and the definition's plugins provide anything more (P13).
 
 Guarantees: one authority per workspace, enforced by the same OS lock for a serving host and an embedded one. Embedded authorities never start observers. Observers start only after the host listens, and a failed start stops the ones already running. `loadApplication` and `loadManifest` resolve the configured application at runtime; compiled builds use a generated static entry because a binary cannot follow that import.
 
-Serves P1, P4, P11, P12, P13 · implemented · `packages/host` · `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `loadApplication`, `loadManifest`, `openSecurity`, `assertIdentity`, `securityFromEnvironment`, `deploymentCatalog`, `hostComponents`, `assuranceCommand`
+Serves P1, P4, P11, P12, P13 · implemented · `packages/host` · `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `loadApplication`, `loadManifest`, `deploymentCatalog`, `deploymentRequirements`, `hostComponents`
+
+### Host plugin
+
+_A cross-cutting part an application composes: modules, a state slice, a policy, kernel ports and lifecycle hooks._
+
+Some concerns belong to many applications but to no domain: security, assurance, a notifier. A plugin has the same three entrypoints as an application. Its manifest adds modules, requirement components and settings to the catalog. Its server part adds a state slice under the plugin id, slice handlers, a policy over its resource types, CLI commands and `open`. Its screens add routes and navigation. The application lists its plugins in each entrypoint. `open` returns ports, a service for later plugins and handlers, and the hooks `ready` (before the first request), `start` (after a serving host listens, as a caller delegated by a grant), `describe` (the `listening` record) and `close` (reverse order). The kernel ports are `network`, `ingress`, `identity` and `eventLog`. [ADR 010](decisions/010-host-plugins.md) records the design; Plugins live in `plugins/*`, a layer of their own; `plugins/webhook` stands in for a third-party plugin written against the same API.
+
+Guarantees: the application's `upgradeState` never sees plugin slices, and a plugin's handlers and policy see only its own slice. The plugin's policy decides its operations and events of its resource types, the application's policy everything else. Server and manifest plugins must match in order, and `requires` names plugins composed earlier. Plugins open before storage, so a refusal stops startup before state is opened, and a failed `open` closes those already opened. Without a provider the network port refuses with `UNAVAILABLE`, ingress binds loopback, identity admits the trusted local owner and there is no event log; two providers of one port refuse startup. A supplied setting that no plugin declares refuses startup. `check:boundaries` fails when framework or starter code imports a plugin, when a plugin imports the starter or an example, and when browser code imports a plugin's server files.
+
+Gaps: plugins are trusted code with the host's privileges, like the application; nothing sandboxes one plugin from another's services. Environment variables no plugin declares are not read, so they are ignored rather than refused. Ports are fixed by the kernel; a plugin cannot add a new kind of port.
+
+Serves P8, P9, P11, P13 · implemented · `packages/host` `packages/frame` · `definePluginManifest`, `PluginManifest`, `PluginSetting`, `PluginModules`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `PluginOpenContext`, `PluginStartContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `readPluginSettings`, `PluginSettings`, `definePluginScreens`, `PluginScreens`
 
 ### Web frame
 
@@ -257,13 +269,13 @@ Serves P1, P8, P13 · implemented · `packages/devices` · `ScannerSource`, `Sca
 
 _Reusable screen parts published as shadcn registries over stock shadcn primitives._
 
-Specialized interfaces are cheap only if their parts are shared. Apps pull registry items with `shadcn add` and own the copied source, while trust-relevant behavior stays in versioned bindings.
+Specialized interfaces are cheap only if their parts are shared. Apps pull registry items with `shadcn add` and own the copied source, while trust-relevant behavior stays in versioned bindings. A plugin that brings a screen ships it as its own registry, as the assurance plugin does with `security-screen`.
 
 Guarantees: no shadcn primitive is forked; sizing comes from tokens and `cva` variants. The registry manifest is generated and drift-checked. Operator items follow the point-of-work rules: glove-sized targets, hold-to-confirm for consequential actions, state as icon plus text. The app shell exports `NavigationCount`, `SidebarSection` and `SidebarLink` for the slots; `status-strip` adds `SignalBanner`, the one signal readable from the machine; `operator-station` lays out a full-window station (dark header with seat control, machine banner, task panel beside attention, history footer) with `OperatorPanel` for the task.
 
 Gaps: no scratch-app `shadcn add` acceptance test.
 
-Serves P1, P8 · implemented · `packages/operator-ui` `packages/frame` · `operator-surface`, `big-action`, `use-press-and-hold`, `use-tap-guard`, `status-strip`, `capability-form`, `live-data-table`, `security-screen`, `run-panel`, `command-palette`, `app-shell`, `frame`
+Serves P1, P8 · implemented · `packages/operator-ui` `packages/frame` `plugins/assurance` · `operator-surface`, `big-action`, `use-press-and-hold`, `use-tap-guard`, `status-strip`, `capability-form`, `live-data-table`, `security-screen`, `run-panel`, `command-palette`, `app-shell`, `frame`
 
 ## Integrations: systems that keep their own records
 
@@ -409,11 +421,13 @@ _Deployment data that binds declared destinations to addresses and sets a harden
 
 What a site permits is configuration, like everything else that differs per site. Without a policy the application is isolated: loopback only, outbox targets queue, providers report unavailable.
 
-Guarantees: bindings must name declared destinations and match their protocol, host and port. In connected mode a required destination is bound or explicitly disabled, and every closed destination lists its offline consequence. The `desktop-local`, `sandbox` and `zero-trust` profiles are floors on plain HTTP, ingress (loopback or mTLS), identity, grant lifetime and audit mode; `security check` and startup report the same findings, and the host refuses to start below its floor. Certificate files are referenced by path and must be readable.
+Guarantees: bindings must name declared destinations and match their protocol, host and port. In connected mode a required destination is bound or explicitly disabled, and every closed destination lists its offline consequence. The `desktop-local`, `sandbox` and `zero-trust` profiles are floors on plain HTTP, ingress (loopback or mTLS), identity, grant lifetime and audit mode; `security check` and startup report the same findings, and the security plugin refuses to start below its floor. Certificate files are referenced by path and must be readable.
 
 Gaps: `external` identity refuses to start because no workforce identity adapter exists. No certificate issuance or rotation.
 
-Serves P3, P8, P13 · implemented · `packages/egress` · `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`
+The `security` [host plugin](#host-plugin) loads the policy named by its `site-policy` setting and provides the kernel ports from it: the egress guard and child proxy as `network`, mTLS as `ingress`, the identity floor as `identity` and the audit log as `eventLog`. It exposes the policy, log head and forwarder state to later plugins as its service.
+
+Serves P3, P8, P13 · implemented · `packages/egress` `plugins/security` · `securityPlugin`, `securityPluginManifest`, `auditCollectorComponent`, `openSecurity`, `securityServiceOf`, `SecurityService`, `assertIdentity`, `mtlsIngress`, `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`
 
 ### Egress guard
 
@@ -445,7 +459,7 @@ The egress guard confines declared children to their destinations, launchers fix
 
 Gaps: no isolation backend applies those rules, and there is no credential broker.
 
-Serves P3, P9, P13 · partial · `packages/egress` `packages/assurance` · `startEgressProxy`, `exportRules`
+Serves P3, P9, P13 · partial · `packages/egress` `plugins/assurance` · `startEgressProxy`, `exportRules`
 
 ### Profile
 
@@ -479,11 +493,11 @@ Serves P8, P10 · implemented · `packages/station` · `runGolden`, `GoldenRepor
 
 _The evidence an auditor checks, generated from the catalog and site policy and re-checked while the application runs._
 
-Guarantees: the security manifest, data flows, control mapping (ISO/IEC 27001 Annex A, NIST SP 800-53 and CSF, IEC 62443-4-2) and CycloneDX SBOM are deterministic and drift-checked. Rule exports for nftables, Windows Firewall, systemd, Kubernetes, Compose and JSON are default-deny, carry the policy digest and list what they could not enforce. A posture monitor re-verifies the log and records `posture.checked`. Each application composes the `assurance` module; listed auditors read it through the `assurance.*` queries, which have scenarios and the frame's Security screen. Every application's CLI adds `security check|export` and `audit verify|report`, which work offline.
+Guarantees: the security manifest, data flows, control mapping (ISO/IEC 27001 Annex A, NIST SP 800-53 and CSF, IEC 62443-4-2) and CycloneDX SBOM are deterministic and drift-checked. Rule exports for nftables, Windows Firewall, systemd, Kubernetes, Compose and JSON are default-deny, carry the policy digest and list what they could not enforce. A posture monitor re-verifies the log and records `posture.checked`. An application composes it as the `assurance` [host plugin](#host-plugin), which requires `security`: listed auditors read posture and the log through the `assurance.*` queries, which have scenarios and the frame's Security screen; the monitor starts once the host listens; and the CLI gains `security check|export` and `audit verify|report`, which work offline.
 
 Gaps: exports are compared as text, not loaded into a firewall or cluster. Control mappings are indicative, not a certification.
 
-Serves P2, P10, P13 · implemented · `packages/assurance` `packages/host` `packages/frame` · `securityManifest`, `dataFlowsMarkdown`, `controls`, `cycloneDx`, `networkRules`, `exportRules`, `assessPosture`, `createPostureMonitor`, `assuranceModule`, `createAssuranceHandlers`, `assuranceCommand`, `deploymentCatalog`, `security-screen`
+Serves P2, P10, P13 · implemented · `plugins/assurance` `packages/host` · `securityManifest`, `dataFlowsMarkdown`, `controls`, `cycloneDx`, `networkRules`, `exportRules`, `assessPosture`, `createPostureMonitor`, `assuranceModule`, `createAssuranceHandlers`, `assurancePlugin`, `assurancePluginManifest`, `assuranceScreens`, `assuranceCommand`, `assuranceCliCommand`, `deploymentCatalog`, `security-screen`
 
 ### Behavioral scenario
 

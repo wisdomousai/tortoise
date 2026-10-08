@@ -14,7 +14,7 @@
     {
       "id": "authority",
       "kind": "component",
-      "description": "Local authority service: HTTP/SSE API, MCP attach and audit forwarding."
+      "description": "Local authority service: HTTP/SSE API and MCP attach."
     },
     {
       "id": "openai",
@@ -24,6 +24,20 @@
     {
       "id": "project-tasks",
       "kind": "module"
+    },
+    {
+      "id": "security",
+      "kind": "component",
+      "description": "Security plugin: forwards audit events off the host as RFC 5424 syslog."
+    },
+    {
+      "id": "webhook",
+      "kind": "module"
+    },
+    {
+      "id": "webhook-delivery",
+      "kind": "component",
+      "description": "Posts change notifications to the configured webhook."
     }
   ],
   "network": [
@@ -51,7 +65,7 @@
       "direction": "egress",
       "id": "audit-collector",
       "offline": "degrade",
-      "owner": "authority",
+      "owner": "security",
       "protocol": "tcp",
       "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
       "scope": "site"
@@ -96,6 +110,19 @@
       "protocol": "https",
       "purpose": "ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.",
       "scope": "internet"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "change-notification"
+      ],
+      "direction": "egress",
+      "id": "webhook-target",
+      "offline": "queue",
+      "owner": "webhook-delivery",
+      "protocol": "https",
+      "purpose": "Notify a downstream system that observed resources changed.",
+      "scope": "site"
     }
   ],
   "devices": [],
@@ -123,7 +150,7 @@
   ],
   "flows": [],
   "summary": {
-    "egress": 4,
+    "egress": 5,
     "ingress": 1,
     "internet": [
       "anthropic-api",
@@ -136,6 +163,7 @@
     "dataClasses": [
       "application-context",
       "audit-event",
+      "change-notification",
       "identity-token",
       "oauth-authorization",
       "prompt",

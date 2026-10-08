@@ -6,13 +6,14 @@
   "packageManager": "bun@1.4.0",
   "workspaces": [
     "packages/*",
+    "plugins/*",
     "apps/*",
     "examples/*"
   ],
   "scripts": {
     "dev": "bun scripts/dev-desktop.ts",
     "dev:web": "bun run build:web && bun apps/service/src/index.ts",
-    "build": "bun run build:web && bun run build:registry && bun run build:registry:operator",
+    "build": "bun run build:web && bun run build:registry && bun run build:registry:operator && bun run build:registry:assurance",
     "build:web": "bun --bun vite build --config apps/web/vite.config.ts --logLevel warn",
     "build:web:examples": "bun scripts/build-web-examples.ts",
     "typecheck": "tsc --noEmit",
@@ -20,7 +21,7 @@
     "test:unit": "bun test packages/contracts packages/runtime packages/client packages/react",
     "test:integration": "bun test packages/integration",
     "test:conformance": "bun test packages/testing packages/adapters examples",
-    "test:service": "bun test packages/host examples",
+    "test:service": "bun test packages/host plugins examples",
     "test:harness": "bun test packages/agents",
     "test:e2e": "playwright test",
     "test:scaffold": "bun test packages/scaffold",
@@ -44,6 +45,7 @@
     "test:sandbox": "SANDBOX_BINARY=1 bun test examples/quality-inspection/test/sandbox.test.ts",
     "test:isolated": "bun test --preload ./scripts/isolated-preload.ts",
     "build:registry:operator": "bun scripts/build-operator-registry.ts && shadcn build registry.json --output ../../dist/registry/operator --cwd packages/operator-ui",
+    "build:registry:assurance": "shadcn build registry.json --output ../../dist/registry/assurance --cwd plugins/assurance",
     "check:registry:operator": "bun scripts/build-operator-registry.ts --check"
   },
   "dependencies": {
@@ -66,8 +68,10 @@
     "@agent-native/react": "workspace:*",
     "@agent-native/runtime": "workspace:*",
     "@agent-native/scaffold": "workspace:*",
+    "@agent-native/security": "workspace:*",
     "@agent-native/station": "workspace:*",
     "@agent-native/testing": "workspace:*",
+    "@agent-native/webhook": "workspace:*",
     "@ai-sdk/openai": "4.0.86",
     "@anthropic-ai/claude-agent-sdk": "0.3.292",
     "@casl/ability": "7.0.1",

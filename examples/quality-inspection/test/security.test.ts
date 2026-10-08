@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { segmentName } from '@agent-native/event-log';
 import { startHost } from '@agent-native/host/host';
+import { securityServiceOf } from '@agent-native/security';
 import { writeApplicationEntry } from '../../../scripts/application-entry';
 import qualityInspection from '../application';
 
@@ -37,7 +38,7 @@ test('auditors read posture over HTTP and the CLI verifies, reports and detects 
       workspacePath: directory,
       integration: false,
     });
-    const auditLog = host.security.logDirectory;
+    const auditLog = securityServiceOf(host.services).logDirectory;
     try {
       // The local owner is the default auditor; posture is a read-only query like any other.
       const owner = host.sessions.create({ workspaceId: 'local', principalId: 'owner' });

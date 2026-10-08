@@ -10,6 +10,7 @@ flowchart LR
   end
   subgraph site["site"]
     audit_collector["audit-collector"]
+    webhook_target["webhook-target"]
   end
   subgraph internet["internet"]
     anthropic_api["anthropic-api"]
@@ -21,6 +22,7 @@ flowchart LR
   authority_http -- "http" --> app
   app -- "prompt, application-context, tool-results" --> openai_api
   app -- "oauth-authorization, identity-token" --> openai_auth
+  app -- "change-notification" --> webhook_target
   app -. spawns .-> proc_claude_code(["claude-code"])
   proc_claude_code -. may reach .-> anthropic_api
   app -. spawns .-> proc_codex_app_server(["codex-app-server"])
@@ -32,16 +34,18 @@ flowchart LR
 | ID | Owner | Direction | Scope | Protocol | Host | Data classes | Availability | Offline |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `anthropic-api` | anthropic | egress | internet | https | api.anthropic.com | prompt, application-context, tool-results | optional | unavailable |
-| `audit-collector` | authority | egress | site | tcp | site policy | audit-event | optional | degrade |
+| `audit-collector` | security | egress | site | tcp | site policy | audit-event | optional | degrade |
 | `authority-http` | authority | ingress | loopback | http | site policy | — | required | — |
 | `openai-api` | openai | egress | internet | https | api.openai.com | prompt, application-context, tool-results | optional | unavailable |
 | `openai-auth` | openai | egress | internet | https | auth.openai.com | oauth-authorization, identity-token | optional | unavailable |
+| `webhook-target` | webhook-delivery | egress | site | https | site policy | change-notification | optional | queue |
 
 - `anthropic-api`: Inference for Claude runs.
 - `audit-collector`: Forward audit events off the host (RFC 5424 syslog over TLS).
 - `authority-http`: Serve the frontend, API, events and attach connections.
 - `openai-api`: Model catalog and inference for Codex and AI SDK runs.
 - `openai-auth`: ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.
+- `webhook-target`: Notify a downstream system that observed resources changed.
 
 ## Operations that leave the host
 

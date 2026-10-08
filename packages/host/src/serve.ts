@@ -1,7 +1,7 @@
 import type { ExecutionContext } from '@agent-native/runtime';
 import type { AnyApplicationDefinition } from './application';
 import { startHost } from './host';
-import type { SecurityOptions } from './security';
+import type { PluginSettings } from './plugins/settings';
 
 /**
  * Run the HTTP authority for one application until SIGINT/SIGTERM. The first stdout line is a
@@ -16,7 +16,7 @@ export async function serve(
     webRoot?: string;
     runtimeManifest?: string;
     agentConnection?: { context: ExecutionContext; path: string };
-    security?: SecurityOptions;
+    settings?: PluginSettings;
   },
 ) {
   const host = await startHost(definition, options);
@@ -30,9 +30,7 @@ export async function serve(
       connectionFile: host.connectionFile,
       ...(options.agentConnection ? { agentConnectionFile: options.agentConnection.path } : {}),
       instance: host.instance,
-      profile: host.security.policy.profile,
-      network: host.security.policy.mode,
-      auditLog: host.security.logDirectory,
+      plugins: host.plugins,
     }),
   );
   let stopping = false;

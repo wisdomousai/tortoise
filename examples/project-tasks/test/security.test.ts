@@ -10,6 +10,7 @@ import {
   verifyEventLog,
 } from '@agent-native/event-log';
 import { startHost } from '@agent-native/host/host';
+import { securityServiceOf } from '@agent-native/security';
 import { openEmbeddedAuthority } from '@agent-native/host/embedded';
 import projectTasks from '../application';
 
@@ -27,9 +28,9 @@ const withWorkspace = async (run: (directory: string) => Promise<void>) => {
 test('the host attests, audits each channel and leaves a verifiable chain', async () => {
   await withWorkspace(async (directory) => {
     const host = await startHost(projectTasks, { workspacePath: directory, integration: false });
-    const auditLog = host.security.logDirectory;
+    const auditLog = securityServiceOf(host.services).logDirectory;
     try {
-      expect(host.security.policy.mode).toBe('isolated');
+      expect(securityServiceOf(host.services).policy.mode).toBe('isolated');
       const owner = host.sessions.create({ workspaceId: 'local', principalId: 'owner' });
       const response = await fetch(`${host.url}/api/v1/commands/project.create`, {
         method: 'POST',
@@ -74,7 +75,7 @@ test('an unusable site policy refuses startup and releases the workspace', async
       startHost(projectTasks, {
         workspacePath,
         integration: false,
-        security: { sitePolicy: policy },
+        settings: { 'site-policy': policy },
       }),
     ).rejects.toThrow(/Site policy rejected \(zero-trust\)[\s\S]*IDENTITY_FLOOR/);
     const host = await startHost(projectTasks, { workspacePath, integration: false });
@@ -89,7 +90,7 @@ test('startup resolves a command accepted before a crash', async () => {
     const first = await startHost(projectTasks, {
       workspacePath,
       integration: false,
-      security: { eventLogDirectory: auditLog },
+      settings: { 'audit-log': auditLog },
     });
     await first.close();
     // Simulate a crash between the in-transaction `accepted` and the post-commit outcome.
@@ -112,7 +113,7 @@ test('startup resolves a command accepted before a crash', async () => {
     const second = await startHost(projectTasks, {
       workspacePath,
       integration: false,
-      security: { eventLogDirectory: auditLog },
+      settings: { 'audit-log': auditLog },
     });
     await second.close();
     const resolution = (await readEvents(auditLog)).filter(
@@ -138,10 +139,13 @@ test('provider egress is denied unless the site policy binds it', async () => {
     const host = await startHost(projectTasks, {
       workspacePath: join(directory, 'workspace'),
       integration: false,
-      security: { sitePolicy: policy },
+      settings: { 'site-policy': policy },
     });
     try {
-      const providerFetch = host.security.egress.routedFetch(['openai-auth', 'openai-api']);
+      const providerFetch = securityServiceOf(host.services).egress.routedFetch([
+        'openai-auth',
+        'openai-api',
+      ]);
       const denial = async (url: string) =>
         providerFetch(url).then(
           () => undefined,
@@ -165,14 +169,14 @@ test('the embedded authority shares the audit log and its writer lock', async ()
     const auditLog = join(directory, 'audit');
     const authority = await openEmbeddedAuthority(projectTasks, {
       workspacePath: join(directory, 'workspace'),
-      security: { eventLogDirectory: auditLog },
+      settings: { 'audit-log': auditLog },
     });
     try {
       // A second workspace cannot write into a log another authority holds open.
       await expect(
         openEmbeddedAuthority(projectTasks, {
           workspacePath: join(directory, 'other'),
-          security: { eventLogDirectory: auditLog },
+          settings: { 'audit-log': auditLog },
         }),
       ).rejects.toThrow(/Event log is open in another process/);
       await authority.application.invokeRaw(

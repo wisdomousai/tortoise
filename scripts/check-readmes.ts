@@ -1,6 +1,6 @@
 /**
  * Keeps workspace READMEs, package manifests and docs/primitives.md in step (P10). For every
- * workspace in `packages/*`, `apps/*` and `examples/*` it fails when:
+ * workspace in `packages/*`, `plugins/*`, `apps/*` and `examples/*` it fails when:
  *
  * - `README.md` is missing, or its title is not the package name;
  * - one of the required sections is missing;
@@ -63,7 +63,7 @@ function primitiveLocations(): Map<string, Set<string>> {
     const title = /^###\s+(.+)$/.exec(line);
     if (title) heading = slug(title[1]!);
     if (!heading || !line.startsWith('Serves ')) continue;
-    for (const [, location] of line.matchAll(/`((?:packages|apps|examples)\/[\w-]+)`/g)) {
+    for (const [, location] of line.matchAll(/`((?:packages|plugins|apps|examples)\/[\w-]+)`/g)) {
       const anchors = locations.get(location!) ?? new Set();
       anchors.add(heading);
       locations.set(location!, anchors);
@@ -80,7 +80,7 @@ interface Manifest {
 const errors: string[] = [];
 const cited = primitiveLocations();
 const workspaces: string[] = [];
-for (const layer of ['packages', 'apps', 'examples'])
+for (const layer of ['packages', 'plugins', 'apps', 'examples'])
   for (const entry of readdirSync(resolve(root, layer), { withFileTypes: true }))
     if (entry.isDirectory() && existsSync(resolve(root, layer, entry.name, 'package.json')))
       workspaces.push(`${layer}/${entry.name}`);

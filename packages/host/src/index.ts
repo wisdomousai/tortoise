@@ -15,6 +15,27 @@ export {
   type Observer,
 } from './application';
 export { defineManifest, type ApplicationManifest } from './manifest';
+export {
+  definePluginManifest,
+  type PluginManifest,
+  type PluginModules,
+  type PluginSetting,
+} from './plugin-manifest';
+export {
+  defineHostPlugin,
+  type AnyHostPlugin,
+  type HostPlugin,
+  type HostPorts,
+  type IdentityPort,
+  type IngressPort,
+  type NetworkPort,
+  type PluginCommand,
+  type PluginInstance,
+  type PluginOpenContext,
+  type PluginStartContext,
+} from './plugin';
+export { readPluginSettings, type PluginSettings } from './plugins/settings';
+export { defaultPorts } from './plugins/ports';
 export { combineIntegrations, type Integrations } from './integrations';
 export {
   LOCAL_OWNER,

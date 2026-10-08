@@ -2,6 +2,8 @@
 
 This guide is for teams that must admit the application into a restricted network. It covers what the app may reach, how that is enforced, how every action is recorded, and how an auditor checks all of it, both before deployment and while the app runs. The design decision is recorded in [ADR 007](decisions/007-declared-egress-and-audit-log.md).
 
+All of this is provided by two [host plugins](primitives.md#host-plugin) the application composes ([ADR 010](decisions/010-host-plugins.md)). `@agent-native/security` binds, enforces and records. `@agent-native/assurance` lets auditors read posture and the log, and adds the CLI verbs. The host itself is deny-by-default: an application without the security plugin reaches nothing off the host and keeps no audit log. Every example composes both plugins. A setting passed explicitly without the plugin that reads it, such as `--site-policy` for an application without `security`, refuses to start rather than run unenforced. Environment variables are read only for the settings composed plugins declare, so `AGENT_NATIVE_SITE_POLICY` set for an application without `security` is ignored, not refused. Check the `plugins` field of the service's `listening` record to see what is enforced.
+
 The model has four parts:
 
 1. **Declare.** Code states everything it may need: network destinations, devices and child processes.
@@ -11,12 +13,12 @@ The model has four parts:
 
 ## 1. Declarations
 
-Each capability module and host component declares `requirements` (`packages/contracts/src/requirements.ts`). The host adds its own components (`hostComponents` in `packages/host/src/components.ts`); an application adds the components it brings, such as a screen bridge or device drivers, through `components` in its manifest. `deploymentCatalog(manifest)` composes all three:
+Each capability module and host component declares `requirements` (`packages/contracts/src/requirements.ts`). The host adds its own components (`hostComponents` in `packages/host/src/components.ts`); each plugin adds its components through its plugin manifest (the security plugin's `audit-collector`, the webhook example's `webhook-target`); an application adds the components it brings, such as a screen bridge or device drivers, through `components` in its manifest. `deploymentCatalog(manifest)` composes them all:
 
 ```ts
 defineHostComponent({
-  id: 'audit',
-  description: 'Off-host audit forwarding',
+  id: 'security',
+  description: 'Security plugin: forwards audit events off the host as RFC 5424 syslog.',
   requirements: {
     network: [
       {
@@ -83,16 +85,16 @@ Each profile sets a floor. The service refuses to start below it, and `security 
 | Audit log                  | configurable        | fail-closed                               | fail-closed and forwarded off the host         |
 | Delegated grants           | as issued           | must expire within `grants.maxTtlSeconds` | as sandbox, at most one hour                   |
 
-How the host enforces the identity floor:
+How the security plugin enforces the identity floor through the host's identity port:
 
 - **`grant-file`:** the host issues no local-owner session and writes no owner credential file. Only the launcher grant is admitted, and its expiry must fall within the policy maximum. Embedded CLI and MCP calls follow the same rule.
-- **`external`:** the host refuses to start, because this framework composes no workforce identity adapter. It does not fall back to the local owner.
+- **`external`:** startup refuses, because this framework composes no workforce identity adapter. It does not fall back to the local owner.
 
-An `mtls` listener binds the configured host and port. It admits only clients whose certificate chains to `clientCa`, and every API call still needs a session token. Certificate and key paths resolve next to the policy file and are passed to the TLS stack as paths.
+With `mtls`, the security plugin provides the host's ingress port: the listener binds the configured host and port. It admits only clients whose certificate chains to `clientCa`, and every API call still needs a session token. Certificate and key paths resolve next to the policy file and are passed to the TLS stack as paths.
 
 ## 3. Enforcement
 
-**In-process guard** (`packages/egress`). Every outbound connection of the host passes through it:
+**In-process guard** (`packages/egress`). The security plugin provides it as the host's network port, so every outbound connection of the host and its plugins passes through it:
 
 - **Requests to a destination:** a scoped `fetch` per destination. It allows only the bound scheme, host and port, checks every redirect hop, applies CA or pin settings, checks resolved addresses against `addresses`, and caps response size and time.
 - **Provider SDKs:** `routedFetch` selects the bound destination by origin and explains any refusal (`UNBOUND`, `DISABLED`, `ORIGIN_MISMATCH`).
@@ -123,11 +125,11 @@ The few reviewed exceptions are listed with their reasons in `egressExemptions` 
 | `compose`           | Container hardening only. Compose cannot filter by destination, and the file says so.                                                                       |
 | `json`              | The firewall-neutral rule set, for other tools.                                                                                                             |
 
-The rules are exported, never applied: applying them is a deployment step. The goldens in `packages/assurance/test/golden` are text comparisons. The rules have not been loaded into `nft`, Windows Firewall, systemd or a cluster here.
+The rules are exported, never applied: applying them is a deployment step. The goldens in `plugins/assurance/test/golden` are text comparisons. The rules have not been loaded into `nft`, Windows Firewall, systemd or a cluster here.
 
 ## 4. Event log
 
-`EventLogPort` is a runtime option (`ApplicationOptions.eventLog`). With it injected, the runtime records:
+`EventLogPort` is a runtime option (`ApplicationOptions.eventLog`); the host passes the one its `eventLog` port provider opens, which is the security plugin. With it injected, the runtime records:
 
 - every command, query, denial and outbox transition;
 - every inbound sync pass;
@@ -141,11 +143,11 @@ The JSONL adapter (`packages/event-log`):
 
 - **Chain and checkpoints:** it chains events with SHA-256 across size-rotated segments and writes periodic checkpoints.
 - **Durability:** it syncs every append, stores files with mode 0600, and holds an OS lock so each log directory has one writer.
-- **Location:** the default is `<workspace>/audit`. Set `--audit-log` (or `AGENT_NATIVE_AUDIT_LOG`) to put it outside the workspace.
+- **Location:** the default is `<workspace>/audit`. Set the security plugin's `--audit-log` setting (or `AGENT_NATIVE_AUDIT_LOG`) to put it outside the workspace.
 
 **Fail-closed ordering.** `command.accepted` is appended inside the storage transaction, after final authorization. If that append fails, the transaction rolls back and nothing commits. `command.committed` follows the commit. If the process dies between the two, startup resolves the open entry against the receipt store and records `command.recovered` or `command.aborted`. Set `audit.mode: "best-effort"` to trade this guarantee for availability; sandbox and zero-trust refuse that setting.
 
-**Attestation.** Startup records `config.loaded` (executable, catalog and policy digests, profile) and `policy.loaded` (findings and offline consequences). An auditor can match a running instance to the SBOM and manifest.
+**Attestation.** The security plugin's `ready` hook, which runs before the first request, records `config.loaded` (executable, catalog and policy digests, profile) and `policy.loaded` (findings and offline consequences). An auditor can match a running instance to the SBOM and manifest.
 
 **Forwarding.** `audit.forwardTo` sends events to a bound `audit-collector` as RFC 5424 syslog with octet framing. The connection goes through the egress guard like any other.
 
@@ -164,7 +166,7 @@ The control mappings are indicative. They name the requirement each control cont
 
 ## 6. Checking it
 
-Every application's CLI has these commands (`packages/host/src/assurance-cli.ts`). They work offline and need no authority or workspace:
+Every application that composes the assurance plugin has these commands (`plugins/assurance/src/cli.ts`, contributed through the plugin's `commands`). They work offline and need no authority or workspace:
 
 ```sh
 app security check --site site-policy.json            # exit 2 on any error finding
@@ -181,7 +183,7 @@ Auditors see the result through three read-only queries:
 - `assurance.events.list` (paged; filter by kind or outcome; newest first)
 - `assurance.log.verify`
 
-The **Security** screen (`security-screen` in the frame registry, routed at `/security` by each example) uses the same queries and shows a denial within seconds. Only principals listed as auditors may read these. A delegated grant must name the operation and, if it is limited to specific resources, `audit:log`.
+The **Security** screen (`security-screen` in the assurance plugin's registry, routed at `/security` by the plugin) uses the same queries and shows a denial within seconds. Only principals listed as auditors may read these. A delegated grant must name the operation and, if it is limited to specific resources, `audit:log`.
 
 ## 7. Offline first
 

@@ -6,6 +6,12 @@ Find the account with crm.account.search (or a contact with crm.contact.search, 
 
 Operations: `crm.account.search`, `crm.contact.search`, `crm.account.lookup`, `crm.account.adopt`, `crm.account.get`, `crm.activity.log`.
 
+## review-security-posture
+
+Start with the posture. For any check that is not passing, list the matching audit events (for example kinds egress.denied, command.denied or posture.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.
+
+Operations: `assurance.posture.get`, `assurance.events.list`, `assurance.log.verify`.
+
 ## review-sync
 
 Read crm.sync.status, then list rejected accounts and open activities that were not accepted. Explain each rejection; do not retry by logging the same activity again.

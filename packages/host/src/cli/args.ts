@@ -1,17 +1,15 @@
 import { resolve } from 'node:path';
 import { takeFlag } from '@agent-native/adapters/cli';
 import { ApplicationError } from '@agent-native/contracts';
-import { securityFromEnvironment, type SecurityOptions } from '../security';
+import type { ApplicationManifest } from '../manifest';
+import { readPluginSettings, type PluginSettings } from '../plugins/settings';
 
 export const workspaceOf = (args: string[]) =>
   resolve(takeFlag(args, 'workspace') ?? process.env.WORKSPACE_PATH ?? '.workspace');
 
-/** Trusted launcher configuration: where the site policy and audit log are. */
-export const securityOf = (args: string[]): SecurityOptions =>
-  securityFromEnvironment(process.env, {
-    sitePolicy: takeFlag(args, 'site-policy'),
-    eventLogDirectory: takeFlag(args, 'audit-log'),
-  });
+/** Trusted launcher configuration: the composed plugins' settings, from flags or else env. */
+export const settingsOf = (manifest: ApplicationManifest, args: string[]): PluginSettings =>
+  readPluginSettings(manifest, process.env, args);
 
 export function finite(value: string | undefined, fallback: number, name: string) {
   if (value === undefined) return fallback;

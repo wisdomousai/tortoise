@@ -1,12 +1,8 @@
 import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
 import { defineApplication } from '@agent-native/host/application';
-import {
-  assuranceAuthorizationRoute,
-  createAssuranceHandlers,
-  createAssuranceState,
-  type AssuranceServices,
-  type AssuranceState,
-} from '@agent-native/assurance/server';
+import { assurancePlugin } from '@agent-native/assurance/plugin';
+import { securityPlugin } from '@agent-native/security/plugin';
+import { webhookPlugin } from '@agent-native/webhook/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
 import type { ProjectTaskState } from './domain';
@@ -18,11 +14,12 @@ import {
   type ProjectTaskServices,
 } from './server';
 
-/** Workspace state: one slice, so the module composes unchanged next to others. */
+/**
+ * Workspace state: one slice, so the module composes unchanged next to others. Plugin slices
+ * (the assurance auditors) are added by `defineApplication` under their plugin ids.
+ */
 export interface ProjectTasksState {
   projectTasks: ProjectTaskState;
-  /** Who may read the host's audit trail: the workspace owner. */
-  assurance: AssuranceState;
 }
 
 /**
@@ -31,34 +28,21 @@ export interface ProjectTasksState {
  * A workspace composed with other modules keeps only this slice.
  */
 export function createProjectTasksApplication(options: { services?: ProjectTaskServices } = {}) {
-  return defineApplication<ProjectTasksState, ProjectTaskServices & AssuranceServices>({
+  return defineApplication<ProjectTasksState, ProjectTaskServices>({
     manifest,
-    createState: (ownerId) => ({
-      projectTasks: createProjectTaskState(ownerId),
-      assurance: createAssuranceState([ownerId]),
-    }),
+    createState: (ownerId) => ({ projectTasks: createProjectTaskState(ownerId) }),
     upgradeState(state, ownerId) {
       const value = (state ?? {}) as Record<string, unknown>;
-      const assurance =
-        (value.assurance as AssuranceState | undefined) ?? createAssuranceState([ownerId]);
-      if ('projects' in value)
-        return { projectTasks: value as unknown as ProjectTaskState, assurance };
+      if ('projects' in value) return { projectTasks: value as unknown as ProjectTaskState };
       return {
         projectTasks:
           (value.projectTasks as ProjectTaskState | undefined) ?? createProjectTaskState(ownerId),
-        assurance,
       };
     },
-    handlers: [
-      ...sliceHandlers<ProjectTasksState, 'projectTasks', ProjectTaskServices & AssuranceServices>(
-        'projectTasks',
-        createProjectTaskHandlers(),
-      ),
-      ...sliceHandlers<ProjectTasksState, 'assurance', ProjectTaskServices & AssuranceServices>(
-        'assurance',
-        createAssuranceHandlers(),
-      ),
-    ],
+    handlers: sliceHandlers<ProjectTasksState, 'projectTasks', ProjectTaskServices>(
+      'projectTasks',
+      createProjectTaskHandlers(),
+    ),
     authorization: composeAuthorization<ProjectTasksState>([
       authorizationRoute(
         'projectTasks',
@@ -66,10 +50,10 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
         ['project', 'task'],
         projectTaskPolicy,
       ),
-      assuranceAuthorizationRoute<ProjectTasksState>((state) => state.assurance),
     ]),
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { project: operations.projectGet.id, task: operations.taskGet.id },
+    plugins: [securityPlugin, assurancePlugin, webhookPlugin],
   });
 }
 

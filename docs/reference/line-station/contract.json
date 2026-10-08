@@ -4502,7 +4502,7 @@
         "direction": "egress",
         "id": "audit-collector",
         "offline": "degrade",
-        "owner": "authority",
+        "owner": "security",
         "protocol": "tcp",
         "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
         "scope": "site"

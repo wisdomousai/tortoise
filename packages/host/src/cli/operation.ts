@@ -11,8 +11,7 @@ import {
   openEmbeddedAuthority,
   type EmbeddedAuthority,
 } from '../embedded';
-import { assertIdentity } from '../security';
-import { securityOf, workspaceOf } from './args';
+import { settingsOf, workspaceOf } from './args';
 
 const OWNER: ExecutionContext = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
 const offlineVerbs = new Set(['help', 'list', 'schema', 'workflows']);
@@ -67,7 +66,7 @@ async function embeddedOperation(
   grantFile: string | undefined,
 ) {
   const workspacePath = workspaceOf(args);
-  const security = securityOf(args);
+  const settings = settingsOf(definition.manifest, args);
   let authority: EmbeddedAuthority | undefined;
   try {
     return await runCliMain(
@@ -77,9 +76,9 @@ async function embeddedOperation(
           ...(grantFile ? await readGrantFile(grantFile, LOCAL_WORKSPACE) : OWNER),
           channel: 'cli',
         };
-        authority = await openEmbeddedAuthority(definition, { workspacePath, security });
-        // The local owner acts only where the site policy trusts it; otherwise a grant is required.
-        assertIdentity(authority.security.policy, context);
+        authority = await openEmbeddedAuthority(definition, { workspacePath, settings });
+        // The local owner acts only where the identity port admits it; otherwise a grant is required.
+        authority.ports.identity.admit(context);
         // Commits stay in the workspace outbox; `drain`, `mcp --embedded` or `serve` deliver them.
         return createDirectTransport(authority.application, context);
       },

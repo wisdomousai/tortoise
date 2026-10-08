@@ -6,6 +6,7 @@
   "description": "Web frame for one application (session, routing, palette, run panel), distributed as a shadcn registry.",
   "exports": {
     "./screens": "./src/screens.ts",
+    "./plugin-screens": "./src/plugin-screens.ts",
     "./vite": "./vite.ts",
     "./components/*": "./src/components/*.tsx",
     "./lib/*": "./src/lib/*.ts"

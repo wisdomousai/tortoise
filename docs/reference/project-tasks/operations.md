@@ -1729,3 +1729,152 @@ Output:
   "type": "object"
 }
 ```
+
+## webhook.delivery.record
+
+Record the outcome of one webhook delivery pass: the cursor reached and how many notifications were posted, or the error. Called by the plugin delivery loop as a delegated caller.
+
+- Kind: command
+- MCP: `webhook_delivery_record`
+- Permission: `write` on `Webhook`
+- UI: Written only by the delivery loop, which runs as a delegated caller; people read the result through webhook.status.get.
+- CLI: `agent-native-desktop-starter webhook delivery record [--cursor <integer>] --delivered <integer> [--error <string>] [--key <idempotency-key>]`
+
+Input:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cursor": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "delivered": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "error": {
+      "maxLength": 500,
+      "type": "string"
+    }
+  },
+  "required": [
+    "delivered"
+  ],
+  "type": "object"
+}
+```
+
+Output:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cursor": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "delivered": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failures": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "lastDeliveredAt": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "type": "integer"
+    },
+    "lastError": {
+      "maxLength": 500,
+      "type": "string"
+    }
+  },
+  "required": [
+    "cursor",
+    "delivered",
+    "failures"
+  ],
+  "type": "object"
+}
+```
+
+## webhook.status.get
+
+Read webhook delivery status: which operations are observed, how many change notifications were delivered, the journal cursor reached, and the last delivery error. Use it to check whether the downstream system receives notifications.
+
+- Kind: query
+- MCP: `webhook_status_get`
+- Permission: `read` on `Webhook`
+- UI: webhook-status
+- CLI: `agent-native-desktop-starter webhook status get`
+
+Input:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {},
+  "type": "object"
+}
+```
+
+Output:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cursor": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "delivered": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failures": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "lastDeliveredAt": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "type": "integer"
+    },
+    "lastError": {
+      "maxLength": 500,
+      "type": "string"
+    },
+    "observing": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "cursor",
+    "delivered",
+    "failures",
+    "observing"
+  ],
+  "type": "object"
+}
+```

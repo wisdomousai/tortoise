@@ -7,6 +7,9 @@ import {
   egressExemptions,
   forbiddenBrowserImport,
   hostSourcePath,
+  kernelForbiddenImport,
+  pluginBrowserEntry,
+  pluginBrowserSource,
   serverSource,
 } from './boundary-rules.ts';
 
@@ -37,12 +40,14 @@ const browserRoots = [
 // Content's browser entrypoints: contracts, the manifest, screens and their components.
 const browserContent =
   /^examples\/[^/]+\/(?:contracts\.ts|contracts\/|manifest\.ts|screens\.tsx|ui\/)/;
-// Layers by directory (P11): framework `packages/*`, shell `apps/*`, content `examples/*`.
+// Layers by directory (P11): framework `packages/*`, plugins `plugins/*`, shell `apps/*`,
+// content `examples/*`.
 // Imports resolve through relative paths and workspace package names alike, so an alias such as
 // `@agent-native/line-station` cannot bypass a rule that a relative path would break.
-type Layer = 'framework' | 'shell' | 'content';
+type Layer = 'framework' | 'plugin' | 'shell' | 'content';
 const layerDirectories: Record<string, Layer> = {
   packages: 'framework',
+  plugins: 'plugin',
   apps: 'shell',
   examples: 'content',
 };
@@ -64,6 +69,13 @@ function layerOfImport(file: string, dependency: string): Layer | undefined {
   return packageLayers.get(scope!.startsWith('@') ? `${scope}/${name}` : scope!);
 }
 
+/** `@agent-native/<plugin>` or a subpath of it that is not one of its browser entrypoints. */
+function serverPluginEntry(dependency: string) {
+  const [scope, name, ...rest] = dependency.split('/');
+  const pkg = `${scope}/${name}`;
+  return packageLayers.get(pkg) === 'plugin' && !pluginBrowserEntry.test(rest.join('/'));
+}
+
 for (const file of all) {
   const name = relative(root, file).replaceAll('\\', '/');
   const source = await readFile(file, 'utf8');
@@ -75,8 +87,14 @@ for (const file of all) {
   for (const dependency of imports) {
     const from = layerOfPath(file);
     const to = layerOfImport(file, dependency);
-    if (from === 'framework' && (to === 'shell' || to === 'content'))
+    if (from === 'framework' && (to === 'shell' || to === 'content' || to === 'plugin'))
       errors.push(`${name}: framework imports ${to} ${dependency}`);
+    // A plugin builds on the framework and on plugins it requires; the application lists it, so
+    // neither the starter nor the plugin reaches into an application or the starter.
+    if (from === 'plugin' && (to === 'shell' || to === 'content'))
+      errors.push(`${name}: plugin imports ${to} ${dependency}`);
+    if (from === 'shell' && to === 'plugin')
+      errors.push(`${name}: shell imports plugin ${dependency}; the application composes plugins`);
     // The starter learns its content only from configuration; content implements framework
     // contracts and never reaches into the starter that happens to host it.
     if (from === 'shell' && to === 'content')
@@ -84,11 +102,23 @@ for (const file of all) {
     if (from === 'content' && to === 'shell')
       errors.push(`${name}: content imports shell ${dependency}`);
     if (
-      (browserRoots.some((prefix) => name.startsWith(prefix)) || browserContent.test(name)) &&
+      name.startsWith('packages/host/src/') &&
+      kernelForbiddenImport.test(
+        dependency.startsWith('.')
+          ? relative(root, resolve(file, '..', dependency)).replaceAll('\\', '/')
+          : dependency,
+      )
+    )
+      errors.push(`${name}: the host imports plugin code ${dependency}; compose it as a plugin`);
+    if (
+      (browserRoots.some((prefix) => name.startsWith(prefix)) ||
+        browserContent.test(name) ||
+        pluginBrowserSource.test(name)) &&
       // A server entrypoint inside a browser-safe package (devices/server) is itself host code.
       !hostSourcePath.test(file) &&
       (forbiddenBrowserImport.test(dependency) ||
-        hostSourcePath.test(resolve(file, '..', dependency)))
+        serverPluginEntry(dependency) ||
+        (dependency.startsWith('.') && hostSourcePath.test(resolve(file, '..', dependency))))
     )
       errors.push(`${name}: browser imports host module ${dependency}`);
   }
@@ -97,7 +127,8 @@ for (const file of all) {
 const exemptionUsed = new Set<string>();
 for (const file of all) {
   const name = relative(root, file).replaceAll('\\', '/');
-  if (!serverSource.test(name) || browserSource.test(name)) continue;
+  if (!serverSource.test(name) || browserSource.test(name) || pluginBrowserSource.test(name))
+    continue;
   // Comments mention APIs without calling them.
   const source = (await readFile(file, 'utf8'))
     .replace(/\/\*[\s\S]*?\*\//g, '')

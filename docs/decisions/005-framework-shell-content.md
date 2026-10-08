@@ -1,6 +1,6 @@
 # 005 — Framework, starter and content are separate layers
 
-Accepted: the repository has three layers. A running authority hosts exactly one application, which the starter resolves from configuration (P11).
+Accepted: the repository has three layers; [ADR 010](010-host-plugins.md) adds host plugins in `plugins/*` as a fourth. A running authority hosts exactly one application, which the starter resolves from configuration (P11).
 
 - **Framework** (`packages/*`): domain-neutral primitives, ports and adapters. It includes the generic host (`@agent-native/host`: workspace ownership, sessions and launch, HTTP/SSE, embedded MCP, the CLI, run supervision and provider access) and the web frame (`@agent-native/frame`: session bindings, routing, palette, run panel and accounts, shipped as a shadcn registry). The framework imports neither the starter nor content.
 - **Starter** (`apps/*`): a thin boilerplate that you fork or generate and then own. It holds wiring and configuration: `app.config.json` (identity and the hosted application), the service and CLI entrypoints, the web root, stock shadcn primitives, styles and the desktop wrapper. Extend it as far as you like. Any frame file can be shadowed by a starter file at the same `src/` path, or taken over with `shadcn add`.

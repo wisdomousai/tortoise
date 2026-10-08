@@ -7,7 +7,6 @@ import { LOCAL_OWNER, LOCAL_WORKSPACE } from './embedded';
 import { startAgents } from './host/agents';
 import { openAuthority, type Authority } from './host/authority';
 import { issueAgentConnection, writeConnectionFile } from './host/connection-files';
-import { listen } from './host/listener';
 import {
   createCleanupStack,
   type CleanupStack,
@@ -50,7 +49,7 @@ function createClose(running: () => Running) {
     const { connectionFile, agentConnectionPath } = running();
     if (connectionFile) await unlink(connectionFile).catch(() => {});
     if (agentConnectionPath) await unlink(agentConnectionPath).catch(() => {});
-    await authority.security.close();
+    await authority.plugins.close();
     await ownership.release();
   };
 }
@@ -82,14 +81,30 @@ async function publishConnections(
   return { connectionFile, agentSession };
 }
 
-/** Start the application's integration loops and observers, unless the caller drives them. */
+/**
+ * Start the plugins' background work, then the application's integration loops and observers
+ * unless the caller drives those. Plugin observers stop with the application's.
+ */
 async function startBackground(authority: Authority, options: StartHostOptions) {
+  const onError = (scope: string, error: unknown) => console.error(`${scope}:`, error);
+  authority.observers.push(
+    ...(await authority.plugins.start({
+      application: authority.application,
+      workspaceId: LOCAL_WORKSPACE,
+      delegate: (grant) => ({
+        workspaceId: LOCAL_WORKSPACE,
+        principalId: LOCAL_OWNER,
+        grant: { ...grant, principalId: LOCAL_OWNER, workspaceId: LOCAL_WORKSPACE },
+      }),
+      onError,
+    })),
+  );
   if (options.integration === false) return;
   authority.integrations.start(options.integration);
   if (authority.connections.observe)
     authority.observers.push(
       // A failed observation pass is retried; its details stay in the host log.
-      ...(await authority.connections.observe((scope, error) => console.error(`${scope}:`, error))),
+      ...(await authority.connections.observe(onError)),
     );
 }
 
@@ -98,12 +113,10 @@ async function startBackground(authority: Authority, options: StartHostOptions) 
  * native and process clients attach via authenticated HTTP. The application's integrations and
  * observers come from its own `connect`; the host names no system of record and no station.
  *
- * The site policy applies to every application (P13). The listener is loopback by default; the
- * policy can select a mutual TLS listener instead, and every API call still needs a session.
- * Its identity floor decides who the first session belongs to:
- * - `local-owner`: the OS account that started the host.
- * - `grant-file`: only the launcher's delegated grant; no owner session or credential file.
- * - `external`: refuses to start, because no identity adapter is composed.
+ * The application's plugins provide the ports (P13). The listener is loopback unless a plugin
+ * provides the ingress port, and every API call still needs a session. The identity port decides
+ * who the first session belongs to: the OS account that started the host when it admits the
+ * local owner, otherwise only the launcher's delegated grant, with no owner credential file.
  */
 export async function startHost(definition: AnyApplicationDefinition, options: StartHostOptions) {
   await mkdir(options.workspacePath, { recursive: true });
@@ -111,7 +124,7 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
   const cleanup = createCleanupStack(() => ownership.release());
   try {
     const authority = await openAuthority(definition, options, ownership, cleanup);
-    const { application, security } = authority;
+    const { application, ports } = authority;
     const sessions = new Sessions();
     let origin = '';
     const agents = await startAgents(
@@ -146,7 +159,7 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       extra: (request, session) => routeHostRequest(request, session, routes),
       static: (path) => serveStatic(options.webRoot, path),
     });
-    const { server, origin: listening } = listen(security, options.port, handler);
+    const { server, origin: listening } = ports.ingress.listen(options.port, handler);
     cleanup.push(() => {
       server.stop(true);
     });
@@ -168,7 +181,10 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       launchUrl: `${origin}/#launch=${sessions.launch((ownerSession ?? agentSession)!)}`,
       sessions,
       application,
-      security,
+      /** Services the plugins expose, keyed by plugin id. */
+      services: authority.plugins.services,
+      /** Facts each plugin reports for the `listening` record, keyed by plugin id. */
+      plugins: authority.plugins.describe(),
       supervisor: agents.supervisor,
       integrations: authority.integrations,
       close,

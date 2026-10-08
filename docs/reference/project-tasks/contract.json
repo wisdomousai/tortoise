@@ -1710,6 +1710,153 @@
       "ui": {
         "binding": "task.update"
       }
+    },
+    {
+      "audit": {
+        "fields": [
+          "cursor",
+          "delivered"
+        ]
+      },
+      "dependencies": [],
+      "description": "Record the outcome of one webhook delivery pass: the cursor reached and how many notifications were posted, or the error. Called by the plugin delivery loop as a delegated caller.",
+      "errors": [],
+      "id": "webhook.delivery.record",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "delivered": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "error": {
+            "maxLength": 500,
+            "type": "string"
+          }
+        },
+        "required": [
+          "delivered"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "webhook_delivery_record",
+      "module": "webhook",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "delivered": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "failures": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "lastDeliveredAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "lastError": {
+            "maxLength": 500,
+            "type": "string"
+          }
+        },
+        "required": [
+          "cursor",
+          "delivered",
+          "failures"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "write",
+        "resourceType": "Webhook"
+      },
+      "ui": {
+        "exception": "Written only by the delivery loop, which runs as a delegated caller; people read the result through webhook.status.get."
+      }
+    },
+    {
+      "dependencies": [],
+      "description": "Read webhook delivery status: which operations are observed, how many change notifications were delivered, the journal cursor reached, and the last delivery error. Use it to check whether the downstream system receives notifications.",
+      "errors": [],
+      "id": "webhook.status.get",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "webhook_status_get",
+      "module": "webhook",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "delivered": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "failures": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "lastDeliveredAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "lastError": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "observing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "cursor",
+          "delivered",
+          "failures",
+          "observing"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "Webhook"
+      },
+      "ui": {
+        "binding": "webhook-status"
+      }
     }
   ],
   "requirements": {
@@ -1739,7 +1886,7 @@
         "direction": "egress",
         "id": "audit-collector",
         "offline": "degrade",
-        "owner": "authority",
+        "owner": "security",
         "protocol": "tcp",
         "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
         "scope": "site"
@@ -1784,6 +1931,19 @@
         "protocol": "https",
         "purpose": "ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.",
         "scope": "internet"
+      },
+      {
+        "availability": "optional",
+        "dataClasses": [
+          "change-notification"
+        ],
+        "direction": "egress",
+        "id": "webhook-target",
+        "offline": "queue",
+        "owner": "webhook-delivery",
+        "protocol": "https",
+        "purpose": "Notify a downstream system that observed resources changed.",
+        "scope": "site"
       }
     ],
     "processes": [

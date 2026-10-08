@@ -6,6 +6,7 @@
   "description": "Security assurance: manifest, data flows, control mapping, CycloneDX SBOM, firewall and hardening exporters, posture checks and the browser-safe assurance capability module.",
   "exports": {
     ".": "./src/index.ts",
+    "./plugin-screens": "./src/plugin-screens.tsx",
     "./*": "./src/*.ts"
   }
 }

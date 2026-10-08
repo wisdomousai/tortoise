@@ -7,5 +7,5 @@ playwright-report
 bun.lock
 docs/reference
 scaffold.manifest.json
-packages/assurance/test/golden
+plugins/assurance/test/golden
 .claude

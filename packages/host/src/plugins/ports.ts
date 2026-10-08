@@ -1,0 +1,70 @@
+import { ApplicationError } from '@agent-native/contracts';
+import type { HostPorts, IngressPort, NetworkPort, PluginInstance } from '../plugin';
+
+const unreachable = (what: string) =>
+  new ApplicationError(
+    'UNAVAILABLE',
+    `${what} is unreachable: this application composes no plugin that provides network access`,
+  );
+
+/**
+ * No network at all. The kernel has no policy to decide what is allowed, so it allows nothing;
+ * a plugin that binds destinations replaces this port. Calls fail the same way an unbound
+ * destination does, so callers already handle it.
+ */
+export const isolatedNetwork: NetworkPort = Object.freeze({
+  client: (destinationId: string) => ({
+    destination: destinationId,
+    fetch: async () => Promise.reject(unreachable(destinationId)),
+  }),
+  routedFetch: (destinationIds: readonly string[]) =>
+    Object.assign(async () => Promise.reject(unreachable(destinationIds.join(', '))), {
+      preconnect: () => undefined,
+    }) as unknown as typeof fetch,
+  socket: async (destinationId: string) => Promise.reject(unreachable(destinationId)),
+  childEnvironment: (processId: string) => {
+    throw unreachable(`Child process ${processId}`);
+  },
+});
+
+/** Loopback only, on the requested port or an ephemeral one. */
+export const loopbackIngress: IngressPort = Object.freeze({
+  listen(port: number | undefined, handler: (request: Request) => Response | Promise<Response>) {
+    const server = Bun.serve({
+      hostname: '127.0.0.1',
+      port: port ?? 0,
+      idleTimeout: 30,
+      fetch: handler,
+    });
+    return { server, origin: `http://127.0.0.1:${server.port}` };
+  },
+});
+
+/** The kernel's ports when no plugin provides them. */
+export const defaultPorts: HostPorts = Object.freeze({
+  network: isolatedNetwork,
+  ingress: loopbackIngress,
+  identity: Object.freeze({ admit: () => undefined, localOwnerSessions: true }),
+});
+
+/**
+ * Each port from the one plugin that provides it, else the default. Two providers are a
+ * composition error, not something to resolve by order: silently picking one would let a later
+ * plugin replace the audit log or the egress guard.
+ */
+export function resolvePorts(instances: readonly { id: string; instance: PluginInstance }[]) {
+  const providers = new Map<keyof HostPorts, string>();
+  const ports: Record<string, unknown> = { ...defaultPorts };
+  for (const { id, instance } of instances)
+    for (const [name, port] of Object.entries(instance.ports ?? {}) as [
+      keyof HostPorts,
+      unknown,
+    ][]) {
+      if (port === undefined) continue;
+      const other = providers.get(name);
+      if (other) throw new Error(`Plugins "${other}" and "${id}" both provide the ${name} port`);
+      providers.set(name, id);
+      ports[name] = port;
+    }
+  return ports as unknown as HostPorts;
+}

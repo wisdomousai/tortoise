@@ -34,7 +34,7 @@ flowchart LR
 | ID | Owner | Direction | Scope | Protocol | Host | Data classes | Availability | Offline |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `anthropic-api` | anthropic | egress | internet | https | api.anthropic.com | prompt, application-context, tool-results | optional | unavailable |
-| `audit-collector` | authority | egress | site | tcp | site policy | audit-event | optional | degrade |
+| `audit-collector` | security | egress | site | tcp | site policy | audit-event | optional | degrade |
 | `authority-http` | authority | ingress | loopback | http | site policy | — | required | — |
 | `openai-api` | openai | egress | internet | https | api.openai.com | prompt, application-context, tool-results | optional | unavailable |
 | `openai-auth` | openai | egress | internet | https | auth.openai.com | oauth-authorization, identity-token | optional | unavailable |

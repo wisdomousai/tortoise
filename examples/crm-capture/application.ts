@@ -1,6 +1,8 @@
 import type { ExecutionContext } from '@agent-native/runtime';
 import { createRemoteSource, createTargetIntegration } from '@agent-native/integration';
 import { defineApplication } from '@agent-native/host/application';
+import { assurancePlugin } from '@agent-native/assurance/plugin';
+import { securityPlugin } from '@agent-native/security/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
 import { createCrmState, REGIONS, type CrmState, type Member } from './domain';
@@ -65,6 +67,7 @@ export function createCrmCaptureApplication(
     authorization: crmPolicy,
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { account: operations.accountGet.id },
+    plugins: [securityPlugin, assurancePlugin],
     sources: {
       crm: createRemoteSource({ target: 'crm', port: crm, credentials: crm.credentials }),
     },

@@ -14,7 +14,7 @@
     {
       "id": "authority",
       "kind": "component",
-      "description": "Local authority service: HTTP/SSE API, MCP attach and audit forwarding."
+      "description": "Local authority service: HTTP/SSE API and MCP attach."
     },
     {
       "id": "openai",
@@ -24,6 +24,11 @@
     {
       "id": "quality-inspection",
       "kind": "module"
+    },
+    {
+      "id": "security",
+      "kind": "component",
+      "description": "Security plugin: forwards audit events off the host as RFC 5424 syslog."
     }
   ],
   "network": [
@@ -51,7 +56,7 @@
       "direction": "egress",
       "id": "audit-collector",
       "offline": "degrade",
-      "owner": "authority",
+      "owner": "security",
       "protocol": "tcp",
       "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
       "scope": "site"

@@ -7,8 +7,7 @@ import { ApplicationError, errorEnvelope } from '@agent-native/contracts';
 import type { ExecutionContext } from '@agent-native/runtime';
 import type { AnyApplicationDefinition } from '../application';
 import { LOCAL_WORKSPACE, openEmbeddedAuthority } from '../embedded';
-import { assertIdentity } from '../security';
-import { rejectRemaining, securityOf, workspaceOf } from './args';
+import { rejectRemaining, settingsOf, workspaceOf } from './args';
 
 /** An MCP server over stdio for an authority that is already running. */
 async function attachedMcp(args: string[]) {
@@ -23,7 +22,7 @@ async function attachedMcp(args: string[]) {
 /** An MCP server over stdio that opens the workspace itself, under an explicit delegation. */
 async function embeddedMcp(definition: AnyApplicationDefinition, args: string[]) {
   const workspacePath = workspaceOf(args);
-  const security = securityOf(args);
+  const settings = settingsOf(definition.manifest, args);
   const grantFile = takeFlag(args, 'grant-file') ?? process.env.AGENT_NATIVE_GRANT_FILE;
   rejectRemaining(args);
   // MCP is the agent surface, so an embedded server always runs under an explicit delegation.
@@ -33,9 +32,9 @@ async function embeddedMcp(definition: AnyApplicationDefinition, args: string[])
     ...(await readGrantFile(grantFile, LOCAL_WORKSPACE)),
     channel: 'mcp',
   };
-  const authority = await openEmbeddedAuthority(definition, { workspacePath, security });
+  const authority = await openEmbeddedAuthority(definition, { workspacePath, settings });
   try {
-    assertIdentity(authority.security.policy, context);
+    authority.ports.identity.admit(context);
   } catch (error) {
     await authority.close();
     throw error;

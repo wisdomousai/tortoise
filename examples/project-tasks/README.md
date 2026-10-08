@@ -8,7 +8,8 @@ Layer: content (`examples/*`). Domain code, screens, demo job and tests live her
 
 This example is one [Application](../../docs/primitives.md#application). It composes:
 
-- a [Module](../../docs/primitives.md#module) of twelve [capabilities](../../docs/primitives.md#capability) (`project.*`, `task.*`), plus the framework's `assurance` module;
+- a [Module](../../docs/primitives.md#module) of twelve [capabilities](../../docs/primitives.md#capability) (`project.*`, `task.*`); the plugins below add `assurance.*` and `webhook.*`;
+- the `security` and `assurance` [host plugins](../../docs/primitives.md#host-plugin), listed in each of its three entrypoints, and the example plugin [`webhook`](../../plugins/webhook/README.md) after them;
 - a CASL [Policy](../../docs/primitives.md#policy) with row scopes (`taskReadScope`) and an owner-only protected field;
 - [live queries](../../docs/primitives.md#journal-and-live-query) through the frame's session bindings in its screen, so changes from any caller appear without a refresh;
 - the deterministic [Agent run](../../docs/primitives.md#agent-run) harness behind **Create tasks from brief**.
@@ -21,7 +22,7 @@ The generated [operation reference](../../docs/reference/project-tasks/operation
 | ----------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------- |
 | `@agent-native/project-tasks/manifest`    | browser and server | Default export: `defineManifest` with id `project-tasks` and its modules.                           |
 | `@agent-native/project-tasks/application` | server only        | Default export: `defineApplication` with state, upgrade, handlers, policy and selectable resources. |
-| `@agent-native/project-tasks/screens`     | browser            | Default export: `defineScreens` with the Projects and Security screens.                             |
+| `@agent-native/project-tasks/screens`     | browser            | Default export: `defineScreens` with the Projects screen; the plugins add Security and Webhook.     |
 | `@agent-native/project-tasks/*`           | see file           | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`.                    |
 
 `server` concatenates `handlers/projects` and `handlers/tasks`, which share the handler context, lookups, paging and DTOs in `server/context`. `ui/projects` re-exports the screens from `ui/projects/`: one file per component, with `useTaskDraft` in the task row and `useAction` and `useProjectSession` in the project screen. Drafts whose forms collapse (a new project name, a new task title) stay in the parent screen, so collapsing a form does not lose what was typed.
@@ -34,7 +35,7 @@ The application definition is trusted code that runs inside the authority. Every
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/frame`, `@agent-native/assurance`, `@agent-native/client`, `@agent-native/adapters` and `@agent-native/testing` (tests). External: `zod`, `react`, `@tanstack/react-query`, `lucide-react`. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/frame`, `@agent-native/security`, `@agent-native/assurance`, `@agent-native/webhook`, `@agent-native/client`, `@agent-native/adapters` and `@agent-native/testing` (tests). External: `zod`, `react`, `@tanstack/react-query`, `lucide-react`. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
 
 ## Tests
 

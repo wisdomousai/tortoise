@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/webhook",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Example host plugin: posts change notifications for chosen operations to one declared webhook destination.",
+  "exports": {
+    "./plugin-screens": "./plugin-screens.tsx",
+    "./*": "./*.ts"
+  }
+}

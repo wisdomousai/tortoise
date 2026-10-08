@@ -1,7 +1,7 @@
 import type { ExecutionContext } from '@agent-native/runtime';
 import type { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
 import type { Harness } from '@agent-native/agents/types';
-import type { SecurityOptions } from '../security';
+import type { PluginSettings } from '../plugins/settings';
 
 export interface StartHostOptions {
   workspacePath: string;
@@ -22,11 +22,10 @@ export interface StartHostOptions {
    */
   agentConnection?: { context: ExecutionContext; path: string };
   /**
-   * Site policy and audit log location. Absent: isolated network posture and a fail-closed log
-   * in `<workspace>/audit`. Every outbound connection of the host goes through the egress guard
-   * built from this policy, and every business action is recorded in the log.
+   * Plugin settings by key, as the launcher supplied them (see `readPluginSettings`). A key no
+   * composed plugin declares refuses startup rather than be ignored.
    */
-  security?: SecurityOptions;
+  settings?: PluginSettings;
 }
 
 export type WorkspaceOwnership = Awaited<ReturnType<typeof acquireWorkspaceOwnership>>;

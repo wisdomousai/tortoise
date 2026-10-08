@@ -8,6 +8,8 @@
  * - `cycloneDx`: CycloneDX 1.6 SBOM from `bun.lock`, with declared destinations as services.
  * - `networkRules`, `exportRules`: OS and orchestrator rules from a resolved site policy.
  * - `assessPosture`, `createPostureMonitor`: passive runtime posture and `posture.checked`.
+ * - `assurancePlugin`: the host plugin composing the audit queries, the monitor and the CLI verbs;
+ *   its manifest (`./plugin-manifest`) and screens (`./screens`) are browser-safe.
  */
 export {
   securityManifest,
@@ -47,3 +49,12 @@ export {
   type Posture,
   type PostureCheck,
 } from './contracts';
+export { assurancePlugin } from './plugin';
+export { assurancePluginManifest } from './plugin-manifest';
+export {
+  assuranceCliCommand,
+  assuranceCommand,
+  assuranceUsage,
+  AUDIT_INVALID_EXIT_CODE,
+  POLICY_REJECTED_EXIT_CODE,
+} from './cli';

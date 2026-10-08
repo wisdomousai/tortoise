@@ -8,13 +8,8 @@ import {
   type DeviceState,
 } from '@agent-native/devices/server';
 import { defineApplication } from '@agent-native/host/application';
-import {
-  assuranceAuthorizationRoute,
-  createAssuranceHandlers,
-  createAssuranceState,
-  type AssuranceServices,
-  type AssuranceState,
-} from '@agent-native/assurance/server';
+import { assurancePlugin } from '@agent-native/assurance/plugin';
+import { securityPlugin } from '@agent-native/security/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
 import { stationRole, type LineState } from './domain';
@@ -31,8 +26,6 @@ import { startStationBridge, type StationBridgeConfig } from './station-bridge';
 export interface LineStationState {
   lineStation: LineState;
   devices: DeviceState;
-  /** Who may read the host's audit trail: the workspace owner. */
-  assurance: AssuranceState;
 }
 
 /** The homebrew MES integration; separate from every person and every station bridge. */
@@ -104,23 +97,16 @@ const freshLine = (ownerId: string) =>
     ],
   });
 
-/** Line, device and assurance handlers, each over its own slice of the state. */
+/** Line and device handlers, each over its own slice of the state. */
 const lineStationHandlers = () => [
-  ...sliceHandlers<LineStationState, 'lineStation', LineServices & AssuranceServices>(
+  ...sliceHandlers<LineStationState, 'lineStation', LineServices>(
     'lineStation',
     createLineHandlers(),
   ),
-  ...sliceHandlers<LineStationState, 'devices', LineServices & AssuranceServices>(
-    'devices',
-    createDeviceHandlers(),
-  ),
-  ...sliceHandlers<LineStationState, 'assurance', LineServices & AssuranceServices>(
-    'assurance',
-    createAssuranceHandlers(),
-  ),
+  ...sliceHandlers<LineStationState, 'devices', LineServices>('devices', createDeviceHandlers()),
 ];
 
-/** Line policy for line resources, station roles for devices, owners for assurance. */
+/** Line policy for line resources, station roles for devices. */
 const lineStationAuthorization = () =>
   composeAuthorization<LineStationState>([
     authorizationRoute(
@@ -137,7 +123,6 @@ const lineStationAuthorization = () =>
         return role === 'supervisor' ? 'administer' : role ? 'read' : undefined;
       },
     })),
-    assuranceAuthorizationRoute<LineStationState>((state) => state.assurance),
   ]);
 
 type BridgeApplication = Parameters<typeof startStationBridge>[0]['application'];
@@ -181,21 +166,20 @@ export function createLineStationApplication(
     services?: LineServices;
   } = {},
 ) {
-  return defineApplication<LineStationState, LineServices & AssuranceServices>({
+  return defineApplication<LineStationState, LineServices>({
     manifest,
     createState: (ownerId) => ({
       lineStation: freshLine(ownerId),
       devices: createDeviceState(),
-      assurance: createAssuranceState([ownerId]),
     }),
     upgradeState(state, ownerId) {
       const value = (state ?? {}) as Partial<LineStationState>;
       return {
         lineStation: value.lineStation ?? freshLine(ownerId),
         devices: value.devices ?? createDeviceState(),
-        assurance: value.assurance ?? createAssuranceState([ownerId]),
       };
     },
+    plugins: [securityPlugin, assurancePlugin],
     handlers: lineStationHandlers(),
     authorization: lineStationAuthorization(),
     ...(options.services ? { services: options.services } : {}),

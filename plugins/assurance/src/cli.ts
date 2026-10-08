@@ -4,17 +4,12 @@ import { ApplicationError } from '@agent-native/contracts';
 import { exitCodes, takeFlag } from '@agent-native/adapters/cli';
 import { isolatedPolicy, loadSitePolicy, type ResolvedPolicy } from '@agent-native/egress';
 import { readEvents, verifyEventLog } from '@agent-native/event-log';
-import {
-  accumulateEgress,
-  assessPosture,
-  exportFormats,
-  exportRules,
-  networkRules,
-  postureMarkdown,
-  type ExportFormat,
-} from '@agent-native/assurance';
-import type { ApplicationManifest } from './manifest';
-import { deploymentRequirements } from './security';
+import { deploymentRequirements } from '@agent-native/host/components';
+import type { ApplicationManifest } from '@agent-native/host/manifest';
+import type { PluginCommand } from '@agent-native/host/plugin';
+import { exportFormats, exportRules, type ExportFormat } from './exporters';
+import { accumulateEgress, assessPosture, postureMarkdown } from './posture';
+import { networkRules } from './rules';
 
 /** `audit verify` found the chain damaged. Distinct from operation errors (0–8) and 75. */
 export const AUDIT_INVALID_EXIT_CODE = 10;
@@ -170,7 +165,8 @@ async function auditReport(manifest: ApplicationManifest, args: string[]) {
 
 /**
  * `security …` and `audit …` verbs for one application's manifest. They open no workspace and
- * no authority. Returns undefined when `args` is not one of them.
+ * no authority, so they work offline against a policy file or a copied log. Returns undefined
+ * when `args` is not one of them.
  */
 export async function assuranceCommand(
   manifest: ApplicationManifest,
@@ -184,3 +180,9 @@ export async function assuranceCommand(
   if (verb === 'security' || verb === 'audit') throw usage(`Unknown ${verb} command; see help`);
   return undefined;
 }
+
+/** The verbs as a plugin command, added to every CLI of an application composing assurance. */
+export const assuranceCliCommand: PluginCommand = {
+  usage: assuranceUsage,
+  run: assuranceCommand,
+};

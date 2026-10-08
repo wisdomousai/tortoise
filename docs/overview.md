@@ -2,7 +2,7 @@
 
 This repository is a TypeScript reference implementation for [edge applications](edge-applications.md): applications that run on or next to the machines where work happens, and that people and AI agents on the same machine operate together. A typical application runs scripts and procedures locally against control software, interprets the results locally, and reports them to a system of record (ERP, quality system, MES). Every operation is defined once and exposed to a desktop/browser UI, HTTP, MCP and a CLI, so a person, a local agent harness, a script or a device calls the same operation with the same validation and authorization.
 
-It contains a domain-neutral framework (`packages/*`), a thin starter that hosts one application (`apps/*`), and three example applications (`examples/*`). It is a reference to read, run and export with the scaffolder; it is not a published library or a hosted service.
+It contains a domain-neutral framework (`packages/*`), host plugins for security, assurance and an example webhook (`plugins/*`), a thin starter that hosts one application (`apps/*`), and three example applications (`examples/*`). It is a reference to read, run and export with the scaffolder; it is not a published library or a hosted service.
 
 ## Purpose
 
@@ -27,7 +27,7 @@ Bun 1.4, TypeScript 7, Zod 4 for schemas, SQLite (`bun:sqlite`) for local storag
 
 ## Layout
 
-Three layers ([ADR 005](decisions/005-framework-shell-content.md)). Content depends on framework contracts. The starter depends on the framework and learns its content only from configuration. `bun run check:boundaries` rejects framework → starter/content, starter → content and content → starter imports.
+Four layers ([ADR 005](decisions/005-framework-shell-content.md), [ADR 010](decisions/010-host-plugins.md)). Content depends on framework contracts and lists the plugins it composes. Plugins depend on the framework. The starter depends on the framework and learns its content only from configuration. `bun run check:boundaries` rejects framework → plugin/starter/content, plugin → starter/content, starter → plugin/content and content → starter imports.
 
 | Path                   | Layer     | Contents                                                                                                  |
 | ---------------------- | --------- | --------------------------------------------------------------------------------------------------------- |

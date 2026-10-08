@@ -1,23 +1,27 @@
 import { errorEnvelope } from '@agent-native/contracts';
 import { PENDING_EXIT_CODE, exitCodes } from '@agent-native/adapters/cli';
 import type { AnyApplicationDefinition } from './application';
-import { assuranceCommand, assuranceUsage } from './assurance-cli';
 import { report } from './cli/args';
 import { drainCommand, syncCommand } from './cli/integration-commands';
 import { mcpCommand } from './cli/mcp';
 import { operationCommand } from './cli/operation';
 import { serveCommand } from './cli/serve';
+import type { ApplicationManifest } from './manifest';
+import { settingsUsage } from './plugins/settings';
 
-const authorityUsage = (program: string) => `Authority:
+const pluginSettingsUsage = (manifest: ApplicationManifest) => {
+  const lines = settingsUsage(manifest);
+  return lines
+    ? `\nPlugin settings (serve, mcp --embedded, sync, drain and --embedded operations):\n${lines}\n`
+    : '';
+};
+
+const authorityUsage = (program: string, manifest: ApplicationManifest) => `Authority:
   ${program} serve [--workspace dir] [--port n] [--web-root dir] [--grant-file f --grant-connection out]
   ${program} mcp [--connection file] | mcp --embedded --grant-file f [--workspace dir]
   ${program} sync [--workspace dir]               pull master data from the system of record once
   ${program} drain [--workspace dir] [--timeout ms]  deliver pending effects; exit ${PENDING_EXIT_CODE} if any remain
-
-Security (serve, mcp --embedded, sync, drain and --embedded operations):
-  --site-policy file   bind declared destinations (AGENT_NATIVE_SITE_POLICY); absent: isolated
-  --audit-log dir      audit event log directory (AGENT_NATIVE_AUDIT_LOG); default <workspace>/audit
-
+${pluginSettingsUsage(manifest)}
 Operations run against a live authority (--connection or AGENT_NATIVE_CONNECTION), or in-process
 with --embedded [--workspace dir] [--grant-file f]. help, list, schema and workflows work offline.
 `;
@@ -42,11 +46,15 @@ export function createCli(definition: AnyApplicationDefinition, options: { progr
       if (verb === 'mcp') return await mcpCommand(definition, args.slice(1));
       if (verb === 'drain') return await drainCommand(definition, args.slice(1));
       if (verb === 'sync') return await syncCommand(definition, args.slice(1));
-      // Touching no workspace: policy checks, rule export, log audit.
-      const assurance = await assuranceCommand(definition.manifest, args);
-      if (assurance !== undefined) return assurance;
+      // Plugin verbs touch no workspace, for example policy checks or log audits.
+      const commands = (definition.plugins ?? []).flatMap((plugin) => plugin.commands ?? []);
+      for (const command of commands) {
+        const code = await command.run(definition.manifest, args);
+        if (code !== undefined) return code;
+      }
       if (verb === undefined || (verb === 'help' && args.length === 1) || verb === '--help') {
-        process.stdout.write(authorityUsage(program) + '\n' + assuranceUsage(program) + '\n');
+        const usages = commands.map((command) => command.usage(program) + '\n');
+        process.stdout.write([authorityUsage(program, definition.manifest), ...usages].join('\n'));
         return await operationCommand(definition, program, ['help']);
       }
       return await operationCommand(definition, program, args);

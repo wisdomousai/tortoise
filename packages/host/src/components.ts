@@ -1,14 +1,18 @@
-import { buildCatalog, defineHostComponent } from '@agent-native/contracts';
+import {
+  buildCatalog,
+  defineHostComponent,
+  type CatalogRequirements,
+} from '@agent-native/contracts';
 import { providerComponents } from '@agent-native/agents/requirements';
 import type { ApplicationManifest } from './manifest';
 
 /**
- * The generic host's own requirements: its listener and the audit forwarder. Pure data; every
- * application the host runs inherits them (P13).
+ * The generic host's own requirement: its listener. Pure data; every application the host runs
+ * inherits it (P13). Plugins declare their own in their manifests.
  */
 export const authorityComponent = defineHostComponent({
   id: 'authority',
-  description: 'Local authority service: HTTP/SSE API, MCP attach and audit forwarding.',
+  description: 'Local authority service: HTTP/SSE API and MCP attach.',
   requirements: {
     network: [
       {
@@ -19,16 +23,6 @@ export const authorityComponent = defineHostComponent({
         protocol: 'http',
         dataClasses: [],
         availability: 'required',
-      },
-      {
-        id: 'audit-collector',
-        purpose: 'Forward audit events off the host (RFC 5424 syslog over TLS).',
-        direction: 'egress',
-        scope: 'site',
-        protocol: 'tcp',
-        dataClasses: ['audit-event'],
-        availability: 'optional',
-        offline: 'degrade',
       },
     ],
   },
@@ -45,6 +39,9 @@ export const hostComponents = [authorityComponent, ...providerComponents] as con
 export function deploymentCatalog(manifest: ApplicationManifest) {
   return buildCatalog(manifest.modules, { components: deploymentComponents(manifest) });
 }
+/** Requirements of one deployment: the application's, its plugins' and the host's. */
+export const deploymentRequirements = (manifest: ApplicationManifest): CatalogRequirements =>
+  deploymentCatalog(manifest).requirements;
 export function deploymentComponents(manifest: ApplicationManifest) {
   return [...hostComponents, ...(manifest.components ?? [])];
 }

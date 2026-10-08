@@ -24,8 +24,10 @@
         "@agent-native/react": "workspace:*",
         "@agent-native/runtime": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
+        "@agent-native/security": "workspace:*",
         "@agent-native/station": "workspace:*",
         "@agent-native/testing": "workspace:*",
+        "@agent-native/webhook": "workspace:*",
         "@ai-sdk/openai": "4.0.86",
         "@anthropic-ai/claude-agent-sdk": "0.3.292",
         "@casl/ability": "7.0.1",
@@ -104,10 +106,6 @@
       "name": "@agent-native/agents",
       "version": "0.1.0",
     },
-    "packages/assurance": {
-      "name": "@agent-native/assurance",
-      "version": "0.1.0",
-    },
     "packages/client": {
       "name": "@agent-native/client",
       "version": "0.1.0",
@@ -164,6 +162,18 @@
       "name": "@agent-native/testing",
       "version": "0.1.0",
     },
+    "plugins/assurance": {
+      "name": "@agent-native/assurance",
+      "version": "0.1.0",
+    },
+    "plugins/security": {
+      "name": "@agent-native/security",
+      "version": "0.1.0",
+    },
+    "plugins/webhook": {
+      "name": "@agent-native/webhook",
+      "version": "0.1.0",
+    },
   },
   "trustedDependencies": [
     "electron",
@@ -173,7 +183,7 @@
 
     "@agent-native/agents": ["@agent-native/agents@workspace:packages/agents"],
 
-    "@agent-native/assurance": ["@agent-native/assurance@workspace:packages/assurance"],
+    "@agent-native/assurance": ["@agent-native/assurance@workspace:plugins/assurance"],
 
     "@agent-native/client": ["@agent-native/client@workspace:packages/client"],
 
@@ -209,6 +219,8 @@
 
     "@agent-native/scaffold": ["@agent-native/scaffold@workspace:packages/scaffold"],
 
+    "@agent-native/security": ["@agent-native/security@workspace:plugins/security"],
+
     "@agent-native/service": ["@agent-native/service@workspace:apps/service"],
 
     "@agent-native/station": ["@agent-native/station@workspace:packages/station"],
@@ -216,6 +228,8 @@
     "@agent-native/testing": ["@agent-native/testing@workspace:packages/testing"],
 
     "@agent-native/web": ["@agent-native/web@workspace:apps/web"],
+
+    "@agent-native/webhook": ["@agent-native/webhook@workspace:plugins/webhook"],
 
     "@ai-sdk/gateway": ["@ai-sdk/gateway@4.0.106", "https://registry.yarnpkg.com/@ai-sdk/gateway/-/gateway-4.0.106.tgz", { "dependencies": { "@ai-sdk/provider": "4.0.24", "@ai-sdk/provider-utils": "5.0.56", "@vercel/oidc": "3.2.0" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-NprSdFzyVnbEp2SDWtIgsCFIUHFCehOD9S6FQkF/dLrCmnke8w4SOK3KcmUUiEbwtVzlUF8prkaELp+ohcQaQw=="],
 

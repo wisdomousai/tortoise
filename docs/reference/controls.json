@@ -100,7 +100,7 @@
     },
     "evidence": {
       "tests": [
-        "packages/assurance/test/assurance.test.ts"
+        "plugins/assurance/test/assurance.test.ts"
       ],
       "artifacts": [
         "security export --format nftables|windows-firewall|k8s-networkpolicy|systemd"
@@ -447,7 +447,7 @@
     },
     "evidence": {
       "tests": [
-        "packages/assurance/test/assurance.test.ts"
+        "plugins/assurance/test/assurance.test.ts"
       ],
       "artifacts": [
         "audit report --log <dir>"
@@ -597,7 +597,7 @@
     },
     "evidence": {
       "tests": [
-        "packages/assurance/test/assurance.test.ts"
+        "plugins/assurance/test/assurance.test.ts"
       ],
       "artifacts": [
         "docs/reference/quality-inspection/sbom.cdx.json"

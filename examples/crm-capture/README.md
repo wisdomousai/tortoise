@@ -12,6 +12,7 @@ This example is one [Application](../../docs/primitives.md#application) and the 
 - a [Module](../../docs/primitives.md#module) of local `crm.*` [capabilities](../../docs/primitives.md#capability) for adopted accounts, activities and sync status;
 - adoption and activity forwarding through [Outbox effects](../../docs/primitives.md#outbox-effect), a [Dispatcher](../../docs/primitives.md#dispatcher) and [Inbound sync](../../docs/primitives.md#inbound-sync), wired with `createTargetIntegration`;
 - a [Requirement declaration](../../docs/primitives.md#requirement-declaration) for the `crm-api` destination, which carries both the outbox target and the remote reads;
+- the `security` and `assurance` [host plugins](../../docs/primitives.md#host-plugin), listed in each of its three entrypoints, which add the Security screen and the `assurance.*` queries;
 - [capability bindings](../../docs/primitives.md#capability-binding): `remoteInfiniteQueryOptions` for the paged search box, `liveQueryOptions` for adopted accounts, `useCapabilityForm` for activities.
 
 Read the [system-of-record pattern](../../docs/system-of-record-pattern.md#live-search-and-adoption) for the design, and [ADR 009](../../docs/decisions/009-remote-queries-and-adoption.md) for why search is a query and adoption a command. The generated [operation reference](../../docs/reference/crm-capture/operations.md) lists every operation.
@@ -51,7 +52,7 @@ Search input goes to the CRM. Results go to the caller and are never stored or j
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/react`, `@agent-native/frame`, and `@agent-native/client`, `@agent-native/adapters` and `@agent-native/testing` (tests). Screens use the frame's session and shadcn components through the `@/` alias. External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/react`, `@agent-native/frame`, `@agent-native/security`, `@agent-native/assurance`, and `@agent-native/client`, `@agent-native/adapters` and `@agent-native/testing` (tests). Screens use the frame's session and shadcn components through the `@/` alias. External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
 
 ## Tests
 

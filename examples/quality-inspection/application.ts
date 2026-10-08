@@ -2,13 +2,8 @@ import type { ExecutionContext } from '@agent-native/runtime';
 import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
 import { createTargetIntegration, type SystemOfRecordPort } from '@agent-native/integration';
 import { defineApplication } from '@agent-native/host/application';
-import {
-  assuranceAuthorizationRoute,
-  createAssuranceHandlers,
-  createAssuranceState,
-  type AssuranceServices,
-  type AssuranceState,
-} from '@agent-native/assurance/server';
+import { assurancePlugin } from '@agent-native/assurance/plugin';
+import { securityPlugin } from '@agent-native/security/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
 import type { QualityState } from './domain';
@@ -23,8 +18,6 @@ import { FakeQualitySystem, toSyncInput, type QualityItem } from './fake-sor';
 
 export interface QualityInspectionState {
   quality: QualityState;
-  /** Who may read the host's audit trail: the supervisor who owns the workspace. */
-  assurance: AssuranceState;
 }
 
 /** The quality system integration's principal; distinct from every person and station. */
@@ -69,14 +62,13 @@ export function demoSystemOfRecord(env: Record<string, string | undefined> = pro
 export function createQualityInspectionApplication(
   options: { systemOfRecord?: SystemOfRecordPort<QualityItem>; services?: QualityServices } = {},
 ) {
-  return defineApplication<QualityInspectionState, QualityServices & AssuranceServices>({
+  return defineApplication<QualityInspectionState, QualityServices>({
     manifest,
     createState: (ownerId) => ({
       quality: createQualityState({
         supervisorId: ownerId,
         integrationPrincipalId: INTEGRATION_PRINCIPAL,
       }),
-      assurance: createAssuranceState([ownerId]),
     }),
     upgradeState: (state, ownerId) => {
       const value = (state ?? {}) as Partial<QualityInspectionState>;
@@ -87,19 +79,12 @@ export function createQualityInspectionApplication(
             supervisorId: ownerId,
             integrationPrincipalId: INTEGRATION_PRINCIPAL,
           }),
-        assurance: value.assurance ?? createAssuranceState([ownerId]),
       };
     },
-    handlers: [
-      ...sliceHandlers<QualityInspectionState, 'quality', QualityServices & AssuranceServices>(
-        'quality',
-        createQualityHandlers(),
-      ),
-      ...sliceHandlers<QualityInspectionState, 'assurance', QualityServices & AssuranceServices>(
-        'assurance',
-        createAssuranceHandlers(),
-      ),
-    ],
+    handlers: sliceHandlers<QualityInspectionState, 'quality', QualityServices>(
+      'quality',
+      createQualityHandlers(),
+    ),
     authorization: composeAuthorization<QualityInspectionState>([
       authorizationRoute(
         'quality',
@@ -107,8 +92,9 @@ export function createQualityInspectionApplication(
         ['lot', 'result', 'defect', 'plant', 'sync'],
         qualityPolicy,
       ),
-      assuranceAuthorizationRoute<QualityInspectionState>((state) => state.assurance),
     ]),
+    // The workspace owner (the supervisor) is the assurance plugin's first auditor.
+    plugins: [securityPlugin, assurancePlugin],
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { lot: operations.lotGet.id },
     connect: ({ application, workspaceId }) => ({

@@ -1,14 +1,32 @@
 /**
  * Modules that must never reach the browser bundle: host runtimes, provider SDKs, credential
- * stores and the server-only framework packages (of `@agent-native/host`, only the manifest is
- * browser-safe). Shared by the static import scan and the Vite
- * plugin that checks the real browser dependency graph.
+ * stores and the server-only framework packages (of `@agent-native/host`, only the manifests are
+ * browser-safe). Shared by the static import scan and the Vite plugin that checks the real
+ * browser dependency graph. Plugin packages are covered by `pluginBrowserEntry` and by the
+ * resolved-path rule in `hostSourcePath`, so no plugin is named here.
  */
 export const forbiddenBrowserImport =
-  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|egress)(?:\/|$)|@agent-native\/station(?!\/requirements$)(?:\/|$)|@agent-native\/host(?!\/manifest$)(?:\/|$)|@agent-native\/assurance(?:$|\/(?!contracts$))|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
-/** Resolved source paths of server-only framework packages. */
+  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|egress)(?:\/|$)|@agent-native\/station(?!\/requirements$)(?:\/|$)|@agent-native\/host(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
+/**
+ * Every plugin in `plugins/*` follows one layout (ADR 010): `plugin-manifest`, `plugin-screens`,
+ * `contracts` and the `ui/` and `components/` folders are browser code, at the package root or
+ * under `src/`; everything else is server code.
+ */
+export const pluginBrowserSource =
+  /^plugins\/[^/]+\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
+/** The browser-safe subpaths of a plugin package, for `@agent-native/<plugin>/<subpath>`. */
+export const pluginBrowserEntry = /^(?:plugin-manifest|plugin-screens|contracts)$/;
+/** Resolved source paths of server-only framework and plugin packages. */
 export const hostSourcePath =
-  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|egress)[\\/]src[\\/]|station[\\/]src[\\/](?!requirements\.ts$)|host[\\/]src[\\/](?!manifest\.ts$)|assurance[\\/]src[\\/](?!contracts\.ts$)|devices[\\/]src[\\/]server\.ts$)/;
+  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|egress)[\\/]src[\\/]|station[\\/]src[\\/](?!requirements\.ts$)|host[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?plugins[\\/][^\\/]+[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
+
+/**
+ * Framework libraries the kernel (`packages/host`) must not import (ADR 010). Egress and the
+ * event log are used by the security plugin; a host import would bring a security concept back
+ * into every application. Plugins themselves are a layer the framework never imports at all.
+ */
+export const kernelForbiddenImport =
+  /^@agent-native\/(?:egress|event-log)(?:\/|$)|(?:^|\/)packages\/(?:egress|event-log)\//;
 
 /**
  * Direct network and process APIs. Server code reaches other hosts only through
@@ -40,7 +58,7 @@ export const directEgress: readonly { readonly api: string; readonly pattern: Re
  * reaches only its own origin and cannot open sockets, so it is out of scope.
  */
 export const serverSource =
-  /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|examples\/)/;
+  /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|plugins\/|examples\/)/;
 export const browserSource =
   /^(?:packages\/(?:contracts|client|react|operator-ui|frame)\/|packages\/devices\/src\/(?!server\.ts$)|examples\/[^/]+\/(?:ui\/|screens\.tsx$))/;
 

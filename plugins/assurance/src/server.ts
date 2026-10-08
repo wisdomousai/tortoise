@@ -4,12 +4,7 @@ import {
   type InputOf,
   type OutputOf,
 } from '@agent-native/contracts';
-import type {
-  AuthorizationPort,
-  AuthorizationRoute,
-  HandlerContext,
-  HandlerContribution,
-} from '@agent-native/runtime';
+import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@agent-native/runtime';
 import { assuranceModule, assuranceOperations } from './contracts';
 import type { AssurancePort } from './monitor';
 
@@ -70,17 +65,5 @@ export const assurancePolicy: AuthorizationPort<AssuranceState> = {
   // The module emits no change events; nothing to disclose.
   canReadEvent: () => false,
 };
-
-/** Authorization route for composing the module over a state slice. */
-export function assuranceAuthorizationRoute<Root>(
-  select: (state: Root) => AssuranceState,
-): AuthorizationRoute<Root> {
-  return {
-    module: assuranceModule,
-    resourceTypes: ['audit'],
-    select,
-    port: assurancePolicy as AuthorizationPort<unknown>,
-  };
-}
 
 export { assuranceModule, assuranceOperations } from './contracts';

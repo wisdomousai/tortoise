@@ -14,16 +14,17 @@ export async function startAgents(
   host: { readonly sessions: Sessions; readonly origin: () => string },
   cleanup: CleanupStack,
 ) {
-  const { security, application } = authority;
+  const { ports, application } = authority;
   const providers = await createProviderAccess({
     workspacePath: ownership.canonicalPath,
     origin: host.origin,
     sessions: (token) => host.sessions.get(token),
     runtimeManifest: options.runtimeManifest,
-    // Provider SDKs reach only the bound OpenAI destinations; provider CLIs get proxy settings
-    // that tunnel only to the destinations their process declaration lists.
-    fetch: security.egress.routedFetch(['openai-auth', 'openai-api']),
-    childEnvironment: (processId) => security.proxy!.childEnvironment(processId),
+    // Provider SDKs reach only the declared OpenAI destinations; provider CLIs get an environment
+    // that confines them to the destinations their process declaration lists. Both go through
+    // the network port, so without a plugin that provides it neither reaches anything.
+    fetch: ports.network.routedFetch(['openai-auth', 'openai-api']),
+    childEnvironment: (processId) => ports.network.childEnvironment(processId),
   });
   cleanup.push(() => providers.close());
   const supervisor: ReturnType<typeof createRunSupervisor> = createRunSupervisor({

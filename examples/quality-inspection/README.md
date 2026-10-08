@@ -8,21 +8,22 @@ Layer: content (`examples/*`). The demo quality system ([`fake-sor.ts`](fake-sor
 
 This example is one [Application](../../docs/primitives.md#application) and the reference for the system-of-record pattern. It composes:
 
-- a [Module](../../docs/primitives.md#module) of `inspection.*` [capabilities](../../docs/primitives.md#capability), plus `assurance`;
+- a [Module](../../docs/primitives.md#module) of `inspection.*` [capabilities](../../docs/primitives.md#capability), plus the `assurance` module from its plugin;
+- the `security` and `assurance` [host plugins](../../docs/primitives.md#host-plugin), listed in each of its three entrypoints;
 - [Outbox effects](../../docs/primitives.md#outbox-effect) for every captured record, delivered by a [Dispatcher](../../docs/primitives.md#dispatcher) through a [Connector](../../docs/primitives.md#connector), and [Inbound sync](../../docs/primitives.md#inbound-sync) of lots and code groups;
 - [Capability bindings](../../docs/primitives.md#capability-binding) for keyboard-first capture (`useCapabilityForm`, capture timing and wedge-scan routing);
-- the frame's [registry](../../docs/primitives.md#ui-registry) parts (`capability-form`, `live-data-table`, `security-screen`).
+- the frame's [registry](../../docs/primitives.md#ui-registry) parts (`capability-form`, `live-data-table`); its Security screen comes from the assurance plugin.
 
 Read the [system-of-record pattern](../../docs/system-of-record-pattern.md). The generated [operation reference](../../docs/reference/quality-inspection/operations.md) lists every operation.
 
 ## Entrypoints
 
-| Import                                         | Runs in            | Contents                                                                                                    |
-| ---------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `@agent-native/quality-inspection/manifest`    | browser and server | Default export: `defineManifest` with id `quality-inspection`.                                              |
-| `@agent-native/quality-inspection/application` | server only        | Default export: `defineApplication`, with `connect` wiring the quality-system target.                       |
-| `@agent-native/quality-inspection/screens`     | browser            | Default export: `defineScreens` with Inspection, Capture, Synchronization and Security, and the sync badge. |
-| `@agent-native/quality-inspection/*`           | see file           | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `fake-sor`.                |
+| Import                                         | Runs in            | Contents                                                                                                                              |
+| ---------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/quality-inspection/manifest`    | browser and server | Default export: `defineManifest` with id `quality-inspection`.                                                                        |
+| `@agent-native/quality-inspection/application` | server only        | Default export: `defineApplication`, with `connect` wiring the quality-system target.                                                 |
+| `@agent-native/quality-inspection/screens`     | browser            | Default export: `defineScreens` with Inspection, Capture and Synchronization, the sync badge, and Security from the assurance plugin. |
+| `@agent-native/quality-inspection/*`           | see file           | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `fake-sor`.                                          |
 
 `contracts` composes `contracts/schemas`, `contracts/operation`, `contracts/queries` and `contracts/commands`, all browser-safe. `server` concatenates the handler groups in `handlers/`: lots, reports, capture, supervision and integration. They share `server/`, which holds the context and clock, plant and grant visibility, DTOs, and `appendResult`. That function validates a measurement, picks the sample and queues forwarding, all in the caller's transaction. Each screen in `ui/` keeps its parts in a same-named folder. Hooks that issue commands (`useCapture`, the defect and correction forms) are `.tsx`, because the UI-binding test only reads screen files.
 
@@ -34,7 +35,7 @@ Plant roles come from state, and handlers scope lots and results to the caller's
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/frame`, `@agent-native/react`, `@agent-native/assurance`, and `@agent-native/testing` (tests). External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/frame`, `@agent-native/react`, `@agent-native/security`, `@agent-native/assurance`, and `@agent-native/testing` (tests). External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
 
 ## Tests
 

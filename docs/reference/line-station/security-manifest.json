@@ -14,7 +14,7 @@
     {
       "id": "authority",
       "kind": "component",
-      "description": "Local authority service: HTTP/SSE API, MCP attach and audit forwarding."
+      "description": "Local authority service: HTTP/SSE API and MCP attach."
     },
     {
       "id": "device-config",
@@ -33,6 +33,11 @@
       "id": "scanner-devices",
       "kind": "component",
       "description": "Barcode scanner sources beyond keyboard wedge: serial, HID POS, camera and vendor SDKs."
+    },
+    {
+      "id": "security",
+      "kind": "component",
+      "description": "Security plugin: forwards audit events off the host as RFC 5424 syslog."
     },
     {
       "id": "station-bridge",
@@ -70,7 +75,7 @@
       "direction": "egress",
       "id": "audit-collector",
       "offline": "degrade",
-      "owner": "authority",
+      "owner": "security",
       "protocol": "tcp",
       "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
       "scope": "site"

@@ -17,6 +17,14 @@
       "@/*": ["./apps/web/src/*", "./packages/frame/src/*", "./packages/operator-ui/src/*"]
     }
   },
-  "include": ["packages", "apps", "examples", "scripts", "tests", "playwright.config.ts"],
+  "include": [
+    "packages",
+    "plugins",
+    "apps",
+    "examples",
+    "scripts",
+    "tests",
+    "playwright.config.ts"
+  ],
   "exclude": ["node_modules", "dist", "artifacts"]
 }

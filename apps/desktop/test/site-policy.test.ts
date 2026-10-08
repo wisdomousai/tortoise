@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { assertPolicyUsable, loadSitePolicy } from '@agent-native/egress';
-import { deploymentRequirements } from '@agent-native/host/security';
+import { deploymentRequirements } from '@agent-native/host/components';
 import { configuredApplication } from '../../service/src/application';
 
 test('the policy shipped with the desktop build binds only provider endpoints', async () => {
