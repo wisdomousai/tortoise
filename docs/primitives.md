@@ -34,6 +34,8 @@ Each entry gives a one-line definition, the problem the primitive solves and how
 
 `Serves <principles> · <status> · <locations> · <symbols>`
 
+Each `packages/*` and `apps/*` location has a README that links back to every entry naming it and documents the package's entrypoints, trust boundary, dependencies and tests; `bun run check:readmes` fails when the two directions disagree (P10).
+
 Status is `implemented`, `partial` or `proposed`, and changes only with evidence in the [implementation ledger](implementation-status.md) (P10). Adapters, such as SQLite storage or the Codex harness, are listed with the port they implement. Domain code in `examples/*` is not a primitive (P8); a domain concept is promoted only when a second application needs it.
 
 ## The core: describe, write, read
@@ -484,5 +486,5 @@ Serves P8, P10 · proposed
 2. Check that it is a concept, not an adapter. An adapter belongs with its port.
 3. Check that it is domain-neutral (P8). If only one example needs it, keep it in that example.
 4. Prefer extending a primitive or extracting existing code over writing a new one.
-5. Update the entry in the same change as the code, including its guarantees and gaps.
+5. Update the entry in the same change as the code, including its guarantees and gaps, and link it from the README of every location it names.
 6. Change the status only with evidence in the [implementation ledger](implementation-status.md).
