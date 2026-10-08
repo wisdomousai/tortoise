@@ -32,6 +32,87 @@ const statusTone = {
   fail: 'destructive',
 } as const;
 
+function PostureHeader({ data }: { data: Posture }) {
+  return (
+    <header className="space-y-1">
+      <p className="text-xs font-medium tracking-widest text-muted-foreground">ASSURANCE</p>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-semibold">Security posture</h1>
+        <Badge variant={statusTone[data.status]} aria-label={`Posture ${data.status}`}>
+          {data.status}
+        </Badge>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Profile <strong>{data.profile}</strong>, network <strong>{data.networkMode}</strong>, audit{' '}
+        <strong>{data.auditMode}</strong>. Checked {time(data.checkedAt)}.
+      </p>
+    </header>
+  );
+}
+
+function Checks({ checks }: { checks: Posture['checks'] }) {
+  return (
+    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="Checks">
+      {checks.map((check) => (
+        <Card key={check.id} size="sm">
+          <CardHeader>
+            <CardDescription className="flex items-center justify-between gap-2">
+              <span>{check.id}</span>
+              <Badge variant={statusTone[check.status]}>{check.status}</Badge>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-sm">{check.summary}</CardContent>
+        </Card>
+      ))}
+    </section>
+  );
+}
+
+/** Chain head, forwarding and digests, plus a full re-verification on request. */
+function AuditLog({ data }: { data: Posture }) {
+  // A full re-verification of every segment on request, beyond the monitor's periodic check.
+  const verification = useQuery({
+    ...live.liveQueryOptions(assuranceOperations.logVerify, {}),
+    enabled: false,
+  });
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>Audit log</CardTitle>
+        <CardDescription>
+          Head {data.log.headSeq}; {data.log.verified ? 'chain verified' : 'chain NOT verified'},{' '}
+          {data.log.problems} problem(s), {data.log.checkpoints} checkpoint(s).
+          {data.forwarding
+            ? ` Forwarded ${data.forwarding.forwarded} to ${data.forwarding.destination}, ${data.forwarding.dropped} dropped.`
+            : ' Not forwarded off this host.'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-1 font-mono text-xs break-all text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 pb-2 font-sans text-sm">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={verification.isFetching}
+            onClick={() => void verification.refetch()}
+          >
+            Verify now
+          </Button>
+          {verification.data && (
+            <span role="status">
+              {verification.data.ok ? 'Chain intact' : 'Chain damaged'}: {verification.data.events}{' '}
+              events in {verification.data.segments} segment(s), {verification.data.problems.length}{' '}
+              problem(s).
+            </span>
+          )}
+        </div>
+        <p>policy {data.policyDigest}</p>
+        {data.catalogDigest && <p>catalog {data.catalogDigest}</p>}
+        {data.executableDigest && <p>executable {data.executableDigest}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
 /**
  * Security posture for auditors (`assurance.*` bindings): what this installation may reach and
  * whether it did, recent denials, and whether the audit chain is intact. Read-only; changing
@@ -50,11 +131,6 @@ export function SecurityScreen() {
     }),
     refetchInterval: POLL_MS,
   });
-  // A full re-verification of every segment on request, beyond the monitor's periodic check.
-  const verification = useQuery({
-    ...live.liveQueryOptions(assuranceOperations.logVerify, {}),
-    enabled: false,
-  });
   if (posture.error)
     return (
       <p role="alert" className="text-sm text-destructive">
@@ -66,32 +142,8 @@ export function SecurityScreen() {
   const recent = [...(denials.data?.items ?? [])].reverse();
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <p className="text-xs font-medium tracking-widest text-muted-foreground">ASSURANCE</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold">Security posture</h1>
-          <Badge variant={statusTone[data.status]} aria-label={`Posture ${data.status}`}>
-            {data.status}
-          </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Profile <strong>{data.profile}</strong>, network <strong>{data.networkMode}</strong>,
-          audit <strong>{data.auditMode}</strong>. Checked {time(data.checkedAt)}.
-        </p>
-      </header>
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="Checks">
-        {data.checks.map((check) => (
-          <Card key={check.id} size="sm">
-            <CardHeader>
-              <CardDescription className="flex items-center justify-between gap-2">
-                <span>{check.id}</span>
-                <Badge variant={statusTone[check.status]}>{check.status}</Badge>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm">{check.summary}</CardContent>
-          </Card>
-        ))}
-      </section>
+      <PostureHeader data={data} />
+      <Checks checks={data.checks} />
       <Card>
         <CardHeader>
           <CardTitle>Destinations</CardTitle>
@@ -119,40 +171,7 @@ export function SecurityScreen() {
           )}
         </CardContent>
       </Card>
-      <Card size="sm">
-        <CardHeader>
-          <CardTitle>Audit log</CardTitle>
-          <CardDescription>
-            Head {data.log.headSeq}; {data.log.verified ? 'chain verified' : 'chain NOT verified'},{' '}
-            {data.log.problems} problem(s), {data.log.checkpoints} checkpoint(s).
-            {data.forwarding
-              ? ` Forwarded ${data.forwarding.forwarded} to ${data.forwarding.destination}, ${data.forwarding.dropped} dropped.`
-              : ' Not forwarded off this host.'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-1 font-mono text-xs break-all text-muted-foreground">
-          <div className="flex flex-wrap items-center gap-2 pb-2 font-sans text-sm">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={verification.isFetching}
-              onClick={() => void verification.refetch()}
-            >
-              Verify now
-            </Button>
-            {verification.data && (
-              <span role="status">
-                {verification.data.ok ? 'Chain intact' : 'Chain damaged'}:{' '}
-                {verification.data.events} events in {verification.data.segments} segment(s),{' '}
-                {verification.data.problems.length} problem(s).
-              </span>
-            )}
-          </div>
-          <p>policy {data.policyDigest}</p>
-          {data.catalogDigest && <p>catalog {data.catalogDigest}</p>}
-          {data.executableDigest && <p>executable {data.executableDigest}</p>}
-        </CardContent>
-      </Card>
+      <AuditLog data={data} />
     </div>
   );
 }

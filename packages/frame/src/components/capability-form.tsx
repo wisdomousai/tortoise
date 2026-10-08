@@ -77,6 +77,62 @@ function toTyped(fields: Field[], values: Record<string, string>): Record<string
   return input;
 }
 
+/** One generated field: a select for choices and booleans, a textarea for JSON, else an input. */
+function FieldControl({
+  field,
+  id,
+  value,
+  errors,
+  onChange,
+}: {
+  field: Field;
+  id: string;
+  value: string;
+  errors: readonly unknown[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className={field.kind === 'json' ? 'space-y-1 sm:col-span-2' : 'space-y-1'}>
+      <Label htmlFor={id}>
+        {field.label}
+        {!field.required && <span className="text-muted-foreground"> (optional)</span>}
+      </Label>
+      {field.kind === 'choice' || field.kind === 'boolean' ? (
+        <NativeSelect
+          id={id}
+          className="w-full"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        >
+          <option value="">Select…</option>
+          {(field.kind === 'boolean' ? ['true', 'false'] : field.choices).map((choice) => (
+            <option key={choice} value={choice}>
+              {humanize(choice)}
+            </option>
+          ))}
+          {field.nullable && <option value={'\u0000null'}>None</option>}
+        </NativeSelect>
+      ) : field.kind === 'json' ? (
+        <Textarea
+          id={id}
+          className="font-mono"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      ) : (
+        <Input
+          id={id}
+          inputMode={field.kind === 'number' ? 'decimal' : 'text'}
+          value={value}
+          aria-invalid={errors.length > 0}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      )}
+      {errors.length > 0 && <p className="text-xs text-destructive">{errors.join(', ')}</p>}
+    </div>
+  );
+}
+
 /**
  * A complete form for any command capability, generated from its contract. Use it to scaffold a
  * screen in one line, then replace it with a purpose-built capture surface where seconds matter.
@@ -121,46 +177,13 @@ export function CapabilityForm<C extends AnyCapability>({
       {fields.map((field) => (
         <form.Field key={field.name} name={field.name}>
           {(control) => (
-            <div className={field.kind === 'json' ? 'space-y-1 sm:col-span-2' : 'space-y-1'}>
-              <Label htmlFor={id(field.name)}>
-                {field.label}
-                {!field.required && <span className="text-muted-foreground"> (optional)</span>}
-              </Label>
-              {field.kind === 'choice' || field.kind === 'boolean' ? (
-                <NativeSelect
-                  id={id(field.name)}
-                  className="w-full"
-                  value={control.state.value}
-                  onChange={(event) => control.handleChange(event.target.value)}
-                >
-                  <option value="">Select…</option>
-                  {(field.kind === 'boolean' ? ['true', 'false'] : field.choices).map((choice) => (
-                    <option key={choice} value={choice}>
-                      {humanize(choice)}
-                    </option>
-                  ))}
-                  {field.nullable && <option value={'\u0000null'}>None</option>}
-                </NativeSelect>
-              ) : field.kind === 'json' ? (
-                <Textarea
-                  id={id(field.name)}
-                  className="font-mono"
-                  value={control.state.value}
-                  onChange={(event) => control.handleChange(event.target.value)}
-                />
-              ) : (
-                <Input
-                  id={id(field.name)}
-                  inputMode={field.kind === 'number' ? 'decimal' : 'text'}
-                  value={control.state.value}
-                  aria-invalid={control.state.meta.errors.length > 0}
-                  onChange={(event) => control.handleChange(event.target.value)}
-                />
-              )}
-              {control.state.meta.errors.length > 0 && (
-                <p className="text-xs text-destructive">{control.state.meta.errors.join(', ')}</p>
-              )}
-            </div>
+            <FieldControl
+              field={field}
+              id={id(field.name)}
+              value={control.state.value}
+              errors={control.state.meta.errors}
+              onChange={(value) => control.handleChange(value)}
+            />
           )}
         </form.Field>
       ))}

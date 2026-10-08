@@ -5,14 +5,64 @@ import { hostJson } from './host-client';
 type Resource = { id: string; revision: number } | undefined;
 type Binding = { sessionId: string; version: number; key: string };
 
+type Review = { id: string; title: string; operations: readonly string[] };
+type Selection = { selectedResources: string[]; observedRevisions: Record<string, number> };
+
+/** Create the session, or move the bound one to `context` at its expected version. */
+async function bindSession(
+  bound: Binding | undefined,
+  context: Selection,
+  key: string,
+  signal?: AbortSignal,
+): Promise<Binding> {
+  const result = bound
+    ? await hostJson<{ sessionId: string; version: number }>(
+        `ui/sessions/${bound.sessionId}`,
+        { context, expectedVersion: bound.version },
+        signal,
+      )
+    : await hostJson<{ sessionId: string; version: number }>('ui/sessions', context, signal);
+  return { ...result, key };
+}
+
+/**
+ * Apply the intents an agent sent: a review request is shown; a selection is applied and
+ * acknowledged as accepted or rejected.
+ */
+async function receiveIntents(
+  sessionId: string,
+  onReview: (review: Review) => void,
+  select: (resource: string) => Promise<void>,
+  signal: AbortSignal,
+) {
+  const intents = await hostJson<{ id: string; intent: UiIntent }[]>(
+    `ui/sessions/${sessionId}/intents`,
+    undefined,
+    signal,
+  );
+  for (const entry of intents) {
+    if (entry.intent.type === 'requestReview')
+      onReview({
+        id: entry.id,
+        title: entry.intent.title,
+        operations: entry.intent.operations,
+      });
+    else {
+      let status = 'accepted';
+      try {
+        await select(entry.intent.resource);
+      } catch {
+        status = 'rejected';
+      }
+      await hostJson(`ui/sessions/${sessionId}/ack`, { id: entry.id, status }, signal);
+    }
+  }
+}
+
 /** One ephemeral frontend session; updates serialize and run starts pin an exact version. */
 export function useUiSession(resource: Resource, select: (resource: string) => Promise<void>) {
   const [sessionId, setSessionId] = useState<string>();
-  const [review, setReview] = useState<{
-    id: string;
-    title: string;
-    operations: readonly string[];
-  }>();
+  const [review, setReview] = useState<Review>();
   const selected = useRef(select);
   selected.current = select;
   const current = useRef(resource);
@@ -29,15 +79,8 @@ export function useUiSession(resource: Resource, select: (resource: string) => P
       .catch(() => {})
       .then(async () => {
         if (binding.current?.key === key) return binding.current;
-        const result = binding.current
-          ? await hostJson<{ sessionId: string; version: number }>(
-              `ui/sessions/${binding.current.sessionId}`,
-              { context, expectedVersion: binding.current.version },
-              signal,
-            )
-          : await hostJson<{ sessionId: string; version: number }>('ui/sessions', context, signal);
-        binding.current = { ...result, key };
-        setSessionId(result.sessionId);
+        binding.current = await bindSession(binding.current, context, key, signal);
+        setSessionId(binding.current.sessionId);
         return binding.current;
       });
     tail.current = next;
@@ -49,32 +92,12 @@ export function useUiSession(resource: Resource, select: (resource: string) => P
     async function sync() {
       try {
         const bound = await synchronize(current.current, abort.signal);
-        const intents = await hostJson<{ id: string; intent: UiIntent }[]>(
-          `ui/sessions/${bound.sessionId}/intents`,
-          undefined,
+        await receiveIntents(
+          bound.sessionId,
+          setReview,
+          (resource) => selected.current(resource),
           abort.signal,
         );
-        for (const entry of intents) {
-          if (entry.intent.type === 'requestReview')
-            setReview({
-              id: entry.id,
-              title: entry.intent.title,
-              operations: entry.intent.operations,
-            });
-          else {
-            let status = 'accepted';
-            try {
-              await selected.current(entry.intent.resource);
-            } catch {
-              status = 'rejected';
-            }
-            await hostJson(
-              `ui/sessions/${bound.sessionId}/ack`,
-              { id: entry.id, status },
-              abort.signal,
-            );
-          }
-        }
       } catch {
         if (!abort.signal.aborted) {
           binding.current = undefined;

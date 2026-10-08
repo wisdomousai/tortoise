@@ -12,6 +12,43 @@ import {
 export const liveTableFeatures = tableFeatures({});
 export type LiveColumn<Row extends RowData> = ColumnDef<typeof liveTableFeatures, Row>;
 
+/** Previous and next over the server's page window; `count` is what this principal may see. */
+function Pager({
+  count,
+  offset,
+  limit,
+  onOffset,
+}: {
+  count: number;
+  offset: number;
+  limit: number;
+  onOffset: (offset: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
+      <span className="tabular">
+        {offset + 1}–{Math.min(offset + limit, count)} of {count}
+      </span>
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={offset === 0}
+        onClick={() => onOffset(Math.max(0, offset - limit))}
+      >
+        Previous
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={offset + limit >= count}
+        onClick={() => onOffset(offset + limit)}
+      >
+        Next
+      </Button>
+    </div>
+  );
+}
+
 /**
  * Table over a server-scoped, server-paginated capability result. The authority filters and
  * counts before paginating, so `count` is the number of rows this principal may see; the table
@@ -85,29 +122,7 @@ export function LiveDataTable<Row extends RowData>({
           )}
         </TableBody>
       </Table>
-      {count > limit && (
-        <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
-          <span className="tabular">
-            {offset + 1}–{Math.min(offset + limit, count)} of {count}
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={offset === 0}
-            onClick={() => onOffset(Math.max(0, offset - limit))}
-          >
-            Previous
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={offset + limit >= count}
-            onClick={() => onOffset(offset + limit)}
-          >
-            Next
-          </Button>
-        </div>
-      )}
+      {count > limit && <Pager count={count} offset={offset} limit={limit} onOffset={onOffset} />}
     </div>
   );
 }
