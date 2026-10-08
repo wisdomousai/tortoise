@@ -70,12 +70,7 @@ async function connect(
   };
 }
 
-/** Attach first; otherwise let the service's OS-held workspace lock arbitrate startup.
- * Only the exact child process launched here is owned and eligible for shutdown.
- * `extraEnv` is for the source development launch. Workspace, port, web root, runtime
- * manifest and site policy are applied after it, so those keys cannot be overridden.
- * Packaged startup does not set `extraEnv`. */
-export async function ensureService(options: {
+interface ServiceOptions {
   workspace: string;
   executable: string;
   args?: string[];
@@ -92,19 +87,21 @@ export async function ensureService(options: {
   extraEnv?: Record<string, string>;
   /** Copy the child authority's output to this process. Development launches use this. */
   mirror?: boolean;
-}): Promise<ServiceHandle> {
-  const workspace = await realpath(options.workspace);
-  try {
-    const existing = await connect(workspace);
-    return {
-      endpoint: existing.connection.endpoint,
-      launchUrl: existing.launchUrl,
-      owned: false,
-      async stop() {},
-    };
-  } catch {
-    /* A stale descriptor is never deleted here. The service lock decides. */
-  }
+}
+
+/** A handle on an authority someone else started; this frontend never stops it. */
+const attached = (existing: Awaited<ReturnType<typeof connect>>): ServiceHandle => ({
+  endpoint: existing.connection.endpoint,
+  launchUrl: existing.launchUrl,
+  owned: false,
+  async stop() {},
+});
+
+/**
+ * A minimal environment: a few OS keys, then `extraEnv`, then the host-owned keys, which win
+ * over anything the development environment carried.
+ */
+function serviceEnvironment(options: ServiceOptions, workspace: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {};
   for (const key of [
     'HOME',
@@ -130,109 +127,148 @@ export async function ensureService(options: {
   });
   if (options.runtimeManifest) env.AGENT_RUNTIME_MANIFEST = options.runtimeManifest;
   if (options.sitePolicy) env.AGENT_NATIVE_SITE_POLICY = options.sitePolicy;
+  return env;
+}
+
+/** The child launched here and the instance id from its ready message, once received. */
+interface OwnedService {
+  readonly child: ChildProcessWithoutNullStreams;
+  readonly workspace: string;
+  ownedInstance?: string;
+  stopped: boolean;
+}
+
+/** Ask the authority to shut down, but only if it is still the instance this child announced. */
+async function requestShutdown(workspace: string, instance: string) {
+  try {
+    const authority = JSON.parse(await readFile(resolve(workspace, '.authority.json'), 'utf8')) as {
+      instance?: string;
+    };
+    // A failed competing launch must never stop the existing authority through a
+    // shared connection file. The instance must match our child's ready message.
+    if (authority.instance === instance) {
+      const connection = await readConnection(workspace);
+      await fetch(`${connection.endpoint}/api/v1/shutdown`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${connection.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ instance }),
+        signal: AbortSignal.timeout(1_000),
+        redirect: 'error',
+      });
+    }
+  } catch {
+    /* Older service versions still receive a termination signal. */
+  }
+}
+
+/** Stop once: a graceful shutdown request, then SIGTERM, then SIGKILL after two seconds. */
+async function stopService(service: OwnedService) {
+  const { child } = service;
+  if (service.stopped) return;
+  service.stopped = true;
+  if (child.exitCode !== null) return;
+  if (service.ownedInstance) await requestShutdown(service.workspace, service.ownedInstance);
+  if (child.exitCode !== null) return;
+  child.kill('SIGTERM');
+  await new Promise<void>((resolveStop) => {
+    const timeout = setTimeout(() => {
+      if (child.exitCode === null) child.kill('SIGKILL');
+      resolveStop();
+    }, 2_000);
+    child.once('exit', () => {
+      clearTimeout(timeout);
+      resolveStop();
+    });
+  });
+}
+
+/**
+ * Wait for the child's `listening` line on stdout and record its instance id. Output is bounded,
+ * and only a protocol line with a loopback URL counts as ready.
+ */
+function awaitReady(service: OwnedService, options: ServiceOptions): Promise<void> {
+  const { child } = service;
+  return new Promise<void>((ready, reject) => {
+    const timeout = setTimeout(
+      () => reject(new Error('Local authority startup timed out')),
+      options.startupTimeoutMs ?? 15_000,
+    );
+    let buffer = '';
+    const cleanup = () => {
+      clearTimeout(timeout);
+      child.stdout.off('data', onData);
+      child.off('error', onError);
+      child.off('exit', onExit);
+    };
+    const onError = (error: Error) => {
+      cleanup();
+      reject(error);
+    };
+    const onExit = () => {
+      cleanup();
+      reject(new Error('Local authority exited before becoming ready'));
+    };
+    const onData = (chunk: Buffer) => {
+      if (options.mirror) process.stdout.write(chunk);
+      buffer += chunk.toString('utf8');
+      if (buffer.length > 65_536) {
+        cleanup();
+        reject(new Error('Local authority startup output exceeded limit'));
+        return;
+      }
+      let end: number;
+      while ((end = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, end);
+        buffer = buffer.slice(end + 1);
+        try {
+          const event = JSON.parse(line);
+          if (event.type === 'listening' && typeof event.instance === 'string') {
+            validateLoopbackEndpoint(event.url);
+            service.ownedInstance = event.instance;
+            cleanup();
+            if (options.mirror) child.stdout.pipe(process.stdout);
+            else child.stdout.resume();
+            ready();
+            return;
+          }
+        } catch {
+          /* Non-protocol log lines do not grant authority or expose tokens. */
+        }
+      }
+    };
+    child.stdout.on('data', onData);
+    child.once('error', onError);
+    child.once('exit', onExit);
+  });
+}
+
+/** Attach first; otherwise let the service's OS-held workspace lock arbitrate startup.
+ * Only the exact child process launched here is owned and eligible for shutdown.
+ * `extraEnv` is for the source development launch. Workspace, port, web root, runtime
+ * manifest and site policy are applied after it, so those keys cannot be overridden.
+ * Packaged startup does not set `extraEnv`. */
+export async function ensureService(options: ServiceOptions): Promise<ServiceHandle> {
+  const workspace = await realpath(options.workspace);
+  try {
+    return attached(await connect(workspace));
+  } catch {
+    /* A stale descriptor is never deleted here. The service lock decides. */
+  }
   const child = spawn(options.executable, options.args ?? [], {
     cwd: options.cwd ?? workspace,
-    env,
+    env: serviceEnvironment(options, workspace),
     stdio: 'pipe',
     windowsHide: true,
   });
-  let stopped = false;
-  let ownedInstance: string | undefined;
+  const service: OwnedService = { child, workspace, stopped: false };
   if (options.mirror) child.stderr.pipe(process.stderr);
   else child.stderr.resume();
-  const stop = async () => {
-    if (stopped) return;
-    stopped = true;
-    if (child.exitCode !== null) return;
-    if (ownedInstance)
-      try {
-        const authority = JSON.parse(
-          await readFile(resolve(workspace, '.authority.json'), 'utf8'),
-        ) as { instance?: string };
-        // A failed competing launch must never stop the existing authority through a
-        // shared connection file. The instance must match our child's ready message.
-        if (authority.instance === ownedInstance) {
-          const connection = await readConnection(workspace);
-          await fetch(`${connection.endpoint}/api/v1/shutdown`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${connection.token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ instance: ownedInstance }),
-            signal: AbortSignal.timeout(1_000),
-            redirect: 'error',
-          });
-        }
-      } catch {
-        /* Older service versions still receive a termination signal. */
-      }
-    if (child.exitCode !== null) return;
-    child.kill('SIGTERM');
-    await new Promise<void>((resolveStop) => {
-      const timeout = setTimeout(() => {
-        if (child.exitCode === null) child.kill('SIGKILL');
-        resolveStop();
-      }, 2_000);
-      child.once('exit', () => {
-        clearTimeout(timeout);
-        resolveStop();
-      });
-    });
-  };
+  const stop = () => stopService(service);
   try {
-    await new Promise<void>((ready, reject) => {
-      const timeout = setTimeout(
-        () => reject(new Error('Local authority startup timed out')),
-        options.startupTimeoutMs ?? 15_000,
-      );
-      let buffer = '';
-      const cleanup = () => {
-        clearTimeout(timeout);
-        child.stdout.off('data', onData);
-        child.off('error', onError);
-        child.off('exit', onExit);
-      };
-      const onError = (error: Error) => {
-        cleanup();
-        reject(error);
-      };
-      const onExit = () => {
-        cleanup();
-        reject(new Error('Local authority exited before becoming ready'));
-      };
-      const onData = (chunk: Buffer) => {
-        if (options.mirror) process.stdout.write(chunk);
-        buffer += chunk.toString('utf8');
-        if (buffer.length > 65_536) {
-          cleanup();
-          reject(new Error('Local authority startup output exceeded limit'));
-          return;
-        }
-        let end: number;
-        while ((end = buffer.indexOf('\n')) >= 0) {
-          const line = buffer.slice(0, end);
-          buffer = buffer.slice(end + 1);
-          try {
-            const event = JSON.parse(line);
-            if (event.type === 'listening' && typeof event.instance === 'string') {
-              validateLoopbackEndpoint(event.url);
-              ownedInstance = event.instance;
-              cleanup();
-              if (options.mirror) child.stdout.pipe(process.stdout);
-              else child.stdout.resume();
-              ready();
-              return;
-            }
-          } catch {
-            /* Non-protocol log lines do not grant authority or expose tokens. */
-          }
-        }
-      };
-      child.stdout.on('data', onData);
-      child.once('error', onError);
-      child.once('exit', onExit);
-    });
+    await awaitReady(service, options);
     const current = await connect(workspace);
     return {
       endpoint: current.connection.endpoint,
@@ -245,13 +281,7 @@ export async function ensureService(options: {
     await stop();
     // Another frontend may have won the lock between our initial read and spawn.
     try {
-      const existing = await connect(workspace);
-      return {
-        endpoint: existing.connection.endpoint,
-        launchUrl: existing.launchUrl,
-        owned: false,
-        async stop() {},
-      };
+      return attached(await connect(workspace));
     } catch {
       throw error;
     }

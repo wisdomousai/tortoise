@@ -30,6 +30,134 @@ app.setName(
     ? developmentAppName(identity.name, process.env.AGENT_NATIVE_APPLICATION)
     : identity.name,
 );
+/**
+ * Trusted host override supports isolated desktop acceptance and alternate workspaces; renderer
+ * input cannot choose arbitrary filesystem paths.
+ */
+const workspacePath = () =>
+  process.env.AGENT_NATIVE_WORKSPACE
+    ? resolve(process.env.AGENT_NATIVE_WORKSPACE)
+    : resolve(app.getPath('userData'), 'workspace');
+
+/** Attach to or start the authority: from this checkout in development, else the verified runtime. */
+async function startService(workspace: string): Promise<ServiceHandle> {
+  // Bun runs the service from this checkout. Digest checks stay on the packaged stage.
+  if (developmentDesktop) return ensureService(developmentServiceLaunch(process.env, workspace));
+  const resources = app.isPackaged
+    ? resolve(process.resourcesPath, 'application')
+    : resolve(sourceDir, '../resources');
+  const manifest = await loadRuntimeManifest(resources);
+  await verifyRuntimeFiles(resources, manifest);
+  // The packaged policy (digest-verified above) binds only the provider endpoints. An
+  // operator can substitute a site policy through the trusted host environment, as with
+  // the workspace; without either the service runs isolated.
+  const sitePolicy = process.env.AGENT_NATIVE_SITE_POLICY
+    ? resolve(process.env.AGENT_NATIVE_SITE_POLICY)
+    : manifest.sitePolicy
+      ? resourcePath(resources, manifest.sitePolicy.path)
+      : undefined;
+  return ensureService({
+    workspace,
+    executable: resourcePath(resources, manifest.service.executable),
+    webRoot: resourcePath(resources, manifest.webRoot),
+    runtimeManifest: resolve(resources, 'runtime-manifest.json'),
+    ...(sitePolicy ? { sitePolicy } : {}),
+  });
+}
+
+function printDevelopmentLaunch(workspace: string, launchUrl: string) {
+  const application = process.env.AGENT_NATIVE_APPLICATION ?? identity.name;
+  console.log(
+    `\n${identity.displayName}: open ${launchUrl}\n` +
+      `  The desktop window is this app. The link signs a browser in once and expires after one minute.\n` +
+      `  CLI: AGENT_NATIVE_APPLICATION=${application} AGENT_NATIVE_CONNECTION=${resolve(workspace, '.connection.json')} bun run cli list\n`,
+  );
+}
+
+/** The window's session: no permissions, network only to `origin`, and a strict CSP on its pages. */
+function restrictedSession(origin: string) {
+  const uiSession = session.fromPartition('application-window');
+  uiSession.setPermissionCheckHandler(() => false);
+  uiSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
+  // Renderer egress: network requests may reach only the local authority. CSP says the same
+  // for page content; this also covers requests CSP does not govern. Provider sign-in runs in
+  // the user's browser (below), so the window itself never contacts the internet.
+  uiSession.webRequest.onBeforeRequest((details, callback) => {
+    const target = new URL(details.url);
+    const network = /^(?:https?|wss?):$/.test(target.protocol);
+    callback({ cancel: network && target.origin !== origin });
+  });
+  uiSession.webRequest.onHeadersReceived((details, callback) => {
+    const headers = { ...details.responseHeaders };
+    if (new URL(details.url).origin === origin) {
+      for (const key of Object.keys(headers))
+        if (key.toLowerCase() === 'content-security-policy') delete headers[key];
+      headers['Content-Security-Policy'] = [
+        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+      ];
+    }
+    callback({ responseHeaders: headers });
+  });
+  return uiSession;
+}
+
+/** Only the explicit account-connect link may leave the renderer, and only to the system browser. */
+function openProviderAuthorization(url: string) {
+  // OAuth runs in the user's browser; the desktop never embeds provider login pages.
+  try {
+    const target = new URL(url);
+    if (
+      target.protocol === 'https:' &&
+      target.host === 'auth.openai.com' &&
+      target.pathname === '/api/accounts/authorize' &&
+      !target.username &&
+      !target.password &&
+      !target.hash &&
+      target.searchParams.get('response_type') === 'code' &&
+      target.searchParams.get('code_challenge_method') === 'S256'
+    ) {
+      void shell.openExternal(target.toString());
+    }
+  } catch {
+    /* malformed external navigation is denied */
+  }
+}
+
+/** A sandboxed window that cannot navigate, redirect or embed outside `origin`. */
+function createWindow(origin: string) {
+  const created = new BrowserWindow({
+    width: 1180,
+    height: 820,
+    show: false,
+    title: identity.displayName,
+    webPreferences: {
+      preload: resolve(sourceDir, 'preload.cjs'),
+      session: restrictedSession(origin),
+      sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      nodeIntegrationInSubFrames: false,
+      webviewTag: false,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+    },
+  });
+  created.webContents.setWindowOpenHandler(({ url }) => {
+    openProviderAuthorization(url);
+    return { action: 'deny' };
+  });
+  created.webContents.on('will-navigate', (event, url) => {
+    if (new URL(url).origin !== origin) event.preventDefault();
+  });
+  created.webContents.on('will-redirect', (event, url) => {
+    if (new URL(url).origin !== origin) event.preventDefault();
+  });
+  created.webContents.on('will-attach-webview', (event) => event.preventDefault());
+  created.once('ready-to-show', () => created.show());
+  return created;
+}
+
 if (process.platform === 'win32') app.setAppUserModelId(identity.appId);
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
@@ -48,116 +176,11 @@ else {
   app
     .whenReady()
     .then(async () => {
-      // Trusted host override supports isolated desktop acceptance and alternate
-      // workspaces; renderer input cannot choose arbitrary filesystem paths.
-      const workspace = process.env.AGENT_NATIVE_WORKSPACE
-        ? resolve(process.env.AGENT_NATIVE_WORKSPACE)
-        : resolve(app.getPath('userData'), 'workspace');
+      const workspace = workspacePath();
       await mkdir(workspace, { recursive: true, mode: 0o700 });
-      if (developmentDesktop) {
-        // Bun runs the service from this checkout. Digest checks stay on the packaged stage.
-        service = await ensureService(developmentServiceLaunch(process.env, workspace));
-      } else {
-        const resources = app.isPackaged
-          ? resolve(process.resourcesPath, 'application')
-          : resolve(sourceDir, '../resources');
-        const manifest = await loadRuntimeManifest(resources);
-        await verifyRuntimeFiles(resources, manifest);
-        // The packaged policy (digest-verified above) binds only the provider endpoints. An
-        // operator can substitute a site policy through the trusted host environment, as with
-        // the workspace; without either the service runs isolated.
-        const sitePolicy = process.env.AGENT_NATIVE_SITE_POLICY
-          ? resolve(process.env.AGENT_NATIVE_SITE_POLICY)
-          : manifest.sitePolicy
-            ? resourcePath(resources, manifest.sitePolicy.path)
-            : undefined;
-        service = await ensureService({
-          workspace,
-          executable: resourcePath(resources, manifest.service.executable),
-          webRoot: resourcePath(resources, manifest.webRoot),
-          runtimeManifest: resolve(resources, 'runtime-manifest.json'),
-          ...(sitePolicy ? { sitePolicy } : {}),
-        });
-      }
-      if (developmentDesktop) {
-        const application = process.env.AGENT_NATIVE_APPLICATION ?? identity.name;
-        console.log(
-          `\n${identity.displayName}: open ${service.launchUrl}\n` +
-            `  The desktop window is this app. The link signs a browser in once and expires after one minute.\n` +
-            `  CLI: AGENT_NATIVE_APPLICATION=${application} AGENT_NATIVE_CONNECTION=${resolve(workspace, '.connection.json')} bun run cli list\n`,
-        );
-      }
-      const origin = service.endpoint;
-      const uiSession = session.fromPartition('application-window');
-      uiSession.setPermissionCheckHandler(() => false);
-      uiSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
-      // Renderer egress: network requests may reach only the local authority. CSP says the same
-      // for page content; this also covers requests CSP does not govern. Provider sign-in runs in
-      // the user's browser (below), so the window itself never contacts the internet.
-      uiSession.webRequest.onBeforeRequest((details, callback) => {
-        const target = new URL(details.url);
-        const network = /^(?:https?|wss?):$/.test(target.protocol);
-        callback({ cancel: network && target.origin !== origin });
-      });
-      uiSession.webRequest.onHeadersReceived((details, callback) => {
-        const headers = { ...details.responseHeaders };
-        if (new URL(details.url).origin === origin) {
-          for (const key of Object.keys(headers))
-            if (key.toLowerCase() === 'content-security-policy') delete headers[key];
-          headers['Content-Security-Policy'] = [
-            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
-          ];
-        }
-        callback({ responseHeaders: headers });
-      });
-      window = new BrowserWindow({
-        width: 1180,
-        height: 820,
-        show: false,
-        title: identity.displayName,
-        webPreferences: {
-          preload: resolve(sourceDir, 'preload.cjs'),
-          session: uiSession,
-          sandbox: true,
-          contextIsolation: true,
-          nodeIntegration: false,
-          nodeIntegrationInWorker: false,
-          nodeIntegrationInSubFrames: false,
-          webviewTag: false,
-          webSecurity: true,
-          allowRunningInsecureContent: false,
-        },
-      });
-      window.webContents.setWindowOpenHandler(({ url }) => {
-        // Only the explicit account-connect link can leave the renderer. OAuth runs
-        // in the user's browser; the desktop never embeds provider login pages.
-        try {
-          const target = new URL(url);
-          if (
-            target.protocol === 'https:' &&
-            target.host === 'auth.openai.com' &&
-            target.pathname === '/api/accounts/authorize' &&
-            !target.username &&
-            !target.password &&
-            !target.hash &&
-            target.searchParams.get('response_type') === 'code' &&
-            target.searchParams.get('code_challenge_method') === 'S256'
-          ) {
-            void shell.openExternal(target.toString());
-          }
-        } catch {
-          /* malformed external navigation is denied */
-        }
-        return { action: 'deny' };
-      });
-      window.webContents.on('will-navigate', (event, url) => {
-        if (new URL(url).origin !== origin) event.preventDefault();
-      });
-      window.webContents.on('will-redirect', (event, url) => {
-        if (new URL(url).origin !== origin) event.preventDefault();
-      });
-      window.webContents.on('will-attach-webview', (event) => event.preventDefault());
-      window.once('ready-to-show', () => window?.show());
+      service = await startService(workspace);
+      if (developmentDesktop) printDevelopmentLaunch(workspace, service.launchUrl);
+      window = createWindow(service.endpoint);
       service.child?.once('exit', () => {
         if (!quitting)
           dialog.showErrorBox(
