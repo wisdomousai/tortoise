@@ -19,6 +19,8 @@ Layer: framework (`packages/*`). Server only.
 | `@agent-native/egress`   | server only | Policy, guard, proxy and CIDR helpers.                 |
 | `@agent-native/egress/*` | server only | One source file: `policy`, `guard`, `proxy` or `cidr`. |
 
+`policy` and `guard` compose parts that are imported only from inside the package. `src/policy/` holds the schema, URL and port rules, per-binding checks, offline consequences and profile floors; findings keep the order in which they were reported. `src/guard/` holds the denial type, the shared kernel (audit, binding lookup, address and TLS checks), the destination client with its redirect loop, and process and multi-origin routing.
+
 ## Trust boundary
 
 A destination-scoped client allows only the bound scheme, host and port. It rechecks every redirect hop, checks DNS answers against the bound networks before connecting, applies CA bundles and certificate pins, and caps response size and time. Provider SDKs get a fetch routed by origin, TCP transports a scoped socket, and declared children a loopback CONNECT proxy that admits only their declared destinations, identified by a per-process credential. Every decision is logged; a refusal is an `UNAVAILABLE` error with a stable `DenialReason`. If a required egress log cannot be written, the connection stays closed.
