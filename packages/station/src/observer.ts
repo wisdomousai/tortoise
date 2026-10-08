@@ -1,7 +1,13 @@
 import { createHash } from 'node:crypto';
 import type { CommandReceipt, ExecutionContext, Invocation } from '@agent-native/runtime';
 import type { Extractor, ScreenTransport } from './ports';
-import { StabilityGate, createPerception, type Reading } from './perceive';
+import {
+  StabilityGate,
+  createPerception,
+  type Perception,
+  type Reading,
+  type View,
+} from './perceive';
 import type { StationProfile } from './profile';
 
 /**
@@ -50,6 +56,88 @@ export interface StationObserverOptions {
   readonly heartbeatMs?: number;
 }
 
+type ObservedReading = Observation['readings'][number];
+
+/** The profile's declaration for a field, carried with each reading. */
+const declarationOf = (field: StationProfile['fields'][number]): FieldDeclaration => ({
+  type: field.type,
+  ...(field.options ? { options: field.options } : {}),
+  ...(field.decimals !== undefined ? { decimals: field.decimals } : {}),
+  ...(field.unit ? { unit: field.unit } : {}),
+});
+
+/** Readings that passed the stability gate, each marked observed or uncertain. */
+function stableReadings(
+  perception: Perception,
+  gate: StabilityGate,
+  view: View,
+): ObservedReading[] {
+  gate.retain(new Set(view.readings.keys()));
+  const readings: ObservedReading[] = [];
+  for (const reading of view.readings.values()) {
+    const field = perception.field(reading.field)!;
+    if (!gate.push(reading.field, reading.value, field.stableReads)) continue;
+    readings.push({
+      ...reading,
+      status:
+        reading.value !== null && reading.confidence >= field.minConfidence
+          ? 'observed'
+          : 'uncertain',
+      minConfidence: field.minConfidence,
+      declared: declarationOf(field),
+    });
+  }
+  return readings;
+}
+
+/** Hash of what the observation says; times and digests are excluded. */
+const contentOf = (observation: Observation) =>
+  createHash('sha256')
+    .update(
+      JSON.stringify({
+        screen: observation.screen,
+        localInput: observation.localInput,
+        readings: observation.readings.map(
+          ({ observedAt: _at, frameDigest: _digest, ...rest }) => rest,
+        ),
+      }),
+    )
+    .digest('hex');
+
+/** Submit through the ingest command under a key fingerprinting the exact payload. */
+function submit(options: StationObserverOptions, observation: Observation) {
+  const input = options.toInput ? options.toInput(observation) : observation;
+  // The key fingerprints the exact payload: a retry of this payload reuses it, and a different
+  // payload (a later frame, or a return to an earlier state) can never collide with it.
+  const payload = createHash('sha256').update(JSON.stringify(input)).digest('hex').slice(0, 32);
+  return options.application.invokeRaw(
+    {
+      operation: options.ingestOperation,
+      input,
+      idempotencyKey: `observe:${options.station}:${payload}`,
+    },
+    options.context,
+  );
+}
+
+/** Run `pass` every `intervalMs` until `signal` aborts; a failed pass goes to `onError`. */
+async function repeat(
+  signal: AbortSignal,
+  intervalMs: number,
+  pass: (signal: AbortSignal) => Promise<unknown>,
+  onError?: (error: unknown) => void,
+) {
+  while (!signal.aborted) {
+    await pass(signal).catch((error) => onError?.(error));
+    await new Promise<void>((resolve) => {
+      const timer = setTimeout(resolve, intervalMs);
+      signal.addEventListener('abort', () => (clearTimeout(timer), resolve()), {
+        once: true,
+      });
+    });
+  }
+}
+
 /**
  * Watches a station screen and reports what it shows through the domain's ingest command, the
  * inbound half of the bridge. It never writes storage and never acts on the screen. A reading
@@ -74,26 +162,6 @@ export function createStationObserver(options: StationObserverOptions) {
         ? await options.transport.localInputSince(lastObservedAt, signal)
         : false;
     lastObservedAt = frame.capturedAt;
-    gate.retain(new Set(view.readings.keys()));
-    const readings: Observation['readings'][number][] = [];
-    for (const reading of view.readings.values()) {
-      const field = perception.field(reading.field)!;
-      if (!gate.push(reading.field, reading.value, field.stableReads)) continue;
-      readings.push({
-        ...reading,
-        status:
-          reading.value !== null && reading.confidence >= field.minConfidence
-            ? 'observed'
-            : 'uncertain',
-        minConfidence: field.minConfidence,
-        declared: {
-          type: field.type,
-          ...(field.options ? { options: field.options } : {}),
-          ...(field.decimals !== undefined ? { decimals: field.decimals } : {}),
-          ...(field.unit ? { unit: field.unit } : {}),
-        },
-      });
-    }
     const observation: Observation = {
       station: options.station,
       profile: { id: options.profile.id, version: options.profile.version },
@@ -101,34 +169,15 @@ export function createStationObserver(options: StationObserverOptions) {
       observedAt: frame.capturedAt,
       frameDigest: frame.digest,
       localInput,
-      readings,
+      readings: stableReadings(perception, gate, view),
     };
     // Same content as the previous submission within one heartbeat window is not resent; times
     // and digests are excluded from the content hash. Anything else is a new submission.
-    const content = createHash('sha256')
-      .update(
-        JSON.stringify({
-          screen: observation.screen,
-          localInput,
-          readings: readings.map(({ observedAt: _at, frameDigest: _digest, ...rest }) => rest),
-        }),
-      )
-      .digest('hex');
+    const content = contentOf(observation);
     const window = Math.floor(frame.capturedAt / heartbeatMs);
     if (last && last.content === content && last.window === window)
       return { observation, receipt: last.receipt };
-    const input = options.toInput ? options.toInput(observation) : observation;
-    // The key fingerprints the exact payload: a retry of this payload reuses it, and a different
-    // payload (a later frame, or a return to an earlier state) can never collide with it.
-    const payload = createHash('sha256').update(JSON.stringify(input)).digest('hex').slice(0, 32);
-    const receipt = await options.application.invokeRaw(
-      {
-        operation: options.ingestOperation,
-        input,
-        idempotencyKey: `observe:${options.station}:${payload}`,
-      },
-      options.context,
-    );
+    const receipt = await submit(options, observation);
     last = { content, window, receipt };
     return { observation, receipt };
   }
@@ -142,17 +191,7 @@ export function createStationObserver(options: StationObserverOptions) {
       if (controller) return;
       const active = new AbortController();
       controller = active;
-      running = (async () => {
-        while (!active.signal.aborted) {
-          await runOnce(active.signal).catch((error) => onError?.(error));
-          await new Promise<void>((resolve) => {
-            const timer = setTimeout(resolve, intervalMs);
-            active.signal.addEventListener('abort', () => (clearTimeout(timer), resolve()), {
-              once: true,
-            });
-          });
-        }
-      })();
+      running = repeat(active.signal, intervalMs, runOnce, onError);
     },
     async stop() {
       controller?.abort();

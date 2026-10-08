@@ -79,6 +79,97 @@ function prompt(fields: readonly ExtractionField[], width: number, height: numbe
   ].join('\n');
 }
 
+/** Chat completions request: the prompt, the frame and a strict JSON schema over the fields. */
+function requestBody(
+  model: string,
+  image: string,
+  fields: readonly ExtractionField[],
+  width: number,
+  height: number,
+) {
+  return JSON.stringify({
+    model,
+    temperature: 0,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt(fields, width, height) },
+          { type: 'image_url', image_url: { url: `data:image/png;base64,${image}` } },
+        ],
+      },
+    ],
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'station_fields',
+        strict: true,
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          required: fields.map((field) => field.id),
+          properties: Object.fromEntries(fields.map((field) => [field.id, schemaFor(field)])),
+        },
+      },
+    },
+  });
+}
+
+/** Re-validate one value against the field; anything off-type is "not read". */
+const fieldValue = (field: ExtractionField, raw: unknown): FieldValue =>
+  raw === null || raw === undefined
+    ? null
+    : typeof raw === 'number' || typeof raw === 'boolean'
+      ? field.type === 'number'
+        ? typeof raw === 'number' && Number.isFinite(raw)
+          ? raw
+          : null
+        : field.type === 'boolean'
+          ? typeof raw === 'boolean'
+            ? raw
+            : null
+          : parseDisplayed(field, String(raw))
+      : parseDisplayed(field, String(raw).slice(0, 200));
+
+/** Field values from the model's answer; unparseable output reads as nothing. */
+function parseAnswer(content: unknown, fields: readonly ExtractionField[]) {
+  let parsed: unknown;
+  try {
+    parsed =
+      typeof content === 'string'
+        ? JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, ''))
+        : undefined;
+  } catch {
+    parsed = undefined;
+  }
+  const values: Record<string, FieldValue> = {};
+  if (!parsed || typeof parsed !== 'object') return values;
+  for (const field of fields)
+    values[field.id] = fieldValue(field, (parsed as Record<string, unknown>)[field.id]);
+  return values;
+}
+
+/** The most common value per field; confidence is the share of reads agreeing with it. */
+function agreement(
+  fields: readonly ExtractionField[],
+  results: readonly Record<string, FieldValue>[],
+  singleReadConfidence: number,
+) {
+  const reads = results.length;
+  return fields.map((field) => {
+    const counts = new Map<string, { value: FieldValue; count: number }>();
+    for (const result of results) {
+      const value = result[field.id] ?? null;
+      const key = JSON.stringify(value);
+      counts.set(key, { value, count: (counts.get(key)?.count ?? 0) + 1 });
+    }
+    const best = [...counts.values()].sort((a, b) => b.count - a.count)[0]!;
+    const confidence =
+      best.value === null ? 0 : reads === 1 ? singleReadConfidence : best.count / reads;
+    return { field: field.id, value: best.value, confidence };
+  });
+}
+
 export function createOpenAiCompatibleVisionExtractor(options: VisionExtractorOptions): Extractor {
   const endpoint = visionEndpoint(options.baseUrl, options.allowedHosts);
   const fetcher = options.fetch ?? fetch;
@@ -102,67 +193,12 @@ export function createOpenAiCompatibleVisionExtractor(options: VisionExtractorOp
         'content-type': 'application/json',
         ...(options.apiKey ? { authorization: `Bearer ${options.apiKey}` } : {}),
       },
-      body: JSON.stringify({
-        model: options.model,
-        temperature: 0,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: prompt(fields, width, height) },
-              { type: 'image_url', image_url: { url: `data:image/png;base64,${image}` } },
-            ],
-          },
-        ],
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'station_fields',
-            strict: true,
-            schema: {
-              type: 'object',
-              additionalProperties: false,
-              required: fields.map((field) => field.id),
-              properties: Object.fromEntries(fields.map((field) => [field.id, schemaFor(field)])),
-            },
-          },
-        },
-      }),
+      body: requestBody(options.model, image, fields, width, height),
     });
     // Status only: response bodies may echo prompts or server details.
     if (!response.ok) throw new Error(`Vision endpoint answered ${response.status}`);
     const body = (await response.json()) as { choices?: { message?: { content?: unknown } }[] };
-    const content = body.choices?.[0]?.message?.content;
-    let parsed: unknown;
-    try {
-      parsed =
-        typeof content === 'string'
-          ? JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, ''))
-          : undefined;
-    } catch {
-      parsed = undefined;
-    }
-    const values: Record<string, FieldValue> = {};
-    if (!parsed || typeof parsed !== 'object') return values;
-    for (const field of fields) {
-      const raw = (parsed as Record<string, unknown>)[field.id];
-      // Re-validate every value against the field; anything off-type is "not read".
-      values[field.id] =
-        raw === null || raw === undefined
-          ? null
-          : typeof raw === 'number' || typeof raw === 'boolean'
-            ? field.type === 'number'
-              ? typeof raw === 'number' && Number.isFinite(raw)
-                ? raw
-                : null
-              : field.type === 'boolean'
-                ? typeof raw === 'boolean'
-                  ? raw
-                  : null
-                : parseDisplayed(field, String(raw))
-            : parseDisplayed(field, String(raw).slice(0, 200));
-    }
-    return values;
+    return parseAnswer(body.choices?.[0]?.message?.content, fields);
   }
 
   return {
@@ -178,22 +214,7 @@ export function createOpenAiCompatibleVisionExtractor(options: VisionExtractorOp
       const results: Record<string, FieldValue>[] = [];
       for (let index = 0; index < reads; index++)
         results.push(await readOnce(image, fields, frame.width, frame.height, signal));
-      return fields.map((field) => {
-        const counts = new Map<string, { value: FieldValue; count: number }>();
-        for (const result of results) {
-          const value = result[field.id] ?? null;
-          const key = JSON.stringify(value);
-          counts.set(key, { value, count: (counts.get(key)?.count ?? 0) + 1 });
-        }
-        const best = [...counts.values()].sort((a, b) => b.count - a.count)[0]!;
-        const confidence =
-          best.value === null
-            ? 0
-            : reads === 1
-              ? (options.singleReadConfidence ?? 0.5)
-              : best.count / reads;
-        return { field: field.id, value: best.value, confidence };
-      });
+      return agreement(fields, results, options.singleReadConfidence ?? 0.5);
     },
   };
 }

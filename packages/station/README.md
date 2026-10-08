@@ -22,6 +22,8 @@ The [operator workstation pattern](../../docs/operator-workstation-pattern.md) a
 | `@agent-native/station/*`            | see below          | One source file, for example `@agent-native/station/perception/worker`.                                       |
 | `@agent-native/station/requirements` | browser and server | `stationBridgeComponent`: vision endpoints and the perception worker as declared requirements. Loads nothing. |
 
+`controller` and `profile` compose parts that are imported only from inside the package. `src/controller/` holds the shared kernel (perception, clock, stable confirmation and this process's attempt memory), the safety gate (bridge state and forbidden zones), payload and precondition checks before delivery, the step runner with its per-action guard, and lookup. `src/profile/` holds `$input` bindings, region geometry and profile validation; `profile` re-exports them, so existing imports are unchanged.
+
 Extractors: `createAccessibilityExtractor` (accessibility tree), `createWorkerExtractor` (a JSON-lines worker process for OCR, classifiers or local models), `createOpenAiCompatibleVisionExtractor` (a local OpenAI-compatible vision endpoint) and `createFixtureExtractor` (replays recorded readings in CI). The Playwright transport is typed structurally, so this package does not depend on Playwright.
 
 ## Trust boundary
