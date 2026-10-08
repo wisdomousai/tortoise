@@ -21,10 +21,17 @@ Read [architecture](../../docs/architecture.md), [authorization](../../docs/auth
 
 ## Entrypoints
 
-| Import                    | Runs in     | Contents                                                                         |
-| ------------------------- | ----------- | -------------------------------------------------------------------------------- |
-| `@agent-native/runtime`   | server only | `createApplication`, handler factory, memory storage, composition and all types. |
-| `@agent-native/runtime/*` | server only | One source file: `types`, `compose` or `state-equality`.                         |
+| Import                    | Runs in     | Contents                                                                                  |
+| ------------------------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `@agent-native/runtime`   | server only | `createApplication`, handler factory, memory storage, composition and all types.          |
+| `@agent-native/runtime/*` | server only | One source file: `types`, `compose`, `state-equality`, `application` or `memory-storage`. |
+
+`src/application/` holds the parts `createApplication` wires together; import them only from inside the package. Each takes the shared `Kernel` (registry, ports, clocks, audit trail, context guard) instead of closing over it:
+
+- `kernel.ts`: registry validation, operation resolution, the authorize-then-recheck step and output projection.
+- `commands.ts`, `command-request.ts`, `command-commit.ts`: the command transaction, its request validation and fingerprint, and its journal, receipt and `command.accepted` steps.
+- `queries.ts`, `events.ts`, `outbox.ts`, `recovery.ts`: reads, journal delivery, the host-only outbox and crash recovery of the audit log.
+- `handler-context.ts`, `effects.ts`, `delegation.ts`, `audit.ts`, `records.ts`: what a handler sees, outbox transitions, grant checks, audit records and prototype-safe record writes.
 
 Browser code may import types from here with `import type`; a value import fails `check:boundaries`.
 
