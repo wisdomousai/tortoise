@@ -88,3 +88,13 @@ Authorization is injected; see [authorization](authorization.md). The reactive c
 Harness output and application commits are separate streams. The supervisor captures the initiating context, limits tools to catalog operations and cancels through run state; see [agent harnesses](agent-harnesses.md). Fixture and protocol tests are one kind of evidence. Live credentials, plan eligibility and real inference need separate configured checks.
 
 Cloud hosting, multi-device sync, package publication and signed distribution are outside the current reference.
+
+## Lineage
+
+Other projects informed the design, but no application code was copied. They contributed a portable engine boundary, explicit domain commands and desktop harness integration. This starter adds one interaction catalog for UI and agents, commit receipts, authorization in the runtime and live invalidation in the frontend.
+
+- **Logical CQRS** separates commands from authorized query snapshots over one local database ([Microsoft's CQRS guidance](https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs)). Event sourcing is not required: the journal delivers committed changes and is not a model each domain rebuilds from.
+- **[CASL](https://github.com/stalniy/casl)** makes the object and field decisions. The repository owns a small condition translator, with tests that it agrees with in-memory and SQL evaluation, because no policy language translates losslessly to every database.
+- **Provider plans and SDKs** each have their own execution and funding boundaries, and none of them grants workspace permissions ([providers](providers.md)).
+
+Vendor documentation describes intended behavior. Only the [implementation status](implementation-status.md) records what was exercised here.

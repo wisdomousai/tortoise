@@ -1,132 +1,198 @@
-# Implementation and verification status
+# Implementation status
 
-Checked on 7 October 2026. This ledger distinguishes implemented code, deterministic checks, native execution and live provider evidence. It describes the working source tree; no public release has been made.
+This ledger records what the current source has been shown to do, and what it has not. It describes the state of the code now; git holds the history. No public release has been made.
 
-## Implemented
+Evidence comes in four kinds, and one never stands in for another:
 
-- Pure typed capability/module contracts with validated composition, JSON Schema and generated OpenAPI, MCP names, operation reference and workflow index.
-- One authorized CQRS runtime, memory/SQLite adapters, optimistic revisions, scoped idempotency, atomic receipts/journal, consistent snapshots and replay.
-- CASL operation/object/row/field decisions, a bounded SQL scope translator, current grants and permission-aware output projection.
-- Local authority ownership, loopback security, session bootstrap, HTTP/SSE, CLI and real MCP stdio bridge.
-- Shared React frontend and Electron host, live updates, dirty-draft conflicts, scoped UI sessions and version-pinned target capture.
-- Supervisor, deterministic workflow, Codex, Claude and AI SDK adapters, questions/approvals, cancellation and interrupted-run recovery.
-- Explicit ChatGPT dynamic registration, identity validation, protected profile/refresh/logout, account model catalog and separate API-key funding.
-- Deterministic source scaffolder, developer setup/extension skill, architecture guides and generated references.
-- System-of-record capture reference: transactional outbox (`ctx.enqueue`/`ctx.settleEffect`), `packages/integration` dispatcher and inbound sync, module composition with sliced state and routed policy, and the quality-inspection example with a deterministic mock quality system. See [system-of-record-pattern.md](system-of-record-pattern.md).
-- Vite + TanStack Router/Query/Form/Table + shadcn frontend; `@agent-native/react` query, form and capture bindings; a shadcn registry of kit components; capture-time and acceptance-latency metrics.
-- Application CLI with catalog-generated subcommands, typed flags, dry-run, text output and mapped exit codes; embedded stdio MCP under a launcher grant; `drain`/`sync`; grant-bound agent connections from `serve`; single-binary compilation.
-- Operator workstation bridge: held effects in the outbox, `packages/station` (profiles, observer, screen connector, scripted driver, Playwright transport, accessibility/worker/OpenAI-compatible vision extractors, golden gate), `packages/devices`, the `operator` shadcn registry in `packages/operator-ui`, and the `examples/line-station` domain with a fake MES and a separate-process fake HMI. See [operator-workstation-pattern.md](operator-workstation-pattern.md).
-- Framework, starter and content layers ([ADR 005](decisions/005-framework-shell-content.md)): `@agent-native/host` runs one `ApplicationDefinition`, `@agent-native/frame` frames one application's screens, the starter in `apps/*` names its application in `app.config.json`, and each example is an application with `manifest`, `application` and `screens` entrypoints, its own catalog, reference set, web bundle and workspace. `bun run scaffold --example <name>` exports one example as the hosted application.
+- **Deterministic:** `bun run check` and the suites it runs, on loopback only.
+- **Browser:** Playwright in Chromium against the real service.
+- **Native:** a packaged build or a real OS facility, on a named platform.
+- **Live:** real providers, devices or systems of record, with explicitly configured accounts.
 
-- Remote queries and data providers ([ADR 009](decisions/009-remote-queries-and-adoption.md)): a query may declare `remote: { target, identity }`. The runtime calls the target's source between two authorized read snapshots, with the caller's credential or a declared service fallback, and returns items with their source status, fetch time and the source's next-page cursor; nothing is stored. `defineDataProvider` and `implementDataProvider` turn one declaration into search and lookup operations for every surface, and `remoteQueryOptions` binds them to TanStack Query. `examples/crm-capture` searches a fake CRM live and adopts accounts through the outbox and feed.
+When a change adds or invalidates evidence, edit the entry for that area and the latest run instead of appending a dated section. A primitive's status in [primitives](primitives.md) changes only with matching evidence here.
 
-- Declared egress and audit: catalog `requirements` for network, devices and processes; site policies with `desktop-local`/`sandbox`/`zero-trust` floors enforced at startup (identity, ingress mTLS, TLS, grants, audit); an in-process egress guard, socket client and child CONNECT proxy; a hash-chained, fail-closed event log with crash recovery and attestation; generated security manifest, data flows, control mapping (ISO 27001, NIST 800-53/CSF, IEC 62443-4-2) and CycloneDX SBOM; `site check`, `network export`, `audit verify` and `compliance report`; firewall/systemd/Kubernetes/compose exporters; a posture monitor with `compliance.*` queries and a Compliance screen. See [security-and-compliance.md](security-and-compliance.md).
+## Latest run
 
-- Host plugins ([ADR 010](decisions/010-host-plugins.md)): `@agent-native/host` is a kernel with `network`, `ingress`, `identity` and `eventLog` ports whose defaults refuse the network, bind loopback and keep no log. Applications list plugins in their manifest, application and screens entrypoints, with state slices, routed policies, ordered `open`/`ready`/`start`/`close` hooks, claimed settings and plugin CLI commands. The framework's own plugins are `site`, `network`, `audit` and `compliance`, one per concern and aligned with the ports ([ADR 010](decisions/010-host-plugins.md)); every example composes all four, and `plugins/webhook` is an example third-party plugin composed by `project-tasks`. Plugins reach each other through the composed ports, and a policy that needs a port no plugin provides refuses startup. Plugins are their own layer in `plugins/*`, with layer rules in `check:boundaries`; the Compliance screen ships from the compliance plugin's registry.
+On macOS arm64 with Bun 1.4.0.
 
-## Verified locally
+| Check                        | Result                                                                                                                                                                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run check`              | 9 October 2026: 387 tests pass, 1 skip, 0 fail, and the 2 sandbox tests pass. Includes format, typecheck, boundaries, READMEs, module size, generated artifacts for four applications, the operator registry, the compiled sandbox binary and the production build. |
+| `bun run test:isolated`      | 9 October 2026: passes with no non-loopback connection attempt.                                                                                                                                                                                                     |
+| `bun run test:e2e`           | 9 October 2026 in Chromium: 12 pass (crm-capture 2, line-station 5, project-tasks 2, quality-inspection 3). The 2 packaged-desktop specs skip without `DESKTOP_EXECUTABLE`.                                                                                         |
+| `bun run test:scaffold:full` | 9 October 2026: 4 pass. A fresh export installs with a frozen lockfile, then passes format, typecheck, build and tests on its own, and accepts a new capability.                                                                                                    |
+| `bun run station:golden`     | 8 October 2026: 5 of 5 screens identified with no confident misread, against recorded expectations rather than a model.                                                                                                                                             |
 
-| Gate             | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Source           | Typecheck, browser dependency boundaries, generated-artifact drift and production web build pass.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Behavioral suite | `bun run check`: 229 tests passed, 1086 assertions, zero failures, one skip. The recursive scaffold gate is deliberately skipped there and is run separately below.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Persistence      | Memory/SQLite conformance, rollback, replay, actual process death before/after commit and OS-lock crash release pass.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Surface parity   | Direct, HTTP, CLI subprocess and MCP protocol scenarios agree on results, denial and idempotency for both example modules. Forbidden CLI calls exit 4.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| SoR delivery     | Outbox, dispatcher and inbound-sync suites: atomic effects, no re-enqueue on replay, backoff, rejection as data, idempotent redelivery, lookup-before-send, drain and integration-grant limits.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Sandbox CLI      | `bun run test:sandbox` compiles the single binary and runs it with an empty environment: embedded MCP capture under a grant, refused integration operations and concurrent writer, drain exiting 75 then 0, agent/human metrics, grant-bound `serve`. Both the source-entry and the compiled variant run in `check`; the browser station bridge's Playwright dependency stays external to the binary.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Capture browser  | `examples/quality-inspection/e2e/inspection.pw.ts` in Chromium: keyboard-only capture, wedge burst and double Enter recording once, live SoR references and rejection, metrics, a generated form and a superseding correction. `examples/project-tasks/e2e/workspace.pw.ts` passes on the new frontend.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Browser          | Chromium with a separate MCP process: agent changes appear without refresh, UI writes are queryable, drafts survive conflicting changes and deterministic work completes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Scaffold         | `bun run test:scaffold:full`: 3 tests passed, 20 assertions. Fresh export, frozen public-dependency install, format/typecheck, five generated artifacts, build, tests, app identity and a newly added capability all pass. Native install scripts are disabled in this isolated source check.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| macOS arm64      | An earlier source state's native stage (see [final local artifact](#final-local-artifact); it predates later changes and was not rerun), unsigned directory package, native version/compiled service smoke and actual Electron owned/attached lifecycle tests pass. The combined final Playwright run passed all 3 tests with zero skips.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Skill            | Skill metadata validator and isolated add-capability exercise pass.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Security         | After the merge onto the M10 layout, `bun test`: 330 passed, 0 failed, 1 skip; `test:isolated` and `test:sandbox` pass; 10 Playwright specs pass across the three examples (the 2 packaged-desktop specs skip without a packaged build). Event-log tamper, truncation, gap, rotation, writer lock and live-head suites pass; the egress guard refuses host/port/scheme escapes, off-host redirects and DNS answers outside bound networks; a failed required append rolls back the commit; crash recovery and the identity floors are enforced; mTLS rejects no certificate and a foreign CA (throwaway `openssl` PKI); golden exports for 7 formats. `bun run test:isolated` passes with no non-loopback attempt. The Security screen shows a new denial without reload in Chromium.                                                   |
-| Host plugins     | `bun run check` passes with 383 tests passed, 1 skip, 0 failed across four applications, and `bun run test:isolated` passes. `packages/host/test/plugins.test.ts` (12 tests) covers composition, ordering, null ports, duplicate providers, claimed settings and the lifecycle; `plugins/webhook/test/webhook.test.ts` (5 tests) covers delivery, cursor durability, refusal without a network provider and by the egress guard. The generated security manifests of line-station, quality-inspection and crm-capture change only in the `audit-collector` owner (`authority` → `security`); project-tasks also gains `webhook-target`, and crm-capture, which composed no assurance before, gains the `assurance` module and Security screen.                                                                                          |
-| Plugin ports     | After the split into `site`, `network`, `audit` and `compliance` ([ADR 010](decisions/010-host-plugins.md)) on 9 October 2026, `bun run check` passes with 387 tests passed, 1 skip, 0 failed, and `bun run test:isolated` passes with no non-loopback attempt. `packages/host/test/plugins.test.ts` (14 tests) adds a refused composition when a needed port has no provider, and composed ports readable only after every plugin has opened. `plugins/network/test/network.test.ts` (12 tests) keeps the rule and 7-format golden suites, shows the guard recording `egress.denied` into an event log composed after it, and shows a connected policy refused without the network plugin. In the generated security manifests the `assurance` module becomes `compliance` and the `audit-collector` owner `security` becomes `audit`. |
+## By area
 
-## Framework, starter and content
+### Catalog, runtime and storage
 
-Checked on 7 October 2026 on macOS arm64, after moving composition out of the starter (milestone M10).
+**Shown, deterministic.**
 
-| Kind             | Evidence                                                                                                                                                                                                                                                                                   |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Source           | Format, typecheck, `check:boundaries` (starter-to-content and content-to-starter rules; the browser graph of all three applications bundled through the frame) and `check:generated` (three reference sets under `docs/reference/<id>/`) pass. `bun run build` and both registries build.  |
-| Behavioral suite | `bun test`: 266 passed, 1 skip, 0 failures, 1212 assertions across 46 files. Each example runs its own conformance, host or application tests and a UI-binding test against its own screens; framework tests import no example.                                                            |
-| Sandbox CLI      | `bun run test:sandbox` passes from source and as the compiled binary built from a generated static entry for the quality-inspection application.                                                                                                                                           |
-| Browser          | Playwright in Chromium, each application served alone by `startService(application, ...)`: project-tasks 2, quality-inspection 2, line-station 5, all passing. The packaged desktop spec was not run.                                                                                      |
-| Scaffold         | `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` passes. A manual `--example line-station` export installed frozen and passed format, typecheck, boundaries, generated drift, build and 214 tests; its service served application `line-station` with 23 operations and the configured title. |
-| Not yet shown    | Framework packages are private and unpublished, so an export copies `packages/*` and depends on them by `workspace:*` instead of published versions. The packaged desktop build was not rebuilt on the new entry.                                                                          |
+- Composition and every generated artifact.
+- Authorized commands and queries with revisions and scoped idempotency.
+- Receipts, journal and outbox effects that commit atomically, and replay.
+- Memory and SQLite agree in conformance tests, including process death before and after commit, and a crash releasing the OS lock.
+- State that shares memory and JSON with sparse arrays are refused.
 
-## Operator workstation bridge
+**Limits.** SQLite stores whole JSON snapshots, which suits small local workspaces. Journal and receipts are never pruned.
 
-Checked on 7 October 2026 on macOS arm64. Deterministic, browser, device and live-model evidence are listed separately; only the first two exist.
+### Authorization and live views
 
-| Kind          | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Deterministic | `bun run check` passes: 229 tests, 1 skip, 0 failures, 1086 assertions. New suites: `packages/station` 26 (profile validation against forbidden regions, stability gating, uncertain readings, procedure success, precondition rejection, popup abort with readback acceptance, takeover leading to a held effect and reconciliation), `packages/devices` 21, `packages/operator-ui` 13, `examples/line-station` 9, held effects 3.                  |
-| Composition   | `examples/line-station/test/conformance.test.ts`: MES sync, a station observed through the in-memory simulator, identical `line.station.get` over direct, HTTP, CLI subprocess and MCP, recipe load through the connector with readback, and lane separation (people cannot ingest; the bridge cannot read device configuration; operators cannot administer scanners).                                                                              |
-| Golden gate   | `bun run station:golden` in `examples/line-station`: 5/5 screens identified, no confident misread. Pixel fields used recorded expectations (a wiring check), not a model.                                                                                                                                                                                                                                                                            |
-| Browser       | `examples/line-station/e2e/station.pw.ts` in Chromium against the real service and a separate fake-HMI process driven through Playwright: a stop is observed and classified with a tile and accepted by the MES; an order is wedge-scanned and started with a hold; the bridge loads the recipe on the HMI screen and reads it back; while the operator holds the seat the next load waits and completes after handback. Kit interaction tests pass. |
-| Devices       | None. No wedge, serial, HID POS or camera scanner has been checked on hardware. Electron Web Serial/WebHID permission handlers are not wired.                                                                                                                                                                                                                                                                                                        |
-| Local models  | None. The worker protocol runs against an echo fixture. The OpenAI-compatible vision extractor is tested against a stubbed `fetch`. No local OCR or vision model was configured or called.                                                                                                                                                                                                                                                           |
+**Shown, deterministic.**
 
-Not part of this reference: a live computer-use driver (the `ComputerUseDriver` port and a scripted driver exist), VNC/RDP/KVM-over-IP/UI Automation transports, vendor scanner SDKs, vendor programming-barcode sheets, live microphone capture and a scratch-app `shadcn add` acceptance test. `@agent-native/devices` and `@agent-native/station` are unpublished workspace packages. Nothing here is a safety-rated or validated system.
+- Operation, object and field decisions.
+- Rows scoped before pagination and counts.
+- Grant bindings on commands, events and discovery.
+- Expected revisions authorized as reads before they are compared.
+- After a revocation, SSE and direct subscriptions reset, and the React cache clears protected data, even while a refetch hangs.
 
-## Remote queries and data providers
+**Open.** A session revoked during a request does not stop it; see [known defects](#known-defects).
 
-Checked on 8 October 2026 on macOS arm64 ([P7](principles.md#p7--other-systems-change-only-through-durable-intents), [ADR 009](decisions/009-remote-queries-and-adoption.md)). The [Remote query](primitives.md#remote-query) and [Data provider](primitives.md#data-provider) primitives are `partial`. They are proven on one example, `examples/crm-capture`, with two providers against a fake CRM.
+### Surfaces
 
-| Kind          | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Deterministic | `bun run check` steps pass: format, typecheck, boundaries, READMEs, size over 440 files, generated artifacts for 4 applications, operator registry, 366 tests passed and 1 skipped across 61 files, `test:sandbox` and the build. New tests: `packages/runtime/test/remote-query.test.ts`, `packages/integration/test/remote-source.test.ts`, `packages/contracts/test/data-provider.test.ts`, the remote case in `packages/react/src/bindings.test.ts`, and `examples/crm-capture/test/*`. |
-| Surfaces      | `examples/crm-capture/test/conformance.test.ts`: one search answers identically over direct, HTTP, CLI subprocess and MCP, apart from the fetch time, and a page cursor from HTTP continues over MCP. MCP marks it read-only and open-world. The generated data flows list each remote query as a `remote-read` flow.                                                                                                                                                                       |
-| Browser       | `bun run test:e2e` in Chromium: crm-capture 2, line-station 5, project-tasks 2, quality-inspection 3, all passing. The two packaged-desktop specs were skipped because no `DESKTOP_EXECUTABLE` was set.                                                                                                                                                                                                                                                                                     |
-| Native, live  | None. No real CRM, credential vault or live provider was exercised. The fake CRM's per-user credentials are demo strings held in memory.                                                                                                                                                                                                                                                                                                                                                    |
+**Shown, deterministic.** For every example, direct, HTTP, CLI subprocess and MCP calls return the same results, denials and idempotent commits. The compiled single-binary CLI runs embedded MCP, `drain` and grant-bound `serve` in an empty environment. Every operation that claims a UI binding is referenced by a screen; the rest declare why they have none.
 
-## Module size and cohesion
+**Shown, browser.**
 
-Checked on 8 October 2026 on macOS arm64, after splitting every oversized module ([P14](principles.md#p14--one-reason-to-change-per-module), [ADR 008](decisions/008-module-size-and-cohesion.md)). The refactor changed no behavior and no public API. No existing test was edited.
+- **project-tasks:** live updates from an external MCP process, drafts that keep their base revision, and paging past the first page.
+- **quality-inspection:** keyboard-only capture; a draft that keeps its sample when another caller records it first.
+- **crm-capture:** search, adopt and log.
 
-| Kind          | Evidence                                                                                                                                                                                                                                              |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Deterministic | `bun run check` passes, including `check:size` over 403 source files with three data-allowlist entries: 335 tests passed, 1 skipped, 0 failed across 55 files. `bun run generate` produces no diff, and `test:sandbox` passes as the compiled binary. |
-| Public API    | The runtime export names of all 128 public modules that existed before the refactor (package `src/*` files and example entrypoints) are identical before and after. The 26 modules added are new entry files.                                         |
-| Browser       | `bun run test:e2e` in Chromium: line-station 5, project-tasks 2, quality-inspection 3, all passing. The two packaged-desktop specs were skipped because no `DESKTOP_EXECUTABLE` was set.                                                              |
-| Golden gate   | `bun run station:golden` in `examples/line-station` passes after the station connector split.                                                                                                                                                         |
-| Native, live  | None. No packaged desktop launch, device or live provider was exercised for this change.                                                                                                                                                              |
+### Agents and providers
 
-## Security evidence limits
+**Shown, deterministic.**
 
-The exported rules were compared as text only. They were not loaded into nftables, Windows Firewall, systemd (`systemd-analyze verify`) or a Kubernetes cluster. No off-host syslog collector, live provider egress through the guard, or zero-trust deployment was exercised. Zero trust refuses to start until a workforce identity adapter exists. Control mappings are indicative, not a certification. `bun run test:sandbox` passes in full: the compiled binary runs the embedded MCP, drain and `serve` scenarios with an empty environment, and its audit log then verifies with no egress allowed or denied.
+- The supervisor and the deterministic harness.
+- The Codex, Claude and AI SDK adapters against protocol fixtures and the real Claude SDK MCP bridge.
+- The captured selection reaching every adapter.
+- Redaction across streamed deltas.
+- Questions, approvals, cancellation of process trees and recovery of interrupted runs.
+- ChatGPT sign-in against a local signed OIDC server.
+- Serialized refresh and logout for ChatGPT and generic OIDC.
 
-## Explicitly unverified
+**Not shown, live.** No live ChatGPT consent, token refresh or revocation, and no Claude or AI SDK inference. No provider credentials were discovered or reused.
 
-Live ChatGPT consent, model inference, real token refresh/revocation, Claude inference and AI SDK inference were not run. No existing provider credentials were discovered or reused. Signed token fixtures and native protocol fixtures establish local behavior only.
+### Systems of record
 
-Native credential-vault set/get/delete and locked-store prompts remain platform checks. Windows x64, Linux x64 and macOS x64 execution are configured in CI but were not run on this macOS arm64 host. The workflow has not been pushed or executed remotely. Signing, notarization, installers, updates, public package publication and deployment remain outside this delivery.
+**Shown, deterministic.**
 
-## Reference implementation limits
+- Outbox delivery outside the transaction, settlement through domain commands, backoff, and rejection as data.
+- Lookup before every send to a non-idempotent target.
+- Watermark-bound inbound sync.
+- Effects held for reconciliation, including when shutdown interrupts a procedure that already acted.
+- A `drain` deadline that aborts delivery in flight.
+- `drain` and `sync` accounting for every composed target.
+- Remote queries that page with the caller's credential first.
+- Delivery aggregates scoped by plant and lot for every effect resource.
+- Completion counting only the samples the current plan requires.
 
-The intended product pattern is a bounded task/workflow interface over existing systems of record. The project/task example verifies the local kernel; the quality-inspection example verifies outbox delivery and inbound sync against an in-memory, per-process mock quality system. There is no real enterprise connector. Reconciliation of uncertain outcomes, worker claims, an independently persisted mock upstream, a sandbox isolation backend or credential broker, and package lifecycle gates remain planned in the [reference plan](system-of-record-reference-plan.md); the [system-of-record reference](system-of-record-pattern.md) maps each gate. Capture timings are from synthetic runs, not field measurements.
+These run over in-memory fakes in `quality-inspection` and `crm-capture`. [Remote query](primitives.md#remote-query) and [Data provider](primitives.md#data-provider) are proven on one example.
 
-The starter hosts one application per authority ([ADR 005](decisions/005-framework-shell-content.md)); several applications in one process or workspace are out of scope. Framework packages are not published, so a generated application vendors them instead of upgrading through a package manager.
+**Not shown.** There is no real system of record or CRM. Worker claims, general reconciliation and cancel-before-dispatch are missing; the [gate status](system-of-record-pattern.md#status-against-the-reference-plan) has the details. Capture timings come from synthetic runs.
 
-SQLite persists complete JSON snapshots; it is intended for small local workspaces. The materialized-state port is storage-layout independent but is not a universal transaction-bound ORM. `LiveQuery` re-queries conservatively; the TanStack bindings add resource-type-indexed invalidation and coalescing. The journal/receipts have no pruning policy. UI intents are ephemeral authenticated host interactions, separate from durable business operations.
+### Operator workstation bridge
 
-Run discovery/control is scoped to the initiating principal, workspace and delegation; nested run delegation is rejected in this reference. Model text cannot be field-redacted as a typed domain response. The service suppresses historical run output and target context after an authorization-generation change; new business queries still use current policy. Provider subprocess isolation is a limited application-tool profile rather than an OS security boundary against malicious binaries.
+**Shown, deterministic.**
 
-Use [development and testing](development-and-testing.md) and [desktop packaging](desktop-packaging.md) to reproduce the checks. See [provider documentation](providers.md) before configuring a live account.
+- **Controller:** checks the expected screen before every click, type and key; requires the declared stable reads for preconditions, readback and lookup; holds the effect when a popup or takeover interrupts a procedure.
+- **Observer:** submits once per heartbeat window and keys each submission by its exact payload.
+- **Perception:**
+  - a perception worker becomes ready again after a restart;
+  - vision requests never follow a redirect;
+  - the golden gate passes on recorded expectations.
+- **Scanner kit:** decoding, check digits, layout repair, calibration, routing, and serial and HID assembly, including CR-only scanners and bracketed GS1.
+- **Device configuration module:** its policy.
 
-## Final local artifact
+**Shown, browser.** In `line-station`, against the real service and a separate fake HMI process:
 
-This artifact predates the system-of-record, Vite frontend and CLI changes; the sidecar entry and frontend have changed since. `bun run test:package` passes on the current source, but the native stage, package and Electron acceptance were not rerun. Rebuild and rerun `tests/e2e/desktop.pw.ts` before relying on a packaged build.
+- a stop is classified;
+- an order is scanned and started with a hold;
+- the recipe is loaded and read back;
+- takeover blocks the bridge.
 
-The verified immutable stage is `artifacts/desktop/accepted-darwin-arm64`. Its unsigned application is under `packaged/mac-arm64/Project Workspace.app`. Artifacts are ignored by Git and can be reproduced with the packaging scripts.
+The kit's interaction tests also pass.
 
-- Environment: macOS arm64, Bun 1.4.0, TypeScript 7.0.2, Playwright 1.63.0, Electron 44.6.0.
-- Compiled service SHA-256: `a36a3c737667b5ad603ac42954559993ccffd380be43720420837dd58c89647b`.
-- Native version smoke: Codex CLI 0.160.1; Claude Code 2.1.292 from SDK distribution 0.3.292.
-- Native acceptance used a temporary workspace containing spaces and a minimal `/usr/bin:/bin` PATH. It checked live external writes, renderer isolation, persisted reopening, owned shutdown and survival of an attached authority.
-- Browser acceptance additionally checked separate MCP stdio interaction, draft conflicts and an agent question/answer.
-- Both setup and generated application skill metadata validate. Local documentation links resolve.
+**Not shown.**
 
-These results apply to this implementation's local checks. No remote CI, provider login, billing/entitlement, signing or publication result is implied.
+- **Hardware:** no physical scanner has been checked, and the desktop shell does not grant Web Serial or WebHID.
+- **Models:** no local OCR or vision model has been called.
+- **Computer use:** there is no live computer-use driver, and no VNC, RDP or UI Automation transport.
+- **Safety:** nothing here is safety-rated or validated.
+
+### Security and compliance
+
+**Shown, deterministic.**
+
+- **Plugins:** every example composes the `site`, `network`, `audit` and `compliance` plugins. Plugin order is kept. Startup is refused when a needed port has no provider, or when a policy asks for a plugin that is not composed.
+- **Egress guard:**
+  - refuses host, port and scheme escapes, off-host redirects and DNS answers outside bound networks;
+  - the child proxy tunnels only to declared destinations.
+- **Event log:**
+  - detects tampering, truncation and gaps;
+  - rotates and holds a writer lock;
+  - rolls back a command whose required append fails, and recovers after a crash.
+- **Startup floors:**
+  - identity floors are enforced at startup;
+  - mTLS rejects a missing certificate and a foreign CA, using a throwaway PKI.
+- **Exports:** the seven rule formats match golden files.
+- **Sandbox binary:** its audit chain verifies with no egress.
+
+**Shown, browser.** The Compliance screen shows a new denial without a reload.
+
+**Not shown.**
+
+- **Rules:** the exported rules are compared as text only. They were never loaded into nftables, Windows Firewall, systemd or a cluster.
+- **Live traffic:** no off-host syslog collector, and no live provider traffic through the guard.
+- **Zero trust:** it refuses to start, because no workforce identity adapter exists.
+
+Control mappings are indicative, not a certification.
+
+### Desktop
+
+**Shown, deterministic.** Packaging unit tests and the target matrix.
+
+**Shown, native, outdated.** An earlier source state was staged and packaged unsigned on macOS arm64, from before the system-of-record, frontend and CLI changes. It passed the offline smoke test and the Electron owned and attached lifecycle tests. Rebuild and rerun them before relying on a packaged build ([desktop](desktop.md#build-and-smoke-test)).
+
+**Not shown.**
+
+- the current packaged build;
+- Windows x64, Linux x64 and macOS x64, which are configured in CI but have not run;
+- credential-vault set, get and delete on any platform;
+- signing, notarization, installers and updates.
+
+### Layers and scaffold
+
+**Shown, deterministic.** The boundary check resolves imports by layer, including workspace package names and the browser graph of each application. A single-example export installs with a frozen lockfile and passes its own checks.
+
+**Limits.** Framework packages are unpublished, so an export copies `packages/*` and depends on them through `workspace:*`. An authority hosts one application.
+
+## Known defects
+
+Defects reproduced against the current source that are not fixed yet.
+
+| Defect                                                        | Detail                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A session revoked during a request does not stop the request. | HTTP authenticates each request once. If a session is revoked or expires while its command is waiting, the command's context stays live and the command still commits. New requests with that token are refused. To fix it, give each session an abort signal that fires on revocation and expiry, and combine that signal with the request's signal. |
+
+These were fixed by inspection only and have no regression test:
+
+- matching Windows paths during staging;
+- keeping a scanner connected when it uses default routes;
+- keeping scanner setup's unsaved edits when another device saves.
+
+### Design follow-ups
+
+These are improvements, not defects:
+
+- Share event, receipt and cancellation adaptation between the HTTP and direct transports. The known defect above is one place where they still diverge.
+- Extract a reusable draft model (target, base revision, local values and conflict state) from capture and scanner setup.
+- Consolidate the repeated polling, delay-cancellation and credential-refresh lifecycles once their semantics settle.
+- Before publishing packages, give each one explicit entrypoints and its own dependencies.
+
+## Out of scope
+
+- cloud hosting and multi-device synchronization;
+- more than one application per authority;
+- package publication;
+- signed distribution.

@@ -11,7 +11,6 @@ const rootFiles = new Set([
   'README.md',
   'LICENSE',
   'AGENTS.md',
-  'IMPLEMENTATION_PLAN.md',
   '.gitignore',
   '.prettierrc.json',
   '.prettierignore',

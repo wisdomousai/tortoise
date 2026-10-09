@@ -78,7 +78,7 @@ Run one with `cd examples/<name> && bun run dev`. Each has its own port, workspa
 
 Verified locally on macOS arm64: the full `bun run check`, Chromium end-to-end tests for the examples, and a single-example scaffold export.
 
-Not verified: any real enterprise connector, live model inference, scanner hardware, local OCR or vision models, Windows and Linux builds, signing and distribution. The [implementation status](implementation-status.md) holds the evidence, and the [repository review](reviews/2026-10-07-repository-review.md) lists defects found outside the test suites.
+Not verified: any real enterprise connector, live model inference, scanner hardware, local OCR or vision models, Windows and Linux builds, signing and distribution. The [implementation status](implementation-status.md) holds the evidence and the [known defects](implementation-status.md#known-defects).
 
 ## Commands
 
@@ -86,7 +86,7 @@ Not verified: any real enterprise connector, live model inference, scanner hardw
 bun install --frozen-lockfile
 bun run dev                      # build web and open the desktop window
 bun run cli list                 # list operations
-bun run cli call project.create '{"name":"Launch"}' --key k1
+bun run cli project create --name Launch --key k1
 bun run mcp                      # MCP over stdio
 bun run generate                 # regenerate docs/reference/<id>/ from the catalogs
 bun run check                    # full local gate

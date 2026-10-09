@@ -31,7 +31,7 @@ The default profile exposes application tools and denies shell and file approval
 
 A harness that composes other CLIs and MCP servers needs an enforced execution boundary and a broker that keeps upstream credentials outside it. That layer is planned, not implemented ([reference plan](system-of-record-reference-plan.md)). The application binary already supplies the tool side: an embedded MCP server under a launcher-written grant, and generated CLI subcommands with mapped exit codes ([system-of-record pattern](system-of-record-pattern.md)).
 
-See [providers](providers.md) for login and funding, and [desktop packaging](desktop-packaging.md) for native resources. Protocol fixtures and real provider calls count as separate evidence.
+See [providers](providers.md) for login and funding, and [desktop](desktop.md#packaged-resources) for native resources. Protocol fixtures and real provider calls count as separate evidence.
 
 ## Background jobs
 

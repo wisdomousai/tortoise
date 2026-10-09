@@ -4,7 +4,7 @@ A TypeScript architecture reference for applications at the edge, on or next to 
 
 Read [edge applications](docs/edge-applications.md) for the concept: why these applications run at the edge, the execute–interpret–report loop, how they reach control software and how agents take part. The [overview](docs/overview.md) covers the code: layout, the capability model, command execution, ports, external delivery, rules and verification status.
 
-The [repository review](docs/reviews/2026-10-07-repository-review.md) records defects, design concerns and verification results from 7 October 2026.
+The [implementation status](docs/implementation-status.md) records what has been verified, what has not, and the [known defects](docs/implementation-status.md#known-defects).
 
 Define a capability once. Explicit module composition collects its schema, permission requirements, handler binding, UI binding and workflow references. The resulting catalog drives HTTP, MCP, CLI, typed React calls and generated documentation. Changes made through any surface reach subscribed frontends through the same committed journal.
 
@@ -36,8 +36,8 @@ Set the path printed as `connectionFile` by the host. This file is a local crede
 ```sh
 export AGENT_NATIVE_CONNECTION="$(pwd)/.workspace/.connection.json"
 bun run cli list
-bun run cli call project.create '{"name":"Launch"}' --key create-launch
-bun run cli call project.list '{}'
+bun run cli project create --name Launch --key create-launch
+bun run cli project list
 bun run mcp
 ```
 
@@ -95,4 +95,4 @@ See [development and testing](docs/development-and-testing.md) for the full stan
 
 The framework includes current ChatGPT-plan connection code, Claude API-key execution and AI SDK execution. Provider account access, funding and workspace authority are separate. Live login/inference, provider eligibility and signed platform distribution require their own checks; deterministic protocol tests do not establish those results. See [provider details](docs/providers.md).
 
-This is a local-first reference. Multi-device synchronization, remote multi-tenant hosting, signed releases and package publication are outside this implementation. The [original plan](IMPLEMENTATION_PLAN.md) records the design baseline and acceptance goals.
+This is a local-first reference. Multi-device synchronization, remote multi-tenant hosting, signed releases and package publication are outside this implementation.

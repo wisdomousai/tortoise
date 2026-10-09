@@ -8,7 +8,7 @@ Layer: starter (`apps/*`). Owned by whoever forks or scaffolds the starter.
 
 - [Starter](../../docs/primitives.md#starter): the desktop wrapper around `apps/service` and `apps/web`.
 
-[Desktop](../../docs/desktop.md) and [desktop packaging](../../docs/desktop-packaging.md) cover the lifecycle and the native build.
+[Desktop](../../docs/desktop.md) covers the lifecycle and the native build.
 
 ## Entrypoints
 
