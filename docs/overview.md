@@ -2,7 +2,7 @@
 
 This repository is a TypeScript reference implementation for [edge applications](edge-applications.md): applications that run on or next to the machines where work happens, and that people and AI agents on the same machine operate together. A typical application runs scripts and procedures locally against control software, interprets the results locally, and reports them to a system of record (ERP, quality system, MES). Every operation is defined once and exposed to a desktop/browser UI, HTTP, MCP and a CLI, so a person, a local agent harness, a script or a device calls the same operation with the same validation and authorization.
 
-It contains a domain-neutral framework (`packages/*`), host plugins for security, assurance and an example webhook (`plugins/*`), a thin starter that hosts one application (`apps/*`), and three example applications (`examples/*`). It is a reference to read, run and export with the scaffolder; it is not a published library or a hosted service.
+It contains a domain-neutral framework (`packages/*`), host plugins for the site policy, network, audit log, compliance and an example webhook (`plugins/*`), a thin starter that hosts one application (`apps/*`), and three example applications (`examples/*`). It is a reference to read, run and export with the scaffolder; it is not a published library or a hosted service.
 
 ## Purpose
 

@@ -25,13 +25,13 @@ Set the operations to observe with `--webhook-operations project.create,task.com
 
 ## Trust boundary
 
-The loop is a caller like an agent run. It acts as the local owner narrowed by a grant to the observed operations and its own two, and that grant also filters the journal it reads. It writes only through `webhook.delivery.record`, and never touches application state. A post carries the journal entry (operation, resource id, revision), never business data. It reaches the network only through `ports.network.client('webhook-target')`. Without the security plugin the kernel refuses every post. With it, the egress guard refuses until the site policy binds `webhook-target`. Either refusal is recorded once as `lastError`, not on every pass.
+The loop is a caller like an agent run. It acts as the local owner narrowed by a grant to the observed operations and its own two, and that grant also filters the journal it reads. It writes only through `webhook.delivery.record`, and never touches application state. A post carries the journal entry (operation, resource id, revision), never business data. It reaches the network only through `ports.network.client('webhook-target')`. Without the network plugin the kernel refuses every post. With it, the egress guard refuses until the site policy binds `webhook-target`. Either refusal is recorded once as `lastError`, not on every pass.
 
 Gaps: no signing of payloads and no per-destination retry backoff. The interval is fixed.
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime` (types), `@agent-native/host/plugin` and `@agent-native/host/plugin-manifest`, `@agent-native/frame/plugin-screens`, and `@agent-native/testing` and `@agent-native/security` (tests). External: `zod`, `react`, `@tanstack/react-query`, `lucide-react`; the status screen uses the starter's `@/components/ui` primitives and `@/lib/session`. A plugin never imports `apps/*` or `examples/*`; its tests use a fixture notes application ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
+Framework: `@agent-native/contracts`, `@agent-native/runtime` (types), `@agent-native/host/plugin` and `@agent-native/host/plugin-manifest`, `@agent-native/frame/plugin-screens`, and `@agent-native/testing`, `@agent-native/site` and `@agent-native/network` (tests). External: `zod`, `react`, `@tanstack/react-query`, `lucide-react`; the status screen uses the starter's `@/components/ui` primitives and `@/lib/session`. A plugin never imports `apps/*` or `examples/*`; its tests use a fixture notes application ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
 
 ## Tests
 
@@ -43,7 +43,7 @@ bun test plugins/webhook
 
 - delivery through a fixture network-port plugin, with only observed operations posted, and the cursor surviving a restart;
 - one recorded refusal when no plugin provides the network;
-- the egress guard refusing the unbound destination when the security plugin is composed before it;
+- the egress guard refusing the unbound destination when the site and network plugins are composed before it;
 - startup refused for an unknown operation;
 - a behavioral scenario through the direct driver.
 

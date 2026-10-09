@@ -1,5 +1,5 @@
 import { defineScreens } from '@agent-native/frame/screens';
-import { assuranceScreens } from '@agent-native/assurance/plugin-screens';
+import { complianceScreens } from '@agent-native/compliance/plugin-screens';
 import { webhookScreens } from '@agent-native/webhook/plugin-screens';
 import manifest from './manifest';
 import { ProjectList, ProjectScreen, ProjectsScreen } from './ui/projects';
@@ -22,5 +22,5 @@ export default defineScreens({
     { prefix: 'task.', to: '/projects' },
   ],
   sidebar: ProjectList,
-  plugins: [assuranceScreens, webhookScreens],
+  plugins: [complianceScreens, webhookScreens],
 });

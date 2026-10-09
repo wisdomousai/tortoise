@@ -8,8 +8,8 @@ Layer: content (`examples/*`). The fake MES ([`fake-mes.ts`](fake-mes.ts)) and t
 
 This example is one [Application](../../docs/primitives.md#application) and the reference for the operator-workstation pattern. It composes:
 
-- a [Module](../../docs/primitives.md#module) of `line.*` [capabilities](../../docs/primitives.md#capability), plus the device [Configuration module](../../docs/primitives.md#configuration-module) and the `assurance` module from its plugin;
-- the `security` and `assurance` [host plugins](../../docs/primitives.md#host-plugin), listed in each of its three entrypoints;
+- a [Module](../../docs/primitives.md#module) of `line.*` [capabilities](../../docs/primitives.md#capability), plus the device [Configuration module](../../docs/primitives.md#configuration-module) and the `compliance` module from its plugin;
+- the `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primitives.md#host-plugin), listed in each of its three entrypoints;
 - the station bridge: [Observation](../../docs/primitives.md#observation) submitted through `line.observation.ingest`, and a [Gated actuator](../../docs/primitives.md#gated-actuator) behind a station-screen [Connector](../../docs/primitives.md#connector), configured by a station [Profile](../../docs/primitives.md#profile) ([`station-profile.json`](station-profile.json)) and gated by a [Golden check](../../docs/primitives.md#golden-check);
 - MES delivery through [Outbox effects](../../docs/primitives.md#outbox-effect), a [Dispatcher](../../docs/primitives.md#dispatcher) and [Inbound sync](../../docs/primitives.md#inbound-sync);
 - [Input sources](../../docs/primitives.md#input-source) and the operator [UI registry](../../docs/primitives.md#ui-registry) on a glove-sized station surface.
@@ -18,12 +18,12 @@ Read the [operator workstation pattern](../../docs/operator-workstation-pattern.
 
 ## Entrypoints
 
-| Import                                   | Runs in            | Contents                                                                                                                                                     |
-| ---------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `@agent-native/line-station/manifest`    | browser and server | Default export: `defineManifest` with id `line-station`, its modules and the station-bridge component.                                                       |
-| `@agent-native/line-station/application` | server only        | Default export: `defineApplication`, with `connect` wiring the MES and, when configured, the station bridge.                                                 |
-| `@agent-native/line-station/screens`     | browser            | Default export: `defineScreens` with stations, the station surface, device setup, the bridge view, the operator kit, and Security from the assurance plugin. |
-| `@agent-native/line-station/*`           | see file           | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `bridge`, `station-bridge`, `fake-mes`.                                     |
+| Import                                   | Runs in            | Contents                                                                                                                                                        |
+| ---------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/line-station/manifest`    | browser and server | Default export: `defineManifest` with id `line-station`, its modules and the station-bridge component.                                                          |
+| `@agent-native/line-station/application` | server only        | Default export: `defineApplication`, with `connect` wiring the MES and, when configured, the station bridge.                                                    |
+| `@agent-native/line-station/screens`     | browser            | Default export: `defineScreens` with stations, the station surface, device setup, the bridge view, the operator kit, and Compliance from the compliance plugin. |
+| `@agent-native/line-station/*`           | see file           | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `bridge`, `station-bridge`, `fake-mes`.                                        |
 
 `contracts` composes `contracts/schemas`, `contracts/operation` (descriptions and the capability helper), `contracts/queries` and `contracts/commands`, which are browser-safe like it. `server` concatenates one handler group per concern from `handlers/` (queries, production, attention, administration, observation, integration). Those groups share `server/`: the handler context and clock, station access, DTOs, attention items and outcome settlement. Every handler checks state and authorization inside its own command, exactly as before the split.
 
@@ -46,7 +46,7 @@ The bridge acts only in the mode the station sets (`monitor-only`, `assist`, `ac
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/station`, `@agent-native/devices`, `@agent-native/frame`, `@agent-native/security`, `@agent-native/assurance`, and `@agent-native/testing` (tests). Operator parts come from `@agent-native/operator-ui` through the `@/` alias. External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`; `@playwright/test` drives the HMI's browser screen. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/station`, `@agent-native/devices`, `@agent-native/frame`, `@agent-native/site`, `@agent-native/network`, `@agent-native/audit`, `@agent-native/assurance`, and `@agent-native/testing` (tests). Operator parts come from `@agent-native/operator-ui` through the `@/` alias. External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`; `@playwright/test` drives the HMI's browser screen. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
 
 ## Tests
 

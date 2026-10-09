@@ -26,7 +26,7 @@ export interface SizeExemption {
 /** Declarative tables only. Logic never goes here: split it instead. */
 export const sizeExemptions: readonly SizeExemption[] = [
   {
-    path: 'plugins/assurance/src/controls.ts',
+    path: 'plugins/compliance/src/controls.ts',
     reason: 'control catalog: one record per control, mapped to external frameworks',
   },
   {

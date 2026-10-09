@@ -6,11 +6,11 @@ Find the open lot, read its characteristics and limits, then record each measure
 
 Operations: `inspection.lot.list`, `inspection.worklist`, `inspection.lot.get`, `inspection.result.record-batch`, `inspection.result.record`, `inspection.defect.record`.
 
-## review-security-posture
+## review-compliance-posture
 
 Start with the posture. For any check that is not passing, list the matching audit events (for example kinds egress.denied, command.denied or posture.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.
 
-Operations: `assurance.posture.get`, `assurance.events.list`, `assurance.log.verify`.
+Operations: `compliance.posture.get`, `compliance.events.list`, `compliance.log.verify`.
 
 ## triage-rejections
 

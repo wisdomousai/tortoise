@@ -8,6 +8,7 @@ import {
   defineCapability,
   defineHostComponent,
   defineModule,
+  failClosedAuditMode,
   jsonSchema,
 } from '@agent-native/contracts';
 import { createMemoryStorage, type AuthorizationPort } from '@agent-native/runtime';
@@ -290,6 +291,46 @@ test('two providers of one port are refused', async () => {
     'Plugins "first" and "second" both provide the identity port',
   );
   expect(calls).toContain('close first');
+});
+
+test('a port a plugin needs must be provided by a composed plugin', async () => {
+  const calls: string[] = [];
+  const needy = recorder('needy', calls, { needs: ['eventLog'] });
+  await expect(openPlugins(application([needy]), openOptions('/tmp/unused'))).rejects.toThrow(
+    'Plugin "needy" is configured to need the eventLog port, but no composed plugin provides it',
+  );
+  expect(calls).toEqual(['open needy after []', 'close needy']);
+  const eventLog = { mode: failClosedAuditMode, append: async () => [] };
+  const provider = recorder('log', [], { ports: { eventLog } });
+  const plugins = await openPlugins(application([provider, needy]), openOptions('/tmp/unused'));
+  expect(plugins.ports.eventLog).toBe(eventLog);
+  await plugins.close();
+});
+
+test('plugins see the composed ports once every plugin has opened', async () => {
+  let early: unknown;
+  let late: unknown;
+  const identity = { admit: () => undefined, localOwnerSessions: false };
+  const consumerManifest = definePluginManifest({ id: 'consumer', title: 'consumer' });
+  const consumer = defineHostPlugin({
+    manifest: consumerManifest,
+    async open(context) {
+      try {
+        void context.ports.identity;
+      } catch (error) {
+        early = (error as Error).message;
+      }
+      return { ready: async () => void (late = context.ports.identity) };
+    },
+  });
+  const provider = recorder('provider', [], { ports: { identity } });
+  const definition = application([{ manifest: consumerManifest, plugin: consumer }, provider]);
+  const plugins = await openPlugins(definition, openOptions('/tmp/unused'));
+  await plugins.ready({} as never);
+  expect(early).toBe('Host ports are available once every plugin has opened');
+  // Provided by a plugin opened after the consumer, yet visible to it.
+  expect(late).toBe(identity);
+  await plugins.close();
 });
 
 test('without providers the kernel reaches nothing and keeps no audit log', async () => {

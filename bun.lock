@@ -7,8 +7,9 @@
       "dependencies": {
         "@agent-native/adapters": "workspace:*",
         "@agent-native/agents": "workspace:*",
-        "@agent-native/assurance": "workspace:*",
+        "@agent-native/audit": "workspace:*",
         "@agent-native/client": "workspace:*",
+        "@agent-native/compliance": "workspace:*",
         "@agent-native/contracts": "workspace:*",
         "@agent-native/crm-capture": "workspace:*",
         "@agent-native/devices": "workspace:*",
@@ -18,13 +19,14 @@
         "@agent-native/host": "workspace:*",
         "@agent-native/integration": "workspace:*",
         "@agent-native/line-station": "workspace:*",
+        "@agent-native/network": "workspace:*",
         "@agent-native/operator-ui": "workspace:*",
         "@agent-native/project-tasks": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
         "@agent-native/react": "workspace:*",
         "@agent-native/runtime": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
-        "@agent-native/security": "workspace:*",
+        "@agent-native/site": "workspace:*",
         "@agent-native/station": "workspace:*",
         "@agent-native/testing": "workspace:*",
         "@agent-native/webhook": "workspace:*",
@@ -162,12 +164,20 @@
       "name": "@agent-native/testing",
       "version": "0.1.0",
     },
-    "plugins/assurance": {
-      "name": "@agent-native/assurance",
+    "plugins/audit": {
+      "name": "@agent-native/audit",
       "version": "0.1.0",
     },
-    "plugins/security": {
-      "name": "@agent-native/security",
+    "plugins/compliance": {
+      "name": "@agent-native/compliance",
+      "version": "0.1.0",
+    },
+    "plugins/network": {
+      "name": "@agent-native/network",
+      "version": "0.1.0",
+    },
+    "plugins/site": {
+      "name": "@agent-native/site",
       "version": "0.1.0",
     },
     "plugins/webhook": {
@@ -183,9 +193,11 @@
 
     "@agent-native/agents": ["@agent-native/agents@workspace:packages/agents"],
 
-    "@agent-native/assurance": ["@agent-native/assurance@workspace:plugins/assurance"],
+    "@agent-native/audit": ["@agent-native/audit@workspace:plugins/audit"],
 
     "@agent-native/client": ["@agent-native/client@workspace:packages/client"],
+
+    "@agent-native/compliance": ["@agent-native/compliance@workspace:plugins/compliance"],
 
     "@agent-native/contracts": ["@agent-native/contracts@workspace:packages/contracts"],
 
@@ -207,6 +219,8 @@
 
     "@agent-native/line-station": ["@agent-native/line-station@workspace:examples/line-station"],
 
+    "@agent-native/network": ["@agent-native/network@workspace:plugins/network"],
+
     "@agent-native/operator-ui": ["@agent-native/operator-ui@workspace:packages/operator-ui"],
 
     "@agent-native/project-tasks": ["@agent-native/project-tasks@workspace:examples/project-tasks"],
@@ -219,9 +233,9 @@
 
     "@agent-native/scaffold": ["@agent-native/scaffold@workspace:packages/scaffold"],
 
-    "@agent-native/security": ["@agent-native/security@workspace:plugins/security"],
-
     "@agent-native/service": ["@agent-native/service@workspace:apps/service"],
+
+    "@agent-native/site": ["@agent-native/site@workspace:plugins/site"],
 
     "@agent-native/station": ["@agent-native/station@workspace:packages/station"],
 

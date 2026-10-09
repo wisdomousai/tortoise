@@ -1,0 +1,21 @@
+import { resolve } from 'node:path';
+import { isolatedPolicy, loadSitePolicy, type ResolvedPolicy } from '@agent-native/egress';
+import { deploymentRequirements } from '@agent-native/host/components';
+import type { ApplicationManifest } from '@agent-native/host/manifest';
+
+/**
+ * A site policy file resolved against one application's composed declarations, or the isolated
+ * default without a file. Used by offline CLI verbs, which open no workspace and no plugin.
+ * Throws when the file cannot be read or parsed; findings are returned, not thrown.
+ */
+export async function sitePolicyFor(
+  manifest: ApplicationManifest,
+  path: string | undefined,
+): Promise<ResolvedPolicy> {
+  const requirements = deploymentRequirements(manifest);
+  return path ? loadSitePolicy(resolve(path), requirements) : isolatedPolicy(requirements);
+}
+
+/** The error findings a policy is refused for, at startup and by `site check`. */
+export const policyErrors = (policy: ResolvedPolicy) =>
+  policy.findings.filter((finding) => finding.level === 'error');

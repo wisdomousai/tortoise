@@ -21,9 +21,9 @@ export const hostSourcePath =
   /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|egress)[\\/]src[\\/]|station[\\/]src[\\/](?!requirements\.ts$)|host[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?plugins[\\/][^\\/]+[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
 
 /**
- * Framework libraries the kernel (`packages/host`) must not import (ADR 010). Egress and the
- * event log are used by the security plugin; a host import would bring a security concept back
- * into every application. Plugins themselves are a layer the framework never imports at all.
+ * Framework libraries the kernel (`packages/host`) must not import (ADR 010, ADR 011). Egress
+ * and the event log are used by the site, network and audit plugins; a host import would bring
+ * a policy or audit concept back into every application. Plugins themselves are a layer the framework never imports at all.
  */
 export const kernelForbiddenImport =
   /^@agent-native\/(?:egress|event-log)(?:\/|$)|(?:^|\/)packages\/(?:egress|event-log)\//;

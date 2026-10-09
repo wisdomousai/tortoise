@@ -1,6 +1,6 @@
 # @agent-native/host
 
-The generic authority process. It runs exactly one application definition supplied by content and owns everything an application should not rewrite: workspace ownership and storage, launch and sessions, HTTP/SSE, embedded MCP, the application CLI, agent run supervision, provider accounts, background delivery and observers. The host names no domain and no security concept. It is a kernel: what crosses the process boundary goes through ports with deny-by-default defaults, and the application's [plugins](../../docs/primitives.md#host-plugin) provide more, such as `@agent-native/security`.
+The generic authority process. It runs exactly one application definition supplied by content and owns everything an application should not rewrite: workspace ownership and storage, launch and sessions, HTTP/SSE, embedded MCP, the application CLI, agent run supervision, provider accounts, background delivery and observers. The host names no domain and no security concept. It is a kernel: what crosses the process boundary goes through ports with deny-by-default defaults, and the application's [plugins](../../docs/primitives.md#host-plugin) provide more, such as `@agent-native/site`, `@agent-native/network` and `@agent-native/audit`.
 
 Layer: framework (`packages/*`). The starter's `apps/service` calls it; content calls only `defineManifest` and `defineApplication`, and plugins only `definePluginManifest` and `defineHostPlugin`.
 
@@ -10,7 +10,7 @@ Layer: framework (`packages/*`). The starter's `apps/service` calls it; content 
 - [Host](../../docs/primitives.md#host): `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `loadApplication`, `loadManifest`, `hostComponents`, `deploymentCatalog`, `deploymentRequirements`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `PluginManifest`, `PluginSetting`, `PluginModules`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `PluginOpenContext`, `PluginStartContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `readPluginSettings`, `PluginSettings`.
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
-- [Assurance bundle](../../docs/primitives.md#assurance-bundle): `deploymentCatalog` is the composed catalog plus host components the generators read.
+- [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus host components the generators read.
 
 Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/project-tasks/application.ts`](../../examples/project-tasks/application.ts). [ADR 005](../../docs/decisions/005-framework-shell-content.md) records the layering and [ADR 010](../../docs/decisions/010-host-plugins.md) the plugin kernel.
 

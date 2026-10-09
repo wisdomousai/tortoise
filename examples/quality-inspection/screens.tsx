@@ -1,6 +1,6 @@
 import { ClipboardCheck, Factory, TriangleAlert } from 'lucide-react';
 import { defineScreens } from '@agent-native/frame/screens';
-import { assuranceScreens } from '@agent-native/assurance/plugin-screens';
+import { complianceScreens } from '@agent-native/compliance/plugin-screens';
 import manifest from './manifest';
 import { LotsScreen } from './ui/inspection';
 import { CaptureScreen } from './ui/capture';
@@ -35,5 +35,5 @@ export default defineScreens({
   ],
   context: PlantContext,
   status: SyncBadge,
-  plugins: [assuranceScreens],
+  plugins: [complianceScreens],
 });

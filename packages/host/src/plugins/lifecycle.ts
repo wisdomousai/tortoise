@@ -2,7 +2,7 @@ import type { JsonValue } from '@agent-native/contracts';
 import type { AnyApplicationDefinition, HostedApplication, Observer } from '../application';
 import { deploymentCatalog } from '../components';
 import type { HostPorts, PluginInstance, PluginStartContext } from '../plugin';
-import { resolvePorts } from './ports';
+import { latePorts, resolvePorts } from './ports';
 import { assertClaimed, settingsFor, type PluginSettings } from './settings';
 
 export interface OpenPluginsOptions {
@@ -26,6 +26,7 @@ async function openEach(definition: AnyApplicationDefinition, options: OpenPlugi
   const catalog = deploymentCatalog(manifest);
   const services: Record<string, unknown> = {};
   const opened: Opened[] = [];
+  const late = latePorts();
   try {
     for (const plugin of definition.plugins ?? []) {
       const id = plugin.manifest.id;
@@ -39,12 +40,15 @@ async function openEach(definition: AnyApplicationDefinition, options: OpenPlugi
             serving: options.serving,
             settings: settingsFor(plugin.manifest, options.settings ?? {}),
             services: { ...services },
+            ports: late.ports,
           })
         : {};
       opened.push({ id, instance });
       if (instance.service !== undefined) services[id] = instance.service;
     }
-    return { opened, services, ports: resolvePorts(opened) };
+    const ports = resolvePorts(opened);
+    late.bind(ports);
+    return { opened, services, ports };
   } catch (error) {
     await closeAll(opened);
     throw error;
@@ -54,7 +58,8 @@ async function openEach(definition: AnyApplicationDefinition, options: OpenPlugi
 /**
  * Open the application's plugins before anything else in the workspace, so a plugin that refuses
  * (an unusable policy, an unwritable log) stops startup before state is opened. Settings no
- * plugin claims are refused first. If any `open` fails, those already opened are closed again.
+ * plugin claims are refused first, and a port a plugin `needs` that none provides afterwards. If
+ * any `open` or that check fails, the plugins already opened are closed again.
  *
  * The caller then composes the runtime with `ports.eventLog` and `services`, runs `ready` before
  * serving, `start` once listening (serving hosts only), and `close` last.

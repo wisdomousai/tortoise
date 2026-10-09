@@ -18,7 +18,7 @@ This workspace exports nothing; it is run.
 | [`src/cli.ts`](src/cli.ts)                 | `bun run cli …`   | The application's catalog-derived CLI, named after the starter (`serve`, `mcp`, `drain`, `sync`, the plugins' commands such as `security` and `audit`, and every operation). |
 | [`src/application.ts`](src/application.ts) | imported by both  | `starterConfig`, `configuredApplication`: read `app.config.json` and load the application at runtime.                                                                        |
 
-Environment: `WORKSPACE_PATH` (default `.workspace`), `PORT` (default `4317`, `0` picks one), `WEB_ROOT` (default `dist/web/<application id>`), `AGENT_RUNTIME_MANIFEST`, every setting the application's plugins declare (`readPluginSettings`; with the security plugin, `AGENT_NATIVE_SITE_POLICY` and `AGENT_NATIVE_AUDIT_LOG`), and `AGENT_NATIVE_APPLICATION` to override the configured application for one launch. `bun run build:cli` compiles the same CLI into `dist/bin/<name>` with a generated static application entry, because a binary cannot follow a runtime import.
+Environment: `WORKSPACE_PATH` (default `.workspace`), `PORT` (default `4317`, `0` picks one), `WEB_ROOT` (default `dist/web/<application id>`), `AGENT_RUNTIME_MANIFEST`, every setting the application's plugins declare (`readPluginSettings`; with the site plugin `AGENT_NATIVE_SITE_POLICY`, with the audit plugin `AGENT_NATIVE_AUDIT_LOG`), and `AGENT_NATIVE_APPLICATION` to override the configured application for one launch. `bun run build:cli` compiles the same CLI into `dist/bin/<name>` with a generated static application entry, because a binary cannot follow a runtime import.
 
 ## Trust boundary
 

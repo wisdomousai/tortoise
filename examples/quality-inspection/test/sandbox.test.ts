@@ -214,7 +214,7 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
   const verified = await run(['audit', 'verify', '--log', auditLog]);
   expect(verified.exitCode).toBe(0);
   expect(verified.value).toMatchObject({ ok: true, problems: [] });
-  const report = await run(['audit', 'report', '--log', auditLog, '--format', 'json']);
+  const report = await run(['compliance', 'report', '--log', auditLog, '--format', 'json']);
   expect(report.exitCode).toBe(0);
   expect(report.value.posture).toMatchObject({ networkMode: 'isolated', log: { verified: true } });
   for (const destination of report.value.posture.destinations)

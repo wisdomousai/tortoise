@@ -21,13 +21,13 @@ Tools: `inspection_lot_list`, `inspection_worklist`, `inspection_lot_get`, `insp
 
 CLI: `agent-native-desktop-starter inspection lot list`, `agent-native-desktop-starter inspection worklist`, `agent-native-desktop-starter inspection lot get`, `agent-native-desktop-starter inspection result record-batch`, `agent-native-desktop-starter inspection result record`, `agent-native-desktop-starter inspection defect record`.
 
-## review-security-posture
+## review-compliance-posture
 
 Start with the posture. For any check that is not passing, list the matching audit events (for example kinds egress.denied, command.denied or posture.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.
 
-Tools: `assurance_posture_get`, `assurance_events_list`, `assurance_log_verify`.
+Tools: `compliance_posture_get`, `compliance_events_list`, `compliance_log_verify`.
 
-CLI: `agent-native-desktop-starter assurance posture get`, `agent-native-desktop-starter assurance events list`, `agent-native-desktop-starter assurance log verify`.
+CLI: `agent-native-desktop-starter compliance posture get`, `agent-native-desktop-starter compliance events list`, `agent-native-desktop-starter compliance log verify`.
 
 ## triage-rejections
 

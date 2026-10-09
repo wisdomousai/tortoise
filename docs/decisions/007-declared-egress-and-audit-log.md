@@ -1,6 +1,6 @@
 # 007 — Declared egress, site policy and a fail-closed audit log
 
-Accepted; wiring amended by [ADR 010](010-host-plugins.md), which moves these controls into the `security` and `assurance` host plugins without changing them. Establishes [P13](../principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does) and strengthens P3 (identity floors) and P10 (generated, re-checked evidence). Code declares every network destination, device and child process it may use, as part of the composed catalog. A per-site policy file binds declarations to addresses. Nothing else is reachable. An injected, hash-chained event log records every business action, denial and connection, and by default a command does not commit if its audit record cannot be written.
+Accepted; wiring amended by [ADR 010](010-host-plugins.md), which moves these controls into host plugins without changing them; [ADR 011](011-plugins-by-port.md) splits those into `site`, `network`, `audit` and `compliance`. Establishes [P13](../principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does) and strengthens P3 (identity floors) and P10 (generated, re-checked evidence). Code declares every network destination, device and child process it may use, as part of the composed catalog. A per-site policy file binds declarations to addresses. Nothing else is reachable. An injected, hash-chained event log records every business action, denial and connection, and by default a command does not commit if its audit record cannot be written.
 
 **Context.** Industrial and regulated customers admit software only when they can see what it talks to and what data leaves, run it offline with named endpoints open, and keep checking that this stays true. The application also has to run in sandboxes and zero-trust networks, where location grants no trust.
 
@@ -34,4 +34,4 @@ Accepted; wiring amended by [ADR 010](010-host-plugins.md), which moves these co
 - A log written outside the transaction: simpler, but it allows commits that were never recorded.
 - Hand-written firewall documentation: drifts from the code.
 
-See [security-and-assurance.md](../security-and-assurance.md).
+See [security-and-compliance.md](../security-and-compliance.md).

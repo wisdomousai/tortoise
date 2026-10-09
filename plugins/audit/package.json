@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/audit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Audit host plugin: the fail-closed, hash-chained event log with off-host forwarding, startup attestation, crash recovery and chain verification.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

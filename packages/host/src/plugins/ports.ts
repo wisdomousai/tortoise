@@ -66,5 +66,51 @@ export function resolvePorts(instances: readonly { id: string; instance: PluginI
       providers.set(name, id);
       ports[name] = port;
     }
+  assertNeedsMet(instances, providers);
   return ports as unknown as HostPorts;
+}
+
+/** Refuse a composition in which a plugin's configuration needs a port nobody provides. */
+function assertNeedsMet(
+  instances: readonly { id: string; instance: PluginInstance }[],
+  providers: ReadonlyMap<keyof HostPorts, string>,
+) {
+  for (const { id, instance } of instances)
+    for (const name of instance.needs ?? [])
+      if (!providers.has(name))
+        throw new Error(
+          `Plugin "${id}" is configured to need the ${name} port, but no composed plugin provides it`,
+        );
+}
+
+/**
+ * A view of the composed ports for `PluginOpenContext.ports`. Each member reads the port that
+ * `bind` set, so a plugin can hold the view during `open` and use it once composition is known.
+ */
+export function latePorts() {
+  let bound: HostPorts | undefined;
+  const resolved = () => {
+    if (!bound) throw new Error('Host ports are available once every plugin has opened');
+    return bound;
+  };
+  const ports: HostPorts = {
+    get eventLog() {
+      return resolved().eventLog;
+    },
+    get network() {
+      return resolved().network;
+    },
+    get ingress() {
+      return resolved().ingress;
+    },
+    get identity() {
+      return resolved().identity;
+    },
+  };
+  return {
+    ports,
+    bind(composed: HostPorts) {
+      bound = composed;
+    },
+  };
 }

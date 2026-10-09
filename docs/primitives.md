@@ -177,9 +177,9 @@ Serves P1, P4, P11, P12, P13 · implemented · `packages/host` · `startHost`, `
 
 _A cross-cutting part an application composes: modules, a state slice, a policy, kernel ports and lifecycle hooks._
 
-Some concerns belong to many applications but to no domain: security, assurance, a notifier. A plugin has the same three entrypoints as an application. Its manifest adds modules, requirement components and settings to the catalog. Its server part adds a state slice under the plugin id, slice handlers, a policy over its resource types, CLI commands and `open`. Its screens add routes and navigation. The application lists its plugins in each entrypoint. `open` returns ports, a service for later plugins and handlers, and the hooks `ready` (before the first request), `start` (after a serving host listens, as a caller delegated by a grant), `describe` (the `listening` record) and `close` (reverse order). The kernel ports are `network`, `ingress`, `identity` and `eventLog`. [ADR 010](decisions/010-host-plugins.md) records the design; Plugins live in `plugins/*`, a layer of their own; `plugins/webhook` stands in for a third-party plugin written against the same API.
+Some concerns belong to many applications but to no domain: a site policy, an audit trail, compliance evidence, a notifier. A plugin has the same three entrypoints as an application. Its manifest adds modules, requirement components and settings to the catalog. Its server part adds a state slice under the plugin id, slice handlers, a policy over its resource types, CLI commands and `open`. Its screens add routes and navigation. The application lists its plugins in each entrypoint. `open` receives the services of earlier plugins and a late-bound view of the composed ports, and returns ports, the ports its configuration `needs` from others, a service for later plugins and handlers, and the hooks `ready` (before the first request), `start` (after a serving host listens, as a caller delegated by a grant), `describe` (the `listening` record) and `close` (reverse order). The kernel ports are `network`, `ingress`, `identity` and `eventLog`. Plugins use each other through those ports rather than imports: the audit forwarder reaches its collector through the network port, and the egress guard records into the event-log port. [ADR 010](decisions/010-host-plugins.md) records the design and [ADR 011](decisions/011-plugins-by-port.md) the split of the framework's own plugins by port. Plugins live in `plugins/*`, a layer of their own; `plugins/webhook` stands in for a third-party plugin written against the same API.
 
-Guarantees: the application's `upgradeState` never sees plugin slices, and a plugin's handlers and policy see only its own slice. The plugin's policy decides its operations and events of its resource types, the application's policy everything else. Server and manifest plugins must match in order, and `requires` names plugins composed earlier. Plugins open before storage, so a refusal stops startup before state is opened, and a failed `open` closes those already opened. Without a provider the network port refuses with `UNAVAILABLE`, ingress binds loopback, identity admits the trusted local owner and there is no event log; two providers of one port refuse startup. A supplied setting that no plugin declares refuses startup. `check:boundaries` fails when framework or starter code imports a plugin, when a plugin imports the starter or an example, and when browser code imports a plugin's server files.
+Guarantees: the application's `upgradeState` never sees plugin slices, and a plugin's handlers and policy see only its own slice. The plugin's policy decides its operations and events of its resource types, the application's policy everything else. Server and manifest plugins must match in order, and `requires` names plugins composed earlier. Plugins open before storage, so a refusal stops startup before state is opened, and a failed `open` closes those already opened. Without a provider the network port refuses with `UNAVAILABLE`, ingress binds loopback, identity admits the trusted local owner and there is no event log; two providers of one port refuse startup, and so does a port a plugin `needs` that no plugin provides. Reading a composed port during `open` throws; it resolves once every plugin has opened. A supplied setting that no plugin declares refuses startup. `check:boundaries` fails when framework or starter code imports a plugin, when a plugin imports the starter or an example, and when browser code imports a plugin's server files.
 
 Gaps: plugins are trusted code with the host's privileges, like the application; nothing sandboxes one plugin from another's services. Environment variables no plugin declares are not read, so they are ignored rather than refused. Ports are fixed by the kernel; a plugin cannot add a new kind of port.
 
@@ -269,13 +269,13 @@ Serves P1, P8, P13 · implemented · `packages/devices` · `ScannerSource`, `Sca
 
 _Reusable screen parts published as shadcn registries over stock shadcn primitives._
 
-Specialized interfaces are cheap only if their parts are shared. Apps pull registry items with `shadcn add` and own the copied source, while trust-relevant behavior stays in versioned bindings. A plugin that brings a screen ships it as its own registry, as the assurance plugin does with `security-screen`.
+Specialized interfaces are cheap only if their parts are shared. Apps pull registry items with `shadcn add` and own the copied source, while trust-relevant behavior stays in versioned bindings. A plugin that brings a screen ships it as its own registry, as the compliance plugin does with `compliance-screen`.
 
 Guarantees: no shadcn primitive is forked; sizing comes from tokens and `cva` variants. The registry manifest is generated and drift-checked. Operator items follow the point-of-work rules: glove-sized targets, hold-to-confirm for consequential actions, state as icon plus text. The app shell exports `NavigationCount`, `SidebarSection` and `SidebarLink` for the slots; `status-strip` adds `SignalBanner`, the one signal readable from the machine; `operator-station` lays out a full-window station (dark header with seat control, machine banner, task panel beside attention, history footer) with `OperatorPanel` for the task.
 
 Gaps: no scratch-app `shadcn add` acceptance test.
 
-Serves P1, P8 · implemented · `packages/operator-ui` `packages/frame` `plugins/assurance` · `operator-surface`, `big-action`, `use-press-and-hold`, `use-tap-guard`, `status-strip`, `capability-form`, `live-data-table`, `security-screen`, `run-panel`, `command-palette`, `app-shell`, `frame`
+Serves P1, P8 · implemented · `packages/operator-ui` `packages/frame` `plugins/compliance` · `operator-surface`, `big-action`, `use-press-and-hold`, `use-tap-guard`, `status-strip`, `capability-form`, `live-data-table`, `compliance-screen`, `run-panel`, `command-palette`, `app-shell`, `frame`
 
 ## Integrations: systems that keep their own records
 
@@ -421,13 +421,13 @@ _Deployment data that binds declared destinations to addresses and sets a harden
 
 What a site permits is configuration, like everything else that differs per site. Without a policy the application is isolated: loopback only, outbox targets queue, providers report unavailable.
 
-Guarantees: bindings must name declared destinations and match their protocol, host and port. In connected mode a required destination is bound or explicitly disabled, and every closed destination lists its offline consequence. The `desktop-local`, `sandbox` and `zero-trust` profiles are floors on plain HTTP, ingress (loopback or mTLS), identity, grant lifetime and audit mode; `security check` and startup report the same findings, and the security plugin refuses to start below its floor. Certificate files are referenced by path and must be readable.
+Guarantees: bindings must name declared destinations and match their protocol, host and port. In connected mode a required destination is bound or explicitly disabled, and every closed destination lists its offline consequence. The `desktop-local`, `sandbox` and `zero-trust` profiles are floors on plain HTTP, ingress (loopback or mTLS), identity, grant lifetime and audit mode; `site check` and startup report the same findings, and the site plugin refuses to start below its floor. A supplied policy that binds destinations, selects mTLS or asks for an audit trail declares the `network`, `ingress` or `eventLog` port it needs, so a composition without the plugin that enforces it refuses to start. Certificate files are referenced by path and must be readable.
 
 Gaps: `external` identity refuses to start because no workforce identity adapter exists. No certificate issuance or rotation.
 
-The `security` [host plugin](#host-plugin) loads the policy named by its `site-policy` setting and provides the kernel ports from it: the egress guard and child proxy as `network`, mTLS as `ingress`, the identity floor as `identity` and the audit log as `eventLog`. It exposes the policy, log head and forwarder state to later plugins as its service.
+The `site` [host plugin](#host-plugin) loads the policy named by its `site-policy` setting, provides the identity floor as the `identity` port, and exposes the resolved policy to the network, audit and compliance plugins as its service. It adds `site check`.
 
-Serves P3, P8, P13 · implemented · `packages/egress` `plugins/security` · `securityPlugin`, `securityPluginManifest`, `auditCollectorComponent`, `openSecurity`, `securityServiceOf`, `SecurityService`, `assertIdentity`, `mtlsIngress`, `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`
+Serves P3, P8, P13 · implemented · `packages/egress` `plugins/site` · `sitePlugin`, `sitePluginManifest`, `openSite`, `siteServiceOf`, `SiteService`, `assertIdentity`, `portsNeeded`, `sitePolicyFor`, `policyErrors`, `siteCommand`, `siteCliCommand`, `siteUsage`, `POLICY_REJECTED_EXIT_CODE`, `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`
 
 ### Egress guard
 
@@ -437,7 +437,9 @@ Guarantees: a destination-scoped fetch allows only the bound scheme, host and po
 
 Gaps: an in-process control, not an isolation boundary. A child that ignores proxy settings, or a compromised process, is contained only once the exported OS rules are applied.
 
-Serves P9, P13 · implemented · `packages/egress` `scripts` · `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`, `directEgress`, `egressExemptions`
+The `network` [host plugin](#host-plugin) requires `site`. It builds the guard over the site policy, records its decisions into whichever plugin provides the event-log port, and provides it as the `network` port, with the child proxy in a serving host and the mTLS listener as `ingress` when the policy selects it.
+
+Serves P9, P13 · implemented · `packages/egress` `plugins/network` `scripts` · `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`, `directEgress`, `egressExemptions`, `networkPlugin`, `networkPluginManifest`, `openNetwork`, `networkServiceOf`, `NetworkService`, `mtlsIngress`
 
 ### Event log
 
@@ -445,21 +447,23 @@ _An injected, hash-chained record of every command, query, denial, outbox transi
 
 The journal tells views what changed; the event log tells an auditor who did what, through which surface, and what was refused. Injecting the port makes every layer observable without code in handlers.
 
-Guarantees: events carry the actor and channel, operation, a safe reason code, correlation IDs and an input digest; input values appear only for allow-listed fields. `command.accepted` is appended inside the transaction, so in required mode a failed append rolls the command back, and startup resolves accepted commands a crash left open. The JSONL adapter chains SHA-256 across rotated segments, syncs every append, writes 0600 files and admits one writer per directory. The verifier reports edits, gaps and truncated segments. Forwarding sends RFC 5424 syslog through the egress guard.
+Guarantees: events carry the actor and channel, operation, a safe reason code, correlation IDs and an input digest; input values appear only for allow-listed fields. `command.accepted` is appended inside the transaction, so in required mode a failed append rolls the command back, and startup resolves accepted commands a crash left open. The JSONL adapter chains SHA-256 across rotated segments, syncs every append, writes 0600 files and admits one writer per directory. The verifier reports edits, gaps and truncated segments. Forwarding sends RFC 5424 syslog through the network port.
 
 Gaps: removing the newest events is detectable only against an anchor or a forwarded copy. No off-host collector has been exercised.
 
-Serves P6, P10, P13 · implemented · `packages/contracts` `packages/runtime` `packages/event-log` · `EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`, `createMemoryEventLog`, `openJsonlEventLog`, `verifyEventLog`, `unresolvedCommands`, `readEvents`, `forwardingEventLog`
+The `audit` [host plugin](#host-plugin) requires `site`. It opens the log in the policy's audit mode under its `audit-log` setting, forwards it when `audit.forwardTo` is set, provides it as the `eventLog` port, attests the executable, catalog and policy and resolves crash-orphaned commands in `ready`, and adds `audit verify`. Its service gives later plugins the log directory, head and forwarder state.
+
+Serves P6, P10, P13 · implemented · `packages/contracts` `packages/runtime` `packages/event-log` `plugins/audit` · `EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`, `createMemoryEventLog`, `openJsonlEventLog`, `verifyEventLog`, `unresolvedCommands`, `readEvents`, `forwardingEventLog`, `auditPlugin`, `auditPluginManifest`, `auditCollectorComponent`, `openAudit`, `auditServiceOf`, `AuditService`, `auditCommand`, `auditCliCommand`, `auditUsage`, `AUDIT_INVALID_EXIT_CODE`
 
 ### Execution host
 
 _An isolation boundary and credential broker for tools an agent runs._
 
-The egress guard confines declared children to their destinations, launchers fix an embedded agent's grant, and the hardening exports describe an OS sandbox for the service.
+The egress guard confines declared children to their destinations, launchers fix an embedded agent's grant, and the hardening exports describe an OS sandbox for the service. The network plugin's `network export` renders the site policy as default-deny rules for nftables, Windows Firewall, systemd, Kubernetes, Compose and JSON; each carries the policy digest and lists what it could not enforce.
 
-Gaps: no isolation backend applies those rules, and there is no credential broker.
+Gaps: no isolation backend applies those rules, and there is no credential broker. Exports are compared as text, not loaded into a firewall or cluster.
 
-Serves P3, P9, P13 · partial · `packages/egress` `plugins/assurance` · `startEgressProxy`, `exportRules`
+Serves P3, P9, P13 · partial · `packages/egress` `plugins/network` · `startEgressProxy`, `networkRules`, `exportRules`, `exportFormats`, `networkCommand`, `networkCliCommand`, `networkUsage`
 
 ### Profile
 
@@ -489,15 +493,15 @@ Gaps: the current golden set exercises recorded expectations, not a model. Activ
 
 Serves P8, P10 · implemented · `packages/station` · `runGolden`, `GoldenReport`
 
-### Assurance bundle
+### Compliance bundle
 
 _The evidence an auditor checks, generated from the catalog and site policy and re-checked while the application runs._
 
-Guarantees: the security manifest, data flows, control mapping (ISO/IEC 27001 Annex A, NIST SP 800-53 and CSF, IEC 62443-4-2) and CycloneDX SBOM are deterministic and drift-checked. Rule exports for nftables, Windows Firewall, systemd, Kubernetes, Compose and JSON are default-deny, carry the policy digest and list what they could not enforce. A posture monitor re-verifies the log and records `posture.checked`. An application composes it as the `assurance` [host plugin](#host-plugin), which requires `security`: listed auditors read posture and the log through the `assurance.*` queries, which have scenarios and the frame's Security screen; the monitor starts once the host listens; and the CLI gains `security check|export` and `audit verify|report`, which work offline.
+Guarantees: the security manifest, data flows, control mapping (ISO/IEC 27001 Annex A, NIST SP 800-53 and CSF, IEC 62443-4-2) and CycloneDX SBOM are deterministic and drift-checked. Every control names tests, artifacts and event kinds that exist. A posture monitor re-verifies the log and records `posture.checked`. An application composes it as the `compliance` [host plugin](#host-plugin), which requires `site` and `audit`: listed auditors read posture and the log through the `compliance.*` queries, which have scenarios and the Compliance screen; the monitor starts once the host listens; and the CLI gains `compliance report`, which works offline against a copied log.
 
-Gaps: exports are compared as text, not loaded into a firewall or cluster. Control mappings are indicative, not a certification.
+Gaps: control mappings are indicative, not a certification.
 
-Serves P2, P10, P13 · implemented · `plugins/assurance` `packages/host` · `securityManifest`, `dataFlowsMarkdown`, `controls`, `cycloneDx`, `networkRules`, `exportRules`, `assessPosture`, `createPostureMonitor`, `assuranceModule`, `createAssuranceHandlers`, `assurancePlugin`, `assurancePluginManifest`, `assuranceScreens`, `assuranceCommand`, `assuranceCliCommand`, `deploymentCatalog`, `security-screen`
+Serves P2, P10, P13 · implemented · `plugins/compliance` `packages/host` · `securityManifest`, `dataFlowsMarkdown`, `controls`, `controlsMarkdown`, `cycloneDx`, `assessPosture`, `createPostureMonitor`, `complianceModule`, `createComplianceHandlers`, `compliancePlugin`, `compliancePluginManifest`, `complianceScreens`, `complianceCommand`, `complianceCliCommand`, `deploymentCatalog`, `compliance-screen`
 
 ### Behavioral scenario
 

@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/network",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Network host plugin: the egress guard and child proxy over the site policy's bindings, mutual TLS ingress, and default-deny OS and orchestrator rule exports.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

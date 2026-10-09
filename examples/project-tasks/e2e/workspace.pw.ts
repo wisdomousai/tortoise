@@ -29,7 +29,7 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
     );
     const tools = await mcp.listTools();
     // The authority hosts one application: the project-tasks capabilities (12) and the
-    // assurance queries (3) are its tools.
+    // compliance queries (3) are its tools.
     expect(tools.tools.length).toBe(15);
     const projects = await mcp.callTool({ name: 'project_list', arguments: { input: {} } });
     const data = projects.structuredContent as { data: { items: { id: string }[] } };

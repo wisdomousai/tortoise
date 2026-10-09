@@ -10,11 +10,13 @@ import {
   verifyEventLog,
 } from '@agent-native/event-log';
 import { startHost } from '@agent-native/host/host';
-import { securityServiceOf } from '@agent-native/security';
+import { auditServiceOf } from '@agent-native/audit';
+import { networkServiceOf } from '@agent-native/network';
+import { siteServiceOf } from '@agent-native/site';
 import { openEmbeddedAuthority } from '@agent-native/host/embedded';
 import projectTasks from '../application';
 
-// The host's security layer is generic; project-tasks is only the fixture application here.
+// The site, network and audit plugins are generic; project-tasks is only the fixture application.
 
 const withWorkspace = async (run: (directory: string) => Promise<void>) => {
   const directory = await mkdtemp(join(tmpdir(), 'security-'));
@@ -28,9 +30,9 @@ const withWorkspace = async (run: (directory: string) => Promise<void>) => {
 test('the host attests, audits each channel and leaves a verifiable chain', async () => {
   await withWorkspace(async (directory) => {
     const host = await startHost(projectTasks, { workspacePath: directory, integration: false });
-    const auditLog = securityServiceOf(host.services).logDirectory;
+    const auditLog = auditServiceOf(host.services).logDirectory;
     try {
-      expect(securityServiceOf(host.services).policy.mode).toBe('isolated');
+      expect(siteServiceOf(host.services).policy.mode).toBe('isolated');
       const owner = host.sessions.create({ workspaceId: 'local', principalId: 'owner' });
       const response = await fetch(`${host.url}/api/v1/commands/project.create`, {
         method: 'POST',
@@ -142,7 +144,7 @@ test('provider egress is denied unless the site policy binds it', async () => {
       settings: { 'site-policy': policy },
     });
     try {
-      const providerFetch = securityServiceOf(host.services).egress.routedFetch([
+      const providerFetch = networkServiceOf(host.services).egress.routedFetch([
         'openai-auth',
         'openai-api',
       ]);

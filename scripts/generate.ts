@@ -8,7 +8,7 @@ import {
   cycloneDx,
   dataFlowsMarkdown,
   securityManifest,
-} from '@agent-native/assurance';
+} from '@agent-native/compliance';
 import rootPackage from '../package.json';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
@@ -50,7 +50,7 @@ function artifacts(manifest: ApplicationManifest) {
   // The deployment catalog: modules plus the host's and the application's components, so the
   // contract and the security artifacts show every declared destination, device and process.
   const catalog = deploymentCatalog(manifest);
-  // Declarations, not a site's bindings: `security export --site` applies a policy (P13).
+  // Declarations, not a site's bindings: `network export --site` applies a policy (P13).
   const security = securityManifest({
     application: manifest.id,
     catalog,

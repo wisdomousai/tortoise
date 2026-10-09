@@ -2,8 +2,10 @@ import type { ExecutionContext } from '@agent-native/runtime';
 import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
 import { createTargetIntegration, type SystemOfRecordPort } from '@agent-native/integration';
 import { defineApplication } from '@agent-native/host/application';
-import { assurancePlugin } from '@agent-native/assurance/plugin';
-import { securityPlugin } from '@agent-native/security/plugin';
+import { auditPlugin } from '@agent-native/audit/plugin';
+import { compliancePlugin } from '@agent-native/compliance/plugin';
+import { networkPlugin } from '@agent-native/network/plugin';
+import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
 import type { QualityState } from './domain';
@@ -93,8 +95,8 @@ export function createQualityInspectionApplication(
         qualityPolicy,
       ),
     ]),
-    // The workspace owner (the supervisor) is the assurance plugin's first auditor.
-    plugins: [securityPlugin, assurancePlugin],
+    // The workspace owner (the supervisor) is the compliance plugin's first auditor.
+    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { lot: operations.lotGet.id },
     connect: ({ application, workspaceId }) => ({

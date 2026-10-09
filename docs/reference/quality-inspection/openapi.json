@@ -5,9 +5,9 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/v1/queries/assurance.events.list": {
+    "/api/v1/queries/compliance.events.list": {
       "post": {
-        "operationId": "assurance.events.list",
+        "operationId": "compliance.events.list",
         "summary": "Page through the audit log in sequence order. Filter by event kinds (for example egress.denied or command.denied) and outcome; pass the returned nextAfterSeq to continue. Inputs appear only as digests unless a capability allow-lists a field.",
         "requestBody": {
           "required": true,
@@ -326,9 +326,9 @@
         }
       }
     },
-    "/api/v1/queries/assurance.log.verify": {
+    "/api/v1/queries/compliance.log.verify": {
       "post": {
-        "operationId": "assurance.log.verify",
+        "operationId": "compliance.log.verify",
         "summary": "Recompute the audit log hash chain up to the current head and report any edited, removed, reordered or truncated events. A clean result proves internal consistency; compare the head with an off-host copy to rule out a full rewrite.",
         "requestBody": {
           "required": true,
@@ -447,9 +447,9 @@
         }
       }
     },
-    "/api/v1/queries/assurance.posture.get": {
+    "/api/v1/queries/compliance.posture.get": {
       "post": {
-        "operationId": "assurance.posture.get",
+        "operationId": "compliance.posture.get",
         "summary": "Read the current security posture: hardening profile, network mode, every declared destination with whether it is bound, disabled or isolated and how often it was used or denied, policy findings, audit-chain integrity and audit forwarding health. Use it to answer what this installation can reach and whether its audit trail is intact.",
         "requestBody": {
           "required": true,

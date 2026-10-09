@@ -15,8 +15,10 @@ import {
   runScenarios,
   type BehavioralScenario,
 } from '@agent-native/testing/scenarios';
-import { securityPlugin } from '@agent-native/security/plugin';
-import { securityPluginManifest } from '@agent-native/security/plugin-manifest';
+import { networkPlugin } from '@agent-native/network/plugin';
+import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
+import { sitePlugin } from '@agent-native/site/plugin';
+import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 import { webhookOperations } from '../contracts';
 import { createWebhookPlugin } from '../plugin';
 import { webhookPluginManifest } from '../plugin-manifest';
@@ -54,18 +56,23 @@ function fixtureNetwork(receive: (body: unknown) => Response) {
   };
 }
 
-type Provider = { manifest: typeof securityPluginManifest; plugin: typeof securityPlugin };
-const security: Provider = { manifest: securityPluginManifest, plugin: securityPlugin };
+type Provider = ReturnType<typeof fixtureNetwork>;
+/** The framework's network plugin and the site plugin it requires. */
+const guarded = [
+  { manifest: sitePluginManifest, plugin: sitePlugin },
+  { manifest: networkPluginManifest, plugin: networkPlugin },
+];
 
-/** The notes application with the webhook plugin, after an optional network provider. */
-function notesApplication(network?: ReturnType<typeof fixtureNetwork> | Provider) {
+/** The notes application with the webhook plugin, after optional network providers. */
+function notesApplication(network?: Provider | readonly Provider[]) {
   const webhook = createWebhookPlugin({ intervalMs: 10, now: () => 1_000 });
+  const providers = network === undefined ? [] : 'manifest' in network ? [network] : network;
   return defineApplication<{ notes: { count: number } }>({
     manifest: defineManifest({
       id: 'notes',
       title: 'Notes',
       modules: [notesModule],
-      plugins: [...(network ? [network.manifest] : []), webhookPluginManifest],
+      plugins: [...providers.map((provider) => provider.manifest), webhookPluginManifest],
     }),
     createState: () => ({ notes: { count: 0 } }),
     handlers: [noteAdd, notePin].map((capability) => ({
@@ -80,7 +87,7 @@ function notesApplication(network?: ReturnType<typeof fixtureNetwork> | Provider
       },
     })),
     authorization: openPolicy,
-    plugins: [...(network ? [network.plugin] : []), webhook],
+    plugins: [...providers.map((provider) => provider.plugin), webhook],
   });
 }
 
@@ -168,9 +175,9 @@ test('without a network provider every post is refused and recorded once', async
   });
 });
 
-test('under the security plugin an unbound webhook destination is refused by the egress guard', async () => {
+test('under the network plugin an unbound webhook destination is refused by the egress guard', async () => {
   await withDirectory(async (directory) => {
-    const host = await startHost(notesApplication(security), {
+    const host = await startHost(notesApplication(guarded), {
       workspacePath: join(directory, 'workspace'),
       integration: false,
       settings,

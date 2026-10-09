@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { segmentName } from '@agent-native/event-log';
 import { startHost } from '@agent-native/host/host';
-import { securityServiceOf } from '@agent-native/security';
+import { auditServiceOf } from '@agent-native/audit';
 import { writeApplicationEntry } from '../../../scripts/application-entry';
 import qualityInspection from '../application';
 
@@ -38,11 +38,11 @@ test('auditors read posture over HTTP and the CLI verifies, reports and detects 
       workspacePath: directory,
       integration: false,
     });
-    const auditLog = securityServiceOf(host.services).logDirectory;
+    const auditLog = auditServiceOf(host.services).logDirectory;
     try {
       // The local owner is the default auditor; posture is a read-only query like any other.
       const owner = host.sessions.create({ workspaceId: 'local', principalId: 'owner' });
-      const response = await fetch(`${host.url}/api/v1/queries/assurance.posture.get`, {
+      const response = await fetch(`${host.url}/api/v1/queries/compliance.posture.get`, {
         method: 'POST',
         headers: { authorization: `Bearer ${owner.token}`, 'content-type': 'application/json' },
         body: JSON.stringify({ input: {} }),
@@ -58,27 +58,27 @@ test('auditors read posture over HTTP and the CLI verifies, reports and detects 
     expect(await cli(directory, 'audit', 'verify', '--log', auditLog)).toMatchObject({
       exitCode: 0,
     });
-    const report = await cli(directory, 'audit', 'report', '--log', auditLog, '--format', 'json');
+    const report = await cli(
+      directory,
+      'compliance',
+      'report',
+      '--log',
+      auditLog,
+      '--format',
+      'json',
+    );
     expect(report.exitCode).toBe(0);
     expect(JSON.parse(report.stdout).posture.log.verified).toBe(true);
 
     const sample = join(import.meta.dir, '..', 'site-policy.sandbox.json');
-    expect((await cli(directory, 'security', 'check', '--site', sample)).exitCode).toBe(0);
-    const unit = await cli(
-      directory,
-      'security',
-      'export',
-      '--site',
-      sample,
-      '--format',
-      'systemd',
-    );
+    expect((await cli(directory, 'site', 'check', '--site', sample)).exitCode).toBe(0);
+    const unit = await cli(directory, 'network', 'export', '--site', sample, '--format', 'systemd');
     expect(unit.stdout).toContain('IPAddressAllow=10.20.0.21/32');
     const zeroTrust = join(directory, 'zero-trust.json');
     await writeFile(zeroTrust, JSON.stringify({ profile: 'zero-trust' }));
     const refused = await cli(
       directory,
-      'security',
+      'network',
       'export',
       '--site',
       zeroTrust,

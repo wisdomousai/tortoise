@@ -2,14 +2,14 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:2db45867-b7fb-50b8-bdf1-cdb2c7f6dc0c",
+  "serialNumber": "urn:uuid:ad727068-3768-5a20-9240-1818f3362b02",
   "version": 1,
   "metadata": {
     "tools": {
       "components": [
         {
           "type": "application",
-          "name": "@agent-native/assurance",
+          "name": "@agent-native/compliance",
           "version": "0.1.0"
         }
       ]
@@ -10744,12 +10744,12 @@
     },
     {
       "type": "library",
-      "bom-ref": "workspace:@agent-native/assurance",
-      "name": "@agent-native/assurance",
+      "bom-ref": "workspace:@agent-native/audit",
+      "name": "@agent-native/audit",
       "properties": [
         {
           "name": "workspace:path",
-          "value": "plugins/assurance"
+          "value": "plugins/audit"
         }
       ],
       "scope": "required"
@@ -10762,6 +10762,18 @@
         {
           "name": "workspace:path",
           "value": "packages/client"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "bom-ref": "workspace:@agent-native/compliance",
+      "name": "@agent-native/compliance",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/compliance"
         }
       ],
       "scope": "required"
@@ -10888,6 +10900,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/network",
+      "name": "@agent-native/network",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/network"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/operator-ui",
       "name": "@agent-native/operator-ui",
       "properties": [
@@ -10960,18 +10984,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "workspace:@agent-native/security",
-      "name": "@agent-native/security",
-      "properties": [
-        {
-          "name": "workspace:path",
-          "value": "plugins/security"
-        }
-      ],
-      "scope": "required"
-    },
-    {
-      "type": "library",
       "bom-ref": "workspace:@agent-native/service",
       "name": "@agent-native/service",
       "properties": [
@@ -10981,6 +10993,18 @@
         }
       ],
       "scope": "excluded"
+    },
+    {
+      "type": "library",
+      "bom-ref": "workspace:@agent-native/site",
+      "name": "@agent-native/site",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/site"
+        }
+      ],
+      "scope": "required"
     },
     {
       "type": "library",
@@ -11085,7 +11109,7 @@
       "properties": [
         {
           "name": "agent-native:owner",
-          "value": "security"
+          "value": "audit"
         },
         {
           "name": "agent-native:availability",
@@ -11267,8 +11291,9 @@
         "pkg:npm/zod@4.6.5",
         "workspace:@agent-native/adapters",
         "workspace:@agent-native/agents",
-        "workspace:@agent-native/assurance",
+        "workspace:@agent-native/audit",
         "workspace:@agent-native/client",
+        "workspace:@agent-native/compliance",
         "workspace:@agent-native/contracts",
         "workspace:@agent-native/crm-capture",
         "workspace:@agent-native/devices",
@@ -11278,13 +11303,14 @@
         "workspace:@agent-native/host",
         "workspace:@agent-native/integration",
         "workspace:@agent-native/line-station",
+        "workspace:@agent-native/network",
         "workspace:@agent-native/operator-ui",
         "workspace:@agent-native/project-tasks",
         "workspace:@agent-native/quality-inspection",
         "workspace:@agent-native/react",
         "workspace:@agent-native/runtime",
         "workspace:@agent-native/scaffold",
-        "workspace:@agent-native/security",
+        "workspace:@agent-native/site",
         "workspace:@agent-native/station",
         "workspace:@agent-native/testing",
         "workspace:@agent-native/webhook"
@@ -16120,11 +16146,15 @@
       "dependsOn": []
     },
     {
-      "ref": "workspace:@agent-native/assurance",
+      "ref": "workspace:@agent-native/audit",
       "dependsOn": []
     },
     {
       "ref": "workspace:@agent-native/client",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/compliance",
       "dependsOn": []
     },
     {
@@ -16168,6 +16198,10 @@
       "dependsOn": []
     },
     {
+      "ref": "workspace:@agent-native/network",
+      "dependsOn": []
+    },
+    {
       "ref": "workspace:@agent-native/operator-ui",
       "dependsOn": []
     },
@@ -16192,11 +16226,11 @@
       "dependsOn": []
     },
     {
-      "ref": "workspace:@agent-native/security",
+      "ref": "workspace:@agent-native/service",
       "dependsOn": []
     },
     {
-      "ref": "workspace:@agent-native/service",
+      "ref": "workspace:@agent-native/site",
       "dependsOn": []
     },
     {

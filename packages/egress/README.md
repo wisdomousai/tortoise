@@ -10,7 +10,7 @@ Layer: framework (`packages/*`). Server only.
 - [Egress guard](../../docs/primitives.md#egress-guard): `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`.
 - [Execution host](../../docs/primitives.md#execution-host): `startEgressProxy` confines declared children to their destinations.
 
-[Security and assurance](../../docs/security-and-assurance.md) and [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) describe the model. The [`@agent-native/security`](../../plugins/security/README.md) plugin is the only framework caller: it loads the policy and provides the guard and proxy as the host's network port ([ADR 010](../../docs/decisions/010-host-plugins.md)).
+[Security and compliance](../../docs/security-and-compliance.md) and [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) describe the model. The framework callers are plugins ([ADR 011](../../docs/decisions/011-plugins-by-port.md)): [`@agent-native/site`](../../plugins/site/README.md) loads the policy, and [`@agent-native/network`](../../plugins/network/README.md) provides the guard and proxy as the host's network port and exports the OS rules.
 
 ## Entrypoints
 
@@ -27,7 +27,7 @@ A destination-scoped client allows only the bound scheme, host and port. It rech
 
 Bindings must name declared destinations and match their protocol, host and port. In connected mode every required destination is bound or explicitly disabled, and each closed destination lists its offline consequence. The `desktop-local`, `sandbox` and `zero-trust` profiles are floors on plain HTTP, ingress (loopback or mTLS), identity, grant lifetime and audit mode; the security plugin refuses to start below its floor.
 
-This is an in-process control, not an isolation boundary. A child that ignores proxy settings, or a compromised process, is contained only once the OS rules exported by [`@agent-native/assurance`](../../plugins/assurance/README.md) are applied. `external` identity refuses to start because no workforce identity adapter exists.
+This is an in-process control, not an isolation boundary. A child that ignores proxy settings, or a compromised process, is contained only once the OS rules exported by [`@agent-native/network`](../../plugins/network/README.md) are applied. `external` identity refuses to start because no workforce identity adapter exists.
 
 ## Dependencies
 

@@ -1,7 +1,9 @@
 import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
 import { defineApplication } from '@agent-native/host/application';
-import { assurancePlugin } from '@agent-native/assurance/plugin';
-import { securityPlugin } from '@agent-native/security/plugin';
+import { auditPlugin } from '@agent-native/audit/plugin';
+import { compliancePlugin } from '@agent-native/compliance/plugin';
+import { networkPlugin } from '@agent-native/network/plugin';
+import { sitePlugin } from '@agent-native/site/plugin';
 import { webhookPlugin } from '@agent-native/webhook/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
@@ -16,7 +18,7 @@ import {
 
 /**
  * Workspace state: one slice, so the module composes unchanged next to others. Plugin slices
- * (the assurance auditors) are added by `defineApplication` under their plugin ids.
+ * (the compliance auditors) are added by `defineApplication` under their plugin ids.
  */
 export interface ProjectTasksState {
   projectTasks: ProjectTaskState;
@@ -53,7 +55,7 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
     ]),
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { project: operations.projectGet.id, task: operations.taskGet.id },
-    plugins: [securityPlugin, assurancePlugin, webhookPlugin],
+    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin, webhookPlugin],
   });
 }
 

@@ -8,7 +8,7 @@ Layer: framework (`packages/*`). Server only. The event envelope and port types 
 
 - [Event log](../../docs/primitives.md#event-log): `createMemoryEventLog`, `openJsonlEventLog`, `verifyEventLog`, `unresolvedCommands`, `readEvents`, `forwardingEventLog`.
 
-[Security and assurance](../../docs/security-and-assurance.md) covers audit modes and verification.
+[Security and compliance](../../docs/security-and-compliance.md) covers audit modes and verification. The [`@agent-native/audit`](../../plugins/audit/README.md) plugin opens this log and provides it as the host's event-log port.
 
 ## Entrypoints
 

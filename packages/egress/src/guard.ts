@@ -90,7 +90,7 @@ async function socket<Data>(
  *
  * Limits: the address check resolves the host and then connects by name, so a resolver that
  * answers differently between the two can race it. The OS rules exported from the same policy
- * (`security export`) close that gap. Child processes that ignore proxy settings are likewise
+ * (`network export`) close that gap. Child processes that ignore proxy settings are likewise
  * contained only by those rules.
  */
 export function createEgress(options: EgressOptions): Egress {

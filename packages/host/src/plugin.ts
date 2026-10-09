@@ -77,6 +77,14 @@ export interface PluginOpenContext {
   readonly settings: Readonly<Record<string, string>>;
   /** Services of the plugins opened before this one, keyed by plugin id. */
   readonly services: Readonly<Record<string, unknown>>;
+  /**
+   * The composed ports, whichever plugin provides them, so plugins use each other's ports
+   * without importing each other: an audit forwarder reaches its collector through the network
+   * port, and the egress guard records into the event-log port. Members resolve once every
+   * plugin has opened; reading one during `open` throws, because the composition is not known
+   * yet. Use them from `ready`, `start`, `close` or the calls the plugin serves.
+   */
+  readonly ports: HostPorts;
 }
 
 /** What `start` receives once a serving host listens. */
@@ -95,6 +103,12 @@ export interface PluginStartContext {
 /** One opened plugin. Every member is optional. */
 export interface PluginInstance {
   readonly ports?: Partial<HostPorts>;
+  /**
+   * Ports this plugin's configuration depends on another plugin to provide, such as an event
+   * log for a policy that requires a fail-closed audit trail. Startup refuses when one keeps its
+   * kernel default, so configuration never looks enforced while nothing enforces it.
+   */
+  readonly needs?: readonly (keyof HostPorts)[];
   /** Exposed to later plugins and to handlers as `services[<plugin id>]`. */
   readonly service?: unknown;
   /** After the runtime exists and before anything is served: attestation, crash recovery. */

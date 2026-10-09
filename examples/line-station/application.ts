@@ -8,8 +8,10 @@ import {
   type DeviceState,
 } from '@agent-native/devices/server';
 import { defineApplication } from '@agent-native/host/application';
-import { assurancePlugin } from '@agent-native/assurance/plugin';
-import { securityPlugin } from '@agent-native/security/plugin';
+import { auditPlugin } from '@agent-native/audit/plugin';
+import { compliancePlugin } from '@agent-native/compliance/plugin';
+import { networkPlugin } from '@agent-native/network/plugin';
+import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
 import { stationRole, type LineState } from './domain';
@@ -179,7 +181,7 @@ export function createLineStationApplication(
         devices: value.devices ?? createDeviceState(),
       };
     },
-    plugins: [securityPlugin, assurancePlugin],
+    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
     handlers: lineStationHandlers(),
     authorization: lineStationAuthorization(),
     ...(options.services ? { services: options.services } : {}),

@@ -100,10 +100,10 @@
     },
     "evidence": {
       "tests": [
-        "plugins/assurance/test/assurance.test.ts"
+        "plugins/network/test/network.test.ts"
       ],
       "artifacts": [
-        "security export --format nftables|windows-firewall|k8s-networkpolicy|systemd"
+        "network export --format nftables|windows-firewall|k8s-networkpolicy|systemd"
       ],
       "events": []
     }
@@ -425,7 +425,7 @@
   {
     "id": "AN-MON-01",
     "title": "Continuous posture monitoring",
-    "implementation": "The running authority re-checks policy findings, chain integrity, forwarding health and denied egress on startup and on an interval, records `posture.checked`, and serves the result to authorized auditors through the assurance capabilities.",
+    "implementation": "The running authority re-checks policy findings, chain integrity, forwarding health and denied egress on startup and on an interval, records `posture.checked`, and serves the result to authorized auditors through the compliance capabilities.",
     "status": "implemented",
     "mappings": {
       "iso27001": [
@@ -447,10 +447,10 @@
     },
     "evidence": {
       "tests": [
-        "plugins/assurance/test/assurance.test.ts"
+        "plugins/compliance/test/compliance.test.ts"
       ],
       "artifacts": [
-        "audit report --log <dir>"
+        "compliance report --log <dir>"
       ],
       "events": [
         "posture.checked"
@@ -527,7 +527,7 @@
         "examples/project-tasks/test/hardening.test.ts"
       ],
       "artifacts": [
-        "security export --format k8s-networkpolicy|nftables"
+        "network export --format k8s-networkpolicy|nftables"
       ],
       "events": [
         "config.loaded"
@@ -564,7 +564,7 @@
         "packages/egress/test/egress.test.ts"
       ],
       "artifacts": [
-        "security check --site <file>"
+        "site check --site <file>"
       ],
       "events": [
         "config.loaded",
@@ -597,7 +597,7 @@
     },
     "evidence": {
       "tests": [
-        "plugins/assurance/test/assurance.test.ts"
+        "plugins/compliance/test/compliance.test.ts"
       ],
       "artifacts": [
         "docs/reference/quality-inspection/sbom.cdx.json"

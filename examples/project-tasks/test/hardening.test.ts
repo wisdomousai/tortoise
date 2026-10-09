@@ -9,7 +9,7 @@ import { startHost } from '@agent-native/host/host';
 import { writeApplicationEntry } from '../../../scripts/application-entry';
 import projectTasks from '../application';
 
-// Hardening floors as the host enforces them, not only as `security check` reports them.
+// Hardening floors as the host enforces them, not only as `site check` reports them.
 
 const withDirectory = async (run: (directory: string) => Promise<void>) => {
   const directory = await mkdtemp(join(tmpdir(), 'hardening-'));

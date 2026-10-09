@@ -50,7 +50,7 @@ Declare what the module needs outside the process on the module itself:
 - `requirements.devices`;
 - `requirements.processes`.
 
-The catalog build rejects an outbox target that no destination carries. Its destination must declare `offline: 'queue'`. Mark input fields that are safe to record in plain text with `audit: { fields: [...] }`; everything else is logged as a digest. Server code never calls `fetch` or opens sockets directly. Connectors receive a fetch from the egress guard, and `check:boundaries` enforces this. After `bun run generate`, review the change in your application's `docs/reference/<id>/security-manifest.json` and `data-flows.md`. See [security-and-assurance.md](security-and-assurance.md).
+The catalog build rejects an outbox target that no destination carries. Its destination must declare `offline: 'queue'`. Mark input fields that are safe to record in plain text with `audit: { fields: [...] }`; everything else is logged as a digest. Server code never calls `fetch` or opens sockets directly. Connectors receive a fetch from the egress guard, and `check:boundaries` enforces this. After `bun run generate`, review the change in your application's `docs/reference/<id>/security-manifest.json` and `data-flows.md`. See [security-and-compliance.md](security-and-compliance.md).
 
 Protected output fields must be optional or represented through explicit public view variants. `projectOutput` filters by current permissions, and the final DTO must validate against the output schema. Removing a required field fails and rolls back the command. Replayed receipts are projected again under current access.
 

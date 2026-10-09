@@ -29,13 +29,13 @@ Tools: `line_stop_list`, `line_station_get`, `line_reason_list`, `line_stop_clas
 
 CLI: `agent-native-desktop-starter line stop list`, `agent-native-desktop-starter line station get`, `agent-native-desktop-starter line reason list`, `agent-native-desktop-starter line stop classify`.
 
-## review-security-posture
+## review-compliance-posture
 
 Start with the posture. For any check that is not passing, list the matching audit events (for example kinds egress.denied, command.denied or posture.checked) and verify the chain before drawing conclusions. Report destinations by ID and state; never infer that an unbound destination was reached.
 
-Tools: `assurance_posture_get`, `assurance_events_list`, `assurance_log_verify`.
+Tools: `compliance_posture_get`, `compliance_events_list`, `compliance_log_verify`.
 
-CLI: `agent-native-desktop-starter assurance posture get`, `agent-native-desktop-starter assurance events list`, `agent-native-desktop-starter assurance log verify`.
+CLI: `agent-native-desktop-starter compliance posture get`, `agent-native-desktop-starter compliance events list`, `agent-native-desktop-starter compliance log verify`.
 
 ## shift-handover
 

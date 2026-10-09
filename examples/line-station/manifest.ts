@@ -1,10 +1,12 @@
 import { defineHostComponent } from '@agent-native/contracts';
 import { defineManifest } from '@agent-native/host/manifest';
-import { assurancePluginManifest } from '@agent-native/assurance/plugin-manifest';
+import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
+import { compliancePluginManifest } from '@agent-native/compliance/plugin-manifest';
+import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
+import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 import { deviceConfigModule } from '@agent-native/devices/contracts';
 import { scannerDevicesComponent } from '@agent-native/devices/requirements';
 import { stationBridgeComponent } from '@agent-native/station/requirements';
-import { securityPluginManifest } from '@agent-native/security/plugin-manifest';
 import { lineStationModule } from './contracts';
 
 /** The browser this application's screen bridge drives to reach a web-based station HMI. */
@@ -33,5 +35,10 @@ export default defineManifest({
   title: 'Line stations',
   modules: [lineStationModule, deviceConfigModule],
   components: [stationBridgeComponent, stationBrowserComponent, scannerDevicesComponent],
-  plugins: [securityPluginManifest, assurancePluginManifest],
+  plugins: [
+    sitePluginManifest,
+    networkPluginManifest,
+    auditPluginManifest,
+    compliancePluginManifest,
+  ],
 });

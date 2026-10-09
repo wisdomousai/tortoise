@@ -8,8 +8,8 @@ Layer: content (`examples/*`). Domain code, screens, demo job and tests live her
 
 This example is one [Application](../../docs/primitives.md#application). It composes:
 
-- a [Module](../../docs/primitives.md#module) of twelve [capabilities](../../docs/primitives.md#capability) (`project.*`, `task.*`); the plugins below add `assurance.*` and `webhook.*`;
-- the `security` and `assurance` [host plugins](../../docs/primitives.md#host-plugin), listed in each of its three entrypoints, and the example plugin [`webhook`](../../plugins/webhook/README.md) after them;
+- a [Module](../../docs/primitives.md#module) of twelve [capabilities](../../docs/primitives.md#capability) (`project.*`, `task.*`); the plugins below add `compliance.*` and `webhook.*`;
+- the `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primitives.md#host-plugin), listed in each of its three entrypoints, and the example plugin [`webhook`](../../plugins/webhook/README.md) after them;
 - a CASL [Policy](../../docs/primitives.md#policy) with row scopes (`taskReadScope`) and an owner-only protected field;
 - [live queries](../../docs/primitives.md#journal-and-live-query) through the frame's session bindings in its screen, so changes from any caller appear without a refresh;
 - the deterministic [Agent run](../../docs/primitives.md#agent-run) harness behind **Create tasks from brief**.
@@ -35,7 +35,7 @@ The application definition is trusted code that runs inside the authority. Every
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/frame`, `@agent-native/security`, `@agent-native/assurance`, `@agent-native/webhook`, `@agent-native/client`, `@agent-native/adapters` and `@agent-native/testing` (tests). External: `zod`, `react`, `@tanstack/react-query`, `lucide-react`. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/frame`, `@agent-native/site`, `@agent-native/network`, `@agent-native/audit`, `@agent-native/compliance`, `@agent-native/webhook`, `@agent-native/client`, `@agent-native/adapters` and `@agent-native/testing` (tests). External: `zod`, `react`, `@tanstack/react-query`, `lucide-react`. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)).
 
 ## Tests
 

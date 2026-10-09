@@ -8,13 +8,18 @@
       "description": "Claude Agent SDK harness with API-key funding."
     },
     {
-      "id": "assurance",
-      "kind": "module"
+      "id": "audit",
+      "kind": "component",
+      "description": "Audit plugin: forwards audit events off the host as RFC 5424 syslog."
     },
     {
       "id": "authority",
       "kind": "component",
       "description": "Local authority service: HTTP/SSE API and MCP attach."
+    },
+    {
+      "id": "compliance",
+      "kind": "module"
     },
     {
       "id": "crm-capture",
@@ -24,11 +29,6 @@
       "id": "openai",
       "kind": "component",
       "description": "ChatGPT plan sign-in, model catalog, Codex app-server and AI SDK inference."
-    },
-    {
-      "id": "security",
-      "kind": "component",
-      "description": "Security plugin: forwards audit events off the host as RFC 5424 syslog."
     }
   ],
   "network": [
@@ -56,7 +56,7 @@
       "direction": "egress",
       "id": "audit-collector",
       "offline": "degrade",
-      "owner": "security",
+      "owner": "audit",
       "protocol": "tcp",
       "purpose": "Forward audit events off the host (RFC 5424 syslog over TLS).",
       "scope": "site"

@@ -1,0 +1,12 @@
+{
+  "name": "@agent-native/compliance",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Compliance host plugin: security manifest, data flows, control mapping, CycloneDX SBOM, runtime posture monitor and the auditor queries and screen.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./plugin-screens": "./src/plugin-screens.tsx",
+    "./*": "./src/*.ts"
+  }
+}

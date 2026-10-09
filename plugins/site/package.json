@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Site host plugin: loads the site policy, enforces its profile floors and identity, and refuses compositions that would leave the policy unenforced.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}
