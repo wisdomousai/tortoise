@@ -54,7 +54,7 @@ The screen uses the starter's `@/components/ui` primitives and the frame's `@/li
 bun test plugins/compliance
 ```
 
-`test/compliance.test.ts` covers [P13](../../docs/principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does) and [P10](../../docs/principles.md#p10--a-claim-is-only-as-strong-as-its-evidence):
+`test/compliance.test.ts` covers [P13](../../docs/principles.md#p13--declared-reach-recorded-actions) and [P10](../../docs/principles.md#p10--claims-follow-evidence):
 
 - manifest ownership and a deterministic SBOM;
 - controls whose evidence exists;

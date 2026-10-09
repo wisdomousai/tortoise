@@ -41,4 +41,4 @@ bun test packages/devices
 ```
 
 - `test/scanner.test.ts`: layout repair (US scanner on QWERTZ or Swiss hosts, dead keys), GS1 check digits and fields, AIM identifiers, calibration inference, routing, serial line assembly, HID POS reports, camera repeat suppression, wedge bursts and the host bridge.
-- `test/config.test.ts`: administrators configure, operators read, strangers see nothing; stale route writers conflict ([P8](../../docs/principles.md#p8--specialization-is-composition-and-configuration-never-a-fork)).
+- `test/config.test.ts`: administrators configure, operators read, strangers see nothing; stale route writers conflict ([P8](../../docs/principles.md#p8--specialize-by-composition-and-configuration)).

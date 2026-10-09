@@ -1,145 +1,125 @@
 # Principles
 
-Each principle is an architectural invariant that a design either keeps or breaks. **Rules out** names what a violation looks like. **Enforced by** names the checks and tests that fail when the invariant breaks, and marks what is still **convention only**, kept by authors and reviewers. The building blocks that deliver each principle are explained in [primitives](primitives.md).
+These are the design commitments that keep the architecture coherent. They are guidance, not law: each states an intent and why it matters, so a change can be judged against the intent rather than the wording. A change that departs from a principle says so and why. When departures keep coming for the same reason, the principle is rewritten.
 
-Mechanism detail lives in the [architecture](architecture.md), [interaction contract](interaction-contract.md), [authorization](authorization.md), [state and reactivity](state-and-reactivity.md), [system-of-record](system-of-record-pattern.md), [operator workstation](operator-workstation-pattern.md), [edge applications](edge-applications.md) and [security and assurance](security-and-compliance.md) documents and the [decision records](decisions/).
+**Checked by** names the checks and suites that catch the common ways of breaking a principle. It points at suites, not at every test, and it never covers everything; review covers the rest. The building blocks behind each principle are in [primitives](primitives.md), mechanisms in [architecture](architecture.md) and the topic guides, and the reasoning behind larger choices in the [decision records](decisions/).
 
-### P1 — Every operation is executable from UI, MCP, CLI and API
+### P1 — Every operation is reachable from every surface
 
-Each operation has one handler. Every surface reaches it with the same validation, authorization, result and structured error, so a scenario passes or fails identically on all of them. A surface that intentionally lacks an operation declares the exception, and composition rejects an undeclared gap. Interaction may be specialized per surface while meaning stays fixed: a scan, a hold-to-confirm button, a CLI flag and an agent's tool call all submit the same command. An agent is one more caller on these surfaces, not a separate layer with its own actions.
+Each operation has one handler. The UI, MCP, the CLI and HTTP reach it with the same validation, authorization, results and errors. People, agents, scripts and devices are callers of the same operations, so whatever one can do, another can do with the same rights. Surfaces may present an operation differently, such as a scan, a button, a flag or a tool call, but its meaning stays fixed. A surface may leave an operation out if it says so.
 
-**Rules out:** UI-only endpoints, agent-only tools, admin scripts that write the database, business logic inside a transport or component.
+**Why:** there is no hidden admin path and no agent-only action, and a behavior tested on one surface holds on the others.
 
-**Enforced by:** catalog validation rejects an operation without a UI binding or declared exception (`packages/contracts/test/contracts.test.ts`); the same scenarios run through direct, HTTP, CLI subprocess and MCP and must agree (`examples/project-tasks/test/transport-conformance.test.ts` and each example's `test/conformance.test.ts`). Each example's `test/ui-bindings.test.ts` (`@agent-native/testing/ui-bindings`) fails when an operation claims a UI binding that none of its screens references. **Convention only:** that a referenced binding is actually rendered; browser specs cover the reference screens, not every operation.
+**Checked by:** catalog validation, which requires a UI binding or a declared exception; the transport conformance scenarios in each example; the UI-binding test.
 
-### P2 — The catalog is the only description of what the application can do
+### P2 — The catalog describes the application
 
-Modules contribute capabilities to one composed catalog. The UI bindings, MCP tools, CLI subcommands and flags, OpenAPI, JSON Schema, operation reference and application skill are all generated from it. Generation is pure: it opens no workspace, reads no credential and starts no server, which requires contracts to be browser-safe data separate from handlers. Generated artifacts are checked in and drift fails the build.
+Modules contribute capabilities to one composed catalog. Every surface and reference artifact is generated from it, including tool lists, CLI flags, schemas, API descriptions and agent skills. Contracts are data, kept separate from the code that executes them, so generation opens no workspace and needs no credentials.
 
-**Rules out:** hand-maintained tool lists, API docs or schemas; contracts that import handlers, drivers or provider SDKs; runtime discovery as the source of types.
+**Why:** a description that is generated cannot drift from what runs.
 
-**Enforced by:** `bun run check:generated` fails on drift between the catalog and every generated artifact; `bun run check:boundaries` keeps contracts and browser code free of handlers, drivers and provider SDKs; catalog validation rejects duplicates, cycles, unresolved workflows and colliding MCP names (`packages/contracts/test/contracts.test.ts`).
+**Checked by:** `check:generated` (drift) and `check:boundaries` (contracts stay free of executable code); catalog validation.
 
-### P3 — Authority comes from trusted context, never from input, and is enforced at commit
+### P3 — Authority comes from trusted context
 
-The host derives principal, workspace and grant; operation input cannot select or widen them. Policy decides operation, object, row and field access. Rows are scoped before filtering, pagination and counts. Authorization, grants and cancellation are rechecked inside the transaction and again before commit. Delegation only narrows, approval never elevates, and provider credentials grant no workspace access. Replays and event delivery are authorized against current policy, and anything unknown fails closed.
+The host establishes the principal, workspace and grant, and operation input cannot choose or widen them. Policy decides access to operations, objects, rows and fields, and rows are scoped before they are counted or paged. Access is checked again where it takes effect: at commit, on replay and on event delivery. Delegation only narrows, approval never elevates, and anything unknown is denied.
 
-**Rules out:** role or principal fields in operation input, checks only at the edge, counts that leak hidden rows, cached decisions reused after revocation.
+**Why:** callers include agents acting on someone's behalf, so authority must not depend on what a caller says about itself.
 
-**Enforced by:** `examples/project-tasks/test/security-conformance.test.ts` (grants constrain rows, replay and events; interruptions cannot commit or leak); the role matrices in each `examples/*/domain.test.ts`; `packages/adapters/src/casl.test.ts` (scope agreement across CASL, memory and SQL, fail-closed rules); `packages/runtime/test/runtime.test.ts` (current authorization governs retries); `packages/agents/test/adapters.test.ts` (each provider model sees the captured selection, never the run's identity or grant); `examples/project-tasks/test/hardening.test.ts` (a hardened site admits only expiring launcher grants, refuses to fall back to the local owner, and its mTLS listener still requires a session token).
+**Checked by:** the security conformance and role-matrix suites in the examples; the runtime, policy-adapter and hardening suites.
 
-### P4 — Every write is a command to the single authority of its workspace
+### P4 — Each workspace has one writer
 
-One authority owns each workspace. UIs, tools, jobs, connectors and observers submit commands; none opens a second writable copy. A command commits feature state, resource revisions, its idempotency receipt, journal entries and outbox effects atomically, or nothing. Retries with the same key return the stored result; stale revisions conflict; a mutation that declares no changed resource fails. No network or model call runs while a transaction is held.
+One authority owns each workspace, and every write is a command to it. A command commits its state, revisions, receipt, journal entries and outbound effects together, or none of them. Retries return the stored result, and stale revisions conflict. Network and model calls happen outside the transaction.
 
-**Rules out:** direct database writes, dual writers, write-then-notify sequences that can lose the notification, side effects inside a transaction.
+**Why:** with one writer and atomic commits, every reader and every integration agrees on what happened.
 
-**Enforced by:** `packages/runtime/test/runtime.test.ts` (undeclared changes cannot commit, expected revisions cannot lose updates, scoped idempotency); `examples/project-tasks/test/storage-conformance.test.ts` (memory and SQLite commit state, receipts and outbox atomically); `packages/adapters/src/sqlite.test.ts` (a rolled-back transaction leaves the initial-state factory untouched); `packages/adapters/src/ownership.test.ts` (one owner per workspace). **Convention only:** that no new code path writes state outside a handler.
+**Checked by:** the runtime suites and the storage conformance suite.
 
-### P5 — Every committed change reaches every authorized view, whatever its origin
+### P5 — Committed changes reach every authorized view
 
-A change committed by a person, an agent, a job or an inbound sync flows through the same journal to every subscribed screen and tool the caller may see, without refresh. Queries return a snapshot with a cursor so subscription closes the race. Delivery is filtered by current permissions, and an authorization change resets views without leaking identifiers. Unsaved drafts survive external updates and conflict explicitly instead of being overwritten. A remote query's result (P7) is the exception by design: it is a point-in-time answer from another system, labelled with its fetch time, and is not refreshed by the journal. A record follows the journal once it is adopted.
+A change reaches every screen and tool that may see it, without a refresh. This holds whether a person, an agent, a job or a sync made the change. Reads return a snapshot with a cursor, so subscribing cannot miss a change. Delivery follows current permissions. Unsaved drafts conflict explicitly instead of being overwritten. Answers read from another system are point-in-time and say so.
 
-**Rules out:** polling as the consistency model, per-surface caches that miss other surfaces' writes, event payloads carrying protected record contents.
+**Why:** people and agents work on the same records at once and need to see each other's work.
 
-**Enforced by:** `packages/client/src/client.test.ts` (snapshot cursor closes the subscription race, revocation resets, stale responses are fenced); `examples/project-tasks/test/direct-transport.test.ts` (the in-process transport resets after a revocation between snapshot and subscription, and never lifts launcher cancellation); `packages/react/src/bindings.test.ts` (dependency-indexed refetch, permission change clears cache, also behind a hung refetch and for data cached before the stream's first batch); `examples/project-tasks/e2e/workspace.pw.ts` and `examples/quality-inspection/e2e/inspection.pw.ts` (an external write appears without refresh, drafts survive, a draft keeps its sample and shows a conflict when another caller records that sample first). **Convention only:** that each draft screen pins its target and base revision; `ScannerSetup` saves against the revision it was loaded from but has no browser spec.
+**Checked by:** the client and React binding suites; the browser specs.
 
-### P6 — Status reports what is known, not what is hoped
+### P6 — Status says what is known
 
-Draft, committed, dispatched, accepted, rejected and uncertain are distinct states that every surface can show. A receipt is not upstream acceptance, a stream of text is not a commit, and an exit code is not a delivery outcome. Observed values carry source, confidence and age, and only stable readings become current. An uncertain outcome is held for a person to resolve, never guessed or blindly retried.
+Draft, committed, dispatched, accepted, rejected and uncertain are distinct states, and every surface can show them. A receipt is not acceptance, and narrated progress is not a commit. Observed values carry their source, confidence and age. An outcome that is not known is held for a person to resolve, never guessed or blindly retried.
 
-**Rules out:** optimistic "done" before acceptance, inferring success from narration, silently overwriting state with a low-confidence reading.
+**Why:** decisions about physical work and other systems depend on knowing what actually happened.
 
-**Enforced by:** `packages/runtime/test/outbox.test.ts` and `packages/integration/test/held.test.ts` (delivery states, uncertain outcomes held, not resent, including when shutdown interrupts delivery; a drain reports outbox work for targets it cannot deliver); `examples/quality-inspection/test/sandbox.test.ts` and each example's `test/application.test.ts` (`drain` exits non-zero until every target the application declares is empty); `packages/station/test/observer.test.ts` (only stable readings become current, unsure readings stay uncertain); `packages/agents/test/supervisor.test.ts` (run state separate from commits). **Convention only:** that every screen and tool shows the delivery state rather than a receipt.
+**Checked by:** the outbox, held-delivery, observer and run-supervision suites.
 
-### P7 — Other systems are changed only through durable intents
+### P7 — Other systems change only through durable intents
 
-Systems of record keep ownership of their records. A command commits an intent with its local change; a connector delivers it outside the transaction, at least once, relying on the target's idempotency or a lookup before resending. A narrowly granted integration principal records outcomes and imports upstream changes through ordinary commands. The contract is the same whether the target is an API, a file drop or legacy software reachable only through its screen.
+Systems of record keep ownership of their records. A command commits an intent together with its local change. A connector delivers the intent outside the transaction, at least once, and relies on idempotency or a lookup before resending. Outcomes and upstream changes come back through ordinary commands. Reading another system is a declared query, made outside any transaction with the caller's own credential, and nothing it finds is stored. Bringing a found record in is a command.
 
-A declared remote query may read another system, for example a search box over a CRM. The runtime calls the source outside any transaction with the caller's own credential, or a service credential only where the query declares that fallback, and authorizes again before returning the result. The result is never stored. It carries its source, identity and fetch time (P6), and an unreachable source is a status beside the local data, not an error (P12). A handler never calls the source. Bringing a found record into the local working set is a command that goes through the outbox and inbound sync like any other write ([ADR 009](decisions/009-remote-queries-and-adoption.md)).
+**Why:** local work never blocks on another system, and nothing is written there that the application cannot account for.
 
-**Rules out:** calling a remote system from a handler, distributed transactions, connectors that hold business tools, retrying an unknown outcome as if it failed, a remote read that changes local state or stores what it found, a remote read under a service credential the query did not declare.
+**Checked by:** the outbox, dispatcher, remote-query and remote-source suites.
 
-**Enforced by:** `packages/runtime/test/outbox.test.ts` (effects commit with the command, replay never re-enqueues); `packages/integration/test/dispatcher.test.ts` (delivery outside the transaction, lookup before resend, integration grant limits, watermark-bound sync); `packages/station/test/controller.test.ts` (per-action screen gate, stable readback, uncertain procedures held); lane separation in `examples/line-station/test/conformance.test.ts`; `packages/runtime/test/remote-query.test.ts` (a denied caller never reaches the source, a revocation during the call drops the result, the remote steps cannot mutate state, a service answer to a caller-only query is refused, source errors become a safe status); `packages/integration/test/remote-source.test.ts` (credential order: caller, then a declared service account, otherwise refused); `packages/contracts/test/data-provider.test.ts` (a remote read needs a declared destination); `examples/crm-capture/test/application.test.ts` (adoption through follow and feed).
+### P8 — Specialize by composition and configuration
 
-### P8 — Specialization is composition and configuration, never a fork
+Domains live in modules composed into an application, and the framework names no domain. Site differences are versioned, validated data, gated by a replayable check where they drive perception or actuation. A concept moves into the framework once a second application needs it. Reusable UI is built from stock primitives and shipped as registries.
 
-The framework packages and the starter are domain-neutral (P11). Domains live in modules, composed explicitly into an application with their own state slice and routed policy; a domain concept becomes a primitive only when a second application needs it. What differs per site (station profiles, scanner profiles, scan routes, connector mappings) is versioned, schema-validated data, gated by a replayable check where it drives perception or actuation. Reusable UI ships as shadcn registries composed from stock primitives.
+**Why:** a fork stops receiving improvements, and code written for one domain does not fit the next.
 
-**Rules out:** domain names in `packages/*`, customer forks, site logic in code, forked or hand-styled UI primitives.
+**Checked by:** `check:boundaries`; the composition and station profile suites; the registry drift check. Domain-neutrality of names is left to review.
 
-**Enforced by:** `bun run check:boundaries` rejects imports from `packages/*` into `examples/` or `apps/`, whether by relative path or by workspace package name; `packages/runtime/test/compose.test.ts` (modules see only their slice, unrouted operations fail closed); `packages/station/test/profile.test.ts` and `bun run station:golden` in `examples/line-station` (profiles validated and gated); `bun run check:registry:operator` (registry manifest drift). **Convention only:** that package code names no business domain, and the second-application promotion rule.
+### P9 — External dependencies sit behind ports
 
-### P9 — Every external dependency sits behind a port
+Storage, policy, identity, transports, agent harnesses, inference, connectors and devices each enter through a port with stated guarantees. Vendor types stay inside their adapters, and the core takes no dependency on a cloud platform.
 
-Storage, policy, identity, transport, agent harness, inference, system-of-record connector, screen transport, perception and device input each enter through a port with documented guarantees and a conformance suite. Vendor SDK types stay inside their adapters, and the core takes no cloud-platform dependency. Replacing an adapter changes no contract or handler.
+**Why:** adapters change more often than the domain, and sites differ in what they run.
 
-**Rules out:** provider types in contracts, storage assumptions in handlers, a model or vendor that cannot be swapped without touching domain code.
+**Checked by:** the storage and harness conformance suites; `check:boundaries` for browser code.
 
-**Enforced by:** `examples/project-tasks/test/storage-conformance.test.ts` (memory and SQLite give identical outcomes); `bun run check:boundaries` keeps provider SDKs and host runtimes out of browser code; harness adapters pass shared fixtures (`packages/agents/test/adapters.test.ts`). **Convention only:** that vendor types stay inside adapters and the core takes no cloud dependency.
+### P10 — Claims follow evidence
 
-### P10 — A claim is only as strong as its evidence
+A capability is called supported only when it has run where the claim applies. Deterministic, browser, native, device and live-provider evidence are recorded separately. Changes to perception or site configuration pass a golden check before they take effect. Productivity figures are labeled synthetic until they are measured.
 
-Every operation has behavioral scenarios that run through each surface it supports. Deterministic, browser, native, device and live-provider evidence are recorded separately, and a capability is not called supported until it has run on the real thing. Changes to perception or site configuration pass a golden check before activation. Productivity figures come from measured task runs, labeled synthetic until measured in the field.
+**Why:** a reference architecture is only useful if what it says works does work.
 
-**Rules out:** calling a mock-tested adapter live, a single blended pass/fail, undocumented drift between docs and code.
+**Checked by:** the [implementation status](implementation-status.md) ledger; the sandbox binary run; `check:readmes`. Telling a mocked pass from a live one is left to review.
 
-**Enforced by:** the implementation ledger records deterministic, browser, native, device and live-provider evidence separately; `bun run test:sandbox`, part of `bun run check`, compiles the binary with the shipped build configuration and runs it with an empty environment; `bun run check:readmes` fails when a workspace in `packages/*`, `apps/*` or `examples/*` has no README, when its README omits a `package.json` export or a primitive entry that names the workspace, or when it links to a file or heading that no longer exists. **Convention only:** most of this principle is review discipline; no tool can tell a mocked pass from a live one, and `check:readmes` checks references, not whether the prose is still true.
+### P11 — Layers depend inward, and an authority runs one application
 
-### P11 — Framework, starter and content are separate layers, and an authority runs one application
+The framework (`packages/*`) is domain-neutral. Plugins (`plugins/*`) add cross-cutting concerns that an application chooses to compose. The starter (`apps/*`) is wiring its owner forks and extends. Content (`examples/*`, or the owner's modules) implements framework contracts. Each layer depends only on the layers beneath it. The starter learns which application to run from configuration. One running authority serves one application, with its own catalog, artifacts, workspace and screens ([ADR 005](decisions/005-framework-shell-content.md), [ADR 010](decisions/010-host-plugins.md)).
 
-The framework (`packages/*`) provides domain-neutral primitives, ports and adapters, including the generic host (`@agent-native/host`) and web frame (`@agent-native/frame`). The starter (`apps/*`) is a thin boilerplate its owner forks or generates and extends: wiring, `app.config.json`, entrypoints, the web root and stock primitives, styles and the desktop wrapper. Content (`examples/*`, or the owner's own modules) is applications that implement framework contracts through three entrypoints: a browser-safe `manifest`, a server `application` definition (state, policy, handlers, connections, demo fakes) and `screens`. The starter learns its content only from configuration, which the host and frame resolve (inversion of control). Content depends on framework contracts and never on the starter. A catalog, its generated artifacts, web build, workspace and launch belong to one application; several modules may form one application, but separate applications never share a process ([ADR 005](decisions/005-framework-shell-content.md)). **Plugins** (`plugins/*`) are a fourth layer between framework and content: cross-cutting parts an application composes, each bringing modules, a state slice, a policy, kernel ports and lifecycle hooks through the same three entrypoints (`plugin-manifest`, plugin server, `plugin-screens`). A plugin depends on the framework and on the plugins it requires; the application names its plugins, and the framework and starter compose whatever they are given and import none ([ADR 010](decisions/010-host-plugins.md)). `plugins/site`, `plugins/network`, `plugins/audit` and `plugins/compliance` ship with the framework, one per concern and aligned with the kernel ports ([ADR 011](decisions/011-plugins-compose-through-ports.md)); `plugins/webhook` is an example of a third-party plugin.
+**Why:** a forked starter keeps receiving framework changes, and applications cannot leak into each other.
 
-**Rules out:** a starter that imports an example, edits to the framework or starter to add an application, one process serving several applications' catalogs, a demo fake or screen of one application visible in another, framework tests that need an example, framework or starter code that imports a plugin, a plugin that imports the starter or an example, a plugin that reads or writes another plugin's or the application's state.
+**Checked by:** `check:boundaries`; the host plugin suite; the single-example scaffold export.
 
-**Enforced by:** `bun run check:boundaries` rejects framework → starter/content, starter → content and content → starter imports by relative path or workspace package name, and bundles every example's screens through the starter's real Vite config; `packages/host` runs only an `ApplicationDefinition` it is given; a single-example export (`bun run scaffold … --example <name>`) installs, typechecks and tests without the other examples (`packages/scaffold/src/scaffold.test.ts` covers the file selection; the full export run is recorded in the implementation status); `check:boundaries` also fails on framework → plugin, starter → plugin and plugin → starter/content imports, on a browser import of a plugin's server files, and when `packages/host/src` imports `egress` or `event-log`; `packages/host/test/plugins.test.ts` (the server and manifest plugin lists must match, `requires` order, state slices the application's upgrade cannot see, operations and events routed to the owning policy). **Convention only:** that content screens use only the stock primitives and frame registry paths behind the `@/` alias, which the boundary check cannot tell apart from starter files.
+### P12 — Applications run beside the work
 
-### P12 — An application runs beside the work and keeps working without central systems or a model
+An application runs on or beside the machine where the work happens, together with its connectors, observers and agents. A command commits locally and never waits for a system of record, a wider network or a model. Every task keeps a path that needs no inference: models propose, and deterministic code acts. Endpoints are explicit configuration ([ADR 006](decisions/006-edge-placement.md)).
 
-The application, its connectors and observers, and the agents that call it run on or beside the machine where work happens. A command commits locally and never waits for a system of record, a wider network or a model: upstream delivery is queued in the outbox, its state stays visible, and inbound sync resumes from its watermark. Control software is reached by edge adapters behind the connector, extractor and screen ports, never by a central service. Every task keeps a deterministic path that needs no inference; models propose and deterministic code acts. Model and upstream endpoints are explicit configuration, loopback or allowlisted ([ADR 006](decisions/006-edge-placement.md), [edge applications](edge-applications.md)).
+**Why:** plant networks are segmented and links fail, but work at the machine has to continue.
 
-**Rules out:** a command that fails because the system of record or the internet is unreachable, a cloud service in the commit path, a task that can only be completed through a model turn, a central service that drives control software inside a plant network, implicit outbound endpoints.
+**Checked by:** the dispatcher and sandbox suites; the deterministic browser path. Disconnected operation has not been exercised on a device.
 
-**Enforced by:** `packages/integration/test/dispatcher.test.ts` (delivery outside the transaction; `drain` reports what remains while the target stays unavailable); `examples/quality-inspection/test/sandbox.test.ts` (`serve` issues a grant-bound connection for an agent running as another OS user); `packages/station/test/perception.test.ts` (vision endpoints must be loopback or explicitly allowlisted); `examples/project-tasks/e2e/workspace.pw.ts` (the deterministic harness works without a provider account). **Convention only:** that every task keeps a deterministic path, and that connectors to control software run on the edge host. Offline operation has not been exercised on a disconnected device.
+### P13 — Declared reach, recorded actions
 
-### P13 — The application reaches only what it declares and the site binds, and records what it does
+An application declares every destination, device and child process it may use, with its purpose and data classes. The site decides what those declarations bind to. Nothing undeclared is reachable, and with no site configuration nothing outside the host is reachable at all. What the application does is recorded in a tamper-evident trail, and by default a command that cannot be recorded does not commit. Configuration that would go unenforced refuses to start instead of looking enforced. The evidence an auditor checks is generated from the same declarations ([ADR 007](decisions/007-declared-egress-and-audit-log.md)).
 
-Every network destination, device and child process is declared in the catalog with its purpose and the data classes it carries. The kernel is deny-by-default behind ports: with no plugin providing them, the network port refuses every destination with `UNAVAILABLE`, the listener binds loopback only, nothing reaches a child's environment and there is no event log. Plugins provide those ports: the site plugin resolves the site policy and the identity floor, the network plugin binds declarations to addresses and guards egress, and the audit plugin writes a tamper-evident log of every action, denial and connection; by default a command that cannot be recorded does not commit. Without a site policy the application runs isolated and offline, queuing what it cannot deliver and saying what is unavailable. Hardening profiles are floors: the site plugin refuses to start below one rather than weaken identity, transport or audit. A setting that no composed plugin claims, such as a site policy passed to an application without the site plugin, refuses startup, and so does a policy that binds destinations or asks for an audit trail when no composed plugin provides the port that would enforce it, so configuration never looks enforced while it is ignored. The evidence an auditor checks is generated from the same declarations.
+**Why:** regulated and industrial sites admit software only when they can see and verify what it reaches.
 
-**Rules out:** direct `fetch`, sockets or process spawning in server code; site endpoints in code; a feature that silently needs the network; commits without an audit record when the audit mode requires one; falling back to the local owner or plain transport when a floor is not met; a kernel default that opens anything; two plugins providing the same port.
+**Checked by:** catalog validation of requirements; `check:boundaries` for direct network and process APIs; the egress, event-log, audit, host-plugin and hardening suites; `test:isolated`; `check:generated`. Device access is declared but not mediated.
 
-**Enforced by:** catalog validation of requirements, including outbox targets without a queuing destination (`packages/contracts/test/contracts.test.ts`); `bun run check:boundaries` fails on direct network and process APIs outside `packages/egress` and flags stale exemptions; `packages/host/test/plugins.test.ts` (default ports refuse the network and bind loopback, duplicate port providers, unclaimed settings and needed ports nobody provides refuse startup, a failed open closes the plugins already opened, composed ports reach plugins opened earlier); `plugins/network/test/network.test.ts` (the guard records into an event log a later plugin provides; a policy that binds destinations refuses to start without the network plugin); `plugins/webhook/test/webhook.test.ts` (a third-party plugin reaches the network only through the port: refused with no provider, refused by the egress guard for an unbound destination); `packages/egress/test/egress.test.ts` (host, port, scheme, redirect and DNS escapes refused; profile floors); `packages/runtime/test/audit.test.ts` (a failed required append rolls back the commit; crash recovery); `packages/event-log/test/event-log.test.ts` (tampering, gaps, truncation, one writer); `examples/project-tasks/test/hardening.test.ts` (startup floors, mTLS); `bun run test:isolated` (the suite makes no non-loopback connection); `bun run test:sandbox` (the compiled binary's audit chain verifies with no egress); `bun run check:generated` (security manifest, data flows, controls and SBOM match the code). **Convention only:** device access is declared but not mediated; containment of children that ignore proxy settings depends on the deployment applying the exported OS rules; `audit.fields` allow-lists are reviewed by hand; which of the site, network and audit plugins an application composes is the application's choice (every example composes all of them), and an environment variable no composed plugin declares is not read, so it is ignored rather than refused.
+### P14 — One reason to change per module
 
-### P14 — Every module has one reason to change
+A file, factory or component does one job, and its name says which. A factory composes collaborators that receive their dependencies explicitly instead of sharing closure state. Barrels only re-export ([ADR 008](decisions/008-module-size-and-cohesion.md)).
 
-A file, factory or component does one job, and its name says which. A factory composes collaborators that each own one responsibility and receive their dependencies as explicit arguments. It does not hold every responsibility as inner functions over shared closure state. Package `index.ts` files only re-export. Splitting never changes a public subpath: an existing file becomes the entry for a same-named folder of internals ([ADR 008](decisions/008-module-size-and-cohesion.md)).
+**Why:** reviewers and agents can read and change one responsibility at a time.
 
-**Rules out:** implementation in a package barrel; one factory, handler list or component holding several responsibilities; a file over 300 lines or a function over 80 lines outside the declared data allowlist; an allowlist entry for logic.
-
-**Enforced by:** `bun run check:size` (`scripts/check-size.ts` with limits and the data allowlist in `scripts/size-rules.ts`) fails on an oversized file or function, on any declaration in `packages/*/src/index.ts`, and on a stale allowlist entry. **Convention only:** that a split follows responsibility rather than line count, and that state a component owns stays with the component whose lifetime it shares.
+**Checked by:** `check:size`, a tripwire on file and function size and on barrels. Whether a split follows responsibility is left to review.
 
 ## Keeping this current
 
-Principles change rarely and on purpose. The [primitives](primitives.md) document changes whenever a public building block does. [AGENTS.md](../AGENTS.md#principles-and-primitives) gives the working rules.
-
-- **Add** a principle only for an invariant none of the existing ones covers. Significant decisions also get a record in `docs/decisions/` that names the principle.
-- **Amend** a principle through an explicit edit with a changelog line. Do not work around one in code. If a change needs to break a principle, stop and raise it.
-- **Retire** a principle by replacing its body with `Retired: <reason>; see Pn.` Its ID stays reserved.
-- When a check or test starts or stops enforcing a principle, update its **Enforced by** line. Turning convention into enforcement is the preferred way to strengthen a principle.
+Principles change rarely, and when they do the change is deliberate. When a change departs from one, the change says so. If the departure is general, rewrite the principle in the same change and add a changelog line. Record a larger decision in `docs/decisions/`. Retire a principle by replacing its body with `Retired: <reason>`; its number stays reserved.
 
 ## Changelog
 
-- 2026-10-09 — P11 and P13 for ADR 011: plugins compose through ports, and the security and assurance plugins become `site`, `network`, `audit` and `compliance`; a policy that needs a port no composed plugin provides refuses startup. P13 lists `plugins/network/test/network.test.ts` and the new host plugin tests.
-- 2026-10-08 — P11: plugins are their own layer in `plugins/*` (ADR 010), with layer rules in `check:boundaries`; `check:readmes` and `check:size` cover the new directory.
-- 2026-10-08 — Amended P11 and P13 for host plugins (ADR 010): plugins are a composition kind an application lists; the kernel is deny-by-default behind ports and the security plugin binds, guards and records; unclaimed settings refuse startup. Both list `packages/host/test/plugins.test.ts`, and P13 lists `plugins/webhook/test/webhook.test.ts`; P11 adds the host plugin-import rule in `check:boundaries`.
-- 2026-10-08 — Amended P7 to "Other systems are changed only through durable intents": a declared remote query may read another system outside any transaction, with the caller's credential, never storing what it found (ADR 009). P5 notes that remote results are point-in-time until adopted. P7 lists the remote-query, remote-source, data-provider and CRM capture tests.
-- 2026-10-08 — Added P14 (one reason to change per module; ADR 008), enforced by `bun run check:size`.
-- 2026-10-08 — P10 now lists `bun run check:readmes` (workspace READMEs agree with package exports and primitive entries).
-- 2026-10-07 — Added P13 (declared reach, site binding and a recorded, fail-closed audit trail) for the egress guard, site policy and event log; see ADR 007. P3 now lists the hardening tests.
-- 2026-10-07 — Added P12 (applications run beside the work and keep working without central systems or a model; ADR 006).
-- 2026-10-07 — Amended P11 for the starter model (ADR 005 revised): the shell is a thin starter owned by its user, the generic host and frame are framework packages, and content is resolved from configuration. P11 is now enforced (starter → content and content → starter imports fail); P1, P4–P9 name the moved tests.
-
-- 2026-10-07 — Added P11 (framework, shell and content; one application per authority, ADR 005). P8 now names the shell as domain-neutral and composes domains into an application.
-- 2026-10-07 — Replaced each principle's primitive list with what enforces it; primitives name their principles in one place.
-- 2026-10-07 — Rewritten as ten architectural invariants, each with what it rules out and the primitives it requires. Replaces the same-day drafts before anything external cited them.
-- 2026-10-07 — First draft from the implementation plan invariants, ADRs 001–004 and the pattern documents.
+- 2026-10-09 — Rewritten as guidance: each principle states its intent and why, **Checked by** names suites rather than test files, and mechanism moved to the guides and ADRs. Earlier history is in git.

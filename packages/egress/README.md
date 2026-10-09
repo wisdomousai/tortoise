@@ -10,7 +10,7 @@ Layer: framework (`packages/*`). Server only.
 - [Egress guard](../../docs/primitives.md#egress-guard): `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`.
 - [Execution host](../../docs/primitives.md#execution-host): `startEgressProxy` confines declared children to their destinations.
 
-[Security and compliance](../../docs/security-and-compliance.md) and [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) describe the model. The framework callers are plugins ([ADR 011](../../docs/decisions/011-plugins-compose-through-ports.md)): [`@agent-native/site`](../../plugins/site/README.md) loads the policy, and [`@agent-native/network`](../../plugins/network/README.md) provides the guard and proxy as the host's network port and exports the OS rules.
+[Security and compliance](../../docs/security-and-compliance.md) and [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) describe the model. The framework callers are plugins ([ADR 010](../../docs/decisions/010-host-plugins.md)): [`@agent-native/site`](../../plugins/site/README.md) loads the policy, and [`@agent-native/network`](../../plugins/network/README.md) provides the guard and proxy as the host's network port and exports the OS rules.
 
 ## Entrypoints
 
@@ -39,4 +39,4 @@ Framework: `@agent-native/contracts`. External: `zod`. Node: sockets, TLS and DN
 bun test packages/egress
 ```
 
-`test/egress.test.ts` enforces [P13](../../docs/principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does): host, port, scheme, redirect and DNS escapes refused; response caps; isolated default; binding validation; profile floors and mTLS listeners; proxy tunnels limited to declared destinations. `bun run test:isolated` runs the whole suite with a trap that fails on any non-loopback connection.
+`test/egress.test.ts` enforces [P13](../../docs/principles.md#p13--declared-reach-recorded-actions): host, port, scheme, redirect and DNS escapes refused; response caps; isolated default; binding validation; profile floors and mTLS listeners; proxy tunnels limited to declared destinations. `bun run test:isolated` runs the whole suite with a trap that fails on any non-loopback connection.

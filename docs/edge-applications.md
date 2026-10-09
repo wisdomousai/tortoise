@@ -41,7 +41,7 @@ flowchart LR
 
 **Report.** The interpreted fact is committed locally as a command: authorized, attributed to a person or agent, journaled and visible on every open screen. The command enqueues delivery to the system of record in the same transaction. The dispatcher delivers it when the connection allows, and the outcome (accepted, rejected or uncertain) is recorded as a further command. Reporting keeps working while the connection is down: the local commit succeeds, the effect stays visibly pending, and inbound sync resumes from its watermark.
 
-The loop keeps two things separate that ad hoc scripts usually merge: what was observed or done locally, and what the system of record has accepted. A receipt is not acceptance, and an exit code is not a delivery outcome ([P6](principles.md#p6--status-reports-what-is-known-not-what-is-hoped)).
+The loop keeps two things separate that ad hoc scripts usually merge: what was observed or done locally, and what the system of record has accepted. A receipt is not acceptance, and an exit code is not a delivery outcome ([P6](principles.md#p6--status-says-what-is-known)).
 
 ## Reaching control software
 
@@ -56,7 +56,7 @@ Choose the most structured route the software supports. Prefer reading to writin
 | Accessibility tree       | Windows UI Automation on Win32 or WPF applications                                 | Yes          | Through UI actions             | On-machine agent                                  | Adapter slot on `ScreenTransport`; not implemented                                                                                |
 | Screen                   | Frame capture with OCR or vision; mouse and keyboard injection                     | Yes          | Through UI actions             | On-machine, VNC/RDP, or KVM-over-IP               | Implemented with a Playwright transport against a fake HMI; no live model ([ADR 004](decisions/004-screen-mediated-authority.md)) |
 
-Every route maps onto the same ports, so replacing one route with another changes an adapter and leaves contracts, handlers and screens unchanged ([P9](principles.md#p9--every-external-dependency-sits-behind-a-port)):
+Every route maps onto the same ports, so replacing one route with another changes an adapter and leaves contracts, handlers and screens unchanged ([P9](principles.md#p9--external-dependencies-sit-behind-ports)):
 
 - **Observation** (reads that track live state) runs through `createStationObserver` and `Extractor` implementations, and enters the application through an ingest command.
 - **Inbound sync** (reads of records owned elsewhere) runs through `SystemOfRecordPort.pull`.
@@ -68,7 +68,7 @@ Writes to control software follow the rules of the [operator workstation pattern
 
 An agent harness runs on the edge host beside the application and is one of its callers. It reaches the running application through the CLI or MCP with a connection file bound to a delegated grant. The host issues that file (`serve --grant-file <file> --grant-connection <out>`), so the harness can run as another OS user without reading the owner's credential.
 
-The grant names the operations, resources, expiry and run it covers, and can only narrow the permissions of the person who started the run ([P3](principles.md#p3--authority-comes-from-trusted-context-never-from-input-and-is-enforced-at-commit)). The agent sees the same catalog as the UI. It gets no private tools and no upstream credentials; the connector holds those.
+The grant names the operations, resources, expiry and run it covers, and can only narrow the permissions of the person who started the run ([P3](principles.md#p3--authority-comes-from-trusted-context)). The agent sees the same catalog as the UI. It gets no private tools and no upstream credentials; the connector holds those.
 
 An agent at the edge typically:
 
@@ -96,7 +96,7 @@ Constraints that shape these choices:
 - **Operating system.** The desktop build targets current macOS, Windows x64 and Linux x64. An old station PC often cannot run it, which is the usual reason for an edge box.
 - **Network.** Plant networks are segmented. The edge host needs a path to the control software on one side and a permitted path to the system of record on the other. Model endpoints must be loopback or explicitly allowlisted.
 - **Connectivity.** Local commits never wait for the system of record. Pending effects are visible, and `drain` reports undelivered work.
-- **Variation.** Stations of the same type differ in software version, screen layout, scanners and procedures. These differences live in versioned, validated station and scanner profiles, checked by a golden replay before activation ([P8](principles.md#p8--specialization-is-composition-and-configuration-never-a-fork)).
+- **Variation.** Stations of the same type differ in software version, screen layout, scanners and procedures. These differences live in versioned, validated station and scanner profiles, checked by a golden replay before activation ([P8](principles.md#p8--specialize-by-composition-and-configuration)).
 - **Operators.** Stations are shared, operators wear gloves and may have no personal account. Input design is covered in [point-of-work input](point-of-work-input.md); per-operator identity at a shared station is open work.
 
 ## Status

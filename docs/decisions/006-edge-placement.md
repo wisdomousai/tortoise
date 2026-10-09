@@ -1,15 +1,20 @@
 # 006 — Applications run at the edge, beside the work
 
-Accepted: an application, its connectors and observers, and the agents that call it run on or beside the machine where the work happens. Central systems are reached only through the outbox and inbound sync (P12). The concept is described in [edge applications](../edge-applications.md).
+Accepted. Serves [P12](../principles.md#p12--applications-run-beside-the-work). The concept is described in [edge applications](../edge-applications.md).
 
-**Context.** The applications this repository targets record events at a machine and work with the software that controls it: vendor HMIs, test benches, measurement programs and line clients with lifecycles of up to 20 years. That software can often be reached through an automation interface (COM), local RPC, its files and database, a decoded network protocol, or its screen. Each route needs code on the machine or its network segment. Agent harnesses such as Codex and Claude Code also run locally and act through CLIs and stdio MCP servers. Plant networks are segmented, and the link to enterprise systems can be slow or down.
+**Context.** The target applications record work at a machine and deal with the software that controls it, often vendor software with a long lifecycle. That software is reachable through local interfaces, files, protocols or its screen, and each route needs code on or near the machine. Agent harnesses also run locally. Plant networks are segmented, and links to enterprise systems can be slow or down.
 
 **Decision.**
 
-- **Placement.** The application runs on the station PC, on an edge box beside it, or on a line host. One running application process owns each workspace (P4, P11). The Electron wrapper and the compiled CLI are the distribution forms for these hosts.
-- **Commit path.** A command commits locally and never waits for a system of record, a wider network or a model. Upstream delivery is an outbox effect (P7), its state is visible until the target answers (P6), and inbound sync resumes from its watermark.
-- **Agents.** An agent harness on the edge host is a caller of the running application. It uses the CLI or MCP with a grant-bound connection file that the host issues, so it can run as another OS user without the owner's credential. The CLI's `--embedded` mode, which runs the application inside the caller's process for sandbox images ([system-of-record reference](../system-of-record-pattern.md#topologies)), is not an edge topology, and it starts no observers.
-- **Control software.** Every route is an edge adapter behind `SystemOfRecordPort` (writes and record imports) or `Extractor` and `ScreenTransport` (observation) (P9). Structured routes are preferred to pixels, reads to writes, and vendor-supported interfaces to reverse-engineered ones. Writes are declared procedures with readback (ADR 004).
-- **Models.** Every task keeps a deterministic path that needs no inference. Perception models propose and deterministic code acts. Model and upstream endpoints are explicit configuration, loopback or allowlisted.
+- **Placement.** The application runs on the machine's PC, an edge box beside it, or a line host, and one process owns each workspace. Desktop and compiled CLI builds are the distribution forms.
+- **Commit path.** A command commits locally and never waits for a system of record, a wider network or a model. Upstream delivery is queued with visible state, and inbound sync resumes where it stopped.
+- **Agents** on the edge host are callers of the running application through the CLI or MCP, with a grant-bound connection the host issues. An agent can therefore run as another OS user without the owner's credential.
+- **Control software** is reached through edge adapters behind ports. Prefer structured routes to pixels, reads to writes, and supported interfaces to reverse-engineered ones. Writes are declared procedures with readback ([ADR 004](004-screen-mediated-authority.md)).
+- **Models** propose and deterministic code acts. Every task keeps a path that needs no inference, and model endpoints are explicit configuration.
 
-**Consequences.** A hosted multi-tenant deployment is not the default topology, and no central service reaches into a plant network to drive control software. Each edge host needs its own installation, update, identity and containment story. This repository does not yet provide fleet updates, per-operator identity at shared stations, a sandbox backend for script-executing harnesses or a credential broker. Old station PCs that cannot run the host need an edge box. Offline operation is implemented as local commit plus a queued outbox but has not been exercised on a disconnected device. COM, RPC, file and protocol adapters are not implemented; the screen route is ([ADR 004](004-screen-mediated-authority.md)).
+**Consequences.**
+
+- A hosted multi-tenant deployment is not the default. No central service drives control software inside a plant network.
+- Each edge host needs its own installation, update, identity and containment story. Fleet updates, per-operator identity at shared stations and a credential broker are not provided.
+- Old machines that cannot run the host need an edge box.
+- Offline operation means a local commit plus a queued outbox. It has not been exercised on a disconnected device.

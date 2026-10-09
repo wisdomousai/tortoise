@@ -47,4 +47,4 @@ bun test packages/operator-ui
 bun run check:registry:operator
 ```
 
-`test/primitives.test.ts` covers numeric entry and tolerance, the tap guard, key-burst filtering, and that `registry.json` and the theme stylesheet match the manifest with every import declared. `check:registry:operator` fails on registry drift ([P8](../../docs/principles.md#p8--specialization-is-composition-and-configuration-never-a-fork)). Gap: no scratch-app `shadcn add` acceptance test.
+`test/primitives.test.ts` covers numeric entry and tolerance, the tap guard, key-burst filtering, and that `registry.json` and the theme stylesheet match the manifest with every import declared. `check:registry:operator` fails on registry drift ([P8](../../docs/principles.md#p8--specialize-by-composition-and-configuration)). Gap: no scratch-app `shadcn add` acceptance test.

@@ -57,8 +57,8 @@ bun run test:harness
 
 Deterministic fixtures only; they prove adapter and protocol behavior, not provider login or inference access.
 
-- `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions, interrupted-run recovery ([P6](../../docs/principles.md#p6--status-reports-what-is-known-not-what-is-hoped)).
-- `test/adapters.test.ts`: each harness against shared fixtures; every model sees the captured selection and never the run's identity or grant ([P3](../../docs/principles.md#p3--authority-comes-from-trusted-context-never-from-input-and-is-enforced-at-commit), [P9](../../docs/principles.md#p9--every-external-dependency-sits-behind-a-port)).
+- `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions, interrupted-run recovery ([P6](../../docs/principles.md#p6--status-says-what-is-known)).
+- `test/adapters.test.ts`: each harness against shared fixtures; every model sees the captured selection and never the run's identity or grant ([P3](../../docs/principles.md#p3--authority-comes-from-trusted-context), [P9](../../docs/principles.md#p9--external-dependencies-sit-behind-ports)).
 - `test/chatgpt.test.ts`: PKCE, OIDC validation, locked-vault abort, serialized refresh and logout.
 - `test/process.test.ts`: explicit environments, JSON-RPC failure propagation, subprocess-tree cancellation.
 

@@ -49,4 +49,4 @@ bun run build:web:examples
 bun run test:e2e
 ```
 
-The frame has no unit suite of its own. `check:boundaries` builds every example's screens through the starter's real Vite config ([P11](../../docs/principles.md#p11--framework-starter-and-content-are-separate-layers-and-an-authority-runs-one-application)); the Playwright specs in `examples/*/e2e` drive the frame in Chromium, including live updates and draft conflicts ([P5](../../docs/principles.md#p5--every-committed-change-reaches-every-authorized-view-whatever-its-origin)).
+The frame has no unit suite of its own. `check:boundaries` builds every example's screens through the starter's real Vite config ([P11](../../docs/principles.md#p11--layers-depend-inward-and-an-authority-runs-one-application)); the Playwright specs in `examples/*/e2e` drive the frame in Chromium, including live updates and draft conflicts ([P5](../../docs/principles.md#p5--committed-changes-reach-every-authorized-view)).

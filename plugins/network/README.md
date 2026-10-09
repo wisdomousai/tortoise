@@ -10,7 +10,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Execution host](../../docs/primitives.md#execution-host): `networkRules`, `exportRules`, `exportFormats`, `networkCommand`, `networkCliCommand`, `networkUsage`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `networkPlugin` requires `site`. It is written only against `@agent-native/host/plugin` and reads the event-log port through the composed ports.
 
-[ADR 011](../../docs/decisions/011-plugins-compose-through-ports.md) records why network and audit reach each other only through ports. [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) records the controls, and [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
+[ADR 010](../../docs/decisions/010-host-plugins.md) records why network and audit reach each other only through ports. [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) records the controls, and [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
 
 ## Entrypoints
 
@@ -54,7 +54,7 @@ UPDATE_GOLDEN=1 bun test plugins/network   # after an intended exporter change; 
 bun test plugins/webhook examples/project-tasks/test/security.test.ts examples/project-tasks/test/hardening.test.ts
 ```
 
-`test/network.test.ts` covers [P13](../../docs/principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does):
+`test/network.test.ts` covers [P13](../../docs/principles.md#p13--declared-reach-recorded-actions):
 
 - rule exports against golden files in `test/golden`;
 - the guard recording into an event log composed after it;

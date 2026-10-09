@@ -33,4 +33,4 @@ Framework: `@agent-native/contracts`. Uses the global `fetch` unless one is inje
 bun test packages/client
 ```
 
-`src/client.test.ts` enforces [P5](../../docs/principles.md#p5--every-committed-change-reaches-every-authorized-view-whatever-its-origin): the snapshot cursor closes the subscription race, a revocation reset clears data behind a pending refresh, unsubscribe stops late responses, an older failure cannot erase a newer snapshot, and HTTP errors keep caller-safe field details.
+`src/client.test.ts` enforces [P5](../../docs/principles.md#p5--committed-changes-reach-every-authorized-view): the snapshot cursor closes the subscription race, a revocation reset clears data behind a pending refresh, unsubscribe stops late responses, an older failure cannot erase a newer snapshot, and HTTP errors keep caller-safe field details.

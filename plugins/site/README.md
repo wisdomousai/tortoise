@@ -9,7 +9,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Site policy](../../docs/primitives.md#site-policy): `sitePlugin`, `sitePluginManifest`, `openSite`, `siteServiceOf`, `SiteService`, `assertIdentity`, `portsNeeded`, `sitePolicyFor`, `policyErrors`, `siteCommand`, `siteCliCommand`, `siteUsage`, `POLICY_REJECTED_EXIT_CODE`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `sitePlugin` is written only against `@agent-native/host/plugin`. It provides the `identity` port and declares the ports its policy `needs`.
 
-[ADR 011](../../docs/decisions/011-plugins-compose-through-ports.md) records how plugins use each other through ports and declare the ports they need. [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
+[ADR 010](../../docs/decisions/010-host-plugins.md) records how plugins use each other through ports and declare the ports they need. [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
 
 ## Entrypoints
 
@@ -62,4 +62,4 @@ bun test plugins/network
 bun test apps/desktop/test/site-policy.test.ts
 ```
 
-The plugin is exercised through applications that compose it, because a policy only means something against a catalog with declared destinations ([P13](../../docs/principles.md#p13--the-application-reaches-only-what-it-declares-and-the-site-binds-and-records-what-it-does)). The project-tasks suites cover isolated defaults, profile floors, identity and mTLS. The network suite shows a connected policy refused without the network plugin. The desktop test covers the shipped site policy.
+The plugin is exercised through applications that compose it, because a policy only means something against a catalog with declared destinations ([P13](../../docs/principles.md#p13--declared-reach-recorded-actions)). The project-tasks suites cover isolated defaults, profile floors, identity and mTLS. The network suite shows a connected policy refused without the network plugin. The desktop test covers the shipped site policy.

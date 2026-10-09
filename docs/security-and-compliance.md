@@ -2,7 +2,7 @@
 
 This guide is for teams that must admit the application into a restricted network. It covers what the app may reach, how that is enforced, how every action is recorded, and how an auditor checks all of it, both before deployment and while the app runs. The design decision is recorded in [ADR 007](decisions/007-declared-egress-and-audit-log.md).
 
-All of this is provided by four [host plugins](primitives.md#host-plugin) the application composes, one per concern ([ADR 010](decisions/010-host-plugins.md), [ADR 011](decisions/011-plugins-compose-through-ports.md)):
+All of this is provided by four [host plugins](primitives.md#host-plugin) the application composes, one per concern ([ADR 010](decisions/010-host-plugins.md)):
 
 | Plugin                     | Owns                                                                                                     | Kernel ports         | CLI                 |
 | -------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------- | ------------------- |

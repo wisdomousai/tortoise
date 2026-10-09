@@ -199,25 +199,26 @@ The same port covers an ERP API, a file drop and control software reached throug
 
 An agent reaches the application through MCP or the CLI under a delegated grant: a subset of operations and resources, optionally bound to a run and an expiry. A grant only narrows the initiating principal's permissions. The supervisor in `packages/agents` starts runs, restricts their tools to catalog operations, and records run state separately from commits; streamed text is not a commit. Provider credentials grant no workspace access. Perception models (OCR, vision) sit behind ports and only propose readings; deterministic code validates them and acts. See [agents at the edge](edge-applications.md#agents-at-the-edge) and [agent harnesses](agent-harnesses.md).
 
-## Rules
+## Principles
 
-Summaries of the [principles](principles.md). Each principle there lists what it rules out and which checks and tests enforce it.
+The [principles](principles.md) are guidance: each gives its intent, why it matters and which suites check it.
 
-| ID  | Rule                                                                                                           |
-| --- | -------------------------------------------------------------------------------------------------------------- |
-| P1  | Every operation runs on UI, MCP, CLI and API through one handler; a missing surface is declared                |
-| P2  | All tools, schemas and docs are generated from the catalog; contracts import no handlers or SDKs               |
-| P3  | Identity and grants come from the host; authorization is rechecked inside the transaction and at commit        |
-| P4  | All writes are commands to the workspace's single authority; no I/O inside a transaction                       |
-| P5  | Every commit reaches every authorized view through the journal; drafts are kept and conflict explicitly        |
-| P6  | Receipt, dispatch, acceptance, rejection and uncertainty are separate states                                   |
-| P7  | Other systems are changed only through outbox effects; declared remote queries read them live, storing nothing |
-| P8  | Per-site differences are versioned configuration; domain code stays out of the framework and starter           |
-| P9  | Storage, policy, identity, harness, inference, connectors, perception and devices sit behind ports             |
-| P10 | Deterministic, browser, native, device and live-provider evidence are recorded separately                      |
-| P11 | Framework, starter and content are separate layers; one application per authority, selected by configuration   |
-| P12 | Applications run beside the work; commits never wait for a system of record, a wider network or a model        |
-| P13 | The application reaches only what it declares and the site binds, and records what it does                     |
+| ID  | Principle                                                                                                  |
+| --- | ---------------------------------------------------------------------------------------------------------- |
+| P1  | Every operation is reachable from every surface, through one handler                                       |
+| P2  | The catalog describes the application; every surface and reference artifact is generated from it           |
+| P3  | Authority comes from trusted context and is checked again where it takes effect                            |
+| P4  | Each workspace has one writer; a command commits atomically                                                |
+| P5  | Committed changes reach every authorized view, whatever their origin                                       |
+| P6  | Status says what is known: receipt, dispatch, acceptance, rejection and uncertainty differ                 |
+| P7  | Other systems change only through durable intents; remote reads store nothing                              |
+| P8  | Specialize by composition and configuration, not by forking                                                |
+| P9  | External dependencies sit behind ports                                                                     |
+| P10 | Claims follow evidence, recorded by kind                                                                   |
+| P11 | Layers depend inward, and an authority runs one application                                                |
+| P12 | Applications run beside the work; commits never wait for a system of record, a wider network or a model    |
+| P13 | Declared reach, recorded actions: the application reaches what it declares and the site binds, and logs it |
+| P14 | One reason to change per module                                                                            |
 
 ## Examples
 
