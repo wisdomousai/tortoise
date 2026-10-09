@@ -1,6 +1,6 @@
 import { createHttpTransport } from '@agent-native/client';
 import { ApplicationError, errorEnvelope, type ErrorCode } from '@agent-native/contracts';
-import { operationInput, parseJson, resolveOperation, takeFlag, usageError } from './cli/args';
+import { operationInput, resolveOperation, takeFlag, usageError } from './cli/args';
 import { readConnection } from './cli/connection';
 import { execute, validateOnly } from './cli/execute';
 import { formatText } from './cli/format';
@@ -71,17 +71,6 @@ export async function runCli(
     return words.length ? resolveOperation(catalog, words) : catalog;
   }
   if (verb === 'workflows') return workflows(catalog, args[1]);
-  if (verb === 'call') {
-    // Original positional form, kept for scripts written against earlier releases.
-    const [, id, text, ...flags] = args;
-    const definition = catalog.operations.find((item) => item.id === id);
-    if (!definition) throw usageError('Unknown operation; use list');
-    const key = takeFlag(flags, 'key');
-    const revisions = takeFlag(flags, 'revisions');
-    if (flags.length) throw usageError('Unknown CLI flag');
-    return execute(client, definition, parseJson(text ?? '{}', 'Input'), key, revisions);
-  }
-
   const words: string[] = [];
   while (args.length && !args[0]!.startsWith('--')) words.push(args.shift()!);
   const operation = resolveOperation(catalog, words);

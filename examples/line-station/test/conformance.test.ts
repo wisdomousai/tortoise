@@ -76,7 +76,7 @@ test('a station observed through its screen reads the same on every transport; l
       operatorSession.context,
     );
     const http = await operator.query('line.station.get', input);
-    const commandLine = await cli(['call', 'line.station.get', JSON.stringify(input)]);
+    const commandLine = await cli(['line.station.get', '--json', JSON.stringify(input)]);
     const mcp = decode(
       await operatorMcp.callTool({ name: 'line_station_get', arguments: { input } }),
     );

@@ -80,7 +80,7 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
       viewerSession.context,
     );
     const http = await viewer.query('task.list', { limit: 1 });
-    const commandLine = await cli(viewerFile, ['call', 'task.list', '{"limit":1}']);
+    const commandLine = await cli(viewerFile, ['task.list', '--json', '{"limit":1}']);
     const mcp = decode(
       await viewerMcp.callTool({ name: 'task_list', arguments: { input: { limit: 1 } } }),
     );
@@ -101,8 +101,8 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
       viewer.command('task.update', deniedInput, { idempotencyKey: 'http-denied' }),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     const deniedCli = await cli(viewerFile, [
-      'call',
       'task.update',
+      '--json',
       JSON.stringify(deniedInput),
       '--key',
       'cli-denied',
@@ -122,8 +122,8 @@ test('direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors
       expectedRevisions: revisions,
     });
     const retryCli = await cli(host.connectionFile!, [
-      'call',
       'task.update',
+      '--json',
       JSON.stringify(input),
       '--key',
       'shared-key',

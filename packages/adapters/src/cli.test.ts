@@ -124,9 +124,9 @@ describe('catalog command line', () => {
         options: { idempotencyKey: 'k-1', expectedRevisions: { 'lot:L1': 3 } },
       },
     ]);
-    // The dotted identifier and the legacy positional form reach the same operation.
+    // The dotted identifier with flags or with --json reaches the same operation.
     await runCli(['qa.lot.list', '--status', 'open'], client);
-    await runCli(['call', 'qa.lot.list', '{"status":"closed"}'], client);
+    await runCli(['qa.lot.list', '--json', '{"status":"closed"}'], client);
     expect(calls.slice(1).map((call) => call.input)).toEqual([
       { status: 'open' },
       { status: 'closed' },

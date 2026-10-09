@@ -85,8 +85,8 @@ test('a datapoint captured over any transport commits once, is forwarded once an
     );
     const http = await inspector.query('inspection.worklist', worklistInput);
     const commandLine = await cli(inspectorFile, [
-      'call',
       'inspection.worklist',
+      '--json',
       JSON.stringify(worklistInput),
     ]);
     const mcp = decode(
@@ -120,8 +120,8 @@ test('a datapoint captured over any transport commits once, is forwarded once an
       viewer.command('inspection.result.record', input, { idempotencyKey: 'viewer-http' }),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     const deniedCli = await cli(viewerFile, [
-      'call',
       'inspection.result.record',
+      '--json',
       JSON.stringify(input),
       '--key',
       'viewer-cli',
@@ -148,8 +148,8 @@ test('a datapoint captured over any transport commits once, is forwarded once an
       idempotencyKey: 'capture-1',
     });
     const retryCli = await cli(inspectorFile, [
-      'call',
       'inspection.result.record',
+      '--json',
       JSON.stringify(input),
       '--key',
       'capture-1',

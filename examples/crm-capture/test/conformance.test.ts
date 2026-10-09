@@ -50,7 +50,7 @@ test('one provider answers the screen, HTTP, the CLI and MCP with the same resul
       { workspaceId: 'local', principalId: 'owner' },
     );
     const http = await owner.query('crm.account.search', input);
-    const commandLine = await cli(['call', 'crm.account.search', JSON.stringify(input)]);
+    const commandLine = await cli(['crm.account.search', '--json', JSON.stringify(input)]);
     const tool = decode(await mcp.callTool({ name: 'crm_account_search', arguments: { input } }));
     const expected = withoutFetchTime(direct.data as never);
     expect(expected.items).toHaveLength(2);

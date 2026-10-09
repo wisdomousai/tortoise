@@ -54,7 +54,7 @@ export function overview(catalog: Catalog, program: string): CliText {
       ...rows.map(([words, text]) => `  ${words!.padEnd(width)}${firstSentence(text!)}`),
       '',
       `Run "${program} help <command>" for flags. Other verbs: list, schema [command],`,
-      'workflows [id], call <operation> <json> [--key key] [--revisions json].',
+      'workflows [id]. Commands also take --key key and --revisions json.',
       'Exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict,',
       '6 idempotency conflict, 7 cancelled, 8 unavailable, 1 internal.',
     ].join('\n'),
