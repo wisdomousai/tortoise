@@ -10,7 +10,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Execution host](../../docs/primitives.md#execution-host): `networkRules`, `exportRules`, `exportFormats`, `networkCommand`, `networkCliCommand`, `networkUsage`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `networkPlugin` requires `site`. It is written only against `@agent-native/host/plugin` and reads the event-log port through the composed ports.
 
-[ADR 011](../../docs/decisions/011-plugins-by-port.md) records the split. [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) records the controls, and [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
+[ADR 011](../../docs/decisions/011-plugins-compose-through-ports.md) records why network and audit reach each other only through ports. [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) records the controls, and [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
 
 ## Entrypoints
 

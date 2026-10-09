@@ -10,7 +10,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `c
 - [Host plugin](../../docs/primitives.md#host-plugin): `compliancePlugin` requires `site` and `audit` and reads their services. It is written only against `@agent-native/host/plugin`.
 - [UI registry](../../docs/primitives.md#ui-registry): `compliance-screen`, the plugin's own shadcn registry in [`registry.json`](registry.json).
 
-[Security and compliance](../../docs/security-and-compliance.md) describes the bundle, and [ADR 011](../../docs/decisions/011-plugins-by-port.md) records why it is its own plugin. Generated output for each application is under `docs/reference/<id>/`, and the control mapping is [`docs/reference/controls.md`](../../docs/reference/controls.md). Firewall and orchestrator rule exports belong to the [network plugin](../network/README.md).
+[Security and compliance](../../docs/security-and-compliance.md) describes the bundle. Generated output for each application is under `docs/reference/<id>/`, and the control mapping is [`docs/reference/controls.md`](../../docs/reference/controls.md). Firewall and orchestrator rule exports belong to the [network plugin](../network/README.md).
 
 ## Entrypoints
 

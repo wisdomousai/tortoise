@@ -9,7 +9,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Event log](../../docs/primitives.md#event-log): `auditPlugin`, `auditPluginManifest`, `auditCollectorComponent`, `openAudit`, `auditServiceOf`, `AuditService`, `auditCommand`, `auditCliCommand`, `auditUsage`, `AUDIT_INVALID_EXIT_CODE`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `auditPlugin` requires `site`. It is written only against `@agent-native/host/plugin` and reaches its collector through the composed network port.
 
-[ADR 011](../../docs/decisions/011-plugins-by-port.md) records the split. [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) records the controls, and [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
+[ADR 011](../../docs/decisions/011-plugins-compose-through-ports.md) records why audit and network reach each other only through ports. [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) records the controls, and [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
 
 ## Entrypoints
 

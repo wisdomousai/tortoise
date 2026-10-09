@@ -10,7 +10,7 @@ Layer: framework (`packages/*`). Server only.
 - [Egress guard](../../docs/primitives.md#egress-guard): `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`.
 - [Execution host](../../docs/primitives.md#execution-host): `startEgressProxy` confines declared children to their destinations.
 
-[Security and compliance](../../docs/security-and-compliance.md) and [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) describe the model. The framework callers are plugins ([ADR 011](../../docs/decisions/011-plugins-by-port.md)): [`@agent-native/site`](../../plugins/site/README.md) loads the policy, and [`@agent-native/network`](../../plugins/network/README.md) provides the guard and proxy as the host's network port and exports the OS rules.
+[Security and compliance](../../docs/security-and-compliance.md) and [ADR 007](../../docs/decisions/007-declared-egress-and-audit-log.md) describe the model. The framework callers are plugins ([ADR 011](../../docs/decisions/011-plugins-compose-through-ports.md)): [`@agent-native/site`](../../plugins/site/README.md) loads the policy, and [`@agent-native/network`](../../plugins/network/README.md) provides the guard and proxy as the host's network port and exports the OS rules.
 
 ## Entrypoints
 
