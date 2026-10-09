@@ -1,8 +1,10 @@
 # Author a capability
 
-Capability authoring connects one domain behavior to the catalog and runtime. The worked reference is `examples/project-tasks/contracts.ts`, `server.ts`, `policy.ts` and `domain.test.ts`; start there when changing the example.
+A capability connects one domain behavior to the catalog and runtime. The `project-tasks` example is the worked reference: its contracts, server, policy and domain tests.
 
-Define the browser-safe contract with a stable ID and explicit schemas:
+## 1. Define the contract
+
+The contract is browser-safe data with a stable ID and explicit schemas:
 
 ```ts
 import { z } from 'zod';
@@ -19,7 +21,9 @@ export const rename = defineCapability({
 export const notes = defineModule({ id: 'notes', capabilities: [rename] });
 ```
 
-Keep the executable implementation in a server entrypoint. Bind its types without widening IDs or casting handler arguments:
+## 2. Implement the handler
+
+The handler lives in a server entrypoint and is typed by its capability:
 
 ```ts
 import { createHandlerFactory } from '@agent-native/runtime';
@@ -29,7 +33,7 @@ import { rename } from './contracts';
 type State = { notes: Record<string, { id: string; title: string }> };
 const handler = createHandlerFactory<State, {}>();
 export const renameHandler = handler(rename, (input, ctx) => {
-  // Dictionary IDs are untrusted; inherited properties are never domain records.
+  // IDs are untrusted input; inherited properties are never records.
   const note = Object.hasOwn(ctx.state.notes, input.id) ? ctx.state.notes[input.id] : undefined;
   if (!note) throw new ApplicationError('NOT_FOUND', 'Note unavailable');
   note.title = input.title;
@@ -38,22 +42,28 @@ export const renameHandler = handler(rename, (input, ctx) => {
 });
 ```
 
-For safe domain errors use `ApplicationError` with caller-safe details. The example state representation is a feature choice. Production features may wrap transaction-bound state in their own repositories and inject domain services through `services`; the kernel requires no universal business-record table. Memory storage supports cloneable feature state. The reference SQLite snapshot adapter stores JSON-compatible state, and is replaceable behind `Storage<State>`.
+How state is represented is up to the feature. It can wrap transaction-bound state in its own repositories and receive domain services through `services`. The kernel needs no universal record table.
 
-Add the module to the application's `manifest.ts` and the handler to its `application.ts` (`defineApplication({ manifest, createState, handlers: [renameHandler], authorization })`); the host composes the runtime from that definition, so no host or starter file changes. Tests and other embedders compose the same thing directly with `createApplication({ modules: [notes], handlers: [renameHandler], storage, authorization, services: {} })`. Supply a trusted execution context from the identity/session adapter. The authorization port must check operation, actual resource, current/proposed fields and resource-grant scope; list queries scope before pagination/counting. The runtime rechecks authorization and cancellation before committing, validates the authorized output DTO, then atomically persists state, revisions, receipt and journal. Call `ctx.invalidateAuthorization()` for policy changes or declare an `authorization.changed` resource event. Persistent run revocation belongs in the host authorization check; an abort signal cancels current work but does not undo committed commands.
+- **Declare every change.** Each state change is declared with `ctx.change`, and an undeclared change fails. Use expected revisions for updates that depend on what the caller saw.
+- **No network calls inside a transaction.** Work that needs another system either happens before the command, as an authorized read or computation, or after it as a durable intent. Use `ctx.enqueue` on a changed resource, let the dispatcher deliver it, and record the outcome with a settle command under the integration principal ([task/workflow pattern](task-workflow-pattern.md)). Declare the outbox integration on the capability, so the generated docs say that a receipt is not acceptance. The `quality-inspection` example shows the full loop.
+- **Errors.** Use `ApplicationError` with details that are safe to show the caller.
 
-Every feature-state mutation declares its changed resources through `ctx.change`; undeclared mutations fail instead of producing invisible writes. Use request `expectedRevisions` for updates based on observed state. UI drafts remain separate from committed queries, and conflicts require reconciliation. Do not call a provider or network service while a transaction is held. External preparation may perform authorized reads or computation before a command; it must not make an unaudited business write before command authorization. For external business effects, use the [durable intent and outcome pattern](task-workflow-pattern.md): call `ctx.enqueue({ target, type, payload, resource })` on a declared changed resource, let the `packages/integration` dispatcher deliver it outside the transaction, and record the outcome in a domain settle command that calls `ctx.settleEffect` under the integration principal. Declare `integration: { target, delivery: 'outbox' }` on the capability so generated docs and MCP annotations state that a receipt is not acceptance. `examples/quality-inspection/server.ts` is the worked reference.
+## 3. Compose it
 
-Declare what the module needs outside the process on the module itself:
+Add the module to the application's manifest and the handler to its application definition. The host builds the runtime from that definition, so no host or starter file changes. Tests compose the same definition directly.
 
-- `requirements.network`: destinations, with purpose, scope, protocol, data classes, availability and offline behavior;
-- `requirements.devices`;
-- `requirements.processes`.
+Policy decides operation, resource, current and proposed fields, and grant scope, and list queries are scoped before paging. The runtime rechecks authorization and cancellation before commit, validates the projected output, and persists everything atomically. A policy change either calls `ctx.invalidateAuthorization()` or declares an authorization event. See [authorization](authorization.md).
 
-The catalog build rejects an outbox target that no destination carries. Its destination must declare `offline: 'queue'`. Mark input fields that are safe to record in plain text with `audit: { fields: [...] }`; everything else is logged as a digest. Server code never calls `fetch` or opens sockets directly. Connectors receive a fetch from the egress guard, and `check:boundaries` enforces this. After `bun run generate`, review the change in your application's `docs/reference/<id>/security-manifest.json` and `data-flows.md`. See [security-and-compliance.md](security-and-compliance.md).
+Protected output fields are optional or modeled as explicit view variants, so a projected result still validates. A replayed receipt is projected again under current access.
 
-Protected output fields must be optional or represented through explicit public view variants. `projectOutput` filters by current permissions, and the final DTO must validate against the output schema. Removing a required field fails and rolls back the command. Replayed receipts are projected again under current access.
+## 4. Declare what it reaches
 
-Add the React action/live query against the typed client, with a matching UI binding declaration. TanStack-based screens use `live.liveQueryOptions(capability, input)` and `useCapabilityForm(transport, capability, …)`, which reuses one idempotency key per form until it commits. The runtime catalog verifies declaration coverage; actual binding and rendering need UI checks. Add workflow text referencing canonical IDs when agent users need a sequence, and document intentional headless exceptions. MCP/API/CLI handlers must dispatch through the runtime rather than reimplementing behavior.
+A module declares its network destinations, devices and child processes, each with purpose, data classes, availability and offline behavior. An outbox target needs a destination that queues while offline. Input fields that are safe to record in plain text are listed for the audit log, and everything else is recorded as a digest. Server code reaches the network only through the egress guard. After `bun run generate`, review the change in the application's generated security manifest and data flows ([security and compliance](security-and-compliance.md)).
 
-Add a reusable behavioral scenario for allowed behavior, denied access, stale revisions/idempotency and committed change visibility. Run it through the direct driver and applicable transports. Then run focused tests, `bun run typecheck`, `bun run generate`, `bun run check:generated` and `bun run check:boundaries`. Verify browser/native behavior separately and record those results accurately.
+## 5. Bind it to a screen
+
+Use the typed client with a matching UI binding. The React bindings provide live query options and a capability form that keeps one idempotency key until the command commits. The catalog checks that bindings are declared, but whether they actually render needs a UI test. Add workflow text when agents need a sequence of operations, and declare any surface that intentionally lacks the operation.
+
+## 6. Prove it
+
+Write a behavioral scenario that covers allowed and denied access, stale revisions, idempotency and visible changes, and run it through the direct driver and each transport. Then run the checks in [development and testing](development-and-testing.md). Record browser and native results separately.

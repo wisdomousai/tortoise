@@ -1,19 +1,35 @@
 # State, concurrency and reactivity
 
-Commands mutate authoritative feature state. Queries are side-effect-free reads. Both go through the same runtime, trusted context and current authorization. The reference design keeps query models synchronously derived from local transactional state; it has no asynchronous local projection lag. System-of-record integration introduces upstream freshness and delivery state separately. Outbox effects commit with their command; acknowledgements and imported changes enter through settle and sync commands, so subscribed clients update through the same journal. Delivery attempts journal an `effect.attempted` event without changing the resource revision. The runtime does not observe remote data changes on its own; inbound sync must pull them. See the [task/workflow pattern](task-workflow-pattern.md).
+Commands change authoritative state and queries read it. Both pass through the same runtime, trusted context and current authorization. Query results are derived synchronously from local state, so there is no local projection lag. Freshness of other systems is a separate concern. Outbox effects commit with their command, and acknowledgements and imported changes come back as commands, so subscribed views update through the same journal ([task/workflow pattern](task-workflow-pattern.md)).
 
-A command validates JSON input and execution/grant context, then enters the workspace transaction. It checks current authorization and supplied expected resource revisions. The handler mutates feature state and declares affected references with `ctx.change`. The runtime projects/validates the visible output, rechecks authorization and cancellation, assigns resource revisions and ordered journal cursors, and stores an idempotency receipt in the same commit. A schema failure, conflict, denied commit or cancellation rolls back all of these changes. Changed state without a resource or authorization invalidation declaration fails instead of silently bypassing reactive delivery.
+## A command, step by step
 
-Idempotency keys are scoped to workspace and principal. The canonical fingerprint includes operation, validated input, expected revisions, application contract version and run/grant context. Matching retries return the stored committed result only after current access and output projection checks. A different fingerprint conflicts. The HTTP adapter requires keys; direct core invocation permits omission. Optimistic concurrency is explicit through `expectedRevisions`, not automatically inferred for every command. Two callers using the same observed revision cannot both overwrite it successfully.
+1. Validate input, execution context and grant.
+2. In the workspace transaction, check current authorization and any expected revisions.
+3. Run the handler, which changes state and declares what it changed.
+4. Project and validate the output, then recheck authorization and cancellation.
+5. Assign revisions and journal cursors, store the idempotency receipt, and commit.
 
-Memory transactions use isolated clone-on-write snapshots and serialize operations per workspace. The SQLite adapter stores the feature JSON and framework metadata in one versioned document, under SQLite transactions. A crash after commit but before notification preserves both receipt and journal for subsequent discovery. These adapters are a reference for small local workspaces; the snapshot representation is not a large-dataset projection/indexing system. The journal currently has no retention/pruning mechanism.
+Any failure along the way rolls everything back. A handler that changes state without declaring a changed resource fails, so no change can bypass live delivery.
 
-Queries return data and the journal cursor from one read snapshot. The core rejects query state mutation. The HTTP adapter wraps numeric cursors in opaque session-bound encrypted strings; clients must not inspect, order or synthesize them. A subscription starts from the query's cursor to close the snapshot/subscription race. Unknown/restart cursors cause reset, and retained journal entries support reconnect replay. Large batches also reset to a fresh query instead of growing an unbounded transport frame.
+Optimistic concurrency is opt-in through expected revisions. Two callers holding the same revision cannot both overwrite it. Idempotency is described in the [interaction contract](interaction-contract.md#versions-and-idempotency).
 
-Event payloads contain minimal resource/type/revision/operation references rather than record snapshots. Current policy scopes delivery. The service uses `deliverEvents` to enqueue synchronously under the read boundary, excluding local permission changes until that enqueue finishes. Permission changes increment authorization revision; SSE emits a generic reset without protected identifiers, and clients clear cached views before re-querying. Client state must remain scoped to one authority/principal/grant; it is never a shared cache across authenticated sessions.
+## Storage adapters
 
-`LiveQuery` starts from a query snapshot and follows SSE. It re-queries on committed changes, so create/delete and filter-membership updates are covered. A generation counter and authorization revision prevent an older response from replacing a newer/reset view. Reconnect obtains a new snapshot. `LiveQuery` invalidates conservatively. The TanStack bindings in `@agent-native/react/query` invalidate only queries whose catalog `dependencies` include a changed resource type, coalesce refetches, reset every query on an authorization-revision increase and fence responses that started before it. Command UI uses confirmed results and local pending state rather than generic optimistic writes.
+The memory adapter uses clone-on-write snapshots and serializes per workspace. The SQLite adapter stores state and metadata as one versioned document. A crash after commit but before notification keeps both the receipt and the journal entry. These adapters suit small local workspaces. The snapshot is not an indexing system, and the journal is not yet pruned.
 
-Keep editor drafts in separate React state. External updates may refresh the committed backing record while the draft remains intact; saving uses the draft's observed revision and shows a conflict when it changed. Do not overwrite unsaved input merely because a live query updated. Session-local UI context captures explicit selected IDs and observed revisions; an agent run must retain its captured target rather than follow later selection changes. UI intent acknowledgement is ephemeral and separate from durable journal events.
+## Queries and live views
 
-Cancellation aborts future work and is checked before commit; it does not undo completed commands. The host/run supervisor must revoke persisted run authority and supply the active signal/policy decision for delayed tool calls. Restart marks unsettled runs interrupted instead of silently replaying model turns. Provider streaming completion, run completion and committed domain changes remain distinct evidence.
+A query returns data and the journal cursor from one snapshot, and cannot mutate state. A subscription starts at that cursor, so nothing is missed between the read and the subscribe. An unknown cursor, a restart or a very large backlog resets the view to a fresh query.
+
+Events carry minimal references (resource, type, revision and operation), never record contents, and delivery follows current policy. A permission change increments the authorization revision. The stream then sends a generic reset, and clients clear cached views before querying again. Client caches belong to one authority, principal and grant, and are never shared across sessions.
+
+The React bindings refetch only queries whose declared dependencies include a changed resource type, coalesce refetches, reset everything when authorization changes, and ignore responses that started before a reset. Commands show confirmed results and local pending state, not generic optimistic writes.
+
+## Drafts and selections
+
+Keep drafts in separate component state. A live update refreshes the record underneath, and the draft stays intact. Saving uses the revision the draft started from and shows a conflict if the record has changed since. A UI session context captures selected IDs and their revisions, and an agent run keeps the target it captured rather than following later selection changes.
+
+## Cancellation
+
+Cancellation stops future work and is checked before commit. It does not undo committed commands. Revoking a run revokes its authority for tool calls still in flight. After a restart, unsettled runs are marked interrupted rather than replayed. A finished stream, a finished run and a committed change are three different facts ([P6](principles.md#p6--status-says-what-is-known)).

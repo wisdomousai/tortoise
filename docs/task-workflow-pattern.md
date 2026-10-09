@@ -1,22 +1,22 @@
 # Task and workflow applications over systems of record
 
-This architecture is intended for bounded applications at the point where work happens. A warehouse receiving station, a field inspection or a customer handover needs an interface fitted to that task. The system of record continues to own shared business records and enterprise invariants. A task application provides the interaction, captures the event and coordinates its acceptance into those records. Where the work happens at a machine and its control software, the application runs at the edge beside it; [edge applications](edge-applications.md) covers that deployment.
+This architecture is for bounded applications at the point where work happens: a receiving station, a field inspection, a customer handover. Each needs an interface fitted to its task. The system of record keeps owning shared records and enterprise rules. The task application provides the interaction, captures the event and coordinates its acceptance into those records. When the work happens at a machine, the application runs beside it ([edge applications](edge-applications.md)).
 
-The design hypothesis is that a common host, interaction contract and delivery process can make specialized interfaces economical to build and operate. AI-assisted development can reduce implementation effort; measured task savings must still cover integration, validation, operation and change. The framework should make that hypothesis testable.
+The hypothesis is that a shared host, interaction contract and delivery process make specialized interfaces cheap enough to build and run. AI-assisted development lowers the build effort, but measured savings still have to cover integration, validation, operation and change. The framework aims to make that testable.
 
-The current code proves the shared local capability/runtime pattern through a project/task example and a quality-inspection capture workflow over a deterministic mock system of record, with a transactional outbox, inbound sync and sandbox-oriented CLI/MCP surfaces; see the [system-of-record reference](system-of-record-pattern.md). The [operator workstation pattern](operator-workstation-pattern.md) applies the same boundaries to station software reachable only through its screen; its held effects are a first, person-resolved form of reconciliation. General reconciliation of uncertain outcomes, executable-code containment and fleet updates remain proposed extensions. See the [reference implementation plan](system-of-record-reference-plan.md) for their acceptance gates.
+What exists today is the local runtime pattern (the `project-tasks` example) and a quality-inspection capture workflow over a mock system of record, with an outbox, inbound sync and sandbox-ready CLI and MCP ([system-of-record pattern](system-of-record-pattern.md)). The [operator workstation pattern](operator-workstation-pattern.md) applies the same boundaries to station software that has only a screen. Its held effects are a first, person-resolved form of reconciliation. General reconciliation, containment of executable code and fleet updates are proposed ([reference plan](system-of-record-reference-plan.md)).
 
-## Why the unit is a task or workflow
+## Why the unit is a task
 
-A general record-management interface has to support many objects, roles and exceptional paths. A task interface can constrain the relevant object, sequence, evidence and allowed outcomes much more tightly. Its design starts with the real event: what the worker or agent knows at that moment, what can be observed reliably, and what must become an attributable business fact.
+A general record-management interface has to support many objects, roles and exceptions. A task interface can constrain the object, sequence, evidence and outcomes much more tightly. Its design starts from the real event: what the worker or agent knows at that moment, what can be observed reliably, and what has to become an attributable business fact.
 
-For example, a receiving worker scans a delivery, confirms the counted quantity and records damaged packaging. The screen can keep the delivery in context, support repeated scans and require evidence only for the relevant exception. An agent processing a machine observation invokes the same recording capability with the same validation and permission rules. Either can ask the other to resolve ambiguity before submitting.
+A receiving worker scans a delivery, confirms the counted quantity and records damaged packaging. The screen keeps the delivery in context, supports repeated scans and asks for evidence only where there is an exception. An agent that processes a machine observation calls the same capability, with the same validation and permissions. Either can hand ambiguity to the other.
 
-Parity means equivalent business meaning, authorization and observable outcomes. It does not require identical interaction: scanner input, a large confirmation button and an agent's structured tool arguments can all submit the same command. Deterministic input paths should remain available without a model turn. Use a harness where interpretation, coordination or exception handling improves the task.
+Parity means the same business meaning, authorization and outcome, not identical interaction. A scan, a large button and an agent's tool call can all submit the same command. Keep a deterministic path that needs no model, and use a harness where interpretation, coordination or exception handling helps.
 
-Keep the boundary small enough to name its trigger, inputs, decisions, completion condition and exception owner. A workflow may span several systems or human/agent turns without becoming a general replacement for those systems. Multiple related workflows can share one package and host; every task does not need its own application installation.
+Keep the boundary small enough to name its trigger, inputs, decisions, completion and exception owner. A workflow may span systems and turns without becoming a replacement for them, and related workflows can share one package and host.
 
-## Separate interaction, execution and record ownership
+## Who owns what
 
 ```mermaid
 flowchart TB
@@ -39,91 +39,84 @@ flowchart TB
   Reconcile --> Authority
 ```
 
-| Responsibility                                                          | Owner                                                                                                      |
-| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Durable enterprise objects and business rules                           | The relevant system of record; identify its authority per object and field.                                |
-| Task interaction and bounded workflow rules                             | The task package, implemented once through capabilities.                                                   |
-| Captured observations, drafts, delivery intents and task history        | The task authority, with explicit retention and upstream mapping.                                          |
-| Local authorized views of upstream records                              | Projections with upstream identity, version and freshness; they do not silently become new master records. |
-| Identity, policy enforcement, credential access and execution isolation | Host and integration infrastructure selected for the deployment.                                           |
-| Remote API mapping, retries and outcome reconciliation                  | A connector with explicit delivery semantics.                                                              |
+| Responsibility                                         | Owner                                                                                                |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Durable enterprise objects and rules                   | The relevant system of record, identified per object and field.                                      |
+| Task interaction and workflow rules                    | The task package, implemented once as capabilities.                                                  |
+| Captures, drafts, delivery intents and task history    | The task authority, with explicit retention and upstream mapping.                                    |
+| Local views of upstream records                        | Projections with upstream identity, version and freshness; they never quietly become master records. |
+| Identity, policy, credentials and execution isolation  | The host and integration infrastructure chosen for the deployment.                                   |
+| Remote API mapping, retries and outcome reconciliation | A connector with explicit delivery semantics.                                                        |
 
-This is compatible with existing storage choices. The runtime's storage port describes a local consistency boundary. A connector describes interaction with another authority. Mapping local transactional state to a database is different from calling an external business API; implementing one does not implement the other.
+Storage and connectors are different things. The storage port is a local consistency boundary. A connector talks to another authority, and implementing one does not implement the other.
 
-The local authority is authoritative for its own captures and workflow state. It is not the exclusive writer of the upstream system. Other applications, agents and workers may change that system independently. Import their changes through a supported feed or reconciliation query, deduplicate them, commit an authorized projection update and publish it through the same local journal. Frontends then observe connector-originated changes as well as human- and agent-originated commands.
+The task authority owns its captures and workflow state, but it is not the only writer upstream. Other applications and people change the system of record too. Their changes come in through a feed or query, are deduplicated, committed as an authorized projection update and published on the local journal, so screens see them like any other change.
 
-## Capture the event before losing its context
+## Capture the event before its context is lost
 
-A capture contract should distinguish an observation from an interpretation and from an upstream business posting. For a receiving workflow, the captured fact might be “six units observed at this delivery line,” while acceptance into inventory remains an upstream decision.
+A capture distinguishes an observation from its interpretation and from an upstream posting. "Six units observed at this delivery line" is the captured fact; accepting them into inventory is an upstream decision. Where it matters, a capture records:
 
-Specify the following where relevant to the task:
+- a stable event ID, the site and the upstream object, with local and upstream revisions kept apart;
+- when the event happened and when it was captured, with corrections explicit, and acceptance timed separately;
+- typed quantities, units and reason codes, and evidence references with access and retention rules;
+- the trusted submitting actor and delegation; a claimed sensor source needs its own verification;
+- provenance that tells human observation, measurement and model interpretation apart, keeping uncertainty where it matters;
+- immutable submitted content, or a versioned amendment, so a retry cannot send a changed observation.
 
-- A stable event identifier, tenant/site and upstream object reference; local and upstream revisions remain distinct.
-- `observedAt` for the real-world event and authority-assigned `capturedAt`; record an uncertain or corrected observation time explicitly. Upstream acceptance has its own timestamp.
-- Typed quantities, units and reason codes; evidence references with access/retention rules rather than unrestricted file paths.
-- Trusted submitting actor and delegation context. Claimed sensor/source information needs its own verification; the caller cannot appoint itself a trusted source.
-- Human observations, measured values and model-derived interpretations as distinguishable provenance. Preserve uncertainty when it affects the decision.
-- Immutable submitted content or a versioned amendment path, so a retry cannot silently send a changed observation.
+Business event identity has to survive a UI retry, a handoff between person and agent, and a restarted run. Command idempotency keys identify single invocations; they do not provide that cross-surface identity. Do not deduplicate only by object or approximate time, because two observations of the same delivery may both be real.
 
-Business event identity must survive a UI retry, a human/agent handoff and a restarted harness run. Scope it to the tenant, connector and intended target, then enforce immutable-content deduplication under current authorization. The runtime's principal-scoped, run-sensitive idempotency keys identify individual command invocations; they do not establish that cross-surface business identity. Do not deduplicate merely by object or approximate timestamp: two observations of the same delivery may both be legitimate. Replays must not expose an earlier actor's protected data.
-
-Optimize time from event to a correct, attributable capture, together with eventual acceptance. Measure errors, omissions and time spent resolving failures as well as entry speed. Offline capture is a workflow decision: a locally queued observation must remain visibly pending until the upstream system accepts it. The quality-inspection reference queues results in a local outbox and shows them pending until the mock quality system accepts or rejects them; it has not been exercised against a real remote system or a disconnected device.
+Optimize the time from event to a correct, attributable capture, and on to acceptance, counting errors, omissions and time spent on failures, not just entry speed. Offline capture is a workflow decision: a queued observation stays visibly pending until upstream accepts it.
 
 ## Two commits when another authority is involved
 
-The existing runtime atomically commits local state, revisions, a receipt and journal entries. That guarantee stops at its storage boundary. An external system can accept a request even when its reply is lost; local rollback cannot undo that acceptance.
+The runtime commits local state, revisions, receipt and journal atomically, but that stops at its own storage. A remote system can accept a request whose reply is lost, and no local rollback undoes that. For external writes:
 
-For external writes, the proposed pattern is:
+1. A command validates the observation and current authority, then stores the capture, an immutable delivery intent and its receipt together.
+2. A connector claims the intent, rechecks dispatch authority, and calls the remote API outside the transaction, with a stable external key.
+3. A trusted completion command records acceptance, rejection or an uncertain result, guarded against stale attempts, and publishes the change.
+4. Reconciliation resolves uncertain outcomes through upstream identifiers or a person. Inbound updates take the same path.
 
-1. A human, agent or job submits a domain command. Validate the observation and current authority, then atomically store the capture, an immutable delivery intent and the local receipt/journal update.
-2. A connector worker claims the intent, rechecks current dispatch authority, and calls the remote API outside the local transaction. The intent binds the target, action, payload version, origin and stable external idempotency/correlation key.
-3. A trusted completion command records an acknowledgement, rejection or uncertain result, guarded against stale/duplicate attempts. It updates local projections and publishes a journal change.
-4. Reconciliation resolves uncertain outcomes through supported upstream identifiers or operator review. Inbound updates follow the same authorized projection path.
+Screens and tools show the delivery state, not the run's text or an exit code:
 
-The UI and tools must distinguish these states:
+| State                     | Meaning                                                              |
+| ------------------------- | -------------------------------------------------------------------- |
+| Draft                     | Editable locally; nothing submitted.                                 |
+| Queued                    | Capture and intent committed locally.                                |
+| Dispatching               | An attempt is underway; not proof of acceptance.                     |
+| Upstream pending          | Upstream acknowledged the submission but has not decided.            |
+| Accepted                  | Upstream acceptance is evidenced.                                    |
+| Rejected                  | A definitive refusal with a safe, actionable reason.                 |
+| Needs reconciliation      | The outcome is unknown, and resubmitting could duplicate the effect. |
+| Cancelled before dispatch | Cancelled before any external attempt.                               |
 
-| State                     | Meaning                                                                                                                               |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Draft                     | Editable local interaction; no submission made.                                                                                       |
-| Queued                    | Capture and delivery intent committed locally.                                                                                        |
-| Dispatching               | A connector attempt is underway; this is not proof of acceptance.                                                                     |
-| Upstream pending          | The upstream system acknowledged submission but has not yet confirmed or rejected the business effect.                                |
-| Accepted                  | The upstream acceptance criterion is satisfied and evidenced. A transport-level acknowledgement may still mean processing is pending. |
-| Rejected                  | A definitive upstream refusal with a safe, actionable reason.                                                                         |
-| Needs reconciliation      | The outcome is unknown; a new submission could duplicate a business effect.                                                           |
-| Cancelled before dispatch | Pending work was cancelled before any external attempt.                                                                               |
+Delivery state is separate from the run lifecycle and from the command receipt. A finished model turn can leave queued work, and an interrupted run can already have an accepted effect.
 
-This is a domain delivery lifecycle, separate from the harness run lifecycle and the command receipt envelope. A completed model turn may leave queued work; an interrupted run may already have an accepted business effect. UI status and agent queries should report the delivery record, not infer success from text or a process exit code.
+A few rules follow:
 
-Retry with the same stable key only under the connector's documented idempotency guarantees. When the remote system lacks those guarantees, correlate and reconcile uncertain outcomes before another write. A lost reply is not a rejection. Multi-system workflows need explicit partial completion and compensating operations where supported; do not claim a distributed atomic transaction or general exactly-once execution.
+- **Retries.** Retry with the same key only where the connector documents idempotency. Otherwise correlate and reconcile before writing again. A lost reply is not a rejection, and there is no distributed atomic transaction.
+- **Stale workers.** Local fencing stops a stale worker from overwriting local state, but it cannot stop a delayed request upstream. Recovery relies on upstream idempotency, or on proof that an earlier attempt can no longer take effect.
+- **Upstream changes.** Local revisions only detect changes already imported. Use upstream versions and conditional writes where the system supports them, and otherwise document the weaker guarantee.
+- **Revocation and cancellation.** Revocation blocks new dispatch, but a worker still needs a narrow way to record the result of an attempt already sent. Cancellation cannot recall a remote effect; reversing one is its own authorized operation.
 
-Local attempt fencing prevents an old worker from overwriting newer local state. It cannot, by itself, stop that worker issuing a delayed upstream request. Recovery must use upstream idempotency or establish that an earlier attempt can no longer produce an effect; an empty lookup alone is insufficient while that attempt may still execute. Retain late acceptance evidence for reconciliation without letting stale workers replace the current delivery state.
+## CLIs and MCP inside an execution boundary
 
-Local revisions detect changes already imported into the task authority. Use upstream versions and conditional writes where supported to detect concurrent upstream changes at dispatch. Otherwise document the weaker guarantee and a conflict/reconciliation path. A local cursor is not evidence that the upstream view is current.
+A harness can run CLI processes, call MCP tools, or both. CLI and MCP describe how operations are reached, not what their implementations may touch.
 
-Queued authorization and external completion are separate concerns. Revocation blocks new dispatch under the revoked authority; a credentialed worker still needs a narrowly scoped way to record the result of an already-dispatched attempt. Cancellation cannot recall a remote effect. Any reversal is a separately authorized business operation. Permissions for the task's local cache must also track relevant upstream access changes, with a stated freshness/revocation policy.
+Application tools come from the catalog. A vendor CLI that writes upstream with broad credentials would bypass the task authority's policy, receipts and live updates. Prefer a broker outside the untrusted boundary that holds upstream credentials and allows only registered operations.
 
-## CLIs and MCP inside the execution boundary
+Composing arbitrary executables needs real OS, container or VM isolation. Restrictions written into a prompt or tool manifest contain nothing. Keep secrets out of model context, environment, workspace files and tool output. Sandboxing limits what a compromised process can reach, but an allowed command can still do the wrong business action, so policy, delegation, validation and audit stay necessary. The application CLI can already run embedded under a launcher grant or attach with a grant-bound connection. The executable sandbox and broker are proposed.
 
-A harness can orchestrate several CLI processes, call MCP tools, or combine both. An MCP server may be a subprocess inside the sandbox, a host bridge or a remote endpoint. CLI and MCP specify how to reach operations; neither defines the permissions or containment of their implementation.
+## One operating model for many interfaces
 
-Application tools derive from the composed capability catalog. External vendor tools need an integration adapter that binds their behavior to the task's contract. A CLI that writes upstream directly with broad credentials would bypass the task authority's policy, receipts and live updates. Prefer a connector broker outside the untrusted execution boundary: the sandbox receives scoped access to registered operations, while the broker holds upstream credentials and enforces target and operation restrictions.
+The economic unit is a small task package on a maintained host, with reusable connectors and controls. The package brings its UI, capabilities, workflow guidance, tests and declared requirements, and the deployment chooses implementations. Inference is funded separately from identity and record access.
 
-The proposed execution host admits a declared tool set and enforces filesystem, process, network, time and resource limits. Arbitrary executable composition requires an actual OS/container/VM isolation implementation selected for that host. Restrictions described only in a prompt or tool manifest do not establish containment. Keep secrets out of model context, inherited environment, workspace files and tool output; issue bounded broker sessions rather than passing the authority's unrestricted process credential into a sandbox.
+Fit each deployment to its site through versioned configuration and modules: input devices, vocabulary, sequence, constraints and exceptions. Untracked customer forks with their own update and credential handling bring back the cost this pattern is meant to remove.
 
-Sandboxing can reduce the reach of a compromised process. An allowed command can still perform the wrong business action. Operation/object/row/field policy, bounded delegation, domain validation and audit remain necessary. The current provider adapters restrict application tools and use isolated settings/home directories. The application CLI can run its authority embedded in a sandbox under a launcher-supplied grant, or attach with a grant-bound connection; neither implements this executable sandbox or broker.
-
-## A common operating model for specialized interfaces
-
-The economic unit is a small task package on a maintained host, with reusable connectors and controls. The package contributes its UI, capability modules, workflow guidance, tests and declared requirements. The deployment composition selects implementations and produces the full interaction catalog. Provider subscriptions or API funding pay for inference separately from enterprise identity and permission to use records.
-
-Forward deployment should adapt the task to actual working conditions through versioned configuration and modules: input device, vocabulary, sequence, site constraints and exception handling. Shared rules belong in maintained modules or the system of record. Untracked customer forks and independent credential/update mechanisms would recreate much of the operating cost this pattern aims to reduce.
-
-The proposed delivery layer needs package/contract compatibility, signed artifacts, approved permissions and connector mappings, staged rollout, telemetry, migration handling, rollback compatibility and an accountable owner. Keep task records and pending delivery intents outside executable packages. Disabling a defective package should stop new work without losing the ability to inspect and reconcile existing work. This repository currently exports source and builds a desktop package; it has no fleet management or automatic update service.
+A delivery layer would add compatibility checks, signed artifacts, approved permissions, staged rollout, telemetry, migration and rollback, with an accountable owner. Task records and pending intents live outside packages, so disabling a bad package stops new work without losing the ability to reconcile existing work. Today the repository exports source and builds a desktop package, with no fleet management.
 
 ## Evaluate the economics per workflow
 
-Use measured volume and the entire task cycle, including correction and exception work:
+Use measured volume and the whole task cycle, including corrections and exceptions:
 
 ```text
 hours released per year =
@@ -139,8 +132,6 @@ annual net value =
   - ongoing support, updates, security, devices, hosting and inference cost
 ```
 
-For illustration only, 100 workers completing 80 events per day over 220 days, saving six seconds at full adoption, release approximately 2,933 hours per year. That is capacity, not automatically a payroll reduction. Establish whether it produces throughput, shorter queues, reduced overtime or another observable benefit. Avoid counting the same time benefit again as both capacity and error/rework savings.
+For illustration, 100 workers doing 80 events a day over 220 days, saving six seconds each at full adoption, release about 2,933 hours a year. That is capacity, not automatically a payroll saving, so establish what it buys: throughput, shorter queues or less overtime. Don't count the same time twice, as both capacity and avoided rework. Count licence savings only after checking the actual terms. A workflow with low repetition, frequently changing rules or costly exceptions may not justify its own application.
 
-AI-assisted implementation, shared packages and automation are cost-reduction hypotheses to measure against actual lifecycle cost. Count license savings only after checking the relevant access and usage terms and whether licenses can actually be retired; a different interface does not establish that. A workflow with low repetition, frequent rule churn or expensive exceptions may not justify a separate task application.
-
-The first showcase should demonstrate an observed event, specialized input, human/agent handoff, upstream acceptance and recovery from a failure in one coherent workflow. The [next reference plan](system-of-record-reference-plan.md) defines that work without treating a mock connector as a live enterprise integration.
+A first showcase should show an observed event, specialized input, a handoff between person and agent, upstream acceptance and recovery from a failure in one workflow. The [reference plan](system-of-record-reference-plan.md) defines that work, and a mock connector does not count as a live integration.

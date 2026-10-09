@@ -1,19 +1,31 @@
-# Application interaction contract
+# Interaction contract
 
-The contract is a browser-safe application description. Feature modules own their domain schemas and stable operation IDs; the framework owns common protocol types. `defineCapability` preserves command/query IDs and schema inference, `defineModule` groups explicit contributions, and `buildCatalog` produces a deterministic serializable catalog without loading server handlers, storage or providers.
+The contract is a browser-safe description of the application. Modules own their domain schemas and stable operation IDs, and the framework owns the shared protocol types. Building the catalog loads no handlers, storage or providers, so the result is deterministic and serializable ([P2](principles.md#p2--the-catalog-describes-the-application)).
 
-`jsonSchema` wraps Zod 4 validation and exports JSON Schema draft 2020-12. Wire values must be JSON: finite numbers, strings, booleans, null, arrays and ordinary objects. Custom refinements, coercion, defaults, transforms and non-JSON types are rejected. Use `z.strictObject` for DTOs. Optional protected fields may be absent, but explicit `undefined` is not a wire value. Validation rejects any parse that strips or transforms the submitted JSON.
+## Schemas
 
-The exported catalog contains schemas, permission requirements, dependencies, MCP mappings, UI binding/exception declarations and authored workflow references. Handlers, resource resolvers, principals and policy internals are separate server contributions. Catalog validation rejects duplicate modules/IDs, missing/cyclic dependencies, missing UI declarations, unresolved workflow IDs and colliding MCP mappings. Canonical IDs remain stable across surfaces; MCP maps dots and hyphens to underscores and checks collisions and length. A UI declaration is coverage metadata; executable scenarios and UI tests establish behavior.
+Schemas are Zod 4, exported as JSON Schema 2020-12. Wire values are plain JSON: finite numbers, strings, booleans, null, arrays and plain objects. Validation rejects any parse that would strip or transform what was submitted, so coercion, defaults and transforms are not used. Use strict objects for DTOs. An optional protected field may be absent, but `undefined` is not a wire value.
 
-`createApplication` registers each handler against its exact capability definition. `invoke` and `query` infer operation-specific types from the composed module tuple. Dynamic transports use `invokeRaw` and `queryRaw`; those retain all runtime validation and authorization. The framework never reconstructs TypeScript types from runtime discovery JSON.
+## Catalog
 
-Commands return `{ operation, result, cursor, authorizationRevision, revisions }`; queries return `{ data, cursor, authorizationRevision }`. Internal cursors are monotonic integers scoped to the workspace. The local HTTP adapter wraps them in opaque caller-bound wire cursors; clients must not compare or manufacture those strings. Event batches contain only authorized resource references and the current cursor/revision. Discovery marks resource-dependent permissions conditional, and denied delegation operations denied. Every invocation independently authorizes current access.
+The catalog holds schemas, permission requirements, dependencies, MCP names, UI bindings or exceptions, and workflow references. Handlers, resource resolvers and policy are separate server contributions. Validation rejects duplicate IDs, missing or cyclic dependencies, missing UI declarations, unresolved workflows and colliding MCP names. IDs are the same on every surface. MCP replaces dots and hyphens with underscores and checks for collisions and length. A UI declaration states coverage; scenarios and UI tests show behavior.
 
-Streaming adapters use `deliverEvents(after, context, deliver)` and enqueue bytes synchronously in the delivery callback. That callback runs inside the storage read boundary, excluding local permission-change commits until delivery is enqueued. An asynchronous callback is rejected. `events()` returns a snapshot batch for ordinary reads; it does not extend the authorization boundary through a later asynchronous send.
+Handlers are registered against their exact capability, and typed `invoke` and `query` follow from the composed modules. Dynamic transports use the raw variants, which run the same validation and authorization. Types are never reconstructed from runtime discovery.
 
-The shared error codes distinguish invalid input/output, missing operations, forbidden access, optimistic conflict, idempotency conflict, cancellation and internal failure. Transport adapters map `ApplicationError` through `errorEnvelope`; unknown exceptions become a generic internal error. Domain implementations must keep intentional messages/details safe for the caller.
+## Results, cursors and events
 
-Framework format version is `1`. Application contract version defaults to `1.0.0` and may be supplied at composition. Breaking operation/input/output changes require an explicit application contract version and migration note. Idempotency fingerprints include that version, operation, validated input, expected revisions and run/grant context; keys are scoped to workspace and principal. A key with a different fingerprint conflicts. Replays check current authorization and reproject output before returning stored committed results. Direct core commands allow omission of a key; the reference HTTP adapter requires one for safe network retries.
+A command returns the operation, result, cursor, authorization revision and changed revisions. A query returns data, cursor and authorization revision. Internal cursors are per-workspace integers. Over HTTP they become opaque, caller-bound strings that clients pass back and never compare or construct. Event batches carry only authorized resource references and the current cursor. Discovery marks resource-dependent permissions as conditional, but every call authorizes on its own.
 
-Generate catalog/schema, OpenAPI, operation documentation, workflow references and the application-use skill with `bun run generate`; `bun run check:generated` fails on drift. Generators consume the pure catalog. Authored workflow text teaches application use and generates each application's end-user skill under `docs/reference/<id>/application-skill/`; this is separate from the developer setup skill.
+Streaming transports enqueue events inside the storage read boundary, so a permission change cannot slip between the check and the send. Asynchronous delivery callbacks are rejected.
+
+## Errors
+
+Shared error codes distinguish invalid input or output, unknown operations, forbidden access, revision conflicts, idempotency conflicts, cancellation and internal failure. Transports map application errors to one envelope, and unknown exceptions become a generic internal error. Messages and details that a handler sets on purpose stay safe for the caller.
+
+## Versions and idempotency
+
+The application contract version defaults to `1.0.0`. A breaking change to an operation's input or output gets a new version and a migration note. An idempotency fingerprint covers the version, operation, validated input, expected revisions and run or grant context. Keys are scoped to workspace and principal, and a key reused with a different fingerprint conflicts. A replay checks current access and reprojects output before returning the stored result. HTTP requires a key, while direct calls may omit it.
+
+## Generated artifacts
+
+`bun run generate` writes the catalog, schemas, OpenAPI, operation reference, workflows and each application's end-user skill to `docs/reference/<id>/`, and `bun run check:generated` fails on drift.

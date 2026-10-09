@@ -1,100 +1,86 @@
 # Point-of-work input
 
-Operator screens are used with gloves, at arm's length or further, while the person watches the machine. Scanners and keypads do most of the input. This guide specifies the two reusable kits for those screens:
+Operator screens are used with gloves, at arm's length or further, by someone watching a machine. Scanners and keypads do most of the input. Two domain-neutral kits support these screens:
 
-- **`packages/devices`**: device logic. It covers scanner profiles, sources, decoding, calibration and routing, plus a reusable capability module for per-station device configuration.
-- **`packages/operator-ui`**: the thick-finger UI kit, a shadcn registry composed from stock shadcn primitives.
+- **`packages/devices`**: scanner profiles, sources, decoding, calibration and routing, plus a reusable module for per-station device configuration;
+- **`packages/operator-ui`**: a shadcn registry of glove-sized UI parts built from stock primitives.
 
-Both are domain-neutral. `examples/line-station` and the quality-inspection capture station consume them; any composed application can do the same. The architecture they serve is described in the [operator workstation pattern](operator-workstation-pattern.md).
+The `line-station` example and the quality-inspection capture screen use both. The surrounding architecture is in the [operator workstation pattern](operator-workstation-pattern.md).
 
-## Interaction rules
+## Design guidelines
 
-These rules apply to every screen built from the kit:
+These are the defaults the kit is built for. A screen can depart from them where its setting differs.
 
-1. **No precision gestures.** Avoid drag, double-tap, long text entry, small close buttons, hover-only affordances and swipe-to-act. Every target meets `--operator-target` (64 px default, 80 px at glove density), with at least `--operator-gap` between targets.
-2. **Scanner and keypad first.** Every task can be completed with a scanner, a numeric keypad or a foot pedal mapped to keys. Touch is the fallback, and typing on a keyboard is the last resort (manual entry behind a scan prompt).
-3. **One task at a time.** The surface shows who and where at the top, then station signals, then the current task, then what needs a person, then seat control. Nothing in that order moves while a person is reaching for it.
-4. **Consequential actions need hold-to-confirm.** A tap never starts an order, confirms counts or reports that a held procedure took effect. Holds cancel when the finger slides off. A tap guard suppresses double taps, taps during scroll or layout shift, and taps while a request is pending.
-5. **State is icon plus text, readable at 1–2 m.** Color is never the only signal. Upstream delivery shows `Pending`, `Retrying`, `Held`, `Accepted` (with the upstream reference) or `Rejected` (with the code). Observed values show their age and confidence.
-6. **Audible feedback.** Distinct tones play for scanned, accepted, rejected and attention. Vibration is used where available. Feedback can be muted per device.
-7. **Digit keys belong to one control.** On a screen that uses digit hotkeys for tiles, the numeric pad is tapped (`keyboard={false}`). Keystroke bursts from a keyboard-wedge scanner never fire hotkeys, including the scan's terminating Enter.
+1. **Avoid precision gestures.** Drag, double-tap, long text entry, small close buttons, hover-only affordances and swipes fail with gloves. Targets follow the operator size tokens, which are larger at glove density.
+2. **Scanner and keypad first.** A task should be possible with a scanner, a numeric keypad or a pedal mapped to keys. Touch is the fallback, and typing is the last resort.
+3. **One task at a time.** Who and where at the top, then station signals, the current task, what needs a person, and seat control. Nothing moves while someone is reaching for it.
+4. **Hold to confirm consequential actions.** Starting an order, confirming counts or reporting that a held procedure took effect take a hold, not a tap. A hold cancels when the finger slides off. A tap guard ignores double taps, taps during scroll or layout shift, and taps while a request is pending.
+5. **Show state as icon plus text, readable from 1–2 m.** Color is never the only signal. Delivery shows pending, retrying, held, accepted (with the upstream reference) or rejected (with the code), and observed values show their age and confidence.
+6. **Give feedback by sound.** Distinct tones mark scanned, accepted, rejected and attention, with vibration where available. Each device can mute them.
+7. **Give digit keys one owner.** Where digit hotkeys pick tiles, the numeric pad is touch-only. A wedge scanner's keystroke burst, including its final Enter, never fires a hotkey.
 
 ## Operator UI registry
 
-`packages/operator-ui` is a shadcn registry named `operator`. Its items declare stock shadcn primitives as `registryDependencies` and add glove sizing through `cva` variants and theme tokens. No shadcn primitive is forked.
+The `operator` registry declares stock shadcn primitives as dependencies and adds glove sizing through variants and theme tokens. No primitive is forked.
 
-| Item                                                                                                                                | Type      | Purpose                                                                                                                                 |
-| ----------------------------------------------------------------------------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `operator-theme`                                                                                                                    | theme     | Target, gap and text tokens; `[data-density=glove]` and high-contrast scopes; `op-ok`, `op-pending`, `op-attention`, `op-fault` states. |
-| `use-press-and-hold`, `use-tap-guard`, `use-feedback`, `use-idle-return`, `use-operator-keys`, `use-scanner`                        | hook      | Hold-to-confirm, tap suppression, tones, idle return, keypad/pedal bindings with a scan-burst filter, scanner sources and routes.       |
-| `numeric-entry`                                                                                                                     | lib       | Decimal parsing with comma or period, decimals and tolerance verdicts.                                                                  |
-| `operator-surface`, `big-action`, `tile-picker`, `numeric-pad`, `scan-prompt`, `status-strip`, `attention-queue`, `takeover-button` | component | The primitives of a station screen.                                                                                                     |
-| `scanner-setup`, `operator-station`                                                                                                 | block     | Scanner calibration, profile and live test; the station layout skeleton.                                                                |
+| Kind       | Items                                                                                                                |
+| ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| Theme      | Target, gap and text tokens; glove density and high-contrast scopes; ok, pending, attention and fault states.        |
+| Hooks      | Hold to confirm, tap guard, feedback tones, idle return, keypad and pedal bindings that ignore scan bursts, scanner. |
+| Library    | Decimal entry with comma or period, decimals and tolerance verdicts.                                                 |
+| Components | Operator surface, big action, tile picker, numeric pad, scan prompt, status strip, attention queue, takeover button. |
+| Blocks     | Scanner setup (calibration, profile, live test) and the station layout.                                              |
 
-`bun run build:registry:operator` generates `registry.json` and `src/styles/operator.css` from `registry.manifest.ts`, then runs `shadcn build` into `dist/registry/operator`. The generator fails when an item imports an `@/` module it does not declare as a registry dependency, or a package it does not declare as a dependency. `check:registry:operator` (part of `bun run check`) fails when the generated files drift.
+`bun run build:registry:operator` generates the registry from its manifest and builds it. The generator fails when an item imports something it does not declare, and `check:registry:operator` fails on drift. Inside this repository, the web app resolves registry sources in place, with the same import paths an app gets after `shadcn add`. The scanner items depend on the devices package, which is not yet published, so they can only be pulled outside this workspace once it is published or vendored.
 
-Inside this repository, `apps/web` resolves `@/` against its own sources first, then the frame (`packages/frame/src`), then `packages/operator-ui/src` (the `frame()` Vite plugin in `packages/frame/vite.ts`). The app therefore uses the registry items in place, with the same import paths a pulling app would have after `shadcn add`. Another application pulls them from the built registry with the shadcn CLI.
+A gallery route renders every part at desk, touch and glove density, and the line-station browser specs use it for interaction tests.
 
-`use-scanner` and `scanner-setup` depend on `@agent-native/devices`, which is not published. They can be pulled outside this workspace only once that package is published or vendored. A scratch-app `shadcn add` acceptance test is not yet part of the gates.
-
-The gallery at `#/station/kit` renders every primitive at desk, touch and glove density with local state only. `examples/line-station/e2e/station.pw.ts` uses it for interaction tests: a hold that cancels on slide-off, digit hotkeys and paging, a wedge burst that fires no hotkey, keypad tolerance and the takeover hold.
-
-## Scanner device kit
+## Scanner kit
 
 ### Profiles
 
-A `ScannerProfile` describes one scanner as the station sees it:
+A scanner profile describes one scanner as the station sees it:
 
-- the transport: `wedge`, `serial`, `hid-pos`, `camera` or `host-plugin`;
-- the prefix and suffix it adds, and its terminator;
-- the maximum inter-key gap (wedge only);
-- the minimum length;
-- whether AIM symbology identifiers are enabled;
-- the group-separator substitute for GS1;
-- the keyboard layout the scanner emulates.
+- the transport: keyboard wedge, serial, HID POS, camera or a host bridge;
+- the prefix, suffix and terminator it adds, and the maximum gap between keys;
+- the minimum length, and whether AIM symbology identifiers are enabled;
+- the GS1 group-separator substitute;
+- the keyboard layout it emulates.
 
-Profiles are configuration, not secrets. They are stored per station through the device configuration module.
+Profiles are configuration, not secrets, and are stored per station.
 
 ### Sources
 
-Each transport is a `ScannerSource` with explicit registration. Nothing is discovered silently.
+Each transport is a source that is registered explicitly; nothing is discovered silently.
 
-| Source      | Browser API                               | Notes                                                                                                                              |
-| ----------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Wedge       | Keyboard events                           | Works with any USB-HID keyboard-emulating scanner, the cheapest and most common kind. Bursts are told apart from typing by timing. |
-| Serial      | Web Serial                                | USB-COM/CDC and RS-232 adapters; a line assembler handles the terminator.                                                          |
-| HID POS     | WebHID, usage page `0x8C`                 | Barcode-scanner usage page; reports are reassembled.                                                                               |
-| Camera      | `BarcodeDetector`, or an injected decoder | Repeats are filtered; the decoder is injectable where `BarcodeDetector` is unavailable.                                            |
-| Host plugin | Host bridge (`HostScannerBridge`)         | For vendor SDKs on the station PC. Only a fake bridge exists in this reference.                                                    |
+| Source      | Browser API                              | Notes                                                                                                      |
+| ----------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Wedge       | Keyboard events                          | Any scanner that emulates a keyboard, the cheapest and most common kind. Told apart from typing by timing. |
+| Serial      | Web Serial                               | USB-COM and RS-232 adapters.                                                                               |
+| HID POS     | WebHID, barcode usage page               | Reports are reassembled.                                                                                   |
+| Camera      | `BarcodeDetector` or an injected decoder | Repeated reads are filtered.                                                                               |
+| Host bridge | A host-side bridge                       | For vendor SDKs on the station PC. Only a fake exists here.                                                |
 
-Browsers require a user gesture to connect serial, HID and camera sources. The setup block offers a connect button for them.
+Serial, HID and camera sources need a user gesture to connect, so the setup block offers a connect button.
 
 ### Decoding
 
-`decode` turns raw scanner output into a `ScanEvent`. It strips the prefix and suffix, then parses AIM identifiers (`]C1`, `]d2`, `]Q3`, `]E0` and others) into a symbology. It then parses GS1 element strings and validates check digits where the AI defines one (00, 01, 10, 17, 21, 30, 310x and more). For wedge input it also corrects keyboard-layout mismatches.
-
-Layout mismatch is the most common wedge failure. A scanner emulating a US keyboard on a German or Swiss host types `z` for `y`, and also swaps punctuation. Dead keys can swallow the next character. The GS1 group separator (ASCII 29) is often dropped or sent as a substitute. Supported host layouts are `us`, `de` and `de-ch`.
+Decoding strips the prefix and suffix and parses AIM identifiers into a symbology. It also parses GS1 element strings and validates their check digits, and corrects keyboard-layout mismatches for wedge input. Layout mismatch is the most common wedge failure. A scanner emulating a US keyboard on a German or Swiss host types `z` for `y`, swaps punctuation, and loses characters to dead keys. The group separator is often dropped or replaced. Supported host layouts are US, German and Swiss German.
 
 ### Calibration
 
-The setup block renders a Code 128 calibration symbol, `CALIBRATION_CODE`. It holds the characters that break most often (`y`/`z`, shifted punctuation, a group separator) between start and end markers. `calibrate` takes one recorded scan and infers several settings from it:
-
-- the terminator and inter-key timing;
-- any prefix or suffix, and whether AIM identifiers are present;
-- the layout mismatch and the group-separator substitute.
-
-It returns a suggested profile and reports problems that no setting can fix. This approach is vendor-agnostic and works with cheap wedge scanners that come without configuration software. Rendering vendor programming barcodes (scanner-side setup codes) is not part of this reference. Those codes must come from deployment-supplied vendor data, never from hard-coded values.
+The setup block shows a calibration barcode that holds the characters most likely to break. From one recorded scan, calibration infers the terminator, the key timing, any prefix or suffix, AIM identifiers, the layout mismatch and the separator substitute. It suggests a profile and reports problems no setting can fix. This works for cheap wedge scanners that have no configuration software. Vendor programming barcodes have to come from vendor data supplied with the deployment, never from hard-coded values.
 
 ### Routing
 
-A scan router maps scans to intents with no model turn. Routes match a GS1 AI or a regular expression, optionally restricted to symbologies. The first match wins; a capture group, if present, becomes the routed value. Sites store their routes with the device configuration. The line-station surface falls back to `^(ORD-\d{4,})$` for orders.
+A scan router maps scans to intents without a model turn. A route matches a GS1 application identifier or a regular expression, optionally limited to certain symbologies. The first match wins, and a capture group becomes the routed value. Each site stores its routes with its device configuration.
 
-### Device configuration module
+### Device configuration
 
-`deviceConfigModule` (`@agent-native/devices/contracts` and `/server`) is a reusable capability module with four operations: `device.config.get`, `device.scanner.save`, `device.scanner.remove` and `device.routes.save`. It is composed like a feature module. The composing application supplies the access view. In the starter, station supervisors administer device configuration and every other station role reads it. Writes take `expectedRevisions` on `device:<station>`.
+A reusable capability module reads and saves scanner profiles and routes per station, with expected revisions on writes. The composing application decides who may change it; in the starter, station supervisors do.
 
 ## Evidence
 
-Deterministic tests cover decoding, GS1 check digits, AIM parsing, layout remapping, calibration inference, serial and HID report assembly, camera repeat filtering, routing and the device module's policy (`bun test packages/devices packages/operator-ui`). Browser tests cover the kit interactions and the bound station surface (`examples/line-station/e2e/station.pw.ts`).
+Deterministic tests cover decoding, check digits, AIM parsing, layout remapping, calibration, serial and HID assembly, camera repeat filtering, routing and the device module's policy. Browser specs cover the kit and the bound station screen.
 
-None of the physical scanner types (wedge, serial, HID POS, camera) has been checked on real hardware yet. Electron permission handlers for Web Serial and WebHID are not wired yet. Until a device has been checked and the result recorded in the [implementation ledger](implementation-status.md#operator-workstation-bridge), do not claim it is supported.
+No physical scanner has been checked yet, and the desktop shell does not yet grant Web Serial or WebHID permissions. A device type counts as supported only once it has been checked and recorded in the [implementation ledger](implementation-status.md#operator-workstation-bridge).

@@ -1,20 +1,27 @@
 # Authorization
 
-Every business command and query enters the application runtime with a host-derived `ExecutionContext`. HTTP, MCP, CLI, UI bindings and agent tools call the same handlers and policy port. A request cannot select its principal, workspace, roles or delegation grant through domain input. The local reference host starts as principal `owner`; test hosts can mint isolated sessions.
+Every command and query enters the runtime with an execution context derived by the host. HTTP, MCP, the CLI, UI bindings and agent tools all reach the same handlers and policy, and domain input cannot choose the principal, workspace, roles or grant ([P3](principles.md#p3--authority-comes-from-trusted-context)). The local reference host starts as the principal `owner`, and test hosts can mint isolated sessions.
 
-Authentication, application authorization, provider funding and approvals have separate responsibilities. A provider account does not grant workspace access. An approval never permits an otherwise denied action.
+Authentication, authorization, provider funding and approval are separate concerns. A provider account grants no workspace access, and an approval never permits an action that is otherwise denied.
 
-## Enforcement points
+## Where access is checked
 
-The runtime validates the input and checks operation access before invoking its handler. The feature policy resolves referenced records from authoritative state. Commands check current and proposed state before commit, after output projection; queries recheck access after projection. Cancellation, grant expiry and grant bindings are checked again after awaited work. Authorization failures, invalid outputs and revision conflicts roll back the whole command.
+- Before the handler runs: input validation and operation access.
+- While the handler runs: the policy resolves the records involved from authoritative state.
+- Before a command commits: current and proposed state, after output projection. Queries recheck after projection.
+- After any awaited work: cancellation, grant expiry and grant bindings, again.
 
-The project/task example uses CASL object decisions for accessible projects, editable projects and protected task fields. Workspace owners can administer projects; project owners can administer their project; editors can edit ordinary tasks; viewers can read. Archived projects reject task edits until restored. Only owners can read or write `privateNote` or read the membership map. Response schemas make those protected fields optional so projected output remains valid. Unknown operations have no policy and are denied.
+Any failure rolls the whole command back. An operation without a policy is denied.
 
-List handlers apply the feature's authorized scope before filtering, ordering, pagination and counts. A caller cannot sort or filter by `privateNote`: those fields are absent from the accepted query schema. Delegated resource restrictions further narrow lists and individual-record access. Dictionary lookups use own properties so names such as `constructor` cannot become accidental membership.
+In the `project-tasks` example, workspace owners administer projects, project owners administer theirs, editors edit ordinary tasks and viewers read. An archived project rejects task edits, and only owners see private notes and membership. Response schemas make protected fields optional, so a projected response still validates.
 
-## CASL adapter profile
+## Lists
 
-`packages/adapters/src/casl.ts` keeps CASL syntax outside capability descriptors. It accepts a small private scope representation:
+A list is scoped to what the caller may see before it is filtered, sorted, paged or counted. Protected fields cannot be used to filter or sort, because the query schema does not accept them. A delegated grant narrows lists and single-record reads further. Dictionary lookups check own properties, so a name like `constructor` never matches by accident.
+
+## The CASL adapter
+
+The adapter keeps CASL syntax out of capability descriptors and accepts a small scope language:
 
 ```ts
 { eq: ['projectId', 'p1'] }
@@ -24,34 +31,33 @@ List handlers apply the feature's authorized scope before filtering, ordering, p
 { not: scopeA }
 ```
 
-Fields must have a registered SQL column, scalar type (`string`, `number` or `boolean`) and explicit nullable flag. Equality is strict scalar equality; null is explicit, and missing object properties do not equal null. Repository objects and SQL columns must use the same normalized field representation. Unsupported fields, values, operators and unsafe SQL column identifiers fail closed. SQL values are parameters. Nullable comparisons use two-valued results so negation does not acquire SQL's implicit unknown behavior.
+- **Fields.** Each field is registered with a column, a scalar type and nullability. Equality is strict, and a missing property does not equal null.
+- **Fail closed.** Unknown fields, values, operators and unsafe column names are rejected. Values become SQL parameters, and nullable comparisons avoid SQL's implicit unknown.
+- **Rule order.** Denies take precedence. The adapter rejects a rule order that would reverse that, wildcard subjects and actions, and field-specific rules in a row scope.
+- **Immutability.** Rules and scopes are copied, so a validated policy cannot be mutated afterwards.
 
-All allows for an action/subject precede its denies. The adapter rejects a later allow that would reverse deny precedence. It also rejects CASL's `manage` and `all` wildcard conventions and field-specific rules when generating a row scope. Row visibility requires an explicit field-independent read rule. Field rules remain available for per-instance field checks. Rule inputs and returned scopes are copied so callers cannot mutate a previously validated policy.
-
-The adapter is not an arbitrary CASL-to-database translator. A new repository supplies explicit mappings and proves its scoped results agree with CASL object decisions. Equality/membership/boolean scope tests compare CASL, in-memory predicates and SQLite results, including nulls, overlapping grants and denial.
+It is not a general CASL-to-SQL translator. A new repository supplies explicit mappings and shows, through agreement tests, that its results match the object decisions.
 
 ## Delegation and replay
 
-Effective access is current principal policy intersected with the grant. Grants can constrain operations, resource IDs and expiry and can bind a principal, workspace and run. The host captures the initiating grant for an agent run and never replaces a narrowed grant with all operations. Tool arguments cannot alter that captured authority.
+Effective access is the principal's current policy intersected with the grant. A grant can limit operations, resource IDs and lifetime, and can be bound to a principal, workspace and run. An agent run keeps the grant it started with, and tool arguments cannot change it.
 
-Idempotency keys are scoped to workspace and principal. Fingerprints include validated input, expected revisions, operation, application contract version, run and grant context. A matching retry returns its receipt after current authorization and output projection. A different request or delegation binding conflicts. Replays do not rerun the handler; revoked records and newly restricted fields cannot be recovered through a saved receipt.
+A retry with the same idempotency key returns the stored receipt after current authorization and projection, without running the handler again. A revoked record or a newly restricted field therefore cannot be recovered through an old receipt.
 
-The local storage boundary serializes authorization-related membership changes with business changes. An `authorization.changed` event increments the authorization revision atomically. Run cancellation also supplies an abort signal checked at the commit boundary; committed commands remain committed. Remote policy systems need their own consistency/revocation contract—the kernel does not promise distributed atomic revocation.
+Membership changes serialize with business changes, and an authorization event increments the authorization revision atomically. Cancellation is checked at commit. A remote policy system needs its own revocation contract; the kernel promises no distributed atomic revocation.
 
 ## Subscriptions and caches
 
-Event authorization applies to replay and live delivery. Journal records contain resource references and revisions, not record snapshots. The local authority's synchronous delivery callback runs while its storage read boundary excludes membership-change commits. The HTTP host revalidates the live session at delivery. Opaque authenticated cursors bind replay to its session and hide internal journal sequence counts.
+Replay and live delivery both follow current access. Journal entries carry references and revisions, not record contents. Delivery runs inside the read boundary, so a membership change cannot commit in between, and the host revalidates the session at delivery. Cursors are opaque and bound to their session.
 
-A changed authorization revision resets subscribed views without returning newly forbidden IDs. The client clears old data immediately, continues consuming revocations while refreshes are pending, and rejects responses from stale generations. Already delivered bytes cannot be withdrawn. Applications must keep sensitive drafts out of rendering after revocation; ordinary dirty drafts remain separate from committed query data.
+When the authorization revision changes, views reset without revealing newly forbidden IDs. The client drops old data, keeps processing revocations while it refreshes, and ignores stale responses. Bytes already delivered cannot be withdrawn, so screens hide sensitive drafts after a revocation.
 
 ## UI sessions
 
-`UiSessionStore` provides ephemeral routing separately from business commands. The host generates each UI session ID and binds it to the live host credential, principal and workspace. Injected validation ports resolve selected resources through authorized queries and validate intent targets. Capture revalidates current access and returns an immutable selection/revision snapshot; later UI selection changes cannot retarget it. Updates have versions, and delayed validation cannot overwrite a newer selection.
+UI sessions carry ephemeral navigation and selection, separate from business commands. The host creates each session and binds it to the live credential, principal and workspace. A selection is checked against authorized queries, and capturing it for a run freezes its IDs and revisions. Updates are versioned, so a late validation cannot overwrite a newer selection.
 
-Intents are bounded, expire, replay until acknowledged, and distinguish accepted, rejected and expired states. A leaked UI session ID alone grants no access. Registering, polling or acknowledging an intent never commits business records. Host routes must supply validated contexts and keep their registration/heartbeat lifecycle current.
+UI intents are bounded, expire, replay until acknowledged, and end as accepted, rejected or expired. A leaked session ID alone grants nothing, and no intent operation commits business records.
 
-## Boundaries
+## Process boundaries
 
-The authority owns the workspace; process clients use its protected connection file and never independently open a writable copy. The SQLite control database holds an exclusive OS lock, including across aliases of the same canonical path. Crash recovery relies on lock release, not PID-file stealing. Running another local process under the same OS user is not a filesystem security sandbox.
-
-The reference SQLite business adapter stores JSON-safe feature state, receipts and journal in one transaction. It explicitly rejects unsupported values instead of losing them during serialization. Applications can replace it with feature repositories sharing one transaction-bound unit of work; no universal record table or ORM is required.
+The authority owns the workspace. Other processes attach through its protected connection file and never open a second writable copy. An exclusive OS lock guards the workspace, including through path aliases, and crash recovery relies on the lock's release. Another process running as the same OS user is not sandboxed.

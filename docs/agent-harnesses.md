@@ -1,34 +1,38 @@
 # Agent harnesses
 
-`packages/agents` exposes `Harness`, `HarnessTurn`, `ToolPort`, `RunStore` and `createRunSupervisor`. The public contracts contain no vendor SDK types. Each adapter translates native lifecycle events into text/progress/tool events; domain changes remain command receipts and change-journal entries.
+An agent harness runs a model turn and lets it call the application's tools. The harness contracts in `packages/agents` contain no vendor SDK types. Each adapter turns its provider's native events into text, progress and tool events, and domain changes still arrive only as command receipts and journal entries.
 
-The supervisor serializes turns by conversation ID while independent runs may execute concurrently. It records queued, running, awaiting-question, awaiting-approval, succeeded, failed, cancelled and interrupted states. Output is bounded and known credential formats are redacted, including a secret split across streamed text deltas: the supervisor holds back a short raw tail until the next delta or event and never persists it unscrubbed. Redaction is a guard, not a reason to let credentials reach a run. A terminal provider result is required for success. Partial text followed by a provider failure remains a failed run.
+## Runs
 
-The host stores run snapshots in a separate SQLite database. On startup, unsettled runs become interrupted. Recovery is explicit: the host never silently repeats a model turn or a completed command. Resume identifiers are provider-specific; they are not a portable conversation format.
+The supervisor serializes turns within one conversation and runs independent conversations concurrently. A run is queued, running, awaiting a question or approval, succeeded, failed, cancelled or interrupted. Success needs a terminal result from the provider, so partial text followed by a provider failure is a failed run.
+
+Output is bounded, and known credential formats are redacted, including a secret split across streamed chunks. Redaction is a safety net; it is no reason to let credentials reach a run.
+
+Run snapshots live in their own database. At startup, unsettled runs become interrupted, and the host never silently repeats a model turn or a committed command. Resume identifiers are provider-specific, not a portable conversation format.
 
 ## Application tools
 
-The service derives tools from the catalog. Provider tool inputs wrap domain `input` plus optional `expectedRevisions`. A tool callback supplies a stable call identifier; the host prefixes it with the run ID for a receipt key. The host captures principal, workspace and delegation at run creation and derives execution context itself. Tool arguments cannot replace that context.
+Tools are derived from the catalog. A tool call carries domain input and optional expected revisions. The host turns the provider's call identifier into an idempotency key scoped to the run. Principal, workspace and grant are captured when the run is created, and tool arguments cannot replace them.
 
-Every tool executes through `invokeRaw` or `queryRaw`. The runtime validates schemas, rechecks current authorization and cancellation, then commits. The initiating grant remains an upper bound even if the principal has broader permissions. Run history and controls require the same grant; the reference rejects nested run delegation. Historical free-form output is suppressed after an authorization-generation change because it cannot be field-projected safely. Capture resource IDs and observed revisions from a UI session when an action refers to a selection.
+Every tool call goes through the runtime like any other caller ([P1](principles.md#p1--every-operation-is-reachable-from-every-surface)). It validates input, rechecks current authorization and cancellation, and commits. The initiating grant stays the upper bound even when the principal could do more, and runs cannot delegate further. When authorization changes, earlier free-form output is hidden, because it cannot be field-projected. When an action refers to a selection, the run captures the resource IDs and revisions from the UI session instead of following later selection changes.
 
-Cancellation aborts the active signal and adapter work. The transaction boundary checks that signal before commit. Already committed commands remain committed. A question or approval response resolves only the matching pending request; approval does not create additional authorization.
+Cancellation aborts the active work and is checked before commit. Commands that already committed stay committed. An answer to a question or approval resolves only the matching request, and approval never adds authorization.
 
 ## Adapters
 
-| Adapter       | Execution                                                           | Credential boundary                                     |
-| ------------- | ------------------------------------------------------------------- | ------------------------------------------------------- |
-| Deterministic | Declarative JSON command script                                     | None; acceptance fixture, not a language model          |
-| Codex         | Bundled native app-server over stdio JSON-RPC                       | Explicit host-selected environment; isolated home       |
-| Claude        | Agent SDK with explicit native executable and application MCP tools | Explicit API key; ambient settings/credentials excluded |
-| AI SDK        | Tool loop with an injected language model                           | Explicit provider configuration; separate funding path  |
+| Adapter       | Execution                                      | Credential boundary                                         |
+| ------------- | ---------------------------------------------- | ----------------------------------------------------------- |
+| Deterministic | A declarative command script                   | None; an acceptance fixture, not a model                    |
+| Codex         | The bundled app-server over stdio JSON-RPC     | Environment chosen by the host; isolated home directory     |
+| Claude        | The Agent SDK with the application's MCP tools | Explicit API key; ambient settings and credentials excluded |
+| AI SDK        | A tool loop over an injected model             | Explicit provider configuration                             |
 
-The default task profile exposes application tools and denies shell/filesystem approval. A process under the same OS user is not a security sandbox: use a stronger host isolation adapter when running untrusted executable code. Credentials and process APIs remain outside browser imports.
+The default profile exposes application tools and denies shell and file approvals. A process running as the same OS user is not a sandbox, so code that is not trusted needs a stronger isolation adapter. Credentials and process APIs never reach browser code.
 
-The target [task/workflow pattern](task-workflow-pattern.md) also permits a harness to compose approved CLIs and MCP processes inside an enforced execution boundary. CLI/MCP transports do not provide that boundary themselves. A broker must route business effects through authorized capabilities and keep upstream credentials outside the sandbox. This execution-host/broker layer is in the [next reference plan](system-of-record-reference-plan.md); it is not implemented by the provider adapters above. The application binary supplies the tool side: `mcp --embedded` with a launcher-written grant file, and catalog-generated CLI subcommands with mapped exit codes (see the [system-of-record reference](system-of-record-pattern.md)).
+A harness that composes other CLIs and MCP servers needs an enforced execution boundary and a broker that keeps upstream credentials outside it. That layer is planned, not implemented ([reference plan](system-of-record-reference-plan.md)). The application binary already supplies the tool side: an embedded MCP server under a launcher-written grant, and generated CLI subcommands with mapped exit codes ([system-of-record pattern](system-of-record-pattern.md)).
 
-See [provider integration](providers.md) for current login/funding limits and [desktop packaging](desktop-packaging.md) for native resource resolution. Protocol fixtures and actual provider calls are separate evidence categories.
+See [providers](providers.md) for login and funding, and [desktop packaging](desktop-packaging.md) for native resources. Protocol fixtures and real provider calls count as separate evidence.
 
 ## Background jobs
 
-Jobs are ordinary clients with a trusted scoped identity and grant. `examples/project-tasks/job.ts` (`bun run job` there) demonstrates a deterministic status transition against the running authority; it reads current task revisions and submits commands with stable keys. Schedulers, retries and queues can be replaced independently of domain handlers. A job must not write the SQLite snapshot directly.
+A job is an ordinary caller with a scoped identity and grant. It reads current revisions and submits commands with stable keys. The `project-tasks` example includes one. Schedulers, retries and queues can change without touching handlers. A job never writes storage directly.
