@@ -9,6 +9,13 @@ export interface ProcessSpawnOptions {
   readonly args?: readonly string[];
   /** Aborting stops the whole process tree. */
   readonly signal?: AbortSignal;
+  /**
+   * Data the child reads from inherited descriptors 3, 4, ... in this order, each ending after
+   * its bytes. For a launcher that takes a filter or a file by descriptor, such as bubblewrap's
+   * `--args`, `--seccomp` and `--file`, so the data never lands in a host file or the
+   * argument vector. POSIX only; a provider on another platform refuses it with UNAVAILABLE.
+   */
+  readonly inputs?: readonly Uint8Array[];
 }
 
 /**

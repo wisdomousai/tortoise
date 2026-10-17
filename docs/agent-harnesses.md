@@ -30,7 +30,7 @@ Cancellation aborts the active work and is checked before commit. Commands that 
 
 The default profile exposes application tools and denies shell and file approvals. A process running as the same OS user is not a sandbox, so code that is not trusted needs a stronger isolation adapter. Credentials and process APIs never reach browser code.
 
-A harness that composes other CLIs and MCP servers needs an enforced execution boundary and a broker that keeps upstream credentials outside it. That layer is not implemented. The application binary already supplies the tool side: an embedded MCP server under a launcher-written grant, and generated CLI subcommands with mapped exit codes ([system-of-record pattern](system-of-record-pattern.md)).
+A harness that composes other CLIs and MCP servers needs an enforced execution boundary and a broker that keeps upstream credentials outside it. On Linux, the [execution host plugin](../plugins/execution-host/README.md) is that boundary: a task runs in a bubblewrap sandbox with the application CLI or MCP server attached through a token bound to the run's grant, and reaches providers only through the egress proxy. No harness launches its tools through it yet, and macOS and Windows have no backend. The application binary supplies the tool side: an embedded MCP server under a launcher-written grant, and generated CLI subcommands with mapped exit codes ([system-of-record pattern](system-of-record-pattern.md)).
 
 See [providers](providers.md) for login and funding, and [desktop](desktop.md#packaged-resources) for native resources. Protocol fixtures and real provider calls count as separate evidence.
 

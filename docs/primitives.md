@@ -387,7 +387,7 @@ implemented · `packages/contracts` `packages/runtime` `packages/event-log` `plu
 
 _An isolation boundary and credential broker for tools an agent runs._
 
-partial · `plugins/network`
+implemented · `plugins/execution-host` `plugins/process` `plugins/network`
 
 ### Profile
 

@@ -31,23 +31,37 @@ export function digestFile(path: string): Promise<string> {
 
 /**
  * Start the bound executable with an argument vector, never a shell. On POSIX the child leads its
- * own process group so the whole tree can be stopped. Resolves once the OS has started it.
+ * own process group so the whole tree can be stopped. Each of `inputs` is written to its own
+ * descriptor from 3 up and then ended, so the child reads it to end of file. Resolves once the
+ * OS has started it.
  */
 export function startChild(
   binding: ResolvedProcess,
   args: readonly string[],
   env: Record<string, string>,
+  inputs: readonly Uint8Array[] = [],
 ): Promise<ChildProcessWithoutNullStreams> {
   return new Promise((resolve, reject) => {
     const child = spawn(binding.executable, [...binding.args, ...args], {
       cwd: binding.cwd ?? dirname(binding.executable),
       env,
-      stdio: 'pipe',
+      stdio: ['pipe', 'pipe', 'pipe', ...inputs.map(() => 'pipe' as const)],
       shell: false,
       windowsHide: true,
       detached: process.platform !== 'win32',
+    }) as ChildProcessWithoutNullStreams;
+    child.once('spawn', () => {
+      inputs.forEach((data, index) => {
+        const stream = child.stdio[3 + index] as NodeJS.WritableStream;
+        // A child that exits before reading closes the pipe; that is its exit to report, not ours.
+        (stream as unknown as { on(event: 'error', listener: () => void): void }).on(
+          'error',
+          () => {},
+        );
+        stream.end(data);
+      });
+      resolve(child);
     });
-    child.once('spawn', () => resolve(child));
     child.once('error', reject);
   });
 }

@@ -131,6 +131,11 @@ export interface PluginStartContext {
   readonly workspaceId: string;
   readonly ports: HostPorts;
   /**
+   * The origin the serving host listens on, such as `http://127.0.0.1:4317`, for a plugin that
+   * relays a confined child to the host's own API. Absent where nothing listens (mobile).
+   */
+  readonly origin?: string;
+  /**
    * The local owner narrowed to `grant`, the same delegation an agent run uses. A plugin acts as
    * a caller like any other: it reads and writes only through authorized operations.
    */

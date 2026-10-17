@@ -99,9 +99,14 @@ export async function openProcesses(context: PluginOpenContext): Promise<PluginI
     if (closed) throw new ApplicationError('UNAVAILABLE', 'The process plugin is closed');
     options.signal?.throwIfAborted();
     const binding = bindingFor(decision, processId);
+    if (options.inputs?.length && process.platform === 'win32')
+      throw new ApplicationError(
+        'UNAVAILABLE',
+        'Inherited input descriptors are not supported on Windows',
+      );
     await checkPin(binding);
     const env = await environment(decision, ports, binding, baseEnvironment());
-    const child = await startChild(binding, options.args ?? [], env).catch(() => {
+    const child = await startChild(binding, options.args ?? [], env, options.inputs).catch(() => {
       throw new ApplicationError('UNAVAILABLE', `Process ${processId} could not be started`);
     });
     const handle = track(children, ports, processId, child, options.signal);

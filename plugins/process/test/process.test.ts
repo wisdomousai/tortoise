@@ -173,6 +173,24 @@ describe('process plugin', () => {
     await opened.close();
   });
 
+  test('inputs reach the child on descriptors 3 and up, each ending after its bytes', async () => {
+    const opened = await open({
+      echo: {
+        executable: process.execPath,
+        args: [join(import.meta.dir, 'fixtures', 'read-inputs.ts')],
+      },
+    });
+    const encode = (text: string) => new TextEncoder().encode(text);
+    const started = await bunProcesses(opened.ports.processes)('echo', {
+      inputs: [encode('first\0filter'), encode('x'.repeat(200_000))],
+    });
+    const [first, second] = await firstLine(started.child.stdout);
+    expect(first).toBe('first\0filter');
+    expect(second).toHaveLength(200_000);
+    await new Promise((resolve) => started.child.once('exit', resolve));
+    await opened.close();
+  });
+
   test('terminating a child that has just finished does not throw', async () => {
     const opened = await open({ echo: bun });
     const started = await bunProcesses(opened.ports.processes)('echo');

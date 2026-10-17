@@ -75,6 +75,17 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Not shown, live.** No live ChatGPT consent, token refresh or revocation, and no Claude or AI SDK inference. No provider credentials were discovered or reused.
 
+### Execution host
+
+**Native.** 17 October 2026, `bun run test:execution-host:linux` on Docker Desktop 29.4.0 (Linux 6.12.76-linuxkit, arm64), with `IMAGE` naming an image assembled by hand from a locally cached Alpine 3.23 base with bubblewrap 0.12.0 and Bun 1.4.0 (musl): all 18 tests passed, including the eight in `test/sandbox.test.ts` under real bubblewrap and the plugin's seccomp filter. `test/linux/Dockerfile` itself was not built here, because Docker Desktop's image pulls hung behind its proxy.
+
+**Not shown.**
+
+- **Platforms:** no run on x86-64, on glibc, or on a host kernel outside a container; no macOS or Windows backend exists.
+- **Agents:** no coding agent harness (Codex, Claude Code) has run inside a sandbox; the tasks were the probe script, the application CLI and an MCP client.
+- **Egress:** the proxy path was shown to a loopback listener, not to a real provider over TLS.
+- **Distributions** that restrict unprivileged user namespaces (Ubuntu's AppArmor rule, a disabled sysctl) were not tried.
+
 ### Systems of record
 
 **Not shown.** Delivery, sync and remote queries run only against in-memory fakes: in quality-inspection, crm-capture and asset-survey (the demo EAM, and an extractor that reads text embedded in generated nameplate images). [Remote queries](primitives.md#remote-query) and [data providers](primitives.md#data-provider) are used by crm-capture and asset-survey. There is no real system of record, CRM or EAM, and no extraction has run against a model provider: asset-survey's model extractor has run only against a mock model and a fake network port, and its live comparison over the six sample plates (`examples/asset-survey/test/live-extraction.test.ts`) has not run. The asset-survey export directory is written by a real child process in its test, not by a deployed site. Two dispatcher processes racing for one workspace (rather than two dispatchers in one process) and a reconciliation query across targets are not shown. Capture timings come from synthetic runs.

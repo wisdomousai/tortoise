@@ -51,6 +51,7 @@ A successful build is not a browser interaction or a packaged desktop launch, an
 | `bun run test:integration`                    | Outbox dispatch and inbound sync against fake systems of record.                                                                       |
 | `bun run test:isolated`                       | The whole suite, failing on any non-loopback connection from the test process.                                                         |
 | `bun run test:e2e`                            | Browser acceptance with Playwright.                                                                                                    |
+| `bun run test:execution-host:linux`           | The execution host's bubblewrap tests in a Linux container (needs Docker); they skip elsewhere.                                         |
 | `bun run test:package`                        | Desktop packaging checks available on this platform.                                                                                   |
 | `bun run test:scaffold`                       | Deterministic export and its overwrite and privacy safeguards.                                                                         |
 | `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` | A fresh export that installs, typechecks, builds, tests and adds a capability on its own.                                              |

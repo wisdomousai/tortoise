@@ -134,6 +134,8 @@ A refusal is an `UNAVAILABLE` error (HTTP 503, CLI exit 8) and is recorded as `e
 
 Rules are exported, never applied; applying them is a deployment step. They are verified as text and have not been loaded into a real firewall or cluster here.
 
+**Sandboxes for agent tools.** The [execution host plugin](../plugins/execution-host/README.md) runs the tools an agent uses in Linux bubblewrap sandboxes, started through the process port, so the site policy binds and pins bubblewrap. Each sandbox has new namespaces, a root holding only the declared tools and named paths, a seccomp filter that denies mounting, namespace creation, ptrace and kernel loading, and a network namespace with loopback only. Two relays are its only way out: to the host API, with a token bound to the run's grant, and to the egress proxy, for the destinations the sandbox declares. Revoking the token or reaching the grant's expiry stops the next call. macOS and Windows have no backend yet.
+
 ## 4. Event log
 
 The runtime records commands, queries, denials, outbox transitions, sync passes, guard decisions, runs and host startup. Connections and business actions share one chain. Each event carries the actor (principal, run, grant and channel), the operation, a safe reason code, correlation IDs, an input digest and allow-listed fields only.
@@ -184,7 +186,7 @@ With no site policy, the application is isolated:
 
 ## Limits
 
-- The guard and proxy are in-process controls. Real containment needs the exported rules applied, or an OS sandbox.
+- The guard and proxy are in-process controls. Real containment needs the exported rules applied, or an OS sandbox; the execution host provides one for agent tools on Linux only.
 - A process running as the workspace owner can read the workspace and the log. Chaining detects edits but cannot stop deletion of the newest entries; off-host forwarding covers that.
 - Workforce sign-in is OpenID Connect only (no LDAP or SAML), and certificates are checked for expiry but never issued or rotated.
 - The isolated-test trap does not cover child processes.

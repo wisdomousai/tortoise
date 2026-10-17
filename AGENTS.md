@@ -51,6 +51,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Extend the mobile host: native plugins, pairing | [extend-mobile-host](packages/mobile/skills/extend-mobile-host/SKILL.md) |
 | Read plant signals from MQTT, Sparkplug B or OPC UA | [observe-plant-signals](packages/observation/skills/observe-plant-signals/SKILL.md) |
 | Write a hardware driver | [write-hardware-driver](plugins/connector-driver/skills/write-hardware-driver/SKILL.md) |
+| Run agent tools in a sandbox: bubblewrap, grants, egress | [run-agent-tools-in-a-sandbox](plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) |
 | Deploy to a site: policy, signed bundles, install | [deploy-to-site](plugins/site/skills/deploy-to-site/SKILL.md) |
 
 How skills stay current with the code (`bun run check:skills` enforces the first three points):

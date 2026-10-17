@@ -27,6 +27,8 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 
 Callers on Bun type the result with `bunProcesses(ports.processes)` from `@agent-native/host/plugin`, which returns the child's streams and a `terminate` that stops its whole tree. Applications get the port in `connect` as `processes`.
 
+`spawn(id, { inputs })` passes data on inherited descriptors 3, 4 and up, each ending after its bytes, for a launcher that reads a filter or a file by descriptor (the [execution host](../execution-host/README.md) gives bubblewrap its options, seccomp filter and files this way). POSIX only; on Windows a start with inputs is UNAVAILABLE.
+
 What the plugin does at each lifecycle hook:
 
 | Hook       | Effect                                                                     |
@@ -47,7 +49,7 @@ Gaps:
 
 - The Bun platform has no secret store, so a process that declares secrets is unavailable there.
 - Without network destinations a child is not confined by this plugin. It can still open sockets unless the deployment applies the network plugin's exported rules or an OS sandbox.
-- Resource limits (memory, CPU, file handles) are the deployment's; the plugin sets none.
+- Resource limits (memory, CPU, file handles) are the deployment's; the plugin sets none. The execution host sets them for its sandboxes.
 
 ## Dependencies
 
@@ -66,6 +68,7 @@ bun test plugins/process packages/kernel/test/processes.test.ts
 - audit records for starts, exits and refusals;
 - disabled, unbound and undeclared processes;
 - the pin check;
+- inputs read from descriptors 3 and 4;
 - secrets refused without a secret store;
 - abort and close stopping the tree.
 

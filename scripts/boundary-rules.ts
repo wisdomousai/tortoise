@@ -88,6 +88,12 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Launches Chromium for the station screen and reads simulator counters; to be routed through the station-screen destination.',
   'plugins/site/src/install/native.ts':
     'Operator verbs only, never inside an authority: `site install` runs the release it placed (network export, migrate) and, with --apply, the OS service manager and firewall loader.',
+  'plugins/execution-host/src/relay.ts':
+    "Forwards a sandbox's unix socket to one fixed loopback port: the host's own API listener or the egress CONNECT proxy, which applies the destination rules.",
+  'plugins/execution-host/sandbox/':
+    'Runs only inside a bubblewrap sandbox, whose network namespace has loopback only: the launcher relays loopback ports to the host relays and starts the task.',
+  'plugins/execution-host/test/fixtures/':
+    'Test fixture run inside the sandbox: it attempts the connections and processes the sandbox must refuse.',
   'plugins/process/src/spawn.ts':
     'Starts declared child processes from site-policy bindings with a built environment; the process port is the only caller.',
   'packages/station/src/perception/openai-compatible-vision.ts':

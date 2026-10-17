@@ -105,12 +105,13 @@ async function publishConnections(
  * Start the plugins' background work, then the application's integration loops and observers
  * unless the caller drives those. Plugin observers stop with the application's.
  */
-async function startBackground(authority: Authority, options: StartHostOptions) {
+async function startBackground(authority: Authority, options: StartHostOptions, origin: string) {
   const onError = (scope: string, error: unknown) => console.error(`${scope}:`, error);
   authority.observers.push(
     ...(await authority.plugins.start({
       application: authority.application,
       workspaceId: LOCAL_WORKSPACE,
+      origin,
       delegate: (grant) => ({
         workspaceId: LOCAL_WORKSPACE,
         principalId: LOCAL_OWNER,
@@ -222,7 +223,7 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       options,
       cleanup,
     );
-    await startBackground(authority, options);
+    await startBackground(authority, options, origin);
     return {
       url: origin,
       workspacePath: ownership.canonicalPath,
