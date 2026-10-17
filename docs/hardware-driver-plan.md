@@ -376,3 +376,4 @@ Recommended options first. Settled through coordination: observation goes to `pa
 - `hardware-drivers` moved to `framework-roadmap` `535ce62`, which merges mobile-host phase 5 (`796c9bf`), with check and e2e reported green. Phases 1 and 2 have what they need.
 - Phase 1 committed as `07fe98a` and merged into `framework-roadmap` at `fc6bbb3`, which also brings the guidance cleanup (`42fac14`): the docs freeze is lifted, `primitives.md` is an index, and `check:readmes` and `check:size` are reduced. `hardware-drivers` is rebased on `fc6bbb3`. mobile-asset-survey-showcase reported no conflict with its phase 6.
 - Phase 2 adds `packages/observation` and `packages/integration/src/convergent/` as new files; `dispatcher/delivery.ts` and `target.ts` are unchanged.
+- The user decided that this plan stays in `docs/` while the work runs. In phase 6 it moves into `docs/hardware-drivers.md` and is deleted.
