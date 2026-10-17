@@ -83,6 +83,9 @@ export interface HostPorts {
   readonly processes: ProcessPort;
 }
 
+/** Where a request carried a credential: the Authorization header or the session cookie. */
+export type CredentialSource = 'bearer' | 'cookie';
+
 /** What `provideSettings` receives. */
 export interface SettingsProviderContext {
   readonly manifest: ApplicationManifest;
@@ -161,6 +164,13 @@ export interface PluginInstance {
    * is trusted like a session's, so the plugin decides its principal and grant.
    */
   authenticate?(token: string): Promise<ExecutionContext | undefined>;
+  /**
+   * Serving host only: the caller an `agent_session` cookie stands for when it is not a host
+   * session, such as a person signed in through the plugin's own public routes. Kept apart from
+   * `authenticate` so a bearer credential (a device's) is never accepted from a cookie, where
+   * any page in the browser could have it sent. Asked on every request, like `authenticate`.
+   */
+  authenticateCookie?(token: string): Promise<ExecutionContext | undefined>;
   /** Facts for the `listening` record, such as the active profile. */
   describe?(): Record<string, JsonValue>;
   /** Release what `open` acquired. Called once, in reverse opening order. */

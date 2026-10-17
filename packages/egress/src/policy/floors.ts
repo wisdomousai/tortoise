@@ -79,6 +79,9 @@ function checkIngress(
     error('INGRESS_UNREADABLE', `${name} certificate, key or client CA could not be read`);
 }
 
+/** The destination the site plugin declares for the workforce identity provider. */
+const WORKFORCE_DESTINATION = 'workforce-idp';
+
 /** Audit, identity, ingress and grant floors of the selected profile. */
 export function checkFloors(
   policy: SitePolicy,
@@ -99,6 +102,21 @@ export function checkFloors(
     error('IDENTITY_FLOOR', 'sandbox requires launcher grants or an external identity adapter');
   if (zeroTrust && policy.identity !== 'external')
     error('IDENTITY_FLOOR', 'zero-trust requires an external identity adapter');
+  const { workforce } = policy;
+  if (policy.identity === 'external' && !workforce)
+    error('IDENTITY_PROVIDER', 'external identity requires a workforce identity provider');
+  if (workforce) {
+    // Discovery, keys and the token exchange all go through the bound destination, so the issuer
+    // the tokens name must be the origin that destination reaches.
+    const issuer = new URL(workforce.issuer);
+    const binding = bindings.get(WORKFORCE_DESTINATION);
+    if (!binding)
+      error('IDENTITY_PROVIDER', `The ${WORKFORCE_DESTINATION} destination is not bound`);
+    else if (binding.url.origin !== issuer.origin)
+      error('IDENTITY_PROVIDER', 'The workforce issuer must be on the origin of its destination');
+    if (issuer.protocol !== 'https:')
+      error('IDENTITY_PROVIDER', 'The workforce issuer must use https');
+  }
   checkIngress(policy, ingressFiles, report);
   if (strict && policy.grants.maxTtlSeconds === undefined)
     error('GRANT_FLOOR', `${policy.profile} requires grants.maxTtlSeconds`);

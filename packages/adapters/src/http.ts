@@ -10,12 +10,17 @@ import { withSignal, type ApplicationPort } from './application-port';
 import { Cursors } from './http/cursors';
 import { jsonResponse, statusCodes } from './http/response';
 import { exchangeLaunch, routeAuthenticated } from './http/routes';
-import type { HostSession, Sessions } from './http/sessions';
+import type { HostSession, Sessions, TokenAuthenticator } from './http/sessions';
 
 export { withSignal, type ApplicationPort } from './application-port';
 export { readJsonBody } from './http/body';
 export { jsonResponse } from './http/response';
-export { Sessions, type HostSession } from './http/sessions';
+export {
+  Sessions,
+  type CredentialSource,
+  type HostSession,
+  type TokenAuthenticator,
+} from './http/sessions';
 
 export interface HttpHandlerOptions {
   application: ApplicationPort;
@@ -24,32 +29,34 @@ export interface HttpHandlerOptions {
   pollMs?: number;
   publicRoute?: (request: Request) => Promise<Response | undefined>;
   /**
-   * A bearer token that is not a host session, such as a paired device's: the session it stands
-   * for, or undefined. Asked on every such request, so revocation applies at the next one.
+   * A credential that is not a host session: a bearer token such as a paired device's, or a
+   * session cookie a plugin set, such as a signed-in person's. `via` says which, and the
+   * resolver must accept each only from its own source. Asked on every such request, so
+   * revocation applies at the next one.
    */
-  authenticateToken?: (token: string) => Promise<HostSession | undefined>;
+  authenticateToken?: TokenAuthenticator;
   extra?: (request: Request, session: HostSession) => Promise<Response | undefined>;
   static?: (path: string) => Promise<Response | undefined>;
 }
 
-/**
- * The session a request presents. Browser writes without a bearer must be same-origin. A bearer
- * that is no host session is offered to `authenticateToken`. A refusal carries
- * `details.credential`, so a client can tell a missing or revoked credential from a denied
- * operation, which is also FORBIDDEN.
- */
 /**
  * A stored session with its credential's current context, or undefined once the credential is
  * refused, which also ends the stored session.
  */
 async function current(options: HttpHandlerOptions, session: HostSession) {
   if (session.credential === undefined) return session;
-  const resolved = await options.authenticateToken?.(session.credential);
+  const resolved = await options.authenticateToken?.(session.credential, session.via ?? 'bearer');
   if (resolved) return { ...session, context: resolved.context };
   options.sessions.revoke(session.token);
   return undefined;
 }
 
+/**
+ * The session a request presents. Browser writes without a bearer must be same-origin. A stored
+ * session wins; otherwise a bearer is offered to `authenticateToken` as a bearer, and a cookie,
+ * when there is no bearer, as a cookie. A refusal carries `details.credential`, so a client can
+ * tell a missing or revoked credential from a denied operation, which is also FORBIDDEN.
+ */
 async function authenticate(
   options: HttpHandlerOptions,
   request: Request,
@@ -66,8 +73,10 @@ async function authenticate(
   const session = stored
     ? await current(options, stored)
     : bearer
-      ? await options.authenticateToken?.(bearer)
-      : undefined;
+      ? await options.authenticateToken?.(bearer, 'bearer')
+      : cookie
+        ? await options.authenticateToken?.(cookie, 'cookie')
+        : undefined;
   if (!session)
     throw new ApplicationError('FORBIDDEN', 'Local session required', { credential: 'rejected' });
   return session;

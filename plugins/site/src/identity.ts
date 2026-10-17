@@ -5,26 +5,28 @@ import type { ExecutionContext } from '@agent-native/runtime';
 /**
  * Enforce the site policy's identity floor before a session or embedded call is created.
  * `context` is the delegated context from launcher configuration, or undefined for the OS
- * account's local owner.
+ * account's local owner. `serving` is true for the serving host's own startup check.
  *
  * - `local-owner` admits both.
  * - `grant-file` admits only a delegated context.
- * - `external` needs a workforce identity adapter this build does not compose, so it refuses
- *   rather than fall back to the local owner.
+ * - `external` admits a delegated context, and the local owner only as a serving host, which then
+ *   issues it no session: people sign in through the workforce identity provider instead. An
+ *   embedded call as the local owner would bypass that sign-in, so it is refused.
  *
  * With `grants.maxTtlSeconds`, a delegated grant must carry an expiry no further away than that.
- * Throws FORBIDDEN, or UNAVAILABLE for the missing adapter.
+ * Throws FORBIDDEN.
  */
 export function assertIdentity(
   policy: ResolvedPolicy,
   context: ExecutionContext | undefined,
+  serving: boolean,
   now = Date.now(),
 ): void {
   const floor = policy.policy.identity;
-  if (floor === 'external')
+  if (floor === 'external' && !context?.grant && !serving)
     throw new ApplicationError(
-      'UNAVAILABLE',
-      `${policy.profile} requires an external identity adapter; none is composed in this build`,
+      'FORBIDDEN',
+      `${policy.profile} signs people in through the workforce identity provider; embedded calls need a delegated grant`,
     );
   if (floor === 'grant-file' && !context?.grant)
     throw new ApplicationError(

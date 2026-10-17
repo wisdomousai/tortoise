@@ -6,14 +6,14 @@ import { parseRevisions, readJsonBody } from './body';
 import type { Cursors } from './cursors';
 import { eventStreamResponse } from './event-stream';
 import { jsonResponse } from './response';
-import type { HostSession, Sessions } from './sessions';
+import type { HostSession, Sessions, TokenAuthenticator } from './sessions';
 
 export interface AuthenticatedRoutes {
   readonly application: ApplicationPort;
   readonly sessions: Sessions;
   readonly cursors: Cursors;
   readonly pollMs?: number;
-  readonly authenticateToken?: (token: string) => Promise<HostSession | undefined>;
+  readonly authenticateToken?: TokenAuthenticator;
 }
 
 /** POST /api/v1/session: exchange a one-use launch key for the session cookie. */

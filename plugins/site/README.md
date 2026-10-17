@@ -11,6 +11,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
   - **Install, in order:** verify the bundle against `--trust`; admit it against the installed release and `--approval`; copy it to `opt/agent-native/<app>/releases/<version>` and verify the copy. Then render the systemd unit and nftables rules (or WinSW XML and Windows Firewall script) with the new release's own `network export`. Migrate the workspace with that release's `migrate`, and only then repoint `current`.
   - **Layout:** data lives in `var/lib/agent-native/<app>`, outside every release, so switching releases never moves it. `--prefix` stages the same tree in another directory.
   - **Applying:** only `--apply` creates the service account and loads the firewall rules and the service. It also stops the service before migrating.
+- [Workforce sign-in](../../docs/primitives.md#workforce-sign-in): `createWorkforceSignIn`, `WorkforceConfig`, `discover`, `providerJson`, `ProviderMetadata`, `DestinationFetch`, and `workforceIdentityComponent`, which declares the `workforce-idp` destination. Under `identity: external` on a serving host, `openSite` serves its `/auth/sign-in`, `/auth/callback` and `/auth/sign-out` routes as `publicRoute` and resolves its session cookies through `authenticateCookie`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `sitePlugin` is written only against `@agent-native/host/plugin`. It provides the `identity` port and declares the ports its policy `needs`.
 
 The [architecture](../../docs/architecture.md#plugins) explains how plugins use each other through ports and declare the ports they need. [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
@@ -21,26 +22,29 @@ The [architecture](../../docs/architecture.md#plugins) explains how plugins use 
 | ------------------------------------ | ------------------ | -------------------------------------------------------------------------------------------------- |
 | `@agent-native/site`                 | server only        | The exports listed under Primitives.                                                               |
 | `@agent-native/site/*`               | server only        | One source file each. Only `plugin-manifest` is browser-safe.                                      |
-| `@agent-native/site/plugin-manifest` | browser and server | `sitePluginManifest`: the `site-policy` setting.                                                   |
+| `@agent-native/site/plugin-manifest` | browser and server | `sitePluginManifest`: the `site-policy` setting and the `workforce-idp` destination.               |
 | `@agent-native/site/plugin`          | server only        | `sitePlugin`, for `defineApplication({ plugins })`.                                                |
 | `@agent-native/site/open`            | server only        | `openSite`, and `siteServiceOf` for plugins that read the resolved policy.                         |
 | `@agent-native/site/policy-file`     | server only        | `sitePolicyFor` and `policyErrors`, which offline CLI verbs of other plugins use to read a policy. |
 | `@agent-native/site/cli`             | server only        | `site check`, the install verbs and `POLICY_REJECTED_EXIT_CODE`.                                   |
 
-`identity` (`assertIdentity`) and `needs` (`portsNeeded`) are importable by path, as are `install/install`, `install/layout`, `install/native` (the OS commands), `install/windows` and `install/cli`.
+`identity` (`assertIdentity`), `needs` (`portsNeeded`), `workforce/sign-in` and `workforce/discovery` are importable by path, as are `install/install`, `install/layout`, `install/native` (the OS commands), `install/windows` and `install/cli`.
 
 What the plugin does at each lifecycle hook:
 
 | Hook       | Effect                                                                                                                                                          |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `open`     | Loads the policy, or isolates without one, and refuses one below its floor. Provides `identity`, exposes `{ policy, requirements }` and declares what it needs. |
+| `publicRoute`, `authenticateCookie` | Workforce sign-in, only under `identity: external` on a serving host.                                                                    |
 | `describe` | `{ profile, policyDigest }` for the `listening` record.                                                                                                         |
 
 ## Trust boundary
 
 The `site-policy` setting (`--site-policy` / `AGENT_NATIVE_SITE_POLICY`) is a trusted launcher input, and the plugin never reads caller input. Without a policy the application is isolated and needs nothing from other plugins. A policy below its profile floor refuses startup. It never falls back to plain transport or to the local owner.
 
-`identity.admit` admits the trusted local owner only when the policy's identity is `local-owner`. `grant-file` admits only a delegated grant, within `grants.maxTtlSeconds` when that is set, and `external` refuses.
+`identity.admit` admits the trusted local owner only when the policy's identity is `local-owner`. `grant-file` admits only a delegated grant, within `grants.maxTtlSeconds` when that is set. `external` admits a delegated grant, and lets a serving host start without one but issues the local owner no session; an embedded call as the local owner is refused, because it would bypass sign-in.
+
+Workforce sign-in is a public OpenID Connect client with PKCE (S256). Its state, nonce and verifier are kept in memory for ten minutes, and the state is consumed before the code is exchanged. The redirect URI is built from the request's origin, which the host has already checked against its Host header. Discovery, keys and the token exchange go only through the network port's `workforce-idp` client. `site check` refuses an issuer that is not on that binding's origin, and discovery refuses a document that names another issuer or an endpoint on another origin. The ID token is verified by `verifyOidcIdentity` from `@agent-native/agents/oidc` and then discarded. The principal is the configured claim; for `email`, a provider that says the address is unverified is refused. The session token is the plugin's own and goes only into an `HttpOnly; SameSite=Strict` cookie, `Secure` on https. It is offered only to `authenticateCookie`, never to `authenticate`, so a device's bearer credential never works from a cookie. Sign-out checks the Origin itself, because public routes run before the host's origin check.
 
 A supplied policy declares the ports it depends on (`portsNeeded`):
 
@@ -56,14 +60,16 @@ The install verbs trust only what verifies against `--trust`. The copy in the re
 
 Gaps:
 
-- No workforce identity adapter or certificate lifecycle exists, so `external` identity refuses to start.
+- Workforce sessions live in memory, so a restart signs everyone out, and they carry no roles: the application's policy decides what each principal may do.
+- Provider endpoints must be on the issuer's origin, because one destination reaches one origin.
+- No certificate lifecycle exists.
 - Install needs the application to compose the network plugin, which renders the service files.
 - The WinSW wrapper executable is the site's to supply.
 - No kiosk client mode exists yet.
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/egress` (policy schema and resolution), `@agent-native/adapters/cli`, `@agent-native/runtime` (types), `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`, `components`). No external packages.
+Framework: `@agent-native/contracts`, `@agent-native/egress` (policy schema and resolution), `@agent-native/adapters/cli`, `@agent-native/runtime` (types), `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`, `components`), `@agent-native/kernel/authority` (`LOCAL_WORKSPACE`), `@agent-native/agents/oidc` (ID-token verification). External: `jose`, for the provider's key set.
 
 ## Tests
 
@@ -82,5 +88,7 @@ The plugin is exercised through applications that compose it, because a policy o
 - a tampered release reported by `status`;
 - a tampered bundle refused while `current` stays put;
 - uninstall keeping data.
+
+`test/workforce.test.ts` signs in against a fake provider answered by the injected destination fetch: the redirect parameters and PKCE pair, a one-use state, sign-out, session expiry, and refusals for another audience, an unverified email and a discovery document naming another issuer. It also covers which callers `external` admits.
 
 With `SITE_INSTALL_NATIVE=1` (the `site-install` CI job on Ubuntu), it also runs `systemd-analyze verify` on the unit and `nft -c -f` on the rules.

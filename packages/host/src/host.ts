@@ -1,7 +1,12 @@
 import { mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
-import { createHttpHandler, Sessions, type HostSession } from '@agent-native/adapters/http';
+import {
+  createHttpHandler,
+  Sessions,
+  type HostSession,
+  type TokenAuthenticator,
+} from '@agent-native/adapters/http';
 import type { AnyApplicationDefinition } from './application';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from './embedded';
 import { startAgents } from './host/agents';
@@ -32,14 +37,17 @@ interface Running {
 }
 
 /**
- * A credential a plugin issued (a paired device) stands for the context the plugin returns. It is
- * resolved on every request, so it carries no expiry of its own.
+ * A credential a plugin issued (a paired device's bearer, a signed-in person's cookie) stands for
+ * the context the plugin returns. It is resolved on every request, so it carries no expiry of its
+ * own, and remembers where it was presented so every recheck asks the same plugin hook.
  */
 const pluginCredential =
-  (authority: Authority) =>
-  async (token: string): Promise<HostSession | undefined> => {
-    const context = await authority.plugins.authenticate(token);
-    return context && { token, context, expiresAt: Number.POSITIVE_INFINITY, credential: token };
+  (authority: Authority): TokenAuthenticator =>
+  async (token, via) => {
+    const context = await authority.plugins.authenticate(token, via);
+    return (
+      context && { token, context, expiresAt: Number.POSITIVE_INFINITY, credential: token, via }
+    );
   };
 
 /** Stop once: cancel live runs, stop serving and syncing, then close state, log and ownership. */

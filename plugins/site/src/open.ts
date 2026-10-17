@@ -8,6 +8,7 @@ import {
 import type { PluginInstance, PluginOpenContext } from '@agent-native/host/plugin';
 import { assertIdentity } from './identity';
 import { portsNeeded } from './needs';
+import { createWorkforceSignIn } from './workforce/sign-in';
 
 /**
  * What the site plugin exposes to later plugins as `services.site`: the resolved policy and the
@@ -24,7 +25,8 @@ export interface SiteService {
  *
  * 1. Load the `site-policy` file against the composed requirements, or the isolated default
  *    without one, and refuse on any error finding, profile floors included.
- * 2. Provide the identity port from the policy's identity floor.
+ * 2. Provide the identity port from the policy's identity floor and, for `identity: external`
+ *    on a serving host, the workforce sign-in routes and the session cookies they set.
  * 3. Declare the ports the policy needs (`portsNeeded`), so the host refuses a composition in
  *    which the policy binds destinations or requires an audit trail that nothing enforces.
  *
@@ -38,13 +40,25 @@ export async function openSite(context: PluginOpenContext): Promise<PluginInstan
     : isolatedPolicy(requirements);
   assertPolicyUsable(policy);
   const service: SiteService = { policy, requirements };
+  const { workforce } = policy.policy;
+  // Policy validation already refused `external` without a workforce provider.
+  const signIn =
+    workforce && policy.policy.identity === 'external' && context.serving
+      ? createWorkforceSignIn(workforce, {
+          fetch: () => context.ports.network.client('workforce-idp').fetch,
+        })
+      : undefined;
   return {
     ports: {
       identity: {
-        admit: (caller) => assertIdentity(policy, caller),
+        admit: (caller) => assertIdentity(policy, caller, context.serving),
         localOwnerSessions: policy.policy.identity === 'local-owner',
       },
     },
+    ...(signIn
+      ? { publicRoute: signIn.publicRoute, authenticateCookie: signIn.authenticateCookie }
+      : {}),
+    // A bound workforce provider makes the policy connected, so the network port is needed.
     needs: portsNeeded(policy, file !== undefined),
     service,
     describe: () => ({ profile: policy.profile, policyDigest: policy.digest }),

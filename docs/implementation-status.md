@@ -33,6 +33,12 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Not shown.** No `--apply` run has loaded a service or firewall on a real host, on Linux or Windows. The Windows path (WinSW XML, Windows Firewall script) has only been rendered, never run. No kiosk client mode exists.
 
+### Workforce sign-in
+
+**Shown, deterministic.** `plugins/site/test/workforce.test.ts` signs in against a fake provider: PKCE, a one-use state, ID-token checks (audience, nonce, verified email, the discovered issuer) and session expiry. `packages/adapters/src/http-credentials.test.ts` shows a cookie offered only as a cookie and a bearer only as a bearer. The project-tasks hardening test starts an `external` policy with a bound provider and no owner session.
+
+**Not shown.** No real identity provider has been signed in to. Endpoints on another origin than the issuer (Google's, for example) are refused. Sessions live in memory, so a restart signs everyone out. Shared-station badge or PIN sign-in is not built yet.
+
 ### State migrations
 
 **Not shown.** `migrate` is not yet run by a bundle install; that comes with `site install`. The examples declare no migrations yet, and keep their unversioned `upgradeState`. A target port that maps effects by `contractVersion` has not been written. The phone's storage stamps versions, but has no staged `migrate`.
@@ -85,7 +91,7 @@ The kit's interaction tests also pass.
 
 - **Rules:** the exported rules are compared as text only. They were never loaded into nftables, Windows Firewall, systemd or a cluster.
 - **Live traffic:** no off-host syslog collector, and no live provider traffic through the guard.
-- **Zero trust:** it refuses to start, because no workforce identity adapter exists.
+- **Zero trust:** it starts only with a workforce provider bound; no real provider has been signed in to (see [workforce sign-in](#workforce-sign-in)).
 - **Processes:** the agent harness launches still spawn directly, not through the process port. The Bun platform has no secret store, so processes that declare secrets are unavailable there. Tree termination has not run on Windows.
 
 Control mappings are indicative, not a certification.

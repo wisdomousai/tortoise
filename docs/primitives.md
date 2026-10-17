@@ -353,6 +353,12 @@ _Deployment data that binds declared destinations to addresses and sets a harden
 
 implemented · `packages/egress` `plugins/site`
 
+### Workforce sign-in
+
+_People signing in to a serving host through the site's identity provider, under `identity: external`._
+
+partial · `plugins/site/src/workforce` `packages/kernel/src/plugin.ts` `packages/adapters/src/http`
+
 ### Egress guard
 
 _The only path from server code, and from declared child processes, to the network._

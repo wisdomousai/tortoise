@@ -3,7 +3,7 @@ import type { ExecutionContext } from '@agent-native/runtime';
 import type { AnyApplicationDefinition, HostedApplication, Observer } from '../application';
 import { deploymentCatalog } from '../components';
 import { assertPlatformSupports, scopedSecrets, type HostPlatform } from '../platform';
-import type { HostPorts, PluginInstance, PluginStartContext } from '../plugin';
+import type { CredentialSource, HostPorts, PluginInstance, PluginStartContext } from '../plugin';
 import { defaultPorts, latePorts, resolvePorts } from './ports';
 import { assertClaimed, mergeSettings, settingsFor, type PluginSettings } from './settings';
 
@@ -154,10 +154,18 @@ export async function openPlugins(
       }
       return undefined;
     },
-    /** The caller a plugin-issued bearer token stands for, from the first plugin that knows it. */
-    async authenticate(token: string): Promise<ExecutionContext | undefined> {
+    /**
+     * The caller a plugin-issued credential stands for, from the first plugin that knows it. A
+     * bearer token is offered only to `authenticate` and a cookie only to `authenticateCookie`.
+     */
+    async authenticate(
+      token: string,
+      via: CredentialSource = 'bearer',
+    ): Promise<ExecutionContext | undefined> {
       for (const { instance } of opened) {
-        const context = await instance.authenticate?.(token);
+        const context = await (via === 'cookie'
+          ? instance.authenticateCookie?.(token)
+          : instance.authenticate?.(token));
         if (context) return context;
       }
       return undefined;

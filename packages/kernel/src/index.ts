@@ -31,6 +31,7 @@ export {
 export {
   defineHostPlugin,
   type AnyHostPlugin,
+  type CredentialSource,
   type HostPlugin,
   type HostPorts,
   type IdentityPort,

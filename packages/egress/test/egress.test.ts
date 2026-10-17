@@ -45,6 +45,7 @@ const requirements = collectRequirements([
         site('local-model', { scope: 'loopback', protocol: 'http', dataClasses: [] }),
         site('legacy-tcp', { protocol: 'tcp' }),
         site('loopback-tcp', { scope: 'loopback', protocol: 'tcp', dataClasses: [] }),
+        site('workforce-idp', { scope: 'internet', dataClasses: ['identity'] }),
       ],
       processes: [
         {
@@ -157,17 +158,34 @@ describe('site policy', () => {
       'IDENTITY_FLOOR',
     );
     const pinned = 'AB:'.repeat(31) + 'AB';
+    const external = {
+      profile: 'zero-trust',
+      mode: 'connected',
+      identity: 'external',
+      grants: { maxTtlSeconds: 900 },
+      audit: { forwardTo: 'station-screen' },
+      destinations: {
+        'mes-api': { ...mes, certificatePins: [pinned] },
+        'station-screen': { url: 'https://collector.plant', certificatePins: [pinned] },
+      },
+    } as const satisfies SitePolicyInput;
+    // External identity names a workforce provider whose issuer is the bound destination's origin.
+    expect(codes(external)).toEqual(['IDENTITY_PROVIDER']);
+    const workforce = { issuer: 'https://login.corp.example/tenant', clientId: 'site-app' };
+    const idp = { url: 'https://login.corp.example', certificatePins: [pinned] };
+    expect(codes({ ...external, workforce })).toEqual(['IDENTITY_PROVIDER']);
     expect(
       codes({
-        profile: 'zero-trust',
-        mode: 'connected',
-        identity: 'external',
-        grants: { maxTtlSeconds: 900 },
-        audit: { forwardTo: 'station-screen' },
-        destinations: {
-          'mes-api': { ...mes, certificatePins: [pinned] },
-          'station-screen': { url: 'https://collector.plant', certificatePins: [pinned] },
-        },
+        ...external,
+        workforce: { ...workforce, issuer: 'https://other.example' },
+        destinations: { ...external.destinations, 'workforce-idp': idp },
+      }),
+    ).toEqual(['IDENTITY_PROVIDER']);
+    expect(
+      codes({
+        ...external,
+        workforce,
+        destinations: { ...external.destinations, 'workforce-idp': idp },
       }),
     ).toEqual([]);
   });

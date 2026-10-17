@@ -90,6 +90,22 @@ export const sitePolicySchema = z.strictObject({
     })
     .default({ listen: 'loopback' }),
   grants: z.strictObject({ maxTtlSeconds: z.number().int().positive().optional() }).default({}),
+  /**
+   * The workforce identity provider that `identity: external` signs people in with: OpenID
+   * Connect, authorization code with PKCE, as a public client. `issuer` must be on the origin
+   * bound to the site plugin's `workforce-idp` destination, through which discovery, keys and
+   * tokens are fetched.
+   */
+  workforce: z
+    .strictObject({
+      issuer: z.url(),
+      clientId: z.string().min(1),
+      /** The verified ID-token claim that becomes the principal ID. */
+      principalClaim: z.string().min(1).default('email'),
+      scopes: z.array(z.string().min(1)).default(['openid', 'email', 'profile']),
+      sessionMinutes: z.number().int().positive().max(1440).default(480),
+    })
+    .optional(),
 });
 export type SitePolicy = z.output<typeof sitePolicySchema>;
 export type SitePolicyInput = z.input<typeof sitePolicySchema>;

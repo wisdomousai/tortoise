@@ -99,7 +99,7 @@ A profile is a floor: startup refuses a policy below it, and `site check` report
 The identity settings:
 
 - **`grant-file`:** the host issues no local-owner session and writes no owner credential. Only a launcher grant within the maximum lifetime is admitted, including for embedded CLI and MCP calls.
-- **`external`:** startup refuses, because no workforce identity adapter exists yet. It never falls back to the local owner.
+- **`external`:** people sign in with the workforce identity provider named in `workforce` (OpenID Connect, authorization code with PKCE). Its issuer must be on the origin bound to the `workforce-idp` destination. The host issues the local owner no session, and embedded calls need a launcher grant. It never falls back to the local owner. See the [site plugin](../plugins/site/README.md#trust-boundary).
 
 **TLS and mTLS.** The listener binds the configured address with the site's certificate. With `mtls` it admits only clients whose certificate chains to `clientCa`; with `tls` any client on the network completes the handshake, and a policy that sets `clientCa` on a `tls` listener is refused, since nothing would check it. Either way every API call still needs a session token or a device credential. Certificate paths resolve next to the policy file.
 
@@ -182,6 +182,6 @@ With no site policy, the application is isolated:
 
 - The guard and proxy are in-process controls. Real containment needs the exported rules applied, or an OS sandbox.
 - A process running as the workspace owner can read the workspace and the log. Chaining detects edits but cannot stop deletion of the newest entries; off-host forwarding covers that.
-- There is no workforce identity adapter and no certificate issuance or rotation, so zero trust refuses to start.
+- Workforce sign-in is OpenID Connect only (no LDAP or SAML), and there is no certificate issuance or rotation.
 - The isolated-test trap does not cover child processes.
 - Devices are declared but not mediated, and the systemd export needs explicit allowances for declared devices.

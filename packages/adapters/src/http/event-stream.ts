@@ -2,14 +2,14 @@ import type { EventBatch, ExecutionContext } from '@agent-native/runtime';
 import type { ApplicationPort } from '../http';
 import type { Cursors } from './cursors';
 import { secureHeaders } from './response';
-import type { HostSession, Sessions } from './sessions';
+import type { HostSession, Sessions, TokenAuthenticator } from './sessions';
 
 interface StreamOptions {
   readonly application: ApplicationPort;
   readonly sessions: Sessions;
   readonly cursors: Cursors;
   readonly pollMs?: number;
-  readonly authenticateToken?: (token: string) => Promise<HostSession | undefined>;
+  readonly authenticateToken?: TokenAuthenticator;
 }
 
 /** Wait one poll interval, or less if the request is aborted. */
@@ -52,7 +52,8 @@ export function eventStreamResponse(
     (session.credential === session.token || !!options.sessions.get(session.token));
   const valid = async () =>
     live() &&
-    (session.credential === undefined || !!(await options.authenticateToken?.(session.credential)));
+    (session.credential === undefined ||
+      !!(await options.authenticateToken?.(session.credential, session.via ?? 'bearer')));
   /** One SSE frame; a frame over 256 KiB is replaced by a reset. */
   const frame = (batch: EventBatch) => {
     // No await between final access decision and enqueue. Reset rather than disclose

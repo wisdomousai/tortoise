@@ -88,16 +88,45 @@ test('sandbox admits only the launcher grant, never the local owner', async () =
   });
 });
 
-test('an external identity floor refuses to start without an identity adapter', async () => {
+test('an external identity floor needs a workforce provider, then admits only signed-in people', async () => {
   await withDirectory(async (directory) => {
-    const sitePolicy = await writePolicy(directory, { ...sandbox, identity: 'external' });
-    await expect(
+    const start = async (policy: SitePolicyInput) =>
       startHost(projectTasks, {
         workspacePath: join(directory, 'workspace'),
         integration: false,
-        settings: { 'site-policy': sitePolicy },
-      }),
-    ).rejects.toThrow(/requires an external identity adapter; none is composed/);
+        settings: { 'site-policy': await writePolicy(directory, policy) },
+      });
+    await expect(start({ ...sandbox, identity: 'external' })).rejects.toThrow(
+      /IDENTITY_PROVIDER: external identity requires a workforce identity provider/,
+    );
+    const host = await start({
+      ...sandbox,
+      mode: 'connected',
+      identity: 'external',
+      workforce: { issuer: 'https://login.corp.example/tenant', clientId: 'project-tasks' },
+      destinations: { 'workforce-idp': { url: 'https://login.corp.example' } },
+    });
+    try {
+      // The local owner gets no session; a cookie the sign-in did not set opens nothing.
+      expect(host.connectionFile).toBeUndefined();
+      const list = (cookie?: string) =>
+        fetch(`${host.url}/api/v1/queries/project.list`, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            origin: host.url,
+            ...(cookie ? { cookie: `agent_session=${cookie}` } : {}),
+          },
+          body: JSON.stringify({ input: {} }),
+        });
+      expect((await list()).status).toBe(403);
+      expect((await list('forged')).status).toBe(403);
+      // Sign-out is a sign-in route of its own and checks the origin itself.
+      const signOut = await fetch(`${host.url}/auth/sign-out`, { method: 'POST' });
+      expect(signOut.status).toBe(403);
+    } finally {
+      await host.close();
+    }
   });
 });
 

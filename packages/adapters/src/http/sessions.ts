@@ -10,19 +10,36 @@ export interface HostSession {
    * device's. Every request rechecks it, so revoking the credential ends the session.
    */
   credential?: string;
+  /** Where `credential` was presented; it is rechecked the same way. Absent means a bearer. */
+  via?: CredentialSource;
 }
+
+/** Where a request carried a credential: the Authorization header or the session cookie. */
+export type CredentialSource = 'bearer' | 'cookie';
+
+/** Resolves a credential the host does not store; see `HttpHandlerOptions.authenticateToken`. */
+export type TokenAuthenticator = (
+  token: string,
+  via: CredentialSource,
+) => Promise<HostSession | undefined>;
 
 /** Trusted hosts mint credentials. Request bodies never select principals or roles. */
 export class Sessions {
   private sessions = new Map<string, HostSession>();
   private launches = new Map<string, { session: HostSession; expiresAt: number }>();
   constructor(private readonly now: () => number = Date.now) {}
-  create(context: ExecutionContext, ttl = 86_400_000, credential?: string): HostSession {
+  create(
+    context: ExecutionContext,
+    ttl = 86_400_000,
+    credential?: string,
+    via?: CredentialSource,
+  ): HostSession {
     const session: HostSession = {
       token: randomBytes(32).toString('base64url'),
       context,
       expiresAt: this.now() + ttl,
       ...(credential === undefined ? {} : { credential }),
+      ...(via === undefined ? {} : { via }),
     };
     this.sessions.set(session.token, session);
     return session;
@@ -43,7 +60,7 @@ export class Sessions {
     const { session } = launch;
     return session.credential === undefined
       ? this.get(session.token)
-      : this.create(session.context, undefined, session.credential);
+      : this.create(session.context, undefined, session.credential, session.via);
   }
   get(token: string): HostSession | undefined {
     const session = this.sessions.get(token);
