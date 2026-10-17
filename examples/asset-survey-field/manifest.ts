@@ -17,6 +17,19 @@ export function fieldManifest(plugins: readonly PluginManifest[]) {
     modules: [fieldModule],
     plugins,
     targets: ['mobile'],
+    // The capture screen takes stills only, so the build asks for the camera and not the
+    // microphone.
+    expoPlugins: [
+      {
+        plugin: 'expo-camera',
+        options: {
+          cameraPermission: 'Photograph equipment and nameplates for the site survey.',
+          microphonePermission: false,
+          recordAudioAndroid: false,
+          barcodeScannerEnabled: false,
+        },
+      },
+    ],
   });
 }
 

@@ -13,7 +13,8 @@ const root = resolve(import.meta.dir, '..');
  * bundles only what it can see, so the starter imports `virtual:agent-native/mobile-entry` and
  * Metro maps it to this file; the starter's source never names content. The entry imports the
  * application's server definition and its `screens-native`. Beside it, `native.json` lists the
- * Expo config plugins of the composed plugins with `{ application, settings }`, which
+ * Expo config plugins of the composed plugins with `{ application, settings }`, then the
+ * application's own `expoPlugins` with their options, which
  * `app.config.ts` passes to `expo prebuild`, and `os`, the scheme, intent filters, associated
  * domains and document types its OS handlers need. The entry also carries the launcher settings
  * the identity implies: the application's URL scheme as the OS plugin's scheme setting, as the
@@ -65,16 +66,20 @@ export async function writeMobileEntry({
     .flatMap((plugin) => plugin.settings ?? [])
     .map(({ key, description }) => ({ key, description }));
   const native = {
-    plugins: plugins.flatMap((plugin) =>
-      plugin.native?.expoPlugin
-        ? [
-            [
-              plugin.native.expoPlugin,
-              { application: { id: manifest.id, title: manifest.title }, settings: declared },
-            ],
-          ]
-        : [],
-    ),
+    plugins: [
+      ...plugins.flatMap((plugin) =>
+        plugin.native?.expoPlugin
+          ? [
+              [
+                plugin.native.expoPlugin,
+                { application: { id: manifest.id, title: manifest.title }, settings: declared },
+              ],
+            ]
+          : [],
+      ),
+      // Then the application's own, such as `expo-camera` with its permission text.
+      ...(manifest.expoPlugins ?? []).map(({ plugin, options }) => [plugin, options ?? {}]),
+    ],
     os: nativeOsConfig(
       deploymentCatalog(manifest).os,
       { appId: config.appId, scheme: config.scheme, displayName: config.displayName },

@@ -63,14 +63,15 @@ export interface PluginNative {
 }
 
 const idPattern = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
-const specifierPattern = /^(?:@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*(?:\/[\w.-]+)*$/;
+/** A package module specifier such as `@scope/package/app.plugin`, for Expo config plugins. */
+export const moduleSpecifierPattern = /^(?:@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*(?:\/[\w.-]+)*$/;
 
 function checkNative(manifest: Pick<PluginManifest, 'id' | 'platforms' | 'native'>) {
   const { native } = manifest;
   if (!native) return;
   if (!manifest.platforms?.some((platform) => platform === 'android' || platform === 'ios'))
     throw new Error(`Plugin "${manifest.id}" brings native code but lists neither android nor ios`);
-  if (native.expoPlugin !== undefined && !specifierPattern.test(native.expoPlugin))
+  if (native.expoPlugin !== undefined && !moduleSpecifierPattern.test(native.expoPlugin))
     throw new Error(`Plugin "${manifest.id}" has an invalid Expo config plugin specifier`);
   if (native.module !== undefined && !/^[A-Za-z][A-Za-z0-9]*$/.test(native.module))
     throw new Error(`Plugin "${manifest.id}" has an invalid native module name`);

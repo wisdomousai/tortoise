@@ -395,6 +395,29 @@ test('application targets must be known and every plugin must run on each', () =
   expect(() =>
     defineManifest({ id: 'field', title: 'Field', modules: [], targets: ['web', 'web'] }),
   ).toThrow('Target "web" is listed twice');
+  // An application's own Expo config plugins need a mobile target and a package specifier.
+  const camera = [{ plugin: 'expo-camera', options: { cameraPermission: 'Photos' } }];
+  expect(
+    defineManifest({
+      id: 'field',
+      title: 'Field',
+      modules: [],
+      targets: ['mobile'],
+      expoPlugins: camera,
+    }).expoPlugins,
+  ).toEqual(camera);
+  expect(() =>
+    defineManifest({ id: 'hub', title: 'Hub', modules: [], targets: ['web'], expoPlugins: camera }),
+  ).toThrow('Application "hub" lists Expo config plugins but does not target mobile');
+  expect(() =>
+    defineManifest({
+      id: 'field',
+      title: 'Field',
+      modules: [],
+      targets: ['mobile'],
+      expoPlugins: [{ plugin: '../camera' }],
+    }),
+  ).toThrow('invalid Expo config plugin "../camera"');
   expect(() => definePluginManifest({ id: 'p', title: 'P', platforms: ['wasm' as 'bun'] })).toThrow(
     'unknown platform "wasm"',
   );

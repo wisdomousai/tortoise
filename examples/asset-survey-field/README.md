@@ -58,7 +58,6 @@ Run it on a device: set `targets.mobile.application` in `app.config.json` to `@a
 Known limits:
 - Captures cannot be amended, placed or discarded on the device. The outbox payload is fixed once enqueued, so placing happens on the hub during review.
 - The scanner profile is a constant, not a setting.
-- An application cannot add Expo config plugins of its own; only composed host plugins can. The `expo-camera` config plugin, which writes the iOS camera usage description, is therefore not applied.
 - Device runs have not been done; see [implementation status](../../docs/implementation-status.md).
 
 ## Trust boundary
@@ -78,6 +77,7 @@ A scan is input under the owner's authority, like typing: it only searches and o
   - `@agent-native/devices` (scanner types).
 - Plugins: `@agent-native/hub-link`, `@agent-native/managed-config`, `@agent-native/intent-scanner`.
 - Content: `@agent-native/asset-survey` (browser-safe contracts and domain types).
+- Expo config plugin: the manifest's `expoPlugins` lists `expo-camera` with the camera permission text and no microphone, since the capture screen takes stills only.
 - External, React Native only:
   - `react-native`, `expo-camera`, `expo-file-system`;
   - `@react-navigation/native`, `@tanstack/react-query`, `lucide-react-native`.

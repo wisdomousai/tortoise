@@ -1,5 +1,10 @@
 import type { CapabilityModule, HostComponent } from '@agent-native/contracts';
-import type { PlatformId, PluginManifest, PluginModules } from './plugin-manifest';
+import {
+  moduleSpecifierPattern,
+  type PlatformId,
+  type PluginManifest,
+  type PluginModules,
+} from './plugin-manifest';
 
 /** Where an application is delivered: the desktop window, a browser, or the mobile app. */
 export type ApplicationTarget = 'desktop' | 'web' | 'mobile';
@@ -37,6 +42,18 @@ export interface ApplicationManifest<
    * before mobile. Build tooling reads it; the kernel checks that every plugin runs there.
    */
   readonly targets?: readonly ApplicationTarget[];
+  /**
+   * Expo config plugins of native libraries the application's own screens use, such as
+   * `expo-camera` with its permission text. `mobile:prepare` lists them after the composed
+   * plugins' config plugins. Only for an application that targets mobile. Pure data.
+   */
+  readonly expoPlugins?: readonly ExpoPluginEntry[];
+}
+
+/** One Expo config plugin by module specifier, with the options Expo passes it at prebuild. */
+export interface ExpoPluginEntry {
+  readonly plugin: string;
+  readonly options?: Readonly<Record<string, string | number | boolean>>;
 }
 
 /**
@@ -44,7 +61,8 @@ export interface ApplicationManifest<
  * application's own, so every consumer of `modules` and `components` sees the whole catalog and
  * none has to know plugins exist. Literal module types are preserved for typed clients.
  * Fails at definition time on an invalid id, a module listed twice (including across plugins),
- * a plugin listed twice, an unknown target, or a plugin that runs on no platform of a target.
+ * a plugin listed twice, an unknown target, a plugin that runs on no platform of a target, or an
+ * Expo config plugin on an application that does not target mobile.
  */
 export function defineManifest<
   const Modules extends readonly CapabilityModule[],
@@ -59,6 +77,7 @@ export function defineManifest<
   const twice = pluginIds.find((id, index) => pluginIds.indexOf(id) !== index);
   if (twice) throw new Error(`Plugin "${twice}" is composed twice`);
   checkTargets(manifest.targets, plugins);
+  checkExpoPlugins(manifest);
   const modules = [...manifest.modules, ...plugins.flatMap((plugin) => plugin.modules)];
   const ids = modules.map((module) => module.id);
   const duplicate = ids.find((id, index) => ids.indexOf(id) !== index);
@@ -96,4 +115,15 @@ function checkTargets(
   }
   const twice = (targets ?? []).find((target, index) => targets!.indexOf(target) !== index);
   if (twice) throw new Error(`Target "${twice}" is listed twice`);
+}
+
+function checkExpoPlugins(manifest: Pick<ApplicationManifest, 'id' | 'targets' | 'expoPlugins'>) {
+  if (!manifest.expoPlugins?.length) return;
+  if (!manifest.targets?.includes('mobile'))
+    throw new Error(
+      `Application "${manifest.id}" lists Expo config plugins but does not target mobile`,
+    );
+  for (const { plugin } of manifest.expoPlugins)
+    if (!moduleSpecifierPattern.test(plugin))
+      throw new Error(`Application "${manifest.id}" has an invalid Expo config plugin "${plugin}"`);
 }

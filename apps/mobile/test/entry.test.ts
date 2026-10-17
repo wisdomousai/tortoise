@@ -82,13 +82,14 @@ test('native.json lists config plugins with the application and every declared s
       "const mdm = definePluginManifest({ id: 'mdm', title: 'MDM', platforms: ['android', 'ios'], native: { module: 'Mdm', expoPlugin: '@example/mdm/app.plugin' } });",
       "const scan = definePluginManifest({ id: 'scan', title: 'Scan', platforms: ['android'], native: { module: 'Scan' } });",
       "const link = definePluginManifest({ id: 'link', title: 'Link', platforms: ['android', 'ios'], settings: [{ key: 'hub-url', env: 'HUB_URL', kind: 'string', description: 'Hub origin' }] });",
-      "export default defineManifest({ id: 'field', title: 'Field', modules: [], plugins: [mdm, scan, link], targets: ['mobile'] });",
+      "export default defineManifest({ id: 'field', title: 'Field', modules: [], plugins: [mdm, scan, link], targets: ['mobile'], expoPlugins: [{ plugin: 'expo-camera', options: { cameraPermission: 'Photos', recordAudioAndroid: false } }] });",
       '',
     ].join('\n'),
   );
   const directory = scratch();
   await writeMobileEntry({ directory, env: { AGENT_NATIVE_MOBILE_APPLICATION: field } });
-  // Only plugins that name a config plugin are listed; a module alone is autolinked.
+  // Only plugins that name a config plugin are listed; a module alone is autolinked. The
+  // application's own config plugins follow with their options.
   expect(JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'))).toMatchObject({
     plugins: [
       [
@@ -98,6 +99,7 @@ test('native.json lists config plugins with the application and every declared s
           settings: [{ key: 'hub-url', description: 'Hub origin' }],
         },
       ],
+      ['expo-camera', { cameraPermission: 'Photos', recordAudioAndroid: false }],
     ],
   });
 });
