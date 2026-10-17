@@ -9,3 +9,4 @@ export * from './claude';
 export * from './ai-sdk';
 export * from './local';
 export * from './placement';
+export * from './models';

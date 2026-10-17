@@ -1,3 +1,4 @@
+import type { ModelDemand } from '@agent-native/agents/placement';
 import type { AgentBudgets, Catalog, ModelRequirement } from '@agent-native/contracts';
 import { agentGrant } from '@agent-native/runtime';
 import type { TriggerDefinition } from './contracts';
@@ -10,6 +11,8 @@ export interface ResolvedTrigger extends TriggerDefinition {
   readonly budgets: Pick<AgentBudgets, 'toolCalls' | 'wallTimeMs'> & { readonly turns?: number };
   /** For an agent trigger, where the agent's model may run. */
   readonly model?: ModelRequirement;
+  /** For an agent trigger, the agent's named models and ID. */
+  readonly demand?: ModelDemand;
 }
 
 const DEFAULT_JOB_BUDGETS = { toolCalls: 100, wallTimeMs: 60_000 };
@@ -31,7 +34,11 @@ function runOperations(
       { principalId: '-', workspaceId: '-' },
       { now: 0 },
     );
-    return { operations, budgets: agent.budgets, model: agent.model };
+    const demand: ModelDemand = {
+      agent: agent.id,
+      ...(agent.models ? { models: agent.models } : {}),
+    };
+    return { operations, budgets: agent.budgets, model: agent.model, demand };
   }
   if (!jobs.has(run.job)) throw new Error(`Trigger ${trigger.id} runs unregistered job ${run.job}`);
   return {
@@ -55,7 +62,7 @@ export function resolveTriggers(
   for (const trigger of triggers) {
     if (!ID.test(trigger.id) || resolved.has(trigger.id))
       throw new Error(`Invalid or duplicate trigger ID: ${trigger.id}`);
-    const { model, ...run } = runOperations(trigger, catalog, jobs);
+    const { model, demand, ...run } = runOperations(trigger, catalog, jobs);
     const { operations, budgets } = run;
     const unknown = operations.filter((operation) => !known.has(operation));
     if (unknown.length)
@@ -74,7 +81,13 @@ export function resolveTriggers(
       trigger.on.schedule.everyMs < 60_000
     )
       throw new Error(`Trigger ${trigger.id} schedule must be at least one minute`);
-    resolved.set(trigger.id, { ...trigger, operations, budgets, ...(model ? { model } : {}) });
+    resolved.set(trigger.id, {
+      ...trigger,
+      operations,
+      budgets,
+      ...(model ? { model } : {}),
+      ...(demand ? { demand } : {}),
+    });
   }
   return resolved;
 }

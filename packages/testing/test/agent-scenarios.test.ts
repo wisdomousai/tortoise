@@ -31,6 +31,7 @@ import {
   scenarioRegressions,
   type AgentScenario,
 } from '../src/agent-scenarios';
+import { gateModel, scenariosDigest } from '../src/activation';
 
 // A fixture application: lots an operator releases, an advisor agent that proposes releases and
 // a releaser agent that releases directly, each scoped to the lots it was started on.
@@ -322,5 +323,55 @@ describe('agent scenarios with the deterministic harness', () => {
     ).toEqual(['a']);
     expect(containsValue({ a: 1, b: [1, { c: 2 }] }, { b: [1, { c: 2 }] })).toBe(true);
     expect(containsValue({ b: [1, 2] }, { b: [1] })).toBe(false);
+  });
+
+  test('the model gate passes a candidate only when every scenario passes, and names regressions', async () => {
+    const entry = {
+      id: 'lots-tuned',
+      base: { name: 'base', digest: `sha256:${'a'.repeat(64)}` },
+      adapter: { kind: 'lora' as const, digest: `sha256:${'b'.repeat(64)}` },
+      license: 'MIT',
+      contextTokens: 4096,
+    };
+    // A scripted "model" that proposes when `good`, and does nothing otherwise.
+    const scripted = (good: boolean, served?: string): Harness => ({
+      id: good ? 'good' : 'bad',
+      features: { questions: false, approvals: false, resume: false },
+      inference: 'local',
+      ...(served ? { model: { provider: 'local', model: served, entry: served } } : {}),
+      availability: async () => ({ available: true }),
+      async *run(turn) {
+        if (good)
+          await turn.tools.execute(
+            'proposal.submit',
+            { input: advise('l1').input },
+            { runId: turn.runId, signal: turn.signal, idempotencyKey: 'p' },
+          );
+        yield { type: 'text', text: 'ok' };
+      },
+    });
+    const options = { entry, scenarios: [advisorScenario], application, now: () => 7 };
+    const failing = await gateModel({
+      ...options,
+      candidate: scripted(false, entry.id),
+      baseline: { entry: 'lots-base', harness: scripted(true) },
+    });
+    expect(failing.activation).toMatchObject({
+      entry: 'lots-tuned',
+      adapter: entry.adapter.digest,
+      passed: false,
+      regressions: ['advisor proposes releasing the selected lot'],
+      baseline: 'lots-base',
+      scenarios: scenariosDigest([advisorScenario]),
+      at: 7,
+    });
+    const passing = await gateModel({ ...options, candidate: scripted(true, entry.id) });
+    expect(passing.activation).toMatchObject({ passed: true, regressions: [] });
+    await expect(gateModel({ ...options, candidate: scripted(true) })).rejects.toThrow(
+      'does not serve model entry lots-tuned',
+    );
+    expect(scenariosDigest([advisorScenario])).not.toBe(
+      scenariosDigest([{ ...advisorScenario, task: 'Another task' }]),
+    );
   });
 });

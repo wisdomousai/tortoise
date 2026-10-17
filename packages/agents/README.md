@@ -7,6 +7,7 @@ Layer: framework (`packages/*`). Server only. The host constructs harnesses with
 ## Primitives
 
 - [Agent run](../../docs/primitives.md#agent-run): `Harness`, `HarnessEvent`, `createRunSupervisor`, `RunState`, `RunStore`, `MemoryRunStore`, `deterministicHarness`, `CodexHarness`, `ClaudeHarness`, `AiSdkHarness`, `localHarness` (`LocalModel`, `LocalModelClient`, `LocalHarnessOptions`), `HarnessInference` and `ModelIdentity`, the placement checks `satisfiesModel` and `chooseHarness`, and `RunBudget`, the per-run limits of an [agent definition](../../docs/primitives.md#agent-definition) that the supervisor enforces.
+- [Model entry](../../docs/primitives.md#model-entry): `ModelEntry`, `defineModelEntry`, `entryIdentity`, `ModelActivation` and `activates`; `ModelDemand` carries an agent's named models into `satisfiesModel` and `chooseHarness`.
 - [UI session context](../../docs/primitives.md#ui-session-context): `modelPrompt` shows the model the captured selection and the revisions the person saw, nothing else.
 - [OS action](../../docs/primitives.md#os-action): `openAiComponent` declares `openai.authorize`, the ChatGPT sign-in page the desktop opens in the system browser.
 - [Credential vault](../../docs/primitives.md#credential-vault): `CredentialVault`, `OsCredentialVault`, `MemoryCredentialVault`; `OidcAccountConnection` and `ChatGptAccountConnection`.
@@ -30,7 +31,8 @@ Read the [harness guide](../../docs/agent-harnesses.md), [providers](../../docs/
 | `@agent-native/agents/credentials`   | server only | Vault port and the OS keyring and in-memory implementations.                                  |
 | `@agent-native/agents/process`       | server only | Process-tree termination, explicit native environments, stdio JSON-RPC.                       |
 | `@agent-native/agents/local`         | server only | `localHarness` over an OpenAI-compatible server on this host. Loads the SDK per run.          |
-| `@agent-native/agents/placement`     | server only | `satisfiesModel`, `chooseHarness`: which harness may run a model requirement.                 |
+| `@agent-native/agents/placement`     | server only | `satisfiesModel`, `chooseHarness`, `ModelDemand`: which harness may run an agent's model.     |
+| `@agent-native/agents/models`        | server only | `ModelEntry`, `defineModelEntry`, `entryIdentity`, `ModelActivation`, `activates`.            |
 | `@agent-native/agents/requirements`  | server only | `providerComponents` (with `localInferenceComponent`, `LOCAL_INFERENCE_DESTINATION`) as data. |
 
 Four entries are composers over a folder of parts that are imported only from inside the package:
@@ -47,6 +49,8 @@ Tools are catalog operations only; tool implementations derive identity and gran
 Provider credentials pay for inference and never grant workspace access. They are never discovered from the environment or developer configuration, never reach browser state, model context or run logs, and an exhausted plan never falls back silently to an API key. The OS vault fails closed when the keyring is locked or unavailable; `MemoryCredentialVault` is an explicitly selected fixture, not a fallback. Account connections serialize credential writes, so a logout cannot be undone by a sign-in or refresh already in flight.
 
 The local harness never builds its own address: it hands relative paths to a client the host takes from the network port's `local-inference` destination, whose loopback scope the guard enforces. It sends the placeholder key `local` and so never reads `OPENAI_API_KEY` or `OPENAI_BASE_URL`. A run started with a model requirement refuses a harness that does not meet it; a harness that does not declare `inference` counts as remote, so it never runs a `local` agent.
+
+A model entry names a base model, an optional LoRA or merged fine-tune and the dataset it was tuned on, each by `sha256:` digest, with its license, context size and the agents it admits. `localHarness({ entry })` lists the model under the entry ID and records the entry's digests on each run; they count as `verified` only when the host measured the files (the [model server plugin](../../plugins/model-server/README.md) does). An agent that names `models` runs only on a harness serving one of them, and an entry that names `agents` serves only those, so a fine-tune made for one task is never picked for another. `ModelActivation` is what the model gate in `@agent-native/testing/activation` records; `activates` checks one against an entry's exact digests.
 
 Child processes get an explicit environment and the egress proxy variables. `process.ts`, `claude.ts`, `chatgpt.ts` and `oidc.ts` are reviewed egress exemptions in `scripts/boundary-rules.ts`.
 
@@ -67,10 +71,12 @@ Deterministic fixtures only; they prove adapter and protocol behavior, not provi
 - `test/adapters.test.ts`: each harness against shared fixtures; every model sees the captured selection and never the run's identity or grant.
 - `test/chatgpt.test.ts`: PKCE, OIDC validation, locked-vault abort, serialized refresh and logout.
 - `test/process.test.ts`: explicit environments, JSON-RPC failure propagation, subprocess-tree cancellation.
-- `test/local.test.ts`: the local harness against a loopback OpenAI-compatible fixture server (tool call, finish, placeholder key, unserved model, unbound destination), harness choice by model requirement, and the model identity on the run record.
+- `test/local.test.ts`: the local harness against a loopback OpenAI-compatible fixture server (tool call, finish, placeholder key, unserved model, unbound destination), harness choice by model requirement, and the model identity on the run record; named models and an entry's agents narrowing the choice, an entry's identity and a readiness check.
 
 `scripts/live-smoke.ts` is an opt-in live probe with a fixed synthetic prompt. It needs an explicitly configured account and never reads developer credential files.
 
 ## Skills
 
-None. Adding a harness adapter or provider connection follows [agent harnesses](../../docs/agent-harnesses.md) and [providers](../../docs/providers.md); add a skill when that becomes a repeated task.
+- [serve-a-local-model](../../plugins/model-server/skills/serve-a-local-model/SKILL.md): model entries, named models on agents and the activation gate.
+
+Adding a harness adapter or provider connection has no skill; it follows [agent harnesses](../../docs/agent-harnesses.md) and [providers](../../docs/providers.md).

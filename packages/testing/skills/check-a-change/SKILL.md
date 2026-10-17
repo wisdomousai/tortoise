@@ -19,6 +19,7 @@ description: Choose and run the checks for a change in this repository and repor
 | A connector, outbox or sync | `bun run test:integration`, `bun run test:conformance` |
 | The CLI, MCP or the sandbox binary | `bun run test:sandbox`, `bun run test:service` |
 | The execution host, the process port or the seccomp filter | `bun test plugins/execution-host plugins/process`, then `bun run test:execution-host:linux` (Docker) for the bubblewrap tests, which skip off Linux |
+| A model entry, the model server or the model gate | `bun test plugins/model-server packages/agents`; a real llama-server or vLLM run is live evidence |
 | Network or firewall exports | `bun test plugins/network`; regenerate goldens with `UPDATE_GOLDEN=1` and review the diff |
 | Mobile or native screens | `bun run typecheck`, `bun run check:mobile-bundle` |
 | A driver SDK | the commands in that SDK's README |

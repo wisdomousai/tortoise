@@ -75,6 +75,8 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Not shown, live.** No live ChatGPT consent, token refresh or revocation, and no Claude or AI SDK inference. No provider credentials were discovered or reused.
 
+**Local models, live.** No real llama-server, vLLM or fine-tune has run under the model server plugin; its tests use a stand-in server that takes llama-server's flags. Weights are not yet delivered as bundle artifacts.
+
 **Agent scenarios, live.** None run. The scenarios in `packages/testing` and `examples/receiving` have passed with the deterministic harness only; a model's results go here, per model and scenario, when a configured harness runs them.
 
 ### Execution host

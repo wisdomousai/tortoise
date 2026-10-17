@@ -57,9 +57,12 @@ export function createAutomationPlugin(options: AutomationOptions) {
       let ports: HostPorts | undefined;
       const harnesses = agentHarnesses(options, () => ports!);
       for (const trigger of triggers.values())
-        if (trigger.model && !harnesses.some((harness) => satisfiesModel(trigger.model!, harness)))
+        if (
+          trigger.model &&
+          !harnesses.some((harness) => satisfiesModel(trigger.model!, harness, trigger.demand))
+        )
           throw new Error(
-            `Trigger ${trigger.id} runs an agent that requires a ${trigger.model} model; configure localModel or agentHarnesses`,
+            `Trigger ${trigger.id} runs an agent that requires a ${trigger.model} model${trigger.demand?.models ? ` (${trigger.demand.models.join(', ')})` : ''}; configure localModel or agentHarnesses`,
           );
       return {
         service: { triggers, now, newId: options.newId ?? randomUUID },

@@ -1,5 +1,5 @@
 import { createRunSupervisor } from '@agent-native/agents';
-import type { Harness, ToolPort } from '@agent-native/agents/types';
+import type { Harness, ModelIdentity, ToolPort } from '@agent-native/agents/types';
 import { errorEnvelope, type Catalog } from '@agent-native/contracts';
 import {
   agentGrant,
@@ -91,6 +91,8 @@ export interface AgentScenarioResult {
   readonly runId: string;
   /** The run's final state in the supervisor. */
   readonly state: string;
+  /** The model the run recorded, with its digests, when the harness names one. */
+  readonly model?: ModelIdentity;
   readonly calls: readonly AgentScenarioCall[];
   /** Committed commands other than proposals, with their receipts. */
   readonly commits: readonly AgentScenarioCall[];
@@ -300,21 +302,50 @@ export async function runAgentScenario(
     harnesses: [harness],
     tools: scenarioTools(application, context, calls),
   });
-  await supervisor.start({
-    id: runId,
-    harnessId: harness.id,
-    prompt: promptFor(scenario, harness, agent.instructions),
-    budget: { ...agent.budgets },
-    model: agent.model,
-    ...(scenario.resources
-      ? { context: { uiContext: { selectedResources: [...scenario.resources] } } }
-      : {}),
-  });
+  const refusal = await supervisor
+    .start({
+      id: runId,
+      harnessId: harness.id,
+      prompt: promptFor(scenario, harness, agent.instructions),
+      budget: { ...agent.budgets },
+      model: agent.model,
+      demand: { agent: agent.id, ...(agent.models ? { models: agent.models } : {}) },
+      ...(scenario.resources
+        ? { context: { uiContext: { selectedResources: [...scenario.resources] } } }
+        : {}),
+    })
+    .then(
+      () => undefined,
+      (error: unknown) => (error instanceof Error ? error.message : String(error)),
+    );
+  if (refusal !== undefined) {
+    // The supervisor refused the harness (a model requirement or entry it does not meet).
+    const failures = [`Run refused: ${refusal}`];
+    return {
+      scenario: scenario.name,
+      harness: harness.id,
+      runId,
+      state: 'refused',
+      calls,
+      commits: [],
+      proposals: [],
+      failures,
+      passed: false,
+    };
+  }
   for await (const _event of supervisor.events(runId));
-  const state = (await supervisor.get(runId))?.state ?? 'lost';
+  const snapshot = await supervisor.get(runId);
+  const state = snapshot?.state ?? 'lost';
   const judged = judge(scenario, state, calls);
   const failures = [...judged.failures];
-  const partial = { scenario: scenario.name, harness: harness.id, runId, state, calls };
+  const partial = {
+    scenario: scenario.name,
+    harness: harness.id,
+    runId,
+    state,
+    ...(snapshot?.model ? { model: snapshot.model } : {}),
+    calls,
+  };
   if (scenario.check)
     try {
       await scenario.check(

@@ -1,4 +1,5 @@
 import { AiSdkHarness } from './ai-sdk';
+import { entryIdentity, type ModelEntry } from './models';
 import type { Harness, HarnessEvent, HarnessTurn, ModelIdentity } from './types';
 
 /**
@@ -9,6 +10,12 @@ export interface LocalModel {
   readonly model: string;
   /** Content digest of the weights, recorded on each run; the server is not asked to prove it. */
   readonly digest?: string;
+  /**
+   * The model entry served, whose ID the server lists. Its digests are recorded on each run;
+   * they count as verified only when `verified` says the host measured the files.
+   */
+  readonly entry?: ModelEntry;
+  readonly verified?: boolean;
 }
 
 /**
@@ -22,6 +29,8 @@ export interface LocalModelClient {
 export interface LocalHarnessOptions extends LocalModel {
   /** Called per request, so an unbound destination fails the call, not construction. */
   readonly client: () => LocalModelClient;
+  /** Checked before the server is asked, for a host that started the server itself. */
+  readonly ready?: () => { available: true } | { available: false; reason: string };
   readonly maxSteps?: number;
   readonly maxOutputTokens?: number;
 }
@@ -68,17 +77,27 @@ async function served(client: () => LocalModelClient, model: string) {
  * placeholder key and never reads `OPENAI_API_KEY` or `OPENAI_BASE_URL`.
  */
 export function localHarness(options: LocalHarnessOptions): Harness {
-  const model: ModelIdentity = {
-    provider: 'local',
-    model: options.model,
-    ...(options.digest ? { digest: options.digest } : {}),
-  };
+  const { entry } = options;
+  if (entry && entry.id !== options.model)
+    throw new Error(`Local model ${options.model} must be served under its entry ID ${entry.id}`);
+  const model: ModelIdentity = entry
+    ? entryIdentity(entry, options.verified === true)
+    : {
+        provider: 'local',
+        model: options.model,
+        ...(options.digest ? { digest: options.digest } : {}),
+      };
   return {
-    id: 'local',
+    id: entry ? `local-${entry.id}` : 'local',
     features: { questions: false, approvals: false, resume: false },
     inference: 'local',
     model,
-    availability: () => served(options.client, options.model),
+    ...(entry?.agents ? { agents: entry.agents } : {}),
+    async availability() {
+      const ready = options.ready?.();
+      if (ready && !ready.available) return ready;
+      return served(options.client, options.model);
+    },
     async *run(turn: HarnessTurn): AsyncIterable<HarnessEvent> {
       const { createOpenAI } = await import('@ai-sdk/openai');
       const provider = createOpenAI({

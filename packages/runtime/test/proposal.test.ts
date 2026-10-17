@@ -14,7 +14,9 @@ import {
   createApplication,
   createMemoryStorage,
   definePolicy,
+  exportProposalDataset,
   proposalHandlers,
+  REDACTED,
   records,
   type ExecutionContext,
   type HandlerContext,
@@ -309,5 +311,41 @@ describe('proposals', () => {
         { ...expiring, grant: { ...expiring.grant!, operations: ['proposal.expire'] } },
       ),
     ).rejects.toMatchObject({ message: 'Delegation does not permit changed resource' });
+  });
+});
+
+describe('proposal dataset', () => {
+  test('exports decided proposals the caller may see, redacted before the digest', async () => {
+    const { app } = setup();
+    await propose(app);
+    await propose(app);
+    await propose(app);
+    await invoke(app, 'proposal.accept', { id: 'p1' }, ann);
+    await invoke(app, 'proposal.reject', { id: 'p2', reason: 'Lot l1 failed retest' }, ann);
+    const full = await exportProposalDataset(app, ann);
+    // The open proposal p3 is undecided and left out.
+    expect(full.rows.map((row) => [row.id, row.outcome, row.reason])).toEqual([
+      ['p1', 'accepted', undefined],
+      ['p2', 'rejected', 'Lot l1 failed retest'],
+    ]);
+    expect(full).toMatchObject({ format: 'agent-native/proposal-dataset@1', exportedBy: 'ann' });
+    expect(full.digest).toMatch(/^sha256:[0-9a-f]{64}$/);
+    expect((await exportProposalDataset(app, ann)).digest).toBe(full.digest);
+
+    const redacted = await exportProposalDataset(app, ann, {
+      redact: { fields: { 'lot.release': ['id'] }, rationale: true, reason: true },
+    });
+    expect(redacted.rows[1]).toMatchObject({
+      input: { id: REDACTED },
+      rationale: REDACTED,
+      reason: REDACTED,
+    });
+    expect(JSON.stringify(redacted.rows)).not.toContain('retest');
+    expect(redacted.digest).not.toBe(full.digest);
+
+    // Someone who may not see the proposals exports none of them.
+    const stranger = { workspaceId: 'w', principalId: 'zed' };
+    expect((await exportProposalDataset(app, stranger)).rows).toEqual([]);
+    expect((await exportProposalDataset(app, ann, { operations: ['lot.touch'] })).rows).toEqual([]);
   });
 });

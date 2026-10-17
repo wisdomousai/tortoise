@@ -7,6 +7,7 @@ Layer: framework (`packages/*`). Test code; production code never imports it.
 ## Primitives
 
 - [Behavioral scenario](../../docs/primitives.md#behavioral-scenario): `BehavioralScenario`, `ScenarioDriver`, `runScenarios`, `directDriver`, `assertEquivalent`.
+- [Model entry](../../docs/primitives.md#model-entry): `gateModel` produces the `ModelActivation` a managed model server requires.
 - [Agent scenario](../../docs/primitives.md#agent-scenario): `AgentScenario`, `runAgentScenario`, `runAgentScenarios`, `assertAgentScenarios`, `scenarioRegressions`.
 
 ## Entrypoints
@@ -16,6 +17,7 @@ Layer: framework (`packages/*`). Test code; production code never imports it.
 | `@agent-native/testing`             | server (tests) | `scenarios` and `agent-scenarios`.                                                          |
 | `@agent-native/testing/*`           | server (tests) | One source file: `scenarios`, `agent-scenarios`, `ui-bindings` or `connectors`.             |
 | `@agent-native/testing/scenarios`   | server (tests) | `ScenarioDriver`, `BehavioralScenario`, `directDriver`, `runScenarios`, `assertEquivalent`. |
+| `@agent-native/testing/activation` | server (tests) | `gateModel`, `scenariosDigest`: the activation gate for a local model. |
 | `@agent-native/testing/agent-scenarios` | server (tests) | `AgentScenario`, `runAgentScenario`, `runAgentScenarios`, `assertAgentScenarios`, `scenarioRegressions`, `containsValue`, `liveScenariosRequested`. |
 | `@agent-native/testing/ui-bindings` | server (tests) | `referencedCapabilities`, `unboundOperations`: static scan of an application's screens.     |
 | `@agent-native/testing/connectors`  | server (tests) | `connectorConformance`, `ConnectorHarness`, `conformanceEffect`: the connector contract.    |
@@ -46,7 +48,9 @@ An `AgentScenario` names an agent definition, the task a person gives it, who is
 
 `runAgentScenario(scenario, { application, harness })` commits the setup, starts the run in a run supervisor under `agentGrant` of the issuer with the definition's budgets and model requirement, offers the tools the grant names in the `{ input, expectedRevisions }` envelope, and records every call with its receipt or refusal. The text the run produced is never read. It returns `{ passed, failures, calls, commits, proposals, state }` instead of throwing, so `scenarioRegressions(candidate, baseline)` can list the scenarios a new model fails that the current one passes. `assertAgentScenarios` throws with every failure, for a test.
 
-With the deterministic harness the prompt is the scenario's `script`; with any other harness it is the definition's instructions followed by the task. CI runs the deterministic harness only. A run against a model happens only when a test is given a configured harness and `AGENT_SCENARIOS=live` is set (`liveScenariosRequested()`); no credential is looked up. Scenarios in a list share one application, each starting from the state the previous one left.
+With the deterministic harness the prompt is the scenario's `script`; with any other harness it is the definition's instructions followed by the task. CI runs the deterministic harness only. A run against a model happens only when a test is given a configured harness and `AGENT_SCENARIOS=live` is set (`liveScenariosRequested()`); no credential is looked up. Scenarios in a list share one application, each starting from the state the previous one left. A harness the supervisor refuses (a model requirement or named model it does not meet) fails the scenario with state `refused`. `result.model` is the model identity the run recorded.
+
+`gateModel({ entry, candidate, baseline?, scenarios, application })` is the activation gate for a local model: it runs the scenarios on the candidate harness, which must serve `entry`, and on the baseline when one is given, each on a fresh application from `application()`. It returns a `ModelActivation` with the entry's digests, the digest of what the scenarios ask (`scenariosDigest`), each result and the regressions against the baseline. It passes only when every scenario passes.
 
 ## Trust boundary
 
@@ -65,7 +69,7 @@ bun test packages/testing
 bun run test:conformance
 ```
 
-`test/connectors.test.ts` runs the connector cases against a conforming in-memory target. It also runs them against flawed ones (duplicates on retry, refusals thrown, abort ignored), and each fails with the rule it breaks. `test/agent-scenarios.test.ts` runs agent scenarios over a lots fixture with the deterministic harness and a scripted model harness: a proposal judged as passing, a direct write and a proposal outside the selection refused, extra commits and a wrong outcome failing, the model's prompt, tools and budget, and regressions. `examples/receiving/test/agent-scenarios.test.ts` runs the discrepancy agent's scenarios. The behavioral scenario and UI-binding helpers have no suite of their own; they are exercised by the conformance and UI-binding tests of every example. Together they check that every operation behaves the same on every surface and that every operation claiming a UI binding is referenced by a screen.
+`test/connectors.test.ts` runs the connector cases against a conforming in-memory target. It also runs them against flawed ones (duplicates on retry, refusals thrown, abort ignored), and each fails with the rule it breaks. `test/agent-scenarios.test.ts` runs agent scenarios over a lots fixture with the deterministic harness and a scripted model harness: a proposal judged as passing, a direct write and a proposal outside the selection refused, extra commits and a wrong outcome failing, the model's prompt, tools and budget, regressions, and the model gate passing, failing with a regression and refusing a harness that serves another entry. `plugins/model-server` runs the gate against a managed server. `examples/receiving/test/agent-scenarios.test.ts` runs the discrepancy agent's scenarios. The behavioral scenario and UI-binding helpers have no suite of their own; they are exercised by the conformance and UI-binding tests of every example. Together they check that every operation behaves the same on every surface and that every operation claiming a UI binding is referenced by a screen.
 
 ## Skills
 

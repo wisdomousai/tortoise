@@ -147,12 +147,15 @@ export function createTriggerRuns(
     contexts.set(id, context);
     try {
       const harness =
-        'agent' in trigger.run ? await chooseHarness(trigger.model!, agentHarnesses) : undefined;
+        'agent' in trigger.run
+          ? await chooseHarness(trigger.model!, agentHarnesses, trigger.demand)
+          : undefined;
       await supervisor.start({
         id,
         ...startInput(trigger, start, harness),
         budget: { ...trigger.budgets },
         ...(trigger.model ? { model: trigger.model } : {}),
+        ...(trigger.demand ? { demand: trigger.demand } : {}),
       });
       for await (const _event of supervisor.events(id));
       const final = await supervisor.get(id);

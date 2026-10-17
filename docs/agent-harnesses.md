@@ -38,6 +38,12 @@ See [providers](providers.md) for login and funding, and [desktop](desktop.md#pa
 
 An [agent scenario](../packages/testing/README.md#agent-scenarios) gives an agent definition a task and fixture state and checks what the run committed and proposed: the receipts, the proposals and the refusals, never the text. The same scenario runs on the deterministic harness in CI and on a configured model when a test asks for it, and `scenarioRegressions` lists what a candidate model fails that the current one passes.
 
+## Local models
+
+A model entry (`packages/agents`) names a base model, an optional LoRA or merged fine-tune and the dataset it was tuned on, by digest. An agent that needs a particular model names it in `models`; an entry made for some agents names them in `agents`. The [model server plugin](../plugins/model-server/README.md) starts llama.cpp `llama-server` or vLLM through the process port, after hashing the weights and checking that a fine-tune has a passing activation, and its harness records the measured digests on each run, so a proposal leads through its run to the weights and the training data. A server run outside the host is recorded as unverified.
+
+Fine-tuning happens outside the host. Its input is `exportProposalDataset` (`packages/runtime`): the accepted, rejected and expired proposals the exporting caller may see, redacted per field, with a digest the adapter's entry names. Its output becomes a new entry, which serves only after `gateModel` (`packages/testing`) has run the agents' scenarios on it, compared with the model it replaces, and passed.
+
 ## Background jobs
 
 A job is an ordinary caller with a scoped identity and grant. It reads current revisions and submits commands with stable keys. The `project-tasks` example includes one. Schedulers, retries and queues can change without touching handlers. A job never writes storage directly.

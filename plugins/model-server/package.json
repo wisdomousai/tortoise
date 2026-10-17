@@ -1,0 +1,27 @@
+{
+  "name": "@agent-native/model-server",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Model server plugin: starts llama.cpp llama-server or vLLM through the process port on measured, activated weights and serves them to local agents.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/model-server"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/agents": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/host": "workspace:*"
+  }
+}

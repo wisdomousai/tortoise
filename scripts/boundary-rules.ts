@@ -94,6 +94,8 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Runs only inside a bubblewrap sandbox, whose network namespace has loopback only: the launcher relays loopback ports to the host relays and starts the task.',
   'plugins/execution-host/test/fixtures/':
     'Test fixture run inside the sandbox: it attempts the connections and processes the sandbox must refuse.',
+  'plugins/model-server/test/fixtures/':
+    'Test stand-in for llama-server, started as a child through the process port: it listens on the loopback port the site policy binds to local-inference.',
   'plugins/process/src/spawn.ts':
     'Starts declared child processes from site-policy bindings with a built environment; the process port is the only caller.',
   'packages/station/src/perception/openai-compatible-vision.ts':

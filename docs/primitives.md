@@ -193,11 +193,23 @@ _A named agent in the catalog: its instructions, the operations it may call, its
 
 implemented · `packages/contracts` `packages/runtime` `packages/agents` `packages/adapters`
 
+### Model entry
+
+_A model this host may serve, named by the digests of its base weights, its adapter and the dataset the adapter was tuned on, served only after the files are measured and a fine-tune has passed its gate._
+
+implemented · `packages/agents` `plugins/model-server` `packages/testing`
+
 ### Proposal
 
 _A command one caller proposes and another accepts under their own authority._
 
 implemented · `packages/contracts` `packages/runtime` `packages/frame` `packages/operator-ui`
+
+### Proposal dataset
+
+_The proposals people accepted, rejected or let expire, exported as training data with redaction and a digest._
+
+implemented · `packages/runtime`
 
 ### Trigger
 

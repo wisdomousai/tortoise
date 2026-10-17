@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from 'bun:test';
 import { localHarness, type LocalModelClient } from '../src/local';
+import { defineModelEntry } from '../src/models';
 import { chooseHarness, satisfiesModel } from '../src/placement';
 import { createRunSupervisor } from '../src/supervisor';
 import { deterministicHarness } from '../src/deterministic';
@@ -134,5 +135,47 @@ describe('local inference', () => {
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     const run = await supervisor.start({ harnessId: 'local', prompt: 'hi', model: 'local' });
     expect(run.model).toEqual({ provider: 'local', model: 'qwen-local', digest: 'sha256:abc' });
+  });
+
+  test("named models and an entry's agents narrow which harness an agent may run on", async () => {
+    const entry = defineModelEntry({
+      id: 'qwen-local',
+      base: { name: 'Qwen2.5-7B-Instruct', digest: `sha256:${'a'.repeat(64)}` },
+      adapter: { kind: 'lora', digest: `sha256:${'b'.repeat(64)}` },
+      license: 'Apache-2.0',
+      contextTokens: 32_768,
+      agents: ['lot.advisor'],
+    });
+    const tuned = localHarness({ model: 'qwen-local', entry, client: bound });
+    const plain = localHarness({ ...model, client: bound });
+    expect(tuned.model).toEqual({
+      provider: 'local',
+      model: 'qwen-local',
+      entry: 'qwen-local',
+      digest: entry.base.digest,
+      adapterDigest: entry.adapter!.digest,
+      verified: false,
+    });
+    const advisor = { agent: 'lot.advisor', models: ['qwen-local'] };
+    expect(satisfiesModel('local', tuned, advisor)).toBe(true);
+    expect(satisfiesModel('local', plain, advisor)).toBe(false);
+    // The entry admits only the advisor, even for an agent that names no model.
+    expect(satisfiesModel('local', tuned, { agent: 'lot.other' })).toBe(false);
+    expect(satisfiesModel('any', plain, { agent: 'lot.other' })).toBe(true);
+    expect((await chooseHarness('local', [plain, tuned], advisor)).id).toBe('local-qwen-local');
+    await expect(chooseHarness('local', [plain], advisor)).rejects.toThrow(
+      'No harness meets the local model (qwen-local) requirement',
+    );
+    expect(() => localHarness({ model: 'other', entry, client: bound })).toThrow('entry ID');
+    const notReady = localHarness({
+      model: 'qwen-local',
+      entry,
+      client: bound,
+      ready: () => ({ available: false, reason: 'Model server is starting' }),
+    });
+    expect(await notReady.availability()).toEqual({
+      available: false,
+      reason: 'Model server is starting',
+    });
   });
 });

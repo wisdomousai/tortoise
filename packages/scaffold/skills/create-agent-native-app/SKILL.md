@@ -31,6 +31,7 @@ Pick the closest example as the pattern to read:
 | A cross-cutting concern several applications compose | `packages/host/skills/write-host-plugin/SKILL.md` |
 | Instruments and machines through a driver process | `plugins/connector-driver/skills/write-hardware-driver/SKILL.md` |
 | Tools an agent runs, confined in a sandbox | `plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md` |
+| A model on this host, base or fine-tuned | `plugins/model-server/skills/serve-a-local-model/SKILL.md` |
 | Station software with no API, through its screen | `packages/station/skills/bridge-station-screen/SKILL.md` |
 | Barcode scanners and point-of-work input | `packages/devices/skills/add-scanner-input/SKILL.md` |
 | Share targets, shortcuts, intents, notifications | `packages/shell/skills/add-os-integration/SKILL.md` |

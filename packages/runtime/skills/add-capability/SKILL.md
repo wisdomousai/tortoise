@@ -26,7 +26,7 @@ A capability is one domain behavior in the catalog. People, agents, the CLI, MCP
 
 When a stored shape changes, add a step to the application's `StateMigrations` (`packages/kernel` README, [state migration](../../../../docs/primitives.md#state-migration)) instead of reading both shapes in the handler. A scheduled or event-driven job is a trigger from `plugins/automation`; it submits commands under its own grant like any caller.
 
-When an agent definition gains or loses an operation, or an operation an agent uses changes, add or update the agent's scenarios (`examples/<app>/test/agent-scenarios.test.ts`, `runAgentScenarios` from `@agent-native/testing/agent-scenarios`): a task and fixture state, the commits and proposals expected, and the calls that must be refused. They judge the receipts, never the agent's text.
+When an agent definition gains or loses an operation, or an operation an agent uses changes, add or update the agent's scenarios (`examples/<app>/test/agent-scenarios.test.ts`, `runAgentScenarios` from `@agent-native/testing/agent-scenarios`): a task and fixture state, the commits and proposals expected, and the calls that must be refused. They judge the receipts, never the agent's text. An agent that names a local model in `models`, and the proposal dataset its decisions become, are covered by the `serve-a-local-model` skill (`plugins/model-server/skills/serve-a-local-model/SKILL.md`).
 
 Never add a second writable store, and never duplicate a handler in an API route, MCP tool, CLI command or agent adapter. Those surfaces are generated from the catalog.
 

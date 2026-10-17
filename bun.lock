@@ -36,6 +36,7 @@
         "@agent-native/line-station": "workspace:*",
         "@agent-native/managed-config": "workspace:*",
         "@agent-native/mobile": "workspace:*",
+        "@agent-native/model-server": "workspace:*",
         "@agent-native/network": "workspace:*",
         "@agent-native/notifications": "workspace:*",
         "@agent-native/observation": "workspace:*",
@@ -606,6 +607,15 @@
         "expo": "58.0.14",
       },
     },
+    "plugins/model-server": {
+      "name": "@agent-native/model-server",
+      "version": "0.1.0",
+      "dependencies": {
+        "@agent-native/agents": "workspace:*",
+        "@agent-native/contracts": "workspace:*",
+        "@agent-native/host": "workspace:*",
+      },
+    },
     "plugins/network": {
       "name": "@agent-native/network",
       "version": "0.1.0",
@@ -795,6 +805,8 @@
     "@agent-native/mobile": ["@agent-native/mobile@workspace:packages/mobile"],
 
     "@agent-native/mobile-shell": ["@agent-native/mobile-shell@workspace:apps/mobile"],
+
+    "@agent-native/model-server": ["@agent-native/model-server@workspace:plugins/model-server"],
 
     "@agent-native/network": ["@agent-native/network@workspace:plugins/network"],
 

@@ -14,11 +14,17 @@ export interface RawReading {
   readonly confidence: number;
 }
 
-/** The model behind an extractor, recorded with every reading it produces. */
+/**
+ * The model behind an extractor, recorded with every reading it produces. For a fine-tuned
+ * model, the adapter and dataset digests trace a reading to the data the model was tuned on.
+ */
 export interface ModelIdentity {
   readonly id: string;
   readonly version?: string;
+  /** Base weights. */
   readonly digest?: string;
+  readonly adapterDigest?: string;
+  readonly datasetDigest?: string;
 }
 
 /**

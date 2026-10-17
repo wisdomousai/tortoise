@@ -95,12 +95,27 @@ export interface HarnessTurn {
  */
 export type HarnessInference = 'local' | 'remote' | 'none';
 
-/** The model a harness runs, recorded on each run so its work names the model that did it. */
+/**
+ * The model a harness runs, recorded on each run so its work names the model that did it. With
+ * a model entry, the digests trace a proposal back through its run to the weights, the adapter
+ * and the dataset the adapter was tuned on.
+ */
 export interface ModelIdentity {
   readonly provider: string;
   readonly model: string;
-  /** Content digest of the weights, as the deployment configured it. */
+  /** Content digest of the base weights. */
   readonly digest?: string;
+  /** The model entry the harness serves, by ID. */
+  readonly entry?: string;
+  /** Content digest of the adapter or merged fine-tune, when the entry has one. */
+  readonly adapterDigest?: string;
+  /** Digest of the dataset the adapter was trained on, as its entry states it. */
+  readonly datasetDigest?: string;
+  /**
+   * True when the host hashed the files it started the server with and they matched; false or
+   * absent when the digests are only what the deployment typed in.
+   */
+  readonly verified?: boolean;
 }
 
 export interface Harness {
@@ -108,6 +123,8 @@ export interface Harness {
   readonly features: { questions: boolean; approvals: boolean; resume: boolean };
   readonly inference?: HarnessInference;
   readonly model?: ModelIdentity;
+  /** Agents the harness's model entry admits, by ID; omitted admits every agent. */
+  readonly agents?: readonly string[];
   availability(): Promise<{ available: boolean; reason?: string }>;
   run(turn: HarnessTurn): AsyncIterable<HarnessEvent>;
 }

@@ -15,6 +15,7 @@ Layer: framework (`packages/*`). Feature state is opaque to the runtime; domains
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
 - [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed grant.
 - [Proposal](../../docs/primitives.md#proposal): `proposalHandlers` (`ProposalOptions`) serve the proposal operations over the application's `proposals` slice; accept continues with the proposed command as the accepter.
+- [Proposal dataset](../../docs/primitives.md#proposal-dataset): `exportProposalDataset` reads the closed proposals a caller may see through `proposal.list`, applies the `DatasetRedaction` and returns the rows with their `sha256:` digest (`datasetDigest`), which a fine-tuned model entry names.
 - [Policy](../../docs/primitives.md#policy): the `AuthorizationPort` (`AuthorizationRequest`, `Decision`), and `definePolicy` with `PolicySpec`, `OperationRule`, `IntegrationLane`, `EventRule`, `Access` and `isDelegated`.
 - [Membership](../../docs/primitives.md#membership): `membershipHandler`, `membershipRule`, `roleIn`, `MembershipStore`.
 - [Storage](../../docs/primitives.md#storage): the `Storage` port, `WorkspaceSnapshot`, `createMemoryStorage`, `createWorkspaceSnapshot`.
@@ -32,7 +33,7 @@ Read [architecture](../../docs/architecture.md), [authorization](../../docs/auth
 | Import                    | Runs in     | Contents                                                                                                                                             |
 | ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@agent-native/runtime`   | server only | `createApplication`, handler factory, memory storage, composition and all types.                                                                     |
-| `@agent-native/runtime/*` | server only | One source file: `types`, `compose`, `state-equality`, `application`, `memory-storage`, `memory-blob-store`, `collection`, `policy` or `membership`. |
+| `@agent-native/runtime/*` | server only | One source file: `types`, `compose`, `state-equality`, `application`, `memory-storage`, `memory-blob-store`, `collection`, `policy`, `membership`, `proposal` or `proposal-dataset`. |
 
 `src/application/` holds the parts `createApplication` wires together; import them only from inside the package. Each takes the shared `Kernel` (registry, ports, clocks, audit trail, context guard) instead of closing over it:
 
@@ -70,7 +71,7 @@ bun test packages/runtime
 - `test/compose.test.ts`: modules see only their slice; unrouted operations fail closed.
 - `test/policy.test.ts`: the fixed decision order of `definePolicy` (lanes, caller gate, person-only, grant resources, container roles, both snapshots or the previous one at commit, event types), and `set-member` refusing non-managers, self-changes and reserved principals.
 - `test/agent-grant.test.ts`: an agent's grant stays within the issuer's operations, resources and expiry, leaves a proposing agent's commands out, and is bound to the issuer and run.
-- `test/proposal.test.ts`: accepting runs the command once as the accepter and replays its continuation; an agent grant, a viewer and a demoted accepter are refused and a changed record conflicts, each leaving the proposal open; invalid submissions, expiry and nested proposals are refused; a resource-scoped run creates its proposal through `creates` but cannot propose for, or close, a record outside its resources.
+- `test/proposal.test.ts`: accepting runs the command once as the accepter and replays its continuation; an agent grant, a viewer and a demoted accepter are refused and a changed record conflicts, each leaving the proposal open; invalid submissions, expiry and nested proposals are refused; a resource-scoped run creates its proposal through `creates` but cannot propose for, or close, a record outside its resources. The dataset export holds only decided proposals the caller may see, applies field, rationale and reason redaction before the digest, and gives the same digest for the same rows.
 - `test/collection.test.ts`: generated lists scope before filters, counts and pages; a hidden record reads as missing; writes declare their resource and conflict on a stale revision.
 - `test/audit.test.ts`: a failed required append rolls the commit back; crash recovery.
 - `test/blobs.test.ts`: references commit with the command and only they enter the snapshot; reads follow the referencing resource, grant scope and revocation; attaching needs an own recent upload or read access; limits and declarations; a rejected command's upload is swept after the grace period while referenced and freshly stored blobs stay; connectors read an effect's blobs; audit by digest.

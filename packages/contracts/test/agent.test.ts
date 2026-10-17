@@ -84,6 +84,17 @@ test('duplicate IDs, empty or repeated operations, unbounded budgets and bad sco
   expect(() => catalogWith(agent({ instructions: ' ' }))).toThrow('needs a title and instructions');
 });
 
+test('named models need a local agent and model entry IDs', () => {
+  expect(
+    catalogWith(agent({ model: 'local', models: ['qwen-7b-receiving'] })).agents[0]!.models,
+  ).toEqual(['qwen-7b-receiving']);
+  expect(() => catalogWith(agent({ models: ['qwen-7b'] }))).toThrow('must be local');
+  expect(() => catalogWith(agent({ model: 'local', models: [] }))).toThrow('model entry IDs');
+  expect(() => catalogWith(agent({ model: 'local', models: ['Not An ID'] }))).toThrow(
+    'model entry IDs',
+  );
+});
+
 test('defineAgent freezes the definition and its operations', () => {
   const defined = agent();
   expect(Object.isFrozen(defined)).toBe(true);

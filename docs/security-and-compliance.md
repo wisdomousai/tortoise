@@ -136,6 +136,8 @@ Rules are exported, never applied; applying them is a deployment step. They are 
 
 **Sandboxes for agent tools.** The [execution host plugin](../plugins/execution-host/README.md) runs the tools an agent uses in Linux bubblewrap sandboxes, started through the process port, so the site policy binds and pins bubblewrap. Each sandbox has new namespaces, a root holding only the declared tools and named paths, a seccomp filter that denies mounting, namespace creation, ptrace and kernel loading, and a network namespace with loopback only. Two relays are its only way out: to the host API, with a token bound to the run's grant, and to the egress proxy, for the destinations the sandbox declares. Revoking the token or reaching the grant's expiry stops the next call. macOS and Windows have no backend yet.
 
+**Local models.** The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start and refuses files that differ from the model entry, and a fine-tune that has no passing activation for its exact digests. Runs record the measured digests with `verified: true`, so an auditor can trace a proposal to the base weights, the adapter and the dataset digest. The dataset export reads proposals as the exporting caller and applies redaction before the digest, so only what that caller may see, minus the redacted fields, leaves the host for training.
+
 ## 4. Event log
 
 The runtime records commands, queries, denials, outbox transitions, sync passes, guard decisions, runs and host startup. Connections and business actions share one chain. Each event carries the actor (principal, run, grant and channel), the operation, a safe reason code, correlation IDs, an input digest and allow-listed fields only.

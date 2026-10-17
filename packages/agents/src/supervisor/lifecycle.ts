@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { ApplicationError, type ModelRequirement } from '@agent-native/contracts';
-import { satisfiesModel } from '../placement';
+import { satisfiesModel, type ModelDemand } from '../placement';
 import type { Harness, RunBudget, RunSnapshot } from '../types';
 import { terminalStates } from '../types';
 import { execute } from './execute';
@@ -22,6 +22,8 @@ export interface StartInput {
   id?: string;
   /** The agent definition's model requirement; a harness that does not meet it is refused. */
   model?: ModelRequirement;
+  /** The definition's named models and its ID, checked with `model` (`ModelDemand`). */
+  demand?: ModelDemand;
 }
 
 /**
@@ -34,7 +36,7 @@ export async function startRun(
   harness: Harness,
   input: StartInput,
 ) {
-  if (input.model && !satisfiesModel(input.model, harness))
+  if (input.model && !satisfiesModel(input.model, harness, input.demand))
     throw new ApplicationError(
       'FORBIDDEN',
       `Harness ${harness.id} does not meet the ${input.model} model requirement`,

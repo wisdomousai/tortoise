@@ -6,7 +6,8 @@ import type { Extractor, ModelIdentity } from '../ports';
  * JSON-lines protocol for local perception runtimes (OCR engines, classifiers, vision or audio
  * models in Python, ONNX Runtime, llama.cpp, whatever the site runs). One process, one model:
  *
- * - On start the worker prints `{"type":"ready","model":{"id","version","digest"}}`.
+ * - On start the worker prints `{"type":"ready","model":{"id","version","digest"}}`, with
+ *   `adapterDigest` and `datasetDigest` for a fine-tuned model.
  * - The bridge writes `{"id":n,"type":"extract","modality","width","height","image","fields"}`
  *   per frame; `image` is base64 PNG (or null), `fields` the requested `ExtractionField`s.
  * - The worker answers `{"id":n,"readings":[{"field","value","confidence"}]}` or
@@ -46,6 +47,8 @@ const ready = z.object({
     id: z.string().min(1).max(200),
     version: z.string().max(100).optional(),
     digest: z.string().max(200).optional(),
+    adapterDigest: z.string().max(200).optional(),
+    datasetDigest: z.string().max(200).optional(),
   }),
 });
 const response = z.union([

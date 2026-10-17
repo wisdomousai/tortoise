@@ -42,6 +42,12 @@ export interface AgentDefinition<Ops extends readonly string[] = readonly string
    */
   readonly resourceTypes?: readonly string[];
   readonly model: ModelRequirement;
+  /**
+   * Model entries this agent may run on, by ID, for a `local` agent that needs a particular base
+   * model or fine-tune rather than any local model. A harness serving another entry, or none, is
+   * refused. Omitted: any harness that meets `model`.
+   */
+  readonly models?: readonly string[];
   readonly output: AgentOutput;
   readonly budgets: AgentBudgets;
 }
@@ -93,6 +99,12 @@ export function checkAgent(
     throw new Error(`Agent ${agent.id} needs a title and instructions`);
   if (!['local', 'remote', 'any'].includes(agent.model))
     throw new Error(`Agent ${agent.id} model must be local, remote or any`);
+  if (agent.models !== undefined) {
+    if (agent.model !== 'local')
+      throw new Error(`Agent ${agent.id} names models, so its model requirement must be local`);
+    if (!agent.models.length || agent.models.some((id) => !AGENT_ID.test(id) || id.length > 64))
+      throw new Error(`Agent ${agent.id} models must be model entry IDs`);
+  }
   if (!['direct', 'propose'].includes(agent.output))
     throw new Error(`Agent ${agent.id} output must be direct or propose`);
   if (agent.operations.length === 0) throw new Error(`Agent ${agent.id} has no operations`);
