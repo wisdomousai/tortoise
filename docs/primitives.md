@@ -119,7 +119,9 @@ Every application holds keyed records: accounts, lots, tasks. `defineCollection`
 
 Guarantees: a write through `records` always declares `<type>:<key>`, so revisions, `expectedRevisions` conflicts and the journal apply to it. Keys such as `__proto__` stay ordinary keys. A generated list applies the visibility rule to every row before equality filters, search, counting and paging, and a generated get answers `NOT_FOUND` for a record the caller may not see. Search runs only over the text the handler supplies, so hidden fields are never searchable unless the handler includes them.
 
-Gaps: paging is by offset, so a page can shift when records are added between requests. Generated lists filter by equality only. Field-level writes and generated create and update commands are not implemented; commands are still written by hand.
+The frame's `collection-screen` registry item gives a collection default list and record screens over those queries and its create and update commands, and `scaffold add collection` writes all of it.
+
+Gaps: paging is by offset, so a page can shift when records are added between requests. Generated lists filter by equality only. The framework generates no create or update commands; `scaffold add collection` writes them as ordinary handlers over `records`, which the application then owns.
 
 implemented · `packages/contracts` `packages/runtime`
 
@@ -298,6 +300,8 @@ _Reusable screen parts published as shadcn registries over stock shadcn primitiv
 Specialized interfaces are cheap only if their parts are shared. Apps pull registry items with `shadcn add` and own the copied source, while trust-relevant behavior stays in versioned bindings. A plugin that brings a screen ships it as its own registry, as the compliance plugin does with `compliance-screen`.
 
 Guarantees: no shadcn primitive is forked; sizing comes from tokens and `cva` variants. The registry manifest is generated and drift-checked. Operator items follow the point-of-work rules: glove-sized targets, hold-to-confirm for consequential actions, state as icon plus text. The app shell exports `NavigationCount`, `SidebarSection` and `SidebarLink` for the slots; `status-strip` adds `SignalBanner`, the one signal readable from the machine; `operator-station` lays out a full-window station (dark header with seat control, machine banner, task panel beside attention, history footer) with `OperatorPanel` for the task.
+
+`collection-screen` gives any collection a list screen (server-paged table, search when the list takes one, create form) and a record screen (fields and an update form), with a `sync` field shown as delivery state. An application replaces them one route at a time.
 
 Gaps: no scratch-app `shadcn add` acceptance test.
 
@@ -553,13 +557,13 @@ implemented · `packages/testing`
 
 ### Scaffold
 
-_Exports the framework, the starter and content as a standalone application._
+_Exports the framework, the starter and content as a standalone application, and generates new applications and their parts._
 
-`--example <name>` exports one example as the hosted application and leaves the others, their reference sets, root dependencies and lockfile entries out.
+`--example <name>` exports one example as the hosted application and leaves the others, their reference sets, root dependencies and lockfile entries out. `new` exports no example and generates one application instead: manifest, application and screens entrypoints, one collection with default screens, the site, network, audit and compliance plugins, a cross-surface conformance test, a UI-binding test and a browser test. `add collection|capability|target` generates a part's contract, handlers, policy rule, screens and behavioral test and inserts them at the application's `// scaffold:<list>` markers.
 
-Guarantees: a versioned file-hash manifest; no credentials, workspace data or build output; never overwrites an existing target. A single-example export installs frozen and passes its own checks.
+Guarantees: a versioned file-hash manifest; no credentials, workspace data or build output; never overwrites an existing target. A single-example export and a generated application each install frozen and pass their own checks. `add` writes nothing unless every file is produced, never overwrites a file, and edits existing code only at a marker.
 
-Gaps: framework packages are unpublished, so an export vendors `packages/*` instead of depending on published versions.
+Gaps: framework packages are unpublished, so an export vendors `packages/*` instead of depending on published versions. An export without the reference examples still carries their boundary and size exemptions. No `add agent` yet.
 
 implemented · `packages/scaffold`
 

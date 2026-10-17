@@ -8,22 +8,23 @@ export interface ExcludedExample {
 }
 
 /**
- * The examples a single-example export leaves out, with the package and application ids that
- * the root manifest, lockfile and generated references name. Reads text only; no content code
- * is loaded.
+ * The examples an export leaves out, with the package and application ids that the root
+ * manifest, lockfile and generated references name: every example except `keep`, or every
+ * example when `keep` is undefined (a new application). Reads text only; no content code is
+ * loaded.
  */
 export async function excludedExamples(
   sourceRoot: string,
-  example: string,
+  keep: string | undefined,
 ): Promise<ExcludedExample[]> {
   const entries = await readdir(join(sourceRoot, 'examples'), { withFileTypes: true }).catch(
     () => [],
   );
-  if (!entries.some((entry) => entry.isDirectory() && entry.name === example))
-    throw new Error(`Unknown example "${example}"`);
+  if (keep !== undefined && !entries.some((entry) => entry.isDirectory() && entry.name === keep))
+    throw new Error(`Unknown example "${keep}"`);
   const excluded: ExcludedExample[] = [];
   for (const entry of entries) {
-    if (!entry.isDirectory() || entry.name === example) continue;
+    if (!entry.isDirectory() || entry.name === keep) continue;
     const directory = `examples/${entry.name}`;
     const manifest = JSON.parse(await readFile(join(sourceRoot, directory, 'package.json'), 'utf8'))
       .name as string;

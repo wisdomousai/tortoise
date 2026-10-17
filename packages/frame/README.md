@@ -8,7 +8,7 @@ Layer: framework (`packages/*`). Browser code, plus a build-time Vite plugin.
 
 - [Web frame](../../docs/primitives.md#web-frame): `Frame`, `ScreensProvider`, `useScreens`, `screenForCapability`, `exchangeLaunch`, and the `frame` Vite plugin.
 - [Application](../../docs/primitives.md#application): `defineScreens`, `ApplicationScreens`, the browser entrypoint of every application.
-- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native` shadcn registry in [`registry.json`](registry.json) (`capability-form`, `live-data-table`, `run-panel`, `command-palette`, `conflict-banner`, `accounts`, `app-shell`, `frame` and their libraries).
+- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native` shadcn registry in [`registry.json`](registry.json) (`capability-form`, `live-data-table`, `collection-screen`, `run-panel`, `command-palette`, `conflict-banner`, `accounts`, `app-shell`, `frame` and their libraries).
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginScreens`, `PluginScreens`; `defineScreens({ plugins })` merges a plugin's routes, navigation and capability screens before its checks.
 
 A worked `screens` entrypoint is [`examples/project-tasks/screens.tsx`](../../examples/project-tasks/screens.tsx).
@@ -31,7 +31,7 @@ Build the registry with `bun run build:registry` (output in `dist/registry`).
 
 The frame imports no application and no plugin: plugin screens arrive through `defineScreens({ plugins })`; `virtual:agent-native/screens` is resolved from `app.config.json` at build time. The launch credential travels in the URL fragment, never reaches a server log, is removed from the address bar first and is exchanged once for an HttpOnly session cookie; the transport carries no token. Cache and bindings live as long as the page, and a new launch reloads it with an empty cache. The window title comes from the trusted starter identity, not the template.
 
-The palette lists only operations the session's grant allows and never offers integration-only operations. Rendering `accounts` never reads the OS vault. `native-dialog` uses the `<dialog>` element because the authority's CSP forbids injected `<style>` tags. `live-data-table` never filters or paginates client-side over a partial set: the authority counts and pages after scoping.
+The palette lists only operations the session's grant allows and never offers integration-only operations. Rendering `accounts` never reads the OS vault. `native-dialog` uses the `<dialog>` element because the authority's CSP forbids injected `<style>` tags. `live-data-table` never filters or paginates client-side over a partial set: the authority counts and pages after scoping. `collection-screen` builds a collection's list and record screens from its generated `list`, `get`, create and update capabilities over `live-data-table` and `capability-form`, so it inherits the same paging rule; a record the caller may not see shows as unavailable.
 
 `defineScreens` fails at definition time on a duplicate route or on a navigation or capability target that no route declares, checked over the application's and its plugins' screens together.
 

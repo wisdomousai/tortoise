@@ -1,33 +1,45 @@
 # @agent-native/scaffold
 
-Exports the framework, the starter and content as a standalone application in a new directory. The export carries a versioned file-hash manifest, installs with the pinned lockfile and passes its own checks. With `--example <name>` it exports one example as the hosted application and leaves the other examples, their reference sets, root dependencies and lockfile entries out.
+Exports the framework, the starter and content as a standalone application in a new directory, and generates new applications and their parts. The export carries a versioned file-hash manifest, installs with the pinned lockfile and passes its own checks. With `--example <name>` it exports one example as the hosted application and leaves the other examples, their reference sets, root dependencies and lockfile entries out. `new` exports no example and generates one application in `examples/<name>` instead; `add` extends that application with a collection, a capability or a target.
 
 Layer: framework (`packages/*`). Server-side CLI.
 
 ## Primitives
 
-- [Scaffold](../../docs/primitives.md#scaffold): `scaffold`, `ScaffoldOptions`, `ScaffoldManifest`.
+- [Scaffold](../../docs/primitives.md#scaffold): `scaffold`, `scaffoldNew`, `scaffoldAdd`, `ScaffoldOptions`, `ScaffoldManifest`, `NewOptions`, `AddRequest`, `AddOptions`.
 
-The root [README](../../README.md#create-another-app) shows the full flow, and the [setup skill](../../skills/create-agent-native-app/SKILL.md) guides an agent through replacing the example domain afterwards.
+Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` [UI registry](../../docs/primitives.md#ui-registry) item. The root [README](../../README.md#create-another-app) shows the export flow, and the [setup skill](../../skills/create-agent-native-app/SKILL.md) guides an agent through both.
 
 ## Entrypoints
 
-| Import                     | Runs in     | Contents                                                                                                    |
-| -------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
-| `@agent-native/scaffold`   | server only | `scaffold(options)`, `ScaffoldOptions`, `ScaffoldManifest`.                                                 |
-| `@agent-native/scaffold/*` | server only | One source file: `scaffold`, `file-rules` (what is exported), `examples` (single-example pruning) or `cli`. |
+| Import                     | Runs in     | Contents                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/scaffold`   | server only | `scaffold(options)`, `scaffoldNew(options)`, `scaffoldAdd(request, options)`, `appNames`, `displayNameOf` and their option and result types.                                                                                                                                                                                                      |
+| `@agent-native/scaffold/*` | server only | One source file: `scaffold`, `new`, `add`, `file-rules` (what is exported), `examples` (example pruning), `content` (adding the generated workspace to the root manifest and `bun.lock`), `apply` (applying a generated part in memory), `markers` (inserting at `// scaffold:<list>` markers) or `cli`. Part generators are in `src/templates/`. |
 
 From the command line (`src/cli.ts`):
 
 ```sh
 bun run scaffold <absent-target-directory> --name <app-name> [--display-name <label>] [--example <name>]
+bun run scaffold new <absent-target-directory> --name <app-name> [--display-name <label>] [--collection <type>]
+bun run scaffold add collection <type> [--app <directory>]
+bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
+bun run scaffold add target <name> --collection <type> [--app <directory>]
 ```
+
+`add` works on the hosted application unless `--app` names another directory. It starts no processes; run `bun run format && bun run generate` afterwards.
+
+The application skeleton is a set of `.tpl` files in `templates/application`, rendered with `{{name}}` placeholders; a placeholder without a value throws. They are text rather than code so the boundary check does not read the skeleton's plugin imports as the scaffold's own. Parts are generated by functions in `src/templates/` because they differ by kind (a command or a query, a target's collection).
+
+A generated application keeps `// scaffold:<list>` comments in its operations, handlers, policy rules, lanes, state, options, integrations, routes and navigation. `add` inserts on the lines before the marker, so the marker stays last. It refuses an application without its manifest and policy, a part whose file already exists and a file without the marker it needs, and writes nothing unless every file is produced.
 
 ## Trust boundary
 
-The scaffold copies source only. It refuses to overwrite an existing target and refuses a target inside the source checkout. It skips workspace data, build output, connection and session files, `.env*` files and anything named like a secret, credential, token or private key, so no credentials or workspace data leave the checkout. The application name must be a lowercase npm-style name, and the display name single-line text. Files are staged and moved into place only when the export completes.
+The scaffold copies source only. It refuses to overwrite an existing target and refuses a target inside the source checkout. It skips workspace data, build output, connection and session files, `.env*` files and anything named like a secret, credential, token or private key, so no credentials or workspace data leave the checkout. The application name must be a lowercase npm-style name, and the display name single-line text without `*/`. Files are staged and moved into place only when the export completes. `add` edits only files of the application it was pointed at.
 
-Gap: framework packages are unpublished, so an export vendors `packages/*` instead of depending on published versions.
+A generated application lists the site, network, audit and compliance plugins and gives each target an integration principal with its own lane and no role. Commands are for editors and reads for members; adjust `policy.ts` before adding people.
+
+Gaps: framework packages are unpublished, so an export vendors `packages/*` instead of depending on published versions. An export without an example still carries boundary and size exemptions for the reference examples, so `check:boundaries` and `check:size` report them as stale there. `add agent` is not implemented.
 
 ## Dependencies
 
@@ -37,7 +49,7 @@ Framework: `@agent-native/contracts` (canonical JSON for the manifest). Node: fi
 
 ```sh
 bun run test:scaffold
-bun run test:scaffold:full   # fresh export, frozen install, typecheck, build, tests and an added capability
+bun run test:scaffold:full   # both export flows: frozen install, generation, typecheck, build, unit and browser tests
 ```
 
-`src/scaffold.test.ts` covers deterministic export, private and runtime artifacts left out, single-example selection and rejection of checkout-specific paths. The full acceptance run is opt-in (`SCAFFOLD_ACCEPTANCE=1`) so an exported test cannot export itself recursively.
+`src/scaffold.test.ts` covers deterministic export, private and runtime artifacts left out, single-example selection and rejection of checkout-specific paths. `src/generate.test.ts` covers `new` (one generated workspace, root dependency and lockfile entries, no example copied), `add` of each kind at the markers, refusals, marker insertion, lockfile ordering and template rendering. The full acceptance runs are opt-in (`SCAFFOLD_ACCEPTANCE=1`) so an exported test cannot export itself recursively. The generated application's acceptance run adds a collection, a capability and a target, then runs format, generate, the drift check, typecheck, build, its tests and its Playwright spec of the default screens.

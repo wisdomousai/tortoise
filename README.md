@@ -48,14 +48,16 @@ Every operation is also a generated subcommand with typed flags, for example `bu
 ## Create another app
 
 ```sh
-bun run scaffold /path/to/new-app --name new-app --display-name "New App"
+bun run scaffold new /path/to/new-app --name new-app --display-name "New App" --collection note
 cd /path/to/new-app
 bun install --frozen-lockfile
-bun run check
+bun run scaffold add capability note.archive --kind command --description "Archive a note. Editors only."
+bun run scaffold add target ledger --collection note
+bun run format && bun run generate
 bun run dev
 ```
 
-The target must not exist. The scaffolder exports the starter, the framework source and all examples, or one example as the hosted application with `--example <name>`, with a versioned file-hash manifest. A coding agent then replaces the example domain using the [setup skill](skills/create-agent-native-app/SKILL.md) and [capability authoring guide](docs/capability-authoring.md). It does not install global agent configuration or invent a domain from the application name.
+The target must not exist. `scaffold new` exports the starter and the framework source with a generated application in `examples/<name>` as the only content: one collection with default list and record screens, the site, network, audit and compliance plugins and its tests. `scaffold add collection|capability|target` generates a part's contract, handlers, policy rule, screens and behavioral test into it. `bun run scaffold /path/to/new-app --name new-app` without `new` exports the examples instead, or one of them as the hosted application with `--example <name>`. Both write a versioned file-hash manifest. A coding agent then shapes the generated parts into the requested domain using the [setup skill](skills/create-agent-native-app/SKILL.md) and [capability authoring guide](docs/capability-authoring.md). The scaffold does not install global agent configuration or invent a domain from the application name.
 
 ## Architecture and extension points
 
@@ -75,7 +77,7 @@ Each package's README covers its primitives, entrypoints, trust boundary, depend
 | [`packages/egress`](packages/egress/README.md), [`packages/event-log`](packages/event-log/README.md)                                                                                                                                       | Site policy and egress guard; the hash-chained audit log                                                                                                                          |
 | [`plugins/site`](plugins/site/README.md), [`plugins/network`](plugins/network/README.md), [`plugins/audit`](plugins/audit/README.md), [`plugins/compliance`](plugins/compliance/README.md), [`plugins/webhook`](plugins/webhook/README.md) | Host plugins: site policy and identity; egress guard, mTLS and rule exports; audit log; auditor queries, posture, evidence and the Compliance screen; an example webhook notifier |
 | [`packages/testing`](packages/testing/README.md)                                                                                                                                                                                           | Shared scenarios and UI-binding checks                                                                                                                                            |
-| [`packages/scaffold`](packages/scaffold/README.md)                                                                                                                                                                                         | Deterministic source export                                                                                                                                                       |
+| [`packages/scaffold`](packages/scaffold/README.md)                                                                                                                                                                                         | Deterministic source export, and generated applications and parts                                                                                                                 |
 | [`apps/service`](apps/service/README.md), [`apps/web`](apps/web/README.md), [`apps/desktop`](apps/desktop/README.md)                                                                                                                       | The starter: service, web root and Electron shell                                                                                                                                 |
 | [`examples/project-tasks`](examples/project-tasks/README.md), [`examples/quality-inspection`](examples/quality-inspection/README.md), [`examples/line-station`](examples/line-station/README.md)                                           | Applications: manifest, application definition, screens and tests                                                                                                                 |
 

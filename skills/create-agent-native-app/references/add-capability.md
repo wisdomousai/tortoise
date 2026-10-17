@@ -2,6 +2,8 @@
 
 Start with the desired user action or query and its permission/resource boundary. Follow `docs/capability-authoring.md` in the target checkout.
 
+In an application created by `scaffold new`, start with `bun run scaffold add capability <id> --kind command|query --description <text>` (or `add collection` / `add target`) and then widen what it generated; it writes the contract, handler, policy rule and a behavioral test together. In other applications, write them by hand:
+
 - Add a stable ID and JSON-only input/output schemas to a browser-safe feature module.
 - Supply a separately registered server handler, injected domain services and authorization for operation/object/row/field access. Declare committed changed-resource references.
 - Bind the capability to an authored UI action or live query, or document its deliberate headless exception.

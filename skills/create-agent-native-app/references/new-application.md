@@ -3,14 +3,23 @@
 Locate the source checkout by its root `package.json` and `packages/scaffold/src/index.ts`; do not assume a machine-specific path. From that checkout run:
 
 ```sh
-bun run scaffold /absolute/path/to/absent-target --name my-application --display-name "My Application" --example project-tasks
+bun run scaffold new /absolute/path/to/absent-target --name my-application --display-name "My Application" --collection <record-type>
 ```
 
-The command copies allowlisted source packages, the starter, tests, scripts, documentation, the lockfile and skills. `--example <name>` keeps only that example and configures it as the hosted application; without it every example is exported. Framework packages are copied as local workspaces because they are not published yet. It excludes dependency directories, build output, workspace data, credentials and symlinks, and refuses any existing target. `scaffold.manifest.json` records the framework version and SHA-256 of exported files. The export does not initialize Git or install dependencies. `app.config.json` owns the application name, display name, desktop app ID and `application`, the content package the starter hosts; the export sets these from the supplied name and example. Browser builds and desktop packaging consume that identity. Set a production app ID before distributing the application.
+The command copies allowlisted source packages, the starter, tests, scripts, documentation, the lockfile and skills, leaves every example out, and generates the application in `examples/<name>`: `manifest.ts`, `application.ts` and `screens.tsx`, contracts, domain, policy and handlers, one collection with default list and record screens, the site, network, audit and compliance plugins, a cross-surface conformance test, a UI-binding test and a Playwright spec of the default screens. The root manifest, the lockfile and `app.config.json` name it as the hosted application. Framework packages are copied as local workspaces because they are not published yet. It excludes dependency directories, build output, workspace data, credentials and symlinks, and refuses any existing target. `scaffold.manifest.json` records the framework version and SHA-256 of exported files. The export does not initialize Git or install dependencies. Set a production app ID in `app.config.json` before distributing the application.
 
-In the new checkout install the pinned dependencies with `bun install --frozen-lockfile`, then run `bun run typecheck`, `bun run generate`, `bun test`, and `bun run build`. Run the documented browser/desktop checks when those products are part of the request. A cold dependency cache needs network access; an offline install failure is a dependency-fetch limitation, not an application check passing.
+In the new checkout install the pinned dependencies with `bun install --frozen-lockfile`. Then grow the application with generated parts, each with its contract, handlers, policy rule, screens where it has any and a behavioral test:
 
-Use the project/task example to establish the working end-to-end baseline, then author the requested domain as a new package in `examples/<name>` with `manifest.ts`, `application.ts` and `screens.tsx`, and point `application` in `app.config.json` at it. Change domain contracts/handlers/policy/UI/workflows together. Customize the starter in `apps/*` freely, but put domain code in the content package. Keep the generic framework packages free of domain-specific imports. Do not present the example as the finished requested application.
+```sh
+bun run scaffold add collection <record-type>
+bun run scaffold add capability <dotted.operation-id> --kind command|query --description "<what it does, for whom>"
+bun run scaffold add target <system-name> --collection <record-type>
+bun run format && bun run generate
+```
+
+`add` inserts at the `// scaffold:<list>` markers in the generated files; keep them. Edit the generated schemas, handlers and policy into the requested domain afterwards: a generated capability starts with empty input and output and a headless UI exception, and a generated target starts with an in-memory fake port. Run `bun run typecheck`, `bun test`, `bun run build` and `bunx playwright test examples/<name>`. A cold dependency cache needs network access; an offline install failure is a dependency-fetch limitation, not an application check passing.
+
+To start from a working reference instead, `bun run scaffold <absent-target> --name <app> --example project-tasks` exports one example as the hosted application. Do not present the example as the finished requested application. Customize the starter in `apps/*` freely, but put domain code in the content package, and keep the generic framework packages free of domain-specific imports.
 
 For an application over existing systems of record, use the [task/workflow pattern](../../../docs/task-workflow-pattern.md) to define one bounded interaction: trigger, input/evidence, record authority, allowed outcomes and exception owner. Fit the UI to its input conditions while humans and agents share semantic capabilities. Start screens from the frame's registry in `packages/frame/src/components` (`capability-form` for a first pass) and the operator registry, with `examples/quality-inspection/ui/capture-station.tsx` as the pattern for high-frequency entry, and keep `useCapabilityForm` so retries reuse one idempotency key. Record capture timing so the time saved can be measured rather than assumed. Keep model inference optional for deterministic input paths.
 

@@ -168,9 +168,9 @@ Control mappings are indicative, not a certification.
 
 ### Layers and scaffold
 
-**Shown, deterministic.** The boundary check resolves imports by layer, including workspace package names and the browser graph of each application. A single-example export installs with a frozen lockfile and passes its own checks.
+**Shown, deterministic.** The boundary check resolves imports by layer, including workspace package names and the browser graph of each application. A single-example export installs with a frozen lockfile and passes its own checks. `scaffold new` generates an application that installs with a frozen lockfile; after `add collection`, `add capability` and `add target` it passes format, generation and the drift check, typecheck, build, its unit tests and a Playwright spec that creates, opens and edits a record through the default screens (`bun run test:scaffold:full`, 17 October 2026).
 
-**Limits.** Framework packages are unpublished, so an export copies `packages/*` and depends on them through `workspace:*`. An authority hosts one application.
+**Limits.** Framework packages are unpublished, so an export copies `packages/*` and depends on them through `workspace:*`. An authority hosts one application. A generated application's export fails `check:boundaries` and `check:size` on the reference examples' stale exemptions, so its acceptance run does not include them.
 
 ## Known defects
 

@@ -49,6 +49,7 @@ const excludedDirectories = new Set([
 const sourceExtensions = new Set([
   '.ts',
   '.tsx',
+  '.tpl',
   '.js',
   '.mjs',
   '.cjs',

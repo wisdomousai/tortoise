@@ -74,6 +74,30 @@
       ]
     },
     {
+      "name": "collection-screen",
+      "type": "registry:component",
+      "title": "Collection screens",
+      "description": "Default list and record screens for a collection's generated get and list queries and its create and update commands, with a delivery-status column; replace them one route at a time.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@tanstack/react-router",
+        "@agent-native/contracts"
+      ],
+      "registryDependencies": [
+        "badge",
+        "input",
+        "@agent-native/capability-form",
+        "@agent-native/live-data-table",
+        "@agent-native/session"
+      ],
+      "files": [
+        {
+          "path": "src/components/collection-screen.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "conflict-banner",
       "type": "registry:component",
       "title": "Conflict banner",

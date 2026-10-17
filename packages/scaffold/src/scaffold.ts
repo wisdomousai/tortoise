@@ -12,6 +12,7 @@ import {
 } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { canonicalJson } from '@agent-native/contracts';
+import { addDependency, addWorkspace, type GeneratedContent } from './content';
 import { excludedExamples, pruneLockfile, type ExcludedExample } from './examples';
 import { collect } from './file-rules';
 
@@ -26,6 +27,11 @@ export interface ScaffoldOptions {
    * configured application is kept.
    */
   readonly example?: string;
+  /**
+   * Generated content to host instead of any example: every example is left out, this workspace
+   * is added to the root manifest and lockfile, and the starter is configured to host it.
+   */
+  readonly content?: GeneratedContent;
 }
 export interface ScaffoldManifest {
   readonly formatVersion: 1;
@@ -39,6 +45,8 @@ export interface ScaffoldManifest {
   };
   /** The single example exported as content, when one was selected. */
   readonly example?: string;
+  /** The generated content workspace, for a new application. */
+  readonly content?: string;
   readonly files: readonly { readonly path: string; readonly sha256: string }[];
 }
 
@@ -83,7 +91,7 @@ async function resolveLocations(options: ScaffoldOptions) {
   return { requestedSourceRoot, sourceRoot, target };
 }
 
-function displayNameOf(options: ScaffoldOptions): string {
+export function displayNameOf(options: Pick<ScaffoldOptions, 'name' | 'displayName'>): string {
   const displayName =
     options.displayName ??
     options.name
@@ -100,12 +108,17 @@ async function applicationOf(options: ScaffoldOptions, sourceRoot: string, displ
   const sourceConfig = JSON.parse(
     await readFile(join(sourceRoot, 'app.config.json'), 'utf8').catch(() => '{}'),
   ) as { application?: string };
-  const excluded = options.example ? await excludedExamples(sourceRoot, options.example) : [];
-  const hosted = options.example
-    ? (JSON.parse(
-        await readFile(join(sourceRoot, 'examples', options.example, 'package.json'), 'utf8'),
-      ).name as string)
-    : sourceConfig.application;
+  const excluded =
+    options.example || options.content
+      ? await excludedExamples(sourceRoot, options.content ? undefined : options.example)
+      : [];
+  const hosted = options.content
+    ? options.content.packageName
+    : options.example
+      ? (JSON.parse(
+          await readFile(join(sourceRoot, 'examples', options.example, 'package.json'), 'utf8'),
+        ).name as string)
+      : sourceConfig.application;
   const application: ScaffoldManifest['application'] = {
     name: options.name,
     displayName,
@@ -121,6 +134,7 @@ interface ExportContext {
   readonly displayName: string;
   readonly application: ScaffoldManifest['application'];
   readonly excluded: readonly ExcludedExample[];
+  readonly content?: GeneratedContent;
 }
 
 /** Rename the package and rewrite the files the exported application owns. */
@@ -140,6 +154,9 @@ function exportedContent(path: string, source: string, context: ExportContext): 
     content = JSON.stringify(root, null, 2) + '\n';
   }
   if (path === 'bun.lock' && excluded.length) content = pruneLockfile(content, excluded);
+  if (context.content && path === 'package.json')
+    content = addDependency(content, context.content.packageName);
+  if (context.content && path === 'bun.lock') content = addWorkspace(content, context.content);
   return content;
 }
 
@@ -165,7 +182,12 @@ async function exportedFiles(
     const content = exportedContent(path, source, context);
     files.push({ path, content, sha256: createHash('sha256').update(content).digest('hex') });
   }
-  return files;
+  // Generated content is written as given; it holds no source paths or checkout data.
+  for (const [file, content] of Object.entries(context.content?.files ?? {})) {
+    const path = `${context.content!.directory}/${file}`;
+    files.push({ path, content, sha256: createHash('sha256').update(content).digest('hex') });
+  }
+  return files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 }
 
 /**
@@ -217,12 +239,14 @@ export async function scaffold(options: ScaffoldOptions): Promise<ScaffoldManife
     displayName,
     application,
     excluded,
+    ...(options.content ? { content: options.content } : {}),
   });
   const manifest: ScaffoldManifest = {
     formatVersion: 1,
     frameworkVersion: sourcePackage.version,
     application,
     ...(options.example ? { example: options.example } : {}),
+    ...(options.content ? { content: options.content.directory } : {}),
     files: files.map(({ path, sha256 }) => ({ path, sha256 })),
   };
   await publish(locations.target, files, manifest);
