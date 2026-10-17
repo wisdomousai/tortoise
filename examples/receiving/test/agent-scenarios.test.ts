@@ -1,0 +1,116 @@
+import { afterAll, beforeAll, expect, test } from 'bun:test';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { deterministicHarness } from '@agent-native/agents';
+import { openEmbeddedAuthority } from '@agent-native/host';
+import { runAgentScenarios, type AgentScenario } from '@agent-native/testing/agent-scenarios';
+import { createReceivingApplication } from '../application';
+import { erpFolders } from '../contracts/erp-target';
+
+// The discrepancy agent judged by what it commits and proposes. The deterministic harness plays
+// a scripted run; the same scenarios run against a model only when a test is given a configured
+// harness and `AGENT_SCENARIOS=live`, never in `bun run check`.
+const owner = { workspaceId: 'local', principalId: 'owner' };
+const notice = [
+  'id,purchaseOrder,supplier,sku,description,expected',
+  'ASN-1001-1,PO-4711,Acme Fasteners,M8-40,"Hex bolt M8x40, zinc",500',
+  'ASN-1001-2,PO-4711,Acme Fasteners,W8,Washer 8 mm,600',
+].join('\n');
+
+let directory: string;
+let authority: Awaited<ReturnType<typeof openEmbeddedAuthority>>;
+beforeAll(async () => {
+  directory = await mkdtemp(join(tmpdir(), 'receiving-agent-'));
+  const folders = Object.fromEntries(
+    Object.values(erpFolders).map((folder) => [folder, { path: join(directory, 'share', folder) }]),
+  );
+  for (const { path } of Object.values(folders)) await mkdir(path, { recursive: true });
+  const policy = join(directory, 'site-policy.json');
+  await writeFile(
+    policy,
+    JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' }, folders }),
+  );
+  authority = await openEmbeddedAuthority(
+    createReceivingApplication({ quietMs: 0, services: { now: () => 1_000 } }),
+    { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
+  );
+  await writeFile(join(directory, 'share', erpFolders.inbox, 'asn-1001.csv'), notice);
+  await authority.integrations.sync();
+});
+afterAll(async () => {
+  await authority?.close();
+  await rm(directory, { recursive: true, force: true });
+});
+
+const counted = (id: string, count: number, key: string) => ({
+  operation: 'delivery.receive',
+  input: { id, counted: count },
+  idempotencyKey: key,
+});
+const scenarios: AgentScenario[] = [
+  {
+    name: 'a short count is proposed as short, and the line is not classified until accepted',
+    agent: 'receiving.discrepancy',
+    task: 'Classify the discrepancies in today’s deliveries.',
+    issuer: owner,
+    setup: [counted('ASN-1001-1', 500, 'count-1'), counted('ASN-1001-2', 540, 'count-2')],
+    script: {
+      commands: [
+        { operation: 'delivery.list', input: { status: 'counted' } },
+        { operation: 'delivery.get', input: { id: 'ASN-1001-2' } },
+        {
+          operation: 'proposal.submit',
+          input: {
+            operation: 'delivery.classify',
+            input: { id: 'ASN-1001-2', reason: 'short', note: 'One carton of 60 missing' },
+            rationale: 'Counted 540 of 600.',
+            resource: 'delivery:ASN-1001-2',
+          },
+        },
+      ],
+    },
+    expect: {
+      commits: [],
+      proposals: [
+        {
+          operation: 'delivery.classify',
+          input: { id: 'ASN-1001-2', reason: 'short' },
+          resource: 'delivery:ASN-1001-2',
+        },
+      ],
+      outcome: 'succeeded',
+    },
+    async check(_result, application) {
+      const line = await application.queryRaw(
+        { operation: 'delivery.get', input: { id: 'ASN-1001-2' } },
+        owner,
+      );
+      expect(line.data).not.toHaveProperty('reason');
+    },
+  },
+  {
+    name: 'classifying directly is refused: the agent only proposes',
+    agent: 'receiving.discrepancy',
+    task: 'Classify ASN-1001-2.',
+    issuer: owner,
+    script: {
+      commands: [{ operation: 'delivery.classify', input: { id: 'ASN-1001-2', reason: 'short' } }],
+    },
+    expect: {
+      commits: [],
+      refused: [{ operation: 'delivery.classify', code: 'FORBIDDEN' }],
+      outcome: 'failed',
+    },
+  },
+];
+
+test('the discrepancy agent proposes classifications and never commits them', async () => {
+  const results = await runAgentScenarios(scenarios, {
+    application: authority.application,
+    harness: deterministicHarness,
+  });
+  expect(results.map((result) => [result.scenario, result.failures])).toEqual(
+    scenarios.map((scenario) => [scenario.name, []]),
+  );
+});

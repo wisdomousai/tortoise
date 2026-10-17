@@ -18,6 +18,12 @@ export interface DelegationGrant {
   readonly operations: readonly string[];
   readonly expiresAt?: number;
   readonly resources?: readonly string[];
+  /**
+   * Record types a resource-scoped grant may create new records of, outside `resources`: a run
+   * cannot name a record before it exists, such as the proposal a proposing agent submits. Only a
+   * record with no revision yet counts; changing an existing one still needs `resources`.
+   */
+  readonly creates?: readonly string[];
   readonly principalId?: string;
   readonly workspaceId?: string;
   readonly runId?: string;

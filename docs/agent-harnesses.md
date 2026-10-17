@@ -34,6 +34,10 @@ A harness that composes other CLIs and MCP servers needs an enforced execution b
 
 See [providers](providers.md) for login and funding, and [desktop](desktop.md#packaged-resources) for native resources. Protocol fixtures and real provider calls count as separate evidence.
 
+## Evaluating an agent
+
+An [agent scenario](../packages/testing/README.md#agent-scenarios) gives an agent definition a task and fixture state and checks what the run committed and proposed: the receipts, the proposals and the refusals, never the text. The same scenario runs on the deterministic harness in CI and on a configured model when a test asks for it, and `scenarioRegressions` lists what a candidate model fails that the current one passes.
+
 ## Background jobs
 
 A job is an ordinary caller with a scoped identity and grant. It reads current revisions and submits commands with stable keys. The `project-tasks` example includes one. Schedulers, retries and queues can change without touching handlers. A job never writes storage directly.

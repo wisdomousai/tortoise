@@ -60,9 +60,13 @@ function submitHandler<State, Services>(
       } catch {
         throw new ApplicationError('INVALID_INPUT', 'Proposed input does not match the command');
       }
+      const { context } = ctx;
+      // A resource-scoped run proposes only for the records it was started on.
+      const scope = context.grant?.resources;
+      if (scope && !(input.resource && scope.includes(input.resource)))
+        throw new ApplicationError('FORBIDDEN', 'Delegation does not permit the proposed resource');
       const now = options.now(ctx);
       const id = options.newId(ctx);
-      const { context } = ctx;
       const proposal: Proposal = {
         id,
         operation: target.id,

@@ -19,6 +19,7 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
+    "@agent-native/agents": "workspace:*",
     "@agent-native/contracts": "workspace:*",
     "@agent-native/integration": "workspace:*",
     "@agent-native/runtime": "workspace:*"

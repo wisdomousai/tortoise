@@ -95,6 +95,8 @@ test('a proposing agent runs its queries and records proposals instead of its co
   const grant = agentGrant(catalog, 'lot.advisor', person, { now: 0 });
   expect(grant.operations).toEqual(['lot.list', 'proposal.submit']);
   expect(grant.resources).toBeUndefined();
+  // Not scoped to resources, so it needs no `creates` to record its proposals.
+  expect(grant.creates).toBeUndefined();
 });
 
 test('an unknown agent is NOT_FOUND', () => {

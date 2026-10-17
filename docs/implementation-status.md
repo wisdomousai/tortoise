@@ -75,6 +75,8 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Not shown, live.** No live ChatGPT consent, token refresh or revocation, and no Claude or AI SDK inference. No provider credentials were discovered or reused.
 
+**Agent scenarios, live.** None run. The scenarios in `packages/testing` and `examples/receiving` have passed with the deterministic harness only; a model's results go here, per model and scenario, when a configured harness runs them.
+
 ### Execution host
 
 **Native.** 17 October 2026, `bun run test:execution-host:linux` on Docker Desktop 29.4.0 (Linux 6.12.76-linuxkit, arm64), with `IMAGE` naming an image assembled by hand from a locally cached Alpine 3.23 base with bubblewrap 0.12.0 and Bun 1.4.0 (musl): all 18 tests passed, including the eight in `test/sandbox.test.ts` under real bubblewrap and the plugin's seccomp filter. `test/linux/Dockerfile` itself was not built here, because Docker Desktop's image pulls hung behind its proxy.

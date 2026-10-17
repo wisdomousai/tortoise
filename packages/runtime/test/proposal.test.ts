@@ -272,4 +272,42 @@ describe('proposals', () => {
       ),
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   });
+  test('a resource-scoped run proposes for its records only, creating the proposal record', async () => {
+    const { app, advance } = setup();
+    const scoped = (creates?: string[]): ExecutionContext => ({
+      ...annAgent,
+      grant: {
+        ...annAgent.grant!,
+        resources: ['lot:l1'],
+        ...(creates ? { creates } : {}),
+      },
+    });
+    const submit = (resource: string, context: ExecutionContext) =>
+      invoke(
+        app,
+        'proposal.submit',
+        { operation: 'lot.release', input: { id: 'l1' }, rationale: 'Passed.', resource },
+        context,
+      );
+    // The new proposal record is outside the resource list; `creates` admits it.
+    await expect(submit('lot:l1', scoped())).rejects.toMatchObject({
+      message: 'Delegation does not permit changed resource',
+    });
+    const { id } = (await submit('lot:l1', scoped(['proposal']))).result as { id: string };
+    await expect(submit('lot:l2', scoped(['proposal']))).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+      message: 'Delegation does not permit the proposed resource',
+    });
+    // `creates` covers only records with no revision yet: an existing proposal stays out of reach.
+    advance(20_000);
+    const expiring = scoped(['proposal']);
+    await expect(
+      invoke(
+        app,
+        'proposal.expire',
+        { id },
+        { ...expiring, grant: { ...expiring.grant!, operations: ['proposal.expire'] } },
+      ),
+    ).rejects.toMatchObject({ message: 'Delegation does not permit changed resource' });
+  });
 });

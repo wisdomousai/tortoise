@@ -166,7 +166,13 @@ export function createHandlerContext<State, Services>(
       writable(scope, 'Queries cannot register changes');
       if (!resource)
         throw new ApplicationError('INTERNAL', 'Changed resource must have an identifier');
-      if (!grantCoversResource(context.grant, resource))
+      if (
+        !grantCoversResource(context.grant, resource) &&
+        !(
+          revisionOf(snapshot, resource) === 0 &&
+          context.grant?.creates?.some((type) => resource.startsWith(`${type}:`))
+        )
+      )
         throw new ApplicationError('FORBIDDEN', 'Delegation does not permit changed resource');
       scope.changes.set(resource, type);
     },

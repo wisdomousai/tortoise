@@ -419,6 +419,12 @@ _A reusable test of one capability's allowed, denied, stale, replayed and visibl
 
 implemented · `packages/testing`
 
+### Agent scenario
+
+_A task, fixture state and an agent definition, judged by the commands the run committed and the proposals it submitted, not by what it said._
+
+implemented · `packages/testing`
+
 ### Scaffold
 
 _Exports the framework, the starter and content as a standalone application, or the starter and a new application over installed framework versions, and generates new applications and their parts._

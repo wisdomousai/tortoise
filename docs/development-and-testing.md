@@ -96,6 +96,7 @@ A line-station host starts a station bridge only when `STATION_HMI_URL` is set. 
 - **HTTP and live views:** origin checks, one-time launch credentials, revoked sessions, identity spoofing, session-bound cursors, projection, the gap between snapshot and subscription, and resets that leak no identifiers.
 - **Client and UI context:** out-of-order responses, revocation during a refresh, stable captured targets and fenced updates.
 - **Integration:** effects commit only with their command, and delivery handles failure, rejection, lost settlement and targets that are not idempotent. The capture spec checks that a scanner burst records exactly one result per sample.
+- **Agents:** agent scenarios give an agent definition a task and fixture state and judge the run by its receipts and proposals, never its text. CI runs them with the deterministic harness; a run against a model needs a configured harness and `AGENT_SCENARIOS=live`, and its result is recorded apart from the deterministic one.
 - **Transports:** conformance runs the real HTTP, CLI and MCP adapters and compares results and error codes. A listed operation is not evidence that it can be invoked.
 
 ## Framework packages

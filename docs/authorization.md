@@ -21,7 +21,7 @@ In the `project-tasks` example, workspace owners administer projects, project ow
 
 ## Lists
 
-A list is scoped to what the caller may see before it is filtered, sorted, paged or counted. Protected fields cannot be used to filter or sort, because the query schema does not accept them. A delegated grant narrows lists and single-record reads further. Dictionary lookups check own properties, so a name like `constructor` never matches by accident.
+A list is scoped to what the caller may see before it is filtered, sorted, paged or counted. Protected fields cannot be used to filter or sort, because the query schema does not accept them. A delegated grant narrows lists and single-record reads further. A grant scoped to resources may change only those records; `creates` lets it add new records of a named type, which a run cannot list before they exist. An agent that proposes on a selection gets `creates: ['proposal']`, and `proposal.submit` then refuses a proposal for a record outside the selection. Dictionary lookups check own properties, so a name like `constructor` never matches by accident.
 
 ## The CASL adapter
 

@@ -15,6 +15,7 @@ description: Choose and run the checks for a change in this repository and repor
 | A screen or registry item | `bun run build`, `bunx playwright test examples/<app>/e2e`, `bun run check:registry:operator` for operator items |
 | A framework package | `bun test packages/<name>`, `bun run check:boundaries`; `bun run test:portable` for kernel, runtime, client, integration or mobile code |
 | A host plugin | `bun test plugins/<name>`, `bun run check:boundaries` |
+| An agent definition, or an operation an agent calls | `bun test examples/<app>/test/agent-scenarios.test.ts`; a run against a model only with a configured harness and `AGENT_SCENARIOS=live`, reported as live evidence |
 | A connector, outbox or sync | `bun run test:integration`, `bun run test:conformance` |
 | The CLI, MCP or the sandbox binary | `bun run test:sandbox`, `bun run test:service` |
 | The execution host, the process port or the seccomp filter | `bun test plugins/execution-host plugins/process`, then `bun run test:execution-host:linux` (Docker) for the bubblewrap tests, which skip off Linux |
@@ -37,7 +38,7 @@ Report each kind of evidence on its own, and never let one stand in for another:
 - **Deterministic:** what `bun run check` and the focused suites showed.
 - **Browser:** Playwright against the real service.
 - **Native:** a packaged build or a real OS facility, on a named platform.
-- **Live:** real providers, devices, hardware or systems of record, with explicitly configured accounts.
+- **Live:** real providers, models, devices, hardware or systems of record, with explicitly configured accounts.
 - **By hand:** a one-off run, and what it showed.
 
 Say which checks were skipped and why. A build is not a browser run, an export is not a release, and a fixture is not a provider login.
