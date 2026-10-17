@@ -188,6 +188,41 @@ test('an interrupted procedure is held, skipped by delivery and resolved by reco
   expect(state.delivered).toBe(1);
 });
 
+test('a release is marked until the next attempt, so a lookup can tell a person decided', async () => {
+  const app = fixture();
+  const { state, port } = station();
+  const dispatcher = createEffectDispatcher({
+    application: app,
+    port,
+    context: bridge,
+    settleOperation: 'recipe.settle',
+  });
+  const { result } = await app.invoke(
+    { operation: 'recipe.load', input: { recipe: 'R-12' }, idempotencyKey: 'load-1' },
+    operator,
+  );
+  state.interruptNext = true;
+  await dispatcher.runOnce();
+  const reconcile = (key: string) =>
+    app.invoke(
+      {
+        operation: 'recipe.reconcile',
+        input: { effectId: result.effectId, applied: false },
+        idempotencyKey: key,
+      },
+      operator,
+    );
+  await reconcile('reconcile-1');
+  const [released] = await app.pendingEffects(bridge, { target: 'legacy-hmi' });
+  expect(released).toMatchObject({ attempts: 1, releasedAt: expect.any(Number) });
+  // The next attempt is interrupted again: the release covered only the attempt before it.
+  state.interruptNext = true;
+  expect(await dispatcher.runOnce()).toMatchObject({ held: 1 });
+  const [held] = await app.pendingEffects(bridge, { includeHeld: true });
+  expect(held).toMatchObject({ attempts: 2 });
+  expect(held!.releasedAt).toBeUndefined();
+});
+
 test('an uncertain lookup holds instead of delivering twice; applied settles it', async () => {
   const app = fixture();
   const { state, port } = station();

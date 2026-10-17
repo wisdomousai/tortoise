@@ -105,7 +105,7 @@ function outboxMethods<State, Services>(
       writable(scope, 'Queries cannot release effects');
       const effect = ownEffect(snapshot, id);
       if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
-      const released = releasedEffect(effect);
+      const released = releasedEffect(effect, kernel.now);
       touch(released);
       return publicEffect(released);
     },

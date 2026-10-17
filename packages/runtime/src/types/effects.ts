@@ -44,6 +44,12 @@ export interface Effect extends EffectRequest {
   readonly heldAt?: number;
   /** Caller-safe, bounded reason for the hold. */
   readonly holdReason?: string;
+  /**
+   * Set when a domain command released a held effect (`releaseEffect`: it was not applied), and
+   * cleared when the next attempt is recorded. A lookup that would otherwise hold the effect again
+   * on the same evidence delivers it instead, because a person already decided.
+   */
+  readonly releasedAt?: number;
   /** The worker that may deliver it now; see `EffectClaim`. */
   readonly claim?: EffectClaim;
   /** The last fencing token issued; a newer claim always gets a larger one. */

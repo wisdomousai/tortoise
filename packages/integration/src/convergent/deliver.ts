@@ -80,9 +80,10 @@ export interface ConvergentLookup<View> {
 }
 
 /**
- * Readback of an earlier delivery. Converged: accepted. Never attempted, attempted by this
- * process without acting, rerunnable, or back at the start: deliver again. Anything else is
- * uncertain, so the dispatcher holds it for a person.
+ * Readback of an earlier delivery. Converged: accepted. Never attempted, released by a person
+ * since its last attempt (`releasedAt`), attempted by this process without acting, rerunnable, or
+ * back at the start: deliver again. Anything else is uncertain, so the dispatcher holds it for a
+ * person.
  */
 export async function lookupConvergent<View>(
   lookup: ConvergentLookup<View>,
@@ -91,7 +92,13 @@ export async function lookupConvergent<View>(
   const readback = await lookup.readback(signal);
   if (readback.met) return lookup.accepted(readback.view);
   const view = readback.view;
-  if (lookup.effect.attempts === 0 || lookup.untouched || lookup.atStart(view) || lookup.rerunnable)
+  if (
+    lookup.effect.attempts === 0 ||
+    lookup.effect.releasedAt !== undefined ||
+    lookup.untouched ||
+    lookup.atStart(view) ||
+    lookup.rerunnable
+  )
     return undefined;
   return { status: 'uncertain', reason: lookup.uncertain(view) };
 }

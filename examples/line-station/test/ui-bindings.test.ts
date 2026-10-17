@@ -11,11 +11,17 @@ test('every operation that claims a UI binding is referenced by a screen', async
   );
   // The Automation screen comes from the automation plugin, at /automation.
   const automationScreen = resolve(import.meta.dir, '../../../plugins/automation/ui');
+  // The Drivers screen comes from the driver plugin, at /drivers.
+  const driverScreen = resolve(
+    import.meta.dir,
+    '../../../plugins/connector-driver/src/components/driver-screen.tsx',
+  );
   expect(
     await unboundOperations(manifest.modules, [
       resolve(import.meta.dir, '..'),
       securityScreen,
       automationScreen,
+      driverScreen,
     ]),
   ).toEqual([]);
 });

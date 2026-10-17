@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { openEmbeddedAuthority } from '@agent-native/host';
-import { createLineStationApplication, demoStations } from '../application';
+import { createLineStationApplication, demoAutomationStation, demoStations } from '../application';
 
 test('upgrade is idempotent for line-station state', () => {
   const application = createLineStationApplication({ stations: [] });
@@ -16,6 +16,14 @@ test('the demo bridges a station only when its screen is named explicitly', () =
   expect(demoStations({ STATION_HMI_URL: 'http://127.0.0.1:1', STATION_SIMULATOR: '1' })).toEqual([
     expect.objectContaining({ station: 'line-1', counters: { kind: 'simulator' } }),
   ]);
+});
+
+test('the demo reaches a station through its automation driver only when asked', () => {
+  expect(demoAutomationStation({})).toBeUndefined();
+  const env = { STATION_ROUTE: 'automation', STATION_HMI_URL: 'http://127.0.0.1:1' };
+  expect(demoAutomationStation(env)).toMatchObject({ station: 'line-1' });
+  // The station's screen is not bridged as well.
+  expect(demoStations(env)).toEqual([]);
 });
 
 test('the embedded authority syncs the MES and reports station targets it cannot deliver', async () => {

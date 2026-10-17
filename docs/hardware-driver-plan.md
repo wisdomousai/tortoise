@@ -297,6 +297,16 @@ Domain contracts, drivers, simulators and screens live in the examples. Two appl
   - a lost-reply test is held and then reconciled;
   - the Windows COM smoke test is recorded separately and marked skipped where it did not run.
 
+**Status, 2026-10-17.** Done on macOS, with these changes from the plan:
+
+- **Hazard.** `recipe.load` is `operator-present`, as the screen route's recipe procedure is, so it needs the same presence confirmation on either route.
+- **Events.** None. The alarm and the counters are state fields that the observer polls, as the screen route reads them, so the domain sees the same observations.
+- **Provenance.** Readings carry the contract as their profile and `driver.station-automation` as their source. The unit from the handshake is not carried, because `line.observation.ingest` has no field for it.
+- **Route.** `createLineStationApplication({ automation })`, or `STATION_ROUTE=automation` in the demo, puts one station on the automation route. A host has at most one, because the driver runs on the station PC. A station configured on both routes is refused, and so is a start without a site binding for `station-automation-driver`.
+- **Release.** A lookup could not tell a person's "not applied" from a lost reply, so a reconciled load stayed held on this route. The runtime now marks a released effect with `releasedAt`, cleared by the next recorded attempt, and the convergent lookup delivers a released effect again. `packages/integration/test/held.test.ts` covers both.
+- **Windows.** The COM implementation (`ComStation.cs`, late bound by ProgID on the STA handler thread) builds on every OS but has not run. There is no COM-visible test server yet; the Windows smoke test is not run.
+- **Evidence.** The scenarios run against an in-process fake driver (`test/automation.test.ts`) and against the .NET driver as a child process with its simulated station (`test/automation-driver.test.ts`): stub drift, `checkDriver`, a load accepted by readback, and a crash after a load the station does not show, held and then reconciled.
+
 ### B3. Documentation
 
 - `docs/operator-workstation-pattern.md`: the intro sentence that lists the routes, and one paragraph on the automation route next to the screen route.
@@ -422,3 +432,4 @@ Recommended options first. Settled through coordination: observation goes to `pa
 - 98a49bb (the driver connector library) merged into `framework-roadmap` at `b330849`; `hardware-drivers` is rebased on it. The rest of phase 3 adds two additive framework changes: `ConnectContext.services` (`packages/kernel`) and `ProcessRequirement.targets` with `CatalogOperation.processes` (`packages/contracts`), and touches `plugins/compliance/src/manifest.ts` to list process-carried flows.
 - Phase 3 merged into `framework-roadmap` at `5dbe58e`. The Python SDK (`a8927a9`, `7aee8e9`) merged by fast-forward. B1 edits only `examples/quality-inspection`, `plugins/connector-driver` and this repository's driver entries in `docs/primitives.md`; the roadmap confirmed nobody else is in those example files.
 - B1 rebased as `eb98a3b` on `13b00aa`; `78ed43c` compiles the sandbox binary in a child process (Bun.build inside `bun test` failed at random on the quality-inspection graph). Merged by fast-forward. The user then chose the `sdks/` layout; the root edits (workspaces, tsconfig, `check:readmes`, `check:boundaries`, AGENTS.md) were agreed with the roadmap as root owner.
+- `41ef345` (the `sdks/` split) and `b2d688e` (the .NET SDK) merged. B2 adds files in `examples/line-station` and changes `packages/runtime` (`releasedAt` on released effects) and `packages/integration/src/convergent/deliver.ts`. The roadmap confirmed nobody else is in those files, and the change was announced before commit.

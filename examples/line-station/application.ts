@@ -13,6 +13,8 @@ import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
 import { processPlugin } from '@agent-native/process/plugin';
 import type { ProcessPort } from '@agent-native/host/plugin';
+import { createDriverPlugin } from '@agent-native/connector-driver/plugin';
+import { driverServiceOf } from '@agent-native/connector-driver/open';
 import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
 import { mesTarget } from './contracts';
@@ -26,6 +28,8 @@ import {
 } from './server';
 import { FakeMes, toSyncInput, type MesItem } from './fake-mes';
 import { startStationBridge, type StationBridgeConfig } from './station-bridge';
+import { stationAutomationContract } from './contracts/automation';
+import { createLineStationDriverBridge, type StationAutomationConfig } from './driver-bridge';
 
 export interface LineStationState {
   lineStation: LineState;
@@ -34,6 +38,11 @@ export interface LineStationState {
 
 /** The homebrew MES integration; separate from every person and every station bridge. */
 export const MES_PRINCIPAL = 'mes-integration';
+
+/** The station automation driver, started through the process plugin when bound. */
+export const stationAutomationPlugin = createDriverPlugin({
+  contracts: [stationAutomationContract],
+});
 
 /**
  * Demo only: bridge the simulated filler HMI when `STATION_HMI_URL` names it (start it with
@@ -48,7 +57,7 @@ export function demoStations(
   env: Record<string, string | undefined> = process.env,
 ): StationBridgeConfig[] {
   const hmiUrl = env.STATION_HMI_URL;
-  if (!hmiUrl) return [];
+  if (!hmiUrl || env.STATION_ROUTE === 'automation') return [];
   const counters: StationBridgeConfig['counters'] =
     env.STATION_VISION_BASE_URL && env.STATION_VISION_MODEL
       ? {
@@ -73,6 +82,22 @@ export function demoStations(
       observeMs: Number(env.STATION_OBSERVE_MS ?? 1_000),
     },
   ];
+}
+
+/**
+ * Demo only: with `STATION_ROUTE=automation`, station `STATION_ID` (default `line-1`) is reached
+ * through the station automation driver instead of its screen. The site policy binds the
+ * `station-automation-driver` process, with `STATION_AUTOMATION_SIM_DIR` for the simulated
+ * station or `STATION_AUTOMATION_PROGID` for the station software's COM server.
+ */
+export function demoAutomationStation(
+  env: Record<string, string | undefined> = process.env,
+): StationAutomationConfig | undefined {
+  if (env.STATION_ROUTE !== 'automation') return undefined;
+  return {
+    station: env.STATION_ID ?? 'line-1',
+    observeMs: Number(env.STATION_OBSERVE_MS ?? 1_000),
+  };
 }
 
 /** A new workspace's line: one demo station whose creator is its supervisor. */
@@ -143,15 +168,43 @@ async function startBridges(
 }
 
 /**
+ * Start the automation route for its station. It was configured explicitly, so a missing process
+ * binding refuses the start with the port's reason instead of leaving the station unwatched.
+ */
+function startAutomation(
+  application: BridgeApplication,
+  workspaceId: string,
+  processes: ProcessPort,
+  services: Readonly<Record<string, unknown>>,
+  config: StationAutomationConfig,
+  onError: (source: string, error: unknown) => void,
+) {
+  const ready = processes.availability(stationAutomationContract.process.id);
+  if (!ready.available) throw new Error(ready.reason);
+  const bridge = createLineStationDriverBridge({
+    application,
+    workspaceId,
+    station: config.station,
+    supervisor: driverServiceOf(services).supervisor(stationAutomationContract.id),
+  });
+  bridge.start(config.observeMs ?? 1_000, config.deliverMs ?? 1_000, (error) =>
+    onError(`Station ${config.station}`, error),
+  );
+  return bridge;
+}
+
+/**
  * The line-station application: stations with device configuration. `mes` is the MES port
  * (each authority gets its own in-memory homebrew MES fake without one); `stations` are the
- * station screens a serving host bridges (from the demo environment without them). Without
- * stations nothing touches any station software.
+ * station screens a serving host bridges (from the demo environment without them), and
+ * `automation` the one station reached through the station automation driver instead. Without
+ * either nothing touches any station software.
  */
 export function createLineStationApplication(
   options: {
     mes?: SystemOfRecordPort<MesItem>;
     stations?: readonly StationBridgeConfig[];
+    automation?: StationAutomationConfig;
     services?: LineServices;
   } = {},
 ) {
@@ -178,11 +231,12 @@ export function createLineStationApplication(
       auditPlugin,
       compliancePlugin,
       lineAutomationPlugin,
+      stationAutomationPlugin,
     ],
     handlers: lineStationHandlers(),
     authorization: lineStationAuthorization(),
     ...(options.services ? { services: options.services } : {}),
-    connect: ({ application, workspaceId, processes }) => ({
+    connect: ({ application, workspaceId, processes, services }) => ({
       integrations: [
         connectTarget<MesItem>({
           target: mesTarget,
@@ -194,14 +248,31 @@ export function createLineStationApplication(
         }),
       ],
       // Async, so a bad demo environment rejects like a failing bridge instead of throwing.
-      observe: async (onError) =>
-        await startBridges(
+      observe: async (onError) => {
+        const stations = options.stations ?? demoStations();
+        const automation = options.automation ?? demoAutomationStation();
+        if (!automation)
+          return await startBridges(application, workspaceId, processes, stations, onError);
+        if (stations.some((config) => config.station === automation.station))
+          throw new Error(`Station ${automation.station} is configured on both routes`);
+        const driver = startAutomation(
           application,
           workspaceId,
           processes,
-          options.stations ?? demoStations(),
+          services,
+          automation,
           onError,
-        ),
+        );
+        try {
+          return [
+            driver,
+            ...(await startBridges(application, workspaceId, processes, stations, onError)),
+          ];
+        } catch (error) {
+          await driver.stop();
+          throw error;
+        }
+      },
     }),
   });
 }

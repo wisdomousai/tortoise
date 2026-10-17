@@ -118,7 +118,7 @@ export function settledEffect(
   return { ...unheld, status: valid.status, outcome: valid, settledAt: now() };
 }
 
-export function releasedEffect(effect: Effect): Effect {
+export function releasedEffect(effect: Effect, now: () => number): Effect {
   if (effect.status !== 'pending' || effect.heldAt === undefined)
     throw new ApplicationError('CONFLICT', 'Effect is not held');
   // Clearing the attempt clock lets the dispatcher deliver on its next pass, without backoff. A
@@ -132,7 +132,7 @@ export function releasedEffect(effect: Effect): Effect {
     upstreamRef: _upstreamRef,
     ...rest
   } = effect;
-  return rest;
+  return { ...rest, releasedAt: now() };
 }
 
 /** Withdraw an effect no worker ever claimed; it was never sent, so nothing can be lost. */
@@ -167,7 +167,8 @@ export function upstreamEffect(
   fence?: number,
 ): Effect {
   checkFence(effect, fence);
-  const { claim: _claim, ...rest } = effect;
+  // A recorded attempt supersedes a release: the decision covered the attempt before it.
+  const { claim: _claim, releasedAt: _releasedAt, ...rest } = effect;
   return {
     ...rest,
     attempts: effect.attempts + 1,
@@ -185,7 +186,8 @@ export function attemptedEffect(
   fence?: number,
 ): Effect {
   checkFence(effect, fence);
-  const { claim: _claim, ...rest } = effect;
+  // A recorded attempt supersedes a release: the decision covered the attempt before it.
+  const { claim: _claim, releasedAt: _releasedAt, ...rest } = effect;
   return {
     ...rest,
     attempts: effect.attempts + 1,
