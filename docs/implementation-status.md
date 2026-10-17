@@ -55,6 +55,21 @@ On macOS arm64 with Bun 1.4.0.
 
 **Not shown.** No installer consumes a bundle yet, and nothing verifies one at launch. Bundles are directories, not archives. Approvals are unsigned site data. No cross-platform build has been verified on its target.
 
+### Site install
+
+**Shown, deterministic.** `plugins/site/test/install.test.ts`, on a staged prefix with signed fixture bundles whose binaries are the fixture application's CLI:
+
+- A first install is refused without site approval.
+- An approved install places a verified release, and renders the systemd unit and the nftables rules with the release's own `network export`. The workspace gets mode 0700, the policy copy 0640, and `current` links to the release.
+- An upgrade migrates the workspace with the new release, through the staged `migrate`, before `current` moves, and records the previous version.
+- `status` exits 1 after a release file changes on disk.
+- A tampered bundle is refused, and `current` stays put.
+- `uninstall` removes the service files and releases and keeps the workspace.
+
+**Added, not yet run.** The `site-install` CI job on Ubuntu runs the same test with `systemd-analyze verify` on the unit and `nft -c -f` on the rules.
+
+**Not shown.** No `--apply` run has loaded a service or firewall on a real host, on Linux or Windows. The Windows path (WinSW XML, Windows Firewall script) has only been rendered, never run. No kiosk client mode exists.
+
 ### State migrations
 
 **Shown, deterministic.** `packages/host/test/migrations.test.ts`:

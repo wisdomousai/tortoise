@@ -2,6 +2,7 @@ import { ApplicationError } from '@agent-native/contracts';
 import { exitCodes, takeFlag } from '@agent-native/adapters/cli';
 import type { ApplicationManifest } from '@agent-native/host/manifest';
 import type { PluginCommand } from '@agent-native/host/plugin';
+import { installUsage, installVerb } from './install/cli';
 import { policyErrors, sitePolicyFor } from './policy-file';
 
 /** `site check` or `network export` found error findings: the policy is invalid input. */
@@ -11,7 +12,7 @@ export const siteUsage = (
   program: string,
 ) => `Site policy (offline; no authority or workspace needed):
   ${program} site check --site file                validate a site policy against the declared requirements
-`;
+${installUsage(program)}`;
 
 const usage = (message: string) => new ApplicationError('INVALID_INPUT', message);
 
@@ -46,6 +47,8 @@ export async function siteCommand(
   const [verb, sub, ...rest] = args;
   if (verb !== 'site') return undefined;
   if (sub === 'check') return siteCheck(manifest, rest);
+  if (sub === 'install' || sub === 'status' || sub === 'uninstall')
+    return installVerb(manifest, sub, rest);
   throw usage('Unknown site command; see help');
 }
 

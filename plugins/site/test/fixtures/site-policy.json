@@ -1,0 +1,7 @@
+{
+  "profile": "sandbox",
+  "mode": "connected",
+  "destinations": {},
+  "identity": "grant-file",
+  "grants": { "maxTtlSeconds": 3600 }
+}

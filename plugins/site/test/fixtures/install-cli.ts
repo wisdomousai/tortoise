@@ -1,0 +1,65 @@
+import { z } from 'zod';
+import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineApplication } from '@agent-native/host/application';
+import { createCli } from '@agent-native/host/cli';
+import { defineManifest } from '@agent-native/host/manifest';
+import { networkPlugin } from '@agent-native/network/plugin';
+import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
+import { sitePlugin } from '../../src/plugin';
+import { sitePluginManifest } from '../../src/plugin-manifest';
+
+/**
+ * A fixture application's CLI, which a test bundle's `bin/` script runs. `FIXTURE_STATE` picks
+ * its state version: 1 keeps `count`, 2 renames it to `total`.
+ */
+const bump = defineCapability({
+  id: 'counter.bump',
+  kind: 'command',
+  input: jsonSchema(z.strictObject({})),
+  output: jsonSchema(z.strictObject({})),
+  permission: { action: 'write', resourceType: 'Counter' },
+  ui: { exception: 'test fixture' },
+});
+const version = Number(process.env.FIXTURE_STATE ?? '1');
+const definition = defineApplication<Record<string, unknown>>({
+  manifest: defineManifest({
+    id: 'counter-site',
+    title: 'Counter',
+    modules: [defineModule({ id: 'counter', capabilities: [bump] })],
+    plugins: [sitePluginManifest, networkPluginManifest],
+  }),
+  createState: () => ({ counter: version === 1 ? { count: 0 } : { total: 0 } }),
+  ...(version === 2
+    ? {
+        migrations: {
+          version: 2,
+          steps: [
+            {
+              from: 1,
+              to: 2,
+              up: (state: unknown) => {
+                const { counter } = state as { counter: { count: number } };
+                return { counter: { total: counter.count } };
+              },
+            },
+          ],
+        },
+      }
+    : {}),
+  plugins: [sitePlugin, networkPlugin],
+  handlers: [
+    {
+      capability: bump,
+      handle: async (_input, ctx) => {
+        const counter = ctx.state.counter as Record<string, number>;
+        const key = version === 1 ? 'count' : 'total';
+        counter[key] = (counter[key] ?? 0) + 1;
+        ctx.change('counter:main');
+        return {};
+      },
+    },
+  ],
+  authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
+});
+
+process.exitCode = await createCli(definition, { program: 'counter-site' })(process.argv.slice(2));
