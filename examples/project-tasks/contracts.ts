@@ -1,5 +1,13 @@
 import { z } from 'zod';
-import { defineAgent, defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import {
+  defineAgent,
+  defineCapability,
+  defineModule,
+  jsonSchema,
+  proposalOperations,
+} from '@agent-native/contracts';
+
+export { proposalOperations };
 
 const id = z.string().min(1).max(128);
 const role = z.enum(['owner', 'editor', 'viewer']);
@@ -173,7 +181,7 @@ export const operations = {
 } as const;
 export const projectTasksModule = defineModule({
   id: 'project-tasks',
-  capabilities: Object.values(operations),
+  capabilities: [...Object.values(operations), ...Object.values(proposalOperations)],
   workflows: [
     {
       id: 'project-planning',
@@ -182,16 +190,16 @@ export const projectTasksModule = defineModule({
     },
   ],
   agents: [
-    // Not resource-scoped: task commands resolve to task resources, which a grant listing only
-    // the selected project would refuse. Every command it runs has a screen of its own.
+    // Not resource-scoped: grant resources match exactly, so a grant listing only the selected
+    // project would refuse the proposal records it creates. Project roles bound the run instead.
     defineAgent({
       id: 'project.planner',
       title: 'Project planner',
       instructions:
-        'Break the selected project into concrete tasks. Read the project and its task list first, add only tasks that are missing, and set the status of tasks the brief says are done. Never delete tasks or change members.',
-      operations: ['project.get', 'task.list', 'task.create', 'task.set-status'],
+        'Break the selected project into concrete tasks. Read the project and its task list first, then propose task.create for each missing task (resource project:<id>) and task.set-status for tasks the brief says are done (resource task:<id>, with the task revision you read as baseRevisions). A person accepts or rejects each proposal. Never propose deleting tasks or changing members.',
+      operations: ['project.get', 'task.list', 'task.create', 'task.set-status', 'proposal.list'],
       model: 'any',
-      output: 'direct',
+      output: 'propose',
       budgets: { turns: 12, toolCalls: 40, wallTimeMs: 300_000 },
     }),
   ],

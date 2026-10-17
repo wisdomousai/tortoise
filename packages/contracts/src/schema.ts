@@ -65,9 +65,15 @@ const portableTypes = [
   'never',
 ];
 
+/**
+ * Any JSON value. Recursive, so it is the one lazy schema the portability check accepts: JSON
+ * Schema carries it exactly as a `$ref`. Use it for opaque JSON such as a proposed command input.
+ */
+export const jsonValueSchema = z.json();
+
 /** Throw on any construct, coercion or refinement whose behavior JSON Schema cannot carry. */
 function assertPortable(node: z.ZodType, seen = new Set<object>()): void {
-  if (seen.has(node)) return;
+  if (seen.has(node) || node === jsonValueSchema) return;
   seen.add(node);
   const def = node._zod.def as unknown as Record<string, unknown>;
   if (!portableTypes.includes(String(def.type)) || def.coerce)

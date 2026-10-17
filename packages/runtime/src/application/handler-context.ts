@@ -5,6 +5,7 @@ import type {
   EffectRequest,
   ExecutionContext,
   HandlerContext,
+  Invocation,
   WorkspaceSnapshot,
 } from '../types.js';
 import { grantCoversResource } from './delegation.js';
@@ -32,6 +33,10 @@ export interface HandlerScope<State> {
   readonly changes: Map<string, string>;
   /** Effects the handler enqueued, settled or released, in order. */
   readonly touched: Effect[];
+  /** The command `continueWith` asked for; set at most once. */
+  continuation?: Invocation;
+  /** True inside a continued command, which may not continue again. */
+  readonly continued?: boolean;
 }
 
 function writable(scope: HandlerScope<unknown>, refusal: string): void {
@@ -121,6 +126,16 @@ export function createHandlerContext<State, Services>(
       if (!grantCoversResource(context.grant, resource))
         throw new ApplicationError('FORBIDDEN', 'Delegation does not permit changed resource');
       scope.changes.set(resource, type);
+    },
+    continueWith(operation, input, expectedRevisions) {
+      writable(scope, 'Queries cannot continue with a command');
+      if (scope.continued || scope.continuation)
+        throw new ApplicationError('INTERNAL', 'A command continues with at most one command');
+      scope.continuation = {
+        operation,
+        input: structuredClone(input),
+        ...(expectedRevisions ? { expectedRevisions: { ...expectedRevisions } } : {}),
+      };
     },
     ...outboxMethods(kernel, scope),
     effects: (filter) => readEffects(snapshot, filter),

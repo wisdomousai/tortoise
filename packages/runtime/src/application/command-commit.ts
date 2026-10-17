@@ -44,14 +44,25 @@ export function storeReceipt<State, Services>(
   snapshot: WorkspaceSnapshot<State>,
   command: Command<State, Services>,
   receipt: CommandReceipt,
+  continued?: Command<State, Services>,
 ) {
   if (command.key === undefined) return;
   assertJson(command.input);
+  if (continued) assertJson(continued.input);
   snapshot.receipts[command.key] = {
     fingerprint: command.fingerprint,
     receipt: structuredClone(receipt),
     principalId: command.context.principalId,
     input: command.input as JsonValue,
+    // Replay reauthorizes and reprojects the continued command with the input it ran with.
+    ...(continued
+      ? {
+          continuation: {
+            operation: continued.capability.id,
+            input: structuredClone(continued.input) as JsonValue,
+          },
+        }
+      : {}),
   };
 }
 

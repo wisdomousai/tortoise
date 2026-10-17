@@ -8,12 +8,13 @@ Layer: framework (`packages/*`). Feature state is opaque to the runtime; domains
 
 - [Authority](../../docs/primitives.md#authority): `createApplication`, `ApplicationOptions`.
 - [Module](../../docs/primitives.md#module): `sliceHandlers`, `composeAuthorization`, `authorizationRoute` compose independently authored modules into one state and policy.
-- [Command](../../docs/primitives.md#command): `createHandlerFactory`, `HandlerContext`, `CommandReceipt`.
+- [Command](../../docs/primitives.md#command): `createHandlerFactory`, `HandlerContext` (with `continueWith`), `CommandReceipt` (with `continuation`), `StoredReceipt`.
 - [Query](../../docs/primitives.md#query): `QueryResult`.
 - [Collection](../../docs/primitives.md#collection): `records` (`Records`), `collectionGetHandler`, `collectionListHandler`, `DEFAULT_PAGE`, and the prototype-safe `own` and `put`.
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceAnswer`, and the `sources` and `remoteDeadlineMs` options.
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
 - [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed grant.
+- [Proposal](../../docs/primitives.md#proposal): `proposalHandlers` (`ProposalOptions`) serve the proposal operations over the application's `proposals` slice; accept continues with the proposed command as the accepter.
 - [Policy](../../docs/primitives.md#policy): the `AuthorizationPort` (`AuthorizationRequest`, `Decision`), and `definePolicy` with `PolicySpec`, `OperationRule`, `IntegrationLane`, `EventRule`, `Access` and `isDelegated`.
 - [Membership](../../docs/primitives.md#membership): `membershipHandler`, `membershipRule`, `roleIn`, `MembershipStore`.
 - [Storage](../../docs/primitives.md#storage): the `Storage` port, `WorkspaceSnapshot`, `createMemoryStorage`, `createWorkspaceSnapshot`.
@@ -62,6 +63,7 @@ bun test packages/runtime
 - `test/compose.test.ts`: modules see only their slice; unrouted operations fail closed.
 - `test/policy.test.ts`: the fixed decision order of `definePolicy` (lanes, caller gate, person-only, grant resources, container roles, both snapshots or the previous one at commit, event types), and `set-member` refusing non-managers, self-changes and reserved principals.
 - `test/agent-grant.test.ts`: an agent's grant stays within the issuer's operations, resources and expiry, leaves a proposing agent's commands out, and is bound to the issuer and run.
+- `test/proposal.test.ts`: accepting runs the command once as the accepter and replays its continuation; an agent grant, a viewer and a demoted accepter are refused and a changed record conflicts, each leaving the proposal open; invalid submissions, expiry and nested proposals are refused.
 - `test/collection.test.ts`: generated lists scope before filters, counts and pages; a hidden record reads as missing; writes declare their resource and conflict on a stale revision.
 - `test/audit.test.ts`: a failed required append rolls the commit back; crash recovery.
 

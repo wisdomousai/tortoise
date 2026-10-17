@@ -16,6 +16,8 @@ export interface Receipt<T> {
    * the local commit only; delivery and acceptance are reported later through the effect state.
    */
   effects?: readonly string[];
+  /** The command this one ran in the same transaction (a proposal's command), with its result. */
+  continuation?: { operation: string; result: unknown };
 }
 export interface ChangeBatch {
   cursor: Cursor;

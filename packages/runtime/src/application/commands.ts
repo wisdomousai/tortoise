@@ -7,17 +7,14 @@ import type {
   StoredReceipt,
   WorkspaceSnapshot,
 } from '../types.js';
-import { sameState } from '../state-equality.js';
 import { actorOf, effectRecords, failureRecord } from './audit.js';
 import { auditAccepted, journalChanges, receiptOf, storeReceipt } from './command-commit.js';
 import { prepareCommand, type Command } from './command-request.js';
-import { grantCoversResource } from './delegation.js';
-import { createHandlerContext, type HandlerScope } from './handler-context.js';
+import { checkPreconditions, runHandler } from './command-steps.js';
+import { replayContinuation, runContinuation } from './continuation.js';
 import { authorize, project, type Kernel } from './kernel.js';
-import { revisionOf } from './records.js';
 
 type Report = (effects: Effect[], replay: boolean) => void;
-
 /** A retry returns the stored receipt, reprojected for the caller's current authority. */
 async function replay<State, Services>(
   kernel: Kernel<State, Services>,
@@ -33,72 +30,21 @@ async function replay<State, Services>(
       'Idempotency key was used for another request',
     );
   const result = await project(kernel, capability, input, context, snapshot, stored.receipt.result);
+  const continuation = await replayContinuation(kernel, command, snapshot, stored);
   await authorize(kernel, capability, input, context, snapshot, 'replay');
-  return { ...stored.receipt, result, authorizationRevision: snapshot.authorizationRevision };
+  return {
+    ...stored.receipt,
+    result,
+    ...(continuation ? { continuation } : {}),
+    authorizationRevision: snapshot.authorizationRevision,
+  };
 }
 
 /**
- * A precondition reveals a revision, so it is a read: check grant scope and read policy for every
- * key before comparing any. Hidden and nonexistent keys get the same denial, raised before the
- * first comparison, so a CONFLICT never distinguishes them.
+ * The transaction body of a first execution: authorize, check, run, recheck, then any command
+ * the handler continued with through the same steps, then journal, receipt and audit for both.
+ * The parent's journal entries come first, so its audit `fromCursor` covers both commands.
  */
-async function checkPreconditions<State, Services>(
-  kernel: Kernel<State, Services>,
-  command: Command<State, Services>,
-  snapshot: WorkspaceSnapshot<State>,
-) {
-  const { context, capability, expected } = command;
-  for (const resource of Object.keys(expected))
-    if (
-      !grantCoversResource(context.grant, resource) ||
-      !(await kernel.options.authorization.canReadEvent({
-        event: {
-          cursor: snapshot.cursor,
-          resource,
-          revision: revisionOf(snapshot, resource),
-          type: 'precondition',
-          operation: capability.id,
-        },
-        context,
-        state: snapshot.state,
-      }))
-    )
-      throw new ApplicationError('FORBIDDEN', 'Expected revision is not readable');
-  for (const [resource, revision] of Object.entries(expected))
-    if (revisionOf(snapshot, resource) !== revision)
-      throw new ApplicationError('CONFLICT', 'Resource revision changed', { resource });
-}
-
-/** Run the handler on the draft and refuse writes it did not declare. */
-async function runHandler<State, Services>(
-  kernel: Kernel<State, Services>,
-  command: Command<State, Services>,
-  snapshot: WorkspaceSnapshot<State>,
-) {
-  const previousState = structuredClone(snapshot.state);
-  const previousAuthorizationRevision = snapshot.authorizationRevision;
-  const scope: HandlerScope<State> = {
-    snapshot,
-    context: command.context,
-    operation: command.capability.id,
-    query: false,
-    changes: new Map(),
-    touched: [],
-  };
-  const output = await command.handler.handle(command.input, createHandlerContext(kernel, scope));
-  // Outbox writes ride on a declared business change so subscribers observe the same commit.
-  if (scope.touched.some((effect) => !scope.changes.has(effect.resource)))
-    throw new ApplicationError('INTERNAL', 'Effects require a declared changed resource');
-  if (
-    scope.changes.size === 0 &&
-    snapshot.authorizationRevision === previousAuthorizationRevision &&
-    !sameState(previousState, snapshot.state)
-  )
-    throw new ApplicationError('INTERNAL', 'State changes require a change-journal declaration');
-  return { output, previousState, changes: scope.changes, touched: scope.touched };
-}
-
-/** The transaction body of a first execution: authorize, check, run, recheck, journal, audit. */
 async function execute<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,
@@ -112,11 +58,25 @@ async function execute<State, Services>(
   const result = await project(kernel, capability, input, context, snapshot, run.output);
   await authorize(kernel, capability, input, context, snapshot, 'commit', run.previousState);
   kernel.guard.active(context, capability.id);
+  const next = run.continuation
+    ? await runContinuation(kernel, command, snapshot, run.continuation)
+    : undefined;
   const revisions = journalChanges(snapshot, run.changes, capability.id);
-  const receipt = receiptOf(snapshot, capability.id, result, revisions, run.touched);
-  storeReceipt(snapshot, command, receipt);
-  await auditAccepted(kernel, command, snapshot, revisions, run.changes.size);
-  report(run.touched, false);
+  const continued = next
+    ? journalChanges(snapshot, next.run.changes, next.command.capability.id)
+    : {};
+  const touched = [...run.touched, ...(next?.run.touched ?? [])];
+  const receipt: CommandReceipt = {
+    ...receiptOf(snapshot, capability.id, result, { ...revisions, ...continued }, touched),
+    ...(next
+      ? { continuation: { operation: next.command.capability.id, result: next.result } }
+      : {}),
+  };
+  storeReceipt(snapshot, command, receipt, next?.command);
+  const changeCount = run.changes.size + (next?.run.changes.size ?? 0);
+  await auditAccepted(kernel, command, snapshot, revisions, changeCount);
+  if (next) await auditAccepted(kernel, next.command, snapshot, continued, next.run.changes.size);
+  report(touched, false);
   return receipt;
 }
 

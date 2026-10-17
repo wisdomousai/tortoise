@@ -17,7 +17,7 @@ The same operations are subcommands of the `agent-native-desktop-starter` binary
 
 When you run as one of these agents, call only its operations; the host refuses the rest. A proposing agent's commands are recorded as proposals, not applied. Each agent's instructions are the `app://agents/<id>` MCP resource.
 
-- `project.planner`: Project planner (direct).
+- `project.planner`: Project planner (propose).
 
 ## project-planning
 

@@ -10,3 +10,4 @@ export * from './collection';
 export * from './membership';
 export * from './target';
 export * from './agent';
+export * from './proposal';

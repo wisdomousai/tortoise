@@ -99,6 +99,8 @@ The write side. A handler validates, mutates its state slice, declares what chan
 
 Guarantees: feature state, revisions, the idempotency receipt, journal entries and outbox effects commit atomically or not at all. Keys are scoped to workspace and principal; a reused key with other input conflicts. `expectedRevisions` makes stale writes conflict. Authorization and cancellation are rechecked before commit. An undeclared change fails. Errors share one caller-safe envelope.
 
+A handler may call `continueWith(operation, input, expectedRevisions)` once to run one more command in the same transaction, as the same caller, through the whole pipeline: grant, authorization, preconditions, handler and commit recheck. Both commit or neither does. The receipt reports the follow-up as `continuation`, and a replay reauthorizes and returns it. A continued command cannot continue again, and a command cannot continue with itself. [Proposals](#proposal) use it to accept.
+
 implemented · `packages/runtime` `packages/contracts`
 
 ### Query
@@ -289,9 +291,23 @@ _A named agent in the catalog: its instructions, the operations it may call, its
 
 Guarantees: the catalog refuses an agent that names an unknown operation, repeats one, has no operations, has budgets outside fixed bounds, or is `direct` on a command without a UI binding, so every direct write is one a person can make and see. `agentGrant` only narrows: operations within the issuer's grant, resources within the issuer's resources, expiry at the earlier of the issuer's and the wall-time budget, bound to the issuer's principal, workspace and run.
 
-Gaps: the host does not yet start a run from a definition; runs still start from a person's prompt with the issuer's grant. Proposals, triggers and standing grants are not implemented, so `propose` is declared but has no accept path. The model requirement is recorded but no provider is chosen by it. `scaffold add agent` is not implemented.
+Gaps: the host does not yet start a run from a definition; runs still start from a person's prompt with the issuer's grant. Triggers and standing grants are not implemented. A `propose` agent cannot also be resource-scoped, because grant resources match exactly and do not cover the [proposal](#proposal) records it creates. The model requirement is recorded but no provider is chosen by it. `scaffold add agent` is not implemented.
 
 implemented · `packages/contracts` `packages/runtime` `packages/agents` `packages/adapters`
+
+### Proposal
+
+_A command one caller proposes and another accepts under their own authority._
+
+`proposalOperations` are the module's `proposal.submit`, `accept`, `reject`, `expire`, `list` and `get`, under fixed IDs; `proposalHandlers` serves them over a `proposals` slice in the application's state. A proposal records the operation, its complete input, the rationale, the reported confidence and model, the record it is about and the revisions the proposer read. Who proposed it and the run come from the trusted context. Accepting marks it accepted and continues with its command (see [Command](#command)) as the accepter, checked against those revisions. The application's policy gives each operation its rule, usually resolved from the record the proposal is about, and decides who may see a proposal before lists filter, count and page.
+
+The frame's `proposal-review` registry item lists open proposals with Accept and Reject. The operator registry's attention queue has a `proposal` kind with `proposalChoices` for a one-tap tile at a station.
+
+Guarantees: accepting never widens authority. The proposed command's own rule, grant check and commit recheck apply to the accepter. A caller who may not run it, including a proposer whose grant leaves it out or an accepter demoted after the proposal, is refused. A record changed since the proposer read it conflicts. Either way the acceptance rolls back and the proposal stays open. An expired proposal cannot be accepted. A proposal of an unknown command, of input its schema refuses, or of another proposal operation is refused at submission. A retried accept with the same key returns the same continuation.
+
+Gaps: expiry is not swept; something must call `proposal.expire`. A proposal names one command, so a plan of several steps is several proposals accepted one by one. The model identity is reported by the proposer, not verified.
+
+implemented · `packages/contracts` `packages/runtime` `packages/frame` `packages/operator-ui`
 
 ### Input source
 

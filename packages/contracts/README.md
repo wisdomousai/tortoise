@@ -6,7 +6,7 @@ Layer: framework (`packages/*`). Domain-neutral; a domain defines its capabiliti
 
 ## Primitives
 
-- [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`.
+- [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `jsonValueSchema` (any JSON value, the one recursive schema the portability check accepts), `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`.
 - [Module](../../docs/primitives.md#module): `defineModule`, `CapabilityModule`.
 - [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`.
 - [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, and the catalog checks `checkAgent` and `catalogAgents`.
@@ -16,6 +16,7 @@ Layer: framework (`packages/*`). Domain-neutral; a domain defines its capabiliti
 - [Data provider](../../docs/primitives.md#data-provider): `defineDataProvider`, `DataProvider`, `DataProviderSpec`.
 - [Membership](../../docs/primitives.md#membership): `defineMembership`, `Membership`, `MembershipSpec`, `SetMemberInput`, `SetMemberOutput`.
 - [Target](../../docs/primitives.md#target): `defineTarget`, `Target`, `TargetSpec`, `SyncBatch`, `effectOutcomeSchema`, `EffectOutcomeInput`, `deliveryStatusSchema`, `rejectionSchema`, `deliveryShape`.
+- [Proposal](../../docs/primitives.md#proposal): `proposalOperations` under fixed `proposal.*` IDs, `proposalSchema` (`Proposal`), `proposalStatusSchema` (`ProposalStatus`) and the `proposals` collection.
 - [Collection](../../docs/primitives.md#collection): `defineCollection`, `Collection`, `collectionGet`, `collectionList`, `listFilters`, `listSearches`, `recordKeySchema`, `MAX_PAGE`, and the `CollectionPage` output shape.
 - [Event log](../../docs/primitives.md#event-log): the audit envelope and port (`EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`).
 

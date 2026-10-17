@@ -11,3 +11,4 @@ export * from './collection.js';
 export * from './policy.js';
 export * from './membership.js';
 export * from './agent-grant.js';
+export * from './proposal.js';

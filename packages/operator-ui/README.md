@@ -6,7 +6,8 @@ Layer: framework (`packages/*`). Browser code.
 
 ## Primitives
 
-- [UI registry](../../docs/primitives.md#ui-registry): `operator-theme`, `operator-surface`, `operator-station`, `big-action`, `numeric-pad`, `tile-picker`, `scan-prompt`, `scanner-setup`, `status-strip`, `attention-queue`, `takeover-button`, and the hooks `use-press-and-hold`, `use-tap-guard`, `use-operator-keys`, `use-scanner`, `use-feedback`, `use-idle-return`.
+- [UI registry](../../docs/primitives.md#ui-registry): `operator-theme`, `operator-surface`, `operator-station`, `big-action`, `numeric-pad`, `tile-picker`, `scan-prompt`, `scanner-setup`, `status-strip`, `attention-queue` (with `proposalChoices`), `takeover-button`, and the hooks `use-press-and-hold`, `use-tap-guard`, `use-operator-keys`, `use-scanner`, `use-feedback`, `use-idle-return`.
+- [Proposal](../../docs/primitives.md#proposal): the attention queue's `proposal` kind and `proposalChoices` give an agent proposal a one-tap Accept and a Reject; the station resolves them to `proposal.accept` and `proposal.reject`.
 
 [Point-of-work input](../../docs/point-of-work-input.md) and the [operator workstation pattern](../../docs/operator-workstation-pattern.md) explain the interaction rules. [`examples/line-station/ui/station.tsx`](../../examples/line-station/ui/station.tsx) composes a station screen from these parts.
 

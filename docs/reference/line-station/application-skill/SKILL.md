@@ -13,6 +13,12 @@ Query tools take `{ "input": ... }`. Commands take `{ "input": ..., "idempotency
 
 The same operations are subcommands of the `agent-native-desktop-starter` binary. Run `agent-native-desktop-starter help` and `agent-native-desktop-starter help <command>` for generated flags; `help`, `schema` and `workflows` work without an authority. Add `--embedded --workspace <dir>` to run in-process in a sandbox, or attach to a running authority with `--connection <file>`; your identity comes from that file or the launcher's grant file, never from flags. Pass `--key <id>` on commands and reuse it when retrying, `--dry-run` to validate first, and `--output text` for tables. Branch on the exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, 6 idempotency conflict, 7 cancelled, 8 unavailable (for example the audit log in fail-closed mode). Before a sandbox is discarded, `agent-native-desktop-starter drain` must exit 0; 75 means captured work has not reached the system of record yet.
 
+## Agents
+
+When you run as one of these agents, call only its operations; the host refuses the rest. A proposing agent's commands are recorded as proposals, not applied. Each agent's instructions are the `app://agents/<id>` MCP resource.
+
+- `stop.explainer`: Stop explainer (propose).
+
 ## configure-scanner
 
 Read the station configuration first. Save a scanner profile only from values the user confirmed or a calibration produced; never guess prefixes, suffixes or layouts. Keep specific scan routes before general ones and test a pattern against an example code the user supplies.
@@ -23,11 +29,11 @@ CLI: `agent-native-desktop-starter device config get`, `agent-native-desktop-sta
 
 ## explain-stop
 
-Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and propose the reason that the alarm and history support, with your evidence. Classify only after the operator confirms the reason; never classify a stop from a guess. If no reason fits, say so.
+Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and submit a proposal to classify it with the reason the alarm and history support, with your evidence as the rationale. The operator accepts or rejects it at the station; never classify a stop from a guess. If no reason fits, say so.
 
-Tools: `line_stop_list`, `line_station_get`, `line_reason_list`, `line_stop_classify`.
+Tools: `line_stop_list`, `line_station_get`, `line_reason_list`, `proposal_submit`.
 
-CLI: `agent-native-desktop-starter line stop list`, `agent-native-desktop-starter line station get`, `agent-native-desktop-starter line reason list`, `agent-native-desktop-starter line stop classify`.
+CLI: `agent-native-desktop-starter line stop list`, `agent-native-desktop-starter line station get`, `agent-native-desktop-starter line reason list`, `agent-native-desktop-starter proposal submit`.
 
 ## review-compliance-posture
 

@@ -40,6 +40,8 @@ export interface CommandReceipt<T = unknown> {
   readonly revisions: Readonly<Record<string, number>>;
   /** Outbox effect IDs committed with this command; present only when the command enqueued any. */
   readonly effects?: readonly string[];
+  /** The command this one continued with (`continueWith`) and its result, projected for the caller. */
+  readonly continuation?: { readonly operation: string; readonly result: unknown };
 }
 /**
  * A post-commit request to an external system of record. It is committed atomically with the
@@ -85,6 +87,8 @@ export interface StoredReceipt {
   readonly receipt: CommandReceipt;
   readonly principalId: string;
   readonly input: JsonValue;
+  /** The command this one continued with, and its input. */
+  readonly continuation?: { readonly operation: string; readonly input: JsonValue };
 }
 /** Feature state is opaque to the kernel; repositories may wrap it without a universal record model. */
 export interface WorkspaceSnapshot<State> {
@@ -156,6 +160,19 @@ export interface HandlerContext<State, Services> {
    * target did not apply it. Fails with CONFLICT unless the effect is pending and held.
    */
   releaseEffect(id: string): Effect;
+  /**
+   * After this handler returns, run one more command in the same transaction as the same caller,
+   * for example the command a proposal proposed. It passes the whole command pipeline (grant,
+   * invoke authorization, `expectedRevisions` as preconditions, its handler, output projection,
+   * commit authorization and audit), so it can never do what the caller could not do directly.
+   * Both commit together or neither does. Commands only; once per command; a continued command
+   * cannot continue again.
+   */
+  continueWith(
+    operation: string,
+    input: unknown,
+    expectedRevisions?: Readonly<Record<string, number>>,
+  ): void;
   /** Read outbox state, for example to summarize synchronization in a query. */
   effects(filter?: {
     readonly status?: Effect['status'];

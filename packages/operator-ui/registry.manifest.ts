@@ -268,7 +268,7 @@ export const items: readonly ManifestItem[] = [
     type: 'registry:component',
     title: 'Attention queue',
     description:
-      'Uncertain readings, agent questions and reconciliations, each resolved with large choices.',
+      'Uncertain readings, agent questions and proposals, and reconciliations, each resolved with large choices; proposals accept in one tap.',
     registryDependencies: [
       'card',
       'badge',

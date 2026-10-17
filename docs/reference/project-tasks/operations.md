@@ -841,7 +841,7 @@ Read one accessible project and its current revision. The membership map is incl
 - MCP: `project_get`
 - Permission: `read` on `Project`
 - UI: project.get
-- Agents: `project.planner` (direct)
+- Agents: `project.planner` (propose)
 - CLI: `agent-native-desktop-starter project get --id <string>`
 
 Input:
@@ -1191,6 +1191,834 @@ Output:
 }
 ```
 
+## proposal.accept
+
+Accept an open proposal: run its command with its input as yourself, checked against the revisions the proposer read. Refused when you may not run that command, and a conflict when a record changed since; both leave the proposal open.
+
+- Kind: command
+- MCP: `proposal_accept`
+- Permission: `accept` on `Proposal`
+- UI: proposal.accept
+- CLI: `agent-native-desktop-starter proposal accept --id <string> [--key <idempotency-key>]`
+
+Input:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "id"
+  ],
+  "type": "object"
+}
+```
+
+Output:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "operation": {
+      "type": "string"
+    },
+    "status": {
+      "const": "accepted",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "status",
+    "operation"
+  ],
+  "type": "object"
+}
+```
+
+## proposal.expire
+
+Close an open proposal whose expiry has passed. A proposal that has not expired yet conflicts.
+
+- Kind: command
+- MCP: `proposal_expire`
+- Permission: `expire` on `Proposal`
+- UI: run by a job or agent; people reject instead
+- CLI: `agent-native-desktop-starter proposal expire --id <string> [--key <idempotency-key>]`
+
+Input:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "id"
+  ],
+  "type": "object"
+}
+```
+
+Output:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "status": {
+      "const": "expired",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "status"
+  ],
+  "type": "object"
+}
+```
+
+## proposal.get
+
+One proposal you may see, or NOT_FOUND.
+
+- Kind: query
+- MCP: `proposal_get`
+- Permission: `read` on `Proposal`
+- UI: screens show proposals from the list; one proposal is read by agents
+- CLI: `agent-native-desktop-starter proposal get --id <string>`
+
+Input:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "id"
+  ],
+  "type": "object"
+}
+```
+
+Output:
+
+```json
+{
+  "$defs": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "baseRevisions": {
+      "additionalProperties": {
+        "maximum": 9007199254740991,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "propertyNames": {
+        "maxLength": 256,
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "closedAt": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "type": "integer"
+    },
+    "closedBy": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "createdAt": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "type": "integer"
+    },
+    "expiresAt": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "type": "integer"
+    },
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "input": {
+      "additionalProperties": {
+        "$ref": "#/$defs/__schema0"
+      },
+      "propertyNames": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "model": {
+      "maxLength": 200,
+      "minLength": 1,
+      "type": "string"
+    },
+    "operation": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "proposedBy": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "rationale": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "type": "string"
+    },
+    "resource": {
+      "maxLength": 256,
+      "minLength": 1,
+      "type": "string"
+    },
+    "runId": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "open",
+        "accepted",
+        "rejected",
+        "expired"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "operation",
+    "input",
+    "rationale",
+    "baseRevisions",
+    "status",
+    "proposedBy",
+    "createdAt",
+    "expiresAt"
+  ],
+  "type": "object"
+}
+```
+
+## proposal.list
+
+Proposals you may see, newest first, filtered by status, operation or the record they are about.
+
+- Kind: query
+- MCP: `proposal_list`
+- Permission: `read` on `Proposal`
+- UI: proposal.list
+- Agents: `project.planner` (propose)
+- CLI: `agent-native-desktop-starter proposal list [--limit <integer>] [--offset <integer>] [--operation <string>] [--resource <string>] [--status <open|accepted|rejected|expired>]`
+
+Input:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "limit": {
+      "maximum": 100,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "offset": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "operation": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "resource": {
+      "maxLength": 256,
+      "minLength": 1,
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "open",
+        "accepted",
+        "rejected",
+        "expired"
+      ],
+      "type": "string"
+    }
+  },
+  "type": "object"
+}
+```
+
+Output:
+
+```json
+{
+  "$defs": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "baseRevisions": {
+            "additionalProperties": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "propertyNames": {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "closedAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "closedBy": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "confidence": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "createdAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "expiresAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "input": {
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "model": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "operation": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "proposedBy": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "rationale": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "resource": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "runId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "accepted",
+              "rejected",
+              "expired"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "operation",
+          "input",
+          "rationale",
+          "baseRevisions",
+          "status",
+          "proposedBy",
+          "createdAt",
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "total": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "items",
+    "total"
+  ],
+  "type": "object"
+}
+```
+
+## proposal.reject
+
+Reject an open proposal, optionally saying why. Its command never runs.
+
+- Kind: command
+- MCP: `proposal_reject`
+- Permission: `accept` on `Proposal`
+- UI: proposal.reject
+- CLI: `agent-native-desktop-starter proposal reject --id <string> [--reason <string>] [--key <idempotency-key>]`
+
+Input:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "id"
+  ],
+  "type": "object"
+}
+```
+
+Output:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "status": {
+      "const": "rejected",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "status"
+  ],
+  "type": "object"
+}
+```
+
+## proposal.submit
+
+Propose one command for a person to accept: the operation, its complete input, why, and the revisions of the records you read. Nothing changes until it is accepted. A proposal for an unknown command, an input its schema refuses or a proposal itself is refused.
+
+- Kind: command
+- MCP: `proposal_submit`
+- Permission: `propose` on `Proposal`
+- UI: agents submit proposals; people act on the command directly
+- CLI: `agent-native-desktop-starter proposal submit [--base-revisions <json>] [--confidence <number>] --input <json> [--model <string>] --operation <string> --rationale <string> [--resource <string>] [--key <idempotency-key>]`
+
+Input:
+
+```json
+{
+  "$defs": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "baseRevisions": {
+      "additionalProperties": {
+        "maximum": 9007199254740991,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "propertyNames": {
+        "maxLength": 256,
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "input": {
+      "additionalProperties": {
+        "$ref": "#/$defs/__schema0"
+      },
+      "propertyNames": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "model": {
+      "maxLength": 200,
+      "minLength": 1,
+      "type": "string"
+    },
+    "operation": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "rationale": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "type": "string"
+    },
+    "resource": {
+      "maxLength": 256,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "operation",
+    "input",
+    "rationale"
+  ],
+  "type": "object"
+}
+```
+
+Output:
+
+```json
+{
+  "$defs": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "baseRevisions": {
+      "additionalProperties": {
+        "maximum": 9007199254740991,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "propertyNames": {
+        "maxLength": 256,
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "closedAt": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "type": "integer"
+    },
+    "closedBy": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "createdAt": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "type": "integer"
+    },
+    "expiresAt": {
+      "maximum": 9007199254740991,
+      "minimum": -9007199254740991,
+      "type": "integer"
+    },
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "input": {
+      "additionalProperties": {
+        "$ref": "#/$defs/__schema0"
+      },
+      "propertyNames": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "model": {
+      "maxLength": 200,
+      "minLength": 1,
+      "type": "string"
+    },
+    "operation": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "proposedBy": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "rationale": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "type": "string"
+    },
+    "resource": {
+      "maxLength": 256,
+      "minLength": 1,
+      "type": "string"
+    },
+    "runId": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "open",
+        "accepted",
+        "rejected",
+        "expired"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "operation",
+    "input",
+    "rationale",
+    "baseRevisions",
+    "status",
+    "proposedBy",
+    "createdAt",
+    "expiresAt"
+  ],
+  "type": "object"
+}
+```
+
 ## task.create
 
 Create a todo task in an accessible, active project as owner or editor. Only owners may supply privateNote. Returns the task and its committed revision.
@@ -1199,7 +2027,7 @@ Create a todo task in an accessible, active project as owner or editor. Only own
 - MCP: `task_create`
 - Permission: `create` on `Task`
 - UI: task.create
-- Agents: `project.planner` (direct)
+- Agents: `project.planner` (propose)
 - CLI: `agent-native-desktop-starter task create [--description <string>] [--private-note <string>] --project-id <string> --title <string> [--key <idempotency-key>]`
 
 Input:
@@ -1428,7 +2256,7 @@ List tasks in accessible projects, with public-field search, status/project filt
 - MCP: `task_list`
 - Permission: `read` on `Task`
 - UI: task.list
-- Agents: `project.planner` (direct)
+- Agents: `project.planner` (propose)
 - CLI: `agent-native-desktop-starter task list [--limit <integer>] [--offset <integer>] [--project-id <string>] [--search <string>] [--sort <title|status>] [--status <todo|doing|done>]`
 
 Input:
@@ -1555,7 +2383,7 @@ Set a task to todo, doing or done in an active project as owner or editor. Suppl
 - MCP: `task_set_status`
 - Permission: `update` on `Task`
 - UI: task.set-status
-- Agents: `project.planner` (direct)
+- Agents: `project.planner` (propose)
 - CLI: `agent-native-desktop-starter task set-status --id <string> --status <todo|doing|done> [--key <idempotency-key>]`
 
 Input:

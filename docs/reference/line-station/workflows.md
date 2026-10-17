@@ -8,9 +8,9 @@ Operations: `device.config.get`, `device.scanner.save`, `device.routes.save`.
 
 ## explain-stop
 
-Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and propose the reason that the alarm and history support, with your evidence. Classify only after the operator confirms the reason; never classify a stop from a guess. If no reason fits, say so.
+Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and submit a proposal to classify it with the reason the alarm and history support, with your evidence as the rationale. The operator accepts or rejects it at the station; never classify a stop from a guess. If no reason fits, say so.
 
-Operations: `line.stop.list`, `line.station.get`, `line.reason.list`, `line.stop.classify`.
+Operations: `line.stop.list`, `line.station.get`, `line.reason.list`, `proposal.submit`.
 
 ## review-compliance-posture
 

@@ -7,9 +7,11 @@ import {
 import type { HandlerContribution, HandlerContext } from '@agent-native/runtime';
 import type { Project, ProjectTaskState, Task } from '../domain';
 
-/** Injected services; tests pass a deterministic `newId`. */
+/** Injected services; tests pass a deterministic `newId` and clock. */
 export interface ProjectTaskServices {
   newId?: () => string;
+  /** Clock for proposal expiry. */
+  now?: () => number;
 }
 /** What every handler receives: the transaction's state, trusted context and services. */
 export type Context = HandlerContext<ProjectTaskState, ProjectTaskServices>;

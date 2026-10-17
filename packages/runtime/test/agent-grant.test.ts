@@ -92,10 +92,7 @@ test('an agent grant never widens the issuer grant', () => {
 });
 
 test('a proposing agent runs its queries and records proposals instead of its commands', () => {
-  const grant = agentGrant(catalog, 'lot.advisor', person, {
-    proposalOperations: ['proposal.submit'],
-    now: 0,
-  });
+  const grant = agentGrant(catalog, 'lot.advisor', person, { now: 0 });
   expect(grant.operations).toEqual(['lot.list', 'proposal.submit']);
   expect(grant.resources).toBeUndefined();
 });

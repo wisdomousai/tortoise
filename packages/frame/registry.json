@@ -111,6 +111,20 @@
       ]
     },
     {
+      "name": "proposal-review",
+      "type": "registry:component",
+      "title": "Proposal review",
+      "description": "Open proposals, live, with what each would run and why; Accept runs the command as the signed-in person and Reject closes it.",
+      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "registryDependencies": ["badge", "button", "@agent-native/session"],
+      "files": [
+        {
+          "path": "src/components/proposal-review.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "run-panel",
       "type": "registry:component",
       "title": "Agent run panel",

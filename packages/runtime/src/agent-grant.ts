@@ -6,8 +6,6 @@ export interface AgentGrantOptions {
   readonly runId?: string;
   /** Resources the run starts on, such as the person's selection or a trigger's resource. */
   readonly resources?: readonly string[];
-  /** Operations a proposing agent uses to record proposals, added to its queries. */
-  readonly proposalOperations?: readonly string[];
   readonly now: number;
 }
 
@@ -16,8 +14,8 @@ const intersect = (allowed: readonly string[], limit: readonly string[] | undefi
 
 /**
  * The delegation grant a run under an agent definition executes with. It only narrows the
- * issuer's own context: operations are the definition's (a proposing agent's commands are left
- * out) within the issuer's grant, resources are the run's starting resources of the
+ * issuer's own context: operations are the definition's within the issuer's grant (a proposing
+ * agent gets its queries and `proposal.submit` when the catalog has it, never its commands), resources are the run's starting resources of the
  * definition's types within the issuer's resources, and it expires at the earlier of the
  * issuer's expiry and the definition's wall-time budget. It is bound to the issuer's principal
  * and workspace and to the run. Policy still authorizes every call; the grant cannot widen it.
@@ -37,7 +35,7 @@ export function agentGrant(
       ? agent.operations
       : [
           ...agent.operations.filter((id) => kinds.get(id) === 'query'),
-          ...(options.proposalOperations ?? []),
+          ...(kinds.has('proposal.submit') ? ['proposal.submit'] : []),
         ];
   const operations = intersect([...new Set(own)], issuer.grant?.operations);
   const types = agent.resourceTypes;

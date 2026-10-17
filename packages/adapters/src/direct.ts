@@ -110,6 +110,7 @@ export function createDirectTransport(
         authorizationRevision: receipt.authorizationRevision,
         revisions: { ...receipt.revisions },
         ...(receipt.effects ? { effects: [...receipt.effects] } : {}),
+        ...(receipt.continuation ? { continuation: structuredClone(receipt.continuation) } : {}),
       };
     },
     events: (cursor: Cursor, signal: AbortSignal) =>

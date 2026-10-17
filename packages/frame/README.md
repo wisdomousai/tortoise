@@ -8,7 +8,8 @@ Layer: framework (`packages/*`). Browser code, plus a build-time Vite plugin.
 
 - [Web frame](../../docs/primitives.md#web-frame): `Frame`, `ScreensProvider`, `useScreens`, `screenForCapability`, `exchangeLaunch`, and the `frame` Vite plugin.
 - [Application](../../docs/primitives.md#application): `defineScreens`, `ApplicationScreens`, the browser entrypoint of every application.
-- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native` shadcn registry in [`registry.json`](registry.json) (`capability-form`, `live-data-table`, `collection-screen`, `run-panel`, `command-palette`, `conflict-banner`, `accounts`, `app-shell`, `frame` and their libraries).
+- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native` shadcn registry in [`registry.json`](registry.json) (`capability-form`, `live-data-table`, `collection-screen`, `proposal-review`, `run-panel`, `command-palette`, `conflict-banner`, `accounts`, `app-shell`, `frame` and their libraries).
+- [Proposal](../../docs/primitives.md#proposal): `proposal-review` lists open proposals live with Accept and Reject; the authority's refusal or conflict shows on the proposal, which stays open.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginScreens`, `PluginScreens`; `defineScreens({ plugins })` merges a plugin's routes, navigation and capability screens before its checks.
 
 A worked `screens` entrypoint is [`examples/project-tasks/screens.tsx`](../../examples/project-tasks/screens.tsx).

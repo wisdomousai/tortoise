@@ -1,3 +1,5 @@
+import type { Proposal } from '@agent-native/contracts';
+
 export type Role = 'owner' | 'editor' | 'viewer';
 export interface Project {
   id: string;
@@ -18,7 +20,9 @@ export interface ProjectTaskState {
   projects: Record<string, Project>;
   tasks: Record<string, Task>;
   deletedTasks: Record<string, string>;
+  /** Proposed task commands, usually from the planner, keyed by ID. */
+  proposals: Record<string, Proposal>;
 }
 export function createProjectTaskState(ownerId = 'owner'): ProjectTaskState {
-  return { workspaceOwnerId: ownerId, projects: {}, tasks: {}, deletedTasks: {} };
+  return { workspaceOwnerId: ownerId, projects: {}, tasks: {}, deletedTasks: {}, proposals: {} };
 }

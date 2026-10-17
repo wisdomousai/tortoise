@@ -7,7 +7,9 @@ import {
 } from '@agent-native/runtime';
 import type { ProjectTaskState, Role, Task } from './domain';
 import { createScopedAbility, matchesScope } from '@agent-native/adapters/casl';
-import { operations } from './contracts';
+import { operations as taskOperations, proposalOperations } from './contracts';
+
+const operations = { ...taskOperations, ...proposalOperations };
 
 export function projectRole(
   state: ProjectTaskState,
@@ -124,6 +126,43 @@ const onTask = (container: Rule['container']): Rule => ({
 });
 const projectEvent = { container: (id: string) => id };
 
+/** The project a resource belongs to: a project, a task (or its tombstone) or a proposal. */
+export function projectOfResource(state: ProjectTaskState, resource: string): string | undefined {
+  const separator = resource.indexOf(':');
+  const type = resource.slice(0, separator);
+  const id = resource.slice(separator + 1);
+  if (type === 'project') return own(state.projects, id) ? id : undefined;
+  if (type === 'task') return own(state.tasks, id)?.projectId ?? own(state.deletedTasks, id);
+  if (type === 'proposal') {
+    const about = own(state.proposals, id)?.resource;
+    return about && !about.startsWith('proposal:') ? projectOfResource(state, about) : undefined;
+  }
+  return undefined;
+}
+const proposalProject: Rule['container'] = (input, state) =>
+  projectOfResource(state, `proposal:${String(input.id)}`);
+/**
+ * Any project member may propose and accept; accepting also passes the proposed task command's
+ * own rule under the accepter, so a viewer's acceptance is refused there. Deciding needs a
+ * person. Rejecting needs a role that could have made the change.
+ */
+const proposalRules = {
+  [operations.proposalSubmit.id]: {
+    container: (input, state) =>
+      typeof input.resource === 'string' ? projectOfResource(state, input.resource) : undefined,
+  },
+  [operations.proposalAccept.id]: { container: proposalProject, person: true },
+  [operations.proposalReject.id]: {
+    container: proposalProject,
+    roles: ['owner', 'editor'],
+    person: true,
+  },
+  [operations.proposalExpire.id]: { container: proposalProject },
+  // Handlers scope these to the caller's projects before filtering and counting.
+  [operations.proposalList.id]: 'open',
+  [operations.proposalGet.id]: 'open',
+} satisfies Record<string, Rule | 'open'>;
+
 /**
  * Project roles through CASL: owners administer and see private notes, editors edit tasks in
  * active projects, viewers read. Lists are scoped in their handlers before paging and counting.
@@ -146,12 +185,14 @@ export const projectTaskPolicy = definePolicy<ProjectTaskState, Role>({
     [operations.taskSetStatus.id]: onTask(taskProject),
     // Deletes have no proposed object; authorize their original project and retained tombstone.
     [operations.taskDelete.id]: { ...onTask(taskProject), commit: 'previous' },
+    ...proposalRules,
   },
   events: {
     project: projectEvent,
     task: {
       container: (id, state) => own(state.tasks, id)?.projectId ?? own(state.deletedTasks, id),
     },
+    proposal: { container: (id, state) => projectOfResource(state, `proposal:${id}`) },
   },
   projectOutput: ({ state, context, output }) => projectOutput(state, context, output),
 });

@@ -1,6 +1,7 @@
 import type { HandlerContribution } from '@agent-native/runtime';
 import type { ProjectTaskState } from './domain';
 import { projectHandlers } from './handlers/projects';
+import { proposalHandlers } from './handlers/proposals';
 import { taskHandlers } from './handlers/tasks';
 import type { ProjectTaskServices } from './server/context';
 
@@ -11,7 +12,7 @@ export function createProjectTaskHandlers(): HandlerContribution<
   ProjectTaskState,
   ProjectTaskServices
 >[] {
-  return [...projectHandlers(), ...taskHandlers()];
+  return [...projectHandlers(), ...taskHandlers(), ...proposalHandlers()];
 }
 export { projectTasksModule } from './contracts';
 export { createProjectTaskState } from './domain';

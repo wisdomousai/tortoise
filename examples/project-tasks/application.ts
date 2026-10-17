@@ -35,11 +35,11 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
     createState: (ownerId) => ({ projectTasks: createProjectTaskState(ownerId) }),
     upgradeState(state, ownerId) {
       const value = (state ?? {}) as Record<string, unknown>;
-      if ('projects' in value) return { projectTasks: value as unknown as ProjectTaskState };
-      return {
-        projectTasks:
-          (value.projectTasks as ProjectTaskState | undefined) ?? createProjectTaskState(ownerId),
-      };
+      const slice = (
+        'projects' in value ? value : (value.projectTasks ?? createProjectTaskState(ownerId))
+      ) as ProjectTaskState;
+      // Workspaces from before proposals get an empty proposal slice.
+      return { projectTasks: { ...slice, proposals: slice.proposals ?? {} } };
     },
     handlers: sliceHandlers<ProjectTasksState, 'projectTasks', ProjectTaskServices>(
       'projectTasks',
@@ -49,7 +49,7 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
       authorizationRoute(
         'projectTasks',
         projectTasksModule,
-        ['project', 'task'],
+        ['project', 'task', 'proposal'],
         projectTaskPolicy,
       ),
     ]),
