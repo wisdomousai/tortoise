@@ -205,7 +205,9 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
         (await serveOsLanding(options.webRoot, request)) ??
         authority.plugins.publicRoute(request),
       authenticateToken: pluginCredential(authority),
-      extra: (request, session) => routeHostRequest(request, session, routes),
+      extra: async (request, session) =>
+        (await routeHostRequest(request, session, routes)) ??
+        authority.plugins.route(request, { ...session.context, channel: 'http' }),
       static: (path) => serveStatic(options.webRoot, path),
     });
     const { server, origin: listening } = ports.ingress.listen(options.port, handler);

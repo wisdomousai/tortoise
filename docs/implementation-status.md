@@ -37,7 +37,23 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Shown, deterministic.** `plugins/site/test/workforce.test.ts` signs in against a fake provider: PKCE, a one-use state, ID-token checks (audience, nonce, verified email, the discovered issuer) and session expiry. `packages/adapters/src/http-credentials.test.ts` shows a cookie offered only as a cookie and a bearer only as a bearer. The project-tasks hardening test starts an `external` policy with a bound provider and no owner session.
 
-**Not shown.** No real identity provider has been signed in to. Endpoints on another origin than the issuer (Google's, for example) are refused. Sessions live in memory, so a restart signs everyone out. Shared-station badge or PIN sign-in is not built yet.
+**Not shown.** No real identity provider has been signed in to. Endpoints on another origin than the issuer (Google's, for example) are refused. Sessions live in memory, so a restart signs everyone out. 
+
+### Station sign-in
+
+**Shown, deterministic.** `plugins/station-sign-in/test/sign-in.test.ts` runs a station over HTTP and shows that:
+
+- an operator signs in with badge and PIN and acts as themselves;
+- the lockout holds even against the right PIN;
+- a session expires;
+- a second sign-in at the seat ends the first session;
+- revoking a badge ends its sessions;
+- neither the badge value nor the PIN reaches the workspace database.
+
+**Not shown.**
+
+- No physical badge reader has been tested, and no station screen signs people in yet.
+- Signing in does not move a seat that an agent holds.
 
 ### State migrations
 

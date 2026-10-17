@@ -176,6 +176,13 @@ export interface PluginInstance {
    * any page in the browser could have it sent. Asked on every request, like `authenticate`.
    */
   authenticateCookie?(token: string): Promise<ExecutionContext | undefined>;
+  /**
+   * Serving host only: an `/api/` request the host has authenticated and none of its own routes
+   * answered, with the caller's context. For work that must happen outside a command, such as
+   * hashing a secret so that it never reaches a stored command input. The plugin still writes
+   * only through its commands; `context` is the caller's, not a widened one.
+   */
+  route?(request: Request, context: ExecutionContext): Promise<Response | undefined>;
   /** Facts for the `listening` record, such as the active profile. */
   describe?(): Record<string, JsonValue>;
   /** Release what `open` acquired. Called once, in reverse opening order. */

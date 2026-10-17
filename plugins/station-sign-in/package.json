@@ -1,0 +1,12 @@
+{
+  "name": "@agent-native/station-sign-in",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Station sign-in host plugin: operators sign in at a shared station seat with a badge scan and PIN, for a short-lived session of their own.",
+  "exports": {
+    "./contracts": "./src/contracts.ts",
+    "./plugin-manifest": "./src/plugin-manifest.ts",
+    "./plugin": "./src/plugin.ts"
+  }
+}

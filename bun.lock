@@ -44,6 +44,7 @@
         "@agent-native/shell": "workspace:*",
         "@agent-native/site": "workspace:*",
         "@agent-native/station": "workspace:*",
+        "@agent-native/station-sign-in": "workspace:*",
         "@agent-native/testing": "workspace:*",
         "@agent-native/webhook": "workspace:*",
         "@ai-sdk/openai": "4.0.86",
@@ -296,6 +297,10 @@
       "name": "@agent-native/site",
       "version": "0.1.0",
     },
+    "plugins/station-sign-in": {
+      "name": "@agent-native/station-sign-in",
+      "version": "0.1.0",
+    },
     "plugins/webhook": {
       "name": "@agent-native/webhook",
       "version": "0.1.0",
@@ -390,6 +395,8 @@
     "@agent-native/site": ["@agent-native/site@workspace:plugins/site"],
 
     "@agent-native/station": ["@agent-native/station@workspace:packages/station"],
+
+    "@agent-native/station-sign-in": ["@agent-native/station-sign-in@workspace:plugins/station-sign-in"],
 
     "@agent-native/testing": ["@agent-native/testing@workspace:packages/testing"],
 

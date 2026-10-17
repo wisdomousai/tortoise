@@ -95,6 +95,7 @@
     "@agent-native/share-target": "workspace:*",
     "@agent-native/site": "workspace:*",
     "@agent-native/station": "workspace:*",
+    "@agent-native/station-sign-in": "workspace:*",
     "@agent-native/testing": "workspace:*",
     "@agent-native/webhook": "workspace:*",
     "@ai-sdk/openai": "4.0.86",

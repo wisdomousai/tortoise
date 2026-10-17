@@ -170,6 +170,14 @@ export async function openPlugins(
       }
       return undefined;
     },
+    /** The first plugin answer to an authenticated request the host did not route. */
+    async route(request: Request, context: ExecutionContext): Promise<Response | undefined> {
+      for (const { instance } of opened) {
+        const response = await instance.route?.(request, context);
+        if (response) return response;
+      }
+      return undefined;
+    },
     /** The plugins' facts for the `listening` record, keyed by plugin id. */
     describe(): Record<string, JsonValue> {
       return Object.fromEntries(

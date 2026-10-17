@@ -359,6 +359,12 @@ _People signing in to a serving host through the site's identity provider, under
 
 partial · `plugins/site/src/workforce` `packages/kernel/src/plugin.ts` `packages/adapters/src/http`
 
+### Station sign-in
+
+_An operator signing in at a shared station seat by badge and PIN, for a short-lived session of their own._
+
+partial · `plugins/station-sign-in` `packages/kernel/src/plugin.ts`
+
 ### Egress guard
 
 _The only path from server code, and from declared child processes, to the network._
