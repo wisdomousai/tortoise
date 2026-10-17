@@ -1,23 +1,31 @@
 # @agent-native/mobile-shell
 
-The starter's mobile app: one Expo project for Android and iOS. At this stage it is a placeholder root component that proves the workspace bundles for Hermes; it does not yet open an authority or host the configured application. The plan for embedded and attached modes is tracked in [implementation status](../../docs/implementation-status.md).
+The starter's mobile app: one Expo project for Android and iOS. It opens the configured mobile application's authority on the device and renders its native screens in the native frame. The application runs offline with its own workspace (embedded mode). Opening a hub's screens on a tablet (attached mode) is not built yet; [implementation status](../../docs/implementation-status.md) tracks it.
 
-Layer: starter (`apps/*`). Like `apps/web`, it never names content: app identity comes from `app.config.json`.
+Layer: starter (`apps/*`). Like `apps/web`, it never names content: app identity and the application come from `app.config.json`.
 
 ## Primitives
 
-- [Starter](../../docs/primitives.md#starter): the mobile half of the starter, not yet listed as implemented there.
+- [Starter](../../docs/primitives.md#starter): the mobile half of the starter.
+- [Native frame](../../docs/primitives.md#native-frame): `App` renders `NativeFrame` over the authority's direct transport.
+- [Host platform](../../docs/primitives.md#host-platform): `authority`, the app's one `openMobileAuthority` on `expoPlatform()`, shared with the background task.
 
 ## Entrypoints
 
 This workspace exports nothing; it is bundled by Metro and built by Expo.
 
-| File                                 | Purpose                                                                                                                           |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| [`app.config.ts`](app.config.ts)     | Expo configuration from `app.config.json`: display name, slug, and `appId` as the iOS bundle identifier and Android package.      |
-| [`metro.config.js`](metro.config.js) | Expo's default Metro config. Expo detects the Bun workspace and watches the repository root, so workspace `exports` maps resolve. |
-| [`index.ts`](index.ts)               | Registers `App` as the root component.                                                                                            |
-| [`src/app.tsx`](src/app.tsx)         | `App`: placeholder screen.                                                                                                        |
+| File                                 | Purpose                                                                                                                                      |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`app.config.ts`](app.config.ts)     | Expo configuration from `app.config.json`: display name, slug, `appId` as the iOS bundle identifier and Android package, config plugins.     |
+| [`metro.config.js`](metro.config.js) | Expo's Metro config with Uniwind, the generated entry and `.js` imports of TypeScript siblings.                                              |
+| [`global.css`](global.css)           | Tailwind, Uniwind, the native theme and the starter's palette for light and dark appearance.                                                 |
+| [`index.ts`](index.ts)               | Installs the Web globals first, defines the background delivery task at module scope and registers `App`.                                    |
+| [`src/app.tsx`](src/app.tsx)         | `App`: opens the authority, follows the app state and renders `NativeFrame`, or the reason it cannot open. `authority()` is the shared open. |
+| [`fixture/`](fixture)                | A notes application that targets mobile, for the starter's own checks. No example is involved.                                               |
+
+`bun run mobile:prepare` (`scripts/mobile-entry.ts`) writes `generated/entry.ts`, which imports the application's `application` and `screens-native` entrypoints. The starter imports it as `virtual:agent-native/mobile-entry`, and Metro maps that name to the file, as the web frame's Vite plugin does with `virtual:agent-native/screens`. The application is `targets.mobile.application` in `app.config.json`, else the starter's `application`; `AGENT_NATIVE_MOBILE_APPLICATION` overrides both for one developer's build. Preparing fails when the application's manifest does not list `mobile` in its targets.
+
+Workspace sources import TypeScript siblings as `./name.js`, the form Node's ESM resolution and TypeScript expect. Metro looks for a `.js` file, so `metro.config.js` retries a relative `.js` import without the extension.
 
 `ios/` and `android/` are generated by `expo prebuild` (continuous native generation) and git-ignored, as are `.expo/` and `generated/`.
 
@@ -25,17 +33,20 @@ Every dependency is declared in the root `package.json`, so Expo autolinking can
 
 ## Trust boundary
 
-Code here runs on Hermes, not Bun or Node: it must not import `node:*`, `bun:*` or host-only modules. `app.config.ts` is the exception; Expo evaluates it in Node at build time, and it reads only `app.config.json`. The React Native sources are typechecked by `tsconfig.native.json` without Bun or Node types, so a `node:*` or `bun:*` import here, or in a workspace module it reaches, fails `bun run typecheck`. The root `tsconfig.json` excludes them because React Native's global declarations conflict with Node's.
+Code here runs on Hermes, not Bun or Node: it must not import `node:*`, `bun:*` or host-only modules. `app.config.ts` and `metro.config.js` are the exceptions; they run in Node at build time and read only `app.config.json` and the generated entry. The React Native sources are type-checked by `tsconfig.native.json` without Bun or Node types; the root `tsconfig.json` excludes them because React Native's global declarations conflict with Node's.
+
+The app is the workspace's only writer. The screens and the background task share one authority through `authority()`, because ownership refuses a second one and the OS can start the runtime for the task before a screen mounts. The screens act as the device's owner. Integration loops run while the app is in the foreground; in the background the OS decides when the delivery task runs, and registering it fails quietly where background tasks are unavailable.
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`. External: `expo`, `react`, `react-native`. Native libraries for later stages (`expo-sqlite`, `expo-file-system`, `expo-secure-store`, `expo-camera`, `react-native-webview`, React Navigation) are installed at the root but not yet used. It must never import `examples/*`.
+Framework: `@agent-native/mobile`, `@agent-native/frame-native`, `@agent-native/kernel` (types). External: `expo`, `react`, `react-native`, `uniwind`, `expo-background-task` (config plugin). The fixture adds `@agent-native/contracts`, `@agent-native/runtime`, `@tanstack/react-query` and `lucide-react-native`. It must never import `examples/*`.
 
 ## Tests
 
 ```sh
+bun test apps/mobile
 bun run typecheck
 bun run check:mobile-bundle
 ```
 
-`check:mobile-bundle` runs `expo export --platform android` into `dist/mobile-bundle-check`, which fails when Metro cannot resolve a workspace import. It is not part of `bun run check`. Device tests run on demand and do not exist yet.
+`test/entry.test.ts` covers the mobile target in `app.config.json` (its own application, the fallback, the override, refused misspellings) and the generated entry, including the refusal of an application that does not target mobile. `check:mobile-bundle` prepares the fixture and runs `expo export --platform android` into `dist/mobile-bundle-check`, which fails when Metro cannot resolve an import or Uniwind cannot compile a class. It is not part of `bun run check`. Device tests run on demand and do not exist yet.

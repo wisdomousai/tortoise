@@ -92,11 +92,12 @@ export const egressExemptions: Readonly<Record<string, string>> = {
 
 /**
  * Source that runs on every platform, Hermes included: the kernel and the packages it composes,
- * the in-process transport, the portable event-log modules and the mobile starter. It must not
- * reach Node or Bun, nor a server-only package, so the mobile bundle never pulls one in.
+ * the in-process transport, the portable event-log modules, the native frame and the mobile
+ * starter. It must not reach Node or Bun, nor a server-only package, so the mobile bundle never
+ * pulls one in.
  */
 export const portableSource =
-  /^(?:packages\/(?:contracts|runtime|client|integration|kernel)\/src\/|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/))/;
+  /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/))/;
 /** Imports portable source may not make: Node and Bun built-ins and the Bun-only packages. */
 export const portableForbiddenImport =
   /^(?:node:|bun:|@agent-native\/(?:host|agents|egress|station)(?:\/|$)|@agent-native\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@agent-native\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;

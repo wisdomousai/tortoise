@@ -219,6 +219,18 @@ Guarantees: the frame imports no application; the boundary check bundles every a
 
 implemented · `packages/frame`
 
+### Native frame
+
+_The domain-neutral React Native shell around one application's native screens._
+
+An application that targets mobile declares its screens once in a `screens-native` entrypoint, and the frame supplies navigation, the session context and live invalidation over the authority's direct transport. Tabs sit at the bottom on phones and become a rail on tablets; other screens are pushed above them. Screens and capability targets are named by path, as on the web, so a capability opens the same screen in both frames.
+
+Guarantees: the frame imports no application; definition fails on a dead target, a duplicate screen or a home that is not a tab, over the application's and its plugins' screens together. A new transport starts a new query cache. Signal colors come from the operator registry's manifest, so a state looks the same on a phone and at a station.
+
+Gaps: the frame and its components have been bundled by Metro and type-checked, not rendered on a device. There is no compact web variant for attached tablets yet.
+
+partial · `packages/frame-native` `apps/mobile`
+
 ### Starter
 
 _The thin application a team forks or generates and then owns._
@@ -227,7 +239,9 @@ The starter wires framework to content: `app.config.json` names its identity and
 
 Guarantees: the starter imports no content statically; the boundary check fails a direct import from `examples/*`. A development desktop launch cannot skip packaged digest checks: the development flag is honored only when Electron reports the app is unpackaged (`apps/desktop/test/development-launch.test.ts`).
 
-Gaps: `apps/mobile` is an Expo shell for Android and iOS that does not yet host the configured application.
+`apps/mobile` hosts the application `targets.mobile` names (or the starter's) on Android and iOS: `bun run mobile:prepare` writes its static entry, and the app opens its authority on the device and renders its native screens.
+
+Gaps: the mobile app has not run on a device, and attached mode does not exist.
 
 implemented · `apps/service` `apps/web` `apps/desktop` `app.config.json`
 
@@ -295,13 +309,13 @@ implemented · `packages/devices`
 
 _Reusable screen parts published as shadcn registries over stock shadcn primitives._
 
-Specialized interfaces are cheap only if their parts are shared. Apps pull registry items with `shadcn add` and own the copied source, while trust-relevant behavior stays in versioned bindings. A plugin that brings a screen ships it as its own registry, as the compliance plugin does with `compliance-screen`.
+Specialized interfaces are cheap only if their parts are shared. Apps pull registry items with `shadcn add` and own the copied source, while trust-relevant behavior stays in versioned bindings. A plugin that brings a screen ships it as its own registry, as the compliance plugin does with `compliance-screen`. The native registry carries the same point-of-work rules to React Native on Uniwind: `hold-button`, `status-pill` and `list-row`.
 
 Guarantees: no shadcn primitive is forked; sizing comes from tokens and `cva` variants. The registry manifest is generated and drift-checked. Operator items follow the point-of-work rules: glove-sized targets, hold-to-confirm for consequential actions, state as icon plus text. The app shell exports `NavigationCount`, `SidebarSection` and `SidebarLink` for the slots; `status-strip` adds `SignalBanner`, the one signal readable from the machine; `operator-station` lays out a full-window station (dark header with seat control, machine banner, task panel beside attention, history footer) with `OperatorPanel` for the task.
 
 Gaps: no scratch-app `shadcn add` acceptance test.
 
-implemented · `packages/operator-ui` `packages/frame` `plugins/compliance`
+implemented · `packages/operator-ui` `packages/frame` `packages/frame-native` `plugins/compliance`
 
 ## Integrations: systems that keep their own records
 

@@ -137,7 +137,8 @@ for (const file of all) {
  * relative import must land in portable source too. */
 function portableImport(file: string, dependency: string) {
   if (portableForbiddenImport.test(dependency)) return false;
-  if (!dependency.startsWith('.')) return true;
+  // A stylesheet is compiled by the bundler (Uniwind on React Native), not run.
+  if (!dependency.startsWith('.') || dependency.endsWith('.css')) return true;
   const target = relative(root, resolve(file, '..', dependency)).replaceAll('\\', '/');
   return [target, `${target}.ts`, `${target}.tsx`].some((path) => portableSource.test(path));
 }

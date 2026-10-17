@@ -7,7 +7,7 @@ Layer: framework (`packages/*`). The starter's `apps/service` calls it; content 
 ## Primitives
 
 - [Application](../../docs/primitives.md#application): `defineManifest`, `ApplicationManifest`, `defineApplication`, `ApplicationDefinition`, `ApplicationConnections`.
-- [Host](../../docs/primitives.md#host): `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `loadApplication`, `loadManifest`, `hostComponents`, `deploymentCatalog`, `deploymentRequirements`.
+- [Host](../../docs/primitives.md#host): `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `readMobileTarget`, `loadApplication`, `loadManifest`, `hostComponents`, `deploymentCatalog`, `deploymentRequirements`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `PluginManifest`, `PluginSetting`, `PluginModules`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `PluginOpenContext`, `PluginStartContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `readPluginSettings`, `PluginSettings`. The definitions and the ports come from [`@agent-native/kernel`](../kernel/README.md); the host re-exports them and adds the Bun parts.
 - [Host platform](../../docs/primitives.md#host-platform): `bunPlatform` (sockets, child processes and loopback ingress; SQLite storage, a file blob store in the workspace's `blobs` directory and the OS workspace lock), `BunNetworkPort`, `bunSocket`, `childEnvironment`.
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
@@ -26,6 +26,7 @@ Each example's `manifest.ts` and `application.ts` show the two content entrypoin
 | `@agent-native/host/plugin`            | server only | The kernel's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket` and `childEnvironment`. |
 | `@agent-native/host/application`       | server only | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                 |
 | `@agent-native/host/config`            | server only | `app.config.json` reading and runtime resolution of the configured application (`loadApplication`, `loadManifest`).            |
+| `@agent-native/host/mobile-target`     | build time  | `readMobileTarget`: the application the mobile app hosts, from `targets.mobile` in `app.config.json`.                          |
 | `@agent-native/host/serve`             | server only | `serve`: run the HTTP authority until SIGINT/SIGTERM; the first stdout line is a `listening` JSON record.                      |
 | `@agent-native/host/cli`               | server only | `createCli`: catalog-derived CLI with `serve`, `mcp`, `drain`, `sync` and attached or `--embedded` authorities.                |
 | `@agent-native/host/platform/bun`      | server only | `bunPlatform` and `workspaceStorage`: the kernel's host platform on Bun.                                                       |

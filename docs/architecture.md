@@ -50,6 +50,8 @@ flowchart LR
 | `kernel`          | Composes an application and its plugins and opens its authority on a host platform, with no Node or Bun API.          |
 | `host`            | Runs one application and its plugins: workspace ownership, sessions, HTTP, embedded MCP, the CLI, runs and providers. |
 | `frame`           | The web frame registry: session bindings, routing, palette, run panel and accounts.                                   |
+| `mobile`          | The Android and iOS host platform: device SQLite and files, an exclusive lock, app lifecycle.                         |
+| `frame-native`    | The native frame and its registry: tabs or rail, session context, live invalidation, glove-sized components.          |
 | `testing`         | Direct and scenario drivers, conformance checks and the UI-binding check.                                             |
 | `scaffold`        | Exports the starter, framework and one or all examples as a standalone project.                                       |
 

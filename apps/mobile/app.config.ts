@@ -20,7 +20,8 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'automatic',
   ios: { bundleIdentifier: identity.appId, supportsTablet: true },
   android: { package: identity.appId },
-  plugins: [],
+  // The background task needs its iOS background mode and scheduler identifier.
+  plugins: ['expo-background-task'],
 };
 
 export default config;

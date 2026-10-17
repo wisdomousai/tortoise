@@ -12,6 +12,7 @@
   "include": [
     "apps/mobile/index.ts",
     "apps/mobile/src",
+    "apps/mobile/fixture",
     "packages/contracts/src",
     "packages/runtime/src",
     "packages/client/src/client.ts",
@@ -25,6 +26,9 @@
     "packages/adapters/src/snapshot-storage.ts",
     "packages/adapters/src/exclusive-lock.ts",
     "packages/mobile/src",
+    "packages/frame-native/src",
+    "packages/react/src/query.ts",
+    "packages/react/src/query",
     "packages/event-log/src/chain.ts",
     "packages/event-log/src/memory.ts",
     "packages/event-log/src/forward.ts"

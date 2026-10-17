@@ -170,7 +170,9 @@ The host platform is shown on a fake platform: `packages/kernel/test/kernel.test
 
 The mobile platform opens the same authority in Bun tests with Bun's SQLite and files in place of Expo's: a capture with a photo persists across close and reopen, a second open is refused, and a deployment with an ingress destination is refused. The snapshot storage runs over one driver interface for `bun:sqlite` and `expo-sqlite`, and the storage conformance suite passes on the Bun driver.
 
-**Not shown.** The mobile platform has not run on a device: the Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes. The shell is a placeholder: no authority, screens or plugins run on a device. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
+The starter hosts a mobile application: `bun run mobile:prepare` writes the static entry for the application `app.config.json` names for mobile and refuses one whose manifest does not target mobile (`apps/mobile/test/entry.test.ts`). `check:mobile-bundle` prepares the starter's fixture application and bundles it for Android: the kernel, runtime, mobile platform, native frame and Uniwind-styled components compile to Hermes bytecode. Native screen definitions are checked in Bun (`packages/frame-native/test/screens.test.ts`).
+
+**Not shown.** The mobile platform has not run on a device: the Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes. The native frame and components have not rendered, and no plugin with native code exists. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
 
 ### Layers and scaffold
 
