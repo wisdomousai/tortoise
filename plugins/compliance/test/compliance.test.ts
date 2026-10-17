@@ -345,6 +345,36 @@ describe('posture', () => {
     });
     expect(broken.status).toBe('failing');
   });
+
+  test('certificates are judged at each check, so one that expires while running fails', async () => {
+    const policy = await sandboxPolicy();
+    expect(assessPosture({ policy, now: 10 }).checks).toContainEqual({
+      id: 'certificates',
+      status: 'info',
+      summary: 'No certificates are configured',
+    });
+    const notAfter = Date.UTC(2031, 0, 1);
+    const withCertificate = {
+      ...policy,
+      certificates: [
+        {
+          source: 'ingress-cert' as const,
+          subject: 'CN=hub',
+          fingerprint256: 'AA',
+          notBefore: Date.UTC(2030, 0, 1),
+          notAfter,
+        },
+      ],
+    };
+    const check = (now: number) =>
+      assessPosture({ policy: withCertificate, now }).checks.find(
+        (item) => item.id === 'certificates',
+      )!;
+    expect(check(notAfter - 90 * 86_400_000).status).toBe('pass');
+    expect(check(notAfter - 5 * 86_400_000)).toMatchObject({ status: 'warn' });
+    expect(check(notAfter + 1)).toMatchObject({ status: 'fail' });
+    expect(assessPosture({ policy: withCertificate, now: notAfter + 1 }).status).toBe('failing');
+  });
 });
 
 /** A live log with denials, deep data and a monitor reading it, as the host wires it. */

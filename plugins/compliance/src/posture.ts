@@ -1,5 +1,5 @@
 import type { AuditEvent } from '@agent-native/contracts';
-import type { ResolvedPolicy } from '@agent-native/site/policy';
+import { judgeCertificates, type ResolvedPolicy } from '@agent-native/site/policy';
 import type { ForwardingStats, VerificationReport } from '@agent-native/event-log';
 import type { DestinationPosture, Posture, PostureCheck } from './contracts';
 
@@ -49,6 +49,33 @@ function policyCheck(policy: ResolvedPolicy): PostureCheck {
         ? `${warnings.length} warning(s): ${[...new Set(warnings.map((finding) => finding.code))].join(', ')}`
         : `Site policy satisfies the ${policy.profile} profile`,
   };
+}
+
+/**
+ * Certificate validity judged at the time of this check, not when the policy was loaded, so a
+ * certificate that expires while the host runs turns this check to `fail`.
+ */
+function certificateCheck(policy: ResolvedPolicy, now: number): PostureCheck {
+  if (!policy.certificates.length)
+    return { id: 'certificates', status: 'info', summary: 'No certificates are configured' };
+  const problems = judgeCertificates(policy.certificates, now);
+  const errors = problems.filter((problem) => problem.level === 'error');
+  const soonest = Math.min(
+    ...policy.certificates.filter((item) => item.notAfter > now).map((item) => item.notAfter),
+  );
+  return errors.length
+    ? { id: 'certificates', status: 'fail', summary: errors.map((item) => item.message).join('; ') }
+    : problems.length
+      ? {
+          id: 'certificates',
+          status: 'warn',
+          summary: problems.map((item) => item.message).join('; '),
+        }
+      : {
+          id: 'certificates',
+          status: 'pass',
+          summary: `${policy.certificates.length} certificate(s) valid; the first expires ${new Date(soonest).toISOString().slice(0, 10)}`,
+        };
 }
 
 function auditChainCheck(verification: VerificationReport | undefined): PostureCheck {
@@ -181,6 +208,7 @@ export function assessPosture(input: PostureInput): Posture {
   const forwardTo = policy.policy.audit.forwardTo;
   const checks: PostureCheck[] = [
     policyCheck(policy),
+    certificateCheck(policy, input.now),
     auditChainCheck(verification),
     forwardingCheck(forwardTo, forwarding),
     ...egressChecks(policy, usage),

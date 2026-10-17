@@ -9,6 +9,12 @@ import {
 } from '@agent-native/contracts';
 import type { Cidr } from './cidr';
 import { resolveBinding } from './policy/bindings';
+import {
+  checkCertificates,
+  parseCertificates,
+  type CertificateSource,
+  type CertificateValidity,
+} from './policy/certificates';
 import { createFindings } from './policy/findings';
 import { checkFloors, offlineConsequences } from './policy/floors';
 import { resolveProcesses, type ResolvedProcess } from './policy/processes';
@@ -22,6 +28,13 @@ export {
   type SitePolicyInput,
 } from './policy/schema';
 export { portOf } from './policy/urls';
+export {
+  certificateWarningMs,
+  judgeCertificates,
+  type CertificateProblem,
+  type CertificateSource,
+  type CertificateValidity,
+} from './policy/certificates';
 export type { DeclaredProcess, ResolvedProcess } from './policy/processes';
 export type { ProcessBinding } from './policy/schema';
 
@@ -72,10 +85,41 @@ export interface ResolvedPolicy {
    * that reports and monitors pass around.
    */
   readonly ingressTls?: { readonly cert: string; readonly key: string; readonly clientCa?: string };
+  /**
+   * Validity of the ingress certificate, the ingress client CA and every destination CA bundle,
+   * as `loadSitePolicy` read them. Empty for a policy resolved without its files. Posture checks
+   * judge these again on each run, so expiry while the host runs is reported.
+   */
+  readonly certificates: readonly CertificateValidity[];
 }
 
 /** Listener files as `loadSitePolicy` found them: absolute paths that exist and are readable. */
 type IngressFiles = { readonly cert?: string; readonly key?: string; readonly clientCa?: string };
+
+/** Parse every certificate file the policy loaded; a file that does not parse is an error. */
+function certificatesOf(
+  bindings: ReadonlyMap<string, ResolvedBinding>,
+  pem: { readonly ingressCert?: string; readonly clientCa?: string } | undefined,
+  report: ReturnType<typeof createFindings>,
+) {
+  const files: [CertificateSource, string, string?][] = [];
+  if (pem?.ingressCert) files.push(['ingress-cert', pem.ingressCert]);
+  if (pem?.clientCa) files.push(['ingress-client-ca', pem.clientCa]);
+  for (const [id, binding] of bindings)
+    if (binding.ca) files.push(['destination-ca', binding.ca, id]);
+  const certificates: CertificateValidity[] = [];
+  for (const [source, contents, destination] of files) {
+    const parsed = parseCertificates(contents, source, destination);
+    if (parsed) certificates.push(...parsed);
+    else
+      report.error(
+        'CERTIFICATE_INVALID',
+        `${source}${destination ? ` for ${destination}` : ''} holds no readable PEM certificate`,
+        destination,
+      );
+  }
+  return certificates;
+}
 
 /** Resolve every binding the policy names, in policy order; disabled ones are only recorded. */
 function resolveBindings(
@@ -135,6 +179,10 @@ export function resolveSitePolicy(
     readonly ca?: Readonly<Record<string, string>>;
     /** Absolute paths of the listener files that exist and are readable. */
     readonly ingress?: IngressFiles;
+    /** Contents of the listener certificate and client CA; never the key. */
+    readonly pem?: { readonly ingressCert?: string; readonly clientCa?: string };
+    /** When certificate validity is judged; defaults to the current time. */
+    readonly now?: number;
   } = {},
 ): ResolvedPolicy {
   const policy = sitePolicySchema.parse(input ?? {});
@@ -144,6 +192,8 @@ export function resolveSitePolicy(
   const consequences = offlineConsequences(policy, requirements, bindings, disabled, report);
   const { processes, disabledProcesses } = resolveProcesses(policy, requirements, report);
   checkFloors(policy, bindings, files.ingress, report);
+  const certificates = certificatesOf(bindings, files.pem, report);
+  checkCertificates(certificates, files.now ?? Date.now(), report);
   return {
     policy,
     profile: policy.profile,
@@ -159,6 +209,7 @@ export function resolveSitePolicy(
       .update(canonicalJson(JSON.parse(JSON.stringify(policy))))
       .digest('hex'),
     ...ingressTlsOf(policy, files.ingress),
+    certificates,
   };
 }
 
@@ -175,6 +226,7 @@ export function assertPolicyUsable(resolved: ResolvedPolicy): void {
 export async function loadSitePolicy(
   path: string,
   requirements: CatalogRequirements,
+  options: { readonly now?: number } = {},
 ): Promise<ResolvedPolicy> {
   const raw = JSON.parse(await readFile(path, 'utf8')) as unknown;
   const parsed = sitePolicySchema.safeParse(raw);
@@ -200,9 +252,24 @@ export async function loadSitePolicy(
     read(ingress?.key),
     read(ingress?.clientCa),
   ]);
+  const listening = ingress && ingress.listen !== 'loopback';
+  const contents = (file: string | undefined) =>
+    file ? readFile(file, 'utf8').catch(() => undefined) : undefined;
+  const [ingressCert, clientCaPem] = listening
+    ? await Promise.all([contents(cert), contents(clientCa)])
+    : [];
   return resolveSitePolicy(raw, requirements, {
     ca,
-    ...(ingress && ingress.listen !== 'loopback' ? { ingress: { cert, key, clientCa } } : {}),
+    ...(listening
+      ? {
+          ingress: { cert, key, clientCa },
+          pem: {
+            ...(ingressCert ? { ingressCert } : {}),
+            ...(clientCaPem ? { clientCa: clientCaPem } : {}),
+          },
+        }
+      : {}),
+    ...(options.now !== undefined ? { now: options.now } : {}),
   });
 }
 

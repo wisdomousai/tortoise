@@ -103,6 +103,8 @@ The identity settings:
 
 **TLS and mTLS.** The listener binds the configured address with the site's certificate. With `mtls` it admits only clients whose certificate chains to `clientCa`; with `tls` any client on the network completes the handshake, and a policy that sets `clientCa` on a `tls` listener is refused, since nothing would check it. Either way every API call still needs a session token or a device credential. Certificate paths resolve next to the policy file.
 
+**Certificate expiry.** The site issues and renews its own certificates; the host only reads them. At startup it reads the listener certificate, the client CA and each destination's CA bundle, never the key. It refuses a listener certificate outside its validity window, a CA bundle with no valid certificate, and a file with no readable PEM certificate. A certificate within 30 days of expiry, or an expired one in a bundle that still holds a valid one, is a warning. The posture monitor judges validity again on every check, so a certificate that expires while the host runs turns the `certificates` check to `fail`.
+
 ## 3. Enforcement
 
 **In-process guard.** Every outbound connection of the host and its plugins passes through it:
@@ -182,6 +184,6 @@ With no site policy, the application is isolated:
 
 - The guard and proxy are in-process controls. Real containment needs the exported rules applied, or an OS sandbox.
 - A process running as the workspace owner can read the workspace and the log. Chaining detects edits but cannot stop deletion of the newest entries; off-host forwarding covers that.
-- Workforce sign-in is OpenID Connect only (no LDAP or SAML), and there is no certificate issuance or rotation.
+- Workforce sign-in is OpenID Connect only (no LDAP or SAML), and certificates are checked for expiry but never issued or rotated.
 - The isolated-test trap does not cover child processes.
 - Devices are declared but not mediated, and the systemd export needs explicit allowances for declared devices.

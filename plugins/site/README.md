@@ -9,6 +9,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Site policy](../../docs/primitives.md#site-policy): `sitePlugin`, `sitePluginManifest`, `openSite`, `siteServiceOf`, `SiteService`, `assertIdentity`, `portsNeeded`, `sitePolicyFor`, `policyErrors`, `siteCommand`, `siteCliCommand`, `siteUsage`, `POLICY_REJECTED_EXIT_CODE`.
   - **The policy itself** (`policy`): `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`. It binds declared destinations to addresses and sets a floor on plain transport, ingress (loopback, TLS or mTLS), identity, grant lifetime and audit mode. Problems are findings in the order they were found; `assertPolicyUsable` refuses on any error.
   - **Processes:** `ProcessBinding`, `DeclaredProcess` and `ResolvedProcess` bind a declared process to an absolute executable, arguments, working directory, optional SHA-256 pin and environment. Findings refuse an undeclared or unbound required process, a relative path, and a variable the process plugin owns (proxy, loader or a declared secret).
+  - **Certificates** (`policy/certificates`): `ResolvedPolicy.certificates` holds the validity of the listener certificate, the client CA and each destination CA bundle, read by `loadSitePolicy` without the key. `judgeCertificates` gives `CERTIFICATE_EXPIRED`, `CERTIFICATE_NOT_YET_VALID` and `CERTIFICATE_EXPIRING` (30 days) at a given time; load reports them as findings and adds `CERTIFICATE_INVALID` for a file with no readable PEM.
   - **Addresses** (`cidr`): `parseCidr`, `cidrContains`, `cidrIsPrivate`, `isPrivateAddress`, `isLoopbackAddress`, `isLoopbackHost`, for the networks a binding may resolve to.
 - [Task package](../../docs/primitives.md#task-package): `site install <bundle>`, `site status` and `site uninstall` (`installVerb`, `installBundle`, `installStatus`, `uninstall`, `installLayout`, `InstallRecord`). They run in the bundled binary of the application being installed.
   - **Install, in order:** verify the bundle against `--trust`; admit it against the installed release and `--approval`; copy it to `opt/agent-native/<app>/releases/<version>` and verify the copy. Then render the systemd unit and nftables rules (or WinSW XML and Windows Firewall script) with the new release's own `network export`. Migrate the workspace with that release's `migrate`, and only then repoint `current`.
@@ -67,7 +68,7 @@ Gaps:
 
 - Workforce sessions live in memory, so a restart signs everyone out, and they carry no roles: the application's policy decides what each principal may do.
 - Provider endpoints must be on the issuer's origin, because one destination reaches one origin.
-- No certificate lifecycle exists.
+- Certificates are checked for validity, not issued or renewed; that stays with the site's own PKI.
 - Install needs the application to compose the network plugin, which renders the service files.
 - The WinSW wrapper executable is the site's to supply.
 - No kiosk client mode exists yet.
@@ -94,7 +95,7 @@ The plugin is exercised through applications that compose it, because a policy o
 - a tampered bundle refused while `current` stays put;
 - uninstall keeping data.
 
-`test/policy.test.ts` resolves policies against a fixed catalog: CIDR matching, the isolated default, binding checks, profile floors, process bindings, the workforce issuer rules, and listener files loaded next to the policy.
+`test/policy.test.ts` resolves policies against a fixed catalog: CIDR matching, certificate validity at a chosen time, the isolated default, binding checks, profile floors, process bindings, the workforce issuer rules, and listener files loaded next to the policy.
 
 `test/workforce.test.ts` signs in against a fake provider answered by the injected destination fetch: the redirect parameters and PKCE pair, a one-use state, sign-out, session expiry, and refusals for another audience, an unverified email and a discovery document naming another issuer. It also covers which callers `external` admits.
 

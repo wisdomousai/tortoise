@@ -59,7 +59,7 @@ bun test plugins/compliance
 
 - manifest ownership, the OS handler and action section, and a deterministic SBOM;
 - controls whose evidence exists;
-- posture findings and `posture.checked`;
+- posture findings and `posture.checked`, including certificate expiry judged at each check;
 - audit-event paging;
 - behavioral scenarios through the direct driver.
 

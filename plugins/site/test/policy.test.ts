@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'bun:test';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { collectRequirements, type NetworkDestination } from '@agent-native/contracts';
 import { cidrContains, parseCidr } from '../src/cidr';
+import { judgeCertificates, type CertificateValidity } from '../src/policy/certificates';
 import {
   assertPolicyUsable,
   isolatedPolicy,
@@ -48,6 +49,8 @@ const requirements = collectRequirements([
     },
   },
 ]);
+/** A public test certificate valid from 2026-10-17 for a century; its key was never kept. */
+const certificate = await readFile(join(import.meta.dir, 'fixtures/test-certificate.pem'), 'utf8');
 const policy = (input: SitePolicyInput) => resolveSitePolicy(input, requirements);
 const codes = (input: SitePolicyInput) =>
   policy(input)
@@ -202,7 +205,7 @@ describe('site policy', () => {
     ).toEqual(['INGRESS_FLOOR']);
     const directory = await mkdtemp(join(tmpdir(), 'egress-tls-'));
     try {
-      await writeFile(join(directory, 'hub.pem'), 'cert');
+      await writeFile(join(directory, 'hub.pem'), certificate);
       await writeFile(join(directory, 'hub.key'), 'key');
       await writeFile(join(directory, 'policy.json'), JSON.stringify(hub));
       const loaded = await loadSitePolicy(join(directory, 'policy.json'), requirements);
@@ -231,7 +234,7 @@ describe('site policy', () => {
     // Listener files are resolved next to the policy and must be readable; contents stay on disk.
     const directory = await mkdtemp(join(tmpdir(), 'egress-ingress-'));
     try {
-      await writeFile(join(directory, 'server.pem'), 'cert');
+      await writeFile(join(directory, 'server.pem'), certificate);
       const path = join(directory, 'policy.json');
       const ingress = { listen: 'mtls', host: 'authority.plant', port: 8443 };
       await writeFile(
@@ -262,5 +265,105 @@ describe('site policy', () => {
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
+  });
+});
+
+describe('certificates', () => {
+  const day = 86_400_000;
+  const hub = {
+    profile: 'site-hub',
+    grants: { maxTtlSeconds: 600 },
+    ingress: { listen: 'tls', host: 'hub.site', port: 8443, cert: 'hub.pem', key: 'hub.key' },
+  } as SitePolicyInput;
+  async function loadAt(files: Record<string, string>, input: SitePolicyInput, now?: number) {
+    const directory = await mkdtemp(join(tmpdir(), 'site-certificates-'));
+    try {
+      for (const [name, text] of Object.entries(files))
+        await writeFile(join(directory, name), text);
+      await writeFile(join(directory, 'policy.json'), JSON.stringify(input));
+      return await loadSitePolicy(join(directory, 'policy.json'), requirements, {
+        ...(now !== undefined ? { now } : {}),
+      });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  }
+  const findings = (resolved: Awaited<ReturnType<typeof loadAt>>) =>
+    resolved.findings.map((finding) => `${finding.level}:${finding.code}`);
+
+  test('the listener certificate is read without its key and judged at load', async () => {
+    const files = { 'hub.pem': certificate, 'hub.key': 'never read' };
+    const valid = await loadAt(files, hub);
+    expect(valid.findings).toEqual([]);
+    expect(valid.certificates).toHaveLength(1);
+    const [leaf] = valid.certificates;
+    expect(leaf).toMatchObject({ source: 'ingress-cert', subject: 'CN=egress-test' });
+    expect(JSON.stringify(valid.certificates)).not.toContain('never read');
+
+    expect(findings(await loadAt(files, hub, leaf!.notAfter - 10 * day))).toEqual([
+      'warning:CERTIFICATE_EXPIRING',
+    ]);
+    const expired = await loadAt(files, hub, leaf!.notAfter + 1);
+    expect(findings(expired)).toEqual(['error:CERTIFICATE_EXPIRED']);
+    expect(() => assertPolicyUsable(expired)).toThrow('CERTIFICATE_EXPIRED');
+    expect(findings(await loadAt(files, hub, leaf!.notBefore - day))).toEqual([
+      'error:CERTIFICATE_NOT_YET_VALID',
+    ]);
+    expect(findings(await loadAt({ ...files, 'hub.pem': 'not a certificate' }, hub))).toEqual([
+      'error:CERTIFICATE_INVALID',
+    ]);
+  });
+
+  test('a destination CA bundle is judged for its destination', async () => {
+    const connected = {
+      mode: 'connected',
+      destinations: {
+        'mes-api': { url: 'https://mes.plant.local:8443', ca: 'mes-ca.pem' },
+        'station-screen': { disabled: true },
+      },
+    } as SitePolicyInput;
+    const loaded = await loadAt({ 'mes-ca.pem': certificate }, connected);
+    expect(loaded.certificates.map((item) => [item.source, item.destination])).toEqual([
+      ['destination-ca', 'mes-api'],
+    ]);
+    const expired = await loadAt(
+      { 'mes-ca.pem': certificate },
+      connected,
+      loaded.certificates[0]!.notAfter + 1,
+    );
+    expect(expired.findings.filter((finding) => finding.code.startsWith('CERTIFICATE'))).toEqual([
+      expect.objectContaining({
+        level: 'error',
+        code: 'CERTIFICATE_EXPIRED',
+        destination: 'mes-api',
+      }),
+    ]);
+  });
+
+  test('a bundle fails only when none of its certificates is valid', () => {
+    const at = Date.UTC(2030, 0, 1);
+    const ca = (subject: string, notBefore: number, notAfter: number): CertificateValidity => ({
+      source: 'ingress-client-ca',
+      subject,
+      fingerprint256: subject,
+      notBefore,
+      notAfter,
+    });
+    const old = ca('CN=old', at - 400 * day, at - day);
+    const next = ca('CN=next', at - day, at + 400 * day);
+    expect(judgeCertificates([old, next], at).map((item) => [item.level, item.code])).toEqual([
+      ['warning', 'CERTIFICATE_EXPIRED'],
+    ]);
+    expect(judgeCertificates([next], at)).toEqual([]);
+    expect(judgeCertificates([old], at).map((item) => [item.level, item.code])).toEqual([
+      ['error', 'CERTIFICATE_EXPIRED'],
+    ]);
+    // Only the leaf of a listener's chain decides; an intermediate in the file is not judged.
+    expect(
+      judgeCertificates(
+        [next, old].map((item) => ({ ...item, source: 'ingress-cert' as const })),
+        at,
+      ),
+    ).toEqual([]);
   });
 });
