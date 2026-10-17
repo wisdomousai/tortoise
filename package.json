@@ -72,7 +72,6 @@
     "@agent-native/crm-capture": "workspace:*",
     "@agent-native/device-link": "workspace:*",
     "@agent-native/devices": "workspace:*",
-    "@agent-native/egress": "workspace:*",
     "@agent-native/event-log": "workspace:*",
     "@agent-native/frame": "workspace:*",
     "@agent-native/frame-native": "workspace:*",

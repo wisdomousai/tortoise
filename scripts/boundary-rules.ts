@@ -6,7 +6,7 @@
  * resolved-path rule in `hostSourcePath`, so no plugin is named here.
  */
 export const forbiddenBrowserImport =
-  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|egress|observation)(?:\/|$)|@agent-native\/station(?!\/requirements$)(?:\/|$)|@agent-native\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
+  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|observation)(?:\/|$)|@agent-native\/station(?!\/requirements$)(?:\/|$)|@agent-native\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
 /**
  * Every plugin in `plugins/*` follows one layout: `plugin-manifest`, `plugin-screens`,
  * `contracts` and the `ui/` and `components/` folders are browser code, at the package root or
@@ -18,19 +18,19 @@ export const pluginBrowserSource =
 export const pluginBrowserEntry = /^(?:plugin-manifest|plugin-screens|contracts)$/;
 /** Resolved source paths of server-only framework and plugin packages. */
 export const hostSourcePath =
-  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|egress|observation)[\\/]src[\\/]|station[\\/]src[\\/](?!requirements\.ts$)|(?:host|kernel)[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?plugins[\\/][^\\/]+[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
+  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|observation)[\\/]src[\\/]|station[\\/]src[\\/](?!requirements\.ts$)|(?:host|kernel)[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?plugins[\\/][^\\/]+[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
 
 /**
  * Framework libraries the kernel (`packages/kernel`) and the Bun host (`packages/host`) must not
- * import. Egress and the event log are used by the site, network and audit plugins; an import
- * here would bring a policy or audit concept back into every application. Plugins themselves are a layer the framework never imports at all.
+ * import. The event log is used by the audit plugin; an import here would bring an audit concept
+ * back into every application. Plugins themselves are a layer the framework never imports at all.
  */
 export const kernelForbiddenImport =
-  /^@agent-native\/(?:egress|event-log)(?:\/|$)|(?:^|\/)packages\/(?:egress|event-log)\//;
+  /^@agent-native\/event-log(?:\/|$)|(?:^|\/)packages\/event-log\//;
 
 /**
  * Direct network and process APIs. Server code reaches other hosts only through
- * `@agent-native/egress`, so every connection is declared, bound by the site policy and audited.
+ * the network port, whose guard is in `plugins/network`, so every connection is declared, bound by the site policy and audited.
  * A match outside `egressExemptions` fails `check:boundaries`.
  */
 export const directEgress: readonly { readonly api: string; readonly pattern: RegExp }[] = [
@@ -68,7 +68,8 @@ export const browserSource =
  * that no longer matches is reported, so the list cannot go stale.
  */
 export const egressExemptions: Readonly<Record<string, string>> = {
-  'packages/egress/src/': 'The egress guard, socket client and CONNECT proxy themselves.',
+  'plugins/network/src/guard': 'The egress guard and its socket client themselves.',
+  'plugins/network/src/proxy.ts': 'The CONNECT proxy for declared child processes.',
   'packages/agents/src/process.ts':
     'Launches declared harness processes; the host passes the proxy environment for the process ID.',
   'packages/agents/src/claude.ts':
@@ -106,7 +107,7 @@ export const portableSource =
   /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native|shell)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/devices\/src\/scanner\/(?:decode|profile|source|gs1|symbology|layouts)\.ts$|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/)|examples\/[^/]+\/(?:screens-native\.tsx$|ui-native\/))/;
 /** Imports portable source may not make: Node and Bun built-ins and the Bun-only packages. */
 export const portableForbiddenImport =
-  /^(?:node:|bun:|@agent-native\/(?:host|agents|egress|station)(?:\/|$)|@agent-native\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@agent-native\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;
+  /^(?:node:|bun:|@agent-native\/(?:host|agents|station)(?:\/|$)|@agent-native\/(?:site|network)(?!\/(?:plugin-manifest|plugin-screens|contracts)$)(?:\/|$)|@agent-native\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@agent-native\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;
 /** Node and Bun globals; React Native declares `process` too, so the type check alone misses it. */
 export const nonPortableGlobal =
   /(?<![\w$.])(?:Bun|process|Buffer|__dirname|__filename|require)\s*[.(]/;

@@ -1,5 +1,5 @@
 import { ApplicationError, type AuditRecord } from '@agent-native/contracts';
-import type { ResolvedProcess } from '@agent-native/egress';
+import type { ResolvedProcess } from '@agent-native/site/policy';
 import type {
   BunProcessPort,
   HostPorts,

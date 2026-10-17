@@ -1,4 +1,4 @@
-import { portOf } from '../policy';
+import { portOf } from '@agent-native/site/policy';
 import { destinationClient } from './client';
 import { auditAllowed, checkAddresses, deny, originOf, type GuardKernel } from './kernel';
 

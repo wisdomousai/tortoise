@@ -1,5 +1,5 @@
 import type { DestinationClient } from '../guard';
-import type { ResolvedBinding } from '../policy';
+import type { ResolvedBinding } from '@agent-native/site/policy';
 import { EgressDenied } from './denial';
 import {
   audit,

@@ -1,5 +1,5 @@
 import { isIP } from 'node:net';
-import { portOf, type ResolvedPolicy } from '@agent-native/egress';
+import { portOf, type ResolvedPolicy } from '@agent-native/site/policy';
 
 /** One allowed outbound flow, resolved to addresses an OS firewall can enforce. */
 export interface AllowRule {

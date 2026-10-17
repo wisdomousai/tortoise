@@ -1,4 +1,4 @@
-import { parseCidr } from '@agent-native/egress';
+import { parseCidr } from '@agent-native/site/cidr';
 import type { ExportFormat, ExportOptions } from '../exporters';
 import type { RuleSet } from '../rules';
 

@@ -2,7 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { ResolvedProcess } from '@agent-native/egress';
+import type { ResolvedProcess } from '@agent-native/site/policy';
 
 /**
  * The only place the process plugin touches the operating system's process API. Everything that

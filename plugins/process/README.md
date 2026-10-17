@@ -52,7 +52,7 @@ Gaps:
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/egress` (the resolved bindings), `@agent-native/host` (`plugin`, `plugin-manifest`) and `@agent-native/site` (the policy). No external packages.
+Framework: `@agent-native/contracts`, `@agent-native/host` (`plugin`, `plugin-manifest`) and `@agent-native/site` (the policy and its resolved process bindings). No external packages.
 
 ## Tests
 

@@ -6,7 +6,7 @@ import {
   type JWTVerifyGetKey,
 } from 'jose';
 import { verifyOidcIdentity } from '@agent-native/agents/oidc';
-import type { SitePolicy } from '@agent-native/egress';
+import type { SitePolicy } from '../policy';
 import { LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
 import type { ExecutionContext } from '@agent-native/runtime';
 import { discover, providerJson, type DestinationFetch, type ProviderMetadata } from './discovery';

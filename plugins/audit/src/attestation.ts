@@ -1,5 +1,5 @@
 import type { AuditRecord } from '@agent-native/contracts';
-import type { ResolvedPolicy } from '@agent-native/egress';
+import type { ResolvedPolicy } from '@agent-native/site/policy';
 
 /**
  * What is running: `config.loaded` carries the executable, catalog and policy digests so an

@@ -3,7 +3,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { SitePolicyInput } from '@agent-native/egress';
+import type { SitePolicyInput } from '@agent-native/site/policy';
 import { startHost } from '@agent-native/host/host';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
 import { openMobileAuthority } from '@agent-native/mobile';

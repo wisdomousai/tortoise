@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { isolatedPolicy, loadSitePolicy, type ResolvedPolicy } from '@agent-native/egress';
+import { isolatedPolicy, loadSitePolicy, type ResolvedPolicy } from './policy';
 import { deploymentRequirements } from '@agent-native/host/components';
 import type { ApplicationManifest } from '@agent-native/host/manifest';
 

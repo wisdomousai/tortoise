@@ -1,5 +1,5 @@
 import { ApplicationError } from '@agent-native/contracts';
-import type { ResolvedPolicy } from '@agent-native/egress';
+import type { ResolvedPolicy } from './policy';
 import type { ExecutionContext } from '@agent-native/runtime';
 
 /**

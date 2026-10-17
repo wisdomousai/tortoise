@@ -1,10 +1,6 @@
 import { ApplicationError, type AuditMode, type EventLogPort } from '@agent-native/contracts';
-import {
-  createEgress,
-  startEgressProxy,
-  type Egress,
-  type EgressProxy,
-} from '@agent-native/egress';
+import { createEgress, type Egress } from './guard';
+import { startEgressProxy, type EgressProxy } from './proxy';
 import type { HostPorts, PluginInstance, PluginOpenContext } from '@agent-native/host/plugin';
 import { siteServiceOf } from '@agent-native/site/open';
 import { policyIngress } from './ingress';

@@ -1,5 +1,5 @@
 import type { AuditEvent } from '@agent-native/contracts';
-import type { ResolvedPolicy } from '@agent-native/egress';
+import type { ResolvedPolicy } from '@agent-native/site/policy';
 import type { ForwardingStats, VerificationReport } from '@agent-native/event-log';
 import type { DestinationPosture, Posture, PostureCheck } from './contracts';
 

@@ -43,7 +43,7 @@ Gaps: removing the newest events is detectable only against an anchor or a forwa
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/event-log`, `@agent-native/egress` (types), `@agent-native/adapters/cli`, `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`) and `@agent-native/site` (the policy whose audit mode it applies). No external packages.
+Framework: `@agent-native/contracts`, `@agent-native/event-log`, `@agent-native/adapters/cli`, `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`) and `@agent-native/site` (the policy whose audit mode it applies). No external packages.
 
 ## Tests
 

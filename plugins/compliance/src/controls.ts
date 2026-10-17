@@ -69,10 +69,7 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 5.1'],
     },
     evidence: {
-      tests: [
-        'packages/egress/test/egress.test.ts',
-        'examples/project-tasks/test/security.test.ts',
-      ],
+      tests: ['plugins/network/test/guard.test.ts', 'examples/project-tasks/test/security.test.ts'],
       artifacts: [],
       events: ['egress.allowed', 'egress.denied', 'egress.completed'],
     },
@@ -112,7 +109,8 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: [
         'examples/project-tasks/test/security.test.ts',
-        'packages/egress/test/egress.test.ts',
+        'plugins/site/test/policy.test.ts',
+        'plugins/network/test/guard.test.ts',
       ],
       artifacts: ['data-flows.md'],
       events: ['policy.loaded', 'effect.enqueued'],
@@ -132,7 +130,7 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 5.1'],
     },
     evidence: {
-      tests: ['packages/egress/test/egress.test.ts'],
+      tests: ['plugins/network/test/guard.test.ts'],
       artifacts: ['data-flows.md'],
       events: ['egress.allowed', 'egress.denied'],
     },
@@ -150,7 +148,7 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 3.1', 'CR 4.1', 'CR 4.3', 'CR 1.8'],
     },
     evidence: {
-      tests: ['packages/egress/test/egress.test.ts'],
+      tests: ['plugins/site/test/policy.test.ts', 'plugins/network/test/guard.test.ts'],
       artifacts: [],
       events: ['policy.loaded'],
     },
@@ -196,7 +194,7 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 2.10'],
     },
     evidence: {
-      tests: ['packages/runtime/test/audit.test.ts', 'packages/egress/test/egress.test.ts'],
+      tests: ['packages/runtime/test/audit.test.ts', 'plugins/network/test/guard.test.ts'],
       artifacts: [],
       events: ['command.accepted'],
     },
@@ -339,7 +337,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: [
-        'packages/egress/test/egress.test.ts',
+        'plugins/site/test/policy.test.ts',
         'examples/project-tasks/test/security.test.ts',
         'examples/project-tasks/test/hardening.test.ts',
       ],
@@ -363,7 +361,7 @@ export const controls: readonly Control[] = [
       tests: [
         'examples/project-tasks/test/security.test.ts',
         'examples/quality-inspection/test/security.test.ts',
-        'packages/egress/test/egress.test.ts',
+        'plugins/site/test/policy.test.ts',
       ],
       artifacts: ['site check --site <file>'],
       events: ['config.loaded', 'policy.loaded'],
@@ -458,7 +456,7 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 7.1', 'CR 7.2'],
     },
     evidence: {
-      tests: ['packages/egress/test/egress.test.ts'],
+      tests: ['plugins/network/test/guard.test.ts'],
       artifacts: [],
       events: ['egress.denied'],
     },

@@ -1,4 +1,4 @@
-import type { ResolvedPolicy } from '@agent-native/egress';
+import type { ResolvedPolicy } from '@agent-native/site/policy';
 import type { IngressPort } from '@agent-native/host/plugin';
 
 /**

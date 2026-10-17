@@ -1,5 +1,5 @@
 import { failClosedAuditMode, type AuditMode, type EventLogPort } from '@agent-native/contracts';
-import type { ResolvedPolicy } from '@agent-native/egress';
+import type { ResolvedPolicy } from '@agent-native/site/policy';
 import {
   forwardingEventLog,
   openJsonlEventLog,

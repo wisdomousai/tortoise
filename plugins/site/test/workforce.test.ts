@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from 'bun:test';
 import { exportJWK, generateKeyPair, SignJWT, type CryptoKey, type JWK } from 'jose';
-import type { ResolvedPolicy } from '@agent-native/egress';
+import type { ResolvedPolicy } from '../src/policy';
 import { createWorkforceSignIn, type WorkforceConfig } from '../src/workforce/sign-in';
 
 /**

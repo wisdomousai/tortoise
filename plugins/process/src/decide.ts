@@ -1,5 +1,5 @@
 import { ApplicationError } from '@agent-native/contracts';
-import type { ResolvedPolicy, ResolvedProcess } from '@agent-native/egress';
+import type { ResolvedPolicy, ResolvedProcess } from '@agent-native/site/policy';
 import type { HostPorts, PluginOpenContext, ProcessAvailability } from '@agent-native/host/plugin';
 
 /** What deciding a start needs: the resolved policy and the opening context. */

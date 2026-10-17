@@ -1,10 +1,5 @@
 import type { CatalogRequirements } from '@agent-native/contracts';
-import {
-  assertPolicyUsable,
-  isolatedPolicy,
-  loadSitePolicy,
-  type ResolvedPolicy,
-} from '@agent-native/egress';
+import { assertPolicyUsable, isolatedPolicy, loadSitePolicy, type ResolvedPolicy } from './policy';
 import type { PluginInstance, PluginOpenContext } from '@agent-native/host/plugin';
 import { assertIdentity } from './identity';
 import { portsNeeded } from './needs';

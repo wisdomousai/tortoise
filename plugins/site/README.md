@@ -7,6 +7,9 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 ## Primitives
 
 - [Site policy](../../docs/primitives.md#site-policy): `sitePlugin`, `sitePluginManifest`, `openSite`, `siteServiceOf`, `SiteService`, `assertIdentity`, `portsNeeded`, `sitePolicyFor`, `policyErrors`, `siteCommand`, `siteCliCommand`, `siteUsage`, `POLICY_REJECTED_EXIT_CODE`.
+  - **The policy itself** (`policy`): `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`. It binds declared destinations to addresses and sets a floor on plain transport, ingress (loopback, TLS or mTLS), identity, grant lifetime and audit mode. Problems are findings in the order they were found; `assertPolicyUsable` refuses on any error.
+  - **Processes:** `ProcessBinding`, `DeclaredProcess` and `ResolvedProcess` bind a declared process to an absolute executable, arguments, working directory, optional SHA-256 pin and environment. Findings refuse an undeclared or unbound required process, a relative path, and a variable the process plugin owns (proxy, loader or a declared secret).
+  - **Addresses** (`cidr`): `parseCidr`, `cidrContains`, `cidrIsPrivate`, `isPrivateAddress`, `isLoopbackAddress`, `isLoopbackHost`, for the networks a binding may resolve to.
 - [Task package](../../docs/primitives.md#task-package): `site install <bundle>`, `site status` and `site uninstall` (`installVerb`, `installBundle`, `installStatus`, `uninstall`, `installLayout`, `InstallRecord`). They run in the bundled binary of the application being installed.
   - **Install, in order:** verify the bundle against `--trust`; admit it against the installed release and `--approval`; copy it to `opt/agent-native/<app>/releases/<version>` and verify the copy. Then render the systemd unit and nftables rules (or WinSW XML and Windows Firewall script) with the new release's own `network export`. Migrate the workspace with that release's `migrate`, and only then repoint `current`.
   - **Layout:** data lives in `var/lib/agent-native/<app>`, outside every release, so switching releases never moves it. `--prefix` stages the same tree in another directory.
@@ -25,10 +28,12 @@ The [architecture](../../docs/architecture.md#plugins) explains how plugins use 
 | `@agent-native/site/plugin-manifest` | browser and server | `sitePluginManifest`: the `site-policy` setting and the `workforce-idp` destination.               |
 | `@agent-native/site/plugin`          | server only        | `sitePlugin`, for `defineApplication({ plugins })`.                                                |
 | `@agent-native/site/open`            | server only        | `openSite`, and `siteServiceOf` for plugins that read the resolved policy.                         |
+| `@agent-native/site/policy`          | server only        | The policy schema, `loadSitePolicy`, `resolveSitePolicy` and the resolved types other plugins read. |
+| `@agent-native/site/cidr`            | server only        | CIDR parsing and address checks, shared with the network plugin's guard.                           |
 | `@agent-native/site/policy-file`     | server only        | `sitePolicyFor` and `policyErrors`, which offline CLI verbs of other plugins use to read a policy. |
 | `@agent-native/site/cli`             | server only        | `site check`, the install verbs and `POLICY_REJECTED_EXIT_CODE`.                                   |
 
-`identity` (`assertIdentity`), `needs` (`portsNeeded`), `workforce/sign-in` and `workforce/discovery` are importable by path, as are `install/install`, `install/layout`, `install/native` (the OS commands), `install/windows` and `install/cli`.
+`src/policy/` holds the schema, URL and port rules, per-binding checks, processes, offline consequences and profile floors. `identity` (`assertIdentity`), `needs` (`portsNeeded`), `workforce/sign-in` and `workforce/discovery` are importable by path, as are `install/install`, `install/layout`, `install/native` (the OS commands), `install/windows` and `install/cli`.
 
 What the plugin does at each lifecycle hook:
 
@@ -69,7 +74,7 @@ Gaps:
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/egress` (policy schema and resolution), `@agent-native/adapters/cli`, `@agent-native/runtime` (types), `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`, `components`), `@agent-native/kernel/authority` (`LOCAL_WORKSPACE`), `@agent-native/agents/oidc` (ID-token verification). External: `jose`, for the provider's key set.
+Framework: `@agent-native/contracts`, `@agent-native/adapters/cli`, `@agent-native/runtime` (types), `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`, `components`), `@agent-native/kernel/authority` (`LOCAL_WORKSPACE`), `@agent-native/agents/oidc` (ID-token verification). External: `zod`, for the policy schema, and `jose`, for the provider's key set.
 
 ## Tests
 
@@ -88,6 +93,8 @@ The plugin is exercised through applications that compose it, because a policy o
 - a tampered release reported by `status`;
 - a tampered bundle refused while `current` stays put;
 - uninstall keeping data.
+
+`test/policy.test.ts` resolves policies against a fixed catalog: CIDR matching, the isolated default, binding checks, profile floors, process bindings, the workforce issuer rules, and listener files loaded next to the policy.
 
 `test/workforce.test.ts` signs in against a fake provider answered by the injected destination fetch: the redirect parameters and PKCE pair, a one-use state, sign-out, session expiry, and refusals for another audience, an unverified email and a discovery document naming another issuer. It also covers which callers `external` admits.
 

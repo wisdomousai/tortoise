@@ -10,7 +10,7 @@ import {
   type AuditRecord,
   type NetworkDestination,
 } from '@agent-native/contracts';
-import { isolatedPolicy, loadSitePolicy } from '@agent-native/egress';
+import { isolatedPolicy, loadSitePolicy } from '@agent-native/site/policy';
 import { defineApplication } from '@agent-native/host/application';
 import { defineManifest } from '@agent-native/host/manifest';
 import { defineHostPlugin } from '@agent-native/host/plugin';

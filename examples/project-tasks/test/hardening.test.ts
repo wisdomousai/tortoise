@@ -4,7 +4,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import type { SitePolicyInput } from '@agent-native/egress';
+import type { SitePolicyInput } from '@agent-native/site/policy';
 import { startHost } from '@agent-native/host/host';
 import { writeApplicationEntry } from '../../../scripts/application-entry';
 import projectTasks from '../application';

@@ -11,7 +11,7 @@ import {
   type AuditRecord,
   type ProcessRequirement,
 } from '@agent-native/contracts';
-import { resolveSitePolicy } from '@agent-native/egress';
+import { resolveSitePolicy } from '@agent-native/site/policy';
 import { defineApplication } from '@agent-native/host/application';
 import { defineManifest } from '@agent-native/host/manifest';
 import { bunProcesses, defineHostPlugin } from '@agent-native/host/plugin';

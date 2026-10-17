@@ -239,7 +239,7 @@ partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell
 
 _The kernel port that starts declared child processes from the site policy's bindings; its default refuses._
 
-partial · `packages/kernel` `packages/egress` `packages/host` `plugins/process`
+partial · `packages/kernel` `packages/host` `plugins/site` `plugins/process`
 
 ### UI registry
 
@@ -357,7 +357,7 @@ implemented · `packages/contracts`
 
 _Deployment data that binds declared destinations to addresses and sets a hardening floor._
 
-implemented · `packages/egress` `plugins/site`
+implemented · `plugins/site`
 
 ### Workforce sign-in
 
@@ -375,7 +375,7 @@ partial · `plugins/station-sign-in` `packages/kernel/src/plugin.ts`
 
 _The only path from server code, and from declared child processes, to the network._
 
-implemented · `packages/egress` `plugins/network` `scripts`
+implemented · `plugins/network` `scripts`
 
 ### Event log
 
@@ -387,7 +387,7 @@ implemented · `packages/contracts` `packages/runtime` `packages/event-log` `plu
 
 _An isolation boundary and credential broker for tools an agent runs._
 
-partial · `packages/egress` `plugins/network`
+partial · `plugins/network`
 
 ### Profile
 

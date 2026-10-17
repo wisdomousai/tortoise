@@ -42,7 +42,7 @@ Generation is deterministic. Control mappings are indicative and are not a certi
 
 Framework:
 
-- `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/egress` and `@agent-native/event-log`;
+- `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/site/policy` (types) and `@agent-native/event-log`;
 - `@agent-native/adapters/cli`;
 - `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`, `components`) and `@agent-native/frame/plugin-screens`;
 - `@agent-native/site` (the policy) and `@agent-native/audit` (the log and exit code).

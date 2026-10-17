@@ -14,7 +14,7 @@ import {
   type NetworkDestination,
 } from '@agent-native/contracts';
 import { z } from 'zod';
-import { loadSitePolicy } from '@agent-native/egress';
+import { loadSitePolicy } from '@agent-native/site/policy';
 import { openJsonlEventLog, verifyEventLog } from '@agent-native/event-log';
 import { createApplication, createMemoryStorage } from '@agent-native/runtime';
 import {
