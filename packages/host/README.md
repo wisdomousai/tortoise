@@ -77,5 +77,5 @@ The shell and delivery routes are tested with a fixture application in `plugins/
 
 ## Skills
 
-- [write-host-plugin](../../skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
-- [create-agent-native-app](../../skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.
+- [write-host-plugin](skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
+- [create-agent-native-app](../scaffold/skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.

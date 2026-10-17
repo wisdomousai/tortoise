@@ -5,7 +5,7 @@ description: Create a new agent-native application from this framework with `bun
 
 # Create an agent-native application
 
-Preserve the user's actual business domain. `scaffold new` exports the framework and a thin starter with a generated application as the only content, and `scaffold add` extends it with collections, capabilities and targets. Shaping those generated parts into the requested domain is authored work. `scaffold --example <name>` exports one reference example instead. Read [the setup reference](references/new-application.md) for the commands and what the export contains.
+Preserve the user's actual business domain. `scaffold new` exports the framework and a thin starter with a generated application as the only content, and `scaffold add` extends it with collections, capabilities and targets. Shaping those generated parts into the requested domain is authored work. `scaffold --example <name>` exports one reference example instead. With `--registry <url>` (or `--published` for npm's registry) the new application installs the framework packages at the checkout's version instead of copying their source; `bun run release:serve` serves them on loopback to try that before anything is published. Read [the setup reference](references/new-application.md) for the commands and what the export contains.
 
 ## Before writing
 
@@ -25,20 +25,20 @@ Pick the closest example as the pattern to read:
 
 | Task | Skill |
 | --- | --- |
-| A command or query, a record shape, a trigger | `skills/add-capability/SKILL.md` |
+| A command or query, a record shape, a trigger | `packages/runtime/skills/add-capability/SKILL.md` |
 | Writes another system must accept, sync, live reads | `packages/integration/skills/connect-system-of-record/SKILL.md` |
 | Screens and registry components | `packages/frame/skills/build-screens/SKILL.md` |
-| A cross-cutting concern several applications compose | `skills/write-host-plugin/SKILL.md` |
+| A cross-cutting concern several applications compose | `packages/host/skills/write-host-plugin/SKILL.md` |
 | Instruments and machines through a driver process | `plugins/connector-driver/skills/write-hardware-driver/SKILL.md` |
 | Station software with no API, through its screen | `packages/station/skills/bridge-station-screen/SKILL.md` |
 | Barcode scanners and point-of-work input | `packages/devices/skills/add-scanner-input/SKILL.md` |
 | Share targets, shortcuts, intents, notifications | `packages/shell/skills/add-os-integration/SKILL.md` |
 | The phone or tablet host, native plugins, pairing | `packages/mobile/skills/extend-mobile-host/SKILL.md` |
 | Site policy, signed bundles, install on a machine | `plugins/site/skills/deploy-to-site/SKILL.md` |
-| Which checks to run and how to report them | `skills/check-a-change/SKILL.md` |
+| Which checks to run and how to report them | `packages/testing/skills/check-a-change/SKILL.md` |
 
-AGENTS.md lists the same skills; `bun install` links them for Claude Code and Codex.
+AGENTS.md lists the same skills; `bun install` links them for Claude Code and Codex. In an application that installs the framework from a registry, these skills come from the installed packages under `node_modules/@agent-native/`, and the steps that change framework source apply in the framework checkout instead.
 
 ## Reporting
 
-Run the checks the `check-a-change` skill names and report what actually passed. Generated source and deterministic tests do not establish provider login, live inference, native packaging, real hardware or a release. The [implementation status](../../docs/implementation-status.md) lists what has not been shown; report those gaps separately from scaffolding success. Do not reuse discovered credentials, publish a release or install global agent configuration as part of scaffolding.
+Run the checks the `check-a-change` skill names and report what actually passed. Generated source and deterministic tests do not establish provider login, live inference, native packaging, real hardware or a release. The [implementation status](../../../../docs/implementation-status.md) lists what has not been shown; report those gaps separately from scaffolding success. Do not reuse discovered credentials, publish a release or install global agent configuration as part of scaffolding.

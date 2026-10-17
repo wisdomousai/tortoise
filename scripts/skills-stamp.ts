@@ -1,5 +1,5 @@
 /**
- * Records the public surface the skills were reviewed against in `skills/reviewed-surface.json`:
+ * Records the public surface the skills were reviewed against in `scripts/reviewed-surface.json`:
  * each package, plugin and SDK's entrypoints and exported names, and the root package scripts.
  * Run it after reviewing the skills that `bun run check:skills` names for a changed surface, and
  * commit the file with the skill changes, so the diff shows what was reviewed. Without arguments

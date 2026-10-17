@@ -35,30 +35,30 @@ Design on engineering merits. The rest of this section is advice; depart from it
 
 ## Skills
 
-Skills are task guides for coding agents. A repo-wide skill lives in `skills/<name>/`; a workspace keeps the skills for its own extension points in `<workspace>/skills/<name>/`. `bun install` links them into `.claude/skills/` (Claude Code) and `.agents/skills/` (Codex) through the root `postinstall`; after adding or renaming a skill, run `bun run skills:link`. The links are not committed.
+Skills are task guides for coding agents. Each lives in the workspace whose extension points it describes, in `<workspace>/skills/<name>/`, so it ships in that package and an application that installs the framework from a registry gets it from `node_modules`. An application's own skills go in its workspace or in a root `skills/<name>/`. `bun install` links them into `.claude/skills/` (Claude Code) and `.agents/skills/` (Codex) through the root `postinstall`; after adding or renaming a skill, run `bun run skills:link`. The links are not committed.
 
 | Task | Skill |
 | --- | --- |
-| Start an application, export an example, pick the next skill | `skills/create-agent-native-app/SKILL.md` |
-| Add or change a command or query, a record shape or a trigger | `skills/add-capability/SKILL.md` |
-| Write a host plugin for a cross-cutting concern | `skills/write-host-plugin/SKILL.md` |
-| Choose the checks and report the evidence | `skills/check-a-change/SKILL.md` |
-| Connect a system of record: outbox, settle, sync, live reads | `packages/integration/skills/connect-system-of-record/SKILL.md` |
-| Build screens and registry components | `packages/frame/skills/build-screens/SKILL.md` |
-| Bridge station software through its screen | `packages/station/skills/bridge-station-screen/SKILL.md` |
-| Add scanner and point-of-work input | `packages/devices/skills/add-scanner-input/SKILL.md` |
-| Add OS handlers, actions and native registrations | `packages/shell/skills/add-os-integration/SKILL.md` |
-| Extend the mobile host: native plugins, pairing | `packages/mobile/skills/extend-mobile-host/SKILL.md` |
-| Write a hardware driver | `plugins/connector-driver/skills/write-hardware-driver/SKILL.md` |
-| Deploy to a site: policy, signed bundles, install | `plugins/site/skills/deploy-to-site/SKILL.md` |
+| Start an application, export an example, pick the next skill | [create-agent-native-app](packages/scaffold/skills/create-agent-native-app/SKILL.md) |
+| Add or change a command or query, a record shape or a trigger | [add-capability](packages/runtime/skills/add-capability/SKILL.md) |
+| Write a host plugin for a cross-cutting concern | [write-host-plugin](packages/host/skills/write-host-plugin/SKILL.md) |
+| Choose the checks and report the evidence | [check-a-change](packages/testing/skills/check-a-change/SKILL.md) |
+| Connect a system of record: outbox, settle, sync, live reads | [connect-system-of-record](packages/integration/skills/connect-system-of-record/SKILL.md) |
+| Build screens and registry components | [build-screens](packages/frame/skills/build-screens/SKILL.md) |
+| Bridge station software through its screen | [bridge-station-screen](packages/station/skills/bridge-station-screen/SKILL.md) |
+| Add scanner and point-of-work input | [add-scanner-input](packages/devices/skills/add-scanner-input/SKILL.md) |
+| Add OS handlers, actions and native registrations | [add-os-integration](packages/shell/skills/add-os-integration/SKILL.md) |
+| Extend the mobile host: native plugins, pairing | [extend-mobile-host](packages/mobile/skills/extend-mobile-host/SKILL.md) |
+| Write a hardware driver | [write-hardware-driver](plugins/connector-driver/skills/write-hardware-driver/SKILL.md) |
+| Deploy to a site: policy, signed bundles, install | [deploy-to-site](plugins/site/skills/deploy-to-site/SKILL.md) |
 
 How skills stay current with the code (`bun run check:skills` enforces the first three points):
 
 - A skill is named for a task, not a package, and names are unique across the repo. The owning workspace's README links it, and this table lists it.
 - Every package, plugin and SDK README has a `## Skills` section that links the skills covering it, or says why none do.
-- `skills/reviewed-surface.json` records each of those workspaces' entrypoints and exported names, and the root package scripts, as of the last skill review. When the code changes that surface, the check names the skills to review. Update them in the same commit for what changed, then run `bun run skills:stamp <workspace>`. Stamping without reading the skills defeats the check; the stamp's diff shows reviewers what was reviewed.
+- `scripts/reviewed-surface.json` records each of those workspaces' entrypoints and exported names, and the root package scripts, as of the last skill review. When the code changes that surface, the check names the skills to review. Update them in the same commit for what changed, then run `bun run skills:stamp <workspace>`. Stamping without reading the skills defeats the check; the stamp's diff shows reviewers what was reviewed.
 - When a workspace gains an extension point that other code uses and no skill covers it, add a skill there.
-- When two skills repeat the same steps, move those steps into a repo-wide skill and link to it.
+- When two skills repeat the same steps, keep the steps in the skill of the package that owns them and link to it from the other.
 - A skill links to docs and READMEs for detail instead of copying it. Paths it names must exist.
 
 ## Working practice

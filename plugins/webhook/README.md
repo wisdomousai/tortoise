@@ -51,4 +51,4 @@ The status screen's binding is checked by `examples/project-tasks/test/ui-bindin
 
 ## Skills
 
-- [write-host-plugin](../../skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
+- [write-host-plugin](../../packages/host/skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.

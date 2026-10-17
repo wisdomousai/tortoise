@@ -45,4 +45,4 @@ bun test plugins/automation
 
 ## Skills
 
-- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
+- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.

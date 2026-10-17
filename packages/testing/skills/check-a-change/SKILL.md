@@ -5,7 +5,7 @@ description: Choose and run the checks for a change in this repository and repor
 
 # Check a change
 
-`bun run check` is what every change must pass. [Development and testing](../../docs/development-and-testing.md) explains each check and lists the focused scripts. Run the focused ones while working, and the full check before calling the work done.
+`bun run check` is what every change must pass. [Development and testing](../../../../docs/development-and-testing.md) explains each check and lists the focused scripts. Run the focused ones while working, and the full check before calling the work done.
 
 ## Focused checks by kind of change
 
@@ -20,8 +20,12 @@ description: Choose and run the checks for a change in this repository and repor
 | Network or firewall exports | `bun test plugins/network`; regenerate goldens with `UPDATE_GOLDEN=1` and review the diff |
 | Mobile or native screens | `bun run typecheck`, `bun run check:mobile-bundle` |
 | A driver SDK | the commands in that SDK's README |
-| The scaffold or what it exports | `bun run test:scaffold` |
+| A framework package's imports, dependencies or packed files | `bun run check:manifests`; `bun scripts/check-manifests.ts --write` rewrites the manifests |
+| A change that should reach the next framework release | `bun run changeset` to record it; the release scripts are in [development and testing](../../../../docs/development-and-testing.md#framework-packages) |
+| The scaffold or what it exports | `bun run test:scaffold`; `SCAFFOLD_ACCEPTANCE=1 bun test packages/scaffold/src/generate.test.ts -t "from a registry"` for an export that installs the framework |
 | A README, doc link or skill | `bun run check:readmes`, `bun run check:skills` |
+
+In an application that installs the framework from a registry, the framework rows do not apply; `bun run check` there runs what the export keeps, and `bun run check:framework` fails when two framework versions are installed.
 
 Subprocess tests can time out under load; rerun before treating a timeout as a regression. A sandbox that blocks listening sockets makes service tests report `EADDRINUSE`.
 
@@ -42,5 +46,5 @@ Say which checks were skipped and why. A build is not a browser run, an export i
 - **`docs/implementation-status.md`:** edit the area's entry when the change adds or invalidates browser, native, live or by-hand evidence, or closes or opens a known gap. Do not restate what tests prove.
 - **`docs/primitives.md`:** update the entry when a building block's meaning, status or location changes.
 - **The workspace README:** keep its Primitives, Entrypoints, Trust boundary, Dependencies and Tests sections true.
-- **The skills:** when `bun run check:skills` reports a changed surface, read each skill it names and update it for what changed: new or renamed entrypoints, exports, steps, commands and checks. Then run `bun run skills:stamp <workspace>` and commit the skill and `skills/reviewed-surface.json` with the code. A changed behavior with an unchanged surface (a new rule, a changed default, a new limit) needs the same review without the check's prompt. AGENTS.md lists every skill and how they grow.
+- **The skills:** when `bun run check:skills` reports a changed surface, read each skill it names and update it for what changed: new or renamed entrypoints, exports, steps, commands and checks. Then run `bun run skills:stamp <workspace>` and commit the skill and `scripts/reviewed-surface.json` with the code. A changed behavior with an unchanged surface (a new rule, a changed default, a new limit) needs the same review without the check's prompt. AGENTS.md lists every skill and how they grow.
 - Generated references are never committed. `bun run generate` writes them to `dist/reference/`.

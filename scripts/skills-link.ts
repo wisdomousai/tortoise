@@ -1,8 +1,8 @@
 /**
  * Exposes every skill of the checkout to the coding agents that read project skills: Claude Code
  * from `.claude/skills/` and Codex from `.agents/skills/`. Each entry is a relative directory
- * symlink to the skill's source in `skills/` or `<workspace>/skills/`, so editing the source is
- * enough and nothing is copied. Both directories are ignored by Git and left out of a scaffold
+ * symlink to the skill's source in a workspace's `skills/`, the root `skills/`, or an installed
+ * framework package's `skills/`, so editing the source is enough and nothing is copied. Both directories are ignored by Git and left out of a scaffold
  * export. `bun install` runs it as the root `postinstall`; run it by hand after adding or renaming
  * a skill, which `bun run check:skills` reports.
  *
@@ -19,12 +19,12 @@ import {
   symlinkSync,
 } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
-import { linkDirectories, root, skills } from './skills';
+import { installedSkills, linkDirectories, root, skills } from './skills';
 
 // `--postinstall` (from `bun install`) reports a blocked link instead of failing the install.
 const postinstall = process.argv.includes('--postinstall');
 const destinations = linkDirectories;
-const found = skills();
+const found = [...skills(), ...installedSkills()];
 const blocked: string[] = [];
 let changed = 0;
 

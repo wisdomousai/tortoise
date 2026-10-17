@@ -11,7 +11,7 @@ Screens are the browser half of an application. They read through live queries a
 
 - Start from a registry item before writing a component. `collection-screen` builds list and record screens from a collection's generated capabilities, `capability-form` renders any command, and `live-data-table` pages after the authority scopes rows. They live in `packages/frame/src/components`.
 - For gloved or high-frequency input, use the `operator` registry (`packages/operator-ui`) and read [point-of-work input](../../../../docs/point-of-work-input.md). `examples/quality-inspection/ui/capture-station.tsx` is the pattern for repeated entry; `examples/line-station/ui/station.tsx` composes a full station screen.
-- Each command a screen issues must be declared with a matching `ui.binding` on its capability (the `add-capability` skill, `skills/add-capability/SKILL.md`).
+- Each command a screen issues must be declared with a matching `ui.binding` on its capability (the `add-capability` skill, `packages/runtime/skills/add-capability/SKILL.md`).
 
 ## Steps
 

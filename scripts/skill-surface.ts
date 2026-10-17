@@ -2,7 +2,7 @@
  * The public surface of a workspace: each entrypoint in its `package.json` `exports`, with the
  * names that entrypoint exports, values and types alike. Skills describe how to use that surface,
  * so `check-skills` compares it with the surface they were last reviewed against
- * (`skills/reviewed-surface.json`). The scan reads TypeScript source as text and follows
+ * (`scripts/reviewed-surface.json`). The scan reads TypeScript source as text and follows
  * `export * from` into local files; it never imports or runs workspace code. It is a reviewer's
  * signal, not a type checker, so the stamp and the check only need to agree with each other.
  */

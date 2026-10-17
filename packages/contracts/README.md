@@ -61,6 +61,6 @@ bun test packages/contracts
 
 ## Skills
 
-- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
+- [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
 - [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox settlement, sync and live reads.
 - [add-os-integration](../shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

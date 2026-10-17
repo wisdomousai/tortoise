@@ -5,12 +5,12 @@ description: Write a host plugin in plugins/<name> for a cross-cutting concern (
 
 # Write a host plugin
 
-A host plugin adds modules, a state slice, a policy, settings, lifecycle hooks and ports to the host. An application lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one, and its README walks through every part. [Architecture](../../docs/architecture.md#plugins) describes the lifecycle.
+A host plugin adds modules, a state slice, a policy, settings, lifecycle hooks and ports to the host. An application lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one, and its README walks through every part. [Architecture](../../../../docs/architecture.md#plugins) describes the lifecycle.
 
 ## Before writing
 
-- Decide whether this is a plugin at all. Domain behavior for one application is a capability in that application (the `add-capability` skill, `skills/add-capability/SKILL.md`). Generic host or frame behavior that every application needs goes in the framework packages.
-- Look at the existing plugins in `plugins/*` and at [primitives](../../docs/primitives.md#host-plugin) for one that already covers the concern.
+- Decide whether this is a plugin at all. Domain behavior for one application is a capability in that application (the `add-capability` skill, `packages/runtime/skills/add-capability/SKILL.md`). Generic host or frame behavior that every application needs goes in the framework packages.
+- Look at the existing plugins in `plugins/*` and at [primitives](../../../../docs/primitives.md#host-plugin) for one that already covers the concern.
 - A plugin imports the framework and the plugins it requires. It never imports `apps/*` or `examples/*`.
 
 ## Steps
@@ -36,4 +36,4 @@ bun run check:boundaries
 bun run generate
 ```
 
-Test it through a fixture application inside the plugin's own `test/`, never through an example. Include startup refusal for bad settings, the port refusing when no plugin provides it, and a behavioral scenario through the direct driver. Then follow the `check-a-change` skill (`skills/check-a-change/SKILL.md`).
+Test it through a fixture application inside the plugin's own `test/`, never through an example. Include startup refusal for bad settings, the port refusing when no plugin provides it, and a behavioral scenario through the direct driver. Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`).

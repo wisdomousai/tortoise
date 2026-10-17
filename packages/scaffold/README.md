@@ -9,7 +9,7 @@ Layer: framework (`packages/*`). Server-side CLI.
 - [Scaffold](../../docs/primitives.md#scaffold): `scaffold`, `scaffoldNew`, `scaffoldAdd`, `ScaffoldOptions`, `ScaffoldManifest`, `NewOptions`, `AddRequest`, `AddOptions`.
 - [Framework release](../../docs/primitives.md#framework-release): `installedFramework`, the check behind `bun run check:framework`.
 
-Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` [UI registry](../../docs/primitives.md#ui-registry) item. The root [README](../../README.md#create-another-app) shows the export flow, and the [setup skill](../../skills/create-agent-native-app/SKILL.md) guides an agent through both. An export carries every skill in `skills/` and in workspace `skills/` directories, but not the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
+Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` [UI registry](../../docs/primitives.md#ui-registry) item. The root [README](../../README.md#create-another-app) shows the export flow, and the [setup skill](skills/create-agent-native-app/SKILL.md) guides an agent through both. Skills live in each workspace's `skills/` directory and travel with it: a source export copies them, and an installed-framework export gets them from the installed packages. Neither carries the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
 
 ## Entrypoints
 
@@ -64,4 +64,4 @@ bun run test:scaffold:full   # the export flows, and a new application installed
 
 ## Skills
 
-- [create-agent-native-app](../../skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.
+- [create-agent-native-app](skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.

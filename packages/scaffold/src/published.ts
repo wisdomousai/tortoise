@@ -27,6 +27,10 @@ const frameworkScripts = new Set([
   'scripts/workspace-manifests.ts',
   'scripts/release.ts',
   'scripts/local-registry.ts',
+  // The framework's exports as of its last skill review, and the script that records them; the
+  // export has no framework source to review.
+  'scripts/reviewed-surface.json',
+  'scripts/skills-stamp.ts',
 ]);
 
 /** Whether a published-framework export leaves `path` out. */

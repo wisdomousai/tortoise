@@ -69,5 +69,5 @@ bun run test:portable
 
 ## Skills
 
-- [write-host-plugin](../../skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
-- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
+- [write-host-plugin](../host/skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
+- [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.

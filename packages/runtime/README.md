@@ -79,4 +79,4 @@ The storage conformance suite that every `Storage` adapter must pass is `example
 
 ## Skills
 
-- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
+- [add-capability](skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.

@@ -13,7 +13,7 @@
  * It keeps skills current with the code they describe. Every package, plugin and SDK README has a
  * `## Skills` section naming the skills that cover it, or why none do. The check fails when a
  * workspace's public surface (entrypoints and exported names, see `skill-surface.ts`) or the root
- * package scripts differ from `skills/reviewed-surface.json`, and names the skills to review;
+ * package scripts differ from `scripts/reviewed-surface.json`, and names the skills to review;
  * `bun run skills:stamp` records the surface once they are reviewed. When the agents' link
  * directories exist, a missing or stale link fails too.
  *
@@ -118,16 +118,19 @@ for (const workspace of surfaceWorkspaces()) {
   reviewers.set(workspace, section.skills);
 }
 
-// Drift: the surface the skills were last reviewed against.
+// Drift: the surface the skills were last reviewed against. An application that installs the
+// framework from a registry has no framework workspaces and no record of them.
 let recorded: Record<string, string[]> = {};
+const tracked = surfaceWorkspaces().length > 0;
 try {
   recorded = JSON.parse(readFileSync(join(root, reviewedSurfaceFile), 'utf8'));
 } catch {
-  errors.push(
-    `${reviewedSurfaceFile} is missing; review the skills, then run bun run skills:stamp`,
-  );
+  if (tracked)
+    errors.push(
+      `${reviewedSurfaceFile} is missing; review the skills, then run bun run skills:stamp`,
+    );
 }
-const current = currentSurface(root);
+const current = tracked ? currentSurface(root) : {};
 const listed = (items: string[]) =>
   items.length > 8
     ? `${items.slice(0, 8).join(', ')} and ${items.length - 8} more`

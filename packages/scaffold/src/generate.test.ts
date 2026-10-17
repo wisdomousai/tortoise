@@ -68,6 +68,9 @@ test('a published-framework export depends on framework versions instead of copy
   expect((await readdir(target)).sort()).not.toContain('packages');
   expect(await readdir(target)).not.toContain('plugins');
   expect(await readdir(target)).not.toContain('bun.lock');
+  // Skills come from the installed packages; the framework's review record stays behind.
+  expect(await readdir(join(target, 'scripts'))).not.toContain('reviewed-surface.json');
+  expect(await readdir(join(target, 'scripts'))).toContain('skills-link.ts');
   const root = JSON.parse(await read(join(target, 'package.json')));
   expect(root.workspaces).toEqual(['apps/*', 'examples/*']);
   expect(root.dependencies).toMatchObject({

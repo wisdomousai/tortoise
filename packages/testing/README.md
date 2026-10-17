@@ -52,6 +52,6 @@ bun run test:conformance
 
 ## Skills
 
-- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
+- [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
 - [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox settlement, sync and live reads.
-- [check-a-change](../../skills/check-a-change/SKILL.md): which checks to run and how to report the evidence.
+- [check-a-change](skills/check-a-change/SKILL.md): which checks to run and how to report the evidence.
