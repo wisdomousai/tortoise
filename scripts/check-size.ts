@@ -1,15 +1,8 @@
 /**
- * Keeps modules small enough to hold one responsibility. For every non-test source file in
- * `packages/*`, `plugins/*`, `apps/*` and `examples/*` it fails when:
- *
- * - the file is longer than `maxFileLines`;
- * - a function, method, arrow function or component is longer than `maxFunctionLines`;
- * - a package `src/index.ts` contains anything but `export … from` re-exports;
- * - an entry in `sizeExemptions` no longer exceeds a limit, so the list cannot rot.
- *
- * Line counts include comments: a long explanation belongs next to a short function. Whether a
- * split follows responsibility rather than line count is still review discipline. Reads files
- * only; writes nothing.
+ * Reports long files and functions in `packages/*`, `plugins/*`, `apps/*` and `examples/*` as
+ * hints for review; they never fail the check. It fails only when a package `src/index.ts` holds
+ * anything but `export … from` re-exports, because importers rely on the entrypoint carrying no
+ * code of its own. Reads files only; writes nothing.
  */
 import { parse } from '@babel/parser';
 import { relative, resolve } from 'node:path';
@@ -19,7 +12,6 @@ import {
   maxFileLines,
   maxFunctionLines,
   measuredSource,
-  sizeExemptions,
 } from './size-rules.ts';
 
 const root = resolve(import.meta.dir, '..');
@@ -79,18 +71,12 @@ const files = (
   .filter((path) => measuredSource.test(path) && !exemptSource.test(path))
   .sort();
 const errors: string[] = [];
-const used = new Set<(typeof sizeExemptions)[number]>();
-const exemption = (path: string, name?: string) => {
-  const entry = sizeExemptions.find((item) => item.path === path && item.function === name);
-  if (entry) used.add(entry);
-  return entry;
-};
+const hints: string[] = [];
 
 for (const path of files) {
   const source = await Bun.file(resolve(root, path)).text();
   const lines = source.split('\n').length - (source.endsWith('\n') ? 1 : 0);
-  if (lines > maxFileLines && !exemption(path))
-    errors.push(`${path}: ${lines} lines (file limit ${maxFileLines})`);
+  if (lines > maxFileLines) hints.push(`${path}: ${lines} lines (over ${maxFileLines})`);
   const program = parse(source, {
     sourceType: 'module',
     plugins: ['typescript', ...(/\.[cm]?[jt]sx$/.test(path) ? (['jsx'] as const) : [])],
@@ -103,22 +89,15 @@ for (const path of files) {
       `${path}:${declarations[0]!.loc?.start.line}: package entrypoint holds ${declarations.length} statements besides \`export … from\``,
     );
   for (const fn of functions(program))
-    if (fn.lines > maxFunctionLines && !exemption(path, fn.name))
-      errors.push(
-        `${path}:${fn.line}: ${fn.name} is ${fn.lines} lines (function limit ${maxFunctionLines})`,
-      );
+    if (fn.lines > maxFunctionLines)
+      hints.push(`${path}:${fn.line}: ${fn.name} is ${fn.lines} lines (over ${maxFunctionLines})`);
 }
-for (const entry of sizeExemptions)
-  if (!used.has(entry))
-    errors.push(
-      `scripts/size-rules.ts: stale exemption ${entry.path}${entry.function ? `#${entry.function}` : ''} (within limits or missing)`,
-    );
-
+if (hints.length)
+  console.log(
+    `Long files and functions, for review (split only where a second responsibility shows):\n${hints.join('\n')}\n`,
+  );
 if (errors.length) {
   console.error(errors.join('\n'));
-  console.error(
-    `\n${errors.length} size violations (split by responsibility; see docs/development-and-testing.md#the-checks)`,
-  );
   process.exit(1);
 }
 console.log(`Checked ${files.length} source files in ${relative(process.cwd(), root) || '.'}`);

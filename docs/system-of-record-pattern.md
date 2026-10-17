@@ -1,6 +1,6 @@
 # System-of-record pattern
 
-This is what the repository implements of the [task/workflow pattern](task-workflow-pattern.md). A bounded capture application sits in front of a system of record (SoR) and forwards what it captures through a transactional outbox. People, CLIs and MCP clients can use every operation. The [reference plan](system-of-record-reference-plan.md) sets fuller acceptance gates, and the [last section](#status-against-the-reference-plan) records which ones are met.
+A bounded capture application sits in front of a system of record (SoR) and forwards what it captures through a transactional outbox. People, CLIs and MCP clients can use every operation.
 
 Two examples carry the pattern:
 
@@ -44,7 +44,7 @@ Delivery is pending (with attempts and safe failure text), accepted (with the ex
 
 `app drain` delivers to every target until nothing is pending, then exits `0`. While effects remain it exits `75`, listing per target what is pending, what is held, what the target acknowledged but has not decided, and which targets this process cannot reach. An orchestrator keeps an ephemeral sandbox, or its workspace, until drain exits `0`. `app sync` pulls master data once per target.
 
-### Claims, acknowledgement and reconciliation
+### Claims, acknowledgement and held effects
 
 A dispatcher claims each effect before sending it. The claim names the worker, lapses after a lease, and carries a fencing token that grows with each claim. An attempt or settlement under an older token than the current claim is refused, so a worker that stalled past its lease cannot overwrite the worker that took over; its late report goes to the audit log as evidence. A lapsed claim proves nothing about the target, so the worker that takes over a non-idempotent target looks the effect up before sending.
 
@@ -94,10 +94,6 @@ The web app is the starter around the web frame. Behavior that matters for trust
 
 The host's CSP rejects injected styles, so components that inject them at runtime are replaced by native dialogs and selects.
 
-### Measured economics
-
-Each result records who captured it. The authority derives this: a call under a run or delegation is an agent, anything else a person. The client reports how long each capture took. A metrics query returns median and p90 per actor, corrections, out-of-tolerance counts and SoR acceptance latency, scoped to the caller's plants. These figures come from synthetic runs. Claims about productivity or licence savings need a deployment baseline, real devices and real volumes.
-
 ## Command line and MCP
 
 `bun run build:cli` compiles the configured application's CLI into one executable that needs no Bun, Node or package install. Every catalog operation is a subcommand with flags typed from its input schema, for example `app inspection result record --lot-id 4000001 --characteristic-id C10 --value 220.01 --occurred-at 1791370306000 --key r-1`. Nested objects take JSON, and `--json` supplies the whole input. `--dry-run` validates without executing, as advice only, because the authority validates and authorizes again. `help`, `schema` and `workflows` work without an authority.
@@ -117,24 +113,11 @@ Each result records who captured it. The authority derives this: a call under a 
 
 The generated application skill lists the CLI form next to the MCP tool name for every workflow.
 
-## Caveats
+## Limits
 
 - The SoR stays the authority for master data and legal or financial postings. The application owns its capture working set, its pending effects and their outcomes.
 - Delivery across two systems is at least once, with deduplication or lookup on the SoR side. Exactly once is not achievable here.
-- Licence savings need contract review, because records created through APIs or integration users can themselves be licensed.
 - The fake quality system and fake CRM are in-memory and per process. They are adequate for demos and tests, and they are not stand-ins for a persistent upstream. The fake CRM keeps demo credentials in memory, and a deployment backs caller credentials with its vault.
-- The workspace is one JSON snapshot, rewritten per commit. It suits one station's open work, not large master data.
 - A grant limited to specific resources cannot create child records whose IDs it cannot name in advance.
 
 The evidence for each part is in the [implementation status](implementation-status.md).
-
-## Status against the reference plan
-
-| Plan gate                     | Status                                                                                                                                                                                                                                                                                                   |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Bounded domain             | Met, with quality inspection. Retries deduplicate by key, and a second submission for a recorded sample conflicts; there is no general identity for business events across principals.                                                                                                                   |
-| 2. Intent durability and port | Met in one process: atomic intent, delivery outside the transaction, trusted settlement, idempotent and lookup targets, crash-safe redelivery, worker claims with fencing, upstream-pending, cancel before a claim, the actor recheck before dispatch and the effect phases. Not shown across processes. |
-| 3. UI and bidirectional sync  | Partly met: capture UI, live outcomes and rejection triage in a browser, watermark-bound sync. Upstream versions drop out-of-order feed items. Missing: conditional upstream writes, a persistent mock SoR, agent draft handoff.                                                                         |
-| 4. Execution host and broker  | Partly met: embedded MCP with fixed grants, grant-bound attach, the egress guard with a child proxy, profile floors and exported OS rules ([security and compliance](security-and-compliance.md)). Missing: an OS isolation backend and a credential broker.                                             |
-| 5. Package lifecycle          | Not met: an unsigned binary and desktop package exist, but no signed manifest, staged activation or rollback.                                                                                                                                                                                            |
-| 6. Evidence                   | Deterministic tests only. Capture timings are synthetic, and real devices, SoR APIs and inference were not exercised.                                                                                                                                                                                    |

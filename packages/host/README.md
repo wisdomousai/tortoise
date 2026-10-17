@@ -14,7 +14,7 @@ Layer: framework (`packages/*`). The starter's `apps/service` calls it; content 
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus host components the generators read.
 
-Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/project-tasks/application.ts`](../../examples/project-tasks/application.ts). The [architecture](../../docs/architecture.md#layers) explains the layering and the [plugin kernel](../../docs/architecture.md#plugins-and-a-closed-kernel).
+Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/project-tasks/application.ts`](../../examples/project-tasks/application.ts). The [architecture](../../docs/architecture.md#layers) explains the layering and the [plugin kernel](../../docs/architecture.md#plugins).
 
 ## Entrypoints
 

@@ -66,7 +66,7 @@ export const listNotes = collectionList(noteRecords, {
 ```
 
 - **Declare every change.** Each state change is declared with `ctx.change`, and an undeclared change fails. Use expected revisions for updates that depend on what the caller saw.
-- **No network calls inside a transaction.** Work that needs another system either happens before the command, as an authorized read or computation, or after it as a durable intent. Use `ctx.enqueue` on a changed resource, let the dispatcher deliver it, and record the outcome with a settle command under the integration principal ([task/workflow pattern](task-workflow-pattern.md)). Declare the outbox integration on the capability, so the generated docs say that a receipt is not acceptance. The `quality-inspection` example shows the full loop.
+- **No network calls inside a transaction.** Work that needs another system either happens before the command, as an authorized read or computation, or after it as a durable intent. Use `ctx.enqueue` on a changed resource, let the dispatcher deliver it, and record the outcome with a settle command under the integration principal ([systems of record](system-of-record-pattern.md)). Declare the outbox integration on the capability, so the generated docs say that a receipt is not acceptance. The `quality-inspection` example shows the full loop.
 - **Errors.** Use `ApplicationError` with details that are safe to show the caller.
 
 ## 3. Compose it
