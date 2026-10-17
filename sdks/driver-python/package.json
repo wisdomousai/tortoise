@@ -1,0 +1,7 @@
+{
+  "name": "@agent-native/driver-sdk-python",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Python SDK for agent-native hardware drivers; the workspace holds its host conformance test."
+}

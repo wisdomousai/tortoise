@@ -23,7 +23,11 @@ The site policy binds each driver's process ID to an absolute executable, and op
 
 ## Writing a driver
 
-A driver speaks the protocol in any language. The [Python SDK](sdk/python/README.md) answers it for a Python driver: mode gating, once-per-effect delivery with a journal, events and stubs generated from `app driver contract <id>`. A .NET SDK follows.
+A driver speaks the protocol in any language. This plugin is the language-neutral base: the contract definition, the wire protocol, the host side and the checks a driver must pass. It depends on no SDK. Each language SDK is its own package under `sdks/`, depends only on this base, and proves itself with the base's reference chamber:
+
+- [`sdks/driver-python`](../../sdks/driver-python/README.md).
+
+An SDK answers the protocol, gates by mode, delivers once per effect with a journal, sends events and generates stubs from `app driver contract <id>`. Its host test runs `checkDriver` and `chamberConformance` against its simulated chamber as a real child process.
 
 ## Contents
 
@@ -37,7 +41,7 @@ A driver speaks the protocol in any language. The [Python SDK](sdk/python/README
 | `@agent-native/connector-driver/protocol`        | server             | The JSON-RPC connection, `DriverError` and the checked answer schemas                                                                                      |
 | `@agent-native/connector-driver/supervisor`      | server             | `createDriverSupervisor`: handshake with digest check, restart with backoff, health checks, ordered events, shutdown                                       |
 | `@agent-native/connector-driver/connect`         | server             | `createDriverConnector` (a `SystemOfRecordPort` over one driver), `createDriverObserver` (state as gated readings), `createDriverIntegration` (both wired), `createDriverEventIngest` (events into an ingest command) |
-| `@agent-native/connector-driver/testing`         | server (tests)     | `createFakeDriver`, the protocol in process with injected faults, and `checkDriver`, which checks a driver executable against its contract                 |
+| `@agent-native/connector-driver/testing`         | server (tests)     | `createFakeDriver`, the protocol in process with injected faults; `checkDriver`, which checks a driver executable against its contract; `chamber`, the reference contract, and `chamberConformance`, the connector conformance suite over an SDK's simulated chamber |
 
 A contract declares state fields, actions and events. Each action has an input schema, a delivery mode, a hazard class, a timeout, and optionally a readback and preconditions on state.
 
@@ -86,7 +90,7 @@ Gaps:
 - the observer reports the first unit a driver lists, not each unit;
 - events reach subscribers, but no adapter turns them into readings yet.
 
-The fake driver, a test script and the Python SDK's simulated chamber are the only drivers so far; none has controlled equipment. The .NET SDK follows.
+Besides the fake driver and a test script, the SDKs' simulated chambers and the examples' drivers run against simulated equipment only; none has controlled a physical unit in these tests.
 
 ## Tests
 
@@ -112,4 +116,4 @@ bun test plugins/connector-driver
   - the observer's device provenance, gate reset on restart and type checks.
 - `test/events.test.ts` covers the event ingest: one command per wanted event, keyed by session and sequence, with the reporting unit; a failed ingest reported without stopping later events.
 - `test/check.test.ts` runs `checkDriver` against the fake driver, and `driver check` against `test/fixtures/chamber-driver.ts` as a real child process over stdio.
-- `test/python-driver.test.ts` runs the Python SDK: its unit tests, the stub generator, and the simulated chamber through `checkDriver` and the conformance suite as a real child process, including a crash after acting. It is skipped without `python3`.
+Each SDK's own tests run its simulated chamber against this base; see the SDK READMEs.

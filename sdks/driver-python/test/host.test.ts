@@ -1,15 +1,17 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { conformanceEffect, connectorConformance } from '@agent-native/testing/connectors';
-import { driverContractFile } from '../src/cli';
-import { createDriverConnector } from '../src/connect';
-import { createDriverSupervisor, type DriverProcess } from '../src/supervisor';
-import { checkDriver } from '../src/testing';
-import { chamber } from './fixture';
+import { driverContractFile } from '@agent-native/connector-driver/cli';
+import type { DriverProcess } from '@agent-native/connector-driver/supervisor';
+import {
+  chamber,
+  chamberConformance,
+  checkDriver,
+  type ChamberSimulation,
+} from '@agent-native/connector-driver/testing';
 
 /**
  * The Python SDK against the host: the stub generator, the protocol over a real child process,
@@ -17,7 +19,12 @@ import { chamber } from './fixture';
  * when no python3 is on PATH.
  */
 const python = Bun.which('python3');
-const sdk = join(import.meta.dir, '..', 'sdk', 'python');
+const sdk = join(import.meta.dir, '..');
+const env = (extra: Record<string, string> = {}) => ({
+  PYTHONPATH: join(sdk, 'src'),
+  PYTHONDONTWRITEBYTECODE: '1',
+  ...extra,
+});
 let root = '';
 let simulations = 0;
 
@@ -34,7 +41,7 @@ beforeAll(async () => {
       '-o',
       join(root, 'chamber_contract.py'),
     ],
-    { env: { PYTHONPATH: join(sdk, 'src'), PYTHONDONTWRITEBYTECODE: '1' }, encoding: 'utf8' },
+    { env: env(), encoding: 'utf8' },
   );
   if (generated.status !== 0) throw new Error(generated.stderr);
 });
@@ -43,29 +50,18 @@ afterAll(async () => {
 });
 
 /** A fresh simulated chamber; `start` launches its driver like the process port would. */
-function simulation() {
+function simulation(): ChamberSimulation {
   const home = join(root, `sim-${++simulations}`);
   mkdirSync(home, { recursive: true });
   const start = async (): Promise<DriverProcess> => {
     const child = spawn(python!, [join(sdk, 'examples', 'chamber_sim.py')], {
-      env: {
-        PYTHONPATH: [join(sdk, 'src'), root].join(':'),
-        PYTHONDONTWRITEBYTECODE: '1',
-        CHAMBER_SIM_DIR: home,
-      },
+      env: env({ PYTHONPATH: [join(sdk, 'src'), root].join(':'), CHAMBER_SIM_DIR: home }),
       stdio: 'pipe',
     });
     await new Promise((resolve, reject) => child.once('spawn', resolve).once('error', reject));
     return { child, terminate: () => void child.kill() };
   };
-  const applied = async (id: string) => {
-    const file = join(home, 'applied.json');
-    return existsSync(file)
-      ? ((JSON.parse(await readFile(file, 'utf8')) as Record<string, number>)[id] ?? 0)
-      : 0;
-  };
-  const control = (name: string) => writeFileSync(join(home, name), '');
-  return { home, start, applied, control };
+  return { home, start };
 }
 
 describe.skipIf(!python)('the Python SDK', () => {
@@ -86,10 +82,7 @@ describe.skipIf(!python)('the Python SDK', () => {
     const generated = spawnSync(
       python!,
       ['-m', 'agent_native_driver.stubgen', join(root, 'edited.json')],
-      {
-        env: { PYTHONPATH: join(sdk, 'src'), PYTHONDONTWRITEBYTECODE: '1' },
-        encoding: 'utf8',
-      },
+      { env: env(), encoding: 'utf8' },
     );
     expect(generated.status).toBe(1);
     expect(generated.stderr).toContain('does not match');
@@ -97,7 +90,7 @@ describe.skipIf(!python)('the Python SDK', () => {
 
   test('the SDK unit tests pass', () => {
     const run = spawnSync(python!, ['-m', 'unittest', 'discover', '-s', join(sdk, 'tests')], {
-      env: { PYTHONPATH: join(sdk, 'src'), PYTHONDONTWRITEBYTECODE: '1' },
+      env: env(),
       encoding: 'utf8',
     });
     expect(run.stderr).toContain('OK');
@@ -105,50 +98,9 @@ describe.skipIf(!python)('the Python SDK', () => {
   });
 });
 
-const inputs = {
-  'setpoint.set': { accepted: (n: number) => ({ setpoint: 40 + n }), rejected: { setpoint: 999 } },
-  'cycle.start': {
-    accepted: (n: number) => ({ program: `p${n}`, presence: { confirmedBy: 'ina' } }),
-    rejected: { program: 'refuse', presence: { confirmedBy: 'ina' } },
-  },
-  'label.print': { accepted: (n: number) => ({ text: `lot ${n}` }), rejected: { text: 'refuse' } },
-} as const;
-
-for (const [type, input] of Object.entries(inputs))
-  describe.skipIf(!python)(`a Python driver conforms for ${type}`, () => {
-    for (const check of connectorConformance(async () => {
-      const sim = simulation();
-      const supervisor = createDriverSupervisor({
-        contract: chamber,
-        start: sim.start,
-        backoff: { minMs: 0, maxMs: 0 },
-        healthMs: 0,
-      });
-      const port = createDriverConnector({
-        target: 'chamber',
-        contract: chamber,
-        supervisor,
-        control: async () => ({ mode: 'actuate' }),
-        pollMs: 5,
-      });
-      let next = 0;
-      const effect = (payload: object) =>
-        conformanceEffect({
-          id: `${type}-${++next}`,
-          target: 'chamber',
-          type,
-          payload: payload as never,
-        });
-      return {
-        port,
-        accepted: () => effect(input.accepted(next)),
-        rejected: () => effect(input.rejected),
-        applied: (target) => sim.applied(target.id),
-        failNext: () => sim.control('fail-next'),
-        interruptNext: () => sim.control('crash-next'),
-        close: () => supervisor.close(),
-      };
-    }))
+for (const { action, cases } of chamberConformance(simulation))
+  describe.skipIf(!python)(`a Python driver conforms for ${action}`, () => {
+    for (const check of cases)
       test(
         check.name,
         async () => {

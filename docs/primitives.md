@@ -315,6 +315,12 @@ _A supervised child process that controls or reads equipment, speaking JSON-RPC 
 
 partial · `plugins/connector-driver` `plugins/process` `examples/quality-inspection`
 
+### Driver SDK
+
+_A library in another language that answers the driver protocol for a driver author: mode gating, once-per-effect delivery with a journal, events and stubs generated from the contract. Each proves itself against the base's reference contract._
+
+partial · `sdks/driver-python`
+
 ### Reconciliation
 
 _A tracked state and procedure for outcomes no one can establish automatically._

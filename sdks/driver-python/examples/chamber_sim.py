@@ -1,7 +1,8 @@
 """A simulated test chamber, written with the SDK, for the host's conformance tests.
 
-It implements the test chamber contract in ``plugins/connector-driver/test/fixture.ts``. Generate
-its stub first, then run it with the stub on ``PYTHONPATH``:
+It implements the reference chamber contract, ``chamber`` in
+``plugins/connector-driver/src/testing/chamber.ts``. Generate its stub first, then run it with the
+stub on ``PYTHONPATH``:
 
     app driver contract chamber --out chamber.json
     python -m agent_native_driver.stubgen chamber.json -o chamber_contract.py

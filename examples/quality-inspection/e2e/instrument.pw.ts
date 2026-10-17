@@ -7,7 +7,7 @@ import { createInterface } from 'node:readline';
 import { startService } from '../../../tests/e2e/service';
 
 const drivers = resolve(import.meta.dirname, '..', 'drivers', 'instrument');
-const sdk = resolve(import.meta.dirname, '../../../plugins/connector-driver/sdk/python/src');
+const sdk = resolve(import.meta.dirname, '../../../sdks/driver-python/src');
 
 /**
  * A Python environment for the driver, made the way a site installs one: a venv with pyserial

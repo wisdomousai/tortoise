@@ -4,12 +4,13 @@
 
 ## Layers
 
-Four layers: **framework** `packages/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*`.
+Four layers: **framework** `packages/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
 
 - The framework and the starter name no domain and import no plugin or example. The starter hosts the one application named in `app.config.json`.
 - An example is an application with `manifest` (browser-safe), `application` (server) and `screens` (browser) entrypoints. Its domain code, fakes, screens and tests stay in the example; framework tests never import one.
 - A cross-cutting concern (site policy, network, audit, compliance) is a host plugin in `plugins/<name>`, with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. A plugin imports the framework and the plugins it requires, reaches the network, ingress, identity and audit log through kernel ports, and writes only through its own commands.
 - Generic host or frame behavior goes in the framework, so a forked starter keeps receiving it.
+- A driver SDK in `sdks/<language>` implements the driver protocol that `plugins/connector-driver` defines, and proves itself against that plugin's reference contract. Nothing else imports an SDK, so the host depends on no driver language, and an SDK imports no application.
 
 ## Invariants
 

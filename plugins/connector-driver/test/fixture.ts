@@ -1,58 +1,8 @@
-import { jsonSchema } from '@agent-native/contracts';
-import { z } from 'zod';
 import { createDriverConnector } from '../src/connect';
-import { defineDriverContract } from '../src/contracts';
 import { createDriverSupervisor, type DriverMode } from '../src/supervisor';
-import { createFakeDriver, FakeRefusal } from '../src/testing';
+import { chamber, createFakeDriver, FakeRefusal } from '../src/testing';
 
-/** A temperature chamber: one action per delivery mode, a door precondition and local control. */
-export const chamber = defineDriverContract({
-  id: 'chamber',
-  version: '1.0.0',
-  title: 'Test chamber',
-  process: { id: 'chamber-driver', purpose: 'Drives the test chamber', availability: 'optional' },
-  devices: [
-    { id: 'chamber-port', kind: 'serial', purpose: 'Chamber RS-232', availability: 'optional' },
-  ],
-  lookup: true,
-  control: { field: 'control', local: 'local' },
-  state: {
-    setpoint: { type: 'number', unit: '°C', decimals: 1 },
-    door: { type: 'enum', options: ['open', 'closed'] },
-    control: { type: 'enum', options: ['remote', 'local'] },
-  },
-  actions: {
-    'setpoint.set': {
-      title: 'Set the setpoint',
-      input: jsonSchema(z.strictObject({ setpoint: z.number() })),
-      delivery: 'convergent',
-      hazard: 'low',
-      timeoutMs: 1_000,
-      readback: [{ field: 'setpoint', equals: '$input.setpoint' }],
-      preconditions: [{ field: 'door', equals: 'closed' }],
-    },
-    'cycle.start': {
-      title: 'Start a cycle',
-      input: jsonSchema(
-        z.strictObject({
-          program: z.string(),
-          presence: z.strictObject({ confirmedBy: z.string() }).optional(),
-        }),
-      ),
-      delivery: 'once',
-      hazard: 'operator-present',
-      timeoutMs: 1_000,
-    },
-    'label.print': {
-      title: 'Print a label',
-      input: jsonSchema(z.strictObject({ text: z.string() })),
-      delivery: 'idempotent',
-      hazard: 'none',
-      timeoutMs: 1_000,
-    },
-  },
-  events: { reading: { kind: 'telemetry', maxRateHz: 1 } },
-});
+export { chamber };
 
 /** A fake chamber whose actions refuse an input marked `refuse`, like a real controller would. */
 export function chamberDriver(options: { digest?: string } = {}) {

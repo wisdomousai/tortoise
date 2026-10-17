@@ -225,13 +225,13 @@ The driver connector is a plugin, in line with the `framework-roadmap` D2 connec
 
 ### A4. Language SDKs
 
-- **Python, `plugins/connector-driver/sdk/python`** (uv project, `agent_native_driver`):
+- **Python, `sdks/driver-python`** (uv project, `agent_native_driver`):
   - asyncio JSON-RPC over stdio;
   - a decorator per action and event;
   - a stub generator from the emitted JSON Schema (pydantic models);
   - `effect_id` deduplication helpers;
   - refusal in `monitor-only`.
-- **.NET, `plugins/connector-driver/sdk/dotnet`** (`AgentNative.Driver`):
+- **.NET, `sdks/driver-dotnet`** (`AgentNative.Driver`):
   - StreamJsonRpc over stdio;
   - an STA thread with a message pump for COM;
   - generated records;
@@ -362,7 +362,7 @@ Out of bounds: `packages/mobile`, `packages/frame-native`, `packages/shell`, `pl
 Recommended options first. Settled through coordination: observation goes to `packages/observation`, and the driver connector is a plugin.
 
 1. **Where contracts are written.** In TypeScript, with generated JSON Schema and Python and .NET stubs. The alternative is a language-neutral JSON or YAML file as the source.
-2. **Where the SDKs live.** Under `plugins/connector-driver/sdk/*`, next to the protocol they implement. The alternative is a top-level `sdks/` folder.
+2. **Where the SDKs live.** Settled by the user: `plugins/connector-driver` is the language-neutral base (contract definition, protocol, host side, `checkDriver` and the reference `chamber` with `chamberConformance`), and each SDK is its own workspace under `sdks/<language>`. Nothing imports an SDK, and an SDK imports no application; `check:boundaries` enforces both.
 3. **Who provides the process port.** A new `plugins/process`. The alternative is folding it into `plugins/network`.
 
 ## Coordination log
@@ -413,3 +413,4 @@ Recommended options first. Settled through coordination: observation goes to `pa
 - The user decided that this plan stays in `docs/` while the work runs. In phase 6 it moves into `docs/hardware-drivers.md` and is deleted.
 - 98a49bb (the driver connector library) merged into `framework-roadmap` at `b330849`; `hardware-drivers` is rebased on it. The rest of phase 3 adds two additive framework changes: `ConnectContext.services` (`packages/kernel`) and `ProcessRequirement.targets` with `CatalogOperation.processes` (`packages/contracts`), and touches `plugins/compliance/src/manifest.ts` to list process-carried flows.
 - Phase 3 merged into `framework-roadmap` at `5dbe58e`. The Python SDK (`a8927a9`, `7aee8e9`) merged by fast-forward. B1 edits only `examples/quality-inspection`, `plugins/connector-driver` and this repository's driver entries in `docs/primitives.md`; the roadmap confirmed nobody else is in those example files.
+- B1 rebased as `eb98a3b` on `13b00aa`; `78ed43c` compiles the sandbox binary in a child process (Bun.build inside `bun test` failed at random on the quality-inspection graph). Merged by fast-forward. The user then chose the `sdks/` layout; the root edits (workspaces, tsconfig, `check:readmes`, `check:boundaries`, AGENTS.md) were agreed with the roadmap as root owner.

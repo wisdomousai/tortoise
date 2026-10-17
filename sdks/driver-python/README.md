@@ -1,6 +1,6 @@
-# agent-native-driver (Python)
+# @agent-native/driver-sdk-python
 
-Write a hardware driver for an agent-native host in Python. The host starts the driver as a child process and speaks JSON-RPC 2.0 to it, one message per line, over stdin and stdout. The SDK answers the protocol; the driver author writes the handlers that touch the equipment. It needs Python 3.11 or newer and uses only the standard library, so a driver packaged with PyInstaller or Nuitka has nothing extra to bundle.
+The Python package `agent-native-driver` (module `agent_native_driver`). Write a hardware driver for an agent-native host in Python. This package depends only on the protocol that `plugins/connector-driver` defines; nothing in the host depends on it. The host starts the driver as a child process and speaks JSON-RPC 2.0 to it, one message per line, over stdin and stdout. The SDK answers the protocol; the driver author writes the handlers that touch the equipment. It needs Python 3.11 or newer and uses only the standard library, so a driver packaged with PyInstaller or Nuitka has nothing extra to bundle.
 
 ## Writing a driver
 
@@ -68,8 +68,8 @@ The driver trusts the host's configuration and the effect IDs it sends. Input va
 ## Tests
 
 ```sh
-PYTHONPATH=src python3 -m unittest discover -s tests
-bun test plugins/connector-driver/test/python-driver.test.ts
+PYTHONPATH=sdks/driver-python/src python3 -m unittest discover -s sdks/driver-python/tests
+bun test sdks/driver-python
 ```
 
-The first runs the SDK's rules without a host: gating, deduplication, the journal across a restart, serving over pipes, and the stub generator. The second runs from the repository root as part of `bun run check`. It generates the stub from the TypeScript fixture contract, checks the simulated chamber with `checkDriver`, and runs the shared connector conformance suite against it as a real child process for each delivery mode. That includes a driver crash after acting. It is skipped when `python3` is not on PATH.
+The first runs the SDK's rules without a host: gating, deduplication, the journal across a restart, serving over pipes, and the stub generator. The second runs from the repository root as part of `bun run check`. It generates the stub from the base's reference contract (`chamber` in `@agent-native/connector-driver/testing`) and checks the simulated chamber with `checkDriver`. It then runs `chamberConformance`, the shared connector conformance suite, against the chamber as a real child process for each delivery mode, including a driver crash after acting. It is skipped when `python3` is not on PATH.

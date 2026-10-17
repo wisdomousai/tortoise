@@ -17,7 +17,7 @@ import { connectInstrument, setup, T0, until } from './instrument-fixture';
  * downloads); POSIX only, because the simulator needs a pty.
  */
 const drivers = resolve(import.meta.dir, '..', 'drivers', 'instrument');
-const sdk = resolve(import.meta.dir, '../../../plugins/connector-driver/sdk/python/src');
+const sdk = resolve(import.meta.dir, '../../../sdks/driver-python/src');
 const python3 = Bun.which('python3');
 
 /** A Python that can import pyserial, as a command prefix. */

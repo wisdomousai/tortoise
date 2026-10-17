@@ -45,7 +45,7 @@ A reading is not a result until a person confirms it, because the instrument doe
 - it is in another unit than the characteristic;
 - its value or time differs from the reading on screen.
 
-The driver is optional. Without a site-policy binding for the `instrument-driver` process, nothing starts and the capture station looks as before. To run it, install the SDK (`plugins/connector-driver/sdk/python`) and `pyserial` into a Python environment, and bind the process in the site policy:
+The driver is optional. Without a site-policy binding for the `instrument-driver` process, nothing starts and the capture station looks as before. To run it, install the SDK (`sdks/driver-python`) and `pyserial` into a Python environment, and bind the process in the site policy:
 
 ```json
 {

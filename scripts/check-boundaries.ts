@@ -58,15 +58,16 @@ const browserRoots = [
 const browserContent =
   /^examples\/[^/]+\/(?:contracts\.ts|contracts\/|manifest\.ts|screens\.tsx|ui\/)/;
 // Layers by directory: framework `packages/*`, plugins `plugins/*`, shell `apps/*`,
-// content `examples/*`.
+// content `examples/*`, and driver SDKs `sdks/*`.
 // Imports resolve through relative paths and workspace package names alike, so an alias such as
 // `@agent-native/line-station` cannot bypass a rule that a relative path would break.
-type Layer = 'framework' | 'plugin' | 'shell' | 'content';
+type Layer = 'framework' | 'plugin' | 'shell' | 'content' | 'sdk';
 const layerDirectories: Record<string, Layer> = {
   packages: 'framework',
   plugins: 'plugin',
   apps: 'shell',
   examples: 'content',
+  sdks: 'sdk',
 };
 const packageLayers = new Map<string, Layer>();
 for (const [directory, layer] of Object.entries(layerDirectories))
@@ -118,6 +119,17 @@ for (const file of all) {
       errors.push(`${name}: shell imports content ${dependency}; name it in app.config.json`);
     if (from === 'content' && to === 'shell')
       errors.push(`${name}: content imports shell ${dependency}`);
+    // A language SDK builds on the driver base only. The base and everything above it speak to a
+    // driver through the wire protocol, so no host code depends on one language's SDK, and an SDK
+    // is proven against the base's reference contract, never an application, so any one can use it.
+    if (from !== 'sdk' && to === 'sdk')
+      errors.push(
+        `${name}: ${from} imports SDK ${dependency}; host code reaches a driver only through the protocol`,
+      );
+    if (from === 'sdk' && (to === 'shell' || to === 'content'))
+      errors.push(
+        `${name}: SDK imports ${to} ${dependency}; an SDK is tested against the base's reference contract so that every application can use it`,
+      );
     if (
       (name.startsWith('packages/host/src/') || name.startsWith('packages/kernel/src/')) &&
       kernelForbiddenImport.test(
