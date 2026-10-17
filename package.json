@@ -86,6 +86,7 @@
     "@agent-native/notifications": "workspace:*",
     "@agent-native/operator-ui": "workspace:*",
     "@agent-native/os": "workspace:*",
+    "@agent-native/os-shortcuts": "workspace:*",
     "@agent-native/process": "workspace:*",
     "@agent-native/project-tasks": "workspace:*",
     "@agent-native/quality-inspection": "workspace:*",

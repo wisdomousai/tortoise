@@ -1,10 +1,11 @@
-import { app, Notification, shell, ShareMenu } from 'electron';
+import { app, Menu, Notification, shell, ShareMenu } from 'electron';
 import { lstat, readFile, realpath } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import type { OsActionResult, OsPlatform } from '@agent-native/contracts';
+import type { CatalogOs, OsActionResult, OsPlatform } from '@agent-native/contracts';
 import {
   createDesktopShell,
   desktopArguments,
+  launcherShortcuts,
   pathName,
   receivedArguments,
   type DesktopArguments,
@@ -125,6 +126,50 @@ async function notify(
 }
 
 /**
+ * Windows passes links on the command line. The registration puts `--` before the link, so a
+ * link that breaks out of its quotes cannot add a switch the parser reads. macOS reads the
+ * scheme from the bundle's Info.plist instead.
+ */
+function registerScheme(scheme: string) {
+  if (process.platform === 'win32')
+    app.setAsDefaultProtocolClient(
+      scheme,
+      process.execPath,
+      process.defaultApp ? [resolve(process.argv[1] ?? '.'), '--'] : ['--'],
+    );
+}
+
+/**
+ * The launcher entries for the declared shortcuts. On macOS they are the dock menu, and a click
+ * hands the shortcut link to `open`. On Windows they are the jump list's tasks, each starting
+ * the app with `--` before the link like the scheme registration, so a running instance gets
+ * it as second-instance data. Linux desktop actions come from the packaged desktop file, which
+ * the `dir` target does not write.
+ */
+function registerLaunchers(os: CatalogOs, scheme: string, open: (link: string) => void) {
+  const shortcuts = launcherShortcuts(os, scheme);
+  if (process.platform === 'darwin')
+    app.dock?.setMenu(
+      Menu.buildFromTemplate(
+        shortcuts.map((shortcut) => ({ label: shortcut.title, click: () => open(shortcut.link) })),
+      ),
+    );
+  if (process.platform === 'win32') {
+    const entry = process.defaultApp ? [`"${resolve(process.argv[1] ?? '.')}"`] : [];
+    app.setUserTasks(
+      shortcuts.map((shortcut) => ({
+        program: process.execPath,
+        arguments: [...entry, '--', shortcut.link].join(' '),
+        title: shortcut.title,
+        description: shortcut.title,
+        iconPath: process.execPath,
+        iconIndex: 0,
+      })),
+    );
+  }
+}
+
+/**
  * The Electron side of the OS integration: link and file events, the launch command line, the
  * second-instance hand-over and the relayed actions, wired to the framework's desktop shell.
  * Register it before `ready`, because macOS delivers the launching link or file before that.
@@ -148,14 +193,7 @@ export function createOsShell(scheme: string) {
     event.preventDefault();
     receive(desktopArguments(['--', path], scheme, 0));
   });
-  // Windows passes links on the command line. The registration puts `--` before the link, so
-  // a link that breaks out of its quotes cannot add a switch the parser reads.
-  if (process.platform === 'win32')
-    app.setAsDefaultProtocolClient(
-      scheme,
-      process.execPath,
-      process.defaultApp ? [resolve(process.argv[1] ?? '.'), '--'] : ['--'],
-    );
+  registerScheme(scheme);
 
   return {
     /** What a second instance hands the running one: its own parsed command line. */
@@ -194,6 +232,10 @@ export function createOsShell(scheme: string) {
             }
           : {}),
         notify,
+        launchers: (os) =>
+          registerLaunchers(os, scheme, (link) =>
+            receive(desktopArguments(['--', link], scheme, 0)),
+          ),
         focus: onDelivered,
         report: (message) => console.warn(`[os] ${message}`),
       });

@@ -12,7 +12,8 @@ const id = z
  * Markdown file opened with the application prefills a new task, and an image or PDF prefills
  * one with the file attached. Text, a link or an image or PDF shared from another app prefills
  * a task the same way. A reminder shows as a notification on the desktop or phone, and its Mark
- * done action sets the task to done. Content declares paths only;
+ * done action sets the task to done. A launcher entry (the dock menu, the jump list, an Android
+ * app shortcut, the installed web app's shortcuts) starts a new task. Content declares paths only;
  * the scheme comes from the application identity, so these links read
  * `<scheme>://tasks/<id>`. Nothing unsolicited commits: a prefilled task is created only when
  * the person adds it, and only the reply to a reminder this application showed sets a status.
@@ -94,6 +95,13 @@ export const projectTasksOs: OsDeclarations = {
       accepts: { text: true },
       maxBytes: 10_000,
       target: { prepare: 'task.create', input: { description: '{text}' } },
+    },
+    {
+      id: 'task.new',
+      kind: 'shortcut',
+      description: 'Start a new task from the launcher.',
+      title: 'New task',
+      target: { prepare: 'task.create', input: {} },
     },
     {
       id: 'task.reminder-reply',

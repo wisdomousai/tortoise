@@ -50,6 +50,7 @@ export {
   type AndroidIntentRecord,
   type IntentListening,
 } from './intents';
+export { launcherShortcuts, shortcutIdOf, shortcutLink, type LauncherShortcut } from './shortcuts';
 export { replyRequest, shellNotification, type ShellNotification } from './notifications';
 export { describeProvenance } from './provenance';
 export { associationFiles, type AssociationIdentity } from './associations';

@@ -35,6 +35,7 @@
     "plugins/os/src",
     "plugins/notifications/src",
     "plugins/android-intents/src",
+    "plugins/os-shortcuts/src",
     "plugins/share-target/src",
     "plugins/intent-scanner/src",
     "plugins/managed-config/src",

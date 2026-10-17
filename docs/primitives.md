@@ -221,7 +221,7 @@ implemented · `packages/devices` `plugins/intent-scanner`
 
 _A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or reply, and where its requests go._
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/share-target` `plugins/notifications` `plugins/android-intents` `packages/frame` `packages/frame-native` `packages/mobile` `plugins/compliance` `apps/desktop` `apps/mobile` `examples/project-tasks`
+partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/share-target` `plugins/notifications` `plugins/android-intents` `plugins/os-shortcuts` `packages/frame` `packages/frame-native` `packages/mobile` `plugins/compliance` `apps/desktop` `apps/mobile` `examples/project-tasks`
 
 ### OS action
 

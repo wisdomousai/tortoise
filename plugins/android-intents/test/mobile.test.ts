@@ -23,7 +23,16 @@ afterEach(async () => {
   for (const sandbox of sandboxes.splice(0)) rmSync(sandbox, { recursive: true, force: true });
 });
 
+/** Time for requests that should show nothing to have been refused. */
 const settle = () => Bun.sleep(20);
+/** Wait until `condition` holds, polling; fails the test after two seconds. */
+async function until(condition: () => boolean) {
+  const deadline = Date.now() + 2_000;
+  while (!condition()) {
+    if (Date.now() > deadline) throw new Error('Timed out waiting for the device');
+    await Bun.sleep(5);
+  }
+}
 
 async function open(application: AnyApplicationDefinition, platform: 'android' | 'ios') {
   const sandbox = mkdtempSync(join(tmpdir(), 'intents-mobile-'));
@@ -86,7 +95,7 @@ test('an intent with a declared action prefills the form; others are dropped', a
   const connection = connectMobileShell(authority, application, fake.bindings);
   const shown: OsDelivery[] = [];
   connection.deliveries.subscribe((delivery) => shown.push(delivery));
-  await settle();
+  await until(() => shown.length === 1);
 
   // The device reads only the declared action's declared extras.
   expect(fake.listening()).toEqual({ [createAction]: { title: 'string', copies: 'number' } });
@@ -104,7 +113,7 @@ test('an intent with a declared action prefills the form; others are dropped', a
   fake.send({ action: createAction, extras: { title: 'x'.repeat(41) } });
   fake.send({ action: createAction, extras: { title: 'Notes', owner: 'mallory' } });
   fake.send('not an intent');
-  await settle();
+  await until(() => fake.reports.length === 4);
   expect(shown).toHaveLength(1);
   expect(fake.reports.filter((message) => message.includes('not one'))).toHaveLength(2);
   expect(fake.reports.filter((message) => message.startsWith('OS request refused'))).toHaveLength(

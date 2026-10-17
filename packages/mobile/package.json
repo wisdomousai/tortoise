@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./expo": "./src/expo/index.ts",
-    "./intent-filters": "./intent-filters.plugin.cjs"
+    "./intent-filters": "./intent-filters.plugin.cjs",
+    "./shortcuts": "./shortcuts.plugin.cjs"
   }
 }

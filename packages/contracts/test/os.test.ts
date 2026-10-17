@@ -103,6 +103,16 @@ describe('OS declarations', () => {
       },
       'extension',
     ],
+    [
+      {
+        id: 'task.new',
+        kind: 'shortcut',
+        description: 'A new task.',
+        title: 'New\ntask',
+        target: { prepare: 'task.create', input: {} },
+      },
+      'one-line title',
+    ],
   ] as [OsHandler, string][])('refuses %#: %s', (handler, message) => {
     expect(() => catalogOf([handler])).toThrow(message);
   });

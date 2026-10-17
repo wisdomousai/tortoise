@@ -148,8 +148,13 @@ function handlerFields(where: string, handler: OsHandler, claimed: Set<string>):
       claim(`intent action\0${handler.action}`);
       return [...properties(handler.extras), ...base];
     case 'shortcut':
-      if (!handler.title || handler.title.length > 64)
-        throw new Error(`${where} needs a short title`);
+      // Launchers write the title into a menu, a jump list and Android string resources.
+      if (
+        !handler.title ||
+        handler.title.length > 64 ||
+        /[\u0000-\u001f\u007f]/.test(handler.title)
+      )
+        throw new Error(`${where} needs a short one-line title`);
       return base;
     case 'reply':
       if (!idPattern.test(handler.consumer)) throw new Error(`${where} names an invalid consumer`);

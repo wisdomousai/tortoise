@@ -22,7 +22,16 @@ afterEach(async () => {
   for (const sandbox of sandboxes.splice(0)) rmSync(sandbox, { recursive: true, force: true });
 });
 
+/** Time for requests that should show nothing to have been refused. */
 const settle = () => Bun.sleep(20);
+/** Wait until `condition` holds, polling; fails the test after two seconds. */
+async function until(condition: () => boolean) {
+  const deadline = Date.now() + 2_000;
+  while (!condition()) {
+    if (Date.now() > deadline) throw new Error('Timed out waiting for the device');
+    await Bun.sleep(5);
+  }
+}
 
 test('items another app shared prefill the form; a share action opens the share sheet', async () => {
   const sandbox = mkdtempSync(join(tmpdir(), 'share-mobile-'));
@@ -82,6 +91,7 @@ test('items another app shared prefill the form; a share action opens the share 
     { kind: 'file', uri: 'content://media/9', mediaType: 'video/mp4' },
   ];
   send(`${scheme}://expo-sharing`);
+  await until(() => shown.length === 2);
   await settle();
   expect(read).toEqual(['content://scans/7']);
   expect(shown).toHaveLength(2);

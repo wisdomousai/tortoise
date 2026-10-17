@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/os-shortcuts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OS shortcuts host plugin: serves shortcut handlers (dock menu, jump list, Android app shortcuts, web manifest shortcuts) for the OS plugin.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

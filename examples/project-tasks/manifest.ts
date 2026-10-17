@@ -4,6 +4,7 @@ import { compliancePluginManifest } from '@agent-native/compliance/plugin-manife
 import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
 import { notificationsPluginManifest } from '@agent-native/notifications/plugin-manifest';
 import { osPluginManifest } from '@agent-native/os/plugin-manifest';
+import { osShortcutsPluginManifest } from '@agent-native/os-shortcuts/plugin-manifest';
 import { shareTargetPluginManifest } from '@agent-native/share-target/plugin-manifest';
 import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 import { webhookPluginManifest } from '@agent-native/webhook/plugin-manifest';
@@ -13,7 +14,8 @@ import { projectTasksModule } from './contracts';
  * Browser-safe identity of the project-tasks application: what generators and screens read.
  * Besides the site, network, audit and compliance plugins it composes the OS plugin, which
  * answers its task links and text files, the share target plugin, which takes what other apps
- * share to it, the notifications plugin, which shows task reminders, and the webhook example plugin, so one application
+ * share to it, the notifications plugin, which shows task reminders, the OS shortcuts plugin, whose
+ * launcher entry starts a new task, and the webhook example plugin, so one application
  * shows a third-party plugin next to the framework's own.
  */
 export default defineManifest({
@@ -28,6 +30,7 @@ export default defineManifest({
     osPluginManifest,
     shareTargetPluginManifest,
     notificationsPluginManifest,
+    osShortcutsPluginManifest,
     webhookPluginManifest,
   ],
 });

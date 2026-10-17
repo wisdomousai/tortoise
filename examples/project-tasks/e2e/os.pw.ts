@@ -18,7 +18,7 @@ const api = (page: Page, path: string, body: unknown) =>
     [path, body] as const,
   );
 
-test('a protocol-handler landing opens the task; files and shares prefill tasks the person adds; a reminder waits', async ({
+test('a protocol-handler landing opens the task; files and shares prefill tasks the person adds; a reminder waits; a shortcut starts a task', async ({
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-os-e2e-'));
@@ -134,6 +134,13 @@ test('a protocol-handler landing opens the task; files and shares prefill tasks 
     await expect(prefilled.getByText('Shared from another app')).toBeVisible();
     await expect(prefilled.getByLabel('Title')).toHaveValue('Whiteboard.png');
     await expect(prefilled.getByText('Attachment: image/png, 1 KB')).toBeVisible();
+
+    // The installed app's shortcut opens the landing with its id: an empty task to fill in.
+    expect(manifest.shortcuts).toEqual([{ name: 'New task', url: '/?os-shortcut=task.new' }]);
+    await page.goto(`${host.origin}/?os-shortcut=task.new`);
+    await expect(prefilled.getByText('Opened from a shortcut')).toBeVisible();
+    await expect(prefilled.getByLabel('Title')).toHaveValue('');
+    expect(new URL(page.url()).search).toBe('');
   } finally {
     await host?.stop();
     await rm(workspace, { recursive: true, force: true });

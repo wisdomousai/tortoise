@@ -48,6 +48,11 @@ export interface DesktopShellDependencies {
     notification: ShellNotification,
     choose: (button: string) => void,
   ) => Promise<OsActionResult>;
+  /**
+   * Register the launcher entries for the declarations once they are read: a dock menu, a jump
+   * list. Each entry opens its shortcut link, which the shell receives like any link.
+   */
+  readonly launchers?: (os: CatalogOs) => void;
   /** Bring the window forward after a request was delivered to it. */
   readonly focus: () => void;
   readonly report?: (message: string) => void;
@@ -165,6 +170,11 @@ export function createDesktopShell(dependencies: DesktopShellDependencies) {
     /** Read the declarations, submit buffered input and start performing relayed actions. */
     async connect() {
       declarations = (await client.declarations()) ?? { handlers: [], actions: [] };
+      try {
+        dependencies.launchers?.(declarations);
+      } catch {
+        report('Launcher entries could not be registered');
+      }
       const pending = buffered;
       buffered = [];
       for (const input of pending) await deliver(input);

@@ -5,6 +5,7 @@ import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
 import { notificationsPlugin } from '@agent-native/notifications/plugin';
 import { osPlugin } from '@agent-native/os/plugin';
+import { osShortcutsPlugin } from '@agent-native/os-shortcuts/plugin';
 import { shareTargetPlugin } from '@agent-native/share-target/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
 import { webhookPlugin } from '@agent-native/webhook/plugin';
@@ -72,6 +73,7 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
       osPlugin,
       shareTargetPlugin,
       notificationsPlugin,
+      osShortcutsPlugin,
       webhookPlugin,
     ],
   });

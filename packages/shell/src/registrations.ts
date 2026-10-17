@@ -1,4 +1,6 @@
 import { linkPathSegments, type CatalogOs, type CatalogOsHandler } from '@agent-native/contracts';
+import { of, shareAccepts, type Of } from './declared';
+import { expoOsPlugins } from './expo-plugins';
 
 /**
  * Platform registrations generated from the catalog's OS handlers. Pure functions over
@@ -16,10 +18,6 @@ export interface OsRegistrationOptions {
   /** Hosts that serve this application's association files, for verified links. */
   readonly linkHosts?: readonly string[];
 }
-type Of<K extends CatalogOsHandler['kind']> = Extract<CatalogOsHandler, { kind: K }>;
-const of = <K extends CatalogOsHandler['kind']>(os: CatalogOs | undefined, kind: K) =>
-  (os?.handlers ?? []).filter((handler): handler is Of<K> => handler.kind === kind);
-
 /** The browser form of the scheme: `web+` and lower-case letters, as `registerProtocolHandler` requires. */
 export function webScheme(scheme: string): string {
   return `web+${scheme.replace(/[^a-z]/g, '')}`;
@@ -71,34 +69,6 @@ function androidIntentFilters(
   return filters;
 }
 
-/**
- * The framework's intent filter config plugin for the intent handlers, which writes their
- * actions and categories with the names declared. Expo's `android.intentFilters` cannot carry
- * them: it prefixes every name with `android.intent.action.` or `android.intent.category.`.
- */
-function intentFiltersPlugin(
-  os: CatalogOs | undefined,
-): [string, Record<string, unknown>] | undefined {
-  const intents = of(os, 'intent');
-  if (!intents.length) return undefined;
-  return [
-    '@agent-native/mobile/intent-filters',
-    {
-      filters: intents.map((intent) => ({
-        action: intent.action,
-        categories: intent.categories ?? [],
-        ...(intent.data
-          ? {
-              data: Object.fromEntries(
-                Object.entries(intent.data).filter(([, value]) => value !== undefined),
-              ),
-            }
-          : {}),
-      })),
-    },
-  ];
-}
-
 /** The type identifier for a file type: declared, the plain-text system type, or one under the app id. */
 function uti(type: Of<'file'>['types'][number], appId: string): string {
   if (type.uti) return type.uti;
@@ -139,64 +109,11 @@ function iosDocumentTypes(os: CatalogOs | undefined, appId: string) {
 /** The path a web share target posts to; the share target plugin answers it. */
 export const webShareTargetPath = '/os/share';
 
-/** What the share handlers accept together: one share target per application on every platform. */
-function shareAccepts(os: CatalogOs | undefined) {
-  const shares = of(os, 'share');
-  const mediaTypes = [...new Set(shares.flatMap((share) => share.accepts.mediaTypes ?? []))];
-  return {
-    any: shares.length > 0,
-    text: shares.some((share) => share.accepts.text),
-    url: shares.some((share) => share.accepts.url),
-    mediaTypes,
-  };
-}
-
-/**
- * The `expo-sharing` config plugin for the share handlers: an Android SEND intent filter on the
- * main activity for text and the accepted media types, and an iOS share extension whose
- * activation rule accepts the same. Receiving shares through `expo-sharing` is experimental.
- */
-function sharePlugin(os: CatalogOs | undefined): [string, Record<string, unknown>] | undefined {
-  const accepts = shareAccepts(os);
-  if (!accepts.any) return undefined;
-  const images = accepts.mediaTypes.filter((type) => type.startsWith('image/'));
-  const files = accepts.mediaTypes.filter((type) => !type.startsWith('image/'));
-  return [
-    'expo-sharing',
-    {
-      android: {
-        enabled: true,
-        singleShareMimeTypes: [
-          ...(accepts.text || accepts.url ? ['text/plain'] : []),
-          ...accepts.mediaTypes,
-        ],
-      },
-      ios: {
-        enabled: true,
-        activationRule: {
-          supportsText: accepts.text,
-          supportsWebUrlWithMaxCount: accepts.url ? 1 : 0,
-          supportsImageWithMaxCount: images.length ? 1 : 0,
-          supportsFileWithMaxCount: files.length ? 1 : 0,
-        },
-      },
-    },
-  ];
-}
-
-/** The `expo-notifications` config plugin when a notify action is declared; local only, no push. */
-function notificationsPlugin(
-  os: CatalogOs | undefined,
-): [string, Record<string, unknown>] | undefined {
-  return os?.actions.some((action) => action.kind === 'notify')
-    ? ['expo-notifications', {}]
-    : undefined;
-}
-
 /**
  * Expo app configuration for the OS handlers: the scheme, Android intent filters for verified
  * links and opened files, iOS associated domains and document types, and the config plugins
- * that register shares, notifications and the application's own intent actions.
+ * that register shares, notifications, the application's own intent actions and Android app
+ * shortcuts.
  * `mobile:prepare` writes it into `apps/mobile/generated/native.json`.
  */
 export function nativeOsConfig(
@@ -214,9 +131,7 @@ export function nativeOsConfig(
         : [],
       infoPlist: iosDocumentTypes(os, identity.appId) as Record<string, unknown>,
     },
-    plugins: [sharePlugin(os), notificationsPlugin(os), intentFiltersPlugin(os)].filter(
-      (plugin) => plugin !== undefined,
-    ),
+    plugins: expoOsPlugins(os, identity.scheme),
   };
 }
 

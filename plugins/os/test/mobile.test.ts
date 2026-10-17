@@ -181,7 +181,16 @@ function device(
   };
 }
 
+/** Time for requests that should show nothing to have been refused. */
 const settle = () => Bun.sleep(20);
+/** Wait until `condition` holds, polling; fails the test after two seconds. */
+async function until(condition: () => boolean) {
+  const deadline = Date.now() + 2_000;
+  while (!condition()) {
+    if (Date.now() > deadline) throw new Error('Timed out waiting for the device');
+    await Bun.sleep(5);
+  }
+}
 const text = (value: string) => new TextEncoder().encode(value);
 
 test('a launch link waits for the frame, then later links and files are delivered', async () => {
@@ -194,6 +203,7 @@ test('a launch link waits for the frame, then later links and files are delivere
   await settle();
   const shown: OsDelivery[] = [];
   connection.deliveries.subscribe((delivery) => shown.push(delivery));
+  await until(() => shown.length === 1);
   expect(shown).toEqual([
     {
       type: 'openResource',
@@ -208,6 +218,7 @@ test('a launch link waits for the frame, then later links and files are delivere
   fake.send('content://media/43');
   fake.send('other.app://notes/n-1');
   fake.send(`${scheme}://notes/n-9`);
+  await until(() => shown.length === 2);
   await settle();
   expect(fake.read).toEqual(['content://media/42']);
   expect(shown.slice(1)).toEqual([
@@ -232,6 +243,7 @@ test('a scanned file is staged in the blob store and prefills the form as its re
   connection.deliveries.subscribe((delivery) => shown.push(delivery));
   fake.send('content://scans/7');
   fake.send('content://scans/8');
+  await until(() => shown.length === 1);
   await settle();
   expect(fake.read).toEqual(['content://scans/7']);
   expect(shown).toHaveLength(1);

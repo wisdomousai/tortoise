@@ -10,6 +10,7 @@ import {
   type RawOsRequest,
 } from '@agent-native/contracts';
 import { OsRequestError } from './parse';
+import { shortcutIdOf } from './shortcuts';
 
 /** Values a handler's templates may name: link params, extras and request fields. */
 export type OsRequestValues = Readonly<Record<string, JsonValue>>;
@@ -219,8 +220,13 @@ export function matchOsRequest(
   const of = <K extends OsHandler['kind']>(kind: K) =>
     handlers.filter((item): item is Extract<OsHandler, { kind: K }> => item.kind === kind);
   switch (raw.kind) {
-    case 'url':
-      return matchLink(of('link'), raw.url, options);
+    case 'url': {
+      // A launcher entry opens `<scheme>:///?os-shortcut=<id>`; it is read before links.
+      const shortcut = shortcutIdOf(raw.url, options.schemes);
+      if (shortcut === undefined) return matchLink(of('link'), raw.url, options);
+      const handler = of('shortcut').find((item) => item.id === shortcut);
+      return handler ? { handler, values: {} } : undefined;
+    }
     case 'file':
       return matchFile(of('file'), raw);
     case 'share':
