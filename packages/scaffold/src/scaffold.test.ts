@@ -297,6 +297,16 @@ standalone(
   handler(operations.projectSummary, (input, ctx) => ({ id: project(ctx.state, input.id).id, taskCount: Object.values(ctx.state.tasks).filter(task => task.projectId === input.id).length })),`,
       );
       await writeFile(handlersPath, handlers);
+      // Unknown operations fail closed, so the new query needs its own policy rule.
+      const policyPath = join(target, 'examples/project-tasks/policy.ts');
+      await writeFile(
+        policyPath,
+        patched(
+          await readFile(policyPath, 'utf8'),
+          '    [operations.projectGet.id]: onProject,',
+          '    [operations.projectGet.id]: onProject,\n    [operations.projectSummary.id]: onProject,',
+        ),
+      );
       await writeFile(
         join(target, 'examples/project-tasks/scaffold-extension.test.ts'),
         `import { expect, test } from 'bun:test';
@@ -375,3 +385,28 @@ test('authored summary is available through the exported HTTP host', async () =>
   },
   120_000,
 );
+
+test('exports a certificate but refuses a file holding a private key', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'agent-scaffold-pem-'));
+  const source = join(directory, 'source');
+  try {
+    await mkdir(join(source, 'docs'), { recursive: true });
+    await writeFile(
+      join(source, 'package.json'),
+      JSON.stringify({ name: 'reference', version: '0.1.0' }),
+    );
+    await writeFile(join(source, 'docs/ca.pem'), '-----BEGIN CERTIFICATE-----\nMIIB\n');
+    const manifest = await scaffold({
+      sourceRoot: source,
+      target: join(directory, 'with-cert'),
+      name: 'new-app',
+    });
+    expect(manifest.files.map((file) => file.path)).toContain('docs/ca.pem');
+    await writeFile(join(source, 'docs/listener.pem'), '-----BEGIN EC PRIVATE KEY-----\nMHc\n');
+    await expect(
+      scaffold({ sourceRoot: source, target: join(directory, 'with-key'), name: 'new-app' }),
+    ).rejects.toThrow('private key: docs/listener.pem');
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

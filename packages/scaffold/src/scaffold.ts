@@ -208,6 +208,8 @@ async function exportedFiles(
     const source = await readFile(join(sourceRoot, path), 'utf8');
     if (source.includes(sourceRoot) || source.includes(requestedSourceRoot))
       throw new Error(`Source file contains checkout-specific absolute path: ${path}`);
+    if (path.endsWith('.pem') && /-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY-----/.test(source))
+      throw new Error(`Source file contains a private key: ${path}`);
     const content = exportedContent(path, source, context);
     files.push({ path, content, sha256: createHash('sha256').update(content).digest('hex') });
   }

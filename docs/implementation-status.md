@@ -153,6 +153,8 @@ Control mappings are indicative, not a certification.
 
 **Opt-in run.** `bun run test:scaffold:full`, 17 October 2026: `scaffold new` generates an application that installs with a frozen lockfile; after `add collection`, `add capability` and `add target` it passes format, generation, typecheck, build, its unit tests and a Playwright spec that creates, opens and edits a record through the default screens.
 
+**Opt-in run, complete export.** `bun run test:scaffold:full`, 17 October 2026: the complete source export installs frozen, passes format, typecheck, generation, build and its 810 tests (the driver SDKs, .NET projects and certificate fixture are now exported), and an authored capability with its policy rule answers over the exported HTTP host.
+
 **Opt-in run, installed framework.** `bun run test:scaffold:full`, 17 October 2026: the framework packs into 39 tarballs served by the loopback registry; `scaffold new --registry` exports without framework source; the export installs, reinstalls with `--frozen-lockfile` from a clean `node_modules`, adds a target with the installed scaffold and passes its whole `bun run check` and its Playwright spec.
 
 **By hand, mobile export.** 17 October 2026: `bun run scaffold <dir> --name field-survey --example asset-survey-field` exports `apps/mobile`, the field app and the hub example it imports. In the export, a frozen install, `bun run typecheck`, `bun test examples`, `bun run mobile:prepare` (the native config lists the managed-config and `expo-camera` config plugins) and `expo export --platform android` (a Hermes bundle) pass. `test:scaffold:full` does not repeat the mobile steps, and no native build was made from the export.

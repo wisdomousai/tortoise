@@ -19,6 +19,7 @@ const rootFiles = new Set([
 const sourceDirectories = new Set([
   'packages',
   'plugins',
+  'sdks',
   'apps',
   'examples',
   'scripts',
@@ -47,6 +48,11 @@ const excludedDirectories = new Set([
   'provider-runs',
   'provider-conversations',
   '.expo',
+  // .NET and Python build output and environments.
+  'bin',
+  'obj',
+  '__pycache__',
+  '.venv',
 ]);
 // Native projects and entries that `expo prebuild` and `mobile:prepare` regenerate.
 const generatedDirectories = new Set([
@@ -71,6 +77,13 @@ const sourceExtensions = new Set([
   '.py',
   '.toml',
   '.svg',
+  // Driver SDKs and drivers in other languages.
+  '.cs',
+  '.csproj',
+  '.props',
+  '.slnx',
+  // Certificate fixtures; a `.pem` holding a private key is refused when exported.
+  '.pem',
 ]);
 // Images such as test fixtures and golden screenshots; copied byte for byte, never rewritten.
 const binaryExtensions = new Set(['.png', '.jpg', '.jpeg']);
@@ -84,7 +97,12 @@ export function allowedFile(path: string): boolean {
     /(?:secret|credential|token|private[-_]?key).*\.(?:json|pem|key|p12)$/i.test(name)
   )
     return false;
-  return rootFiles.has(path) || sourceExtensions.has(extname(name)) || binaryFile(name);
+  return (
+    rootFiles.has(path) ||
+    name === '.gitignore' ||
+    sourceExtensions.has(extname(name)) ||
+    binaryFile(name)
+  );
 }
 /** Source files of a checkout, without symlinks, build output, workspaces or credentials. */
 export async function collect(root: string): Promise<string[]> {
