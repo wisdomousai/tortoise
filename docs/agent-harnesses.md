@@ -30,7 +30,7 @@ Cancellation aborts the active work and is checked before commit. Commands that 
 
 The default profile exposes application tools and denies shell and file approvals. A process running as the same OS user is not a sandbox, so code that is not trusted needs a stronger isolation adapter. Credentials and process APIs never reach browser code.
 
-A harness that composes other CLIs and MCP servers needs an enforced execution boundary and a broker that keeps upstream credentials outside it. That layer is planned, not implemented ([reference plan](system-of-record-reference-plan.md)). The application binary already supplies the tool side: an embedded MCP server under a launcher-written grant, and generated CLI subcommands with mapped exit codes ([system-of-record pattern](system-of-record-pattern.md)).
+A harness that composes other CLIs and MCP servers needs an enforced execution boundary and a broker that keeps upstream credentials outside it. That layer is not implemented. The application binary already supplies the tool side: an embedded MCP server under a launcher-written grant, and generated CLI subcommands with mapped exit codes ([system-of-record pattern](system-of-record-pattern.md)).
 
 See [providers](providers.md) for login and funding, and [desktop](desktop.md#packaged-resources) for native resources. Protocol fixtures and real provider calls count as separate evidence.
 

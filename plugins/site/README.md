@@ -9,7 +9,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Site policy](../../docs/primitives.md#site-policy): `sitePlugin`, `sitePluginManifest`, `openSite`, `siteServiceOf`, `SiteService`, `assertIdentity`, `portsNeeded`, `sitePolicyFor`, `policyErrors`, `siteCommand`, `siteCliCommand`, `siteUsage`, `POLICY_REJECTED_EXIT_CODE`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `sitePlugin` is written only against `@agent-native/host/plugin`. It provides the `identity` port and declares the ports its policy `needs`.
 
-The [architecture](../../docs/architecture.md#plugins-and-a-closed-kernel) explains how plugins use each other through ports and declare the ports they need. [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
+The [architecture](../../docs/architecture.md#plugins) explains how plugins use each other through ports and declare the ports they need. [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
 
 ## Entrypoints
 

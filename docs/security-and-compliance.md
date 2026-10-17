@@ -1,6 +1,6 @@
 # Security and compliance
 
-This guide is for teams admitting the application into a restricted network. It covers what the application may reach, how that is enforced, how its actions are recorded, and how an auditor checks all of it, both before deployment and while it runs. Each control is a host plugin; [architecture](architecture.md#plugins-and-a-closed-kernel) explains how plugins compose.
+This guide is for teams admitting the application into a restricted network. It covers what the application may reach, how that is enforced, how its actions are recorded, and how an auditor checks all of it, both before deployment and while it runs. Each control is a host plugin; [architecture](architecture.md#plugins) explains how plugins compose.
 
 Three choices shape the design. Reach is declared in the catalog rather than left to an OS sandbox alone, because a sandbox is not portable, is invisible to reviewers and gives the application nothing to check. The audit record of a command is written inside its transaction, because a log written afterwards allows commits that were never recorded. Firewall and service rules are generated from the same declarations, because hand-written rules drift from the code.
 

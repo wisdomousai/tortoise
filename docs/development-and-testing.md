@@ -23,13 +23,13 @@ bun run build
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `check:generated`  | Drift between the catalog and the generated references, security artifacts and SBOM, or a leftover reference directory.                                                                                             |
 | `check:boundaries` | Imports across layers, server code reaching browser bundles, and direct network or process APIs outside the egress guard. Portable packages may not import `node:` or `bun:` modules or use Node or Bun globals.    |
-| `check:readmes`    | A workspace without a README, or a README that misses an export or primitive entry, or has a dead link.                                                                                                             |
-| `check:size`       | Oversized files and functions and code in barrels, as a tripwire for modules that hold more than one responsibility.                                                                                                |
+| `check:readmes`    | A workspace without a README, a README whose title is not the package name, or a dead link.                                                                                                                         |
+| `check:size`       | Code in a package `src/index.ts` besides re-exports. Long files and functions are listed as hints and do not fail.                                                                                                  |
 | `test:portable`    | Kernel, runtime, client, integration and mobile platform code that only works because Bun supplies a Web global Hermes may lack. The suites run with those globals removed and the kernel's replacements installed. |
 | `test:sandbox`     | A standalone binary that does not resolve. It compiles the CLI and runs it in an empty environment, then verifies its audit log.                                                                                    |
 | `build`            | A web build or registry build that breaks for the configured application.                                                                                                                                           |
 
-When `check:size` fails, split by responsibility, not by line count. An inner function of a factory becomes a module-level function that receives what it closed over, and shared state goes in a small typed object passed explicitly. The file being split stays where it is as the entry module, with its internals in a folder of the same name, so public import paths do not change. A split keeps errors, ordering and laziness identical; if it needs a test change, it changed behavior. React state stays with the component that owns its lifetime. Declarative tables may be listed in `scripts/size-rules.ts` with a reason.
+`check:size` lists files over 300 lines and functions over 80 as hints for review. Split one only when it holds a second responsibility; a long declarative table or a long but linear function can stay as it is.
 
 A successful build is not a browser interaction or a packaged desktop launch, and each of those is checked separately.
 

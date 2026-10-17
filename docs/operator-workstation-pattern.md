@@ -1,6 +1,6 @@
 # Operator workstations
 
-This pattern treats legacy station software as a screen-mediated authority. It extends the [system-of-record pattern](system-of-record-pattern.md) to the point where work meets machines. On many shop floors, controller-level hardware sits behind proprietary station software: a vendor HMI, a test-bench program, a measurement application or a homebrew MES client. That software rarely has a usable API, is often validated or under warranty, and must not be modified. This pattern covers the case where the only stable interface is its screen. Where the software exposes an automation interface such as COM, a local RPC service, files or a decodable network protocol, the same ports apply with a different adapter; [edge applications](edge-applications.md#reaching-control-software) compares the routes.
+This pattern treats legacy station software as a screen-mediated authority. It extends the [system-of-record pattern](system-of-record-pattern.md) to the point where work meets machines. On many shop floors, controller-level hardware sits behind proprietary station software: a vendor HMI, a test-bench program, a measurement application or a homebrew MES client. That software rarely has a usable API, is often validated or under warranty, and must not be modified. This pattern covers the case where the only stable interface is its screen. Where the software exposes an automation interface such as COM, a local RPC service, files or a decodable network protocol, the same ports apply with a different adapter.
 
 The goal is instrumentation on top of that stack. Monitor the station, let operators and agents act through the application's interaction contract, and reach the legacy software only through its screen, by way of a background computer-use agent that the application controls. The hardware stays behind the legacy software, which keeps all controller interaction.
 
@@ -32,7 +32,7 @@ The application wraps two levels:
 
 The application never talks to the PLC or the hardware. Safety functions remain with the machine and its builder.
 
-## Pixels are a transport, not a harness
+## Where the computer-use agent sits
 
 The central decision is where the computer-use agent lives. It is **not** an application harness with catalog tools in front of the authority. It is a connector behind the outbox, on the same footing as an ERP API client:
 
@@ -42,7 +42,7 @@ The central decision is where the computer-use agent lives. It is **not** an app
 
 Frontends, MCP clients and agents therefore keep one CQRS contract. They never address the computer-use agent, and the computer-use agent never holds business tools. Its integration principal can only ingest observations, settle station effects and read its control state. Removing the bridge leaves a monitoring-free but fully functional application. Adding a better computer-use model changes one driver, not the contract.
 
-## Observe, annotate, actuate
+## Bridge modes
 
 The pattern has three rungs, each worth deploying alone:
 
@@ -50,7 +50,7 @@ The pattern has three rungs, each worth deploying alone:
 2. **Annotate.** People and agents add meaning to observed events: stop reasons, scrap reasons, confirmation of counts. Each annotation is an ordinary command, forwarded to the MES through the outbox. An agent can propose an explanation from the alarm text and history; the operator confirms with one tap.
 3. **Actuate.** The bridge writes into the legacy GUI, for example to load the recipe for a scanned order. This rung requires bridge mode `actuate`, an explicit hazard class per procedure, the operator's hold-to-confirm for operator-present procedures, and readback verification.
 
-## Desired versus observed
+## Settling screen procedures
 
 Screen actions are not idempotent and can be interrupted. The connector therefore treats acceptance as convergence:
 
@@ -64,7 +64,7 @@ Screen actions are not idempotent and can be interrupted. The connector therefor
 
 A held effect stays visible as "needs reconciliation". The operator states whether the change was applied, through a reconcile command. A lost reply is not a rejection, and an empty observation is not proof that nothing happened.
 
-## Controlling the agent
+## Screen transport, driver and controller
 
 "Any computer-use agent, as long as we control it" becomes a port split:
 
@@ -95,13 +95,13 @@ Local inference keeps frames on site. The reference adapters are:
 - `worker`: a JSON-lines subprocess protocol, so any local runtime can serve OCR, classifiers or audio models in any language.
 - `openai-compatible-vision`: a local vision-language model behind an OpenAI-compatible endpoint, for example Ollama, llama.cpp server or vLLM. Output is constrained to a JSON schema per field. The base URL must be loopback or explicitly allowlisted. Its confidence is agreement across reads, which is a heuristic and is documented as one.
 
-### Station profiles carry the particulars
+### Station profiles
 
 Everything specific to one installation is versioned data, not code. A station profile names the application and its version pattern, identifies screens by anchors, maps fields to locators or regions and extractors, marks forbidden regions, and declares procedures with preconditions, steps, readback, hazard class and rerun safety. Profile validation rejects any procedure step that targets a forbidden region or an unknown field.
 
 When the vendor updates the HMI or a model changes, the golden-frame gate replays labeled frames through the profile's extractors. It reports per-field accuracy and confidence before the new version is activated.
 
-## Safety position
+## Safety
 
 - The bridge never operates safety functions. Profiles mark emergency-stop reset, interlock override, manual jog and similar controls as forbidden regions, and no procedure can target them.
 - Procedures declare a hazard class: `none`, `low` or `operator-present`. Operator-present procedures require a hold-to-confirm at the station by a person with the operator role.

@@ -1,24 +1,15 @@
 # Overview
 
-This repository is a TypeScript reference implementation for [edge applications](edge-applications.md): applications that run on or next to the machines where work happens, operated by people and AI agents together. A typical one runs procedures locally against control software, interprets the results, and reports them to a system of record such as an ERP, quality system or MES. Every operation is defined once and reachable from a desktop or browser UI, HTTP, MCP and a CLI. A person, a local agent, a script or a device therefore calls the same operation with the same validation and authorization.
+This repository is a TypeScript reference for applications that people and AI agents operate together, often on or next to the machines where work happens. A typical one records events locally and delivers them to a system of record such as an ERP, quality system or MES. Every operation is defined once and reachable from a desktop or browser UI, HTTP, MCP and a CLI, so a person, an agent, a script or a device calls it with the same validation and authorization.
 
-It contains a domain-neutral framework (`packages/*`), host plugins (`plugins/*`), a thin starter that hosts one application (`apps/*`) and four example applications (`examples/*`). It is a reference to read, run and export, not a published library or a hosted service.
+It contains a domain-neutral framework (`packages/*`), host plugins (`plugins/*`), a thin starter that hosts one application (`apps/*`) and example applications (`examples/*`). It is a reference to read, run and export, not a published library or a hosted service.
 
-## Purpose
-
-Systems of record own enterprise data, but their standard interfaces are built for general record management. Repetitive capture fits them poorly: a goods receipt, an inspection result or a stop reason is a few fields per event, entered under time pressure, often with a scanner. There are two common fixes, and both are expensive:
-
-- **Customizing the system of record** is a project that has to be redone at every vendor upgrade.
-- **A separate application per task** brings its own data handling, credentials, integration and deployment, and the maintenance grows with each one.
-
-This repository tries a third way: small task applications on one shared framework. Each covers one workflow, records events in a local transactional store, and delivers them to the system of record through an outbox. The framework provides what each of them would otherwise rebuild:
+The framework provides:
 
 - one writer per workspace, with state, receipt, journal and outbox committed atomically;
 - authorization from the host session, checked again at commit;
 - live updates to every open view after any commit;
 - at-least-once delivery that reports accepted, rejected and uncertain outcomes separately.
-
-Because each operation is declared once in a catalog, handing part of a workflow to an agent or a script needs no second implementation and no wider credentials. Why these applications run at the edge is explained in [edge applications](edge-applications.md#why-at-the-edge). Whether the approach pays off for a given workflow is not measured here; the [task and workflow pattern](task-workflow-pattern.md) gives the cost model.
 
 ## How it fits together
 

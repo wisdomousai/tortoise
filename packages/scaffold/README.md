@@ -39,7 +39,7 @@ The scaffold copies source only. It refuses to overwrite an existing target and 
 
 A generated application lists the site, network, audit and compliance plugins and gives each target an integration principal with its own lane and no role. Commands are for editors and reads for members; adjust `policy.ts` before adding people.
 
-Gaps: framework packages are unpublished, so an export vendors `packages/*` instead of depending on published versions. An export without an example still carries boundary and size exemptions for the reference examples, so `check:boundaries` and `check:size` report them as stale there. `add agent` is not implemented.
+Gaps: framework packages are unpublished, so an export vendors `packages/*` instead of depending on published versions. An export without an example still carries boundary exemptions for the reference examples, so `check:boundaries` reports them as stale there. `add agent` is not implemented.
 
 ## Dependencies
 

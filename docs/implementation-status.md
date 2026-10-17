@@ -108,7 +108,7 @@ On macOS arm64 with Bun 1.4.0.
 
 These run over in-memory fakes in `quality-inspection` and `crm-capture`. [Remote query](primitives.md#remote-query) and [Data provider](primitives.md#data-provider) are proven on one example.
 
-**Not shown.** There is no real system of record or CRM. Two dispatcher processes racing for one workspace (rather than two dispatchers in one process) and a reconciliation query across targets are not shown; the [gate status](system-of-record-pattern.md#status-against-the-reference-plan) has the details. Capture timings come from synthetic runs.
+**Not shown.** There is no real system of record or CRM. Two dispatcher processes racing for one workspace (rather than two dispatchers in one process) and a reconciliation query across targets are not shown. Capture timings come from synthetic runs.
 
 ### Operator workstation bridge
 
@@ -224,7 +224,7 @@ Phones and tablets pair with a hub. `plugins/device-link/test/link.test.ts` runs
 
 **Shown, deterministic.** The boundary check resolves imports by layer, including workspace package names and the browser graph of each application. A single-example export installs with a frozen lockfile and passes its own checks. `scaffold new` generates an application that installs with a frozen lockfile; after `add collection`, `add capability` and `add target` it passes format, generation and the drift check, typecheck, build, its unit tests and a Playwright spec that creates, opens and edits a record through the default screens (`bun run test:scaffold:full`, 17 October 2026).
 
-**Limits.** Framework packages are unpublished, so an export copies `packages/*` and depends on them through `workspace:*`. An authority hosts one application. A generated application's export fails `check:boundaries` and `check:size` on the reference examples' stale exemptions, so its acceptance run does not include them.
+**Limits.** Framework packages are unpublished, so an export copies `packages/*` and depends on them through `workspace:*`. An authority hosts one application. A generated application's export fails `check:boundaries` on the reference examples' stale exemptions, so its acceptance run does not include them.
 
 ## Known defects
 
