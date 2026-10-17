@@ -461,6 +461,12 @@ _A signed, versioned package with declared requirements, staged activation and r
 
 partial · `packages/bundle` `scripts/bundle.ts` `plugins/site/src/install`
 
+### Fleet agent
+
+_A site's outbound-only link to a fleet: health reports with the outbox backlog by target, audit forwarding, verified release staging and a remote-access relay that adds no credential._
+
+partial · `plugins/fleet-agent`
+
 ## Adding or changing a primitive
 
 Add an entry when a concept is domain-neutral and more than one application uses it; an adapter belongs with its port, and a concept only one example needs stays in that example. Prefer extending or extracting existing code. Keep the definition true across adapters and defaults, and put the details in the README.

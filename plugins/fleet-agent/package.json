@@ -1,0 +1,36 @@
+{
+  "name": "@agent-native/fleet-agent",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The site side of a fleet: outbound health reports, audit forwarding, verified release staging and an optional remote-access relay that holds no authority.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/fleet-agent"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "devDependencies": {
+    "@agent-native/audit": "workspace:*",
+    "@agent-native/device-link": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@agent-native/site": "workspace:*"
+  },
+  "dependencies": {
+    "@agent-native/bundle": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/event-log": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "zod": "4.6.5"
+  }
+}

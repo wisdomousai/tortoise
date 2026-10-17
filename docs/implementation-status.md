@@ -43,6 +43,19 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 - The embedded CLI verbs (`sync`, `drain`, `backup`, `restore`, `migrate`, `--embedded`) open a local workspace only. Back up the database with its own tools.
 - No Cloudflare Durable Object host exists. The host uses Bun APIs, and a Workers entry is not written.
 
+### Fleet agent
+
+**Not shown.**
+
+- No site has reported to a fleet across a real network, behind a firewall that allows only outbound https.
+- No staged release has been activated by `site install` from the `fleet-releases` folder on a real machine.
+
+**Limits.**
+
+- The relay polls the fleet (every two seconds by default) and forwards one request at a time, with bodies up to 1 MiB. It carries no event streams.
+- A site credential is not rotated. A fleet that loses one re-enrolls the site with a new code.
+- Staging fetches each release file whole. There is no resumed download.
+
 ### Site bundles
 
 **By hand.** `bun run bundle create` built a 69 MB project-tasks bundle (46 files) on macOS arm64, which `verify` accepted and `admit` refused until approved. Rerun on 17 October 2026 after the bundle began writing its contract, security manifest and SBOM from the catalog: the signature verified and `admit` listed the requirements to approve.

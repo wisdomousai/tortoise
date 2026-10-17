@@ -104,6 +104,8 @@ export const egressExemptions: Readonly<Record<string, string>> = {
   'packages/station/src/perception/openai-compatible-vision.ts':
     'Falls back to global fetch when no fetch is injected; to be made required so the host passes the guard.',
   'examples/line-station/fake-hmi/': 'Test fixture: the simulated station HMI and its recorder.',
+  'plugins/fleet-agent/src/relay.ts':
+    "Forwards a remote-access request from the fleet to the host's own listener (`PluginStartContext.origin`) under `/api/v1/` only, adding no credential and never following a redirect.",
   'plugins/hub-link/src/plugin.ts':
     'Provides the network port on a paired device, where no egress guard runs: one destination, the paired hub origin over https (http on loopback only), redirects refused; the enrollment exchange posts to the origin being paired.',
 };
