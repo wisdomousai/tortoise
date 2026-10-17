@@ -1,16 +1,17 @@
 # Agent-native desktop starter
 
-A TypeScript architecture reference for applications at the edge, on or next to the machines where work happens, that people and local AI agents operate together. They capture work as it happens, reach local control software, and deliver results to the systems of record that keep ownership of enterprise records.
+A TypeScript reference for applications that people and AI agents operate together, often on or next to the machines where work happens. An application captures work locally and delivers it to the systems of record that own enterprise data.
 
-Read [edge applications](docs/edge-applications.md) for the concept: why these applications run at the edge, the execute–interpret–report loop, how they reach control software and how agents take part. The [overview](docs/overview.md) covers the code: layout, the capability model, command execution, ports, external delivery, rules and verification status.
+Each operation is defined once as a capability. The composed catalog drives HTTP, MCP, the CLI, typed React calls and the generated reference docs, and a change made through any of them reaches every open view through the same journal. The host runs on Bun with SQLite storage and serves a React frontend; Electron wraps it on the desktop, and an Expo app runs an application on Android and iOS.
 
-The [implementation status](docs/implementation-status.md) records what has been verified, what has not, and the [known defects](docs/implementation-status.md#known-defects).
+Where to read next:
 
-Define a capability once. Explicit module composition collects its schema, permission requirements, handler binding, UI binding and workflow references. The resulting catalog drives HTTP, MCP, CLI, typed React calls and generated documentation. Changes made through any surface reach subscribed frontends through the same committed journal.
-
-The implemented reference composes a local project/task workspace, which verifies the shared kernel, with a quality-inspection capture workflow. Its authority runs on Bun, stores a transactional snapshot in SQLite and serves a React frontend. Electron wraps that frontend and supervises the authority. Storage, policy and agent providers sit behind replaceable ports.
-
-Read the [task/workflow pattern](docs/task-workflow-pattern.md) for the product rationale, event capture, system-of-record boundaries, CLI/MCP execution and unit economics. The [system-of-record reference](docs/system-of-record-pattern.md) describes the implemented quality-inspection capture workflow: transactional outbox and inbound sync against a mock quality system, a TanStack + shadcn capture kit, and a single CLI/MCP binary that can run embedded in a sandbox. The [operator workstation pattern](docs/operator-workstation-pattern.md) extends it to station software that can only be observed and driven through its screen. A background bridge behind the outbox reads the screen with accessibility, OCR or local vision models and runs declared procedures with readback, while operators use thick-finger input and scanners ([point-of-work input](docs/point-of-work-input.md)). [Security and compliance](docs/security-and-compliance.md) covers what the app may reach and how that is enforced: declared egress bound by a site policy, offline by default; sandbox and zero-trust hardening profiles; a fail-closed, hash-chained audit log; and a generated audit bundle (data flows, control mapping, CycloneDX SBOM, firewall rules). The [next reference plan](docs/system-of-record-reference-plan.md) lists the gates still open, including full reconciliation of uncertain outcomes and actual sandbox enforcement.
+- [Overview](docs/overview.md): layout, the capability model, command execution, ports and delivery.
+- [Architecture](docs/architecture.md): layers, the kernel and the invariants the checks test.
+- [Systems of record](docs/system-of-record-pattern.md): outbox, inbound sync, live search and the CLI, as the `quality-inspection` and `crm-capture` examples use them.
+- [Operator workstations](docs/operator-workstation-pattern.md): station software reached through its screen, as `line-station` uses it, with [point-of-work input](docs/point-of-work-input.md) for scanners and glove-sized screens.
+- [Security and compliance](docs/security-and-compliance.md): declared egress under a site policy, hardening profiles, the audit log and the generated audit bundle.
+- [Implementation status](docs/implementation-status.md): what has been run, what has not, and the [known defects](docs/implementation-status.md#known-defects).
 
 ## Run the example
 
