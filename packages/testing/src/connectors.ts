@@ -37,9 +37,16 @@ export interface ConformanceCase {
   run(): Promise<ConformanceResult>;
 }
 
-/** Build an effect for a harness, with the fields a dispatcher hands to a port. */
+/**
+ * Build an effect for a harness, with the fields a dispatcher hands to a port. Pass
+ * `contractVersion` to test a connector that maps payloads recorded by an older release.
+ */
 export function conformanceEffect(
-  fields: Pick<Effect, 'id' | 'target' | 'type'> & { payload: JsonValue; attempts?: number },
+  fields: Pick<Effect, 'id' | 'target' | 'type'> & {
+    payload: JsonValue;
+    attempts?: number;
+    contractVersion?: string;
+  },
 ): Effect {
   return {
     operation: 'conformance',

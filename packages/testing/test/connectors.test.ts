@@ -91,3 +91,14 @@ test.each([
     await check.run().catch((error: Error) => failures.push(error.message));
   expect(failures.join('\n')).toContain(message);
 });
+
+test('a conformance effect carries the contract version it was recorded under', () => {
+  const effect = conformanceEffect({
+    id: 'e1',
+    target: 'fake',
+    type: 'record.create',
+    payload: {},
+    contractVersion: '1',
+  });
+  expect(effect).toMatchObject({ contractVersion: '1', attempts: 0, status: 'pending' });
+});
