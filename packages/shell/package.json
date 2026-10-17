@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/shell",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OS handlers and OS actions at runtime: request parsing and matching, targets, action instructions and generated platform registrations.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}
