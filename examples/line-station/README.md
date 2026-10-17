@@ -15,7 +15,7 @@ This example is one [Application](../../docs/primitives.md#application) and the 
 - the `stop.explainer` [Agent definition](../../docs/primitives.md#agent-definition), which proposes a stop reason as a [Proposal](../../docs/primitives.md#proposal) about `stop:<id>`. The station shows it as an attention tile, and accepting classifies the stop as the operator. Proposals take the station of the stop they are about, so the policy resolves it for submit, accept and reject;
 - [Input sources](../../docs/primitives.md#input-source) and the operator [UI registry](../../docs/primitives.md#ui-registry) on a glove-sized station surface.
 
-Read the [operator workstation pattern](../../docs/operator-workstation-pattern.md) and [point-of-work input](../../docs/point-of-work-input.md). The generated [operation reference](../../docs/reference/line-station/operations.md) lists every operation.
+Read the [operator workstation pattern](../../docs/operator-workstation-pattern.md) and [point-of-work input](../../docs/point-of-work-input.md). `bun run generate` writes the operation reference to `dist/reference/line-station/operations.md`.
 
 ## Entrypoints
 

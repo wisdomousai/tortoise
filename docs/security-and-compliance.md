@@ -142,7 +142,7 @@ The file log chains events with SHA-256 across rotated segments and writes check
 
 ## 5. Compliance bundle
 
-`bun run generate` writes these files for each application to `docs/reference/<id>/`, and the shared control catalog to `docs/reference/`. The build fails if they drift.
+`bun run generate` writes these files for each application to `dist/reference/<id>/`, and the shared control catalog to `dist/reference/`. They are not committed. `bun run bundle create` writes the security manifest and the contract from the catalog into each signed site bundle.
 
 | File                           | Contents                                                                                                                                                                  |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

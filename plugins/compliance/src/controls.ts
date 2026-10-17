@@ -26,8 +26,8 @@ export interface Control {
     /** Test files that demonstrate the behaviour; `bun test <file>` re-runs them. */
     readonly tests: readonly string[];
     /**
-     * Generated or exported artifacts: paths under `docs/reference` (per-application artifacts
-     * cite the quality-inspection reference application), or CLI exports.
+     * Generated or exported artifacts: a file `bun run generate` writes for each application under
+     * `dist/reference/<id>/`, a file in a signed site bundle, or a CLI export.
      */
     readonly artifacts: readonly string[];
     /** Audit event kinds that show the control operating at runtime. */
@@ -50,10 +50,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['packages/contracts/test/contracts.test.ts'],
-      artifacts: [
-        'docs/reference/quality-inspection/security-manifest.json',
-        'docs/reference/quality-inspection/data-flows.md',
-      ],
+      artifacts: ['security-manifest.json', 'data-flows.md'],
       events: ['policy.loaded'],
     },
   },
@@ -117,7 +114,7 @@ export const controls: readonly Control[] = [
         'examples/project-tasks/test/security.test.ts',
         'packages/egress/test/egress.test.ts',
       ],
-      artifacts: ['docs/reference/quality-inspection/data-flows.md'],
+      artifacts: ['data-flows.md'],
       events: ['policy.loaded', 'effect.enqueued'],
     },
   },
@@ -136,7 +133,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['packages/egress/test/egress.test.ts'],
-      artifacts: ['docs/reference/quality-inspection/data-flows.md'],
+      artifacts: ['data-flows.md'],
       events: ['egress.allowed', 'egress.denied'],
     },
   },
@@ -264,7 +261,7 @@ export const controls: readonly Control[] = [
         'packages/runtime/test/audit.test.ts',
         'examples/project-tasks/test/security.test.ts',
       ],
-      artifacts: ['docs/reference/quality-inspection/data-flows.md'],
+      artifacts: ['data-flows.md'],
       events: ['command.accepted'],
     },
   },
@@ -322,7 +319,7 @@ export const controls: readonly Control[] = [
         'packages/runtime/test/runtime.test.ts',
         'examples/project-tasks/test/security-conformance.test.ts',
       ],
-      artifacts: ['docs/reference/quality-inspection/contract.json'],
+      artifacts: ['contract.json'],
       events: ['command.denied', 'query.denied'],
     },
   },
@@ -426,10 +423,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['scripts/check-boundaries.ts'],
-      artifacts: [
-        'docs/reference/quality-inspection/contract.json',
-        'docs/reference/quality-inspection/security-manifest.json',
-      ],
+      artifacts: ['contract.json', 'security-manifest.json'],
       events: [],
     },
   },
@@ -447,7 +441,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['examples/project-tasks/test/transport-conformance.test.ts'],
-      artifacts: ['docs/reference/quality-inspection/openapi.json'],
+      artifacts: ['openapi.json'],
       events: ['command.failed'],
     },
   },

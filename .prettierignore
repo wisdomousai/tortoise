@@ -5,7 +5,7 @@ test-results
 playwright-report
 .workspace
 bun.lock
-docs/reference
+*.md
 scaffold.manifest.json
 plugins/network/test/golden
 .claude

@@ -18,6 +18,7 @@ import {
 import { cycloneDx, type SecurityManifest } from '@agent-native/compliance';
 import { loadManifest, readStarterConfig } from '@agent-native/host';
 import { compileCli } from './build-cli';
+import { artifacts } from './reference-artifacts';
 
 const root = resolve(import.meta.dir, '..');
 const usage = `bun scripts/bundle.ts keygen --out key.json
@@ -52,9 +53,9 @@ const platformOf = (target?: string) =>
   target ? target.replace(/^bun-/, '') : `${process.platform}-${process.arch}`;
 
 /**
- * `create`: compile the configured application's CLI, copy the web build and the generated
- * security manifest and contract, write an SBOM from the current lockfile, and sign. The SBOM is
- * made here rather than committed, so it describes the dependencies this bundle was built with.
+ * `create`: compile the configured application's CLI, copy the web build, write the security
+ * manifest and contract from the catalog and an SBOM from the current lockfile, and sign. They are
+ * built here rather than committed, so they describe exactly the code this bundle was built from.
  * The key comes only from `--key`.
  */
 async function create(args: string[]) {
@@ -63,7 +64,6 @@ async function create(args: string[]) {
   const target = flag(args, 'target');
   const config = readStarterConfig(join(root, 'app.config.json'));
   const manifest = await loadManifest(config);
-  const reference = join(root, 'docs/reference', manifest.id);
   const web = join(root, 'dist/web', manifest.id);
   if (!(await Bun.file(join(web, 'index.html')).exists()))
     throw new Error('No web build for this application in dist/web; run `bun run build:web` first');
@@ -73,12 +73,12 @@ async function create(args: string[]) {
     const windows = (target ?? process.platform).includes('win');
     await compileCli(join(payload, 'bin', windows ? `${config.name}.exe` : config.name), target);
     await cp(web, join(payload, 'web'), { recursive: true });
-    for (const file of ['security-manifest.json', 'contract.json'])
-      await cp(join(reference, file), join(payload, file));
-    const security = await readJson<BundleRequirements & SecurityManifest>(
-      join(reference, 'security-manifest.json'),
-    );
-    const contract = await readFile(join(reference, 'contract.json'));
+    const reference = artifacts(manifest);
+    const contract = reference.get('contract.json')!;
+    const securityText = reference.get('security-manifest.json')!;
+    await writeFile(join(payload, 'contract.json'), contract);
+    await writeFile(join(payload, 'security-manifest.json'), securityText);
+    const security = JSON.parse(securityText) as BundleRequirements & SecurityManifest;
     const version =
       flag(args, 'version') ?? (await readJson<{ version: string }>('package.json')).version;
     const sbom = cycloneDx({
