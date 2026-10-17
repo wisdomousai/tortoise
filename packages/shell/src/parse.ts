@@ -16,6 +16,8 @@ export class OsRequestError extends Error {
 }
 
 const limits = { url: 2048, name: 255, label: 200, text: 1_048_576, token: 128 } as const;
+/** A one-use code a plugin issued for input it holds: base64url, 128 bits or more. */
+export const claimCode = /^[A-Za-z0-9_-]{22,64}$/;
 const plain = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype;
 const controlCharacters = new RegExp(
@@ -150,6 +152,11 @@ export function parseRawOsRequest(value: unknown): RawOsRequest {
         action: token(value.action, 'action'),
         ...(value.text !== undefined ? { text: optionalText(value.text, 4096, 'text')! } : {}),
       };
+    case 'claim':
+      only(value, ['kind', 'code']);
+      if (typeof value.code !== 'string' || !claimCode.test(value.code))
+        invalid('code is not a claim code');
+      return { kind: 'claim', code: value.code };
     default:
       return invalid('Unknown OS request kind');
   }

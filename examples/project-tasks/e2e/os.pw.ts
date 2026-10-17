@@ -18,7 +18,7 @@ const api = (page: Page, path: string, body: unknown) =>
     [path, body] as const,
   );
 
-test('a protocol-handler landing opens the task; files prefill tasks the person adds', async ({
+test('a protocol-handler landing opens the task; files and shares prefill tasks the person adds', async ({
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-os-e2e-'));
@@ -93,6 +93,41 @@ test('a protocol-handler landing opens the task; files prefill tasks the person 
       return [...new Uint8Array(await response.arrayBuffer())];
     }, href);
     expect(downloaded).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+    // Another app shares to the installed app: the browser posts the share target form as a
+    // top-level navigation from no site, and the landing page claims it as its own session.
+    const target = manifest.share_target as { action: string; params: { files: unknown[] } };
+    expect(target).toMatchObject({ method: 'POST', enctype: 'multipart/form-data' });
+    const share = async (
+      fields: string,
+      file?: { name: string; mimeType: string; buffer: Buffer },
+    ) => {
+      await page.goto('about:blank');
+      await page.setContent(
+        `<form method="post" enctype="multipart/form-data" action="${host!.origin}${target.action}">` +
+          `${fields}<input type="file" name="file"><button>Share</button></form>`,
+      );
+      if (file) await page.setInputFiles('input[type=file]', file);
+      await page.getByRole('button', { name: 'Share' }).click();
+    };
+    await share(
+      '<input name="title" value="Spec"><input name="url" value="https://example.com/spec">',
+    );
+    await expect(prefilled.getByText('Shared from another app')).toBeVisible();
+    await expect(prefilled.getByLabel('Description')).toHaveValue('https://example.com/spec');
+    expect(new URL(page.url()).search).toBe('');
+    await prefilled.getByLabel('Title').fill('Read the spec');
+    await prefilled.getByRole('button', { name: /^Add task to / }).click();
+    await expect(page.getByRole('button', { name: 'Read the spec', exact: true })).toBeVisible();
+
+    await share('', {
+      name: 'Whiteboard.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    });
+    await expect(prefilled.getByText('Shared from another app')).toBeVisible();
+    await expect(prefilled.getByLabel('Title')).toHaveValue('Whiteboard.png');
+    await expect(prefilled.getByText('Attachment: image/png, 1 KB')).toBeVisible();
   } finally {
     await host?.stop();
     await rm(workspace, { recursive: true, force: true });

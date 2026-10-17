@@ -42,13 +42,15 @@ Ownership is an `EXCLUSIVE` transaction on the lock database, held while the aut
 
 The screens act as the local owner, the person holding the device. The app's sandbox is the only isolation between apps; anyone who can unlock the device can use the app. Pairing and device credentials belong to a plugin, not to this package; it supplies the secret store they are kept in. `expoSecretStore` uses `expo-secure-store` (Keychain on iOS, Keystore-encrypted storage on Android) with `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`, so a background task can read it after the first unlock and the value is not restored onto another device.
 
+Shares arrive through `expo-sharing` (experimental): it opens the app with `<scheme>://expo-sharing`, and `expoOsBindings` takes the raw shared items once and clears them. It never resolves them, because resolving a shared web page fetches it. A share action opens React Native's share sheet; on Android the URL travels in the message, which has no URL field there.
+
 `connectMobileShell` attaches the mobile shell adapter to the shell port in-process, as the device's owner, because the OS runs in the same process as the authority; there is no shell route on the device. A link or file the OS opens the app with is submitted to the port, and what the port delivers is held, at most 16 and oldest dropped, until the frame subscribes. An opened resource is checked readable by the owner with its kind's read query before it is shown. A blob file is staged in the authority's blob store as the owner, and staged blobs do not survive a restart. Without a plugin that provides the shell port, nothing is attached, read or submitted.
 
 Integration loops run only in the foreground (`followAppState`). A background pass is one bounded `drain` and `sync`; the OS decides when it runs and may stop it, and iOS runs it rarely, so delivery is effectively a foreground job there.
 
 ## Dependencies
 
-Framework: `@agent-native/kernel`, `@agent-native/adapters` (only the portable `sql-driver`, `snapshot-storage`, `exclusive-lock` and `direct-transport` modules), `@agent-native/runtime`, `@agent-native/contracts`. Framework, for OS integration: `@agent-native/shell`. Expo entry: `expo-sqlite`, `expo-file-system`, `expo-crypto`, `expo-background-task`, `expo-task-manager`, `expo-modules-core`, `react-native`. `check:boundaries` treats `src/` as portable: no Node or Bun import or global.
+Framework: `@agent-native/kernel`, `@agent-native/adapters` (only the portable `sql-driver`, `snapshot-storage`, `exclusive-lock` and `direct-transport` modules), `@agent-native/runtime`, `@agent-native/contracts`. Framework, for OS integration: `@agent-native/shell`. Expo entry: `expo-sqlite`, `expo-file-system`, `expo-sharing`, `expo-crypto`, `expo-background-task`, `expo-task-manager`, `expo-modules-core`, `react-native`. `check:boundaries` treats `src/` as portable: no Node or Bun import or global.
 
 ## Tests
 

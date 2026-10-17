@@ -3003,6 +3003,59 @@
         ]
       },
       {
+        "accepts": {
+          "mediaTypes": [
+            "image/png",
+            "image/jpeg",
+            "application/pdf"
+          ]
+        },
+        "description": "Prefill a new task from an image or PDF shared from another app, attached.",
+        "id": "task.from-shared-file",
+        "kind": "share",
+        "maxBytes": 10485760,
+        "owner": "project-tasks",
+        "target": {
+          "input": {
+            "attachment": "{blob}",
+            "title": "{title}"
+          },
+          "prepare": "task.create"
+        }
+      },
+      {
+        "accepts": {
+          "url": true
+        },
+        "description": "Prefill a new task whose description is a link shared from another app.",
+        "id": "task.from-shared-link",
+        "kind": "share",
+        "maxBytes": 2048,
+        "owner": "project-tasks",
+        "target": {
+          "input": {
+            "description": "{url}"
+          },
+          "prepare": "task.create"
+        }
+      },
+      {
+        "accepts": {
+          "text": true
+        },
+        "description": "Prefill a new task whose description is text shared from another app.",
+        "id": "task.from-shared-text",
+        "kind": "share",
+        "maxBytes": 10000,
+        "owner": "project-tasks",
+        "target": {
+          "input": {
+            "description": "{text}"
+          },
+          "prepare": "task.create"
+        }
+      },
+      {
         "description": "Prefill a new task from a text or Markdown file: its name and its text.",
         "id": "task.from-text",
         "kind": "file",

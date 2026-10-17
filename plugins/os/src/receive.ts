@@ -30,14 +30,30 @@ export type OsConsumer = (
   raw: RawOsRequest,
 ) => Promise<void>;
 
+/**
+ * A plugin's resolver for claim codes it issued: the request the code stands for, taken once,
+ * as the session that claims it (a held file is staged in the blob store under that session).
+ * `undefined` when the code is not this plugin's or is used or expired.
+ */
+export type OsHolder = (context: ExecutionContext, code: string) => Promise<unknown>;
+
 export interface ReceiveDependencies {
   readonly declarations: OsDeclarationSet;
   readonly catalog: Catalog;
   readonly match: MatchOptions;
   readonly disabled: ReadonlySet<string>;
   readonly consumers: ReadonlyMap<string, OsConsumer>;
+  readonly holders: readonly OsHolder[];
   readonly allow: (handler: string) => boolean;
   readonly audit: OsAudit;
+}
+
+async function claim(holders: readonly OsHolder[], context: ExecutionContext, code: string) {
+  for (const holder of holders) {
+    const held = await holder(context, code);
+    if (held !== undefined) return held;
+  }
+  return undefined;
 }
 
 /**
@@ -72,6 +88,14 @@ export async function receiveOsRequest(
   let match: OsMatch | undefined;
   try {
     raw = parseRawOsRequest(input);
+    if (raw.kind === 'claim') {
+      // The claim stands for input a plugin held without a session; this session takes it now,
+      // and what it stands for is parsed and matched like any request.
+      const held = await claim(dependencies.holders, context, raw.code);
+      if (held === undefined) return refuse('invalid');
+      raw = parseRawOsRequest(held);
+      if (raw.kind === 'claim') return refuse('invalid');
+    }
     match = matchOsRequest(dependencies.declarations.handlers, raw, dependencies.match);
   } catch (error) {
     if (error instanceof OsRequestError) return refuse(error.reason);

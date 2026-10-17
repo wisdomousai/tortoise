@@ -19,8 +19,9 @@ export async function serveStatic(webRoot: string | undefined, path: string) {
 }
 
 /**
- * The page an OS link lands on in a browser. A protocol handler navigates to `/?os=<link>` (and a
- * manifest shortcut to `/?os-shortcut=<id>`) from whichever site held the link, so this one
+ * The page an OS link lands on in a browser. A protocol handler navigates to `/?os=<link>` (a
+ * manifest shortcut to `/?os-shortcut=<id>`, a web share target's redirect to
+ * `/?os-share=<code>`) from whichever site held the link, so this one
  * top-level document navigation is served although it is cross-site; every other cross-site
  * request stays refused. It returns only the static frame. The page then submits the link
  * same-origin as its own session, and an unsolicited request can only open or prefill.
@@ -32,7 +33,7 @@ export async function serveOsLanding(webRoot: string | undefined, request: Reque
     request.method !== 'GET' ||
     url.pathname !== '/' ||
     keys.length !== 1 ||
-    !['os', 'os-shortcut'].includes(keys[0]!) ||
+    !['os', 'os-shortcut', 'os-share'].includes(keys[0]!) ||
     request.headers.get('sec-fetch-mode') !== 'navigate' ||
     request.headers.get('sec-fetch-dest') !== 'document'
   )

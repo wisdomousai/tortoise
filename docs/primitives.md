@@ -215,13 +215,13 @@ implemented · `packages/devices` `plugins/intent-scanner`
 
 _A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or reply, and where its requests go._
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `packages/frame-native` `packages/mobile` `plugins/compliance` `apps/desktop` `apps/mobile` `examples/project-tasks`
+partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/share-target` `packages/frame` `packages/frame-native` `packages/mobile` `plugins/compliance` `apps/desktop` `apps/mobile` `examples/project-tasks`
 
 ### OS action
 
 _A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it carries._
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance` `packages/agents` `apps/desktop` `packages/frame` `packages/mobile`
+partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/share-target` `plugins/compliance` `packages/agents` `apps/desktop` `packages/frame` `packages/mobile`
 
 ### Shell port
 

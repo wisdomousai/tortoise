@@ -1,4 +1,5 @@
 import type { BlobRef, CatalogOs, RawOsRequest } from '@agent-native/contracts';
+import { claimCode } from './parse';
 
 type FileHandler = Extract<CatalogOs['handlers'][number], { kind: 'file' }>;
 
@@ -83,9 +84,10 @@ export function strictText(bytes: ArrayBuffer | Uint8Array): string | undefined 
 }
 
 /**
- * The OS request a browser landing URL carries. A protocol handler navigates to `/?os=<link>` and
- * a manifest shortcut to `/?os-shortcut=<id>`; the landing must carry exactly one of them and
- * nothing else, and the request is checked again by the shell port like any other.
+ * The OS request a browser landing URL carries. A protocol handler navigates to `/?os=<link>`, a
+ * manifest shortcut to `/?os-shortcut=<id>` and the share target's redirect to
+ * `/?os-share=<claim code>`; the landing must carry exactly one of them and nothing else, and the
+ * request is checked again by the shell port like any other.
  */
 export function landingRequest(search: string): RawOsRequest | undefined {
   const params = new URLSearchParams(search);
@@ -95,5 +97,6 @@ export function landingRequest(search: string): RawOsRequest | undefined {
   if (keys[0] === 'os' && value.length <= 2048) return { kind: 'url', url: value };
   if (keys[0] === 'os-shortcut' && /^[a-z0-9._-]{1,128}$/.test(value))
     return { kind: 'shortcut', id: value };
+  if (keys[0] === 'os-share' && claimCode.test(value)) return { kind: 'claim', code: value };
   return undefined;
 }

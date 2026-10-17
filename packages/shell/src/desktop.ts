@@ -37,6 +37,8 @@ export interface DesktopShellDependencies {
   readonly open: (url: string) => Promise<void>;
   readonly reveal: (path: string) => Promise<OsActionResult>;
   readonly openFile: (path: string) => Promise<OsActionResult>;
+  /** Show the system share menu with text or a URL; absent, share actions are refused. */
+  readonly share?: (content: { text?: string; url?: string }) => Promise<OsActionResult>;
   /** Bring the window forward after a request was delivered to it. */
   readonly focus: () => void;
   readonly report?: (message: string) => void;
@@ -63,6 +65,15 @@ async function runInstruction(
       return dependencies.reveal(instruction.path);
     case 'open-file':
       return dependencies.openFile(instruction.path);
+    case 'share': {
+      if (!dependencies.share)
+        return { ok: false, detail: 'share is not supported on this desktop' };
+      const { text, url } = instruction;
+      return dependencies.share({
+        ...(text !== undefined ? { text } : {}),
+        ...(url !== undefined ? { url } : {}),
+      });
+    }
     default:
       return { ok: false, detail: `${instruction.kind} is not supported on this desktop` };
   }

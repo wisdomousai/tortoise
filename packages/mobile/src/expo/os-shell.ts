@@ -1,5 +1,7 @@
 import { File } from 'expo-file-system';
-import { Linking, Platform } from 'react-native';
+import { clearSharedPayloads, getSharedPayloads } from 'expo-sharing';
+import { Linking, Platform, Share } from 'react-native';
+import type { MobileShare } from '@agent-native/shell/mobile';
 import type { MobileOsBindings } from '../os';
 
 /**
@@ -18,7 +20,28 @@ function inspect(uri: string) {
 }
 
 /**
- * The device's link and file calls through React Native's `Linking` and Expo's file system.
+ * What another app shared, when `uri` is the link `expo-sharing` opens the app with
+ * (`<scheme>://expo-sharing`). The raw payloads are taken once and cleared; they are never
+ * resolved, because resolving a shared web page fetches it. Experimental in `expo-sharing`.
+ */
+async function shared(uri: string, scheme: string): Promise<readonly MobileShare[] | undefined> {
+  if (!uri.toLowerCase().startsWith(`${scheme.toLowerCase()}://expo-sharing`)) return undefined;
+  const payloads = getSharedPayloads();
+  clearSharedPayloads();
+  return payloads.map((payload): MobileShare => {
+    if (payload.shareType === 'text') return { kind: 'text', text: payload.value };
+    if (payload.shareType === 'url') return { kind: 'url', url: payload.value };
+    return {
+      kind: 'file',
+      uri: payload.value,
+      ...(payload.mimeType ? { mediaType: payload.mimeType } : {}),
+    };
+  });
+}
+
+/**
+ * The device's link, file and share calls through React Native's `Linking` and `Share`, Expo's
+ * file system and `expo-sharing`.
  * Links come from the launching intent or URL and each later one; a file is read once, after its
  * size is checked, and checked again after reading. Opening a URL goes through `Linking`, so the
  * OS chooses the browser or app for it.
@@ -49,6 +72,16 @@ export function expoOsBindings(
       }
     },
     open: (url) => Linking.openURL(url),
+    shared: (uri) => shared(uri, scheme),
+    async share({ text, url, title }) {
+      // Android's share sheet has no URL field, so a URL travels in the message there.
+      const message = Platform.OS === 'ios' ? text : [text, url].filter(Boolean).join('\n');
+      await Share.share({
+        ...(message ? { message } : {}),
+        ...(Platform.OS === 'ios' && url ? { url } : {}),
+        ...(title ? { title } : {}),
+      } as Parameters<typeof Share.share>[0]);
+    },
     report,
   };
 }

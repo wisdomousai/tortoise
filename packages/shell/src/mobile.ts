@@ -8,6 +8,7 @@ import type {
 } from '@agent-native/contracts';
 import { openActionFor } from './actions';
 import { fileHandlerFor, fileRequest, type BlobUpload } from './local-files';
+import { maxSharedItems, shareFileRequest, shareHandlerFor } from './shares';
 
 /** What the OS reports about a file it handed the app: a display name, a size, a media type. */
 export interface MobileFileInfo {
@@ -15,6 +16,12 @@ export interface MobileFileInfo {
   readonly size: number;
   readonly mediaType?: string;
 }
+
+/** One item another app shared through the share sheet. A file is read only through `read`. */
+export type MobileShare =
+  | { readonly kind: 'text'; readonly text: string }
+  | { readonly kind: 'url'; readonly url: string }
+  | { readonly kind: 'file'; readonly uri: string; readonly mediaType?: string };
 
 /** The OS calls and the in-process authority a mobile shell uses. */
 export interface MobileShellDependencies {
@@ -33,6 +40,13 @@ export interface MobileShellDependencies {
   readonly deliver: (delivery: OsDelivery) => void;
   /** Open a URL in the system's handler for it. */
   readonly open: (url: string) => Promise<void>;
+  /**
+   * The items a URI announces another app shared, or `undefined` when the URI is not a share.
+   * Each share is taken once; absent, the app receives no shares.
+   */
+  readonly shared?: (uri: string) => Promise<readonly MobileShare[] | undefined>;
+  /** Show the system share sheet with text or a URL; absent, share actions are refused. */
+  readonly share?: (content: { text?: string; url?: string; title?: string }) => Promise<void>;
   readonly report?: (message: string) => void;
 }
 
@@ -84,13 +98,33 @@ export function createMobileShell(dependencies: MobileShellDependencies) {
     if (!request) return report(`The file does not fit ${handler.id}`);
     await submit(request);
   }
+  async function submitShared(item: MobileShare) {
+    if (item.kind === 'text') return submit({ kind: 'share', text: item.text });
+    if (item.kind === 'url') return submit({ kind: 'share', url: item.url });
+    const info = await dependencies.inspect(item.uri);
+    if (!info) return report('The shared file cannot be read');
+    const mediaType = info.mediaType ?? item.mediaType;
+    const handler = shareHandlerFor(dependencies.declarations(), mediaType);
+    if (!handler || !mediaType) return report('No declared share handler for this file type');
+    if (info.size > handler.maxBytes) return report(`The file does not fit ${handler.id}`);
+    const bytes = await dependencies.read(item.uri, handler.maxBytes);
+    const request =
+      bytes && (await shareFileRequest(handler, info.name, mediaType, bytes, dependencies.upload));
+    if (!request) return report(`The file does not fit ${handler.id}`);
+    await submit(request);
+  }
 
   return {
     platform: dependencies.platform,
     /** A URI from the launch or a later OS event. Never rejects. */
     async receive(uri: string) {
-      const input = mobileInput(uri, dependencies.scheme);
       try {
+        const shared = await dependencies.shared?.(uri);
+        if (shared) {
+          for (const item of shared.slice(0, maxSharedItems)) await submitShared(item);
+          return;
+        }
+        const input = mobileInput(uri, dependencies.scheme);
         if (input?.kind === 'url') await submit({ kind: 'url', url: input.url });
         else if (input?.kind === 'file') await submitFile(input.uri);
       } catch {
@@ -99,9 +133,19 @@ export function createMobileShell(dependencies: MobileShellDependencies) {
     },
     /**
      * Perform an instruction the shell port built. An open is checked against the declared open
-     * actions again before the OS sees it; reveal and open-file have no meaning on a phone.
+     * actions again before the OS sees it, and a share shows the system share sheet with what
+     * the declaration allowed; reveal and open-file have no meaning on a phone.
      */
     async perform(instruction: OsInstruction): Promise<OsActionResult> {
+      if (instruction.kind === 'share' && dependencies.share) {
+        const { text, url, title } = instruction;
+        await dependencies.share({
+          ...(text !== undefined ? { text } : {}),
+          ...(url !== undefined ? { url } : {}),
+          ...(title !== undefined ? { title } : {}),
+        });
+        return { ok: true };
+      }
       if (instruction.kind !== 'open')
         return { ok: false, detail: `${instruction.kind} is not supported on this device` };
       if (

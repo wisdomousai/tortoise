@@ -10,7 +10,7 @@ import {
   listSetting,
 } from './declarations';
 import { createAdapters, performOsAction } from './perform';
-import { receiveOsRequest, type OsConsumer } from './receive';
+import { receiveOsRequest, type OsConsumer, type OsHolder } from './receive';
 
 /**
  * What the OS plugin exposes to later plugins as `services.os`. A capability plugin (share
@@ -20,6 +20,11 @@ import { receiveOsRequest, type OsConsumer } from './receive';
 export interface OsService {
   enable(kinds: { handlers?: readonly OsHandlerKind[]; actions?: readonly OsActionKind[] }): void;
   consume(consumer: string, receive: OsConsumer): void;
+  /**
+   * Resolve claim codes this plugin issued for input that arrived without a session, such as a
+   * web share target's POST. The landing page submits `{ kind: 'claim', code }` as its session.
+   */
+  hold(resolve: OsHolder): void;
   /** Declared handlers and actions, attached adapter platforms and recent activity. */
   status(): {
     readonly handlers: readonly { id: string; kind: OsHandlerKind; disabled: boolean }[];
@@ -45,6 +50,7 @@ export function openOs(options: { now?: () => number } = {}) {
     const disabled = listSetting(context.settings['os-disabled']);
     const enabled = { handlers: new Set(baseHandlerKinds), actions: new Set(baseActionKinds) };
     const consumers = new Map<string, OsConsumer>();
+    const holders: OsHolder[] = [];
     const audit = createOsAudit(() => context.ports.eventLog, now);
     const adapters = createAdapters();
     const disabledSet = new Set(disabled);
@@ -57,6 +63,7 @@ export function openOs(options: { now?: () => number } = {}) {
       },
       disabled: disabledSet,
       consumers,
+      holders,
       allow: createRateLimit(perMinute, 60_000, now),
       audit,
     };
@@ -81,6 +88,9 @@ export function openOs(options: { now?: () => number } = {}) {
       consume(consumer, receive) {
         if (consumers.has(consumer)) throw new Error(`OS consumer ${consumer} is registered twice`);
         consumers.set(consumer, receive);
+      },
+      hold(resolve) {
+        holders.push(resolve);
       },
       status: () => ({
         handlers: declarations.handlers.map(({ id, kind }) => ({
