@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:8e3700ef-14ea-5c63-87d5-310df908924b",
+  "serialNumber": "urn:uuid:269567e9-e6ea-5047-a323-38770ecb022e",
   "version": 1,
   "metadata": {
     "tools": {
@@ -5148,6 +5148,20 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/abort-controller@3.0.0",
+      "name": "abort-controller",
+      "version": "3.0.0",
+      "purl": "pkg:npm/abort-controller@3.0.0",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "87c950f2d69c6589d1def3504e089b8feb4e0c7239ffe974e80bb63dcae2bff1a67add1e6a3e13c161f8d6c3bdc271c3890b048f5f6ad1daf375675e007b707a"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/accepts@1.3.8",
       "name": "accepts",
       "version": "1.3.8",
@@ -5702,6 +5716,20 @@
         {
           "alg": "SHA-512",
           "content": "46ba9cfd9e4875ce1b1b6fcfac487bdb9b7792fb8073b8d428227ec19554f4a5e4d9b29276a027897c506bc6a987d68776fe21e6c18a2e931731a30dcffe3e3a"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/badgin@1.2.3",
+      "name": "badgin",
+      "version": "1.2.3",
+      "purl": "pkg:npm/badgin@1.2.3",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "350180ecb71f0a94b321b1916e482381d5a48f2ec723e4e1e552f14c97d6e4479a01fddf9d2fb15906903826229f2faae904afc6aa123b4e2f0b1fb8bbef8427"
         }
       ],
       "scope": "required"
@@ -7906,6 +7934,20 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/event-target-shim@5.0.1",
+      "name": "event-target-shim",
+      "version": "5.0.1",
+      "purl": "pkg:npm/event-target-shim@5.0.1",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "8bfd976e74b3feec51094ebe35d54980a5834cce36efe32a61b910cc3df6d43b8240952a3ae24a200d08336f96db1b581dd28e999e1d47a7c4c6c7784972fe59"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/eventsource-parser@3.1.1",
       "name": "eventsource-parser",
       "version": "3.1.1",
@@ -7959,6 +8001,20 @@
         }
       ],
       "scope": "excluded"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/expo-application@58.1.2",
+      "name": "expo-application",
+      "version": "58.1.2",
+      "purl": "pkg:npm/expo-application@58.1.2",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "59815d34719ac5efe3ebda1844484ad1c2ac298b33b88bb3dfdf565d808ff8cd60adf3be142581fd16ee32069726c2d6973aa136303fccb81f27edf7170ad0bf"
+        }
+      ],
+      "scope": "required"
     },
     {
       "type": "library",
@@ -8228,6 +8284,20 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/expo-notifications@58.1.5",
+      "name": "expo-notifications",
+      "version": "58.1.5",
+      "purl": "pkg:npm/expo-notifications@58.1.5",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e5b7f797e9cfff221a76aeafd5fde9c8e984934591b0469211c7c9769097ccec9a33083962da91e3cb0c3d4d1683b2844b03ad2d5b5eb521facb75e41b34a257"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/expo-secure-store@58.0.2",
       "name": "expo-secure-store",
       "version": "58.0.2",
@@ -8250,6 +8320,20 @@
         {
           "alg": "SHA-512",
           "content": "14761e7317c63ae02169c1dc6a747aa8237c0a59fd4be145ba57187ad2eeddd743839e6886e0ac319f54e04833c1d9be036a3a37e31d4a824aaae042e45f4d22"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/expo-sharing@58.0.19",
+      "name": "expo-sharing",
+      "version": "58.0.19",
+      "purl": "pkg:npm/expo-sharing@58.0.19",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "1734d44fbbaab8205b595c23626d5fa20a4edd4341a23f9744236b0afec6cd1372f5fd0a3f32d94e76aa270dbc9c4bda7ac620fd0f67022c12c241f50dffc176"
         }
       ],
       "scope": "required"
@@ -16136,6 +16220,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/share-target",
+      "name": "@agent-native/share-target",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/share-target"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/shell",
       "name": "@agent-native/shell",
       "properties": [
@@ -16558,7 +16654,9 @@
         "pkg:npm/expo-dev-client@58.0.14",
         "pkg:npm/expo-file-system@58.0.9",
         "pkg:npm/expo-modules-core@58.0.22",
+        "pkg:npm/expo-notifications@58.1.5",
         "pkg:npm/expo-secure-store@58.0.2",
+        "pkg:npm/expo-sharing@58.0.19",
         "pkg:npm/expo-sqlite@58.0.13",
         "pkg:npm/expo-status-bar@58.0.3",
         "pkg:npm/expo-task-manager@58.0.12",
@@ -16615,6 +16713,7 @@
         "workspace:@agent-native/react",
         "workspace:@agent-native/runtime",
         "workspace:@agent-native/scaffold",
+        "workspace:@agent-native/share-target",
         "workspace:@agent-native/shell",
         "workspace:@agent-native/site",
         "workspace:@agent-native/station",
@@ -19292,6 +19391,12 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/abort-controller@3.0.0",
+      "dependsOn": [
+        "pkg:npm/event-target-shim@5.0.1"
+      ]
+    },
+    {
       "ref": "pkg:npm/accepts@1.3.8",
       "dependsOn": [
         "pkg:npm/mime-types@2.1.35",
@@ -19583,6 +19688,10 @@
         "pkg:npm/babel-plugin-transform-flow-enums@0.0.2",
         "pkg:npm/debug@4.4.3"
       ]
+    },
+    {
+      "ref": "pkg:npm/badgin@1.2.3",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/balanced-match@1.0.2",
@@ -20471,6 +20580,10 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/event-target-shim@5.0.1",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/eventsource-parser@3.1.1",
       "dependsOn": []
     },
@@ -20510,6 +20623,10 @@
         "pkg:npm/strip-final-newline@4.0.0",
         "pkg:npm/yoctocolors@2.2.0"
       ]
+    },
+    {
+      "ref": "pkg:npm/expo-application@58.1.2",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/expo-asset@58.0.16",
@@ -20629,12 +20746,30 @@
       ]
     },
     {
+      "ref": "pkg:npm/expo-notifications@58.1.5",
+      "dependsOn": [
+        "pkg:npm/%40expo/image-utils@0.12.5",
+        "pkg:npm/abort-controller@3.0.0",
+        "pkg:npm/badgin@1.2.3",
+        "pkg:npm/expo-application@58.1.2",
+        "pkg:npm/expo-constants@58.0.12"
+      ]
+    },
+    {
       "ref": "pkg:npm/expo-secure-store@58.0.2",
       "dependsOn": []
     },
     {
       "ref": "pkg:npm/expo-server@58.0.5",
       "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/expo-sharing@58.0.19",
+      "dependsOn": [
+        "pkg:npm/%40expo/config-plugins@58.0.9",
+        "pkg:npm/%40expo/config-types@58.0.3",
+        "pkg:npm/%40expo/plist@0.10.1"
+      ]
     },
     {
       "ref": "pkg:npm/expo-sqlite@58.0.13",
@@ -23989,6 +24124,10 @@
     },
     {
       "ref": "workspace:@agent-native/service",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/share-target",
       "dependsOn": []
     },
     {

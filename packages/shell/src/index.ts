@@ -1,4 +1,4 @@
-export { OsRequestError, parseRawOsRequest } from './parse';
+export { claimCode, OsRequestError, parseRawOsRequest } from './parse';
 export { matchOsRequest, type MatchOptions, type OsMatch, type OsRequestValues } from './match';
 export { fillTemplate, resolveTarget } from './targets';
 export { buildInstruction, openActionFor, openUrl, OsActionError } from './actions';
@@ -7,6 +7,7 @@ export {
   nativeOsConfig,
   webManifestOs,
   webScheme,
+  webShareTargetPath,
   type ExpoIntentFilter,
   type OsIdentity,
   type OsRegistrationOptions,
@@ -34,8 +35,10 @@ export {
   createMobileShell,
   mobileInput,
   type MobileFileInfo,
+  type MobileShare,
   type MobileShell,
   type MobileShellDependencies,
 } from './mobile';
+export { maxSharedItems, shareFileRequest, shareHandlerFor } from './shares';
 export { describeProvenance } from './provenance';
 export { associationFiles, type AssociationIdentity } from './associations';

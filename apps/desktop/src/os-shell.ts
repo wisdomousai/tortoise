@@ -1,4 +1,4 @@
-import { app, shell } from 'electron';
+import { app, shell, ShareMenu } from 'electron';
 import { lstat, readFile, realpath } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { OsActionResult, OsPlatform } from '@agent-native/contracts';
@@ -149,6 +149,18 @@ export function createOsShell(scheme: string) {
           const error = await shell.openPath(real);
           return error ? refused(error.slice(0, 200)) : { ok: true };
         },
+        // The share menu exists on macOS only; elsewhere a share action is refused.
+        ...(process.platform === 'darwin'
+          ? {
+              share: async ({ text, url }: { text?: string; url?: string }) => {
+                new ShareMenu({
+                  ...(text !== undefined ? { texts: [text] } : {}),
+                  ...(url !== undefined ? { urls: [url] } : {}),
+                }).popup();
+                return { ok: true };
+              },
+            }
+          : {}),
         focus: onDelivered,
         report: (message) => console.warn(`[os] ${message}`),
       });

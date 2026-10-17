@@ -1,6 +1,10 @@
 import { ApplicationError, type OsDelivery } from '@agent-native/contracts';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import { createMobileShell, type MobileFileInfo } from '@agent-native/shell/mobile';
+import {
+  createMobileShell,
+  type MobileFileInfo,
+  type MobileShare,
+} from '@agent-native/shell/mobile';
 import type { MobileAuthority } from './authority';
 
 /** The device's link and file calls; the Expo bindings are `expoOsBindings`. */
@@ -15,6 +19,10 @@ export interface MobileOsBindings {
   inspect(uri: string): Promise<MobileFileInfo | undefined>;
   read(uri: string, maxBytes: number): Promise<Uint8Array | undefined>;
   open(url: string): Promise<void>;
+  /** The items a URI announces another app shared; absent, the app receives no shares. */
+  shared?(uri: string): Promise<readonly MobileShare[] | undefined>;
+  /** Show the system share sheet; absent, share actions are refused. */
+  share?(content: { text?: string; url?: string; title?: string }): Promise<void>;
   report?(message: string): void;
 }
 
@@ -81,6 +89,13 @@ export function connectMobileShell(
     submit: (request) => port.receive(context, request, bindings.platform),
     deliver,
     open: (url) => bindings.open(url),
+    ...(bindings.shared ? { shared: (uri: string) => bindings.shared!(uri) } : {}),
+    ...(bindings.share
+      ? {
+          share: (content: Parameters<NonNullable<MobileOsBindings['share']>>[0]) =>
+            bindings.share!(content),
+        }
+      : {}),
     ...(bindings.report ? { report: (message: string) => bindings.report!(message) } : {}),
   });
   let detach: (() => void) | undefined;

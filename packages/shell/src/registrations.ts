@@ -68,17 +68,6 @@ function androidIntentFilters(
         mimeType,
       })),
     });
-  for (const share of of(os, 'share')) {
-    const mediaTypes = [
-      ...(share.accepts.text || share.accepts.url ? ['text/plain'] : []),
-      ...(share.accepts.mediaTypes ?? []),
-    ];
-    filters.push({
-      action: 'SEND',
-      category: ['DEFAULT'],
-      data: [...new Set(mediaTypes)].map((mimeType) => ({ mimeType })),
-    });
-  }
   for (const intent of of(os, 'intent'))
     filters.push({
       action: intent.action,
@@ -133,9 +122,58 @@ function iosDocumentTypes(os: CatalogOs | undefined, appId: string) {
   };
 }
 
+/** The path a web share target posts to; the share target plugin answers it. */
+export const webShareTargetPath = '/os/share';
+
+/** What the share handlers accept together: one share target per application on every platform. */
+function shareAccepts(os: CatalogOs | undefined) {
+  const shares = of(os, 'share');
+  const mediaTypes = [...new Set(shares.flatMap((share) => share.accepts.mediaTypes ?? []))];
+  return {
+    any: shares.length > 0,
+    text: shares.some((share) => share.accepts.text),
+    url: shares.some((share) => share.accepts.url),
+    mediaTypes,
+  };
+}
+
+/**
+ * The `expo-sharing` config plugin for the share handlers: an Android SEND intent filter on the
+ * main activity for text and the accepted media types, and an iOS share extension whose
+ * activation rule accepts the same. Receiving shares through `expo-sharing` is experimental.
+ */
+function sharePlugin(os: CatalogOs | undefined): [string, Record<string, unknown>] | undefined {
+  const accepts = shareAccepts(os);
+  if (!accepts.any) return undefined;
+  const images = accepts.mediaTypes.filter((type) => type.startsWith('image/'));
+  const files = accepts.mediaTypes.filter((type) => !type.startsWith('image/'));
+  return [
+    'expo-sharing',
+    {
+      android: {
+        enabled: true,
+        singleShareMimeTypes: [
+          ...(accepts.text || accepts.url ? ['text/plain'] : []),
+          ...accepts.mediaTypes,
+        ],
+      },
+      ios: {
+        enabled: true,
+        activationRule: {
+          supportsText: accepts.text,
+          supportsWebUrlWithMaxCount: accepts.url ? 1 : 0,
+          supportsImageWithMaxCount: images.length ? 1 : 0,
+          supportsFileWithMaxCount: files.length ? 1 : 0,
+        },
+      },
+    },
+  ];
+}
+
 /**
  * Expo app configuration for the OS handlers: the scheme, Android intent filters for verified
- * links, opened files, shares and custom intents, iOS associated domains and document types.
+ * links, opened files and custom intents, iOS associated domains and document types, and the
+ * config plugins that register shares.
  * `mobile:prepare` writes it into `apps/mobile/generated/native.json`.
  */
 export function nativeOsConfig(
@@ -153,7 +191,7 @@ export function nativeOsConfig(
         : [],
       infoPlist: iosDocumentTypes(os, identity.appId) as Record<string, unknown>,
     },
-    plugins: [] as string[],
+    plugins: [sharePlugin(os)].filter((plugin) => plugin !== undefined),
   };
 }
 
@@ -179,12 +217,14 @@ export function desktopOsConfig(os: CatalogOs | undefined, identity: OsIdentity)
 
 /**
  * Web app manifest members for the OS handlers, in Chromium's format: the `web+` protocol
- * handler (landing at `/?os=<url>`), file handlers (the launch queue) and shortcuts. A browser
- * offers them only after the person installs the application.
+ * handler (landing at `/?os=<url>`), file handlers (the launch queue), the share target (a POST
+ * to `webShareTargetPath`) and shortcuts. A browser offers them only after the person installs
+ * the application.
  */
 export function webManifestOs(os: CatalogOs | undefined, identity: OsIdentity) {
   const files = of(os, 'file');
   const shortcuts = of(os, 'shortcut');
+  const shares = shareAccepts(os);
   return {
     ...(of(os, 'link').length
       ? { protocol_handlers: [{ protocol: webScheme(identity.scheme), url: '/?os=%s' }] }
@@ -202,6 +242,23 @@ export function webManifestOs(os: CatalogOs | undefined, identity: OsIdentity) {
               ),
             ),
           })),
+        }
+      : {}),
+    ...(shares.any
+      ? {
+          share_target: {
+            action: webShareTargetPath,
+            method: 'POST',
+            enctype: 'multipart/form-data',
+            params: {
+              title: 'title',
+              ...(shares.text ? { text: 'text' } : {}),
+              ...(shares.url ? { url: 'url' } : {}),
+              ...(shares.mediaTypes.length
+                ? { files: [{ name: 'file', accept: shares.mediaTypes }] }
+                : {}),
+            },
+          },
         }
       : {}),
     ...(shortcuts.length

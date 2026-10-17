@@ -17,14 +17,14 @@ Layer: starter (`apps/*`). Owned by whoever forks or scaffolds the starter.
 
 This workspace exports nothing; Electron runs it.
 
-| File                                                     | Purpose                                                                                                                                                                 |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/main.ts`](src/main.ts)                             | Main process: single-instance lock, runtime verification, service attach or start, the hardened window.                                                                 |
-| [`src/service-lifecycle.ts`](src/service-lifecycle.ts)   | `ensureService`: attach first, otherwise start the service and let its workspace lock arbitrate.                                                                        |
-| [`src/development-launch.ts`](src/development-launch.ts) | The source launch used by `bun run dev`; honored only when Electron reports the app is unpackaged.                                                                      |
-| [`src/os-shell.ts`](src/os-shell.ts)                     | OS links and files (`open-url`, `open-file`, the command line, a second instance), relayed OS actions and window opens, wired to the framework's desktop shell adapter. |
-| [`src/preload.ts`](src/preload.ts)                       | Exposes `desktopHost` with the platform name only.                                                                                                                      |
-| [`site-policy.json`](site-policy.json)                   | The site policy shipped with the desktop build: `desktop-local` profile, provider endpoints only, fail-closed audit.                                                    |
+| File                                                     | Purpose                                                                                                                                                                                                         |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`src/main.ts`](src/main.ts)                             | Main process: single-instance lock, runtime verification, service attach or start, the hardened window.                                                                                                         |
+| [`src/service-lifecycle.ts`](src/service-lifecycle.ts)   | `ensureService`: attach first, otherwise start the service and let its workspace lock arbitrate.                                                                                                                |
+| [`src/development-launch.ts`](src/development-launch.ts) | The source launch used by `bun run dev`; honored only when Electron reports the app is unpackaged.                                                                                                              |
+| [`src/os-shell.ts`](src/os-shell.ts)                     | OS links and files (`open-url`, `open-file`, the command line, a second instance), relayed OS actions (a share opens the share menu on macOS) and window opens, wired to the framework's desktop shell adapter. |
+| [`src/preload.ts`](src/preload.ts)                       | Exposes `desktopHost` with the platform name only.                                                                                                                                                              |
+| [`site-policy.json`](site-policy.json)                   | The site policy shipped with the desktop build: `desktop-local` profile, provider endpoints only, fail-closed audit.                                                                                            |
 
 Package with `bun run package:stage <target>` and `bun run package:desktop <target>`.
 

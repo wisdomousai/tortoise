@@ -6,7 +6,8 @@ import type { ExpoConfig } from 'expo/config';
  * Expo configuration from the starter's identity (`app.config.json`) and the native plugins and
  * OS registrations of the hosted application (`generated/native.json`, written by
  * `bun run mobile:prepare`): the URL scheme, Android intent filters, iOS associated domains and
- * document types, all generated from the application's declared OS handlers.
+ * document types, and the share target through `expo-sharing`, all generated from the
+ * application's declared OS handlers.
  * `ios/` and `android/` are generated from it by `expo prebuild` and never committed.
  */
 const identity = JSON.parse(readFileSync(resolve(__dirname, '../../app.config.json'), 'utf8')) as {
@@ -22,6 +23,8 @@ const native = JSON.parse(readFileSync(nativeFile, 'utf8')) as {
     scheme: string;
     android: { intentFilters: NonNullable<ExpoConfig['android']>['intentFilters'] };
     ios: { associatedDomains: string[]; infoPlist: Record<string, unknown> };
+    /** Config plugins the OS registrations need, such as `expo-sharing` for share handlers. */
+    plugins: [string, Record<string, unknown>][];
   };
 };
 const os = native.os;
@@ -44,7 +47,7 @@ const config: ExpoConfig = {
     ...(os?.android.intentFilters?.length ? { intentFilters: os.android.intentFilters } : {}),
   },
   // The background task needs its iOS background mode and scheduler identifier.
-  plugins: ['expo-background-task', ...native.plugins],
+  plugins: ['expo-background-task', ...native.plugins, ...(os?.plugins ?? [])],
 };
 
 export default config;

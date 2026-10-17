@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/share-target",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Share target host plugin: serves share handlers and share actions for the OS plugin, and holds web share target posts until the landing session claims them.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

@@ -235,5 +235,8 @@ export function matchOsRequest(
       const handler = of('reply').find((item) => item.id === raw.handler);
       return handler ? { handler, values: {} } : undefined;
     }
+    case 'claim':
+      // The plugin that issued the code resolves it into the request it stands for first.
+      return undefined;
   }
 }

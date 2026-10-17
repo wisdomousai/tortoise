@@ -61,7 +61,13 @@ export type RawOsRequest =
       readonly nonce: string;
       readonly action: string;
       readonly text?: string;
-    };
+    }
+  /**
+   * Input a plugin holds because it arrived without a session, such as a web share target's
+   * POST: the session that lands with this one-use code claims it, and the plugin hands back
+   * the request it stands for.
+   */
+  | { readonly kind: 'claim'; readonly code: string };
 export type RawOsRequestKind = RawOsRequest['kind'];
 
 /** Shown above what a request opened or prefilled. Text only; never markup. */

@@ -135,3 +135,25 @@ test('an image is staged, prefills a task, and is attached only when the person 
     });
     expect(new Uint8Array(await read.arrayBuffer())).toEqual(bytes);
   }));
+
+test('a link shared to the web app is held, then prefills a task for the session that claims it', () =>
+  withHost(async (call, session) => {
+    const posted = await fetch(`${session.url}/os/share`, {
+      method: 'POST',
+      redirect: 'manual',
+      headers: { 'sec-fetch-site': 'cross-site', 'sec-fetch-mode': 'navigate' },
+      body: new URLSearchParams({ title: 'Spec', url: 'https://example.com/spec' }),
+    });
+    expect(posted.status).toBe(303);
+    const code = new URL(posted.headers.get('location')!, session.url).searchParams.get('os-share');
+    expect(
+      await call('shell/requests', { platform: 'web', request: { kind: 'claim', code } }),
+    ).toEqual({ status: 'delivered', handler: 'task.from-shared-link' });
+    const [prefill] = await call('ui/deliveries');
+    expect(prefill.delivery).toEqual({
+      type: 'prepare',
+      operation: 'task.create',
+      input: { description: 'https://example.com/spec' },
+      provenance: { kind: 'share', handler: 'task.from-shared-link' },
+    });
+  }));

@@ -9,7 +9,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Shell port](../../docs/primitives.md#shell-port): `osPlugin`, `createOsPlugin`, `openOs`, `osPluginManifest`.
 - [OS handler](../../docs/primitives.md#os-handler): matching, the disabled list, per-handler rates and audit for every request; `OsConsumer` receivers for handlers whose target is a plugin.
 - [OS action](../../docs/primitives.md#os-action): building and relaying declared actions, and returning page-runnable ones to the caller.
-- [Host plugin](../../docs/primitives.md#host-plugin): `OsService` (`services.os.enable`, `consume`, `status`) and `osServiceOf`.
+- [Host plugin](../../docs/primitives.md#host-plugin): `OsService` (`services.os.enable`, `consume`, `hold`, `status`) and `osServiceOf`; `OsHolder` resolvers for claim codes a capability plugin issued.
 
 ## Entrypoints
 
@@ -26,7 +26,7 @@ The scheme comes from the application identity: the desktop shell and the starte
 
 ## Trust boundary
 
-A request never sets the principal, workspace or grant: it is attributed to the session that submitted it, and its delivery goes only to that session's frame. An unsolicited request only opens a resource the caller may read, navigates or prefills a form; it never commits. Handlers whose target is a consumer plugin go to that plugin's receiver, which applies its own rules, such as a single-use nonce for a reply. Each handler and each action is limited to 30 uses a minute, and a site lists ids to turn off in `os-disabled`.
+A request never sets the principal, workspace or grant: it is attributed to the session that submitted it, and its delivery goes only to that session's frame. An unsolicited request only opens a resource the caller may read, navigates or prefills a form; it never commits. Handlers whose target is a consumer plugin go to that plugin's receiver, which applies its own rules, such as a single-use nonce for a reply. A `claim` request names a code a capability plugin issued for input that arrived without a session, such as a web share target post; the plugin's holder resolves it once, as the claiming session, and the request it stands for is parsed, matched and audited like any other. An unknown, used or expired code is refused as `invalid`. Each handler and each action is limited to 30 uses a minute, and a site lists ids to turn off in `os-disabled`.
 
 Startup refuses a declared handler or action kind that no composed plugin serves, a consumer with no registered receiver, and an `os-disabled` id that names nothing, so a registration never looks served while nothing answers it.
 
@@ -44,4 +44,4 @@ Framework: `@agent-native/contracts`, `@agent-native/shell`, `@agent-native/kern
 bun test plugins/os
 ```
 
-`test/os.test.ts` uses a fixture notes application served over HTTP. It covers the shell API answering 503 without the plugin; a link and a text file delivered to the submitting session only, with no content in the log; an unreadable resource refused when queued; refusal reasons for unknown, malformed, disabled and rate-limited requests; an open action returned to a page and relayed to an adapter that only its own session can answer; and startup refused for an unserved kind or an unknown disabled id. `test/mobile.test.ts` runs a fixture application on the mobile authority with Bun bindings for the device: a launch link held until the frame subscribes, a `content:` text file matched by media type, undeclared types never read, an unreadable resource not shown, a PDF staged in the blob store as a form's reference, an open action run through the device, and nothing attached without the plugin.
+`test/os.test.ts` uses a fixture notes application served over HTTP. It covers the shell API answering 503 without the plugin; a link and a text file delivered to the submitting session only, with no content in the log; an unreadable resource refused when queued; refusal reasons for unknown, malformed, disabled and rate-limited requests; an open action returned to a page and relayed to an adapter that only its own session can answer; and startup refused for an unserved kind or an unknown disabled id. The [share target plugin](../share-target/README.md) uses `hold` for web share target posts. `test/mobile.test.ts` runs a fixture application on the mobile authority with Bun bindings for the device: a launch link held until the frame subscribes, a `content:` text file matched by media type, undeclared types never read, an unreadable resource not shown, a PDF staged in the blob store as a form's reference, an open action run through the device, and nothing attached without the plugin.

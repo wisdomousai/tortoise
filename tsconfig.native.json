@@ -33,6 +33,7 @@
     "packages/devices/src/scanner/source.ts",
     "plugins/hub-link/src",
     "plugins/os/src",
+    "plugins/share-target/src",
     "plugins/intent-scanner/src",
     "plugins/managed-config/src",
     "packages/react/src/query.ts",
