@@ -48,6 +48,8 @@ Effective access is the principal's current policy intersected with the grant. A
 
 A retry with the same idempotency key returns the stored receipt after current authorization and projection, without running the handler again. A revoked record or a newly restricted field therefore cannot be recovered through an old receipt.
 
+An outbox effect is checked once more before a worker first claims it: the person who committed it is authorized for the enqueuing command again, without the delegation the command ran under, in the `dispatch` phase. `definePolicy` answers that from containers and roles only, not from the rule's `allow` check, because a command's preconditions no longer hold after it committed. A denial holds the effect for a person. Later claims are not rechecked, so a target's answer to an effect already sent is still recorded, and the revoked actor does not see it.
+
 Membership changes serialize with business changes, and an authorization event increments the authorization revision atomically. Cancellation is checked at commit. A remote policy system needs its own revocation contract; the kernel promises no distributed atomic revocation.
 
 ## Subscriptions and caches

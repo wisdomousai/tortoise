@@ -55,6 +55,7 @@ export async function runHandler<State, Services>(
     snapshot,
     context: command.context,
     operation: command.capability.id,
+    input: command.input,
     query: false,
     changes: new Map(),
     touched: [],

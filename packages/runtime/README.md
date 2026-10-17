@@ -19,7 +19,9 @@ Layer: framework (`packages/*`). Feature state is opaque to the runtime; domains
 - [Membership](../../docs/primitives.md#membership): `membershipHandler`, `membershipRule`, `roleIn`, `MembershipStore`.
 - [Storage](../../docs/primitives.md#storage): the `Storage` port, `WorkspaceSnapshot`, `createMemoryStorage`, `createWorkspaceSnapshot`.
 - [Journal and live query](../../docs/primitives.md#journal-and-live-query): `ChangeEvent`, `EventBatch`.
-- [Outbox effect](../../docs/primitives.md#outbox-effect): `Effect`, `EffectRequest`, `EffectOutcome`, and `enqueue`/`settleEffect` on `HandlerContext`.
+- [Outbox effect](../../docs/primitives.md#outbox-effect): `Effect`, `EffectRequest`, `EffectOutcome`, and `enqueue`, `settleEffect` (with a fencing token) and `cancelEffect` on `HandlerContext`.
+- [Worker claims](../../docs/primitives.md#worker-claims): `EffectClaim`, the host-only `claimEffect` (`ClaimResult`) and `recordAttempt` (`AttemptRecord`, with `fence` and `upstream`), and the `dispatch` authorization phase checked before the first claim.
+- [Reconciliation](../../docs/primitives.md#reconciliation): `effectPhase` and `EffectPhase`, the states an effect passes through and the transitions the outbox allows.
 - [Event log](../../docs/primitives.md#event-log): the runtime appends `command.accepted` inside the transaction and resolves commands a crash left open.
 
 Read [architecture](../../docs/architecture.md), [authorization](../../docs/authorization.md) and [state and reactivity](../../docs/state-and-reactivity.md) for the mechanism.
@@ -38,6 +40,7 @@ Read [architecture](../../docs/architecture.md), [authorization](../../docs/auth
 - `remote-queries.ts`: the remote query's three steps around the source call, and the purity check on its handler steps.
 - `queries.ts`, `events.ts`, `outbox.ts`, `recovery.ts`: reads, journal delivery, the host-only outbox and crash recovery of the audit log.
 - `handler-context.ts`, `effects.ts`, `delegation.ts`, `audit.ts`, `records.ts`: what a handler sees, outbox transitions, grant checks, audit records and prototype-safe record writes.
+- `effect-claims.ts`: worker claims and the recheck of the original actor before the first claim.
 
 Browser code may import types from here with `import type`; a value import fails `check:boundaries`.
 

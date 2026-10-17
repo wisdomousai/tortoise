@@ -371,7 +371,7 @@ _A durable intent to change another system, committed with the command that caus
 
 The outbox extends the write side past the authority's own transaction without pretending to a distributed one. The command records what should happen elsewhere; delivery happens later, outside any transaction, and its outcome comes back as another command.
 
-Guarantees: the effect commits with its command or not at all. Its ID derives from the receipt, so a replay never enqueues twice, and it doubles as the target's idempotency key. It is settled exactly once. A held effect waits for a person and returns to delivery only through a reconciliation command.
+Guarantees: the effect commits with its command or not at all. Its ID derives from the receipt, so a replay never enqueues twice, and it doubles as the target's idempotency key. It is settled exactly once. A held effect waits for a person and returns to delivery only through a reconciliation command. `ctx.cancelEffect` withdraws an effect inside a domain command only while no worker ever claimed it, because after a claim the target may already have it. The enqueuing command's input is kept with the effect for the dispatch recheck and never leaves the kernel: dispatchers, ports and handlers get the effect without it. `effectPhase` names where an effect is (`queued`, `claimed`, `retrying`, `upstream`, `held`, `accepted`, `rejected`, `cancelled`); see [reconciliation](#reconciliation).
 
 implemented · `packages/runtime`
 
@@ -381,7 +381,7 @@ _The port that delivers effects to one target and looks up their outcome._
 
 A connector is the only code that talks to an external system. The same port covers an ERP API, a file drop and legacy station software that can only be reached through its screen.
 
-Guarantees: a target declares idempotent delivery or implements a lookup consulted before every send. A business rejection is data, never retried. An outcome the connector cannot establish is reported as uncertain, never guessed. A port may also implement `search`, which a [remote query](#remote-query) calls with the access it resolved for the caller; delivery never uses it.
+Guarantees: a target declares idempotent delivery or implements a lookup consulted before every send. A business rejection is data, never retried. An outcome the connector cannot establish is reported as uncertain, never guessed. A target that acknowledges now and decides later returns `pending` from `deliver` and from `lookup` until it decides. A port may also implement `search`, which a [remote query](#remote-query) calls with the access it resolved for the caller; delivery never uses it.
 
 implemented · `packages/integration` `packages/station`
 
@@ -389,13 +389,13 @@ implemented · `packages/integration` `packages/station`
 
 _The worker that delivers pending effects and settles them under a narrow integration principal._
 
-Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending, and its deadline aborts a delivery in flight. `drainTargets` drains every dispatcher a host composed and accounts for the whole outbox by target, so a target with work but no dispatcher in this process is reported as not deliverable instead of being left out. An uncertain outcome is recorded and held even when shutdown interrupts the pass.
+Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. Each delivery runs under a [worker claim](#worker-claims). Before an effect's first claim the person who committed it is authorized again on the current state (the `dispatch` phase), and a denial holds the effect instead of sending it; later claims are not rechecked, so a result already on its way is recorded after the actor lost access, and journal visibility still hides it from them. An acknowledged effect (`upstream`) is never delivered again: its lookup is polled until the target decides, a lookup that loses it holds it, and `drain` counts it as delivered. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending, and its deadline aborts a delivery in flight. `drainTargets` drains every dispatcher a host composed and accounts for the whole outbox by target, so a target with work but no dispatcher in this process is reported as not deliverable instead of being left out. An uncertain outcome is recorded and held even when shutdown interrupts the pass.
 
 `createTargetIntegration` builds one target's connector, integration context, dispatcher and inbound sync from a port, and `connectTarget` does the same from a [target](#target) declaration, so an application's `connect` declares targets instead of wiring workers.
 
-Gaps: no worker claims or fencing, no upstream-pending state, no cancel-before-dispatch, no dispatch-time recheck of the original actor's authority.
+Gaps: the recheck asks the policy about the actor's role, not the command's preconditions; an imperative policy that ignores the phase decides it in full. A host restart waits out the lease of effects the previous process had claimed.
 
-partial · `packages/integration`
+implemented · `packages/integration`
 
 ### Inbound sync
 
@@ -403,9 +403,9 @@ _Imports upstream changes as ordinary commands._
 
 Other systems change too. Inbound sync brings those changes in through the write side, so they are authorized, journaled and visible like any local change.
 
-Guarantees: the watermark is part of the command's input, so a stale page conflicts and two pullers cannot apply it twice.
+Guarantees: the watermark is part of the command's input, so a stale page conflicts and two pullers cannot apply it twice. With `versions`, a target keeps the last applied upstream version of each record in state and drops items that are not newer before the application sees them, so a feed that delivers an older version after a newer one cannot roll a record back.
 
-Gaps: no upstream versions for out-of-order feeds.
+Gaps: versions are numbers; a target with unordered version tags (ETags) needs its own mapping to an order.
 
 implemented · `packages/integration`
 
@@ -415,9 +415,9 @@ _A system of record declared once: its settle, feed and status operations, its p
 
 Every application that forwards to another system wrote the same three operations by hand: settle an effect's outcome, apply a feed batch over a watermark, and report synchronization status. `defineTarget` (browser-safe) declares them from the target name, the records it settles, the feed's item schema and side lists, and the application's own status fields. `targetHandlers` implements them; the application supplies how an outcome changes the forwarded record (`settleDelivery` for the usual record with `effectId`, `sync`, `sorRef` and `rejection`), how a batch changes local state and its scoped status counts. `targetContext`, `targetLane` and `targetRules` give the integration principal's grant, its policy lane and the rules for the three operations, and `connectTarget` wires the declaration to a port. crm-capture, quality-inspection and line-station use it.
 
-Guarantees: settle checks inside the transaction that the effect exists and belongs to the calling principal's target (by default the declared target; line-station overrides this so each station bridge settles its own screen target), then records the outcome on the forwarded record and declares it changed. A forwarded record that is missing or forwarded another effect is `NOT_FOUND`, so an outcome never lands on the wrong record. A feed batch whose `from` is not the stored watermark conflicts before anything is applied. The grant and the lane name exactly the target's operations; settle and sync are closed to every other caller, and status is open and scoped by the application's handler.
+Guarantees: settle takes the dispatcher's fencing token (`fence`) and refuses one older than the effect's current [claim](#worker-claims). It checks inside the transaction that the effect exists and belongs to the calling principal's target (by default the declared target; line-station overrides this so each station bridge settles its own screen target), then records the outcome on the forwarded record and declares it changed. A forwarded record that is missing or forwarded another effect is `NOT_FOUND`, so an outcome never lands on the wrong record. A feed batch whose `from` is not the stored watermark conflicts before anything is applied. The grant and the lane name exactly the target's operations; settle and sync are closed to every other caller, and status is open and scoped by the application's handler.
 
-Gaps: one feed per target, ordered by watermark only. The status counts are still written by each application, because what a caller may count depends on its scope.
+Gaps: one feed per target. The status counts are still written by each application, because what a caller may count depends on its scope.
 
 implemented · `packages/contracts` `packages/integration`
 
@@ -481,15 +481,25 @@ implemented · `packages/station`
 
 _A tracked state and procedure for outcomes no one can establish automatically._
 
-Held effects resolved by a person are the first form; a general state machine across connectors is not built yet.
+`effectPhase` derives one state from an effect's record, and the outbox allows only these transitions: claim (queued, retrying or upstream to claimed, or to held when the dispatch recheck denies), attempt (claimed to retrying, upstream or held), settle (to accepted or rejected), release (held to queued) and cancel (queued to cancelled). An effect enters `held` when its outcome is uncertain, when a target loses an effect it acknowledged, or when its actor lost the right to send it. Only a domain command leaves `held`: settle when the target did apply it or refused it, release when it did not.
 
-proposed
+Guarantees: nothing leaves `held` by retrying or by a lease running out. A release clears the acknowledgement, so the effect is delivered again from the start.
+
+Gaps: the phases cover outbox effects only. A reconciliation query across targets (what the target holds against what the outbox believes) is not built, and no screen lists held effects generically; each application shows its own.
+
+partial · `packages/runtime` `packages/integration`
 
 ### Worker claims
 
 _Attempt identities, expirations and fencing tokens so a stale worker cannot overwrite a newer outcome._
 
-proposed
+A dispatcher claims each effect (`claimEffect`) before delivering it. The claim names the worker, expires after its lease and carries a fencing token that grows with every claim. Every attempt the worker records, and every settlement through a `defineTarget` settle command, carries the token.
+
+Guarantees: two live workers cannot claim one effect. Once another worker claimed after a lease lapsed, the earlier worker's attempts and settlements fail with CONFLICT and change nothing; what it saw is kept in the audit log as a denied `effect.attempted` record (`SUPERSEDED`). A lapsed claim is not taken as proof that nothing happened: the next worker looks the effect up first when the target is not idempotent.
+
+Gaps: settlement through a hand-written settle command is fenced only when it passes the token. Leases use the application clock, so a frozen test clock never lets one lapse.
+
+implemented · `packages/runtime` `packages/integration`
 
 ## Trust, configuration and proof
 

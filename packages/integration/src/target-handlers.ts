@@ -48,6 +48,44 @@ export interface TargetHandlerOptions<State, Services, Item, Extra, Status> {
   ) => number;
   /** The application's own status fields, scoped to what the caller may see. */
   readonly status: (context: HandlerContext<State, Services>) => Status;
+  /**
+   * Upstream versions, for feeds whose items can arrive out of order across batches (several
+   * partitions, a replayed export). Each item names its record and the target's version of it;
+   * an item whose version is not newer than the last applied one is dropped before `applyBatch`.
+   */
+  readonly versions?: UpstreamVersions<State, Item>;
+}
+
+/** Where the last applied upstream version of each record is kept, and how an item names it. */
+export interface UpstreamVersions<State, Item> {
+  /** The mutable map in `state` from record key to the last applied version. */
+  readonly store: (state: State) => Record<string, number>;
+  readonly of: (item: Item) => { readonly key: string; readonly version: number };
+}
+
+/**
+ * The items of a batch that are newer than what was applied, recording their versions. Later
+ * duplicates of a key in the same batch must be newer still. Runs inside the sync transaction.
+ */
+export function newerItems<State, Item>(
+  items: readonly Item[],
+  state: State,
+  versions: UpstreamVersions<State, Item>,
+): Item[] {
+  const store = versions.store(state);
+  return items.filter((item) => {
+    const { key, version } = versions.of(item);
+    if (!Number.isFinite(version)) throw new ApplicationError('INVALID_INPUT', 'Invalid version');
+    const applied = Object.hasOwn(store, key) ? store[key]! : undefined;
+    if (applied !== undefined && version <= applied) return false;
+    Object.defineProperty(store, key, {
+      value: version,
+      enumerable: true,
+      writable: true,
+      configurable: true,
+    });
+    return true;
+  });
 }
 
 /**
@@ -79,14 +117,18 @@ function settleHandler<State, Services>(
   return {
     capability: target.settle as never,
     handle(input, ctx) {
-      const { effectId, outcome } = input as { effectId: string; outcome: EffectOutcome };
+      const { effectId, outcome, fence } = input as {
+        effectId: string;
+        outcome: EffectOutcome;
+        fence?: number;
+      };
       const effect = ctx.effects().find((candidate) => candidate.id === effectId);
       if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
       // Checked against the effect itself, inside the transaction, before anything changes.
       const owns = options.settles ?? ((candidate: Effect) => candidate.target === target.target);
       if (!owns(effect, ctx))
         throw new ApplicationError('FORBIDDEN', 'Effect belongs to another integration');
-      const settled = ctx.settleEffect(effect.id, outcome);
+      const settled = ctx.settleEffect(effect.id, outcome, fence === undefined ? {} : { fence });
       options.onOutcome(settled, outcome, ctx);
       ctx.change(settled.resource);
       return { resource: settled.resource, sync: outcome.status };
@@ -110,7 +152,10 @@ function syncHandler<State, Services>(
         throw new ApplicationError('CONFLICT', 'Watermark changed', {
           watermark: cursor.watermark ?? null,
         });
-      const items = apply(batch, ctx);
+      const fresh = options.versions
+        ? { ...batch, items: newerItems(batch.items, ctx.state, options.versions) }
+        : batch;
+      const items = apply(fresh, ctx);
       cursor.watermark = batch.to;
       cursor.lastSyncAt = (options.now ?? (() => Date.now()))(ctx);
       ctx.change(target.syncResource);

@@ -95,10 +95,11 @@ On macOS arm64 with Bun 1.4.0.
 - Remote queries that page with the caller's credential first.
 - Delivery aggregates scoped by plant and lot for every effect resource.
 - Completion counting only the samples the current plan requires.
+- Worker claims and fencing: a worker that paused past its lease cannot record an attempt or settle once another worker claimed, and its late attempt is kept in the audit log; a kill after the target accepted waits out the dead worker's lease and settles from the lookup without a second record; an acknowledged effect is polled, not redelivered, and drains as delivered, and a target that loses it holds it; a command cancels only an effect no worker claimed; the actor is authorized again before the first claim (roles, not preconditions), while a result already dispatched is recorded after revocation and hidden from the revoked actor; feed items not newer than the applied upstream version are dropped (`packages/integration/test/reliability.test.ts`).
 
 These run over in-memory fakes in `quality-inspection` and `crm-capture`. [Remote query](primitives.md#remote-query) and [Data provider](primitives.md#data-provider) are proven on one example.
 
-**Not shown.** There is no real system of record or CRM. Worker claims, general reconciliation and cancel-before-dispatch are missing; the [gate status](system-of-record-pattern.md#status-against-the-reference-plan) has the details. Capture timings come from synthetic runs.
+**Not shown.** There is no real system of record or CRM. Two dispatcher processes racing for one workspace (rather than two dispatchers in one process) and a reconciliation query across targets are not shown; the [gate status](system-of-record-pattern.md#status-against-the-reference-plan) has the details. Capture timings come from synthetic runs.
 
 ### Operator workstation bridge
 

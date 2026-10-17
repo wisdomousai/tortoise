@@ -89,7 +89,12 @@ function settleCapability<const Settle extends string>(id: Settle, spec: Common)
     kind: 'command',
     description: spec.descriptions.settle,
     input: jsonSchema(
-      z.strictObject({ effectId: z.string().min(1).max(128), outcome: effectOutcomeSchema }),
+      z.strictObject({
+        effectId: z.string().min(1).max(128),
+        outcome: effectOutcomeSchema,
+        // The dispatcher's claim; an older one than the effect's current claim conflicts.
+        fence: z.number().int().min(1).optional(),
+      }),
     ),
     output: jsonSchema(
       z.strictObject({ resource: z.string(), sync: z.enum(['accepted', 'rejected']) }),
@@ -135,7 +140,7 @@ function syncCapability<
  * result is up to three ordinary catalog operations with literal IDs, all for the target's
  * integration principal except the status query:
  *
- * - settle: record the target's outcome for one effect (`{ effectId, outcome }`).
+ * - settle: record the target's outcome for one effect (`{ effectId, outcome, fence? }`).
  * - sync: apply one feed batch (`{ from?, to, items, ...extra }`); a `from` that is not the
  *   stored watermark conflicts, so a stale or replayed range cannot apply old data.
  * - status: the stored watermark and last sync time, plus the application's own counts.

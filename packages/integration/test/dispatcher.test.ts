@@ -187,6 +187,7 @@ describe('effect dispatcher', () => {
       retried: 0,
       deferred: 0,
       held: 0,
+      upstream: 0,
     });
     expect(erp.deliveries).toEqual(['e1']);
     expect(await app.pendingEffects(integration)).toEqual([]);
@@ -196,6 +197,7 @@ describe('effect dispatcher', () => {
       retried: 0,
       deferred: 0,
       held: 0,
+      upstream: 0,
     });
   });
 

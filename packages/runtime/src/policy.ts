@@ -39,7 +39,11 @@ export interface OperationRule<State, Role extends string> {
   readonly grant?: (input: Input, state: State) => string | undefined;
   /** Roles that may run a command. Any role may run a query or a replay. Any role when omitted. */
   readonly roles?: readonly Role[];
-  /** A further decision on one snapshot, after the container and role checks. */
+  /**
+   * A further decision on one snapshot, after the container and role checks. Not asked at
+   * `dispatch`: the recheck before an outbox effect is sent asks whether the actor still holds a
+   * role there, not whether the command's preconditions still hold on the changed state.
+   */
   readonly allow?: (access: Access<State, Role>) => boolean;
   /** People only: a delegated run (a caller with a grant or run) is refused. */
   readonly person?: boolean;
@@ -124,7 +128,7 @@ function evaluate<State, Role extends string>(
     ...(container === undefined ? {} : { container }),
     ...(role === undefined ? {} : { role }),
   };
-  return !rule.allow || rule.allow(access);
+  return request.phase === 'dispatch' || !rule.allow || rule.allow(access);
 }
 
 /** Decide a caller that is no integration principal. */

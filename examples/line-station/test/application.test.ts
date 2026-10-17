@@ -27,7 +27,7 @@ test('the embedded authority syncs the MES and reports station targets it cannot
     expect((await authority.integrations.sync()).map((report) => report.target)).toEqual(['mes']);
     expect(await authority.integrations.drain(0)).toEqual({
       pending: 0,
-      targets: [{ target: 'mes', pending: 0, held: 0, deliverable: true }],
+      targets: [{ target: 'mes', pending: 0, held: 0, upstream: 0, deliverable: true }],
     });
   } finally {
     await authority.close();

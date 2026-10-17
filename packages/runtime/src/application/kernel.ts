@@ -119,7 +119,7 @@ export async function authorize<State, Services>(
   input: unknown,
   context: ExecutionContext,
   snapshot: WorkspaceSnapshot<State>,
-  phase: 'invoke' | 'commit' | 'replay',
+  phase: 'invoke' | 'commit' | 'replay' | 'dispatch',
   previousState?: State,
 ) {
   kernel.guard.active(context, capability.id);

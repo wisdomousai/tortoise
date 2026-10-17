@@ -1,4 +1,4 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError, type JsonValue } from '@agent-native/contracts';
 import type {
   Effect,
   EffectOutcome,
@@ -14,8 +14,10 @@ import {
   boundedText,
   byCreation,
   enqueuedEffect,
+  cancelledEffect,
   ownEffect,
   pendingEffect,
+  publicEffect,
   putEffect,
   releasedEffect,
   settledEffect,
@@ -28,6 +30,8 @@ export interface HandlerScope<State> {
   readonly snapshot: WorkspaceSnapshot<State>;
   readonly context: ExecutionContext;
   readonly operation: string;
+  /** The command's parsed input, kept on the effects it enqueues for the dispatch recheck. */
+  readonly input?: unknown;
   readonly query: boolean;
   /** Resources the handler declared changed, with their journal event type. */
   readonly changes: Map<string, string>;
@@ -67,15 +71,23 @@ function outboxMethods<State, Services>(
           operation,
           principalId: context.principalId,
           createdAt: kernel.now(),
+          ...(scope.input === undefined ? {} : { input: scope.input as JsonValue }),
         }),
       );
       return id;
     },
-    settleEffect(id: string, outcome: EffectOutcome) {
+    settleEffect(id: string, outcome: EffectOutcome, attempt?: { readonly fence?: number }) {
       writable(scope, 'Queries cannot settle effects');
-      const settled = settledEffect(pendingEffect(snapshot, id), outcome, kernel.now);
+      const effect = pendingEffect(snapshot, id);
+      const settled = settledEffect(effect, outcome, kernel.now, attempt?.fence);
       touch(settled);
-      return structuredClone(settled);
+      return publicEffect(settled);
+    },
+    cancelEffect(id: string, reason: string) {
+      writable(scope, 'Queries cannot cancel effects');
+      const cancelled = cancelledEffect(pendingEffect(snapshot, id), reason, kernel.now);
+      touch(cancelled);
+      return publicEffect(cancelled);
     },
     releaseEffect(id: string) {
       writable(scope, 'Queries cannot release effects');
@@ -83,7 +95,7 @@ function outboxMethods<State, Services>(
       if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
       const released = releasedEffect(effect);
       touch(released);
-      return structuredClone(released);
+      return publicEffect(released);
     },
   };
 }
@@ -92,16 +104,15 @@ function readEffects<State>(
   snapshot: WorkspaceSnapshot<State>,
   filter: Parameters<HandlerContext<State, unknown>['effects']>[0] = {},
 ) {
-  return structuredClone(
-    Object.values(snapshot.effects)
-      .filter(
-        (effect) =>
-          (filter.status === undefined || effect.status === filter.status) &&
-          (filter.target === undefined || effect.target === filter.target) &&
-          (filter.held === undefined || (effect.heldAt !== undefined) === filter.held),
-      )
-      .sort(byCreation),
-  );
+  return Object.values(snapshot.effects)
+    .filter(
+      (effect) =>
+        (filter.status === undefined || effect.status === filter.status) &&
+        (filter.target === undefined || effect.target === filter.target) &&
+        (filter.held === undefined || (effect.heldAt !== undefined) === filter.held),
+    )
+    .sort(byCreation)
+    .map(publicEffect);
 }
 
 /** The capabilities a handler receives: state, services, journal declarations and the outbox. */

@@ -1,7 +1,15 @@
 import { ApplicationError } from '@agent-native/contracts';
 import type { Effect, ExecutionContext } from '../types.js';
 import { actorOf } from './audit.js';
-import { attemptedEffect, byCreation, pendingEffect, putEffect } from './effects.js';
+import { claimEffect } from './effect-claims.js';
+import {
+  attemptedEffect,
+  byCreation,
+  pendingEffect,
+  publicEffect,
+  putEffect,
+  upstreamEffect,
+} from './effects.js';
 import type { Kernel } from './kernel.js';
 import { revisionOf } from './records.js';
 
@@ -32,8 +40,18 @@ async function pendingEffects<State, Services>(
           (filter.target === undefined || effect.target === filter.target),
       )
       .sort(byCreation)
-      .slice(0, limit),
+      .slice(0, limit)
+      .map(publicEffect),
   );
+}
+
+/** What one delivery attempt recorded: a failure (optionally held) or an acknowledgement. */
+export interface AttemptRecord {
+  readonly hold?: boolean;
+  /** The fencing token of the claim this attempt ran under. */
+  readonly fence?: number;
+  /** The target acknowledged the effect but has not decided it (`upstream-pending`). */
+  readonly upstream?: { readonly externalRef?: string };
 }
 
 function recordAttemptInStorage<State, Services>(
@@ -41,20 +59,26 @@ function recordAttemptInStorage<State, Services>(
   context: ExecutionContext,
   id: string,
   failure: string,
-  attempt: { readonly hold?: boolean },
+  attempt: AttemptRecord,
 ): Promise<Effect> {
   return kernel.options.storage.transact(context.workspaceId, async (snapshot) => {
     const effect = pendingEffect(snapshot, id);
-    const next = attemptedEffect(effect, failure, attempt.hold, kernel.now);
+    const next = attempt.upstream
+      ? upstreamEffect(effect, attempt.upstream.externalRef, kernel.now, attempt.fence)
+      : attemptedEffect(effect, failure, attempt.hold, kernel.now, attempt.fence);
     putEffect(snapshot, next);
     snapshot.journal.push({
       cursor: ++snapshot.cursor,
       resource: effect.resource,
       revision: revisionOf(snapshot, effect.resource),
-      type: attempt.hold ? 'effect.held' : 'effect.attempted',
+      type: attempt.hold
+        ? 'effect.held'
+        : attempt.upstream
+          ? 'effect.upstream'
+          : 'effect.attempted',
       operation: effect.operation,
     });
-    return next;
+    return publicEffect(next);
   });
 }
 
@@ -66,20 +90,30 @@ function recordAttemptInStorage<State, Services>(
  * With `hold`, the dispatcher could not tell whether the target applied the effect. The effect
  * stays pending but leaves delivery until a domain command settles or releases it, and the
  * journal records `effect.held` so screens can ask a person to reconcile.
+ *
+ * With `upstream`, the target acknowledged the effect without deciding it. The effect stays
+ * pending and the journal records `effect.upstream`; dispatchers poll the target from then on.
+ * With `fence`, an attempt by a worker whose claim a newer one replaced fails with CONFLICT.
  */
 async function recordAttempt<State, Services>(
   kernel: Kernel<State, Services>,
   context: ExecutionContext,
   id: string,
   failure: string,
-  attempt: { readonly hold?: boolean } = {},
+  attempt: AttemptRecord = {},
 ): Promise<Effect> {
   kernel.guard.trusted(context);
-  const effect = await recordAttemptInStorage(kernel, context, id, failure, attempt);
+  let effect: Effect;
+  try {
+    effect = await recordAttemptInStorage(kernel, context, id, failure, attempt);
+  } catch (error) {
+    if (attempt.fence !== undefined) await retainLateAttempt(kernel, context, id, failure, attempt);
+    throw error;
+  }
   await kernel.audit.after([
     {
       kind: attempt.hold ? 'effect.held' : 'effect.attempted',
-      outcome: 'failed',
+      outcome: attempt.upstream ? 'info' : 'failed',
       operation: effect.operation,
       resources: [effect.resource],
       actor: actorOf(context),
@@ -87,11 +121,47 @@ async function recordAttempt<State, Services>(
         effectId: effect.id,
         target: effect.target,
         attempts: effect.attempts,
-        failure: effect.lastFailure ?? 'Delivery failed',
+        ...(attempt.upstream
+          ? { upstream: true }
+          : { failure: effect.lastFailure ?? 'Delivery failed' }),
       },
     },
   ]);
   return effect;
+}
+
+/**
+ * A fenced attempt the outbox refused (a newer claim took over, or the effect was settled) is
+ * still evidence of what a worker saw at the target. It goes to the audit log as a denied
+ * attempt and changes nothing in the workspace.
+ */
+async function retainLateAttempt<State, Services>(
+  kernel: Kernel<State, Services>,
+  context: ExecutionContext,
+  id: string,
+  failure: string,
+  attempt: AttemptRecord,
+) {
+  const effect = await kernel.options.storage.read(context.workspaceId, async (snapshot) =>
+    Object.hasOwn(snapshot.effects, id) ? snapshot.effects[id] : undefined,
+  );
+  if (!effect) return;
+  await kernel.audit.after([
+    {
+      kind: 'effect.attempted',
+      outcome: 'denied',
+      operation: effect.operation,
+      resources: [effect.resource],
+      actor: actorOf(context),
+      reason: 'SUPERSEDED',
+      data: {
+        effectId: id,
+        target: effect.target,
+        fence: attempt.fence!,
+        ...(attempt.upstream ? { upstream: true } : { failure: failure.slice(0, 500) }),
+      },
+    },
+  ]);
 }
 
 /** Host-only outbox access for a trusted dispatcher. No transport may expose these. */
@@ -103,7 +173,12 @@ export function createOutbox<State, Services>(kernel: Kernel<State, Services>) {
       context: ExecutionContext,
       id: string,
       failure: string,
-      attempt?: { readonly hold?: boolean },
+      attempt?: AttemptRecord,
     ) => recordAttempt(kernel, context, id, failure, attempt),
+    claimEffect: (
+      context: ExecutionContext,
+      id: string,
+      claim: Parameters<typeof claimEffect>[3],
+    ) => claimEffect(kernel, context, id, claim),
   };
 }

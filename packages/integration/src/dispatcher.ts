@@ -1,18 +1,16 @@
-import { errorEnvelope } from '@agent-native/contracts';
+import { randomUUID } from 'node:crypto';
 import type {
+  AttemptRecord,
+  ClaimResult,
   CommandReceipt,
   Effect,
   EffectOutcome,
   ExecutionContext,
   Invocation,
 } from '@agent-native/runtime';
+import { createDelivery } from './dispatcher/delivery.js';
 import { abortableSleep, createLoop } from './loop.js';
-import {
-  DeliveryFailure,
-  DeliveryUncertain,
-  type SystemOfRecordPort,
-  type TargetDescription,
-} from './port.js';
+import type { SystemOfRecordPort } from './port.js';
 
 /** Host-only application methods a dispatcher needs. Transports never expose the first two. */
 export interface DispatcherApplication {
@@ -24,8 +22,13 @@ export interface DispatcherApplication {
     context: ExecutionContext,
     id: string,
     failure: string,
-    attempt?: { readonly hold?: boolean },
+    attempt?: AttemptRecord,
   ): Promise<Effect>;
+  claimEffect(
+    context: ExecutionContext,
+    id: string,
+    claim: { readonly worker: string; readonly leaseMs: number; readonly recheck?: boolean },
+  ): Promise<ClaimResult>;
   invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
 }
 export interface DispatchReport {
@@ -35,6 +38,8 @@ export interface DispatchReport {
   deferred: number;
   /** Effects whose outcome at the target is unknown; they wait for a reconciliation command. */
   held: number;
+  /** Effects the target acknowledged without deciding; their lookup is polled. */
+  upstream: number;
 }
 export interface EffectDispatcherOptions {
   readonly application: DispatcherApplication;
@@ -46,85 +51,33 @@ export interface EffectDispatcherOptions {
   readonly context: ExecutionContext;
   /** Domain command that records an outcome through `ctx.settleEffect` and updates domain state. */
   readonly settleOperation: string;
-  readonly settleInput?: (effect: Readonly<Effect>, outcome: EffectOutcome) => unknown;
+  /**
+   * The settle command's input; `{ effectId, outcome }` when omitted. To fence settlements too,
+   * include `attempt.fence` and pass it on to `ctx.settleEffect`, as `defineTarget` settle
+   * commands do; without it only attempts are fenced.
+   */
+  readonly settleInput?: (
+    effect: Readonly<Effect>,
+    outcome: EffectOutcome,
+    attempt: { readonly fence: number },
+  ) => unknown;
+  /**
+   * This worker's identity in claims. Two dispatchers for one target must use different ones;
+   * a random ID per dispatcher when omitted.
+   */
+  readonly worker?: string;
+  /** How long a claim lasts before another worker may take the effect over. Default 120 s. */
+  readonly leaseMs?: number;
+  /**
+   * Authorize the effect's original actor again before each first claim, holding the effect when
+   * they lost the right to run its command. Default true.
+   */
+  readonly recheck?: boolean;
   /** Delay before retry after `attempts` failures. Defaults to exponential backoff capped at 60 s. */
   readonly backoff?: (attempts: number) => number;
   readonly batchSize?: number;
   /** Must match the application's clock, which stamps `lastAttemptAt`. Defaults to `Date.now`. */
   readonly now?: () => number;
-}
-
-/** How one effect left a pass: the report counter to raise, and whether the pass must stop. */
-interface Step {
-  readonly tally?: keyof DispatchReport;
-  readonly stop?: boolean;
-}
-
-/** The per-effect steps: obtain an outcome from the target, then settle it through the domain. */
-function createDelivery(options: EffectDispatcherOptions, description: TargetDescription) {
-  const { application, context, port } = options;
-  const settleInput =
-    options.settleInput ??
-    ((effect: Readonly<Effect>, outcome: EffectOutcome) => ({ effectId: effect.id, outcome }));
-
-  /** Look up an earlier delivery when needed, else deliver. A `Step` when there is no outcome. */
-  async function outcomeOf(effect: Effect, signal: AbortSignal): Promise<EffectOutcome | Step> {
-    try {
-      // A non-idempotent target may already hold a delivery whose response or settlement was
-      // lost, so it is always checked before sending again.
-      if (!description.idempotentDelivery) {
-        const found = await port.lookup!(effect.id, signal, effect);
-        if (found?.status === 'uncertain') {
-          // Neither confirmed nor ruled out: delivering again could act twice. A person (or an
-          // agent through the reconciliation command) decides.
-          await application.recordAttempt(context, effect.id, found.reason, { hold: true });
-          return { tally: 'held' };
-        }
-        if (found) return found;
-      }
-      return await port.deliver(effect, signal);
-    } catch (error) {
-      const uncertain = error instanceof DeliveryUncertain;
-      // An uncertain outcome is recorded even during shutdown: the target may have changed, and
-      // an unrecorded attempt looks fresh (`attempts === 0`) to the next process, which would
-      // deliver again. Recording uses the dispatcher's own context, not the cancelled signal.
-      if (signal.aborted && !uncertain) return { stop: true };
-      await application.recordAttempt(
-        context,
-        effect.id,
-        error instanceof DeliveryFailure ? error.message : 'Delivery failed',
-        uncertain ? { hold: true } : {},
-      );
-      return { tally: uncertain ? 'held' : 'retried', stop: signal.aborted };
-    }
-  }
-
-  async function settle(effect: Effect, outcome: EffectOutcome): Promise<Step> {
-    try {
-      await application.invokeRaw(
-        {
-          operation: options.settleOperation,
-          input: settleInput(effect, outcome),
-          idempotencyKey: `settle:${effect.id}`,
-        },
-        context,
-      );
-      return { tally: outcome.status === 'accepted' ? 'accepted' : 'rejected' };
-    } catch (error) {
-      const { code } = errorEnvelope(error);
-      // Another dispatcher settled it first; the target already holds a single record.
-      if (code === 'CONFLICT') return {};
-      await application
-        .recordAttempt(context, effect.id, `Settlement failed (${code})`)
-        .catch(() => undefined);
-      return { tally: 'retried' };
-    }
-  }
-
-  return async (effect: Effect, signal: AbortSignal): Promise<Step> => {
-    const result = await outcomeOf(effect, signal);
-    return 'status' in result ? settle(effect, result) : result;
-  };
 }
 
 /**
@@ -141,7 +94,10 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
   const now = options.now ?? Date.now;
   const backoff =
     options.backoff ?? ((attempts: number) => Math.min(60_000, 1_000 * 2 ** (attempts - 1)));
-  const dispatch = createDelivery(options, description);
+  const dispatch = createDelivery(options, description, {
+    worker: options.worker ?? randomUUID(),
+    leaseMs: options.leaseMs ?? 120_000,
+  });
   const pending = (limit?: number) =>
     options.application.pendingEffects(options.context, {
       target: description.target,
@@ -152,7 +108,14 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
     signal: AbortSignal = new AbortController().signal,
     { ignoreBackoff = false } = {},
   ): Promise<DispatchReport> {
-    const report: DispatchReport = { accepted: 0, rejected: 0, retried: 0, deferred: 0, held: 0 };
+    const report: DispatchReport = {
+      accepted: 0,
+      rejected: 0,
+      retried: 0,
+      deferred: 0,
+      held: 0,
+      upstream: 0,
+    };
     for (const effect of await pending(options.batchSize ?? 50)) {
       if (signal.aborted) break;
       if (
@@ -172,7 +135,8 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
 
   /**
    * Deliver until nothing is pending or the timeout passes, ignoring backoff. Returns the number of
-   * effects still awaiting delivery; held effects await reconciliation and are not counted. An
+   * effects still awaiting delivery; held effects await reconciliation and effects the target
+   * acknowledged await its decision, so neither is counted. An
    * ephemeral host calls this before teardown so captured data is not silently abandoned.
    * The deadline aborts a delivery still in flight, so a hung target cannot hang the drain; an
    * adapter that already acted reports that as `DeliveryUncertain`, which is held, not retried.
@@ -184,7 +148,9 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
     try {
       for (;;) {
         await runOnce(controller.signal, { ignoreBackoff: true });
-        const remaining = (await pending()).length;
+        const remaining = (await pending()).filter(
+          (effect) => effect.upstreamAt === undefined,
+        ).length;
         if (remaining === 0 || controller.signal.aborted) return remaining;
         await abortableSleep(pollMs, controller.signal);
       }

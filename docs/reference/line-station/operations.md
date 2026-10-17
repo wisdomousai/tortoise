@@ -3066,7 +3066,7 @@ Integration only: record the outcome of a forwarded record (MES) or a screen pro
 - MCP: `line_effect_settle`
 - Permission: `settle` on `Synchronization`
 - UI: integration principal; the outbox dispatcher and inbound sync
-- CLI: `agent-native-desktop-starter line effect settle --effect-id <string> --outcome <json> [--key <idempotency-key>]`
+- CLI: `agent-native-desktop-starter line effect settle --effect-id <string> [--fence <integer>] --outcome <json> [--key <idempotency-key>]`
 
 Input:
 
@@ -3079,6 +3079,11 @@ Input:
       "maxLength": 128,
       "minLength": 1,
       "type": "string"
+    },
+    "fence": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "type": "integer"
     },
     "outcome": {
       "anyOf": [

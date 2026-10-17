@@ -65,7 +65,8 @@ export interface Effect extends EffectRequest {
   readonly operation: string;
   readonly principalId: string;
   readonly createdAt: number;
-  readonly status: 'pending' | EffectOutcome['status'];
+  /** `cancelled`: a command withdrew it before any worker claimed it; it was never sent. */
+  readonly status: 'pending' | EffectOutcome['status'] | 'cancelled';
   readonly attempts: number;
   readonly lastAttemptAt?: number;
   /** Caller-safe, bounded transient failure text from the most recent delivery attempt. */
@@ -81,6 +82,34 @@ export interface Effect extends EffectRequest {
   readonly heldAt?: number;
   /** Caller-safe, bounded reason for the hold. */
   readonly holdReason?: string;
+  /** The worker that may deliver it now; see `EffectClaim`. */
+  readonly claim?: EffectClaim;
+  /** The last fencing token issued; a newer claim always gets a larger one. */
+  readonly fence?: number;
+  /**
+   * Set once the target acknowledged the effect but has not decided it yet (`upstream-pending`).
+   * Dispatchers then poll the target's lookup instead of delivering again.
+   */
+  readonly upstreamAt?: number;
+  /** The target's reference for the acknowledged effect, when it gave one. */
+  readonly upstreamRef?: string;
+  /** Caller-safe, bounded reason a command gave for cancelling it. */
+  readonly cancelReason?: string;
+  /**
+   * The enqueuing command's input, for the dispatch-time recheck. Kernel-only: every effect the
+   * runtime hands out (to dispatchers, ports, handlers) leaves it out.
+   */
+  readonly input?: JsonValue;
+}
+/**
+ * A worker's claim to deliver one effect. The fencing token grows with every claim, and an
+ * attempt or settlement that carries an older token than the effect's current claim is refused,
+ * so a worker that paused past its lease cannot overwrite the outcome of the worker after it.
+ */
+export interface EffectClaim {
+  readonly worker: string;
+  readonly fence: number;
+  readonly expiresAt: number;
 }
 export interface StoredReceipt {
   readonly fingerprint: string;
@@ -118,7 +147,12 @@ export interface AuthorizationRequest<State> {
   readonly context: ExecutionContext;
   readonly state: State;
   readonly previousState?: State;
-  readonly phase: 'invoke' | 'commit' | 'replay';
+  /**
+   * `dispatch`: before an outbox effect is delivered, the actor who committed it is asked again,
+   * as a person without the delegation the command ran under, with the command's input and the
+   * current state. A denial holds the effect for reconciliation instead of sending it.
+   */
+  readonly phase: 'invoke' | 'commit' | 'replay' | 'dispatch';
 }
 export interface Decision {
   readonly allowed: boolean;
@@ -152,9 +186,17 @@ export interface HandlerContext<State, Services> {
   enqueue(effect: EffectRequest): string;
   /**
    * Record a target's outcome for a pending effect inside an ordinary settlement command, so the
-   * outcome commits with the domain update it causes. Settling twice fails with CONFLICT.
+   * outcome commits with the domain update it causes. Settling twice fails with CONFLICT. A
+   * dispatcher passes the fencing token of its claim; a token older than the effect's current
+   * claim fails with CONFLICT. A reconciliation command by a person passes none.
    */
-  settleEffect(id: string, outcome: EffectOutcome): Effect;
+  settleEffect(id: string, outcome: EffectOutcome, attempt?: { readonly fence?: number }): Effect;
+  /**
+   * Withdraw a pending effect no worker ever claimed, so it is never sent; the domain command
+   * updates its own record in the same transaction. Fails with CONFLICT once a worker claimed it,
+   * because the target may then already have it.
+   */
+  cancelEffect(id: string, reason: string): Effect;
   /**
    * Return a held effect to delivery, inside the reconciliation command whose actor confirmed the
    * target did not apply it. Fails with CONFLICT unless the effect is pending and held.

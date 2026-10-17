@@ -93,7 +93,7 @@ export function createApplication<
     return queryRaw(request, context) as Promise<QueryResult<OutputOf<CapabilityById<Query, Id>>>>;
   }
   const { events, deliverEvents } = createEvents(kernel);
-  const { pendingEffects, recordAttempt } = createOutbox(kernel);
+  const { pendingEffects, recordAttempt, claimEffect } = createOutbox(kernel);
   return {
     catalog: kernel.catalog,
     invoke,
@@ -105,6 +105,7 @@ export function createApplication<
     discover: createDiscovery(kernel),
     pendingEffects,
     recordAttempt,
+    claimEffect,
     recoverAudit: createRecovery(kernel),
   };
 }

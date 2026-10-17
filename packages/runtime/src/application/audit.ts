@@ -115,6 +115,7 @@ export function effectRecords(
       target: effect.target,
       type: effect.type,
       ...(effect.outcome ? { status: effect.outcome.status } : {}),
+      ...(effect.status === 'cancelled' ? { status: 'cancelled' } : {}),
       ...(effect.outcome?.status === 'rejected' ? { code: effect.outcome.code } : {}),
     },
   }));

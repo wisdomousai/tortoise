@@ -43,9 +43,11 @@ export interface SystemOfRecordPort<Item = unknown, Credential = unknown> {
    * Deliver one effect at least once. Return the target's business outcome, including rejection.
    * Throw for transient failures; the dispatcher records an attempt and retries later. Throw
    * `DeliveryFailure` for a caller-safe message; other errors are recorded generically so
-   * endpoints, tokens or payload fragments never reach application state.
+   * endpoints, tokens or payload fragments never reach application state. Return `pending`
+   * when the target acknowledged the effect but decides it later (an approval queue, a batch
+   * job); the dispatcher then polls `lookup`, which such a target must provide.
    */
-  deliver(effect: Readonly<Effect>, signal: AbortSignal): Promise<EffectOutcome>;
+  deliver(effect: Readonly<Effect>, signal: AbortSignal): Promise<DeliveryResult>;
   /**
    * Find a previous delivery by effect ID. Required when delivery is not idempotent. Return
    * `undefined` when the target has no trace of it (safe to deliver), or `uncertain` when the target
@@ -68,9 +70,23 @@ export interface SystemOfRecordPort<Item = unknown, Credential = unknown> {
   ): Promise<SearchPage>;
 }
 
-/** What a target knows about an earlier delivery. */
+/** The target holds the effect but has not decided it; `externalRef` is its reference, if any. */
+export interface UpstreamPending {
+  readonly status: 'pending';
+  readonly externalRef?: string;
+}
+/** What one delivery returned: the target's decision, or its acknowledgement without one. */
+export type DeliveryResult = EffectOutcome | UpstreamPending;
+
+/**
+ * What a target knows about an earlier delivery: its decision, `pending` while it still holds
+ * an acknowledged effect undecided, `uncertain`, or `undefined` for no trace.
+ */
 export type LookupResult =
-  EffectOutcome | { readonly status: 'uncertain'; readonly reason: string } | undefined;
+  | EffectOutcome
+  | UpstreamPending
+  | { readonly status: 'uncertain'; readonly reason: string }
+  | undefined;
 
 /** A transient failure whose message is safe to show to authorized application users. */
 export class DeliveryFailure extends Error {

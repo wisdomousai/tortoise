@@ -19,6 +19,8 @@ export interface TargetIntegrationOptions<Item> {
    */
   readonly context: ExecutionContext;
   readonly settleOperation: string;
+  /** The settle command takes `fence` (a `defineTarget` settle does), so settlements are fenced. */
+  readonly fencedSettlement?: boolean;
   readonly syncOperation: string;
   /** Authorized query whose result carries the stored inbound `watermark`. */
   readonly statusOperation: string;
@@ -37,6 +39,15 @@ export function createTargetIntegration<Item>(options: TargetIntegrationOptions<
     port: options.port,
     context: options.context,
     settleOperation: options.settleOperation,
+    ...(options.fencedSettlement
+      ? {
+          settleInput: (effect, outcome, attempt) => ({
+            effectId: effect.id,
+            outcome,
+            fence: attempt.fence,
+          }),
+        }
+      : {}),
   });
   const inbound = createInboundSync<Item>({
     application: options.application,
@@ -89,6 +100,7 @@ export function connectTarget<Item>(options: {
     port: options.port,
     context: targetContext(options.target, options.workspaceId, options.principalId),
     settleOperation: options.target.settle.id,
+    fencedSettlement: true,
     syncOperation: options.target.sync.id,
     statusOperation: options.target.status.id,
     toInput: options.toInput ?? ((batch) => batch),

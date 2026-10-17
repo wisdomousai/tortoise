@@ -6,9 +6,11 @@ Layer: framework (`packages/*`). Server only. Domain-neutral: the domain supplie
 
 ## Primitives
 
-- [Connector](../../docs/primitives.md#connector): `SystemOfRecordPort` (with optional `search`), `SearchAccess`, `SearchPage`, `TargetDescription`, `LookupResult`, `DeliveryFailure`, `DeliveryUncertain`.
-- [Dispatcher](../../docs/primitives.md#dispatcher): `createEffectDispatcher`, `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DispatchReport`.
-- [Inbound sync](../../docs/primitives.md#inbound-sync): `createInboundSync`, `PullBatch`.
+- [Connector](../../docs/primitives.md#connector): `SystemOfRecordPort` (with optional `search`), `SearchAccess`, `SearchPage`, `TargetDescription`, `DeliveryResult`, `UpstreamPending`, `LookupResult`, `DeliveryFailure`, `DeliveryUncertain`.
+- [Dispatcher](../../docs/primitives.md#dispatcher): `createEffectDispatcher` (with `worker`, `leaseMs` and `recheck`), `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DispatchReport`. `src/dispatcher/delivery.ts` holds the per-effect steps: claim, look up or deliver, poll an acknowledged effect, record under the claim's fence and settle.
+- [Worker claims](../../docs/primitives.md#worker-claims): every attempt and, for `defineTarget` settle commands, every settlement carries the claim's fencing token.
+- [Reconciliation](../../docs/primitives.md#reconciliation): the dispatcher holds an effect whose outcome is uncertain, whose acknowledgement the target lost, or whose actor the recheck denies, and polls an acknowledged one instead of resending it.
+- [Inbound sync](../../docs/primitives.md#inbound-sync): `createInboundSync`, `PullBatch`, and upstream versions through `UpstreamVersions` and `newerItems`.
 - [Target](../../docs/primitives.md#target): `targetHandlers`, `TargetHandlerOptions`, `TargetCursor`, `settleDelivery`, `Delivered`, `targetContext`, `targetLane`, `targetRules`, `connectTarget`.
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteSource`, `CallerCredentials`, `RemoteSourceOptions` turn a port's `search` into the runtime's `RemoteSource`, resolving the caller's credential first.
 - [Data provider](../../docs/primitives.md#data-provider): `implementDataProvider` supplies a provider's search and lookup handlers from one item mapper.
@@ -34,7 +36,7 @@ Known gaps: no worker claims or fencing, no upstream-pending state, no cancel-be
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`. No network code: the port implementation reaches the target through the egress guard the host provides.
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, and `@agent-native/event-log` (tests). No network code: the port implementation reaches the target through the egress guard the host provides.
 
 ## Tests
 
@@ -46,3 +48,4 @@ bun run test:integration
 - `test/dispatcher.test.ts`: delivery outside the transaction, backoff, rejection as data, lookup before resend, integration-grant limits, watermark-bound sync, and `drain` while the target stays down.
 - `test/target.test.ts`: a declared target's derived IDs and grant, delivery and feed through `connectTarget`, the watermark conflict and side lists, settling another target's effect, the lane closing settle and sync to everyone else, and `settleDelivery` on a mismatched record.
 - `test/held.test.ts`: uncertain outcomes are held, not resent, including on shutdown; only held effects can be released; drain deadlines and cross-target accounting.
+- `test/reliability.test.ts`: a paused worker against the one after its lease, a kill after the target accepted, an acknowledged effect polled and drained, cancel before a claim, the actor recheck before the first claim and after revocation, and out-of-order upstream versions.

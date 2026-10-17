@@ -31,7 +31,7 @@ test('the embedded authority syncs and drains the quality system it declares', a
     ]);
     expect(await authority.integrations.drain(0)).toEqual({
       pending: 0,
-      targets: [{ target: 'quality-system', pending: 0, held: 0, deliverable: true }],
+      targets: [{ target: 'quality-system', pending: 0, held: 0, upstream: 0, deliverable: true }],
     });
   } finally {
     await authority.close();

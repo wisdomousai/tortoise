@@ -162,7 +162,9 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
   // Every target the application declares is accounted for, including one with no work.
   const backlog = (quality: number) => ({
     pending: quality,
-    targets: [{ target: 'quality-system', pending: quality, held: 0, deliverable: true }],
+    targets: [
+      { target: 'quality-system', pending: quality, held: 0, upstream: 0, deliverable: true },
+    ],
   });
   expect(pending).toEqual({ exitCode: 75, value: backlog(3) });
   expect(await run(['drain', '--workspace', workspace, '--timeout', '5000'])).toEqual({

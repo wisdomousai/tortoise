@@ -316,8 +316,8 @@ test('draining several targets accounts for outbox work no dispatcher here can d
   ).toEqual({
     pending: 1,
     targets: [
-      { target: 'legacy-hmi', pending: 1, held: 0, deliverable: false },
-      { target: 'mes', pending: 0, held: 0, deliverable: true },
+      { target: 'legacy-hmi', pending: 1, held: 0, upstream: 0, deliverable: false },
+      { target: 'mes', pending: 0, held: 0, upstream: 0, deliverable: true },
     ],
   });
   const hmi = createEffectDispatcher({
