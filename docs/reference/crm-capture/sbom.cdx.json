@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:1ae2be15-9066-5ffa-a7c9-ca06ca2e562c",
+  "serialNumber": "urn:uuid:abf6e3a9-bc7b-5487-a603-8a12a3453e99",
   "version": 1,
   "metadata": {
     "tools": {
@@ -15800,6 +15800,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/device-link",
+      "name": "@agent-native/device-link",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/device-link"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/devices",
       "name": "@agent-native/devices",
       "properties": [
@@ -15866,6 +15878,18 @@
         {
           "name": "workspace:path",
           "value": "packages/host"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "bom-ref": "workspace:@agent-native/hub-link",
+      "name": "@agent-native/hub-link",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/hub-link"
         }
       ],
       "scope": "required"
@@ -16377,12 +16401,14 @@
         "workspace:@agent-native/compliance",
         "workspace:@agent-native/contracts",
         "workspace:@agent-native/crm-capture",
+        "workspace:@agent-native/device-link",
         "workspace:@agent-native/devices",
         "workspace:@agent-native/egress",
         "workspace:@agent-native/event-log",
         "workspace:@agent-native/frame",
         "workspace:@agent-native/frame-native",
         "workspace:@agent-native/host",
+        "workspace:@agent-native/hub-link",
         "workspace:@agent-native/integration",
         "workspace:@agent-native/intent-scanner",
         "workspace:@agent-native/kernel",
@@ -23660,6 +23686,10 @@
       "dependsOn": []
     },
     {
+      "ref": "workspace:@agent-native/device-link",
+      "dependsOn": []
+    },
+    {
       "ref": "workspace:@agent-native/devices",
       "dependsOn": []
     },
@@ -23681,6 +23711,10 @@
     },
     {
       "ref": "workspace:@agent-native/host",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/hub-link",
       "dependsOn": []
     },
     {

@@ -10,7 +10,7 @@ Layer: framework (`packages/*`). `@agent-native/host` re-exports the definition 
 - [Host](../../docs/primitives.md#host): `openAuthority`, `OpenAuthorityOptions`, `Authority`, `LOCAL_WORKSPACE`, `LOCAL_OWNER`, `combineIntegrations`, `Integrations`, `deploymentCatalog`, `deploymentComponents`, `deploymentRequirements`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `PluginManifest`, `PluginModules`, `PluginSetting`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `PluginOpenContext`, `PluginStartContext`, `SettingsProviderContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `noIngress`, `resolvePorts`, `isolatedNetwork`, `latePorts`, `openPlugins`, `OpenedPlugins`, `PluginPlatform`, `PluginSettings`, `assertClaimed`, `settingsFor`, `mergeSettings`.
 - [Blob store](../../docs/primitives.md#blob-store): `HostPlatform.openBlobs` gives each authority its workspace's store, and a serving authority sweeps unreferenced blobs when it opens.
-- [Host platform](../../docs/primitives.md#host-platform): `HostPlatform`, `PlatformId`, `platformIds`, `PlatformCapability`, `PlatformOwnership`, `assertPlatformSupports`, `installGlobals`, `assertGlobals`, `missingGlobals`, `RequiredGlobal`.
+- [Host platform](../../docs/primitives.md#host-platform): `HostPlatform`, `PlatformId`, `platformIds`, `PlatformCapability`, `PlatformOwnership`, `assertPlatformSupports`, `installGlobals`, `assertGlobals`, `missingGlobals`, `RequiredGlobal`, `SecretStore`, `scopedSecrets`.
 
 ## Entrypoints
 
@@ -41,6 +41,8 @@ A platform is trusted host code chosen by the starter; content never supplies on
 - A JavaScript host missing a required global (`structuredClone`, `AbortController`, `AbortSignal.any`, `AbortSignal.timeout`, `crypto.getRandomValues`, `crypto.randomUUID`) refuses before plugins open. `installGlobals` fills the gaps it can implement in JavaScript; a secure `getRandomValues` must come from the platform, so a host without one still fails.
 
 `provideSettings` lets a plugin (such as a managed-configuration reader) supply settings for other plugins before any of them opens. Provided settings override launcher settings unless the caller sets `launcherSettingsWin`, which is meant for development builds. Two providers of one key and non-string values refuse startup, and the merged result must still be claimed by a plugin.
+
+On a serving host a plugin instance may implement `publicRoute(request)`, answered before the session check, and `authenticate(token)`, which resolves a bearer credential the plugin issued to an `ExecutionContext`. The opened plugins try each in composition order and use the first answer; the host consults them only after its own routes and sessions. A plugin that answers a public route handles untrusted input before any authentication. `PluginOpenContext.secrets` is the platform's `SecretStore` wrapped by `scopedSecrets`: names are limited to letters, digits, `.`, `_` and `-`, and each is stored under the workspace and plugin id, so a plugin reads only its own entries. It is absent on a platform without a secret store.
 
 The kernel binds no listener of its own: the default ingress is the platform's, and without one every `listen` fails with `UNAVAILABLE`. `openAuthority` does not acquire or release ownership. The caller acquires it from the same platform and releases it after `close`; on a failed open the kernel closes what it opened and leaves the ownership with the caller.
 

@@ -6,7 +6,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 
 ## Primitives
 
-- [Egress guard](../../docs/primitives.md#egress-guard): `networkPlugin`, `networkPluginManifest`, `openNetwork`, `networkServiceOf`, `NetworkService`, `mtlsIngress`.
+- [Egress guard](../../docs/primitives.md#egress-guard): `networkPlugin`, `networkPluginManifest`, `openNetwork`, `networkServiceOf`, `NetworkService`, `policyIngress`.
 - [Execution host](../../docs/primitives.md#execution-host): `networkRules`, `exportRules`, `exportFormats`, `networkCommand`, `networkCliCommand`, `networkUsage`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `networkPlugin` requires `site`. It is written only against `@agent-native/host/plugin` and reads the event-log port through the composed ports.
 
@@ -24,15 +24,15 @@ The [architecture](../../docs/architecture.md#plugins-and-a-closed-kernel) expla
 | `@agent-native/network/exporters`       | server only        | `exportRules` for `json`, `nftables`, `windows-firewall`, `k8s-networkpolicy`, `k8s-pod`, `compose`, `systemd`. |
 | `@agent-native/network/cli`             | server only        | `network export`.                                                                                               |
 
-`rules` (`networkRules`) and `ingress` (`mtlsIngress`) are importable by path. `exporters/` has one file per format plus the shared header, YAML and service defaults.
+`rules` (`networkRules`) and `ingress` (`policyIngress`) are importable by path. `exporters/` has one file per format plus the shared header, YAML and service defaults.
 
 What the plugin does at each lifecycle hook:
 
-| Hook       | Effect                                                                                                                         |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `open`     | Builds the guard over the site policy, starts the child proxy when serving, and provides `network` and, under mTLS, `ingress`. |
-| `describe` | `{ mode, ingress }` for the `listening` record.                                                                                |
-| `close`    | Stops the proxy. Plugins opened later, such as `audit`, have closed by then, so a final forwarder flush still has the guard.   |
+| Hook       | Effect                                                                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `open`     | Builds the guard over the site policy, starts the child proxy when serving, and provides `network` and, under TLS or mTLS, `ingress`. |
+| `describe` | `{ mode, ingress }` for the `listening` record.                                                                                       |
+| `close`    | Stops the proxy. Plugins opened later, such as `audit`, have closed by then, so a final forwarder flush still has the guard.          |
 
 ## Trust boundary
 

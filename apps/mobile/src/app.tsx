@@ -48,7 +48,13 @@ export function App() {
   }, []);
 
   if (state && 'opened' in state)
-    return <NativeFrame screens={entry.screens} transport={state.opened.transport} />;
+    return (
+      <NativeFrame
+        screens={entry.screens}
+        transport={state.opened.transport}
+        services={state.opened.authority.services}
+      />
+    );
   return (
     <View className="flex-1 items-center justify-center gap-4 bg-background p-6">
       {state ? (

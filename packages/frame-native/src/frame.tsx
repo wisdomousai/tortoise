@@ -11,7 +11,7 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { Transport } from '@agent-native/client';
 import { nativeScreenForCapability, type NativeApplicationScreens } from './screens';
-import { SessionProvider } from './session';
+import { SessionProvider, type PluginServices } from './session';
 
 /** Width from which tabs move to a rail on the left: a tablet, or a large phone in landscape. */
 export const RAIL_WIDTH = 768;
@@ -57,15 +57,18 @@ function Tabs({ screens }: { screens: NativeApplicationScreens }) {
 export function NativeFrame({
   screens,
   transport,
+  services,
 }: {
   screens: NativeApplicationScreens;
   transport: Transport;
+  /** The authority's plugin services, for plugin screens that drive their own plugin. */
+  services?: PluginServices;
 }) {
   const tabs = useMemo(() => new Set(screens.navigation.map((item) => item.to)), [screens]);
   const Status = screens.status;
   return (
     <SafeAreaProvider>
-      <SessionProvider transport={transport}>
+      <SessionProvider transport={transport} {...(services ? { services } : {})}>
         <ScreensContext.Provider value={screens}>
           <SafeAreaView edges={['top']} style={{ flex: 1 }}>
             {Status ? <Status /> : null}

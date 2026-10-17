@@ -23,25 +23,38 @@ export interface HttpHandlerOptions {
   origin: () => string;
   pollMs?: number;
   publicRoute?: (request: Request) => Promise<Response | undefined>;
+  /**
+   * A bearer token that is not a host session, such as a paired device's: the session it stands
+   * for, or undefined. Asked on every such request, so revocation applies at the next one.
+   */
+  authenticateToken?: (token: string) => Promise<HostSession | undefined>;
   extra?: (request: Request, session: HostSession) => Promise<Response | undefined>;
   static?: (path: string) => Promise<Response | undefined>;
 }
 
-/** The session a request presents. Browser writes without a bearer must be same-origin. */
-function authenticate(
+/**
+ * The session a request presents. Browser writes without a bearer must be same-origin. A bearer
+ * that is no host session is offered to `authenticateToken`. A refusal carries
+ * `details.credential`, so a client can tell a missing or revoked credential from a denied
+ * operation, which is also FORBIDDEN.
+ */
+async function authenticate(
   options: HttpHandlerOptions,
   request: Request,
   requestOrigin: string | null,
   origin: string,
-): HostSession {
+): Promise<HostSession> {
   const bearer = request.headers.get('authorization')?.match(/^Bearer ([A-Za-z0-9_-]+)$/)?.[1];
   const cookie = request.headers
     .get('cookie')
     ?.match(/(?:^|;\s*)agent_session=([A-Za-z0-9_-]+)/)?.[1];
   if (!bearer && request.method !== 'GET' && requestOrigin !== origin)
     throw new ApplicationError('FORBIDDEN', 'Browser writes require same-origin validation');
-  const session = options.sessions.get(bearer ?? cookie ?? '');
-  if (!session) throw new ApplicationError('FORBIDDEN', 'Local session required');
+  const session =
+    options.sessions.get(bearer ?? cookie ?? '') ??
+    (bearer ? await options.authenticateToken?.(bearer) : undefined);
+  if (!session)
+    throw new ApplicationError('FORBIDDEN', 'Local session required', { credential: 'rejected' });
   return session;
 }
 
@@ -66,7 +79,7 @@ async function handle(options: HttpHandlerOptions, cursors: Cursors, request: Re
     return exchangeLaunch(options.sessions, request);
   if (!url.pathname.startsWith('/api/'))
     return (await options.static?.(url.pathname)) ?? new Response('Not found', { status: 404 });
-  const session = authenticate(options, request, requestOrigin, origin);
+  const session = await authenticate(options, request, requestOrigin, origin);
   const context = withSignal({ ...session.context, channel: 'http' }, request.signal);
   return (
     (await routeAuthenticated({ ...options, cursors }, request, session, context)) ??

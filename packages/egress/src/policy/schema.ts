@@ -5,7 +5,12 @@ import { z } from 'zod';
  * hardening profile. Code declares what it may need; only this file opens anything. Without a
  * policy the deployment is isolated (loopback only), which is the offline-first default.
  */
-export const hardeningProfiles = ['desktop-local', 'sandbox', 'zero-trust'] as const;
+/**
+ * `desktop-local`: one person's machine, loopback only. `site-hub`: a machine on a site network
+ * that paired devices reach over TLS, still run by its local owner. `sandbox`: an agent sandbox
+ * driven by launcher grants. `zero-trust`: external identity, mutual TLS, forwarded audit.
+ */
+export const hardeningProfiles = ['desktop-local', 'site-hub', 'sandbox', 'zero-trust'] as const;
 export type HardeningProfile = (typeof hardeningProfiles)[number];
 
 const pin = z
@@ -44,14 +49,16 @@ export const sitePolicySchema = z.strictObject({
   ingress: z
     .strictObject({
       /**
-       * `loopback`: 127.0.0.1, trusted local clients. `mtls`: a TLS listener that admits only
-       * clients presenting a certificate from `clientCa`; sessions are still required on top.
+       * `loopback`: 127.0.0.1, trusted local clients. `tls`: a TLS listener any client on the
+       * network can reach; every API call needs a session or a credential a plugin issued, such
+       * as a paired device's token. `mtls`: a TLS listener that admits only clients presenting a
+       * certificate from `clientCa`; sessions are still required on top.
        */
-      listen: z.enum(['loopback', 'mtls']).default('loopback'),
+      listen: z.enum(['loopback', 'tls', 'mtls']).default('loopback'),
       /** Name clients connect to; the listener binds it and checks the Host header against it. */
       host: z.string().optional(),
       port: z.number().int().min(0).max(65535).optional(),
-      /** PEM paths, relative to the policy file. */
+      /** PEM paths, relative to the policy file. `clientCa` applies to `mtls` only. */
       cert: z.string().optional(),
       key: z.string().optional(),
       clientCa: z.string().optional(),

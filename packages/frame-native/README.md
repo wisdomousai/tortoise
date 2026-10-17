@@ -34,7 +34,7 @@ Build the registry with `bun run build:registry:native` (output in `dist/registr
 
 ## Trust boundary
 
-The frame imports no application and no plugin; the starter passes the screens in from its generated entry. It does not open the authority, choose the principal or hold credentials: it renders whatever the transport it receives allows. `defineNativeScreens` fails at definition time on a duplicate path, a tab declared twice, a home that is not a tab, or a navigation or capability target that no screen declares, checked over the application's and its plugins' screens together.
+The frame imports no application and no plugin; the starter passes the screens in from its generated entry. It does not open the authority, choose the principal or hold credentials: it renders whatever the transport it receives allows. The starter may also pass the authority's plugin services, which screens read from `useSession().services`; a plugin's screen uses only its own plugin's service, such as pairing, and that service still writes through commands. `defineNativeScreens` fails at definition time on a duplicate path, a tab declared twice, a home that is not a tab, or a navigation or capability target that no screen declares, checked over the application's and its plugins' screens together.
 
 `check:boundaries` treats `src/` as portable: no Node or Bun import or global. The React Native files are type-checked by `tsconfig.native.json` only; the root project checks `screens.ts` and `plugin-screens.ts`.
 

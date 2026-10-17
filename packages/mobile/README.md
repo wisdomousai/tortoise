@@ -6,7 +6,7 @@ Layer: framework (`packages/*`). The mobile starter in `apps/mobile` uses it; co
 
 ## Primitives
 
-- [Host platform](../../docs/primitives.md#host-platform): `createMobilePlatform`, `MobileBindings`, and on Expo `expoPlatform`, `expoSqlDriver` and `expoBlobStore`.
+- [Host platform](../../docs/primitives.md#host-platform): `createMobilePlatform`, `MobileBindings`, and on Expo `expoPlatform`, `expoSqlDriver`, `expoBlobStore` and `expoSecretStore`.
 - [Authority](../../docs/primitives.md#authority): `openMobileAuthority`, `MobileAuthority`, `MobileAuthorityOptions`; on Expo `followAppState` and `defineBackgroundDelivery`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `requirePluginNativeModule`, `NativeModuleLookup`, and on Expo `pluginNativeModule`, for plugins that ship native code.
 
@@ -39,7 +39,7 @@ The platform declares no capabilities: a deployment that needs raw sockets, an i
 
 Ownership is an `EXCLUSIVE` transaction on the lock database, held while the authority is open. A second open in the same runtime is refused before SQLite is asked, which covers a background task started while the screens hold the workspace. `defineBackgroundDelivery` therefore takes a function that returns the open authority instead of opening its own.
 
-The screens act as the local owner, the person holding the device. The app's sandbox is the only isolation between apps; anyone who can unlock the device can use the app. Pairing and device credentials belong to a plugin, not to this package.
+The screens act as the local owner, the person holding the device. The app's sandbox is the only isolation between apps; anyone who can unlock the device can use the app. Pairing and device credentials belong to a plugin, not to this package; it supplies the secret store they are kept in. `expoSecretStore` uses `expo-secure-store` (Keychain on iOS, Keystore-encrypted storage on Android) with `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`, so a background task can read it after the first unlock and the value is not restored onto another device.
 
 Integration loops run only in the foreground (`followAppState`). A background pass is one bounded `drain` and `sync`; the OS decides when it runs and may stop it, and iOS runs it rarely, so delivery is effectively a foreground job there.
 

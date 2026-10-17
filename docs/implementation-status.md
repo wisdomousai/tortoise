@@ -136,6 +136,7 @@ The kit's interaction tests also pass.
 - **Startup floors:**
   - identity floors are enforced at startup;
   - mTLS rejects a missing certificate and a foreign CA, using a throwaway PKI.
+  - A `site-hub` policy serves over TLS without client certificates; `desktop-local` refuses any network listener, `zero-trust` refuses TLS without client certificates, and a client CA on a TLS listener is refused (`packages/egress/test/egress.test.ts`). With a throwaway site CA, a client without the CA fails the handshake and a phone that trusts it pairs and delivers (`plugins/device-link/test/tls.test.ts`).
 - **Exports:** the seven rule formats match golden files.
 - **Sandbox binary:** its audit chain verifies with no egress.
 
@@ -174,7 +175,16 @@ The starter hosts a mobile application: `bun run mobile:prepare` writes the stat
 
 Plugins can ship native code. Manifests that name native code without a mobile platform are refused (`packages/kernel/test/kernel.test.ts`), and a plugin whose native module the build lacks refuses startup (`packages/mobile/test/native-module.test.ts`). `plugins/managed-config` runs end to end on the mobile platform in Bun with a fake reader: managed values become another plugin's settings, win over launcher settings, and an undeclared key or a non-text value refuses startup. `plugins/intent-scanner` decodes broadcasts from a fake receiver through the scanner pipeline. `apps/mobile/test/entry.test.ts` checks that `mobile:prepare` hands each config plugin the application and every declared setting. `expo prebuild --platform android`, run once by hand on the fixture with managed-config composed temporarily, wrote `res/xml/app_restrictions.xml` and the `APP_RESTRICTIONS` meta-data, and `expo-modules-autolinking resolve` found both plugins' Kotlin modules.
 
-**Not shown.** The mobile platform has not run on a device: the Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes. The native frame and components have not rendered. The plugins' Kotlin and Swift modules have not been compiled: no Android or iOS build has been produced, and nothing has run on an emulator, simulator or device. Test DPC restrictions, `simctl` managed configuration and `adb` scan broadcasts are the planned on-demand checks.
+Phones and tablets pair with a hub. `plugins/device-link/test/link.test.ts` runs a hub with `startHost` and a field app on the mobile platform in Bun, joined by the hub-link plugin and the peer connector:
+
+- A capture taken before pairing stays pending with the reason, and a wrong code is shown on the device.
+- After pairing, the photo reaches the hub before the record. A delivery whose response is lost is replayed without a second capture on the hub. A capture taken offline goes once the network returns, and a hub rejection reaches the device with its code. Assignments arrive through the hub's feed.
+- A phone can call only the sync operations. A revoked phone is refused as a credential, and its records stay pending until it pairs again. A tablet works as the person who enrolled it, within the operations chosen at enrollment, and cannot be granted device management (`test/scenarios.test.ts`).
+- Codes are single-use, expire, and are throttled after repeated failures.
+
+`plugins/hub-link/test/network.test.ts` checks that the device credential goes only to the paired origin, with redirects refused.
+
+**Not shown.** Pairing has not run on a device, the native pairing screen has not rendered, and the device credential has not been stored in a real Keychain or Keystore. There is no QR pairing. The mobile platform has not run on a device: the Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes. The native frame and components have not rendered. The plugins' Kotlin and Swift modules have not been compiled: no Android or iOS build has been produced, and nothing has run on an emulator, simulator or device. Test DPC restrictions, `simctl` managed configuration and `adb` scan broadcasts are the planned on-demand checks.
 
 ### Layers and scaffold
 

@@ -1,0 +1,15 @@
+{
+  "name": "@agent-native/hub-link",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hub link host plugin: pairs a field device with an agent-native hub and gives the device a network port to it that carries the device credential.",
+  "exports": {
+    "./contracts": "./src/contracts.ts",
+    "./plugin-manifest": "./src/plugin-manifest.ts",
+    "./plugin": "./src/plugin.ts",
+    "./network": "./src/network.ts",
+    "./pairing": "./src/pairing.ts",
+    "./plugin-screens-native": "./src/expo/screens.tsx"
+  }
+}

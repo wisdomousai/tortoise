@@ -647,6 +647,7 @@ Output:
     "profile": {
       "enum": [
         "desktop-local",
+        "site-hub",
         "sandbox",
         "zero-trust"
       ],

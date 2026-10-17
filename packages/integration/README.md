@@ -6,7 +6,7 @@ Layer: framework (`packages/*`). Server only. Domain-neutral: the domain supplie
 
 ## Primitives
 
-- [Connector](../../docs/primitives.md#connector): `SystemOfRecordPort` (with optional `search`), `SearchAccess`, `SearchPage`, `TargetDescription`, `LookupResult`, `DeliveryFailure`, `DeliveryUncertain`.
+- [Connector](../../docs/primitives.md#connector): `SystemOfRecordPort` (with optional `search`), `SearchAccess`, `SearchPage`, `TargetDescription`, `LookupResult`, `DeliveryFailure`, `DeliveryUncertain`; `createPeerPort`, `PeerPortOptions`, `PeerClient` and `payloadBlobs` for a target that is another agent-native host.
 - [Dispatcher](../../docs/primitives.md#dispatcher): `createEffectDispatcher`, `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DispatchReport`.
 - [Inbound sync](../../docs/primitives.md#inbound-sync): `createInboundSync`, `PullBatch`.
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteSource`, `CallerCredentials`, `RemoteSourceOptions` turn a port's `search` into the runtime's `RemoteSource`, resolving the caller's credential first.
@@ -26,6 +26,8 @@ The [system-of-record pattern](../../docs/system-of-record-pattern.md) explains 
 The connector is the only code that talks to the external system. A target either declares idempotent delivery (the effect ID, derived from the command's receipt, is its idempotency key) or implements a lookup that the dispatcher consults before every send. A business rejection is data and is never retried. An outcome the connector cannot establish is reported as `DeliveryUncertain` and held for a person, never guessed or resent; that holds even when shutdown interrupts the pass. A held effect returns to delivery only through a reconciliation command.
 
 A remote source resolves the caller's own credential through `CallerCredentials` and uses the service credential only when the query declares `caller-or-service`; without either it refuses with `FORBIDDEN` and never calls the port. A port's `search` returns a `SearchPage`; its `next` cursor must be bound to the query and credential that produced it, which the port alone can enforce. A `DeliveryFailure` from `search` becomes a caller-safe `UNAVAILABLE`, so provider error text is not passed on. `search` is called only by the runtime for a remote query; the dispatcher never uses it.
+
+The peer port speaks the peer host's HTTP API through a client the caller supplies (a paired device's network port), so the peer authorizes every call as that client's credential. It uploads each blob the payload references and checks the stored digest before invoking the command named by the effect type, with the effect ID as idempotency key; the peer's receipt makes a repeat after a lost response return the first result. `INVALID_INPUT`, `NOT_FOUND`, `FORBIDDEN`, `CONFLICT` and `IDEMPOTENCY_CONFLICT` settle the effect as rejected. A `FORBIDDEN` that refuses the credential itself (`details.credential`), an unreachable peer and a server error are `DeliveryFailure`s, so the record waits for a new pairing instead of being rejected.
 
 The integration grant can settle, sync and read status only; it cannot drive operator commands. `drain` reports whether anything is still pending, its deadline aborts a delivery in flight, and `drainTargets` reports outbox work for targets no dispatcher in this process can deliver instead of leaving it out.
 

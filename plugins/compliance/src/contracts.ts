@@ -33,7 +33,7 @@ export const destinationPostureSchema = z.strictObject({
 export const postureSchema = z.strictObject({
   checkedAt: z.number().int(),
   status: z.enum(['ok', 'attention', 'failing']),
-  profile: z.enum(['desktop-local', 'sandbox', 'zero-trust']),
+  profile: z.enum(['desktop-local', 'site-hub', 'sandbox', 'zero-trust']),
   networkMode: z.enum(['isolated', 'connected']),
   auditMode: z.enum(['fail-closed', 'best-effort']),
   policyDigest: digest,

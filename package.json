@@ -71,6 +71,8 @@
     "@agent-native/kernel": "workspace:*",
     "@agent-native/line-station": "workspace:*",
     "@agent-native/frame-native": "workspace:*",
+    "@agent-native/device-link": "workspace:*",
+    "@agent-native/hub-link": "workspace:*",
     "@agent-native/intent-scanner": "workspace:*",
     "@agent-native/managed-config": "workspace:*",
     "@agent-native/mobile": "workspace:*",

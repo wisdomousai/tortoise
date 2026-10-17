@@ -30,6 +30,17 @@ interface Running {
   agentConnectionPath?: string;
 }
 
+/**
+ * A credential a plugin issued (a paired device) stands for the context the plugin returns. It is
+ * resolved on every request, so it carries no expiry of its own.
+ */
+const pluginCredential =
+  (authority: Authority) =>
+  async (token: string): Promise<HostSession | undefined> => {
+    const context = await authority.plugins.authenticate(token);
+    return context && { token, context, expiresAt: Number.POSITIVE_INFINITY };
+  };
+
 /** Stop once: cancel live runs, stop serving and syncing, then close state, log and ownership. */
 function createClose(running: () => Running) {
   let stopped = false;
@@ -155,7 +166,9 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       sessions,
       origin: () => origin,
       pollMs: options.pollMs,
-      publicRoute: agents.providers.callback,
+      publicRoute: async (request) =>
+        (await agents.providers.callback(request)) ?? authority.plugins.publicRoute(request),
+      authenticateToken: pluginCredential(authority),
       extra: (request, session) => routeHostRequest(request, session, routes),
       static: (path) => serveStatic(options.webRoot, path),
     });

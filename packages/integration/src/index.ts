@@ -5,3 +5,4 @@ export * from './inbound-sync.js';
 export * from './target.js';
 export * from './remote-source.js';
 export * from './data-provider.js';
+export * from './peer-port.js';

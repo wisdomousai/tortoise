@@ -3,7 +3,7 @@ import { SnapshotStorage } from '@agent-native/adapters/snapshot-storage';
 import type { SqlDriver } from '@agent-native/adapters/sql-driver';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
 import { LOCAL_OWNER } from '@agent-native/kernel/authority';
-import type { HostPlatform } from '@agent-native/kernel/platform';
+import type { HostPlatform, SecretStore } from '@agent-native/kernel/platform';
 import type { BlobStore } from '@agent-native/runtime';
 
 /**
@@ -16,6 +16,8 @@ export interface MobileBindings {
   openDatabase(name: string): SqlDriver;
   /** The blob store of workspace `workspace`, in the app's own storage. */
   openBlobs(workspace: string): BlobStore;
+  /** The device's keychain or keystore; plugins get scoped views of it. */
+  readonly secrets?: SecretStore;
 }
 
 /** A workspace on a device is a name, not a path: the app's sandbox holds every workspace. */
@@ -33,6 +35,7 @@ export function createMobilePlatform(bindings: MobileBindings): HostPlatform {
     id: bindings.id,
     capabilities: new Set<never>(),
     components: [],
+    ...(bindings.secrets ? { secrets: bindings.secrets } : {}),
     async acquireOwnership(workspace: string) {
       if (!workspaceName.test(workspace))
         throw new Error(
