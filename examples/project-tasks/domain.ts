@@ -16,6 +16,8 @@ export interface Task {
   privateNote?: string;
   /** A file attached when the task was created, held in the blob store. */
   attachment?: BlobRef;
+  /** The last reminder: queued until a desktop or phone shows it, then shown or refused. */
+  reminder?: 'pending' | 'accepted' | 'rejected';
 }
 export interface ProjectTaskState {
   workspaceOwnerId: string;
@@ -24,7 +26,16 @@ export interface ProjectTaskState {
   deletedTasks: Record<string, string>;
   /** Proposed task commands, usually from the planner, keyed by ID. */
   proposals: Record<string, Proposal>;
+  /** The task each queued reminder effect is about, until it settles. */
+  reminderEffects: Record<string, string>;
 }
 export function createProjectTaskState(ownerId = 'owner'): ProjectTaskState {
-  return { workspaceOwnerId: ownerId, projects: {}, tasks: {}, deletedTasks: {}, proposals: {} };
+  return {
+    workspaceOwnerId: ownerId,
+    projects: {},
+    tasks: {},
+    deletedTasks: {},
+    proposals: {},
+    reminderEffects: {},
+  };
 }

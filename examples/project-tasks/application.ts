@@ -3,6 +3,7 @@ import { defineApplication } from '@agent-native/host/application';
 import { auditPlugin } from '@agent-native/audit/plugin';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
+import { notificationsPlugin } from '@agent-native/notifications/plugin';
 import { osPlugin } from '@agent-native/os/plugin';
 import { shareTargetPlugin } from '@agent-native/share-target/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
@@ -40,8 +41,14 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
       const slice = (
         'projects' in value ? value : (value.projectTasks ?? createProjectTaskState(ownerId))
       ) as ProjectTaskState;
-      // Workspaces from before proposals get an empty proposal slice.
-      return { projectTasks: { ...slice, proposals: slice.proposals ?? {} } };
+      // Workspaces from before proposals or reminders get empty slices for them.
+      return {
+        projectTasks: {
+          ...slice,
+          proposals: slice.proposals ?? {},
+          reminderEffects: slice.reminderEffects ?? {},
+        },
+      };
     },
     handlers: sliceHandlers<ProjectTasksState, 'projectTasks', ProjectTaskServices>(
       'projectTasks',
@@ -64,6 +71,7 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
       compliancePlugin,
       osPlugin,
       shareTargetPlugin,
+      notificationsPlugin,
       webhookPlugin,
     ],
   });

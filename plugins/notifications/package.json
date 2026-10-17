@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/notifications",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Notifications host plugin: delivers outbox effects as local notifications through the OS plugin and runs the continuation a reply's single-use nonce stands for.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

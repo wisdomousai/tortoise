@@ -18,7 +18,7 @@ const api = (page: Page, path: string, body: unknown) =>
     [path, body] as const,
   );
 
-test('a protocol-handler landing opens the task; files and shares prefill tasks the person adds', async ({
+test('a protocol-handler landing opens the task; files and shares prefill tasks the person adds; a reminder waits', async ({
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-os-e2e-'));
@@ -119,6 +119,12 @@ test('a protocol-handler landing opens the task; files and shares prefill tasks 
     await prefilled.getByLabel('Title').fill('Read the spec');
     await prefilled.getByRole('button', { name: /^Add task to / }).click();
     await expect(page.getByRole('button', { name: 'Read the spec', exact: true })).toBeVisible();
+
+    // A web page shows no notifications: the reminder waits for the desktop or phone app.
+    const spec = page.getByTestId('task-row').filter({ hasText: 'Read the spec' });
+    await spec.hover();
+    await spec.getByRole('button', { name: 'Remind me about Read the spec' }).click();
+    await expect(spec.getByText('Reminder waiting for the desktop or phone app')).toBeVisible();
 
     await share('', {
       name: 'Whiteboard.png',

@@ -285,4 +285,53 @@ describe('desktop shell', () => {
     expect(opened).toEqual([]);
     desktop.close();
   });
+
+  test('a relayed notification shows its buttons, and a chosen one submits its reply', async () => {
+    const fake = fakeClient(undefined);
+    const choices: ((button: string) => void)[] = [];
+    const shown: unknown[] = [];
+    fake.relayed.push({
+      id: 'n',
+      instruction: {
+        kind: 'notify',
+        action: 'notes.remind',
+        id: 'effect-1',
+        category: 'reminder',
+        title: 'Buy milk',
+        buttons: [{ id: 'done', title: 'Done', handler: 'notes.reply', nonce: 'n'.repeat(43) }],
+      },
+    });
+    const desktop = createDesktopShell({
+      platform: 'macos',
+      client: fake.client,
+      readFile: async () => undefined,
+      open: async () => undefined,
+      reveal: async () => ({ ok: true }),
+      openFile: async () => ({ ok: true }),
+      notify: async (notification, choose) => {
+        shown.push(notification);
+        choices.push(choose);
+        return { ok: true };
+      },
+      focus: () => undefined,
+    });
+    await desktop.connect();
+    await Bun.sleep(5);
+    expect(fake.answers).toMatchObject([{ id: 'n', result: { ok: true } }]);
+    expect(shown).toEqual([
+      {
+        id: 'effect-1',
+        category: 'reminder',
+        title: 'Buy milk',
+        buttons: [{ id: 'done', title: 'Done', handler: 'notes.reply', nonce: 'n'.repeat(43) }],
+      },
+    ]);
+    choices[0]!('other');
+    choices[0]!('done');
+    await Bun.sleep(5);
+    expect(fake.submitted).toEqual([
+      { kind: 'reply', handler: 'notes.reply', nonce: 'n'.repeat(43), action: 'done' },
+    ]);
+    desktop.close();
+  });
 });

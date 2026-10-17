@@ -1,5 +1,11 @@
-import type { OsActionKind, OsHandlerKind } from '@agent-native/contracts';
+import type {
+  OsActionKind,
+  OsActionOutcome,
+  OsHandlerKind,
+  OsInstruction,
+} from '@agent-native/contracts';
 import type { PluginInstance, PluginOpenContext, ShellPort } from '@agent-native/kernel/plugin';
+import type { ExecutionContext } from '@agent-native/runtime';
 import { webScheme } from '@agent-native/shell';
 import { createOsAudit, createRateLimit } from './audit';
 import {
@@ -9,7 +15,7 @@ import {
   collectDeclarations,
   listSetting,
 } from './declarations';
-import { createAdapters, performOsAction } from './perform';
+import { createAdapters, performOsAction, relayOsInstruction } from './perform';
 import { receiveOsRequest, type OsConsumer, type OsHolder } from './receive';
 
 /**
@@ -25,6 +31,13 @@ export interface OsService {
    * web share target's POST. The landing page submits `{ kind: 'claim', code }` as its session.
    */
   hold(resolve: OsHolder): void;
+  /**
+   * Run an instruction this plugin built, such as a notification with its reply nonces, through
+   * the adapter attached for `context`'s principal. Refused as `unattached` without one.
+   */
+  relay(context: ExecutionContext, instruction: OsInstruction): Promise<OsActionOutcome>;
+  /** Whether an adapter is attached for `context`'s principal, so a relay could run now. */
+  attached(context: ExecutionContext): boolean;
   /** Declared handlers and actions, attached adapter platforms and recent activity. */
   status(): {
     readonly handlers: readonly { id: string; kind: OsHandlerKind; disabled: boolean }[];
@@ -92,6 +105,8 @@ export function openOs(options: { now?: () => number } = {}) {
       hold(resolve) {
         holders.push(resolve);
       },
+      relay: (caller, instruction) => relayOsInstruction(performing, caller, instruction),
+      attached: (caller) => adapters.for(caller) !== undefined,
       status: () => ({
         handlers: declarations.handlers.map(({ id, kind }) => ({
           id,

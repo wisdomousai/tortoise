@@ -40,5 +40,6 @@ export {
   type MobileShellDependencies,
 } from './mobile';
 export { maxSharedItems, shareFileRequest, shareHandlerFor } from './shares';
+export { replyRequest, shellNotification, type ShellNotification } from './notifications';
 export { describeProvenance } from './provenance';
 export { associationFiles, type AssociationIdentity } from './associations';

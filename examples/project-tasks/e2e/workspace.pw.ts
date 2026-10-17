@@ -28,9 +28,10 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
       }),
     );
     const tools = await mcp.listTools();
-    // The authority hosts one application: the project-tasks capabilities (12), the proposal
-    // operations (6), the compliance queries (3) and the webhook plugin's operations (2).
-    expect(tools.tools.length).toBe(23);
+    // The authority hosts one application: the project-tasks capabilities (14), the proposal
+    // operations (6), the compliance queries (3), the notifications plugin's operations (3) and
+    // the webhook plugin's operations (2). Policy keeps the plugin-only ones from any caller.
+    expect(tools.tools.length).toBe(28);
     const projects = await mcp.callTool({ name: 'project_list', arguments: { input: {} } });
     const data = projects.structuredContent as { data: { items: { id: string }[] } };
     const projectId = data.data.items[0]!.id;

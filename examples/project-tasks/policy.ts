@@ -183,6 +183,12 @@ export const projectTaskPolicy = definePolicy<ProjectTaskState, Role>({
     [operations.taskGet.id]: onTask(taskProject),
     [operations.taskUpdate.id]: onTask(taskProject),
     [operations.taskSetStatus.id]: onTask(taskProject),
+    [operations.taskRemind.id]: onTask(taskProject),
+    // The notification dispatcher: the owner acting under its delegated grant, never a session.
+    [operations.taskRemindersSettle.id]: {
+      allow: ({ state, context }) =>
+        state.workspaceOwnerId === context.principalId && context.grant !== undefined,
+    },
     // Deletes have no proposed object; authorize their original project and retained tombstone.
     [operations.taskDelete.id]: { ...onTask(taskProject), commit: 'previous' },
     ...proposalRules,

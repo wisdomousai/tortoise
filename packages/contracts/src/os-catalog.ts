@@ -162,7 +162,12 @@ function checkOpenUrl(where: string, template: string, params: readonly string[]
     if (!params.includes(name)) throw new Error(`${where} names unknown parameter {${name}}`);
 }
 
-function checkAction(where: string, action: OsAction, replies: ReadonlySet<string>) {
+function checkAction(
+  where: string,
+  action: OsAction,
+  replies: ReadonlySet<string>,
+  commands: ReadonlyMap<string, CapabilityModule['capabilities'][number]>,
+) {
   if (!action.dataClasses.length) throw new Error(`${where} declares no data classes`);
   switch (action.kind) {
     case 'open':
@@ -183,6 +188,12 @@ function checkAction(where: string, action: OsAction, replies: ReadonlySet<strin
         for (const button of category.actions)
           if (!replies.has(button.reply))
             throw new Error(`${where} replies to undeclared reply handler ${button.reply}`);
+      // The notifications plugin settles each delivered effect with the target's own command.
+      for (const target of action.targets ?? [])
+        if (commands.get(`${target}.effect.settle`)?.kind !== 'command')
+          throw new Error(
+            `${where} carries ${target}, which has no ${target}.effect.settle command`,
+          );
       return;
     case 'intent':
       if (!androidActionPattern.test(action.action))
@@ -237,7 +248,7 @@ export function collectOs(
       const where = `OS action ${action.id} (${owner})`;
       claimId('actions', action.id, where);
       if (!action.description) throw new Error(`Missing description for ${where}`);
-      checkAction(where, action, replies);
+      checkAction(where, action, replies, commands);
       actions.push(catalogued(action, owner) as unknown as CatalogOsAction);
     }
   if (!handlers.length && !actions.length) return undefined;

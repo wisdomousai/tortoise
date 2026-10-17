@@ -70,6 +70,34 @@ export type RawOsRequest =
   | { readonly kind: 'claim'; readonly code: string };
 export type RawOsRequestKind = RawOsRequest['kind'];
 
+/**
+ * The payload of an outbox effect to a target a `notify` action carries, written by the command
+ * that enqueues it. `principal` is who is notified and the only one whose reply counts. Each
+ * entry of `replies` is the command a reply to that category action runs, fixed when the effect
+ * commits, so a reply can choose only between continuations the application wrote.
+ */
+export interface OsNotificationPayload {
+  readonly principal: string;
+  readonly category: string;
+  readonly title: string;
+  readonly body?: string;
+  readonly replies?: Readonly<
+    Record<string, { readonly operation: string; readonly input: JsonObject }>
+  >;
+}
+
+/** One action button of a notification as an adapter shows it. */
+export interface OsNotificationButton {
+  readonly id: string;
+  readonly title: string;
+  /** The `reply` handler the reply names. */
+  readonly handler: string;
+  /** Single-use and bound to the notified principal; only its digest is stored. */
+  readonly nonce: string;
+  /** The device must be unlocked before the reply is sent. */
+  readonly requiresUnlock?: boolean;
+}
+
 /** Shown above what a request opened or prefilled. Text only; never markup. */
 export interface OsProvenance {
   readonly kind: OsHandlerKind;
@@ -140,8 +168,11 @@ export type OsInstruction =
       readonly category: string;
       readonly title: string;
       readonly body?: string;
-      /** Per notification action: the single-use nonce its reply carries. */
-      readonly replies?: Readonly<Record<string, string>>;
+      /**
+       * The category's actions that have a continuation. Choosing one submits
+       * `{ kind: 'reply', handler, nonce, action: id }`; the nonce works once.
+       */
+      readonly buttons?: readonly OsNotificationButton[];
     }
   | {
       readonly kind: 'intent';

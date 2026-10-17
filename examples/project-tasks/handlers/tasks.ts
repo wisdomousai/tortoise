@@ -68,6 +68,44 @@ export const taskHandlers = (): HandlerContribution<ProjectTaskState, ProjectTas
     ctx.change(`task:${value.id}`);
     return dto(value, ctx, true);
   }),
+  handler(operations.taskRemind, (input, ctx) => {
+    const value = task(ctx.state, input.id);
+    ctx.change(`task:${value.id}`);
+    // The caller is notified and is the only one whose reply counts; the reply runs
+    // task.set-status as them, so it is authorized again when they choose it.
+    const effectId = ctx.enqueue({
+      target: 'task-reminders',
+      type: 'task.reminder',
+      resource: `task:${value.id}`,
+      payload: {
+        principal: ctx.context.principalId,
+        category: 'task-reminder',
+        title: value.title,
+        replies: {
+          done: { operation: operations.taskSetStatus.id, input: { id: value.id, status: 'done' } },
+        },
+      },
+    });
+    put(ctx.state.reminderEffects, effectId, value.id);
+    value.reminder = 'pending';
+    return dto(value, ctx, true);
+  }),
+  handler(operations.taskRemindersSettle, (input, ctx) => {
+    const effect = ctx.settleEffect(
+      input.effectId,
+      input.outcome,
+      input.fence === undefined ? {} : { fence: input.fence },
+    );
+    const id = Object.hasOwn(ctx.state.reminderEffects, effect.id)
+      ? ctx.state.reminderEffects[effect.id]!
+      : undefined;
+    delete ctx.state.reminderEffects[effect.id];
+    // A task deleted meanwhile keeps no reminder state; the effect settles all the same.
+    if (id && Object.hasOwn(ctx.state.tasks, id))
+      ctx.state.tasks[id]!.reminder = input.outcome.status;
+    ctx.change(effect.resource);
+    return {};
+  }),
   handler(operations.taskDelete, (input, ctx) => {
     const value = task(ctx.state, input.id);
     put(ctx.state.deletedTasks, value.id, value.projectId);

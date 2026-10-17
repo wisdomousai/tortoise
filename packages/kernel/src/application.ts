@@ -99,8 +99,9 @@ export interface ApplicationConnections {
   /** Systems of record the outbox delivers to and inbound sync pulls from. */
   readonly integrations?: readonly TargetIntegration<any>[];
   /**
-   * Start observers. Only a serving host with background work enabled calls this, after it
-   * listens; embedded authorities never do. A failed observation pass reports through `onError`
+   * Start observers. A serving host with background work enabled calls this once, after it
+   * listens; the mobile authority calls it on each foreground after the previous observers
+   * stopped; embedded authorities never do. A failed observation pass reports through `onError`
    * and is retried by the observer.
    */
   readonly observe?: (

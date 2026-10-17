@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Paperclip, X } from 'lucide-react';
+import { Bell, Check, Paperclip, X } from 'lucide-react';
 import { operations } from '../../contracts';
 import { ConflictBanner } from '@/components/conflict-banner';
 import { Button } from '@/components/ui/button';
@@ -71,8 +71,19 @@ function useTaskDraft(task: Task, onError: (message: string) => void) {
         { expectedRevisions: revisions(task.revision) },
       )
       .catch((error) => onError(message(error)));
-  return { draft, setDraft, pending, conflict, save, edit, advance, remove };
+  // A reminder is shown by a desktop or phone running this workspace; it waits until one is.
+  const remind = () =>
+    void client
+      .command(operations.taskRemind, { id: task.id })
+      .catch((error) => onError(message(error)));
+  return { draft, setDraft, pending, conflict, save, edit, advance, remove, remind };
 }
+
+/** What happened to the last reminder, until it was shown. */
+const reminderText: Partial<Record<NonNullable<Task['reminder']>, string>> = {
+  pending: 'Reminder waiting for the desktop or phone app',
+  rejected: 'Reminder not shown',
+};
 
 /** The round status control: empty, half filled while in progress, checked when done. */
 function StatusButton({
@@ -159,10 +170,11 @@ export function TaskRow({
   archived: boolean;
   onError: (message: string) => void;
 }) {
-  const { draft, setDraft, pending, conflict, save, edit, advance, remove } = useTaskDraft(
+  const { draft, setDraft, pending, conflict, save, edit, advance, remove, remind } = useTaskDraft(
     task,
     onError,
   );
+  const reminder = task.reminder && reminderText[task.reminder];
   return (
     <li className="group space-y-2 px-6 py-2.5" data-testid="task-row">
       <div className="flex items-center gap-3">
@@ -202,6 +214,17 @@ export function TaskRow({
             </a>
           </Button>
         )}
+        {reminder && <span className="text-muted-foreground shrink-0 text-xs">{reminder}</span>}
+        <Button
+          size="icon-sm"
+          variant="ghost"
+          aria-label={`Remind me about ${task.title}`}
+          className="opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
+          disabled={archived || pending || task.status === 'done'}
+          onClick={remind}
+        >
+          <Bell />
+        </Button>
         <Button
           size="icon-sm"
           variant="ghost"

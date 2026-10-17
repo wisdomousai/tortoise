@@ -8,6 +8,7 @@ import type {
 } from '@agent-native/contracts';
 import { openActionFor } from './actions';
 import { fileHandlerFor, fileRequest, type BlobUpload } from './local-files';
+import { replyRequest, shellNotification, type ShellNotification } from './notifications';
 import { maxSharedItems, shareFileRequest, shareHandlerFor } from './shares';
 
 /** What the OS reports about a file it handed the app: a display name, a size, a media type. */
@@ -47,6 +48,12 @@ export interface MobileShellDependencies {
   readonly shared?: (uri: string) => Promise<readonly MobileShare[] | undefined>;
   /** Show the system share sheet with text or a URL; absent, share actions are refused. */
   readonly share?: (content: { text?: string; url?: string; title?: string }) => Promise<void>;
+  /**
+   * Show a local notification now, replacing one with the same id, and keep its buttons in the
+   * notification's data, so a reply still works after the app was stopped. Absent, notify
+   * actions are refused.
+   */
+  readonly notify?: (notification: ShellNotification) => Promise<void>;
   readonly report?: (message: string) => void;
 }
 
@@ -69,6 +76,39 @@ export function mobileInput(
   if (protocol === 'content' || protocol === 'file') return { kind: 'file', uri };
   if (protocol === scheme || protocol === 'https') return { kind: 'url', url: uri };
   return undefined;
+}
+
+/**
+ * Run one instruction on the device. An open is checked against the declared open actions again
+ * before the OS sees it, a share shows the system share sheet with what the declaration allowed,
+ * and a notification is shown with its buttons.
+ */
+async function performOnDevice(
+  dependencies: MobileShellDependencies,
+  instruction: OsInstruction,
+): Promise<OsActionResult> {
+  if (instruction.kind === 'share' && dependencies.share) {
+    const { text, url, title } = instruction;
+    await dependencies.share({
+      ...(text !== undefined ? { text } : {}),
+      ...(url !== undefined ? { url } : {}),
+      ...(title !== undefined ? { title } : {}),
+    });
+    return { ok: true };
+  }
+  if (instruction.kind === 'notify' && dependencies.notify) {
+    await dependencies.notify(shellNotification(instruction));
+    return { ok: true };
+  }
+  if (instruction.kind !== 'open')
+    return { ok: false, detail: `${instruction.kind} is not supported on this device` };
+  if (
+    openActionFor(dependencies.declarations().actions, instruction.url)?.action !==
+    instruction.action
+  )
+    return { ok: false, detail: 'not a declared open action' };
+  await dependencies.open(instruction.url);
+  return { ok: true };
 }
 
 /**
@@ -132,29 +172,18 @@ export function createMobileShell(dependencies: MobileShellDependencies) {
       }
     },
     /**
-     * Perform an instruction the shell port built. An open is checked against the declared open
-     * actions again before the OS sees it, and a share shows the system share sheet with what
-     * the declaration allowed; reveal and open-file have no meaning on a phone.
+     * Perform an instruction the shell port built: a share, a notification or a declared open;
+     * reveal and open-file have no meaning on a phone.
      */
-    async perform(instruction: OsInstruction): Promise<OsActionResult> {
-      if (instruction.kind === 'share' && dependencies.share) {
-        const { text, url, title } = instruction;
-        await dependencies.share({
-          ...(text !== undefined ? { text } : {}),
-          ...(url !== undefined ? { url } : {}),
-          ...(title !== undefined ? { title } : {}),
-        });
-        return { ok: true };
-      }
-      if (instruction.kind !== 'open')
-        return { ok: false, detail: `${instruction.kind} is not supported on this device` };
-      if (
-        openActionFor(dependencies.declarations().actions, instruction.url)?.action !==
-        instruction.action
-      )
-        return { ok: false, detail: 'not a declared open action' };
-      await dependencies.open(instruction.url);
-      return { ok: true };
+    perform: (instruction: OsInstruction) => performOnDevice(dependencies, instruction),
+    /**
+     * A person chose `button` on a notification whose data held `buttons`: submit its reply.
+     * Never rejects; a button that is not in `buttons` submits nothing.
+     */
+    async replied(buttons: unknown, button: string) {
+      const request = replyRequest(buttons, button);
+      if (!request) return report('The notification reply is not one it offered');
+      await submit(request).catch(() => report('Reply failed'));
     },
   };
 }

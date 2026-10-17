@@ -8,6 +8,7 @@ import {
   jsonSchema,
   linkPathSegments,
   templatePlaceholders,
+  type AnyCapability,
   type OsAction,
   type OsHandler,
 } from '../src/index';
@@ -156,13 +157,14 @@ describe('OS declarations', () => {
       id: 'task.assign',
       integration: { target: 'notifications', delivery: 'outbox' },
     });
-    const catalog = buildCatalog([
-      defineModule({
-        id: 'tasks',
-        capabilities: [create, notifying],
-        os: { handlers: [reply], actions: [notify] },
-      }),
-    ]);
+    const module = (capabilities: AnyCapability[]) =>
+      defineModule({ id: 'tasks', capabilities, os: { handlers: [reply], actions: [notify] } });
+    // The plugin settles each notification with the carried target's own settle command.
+    expect(() => buildCatalog([module([create, notifying])])).toThrow(
+      'carries notifications, which has no notifications.effect.settle command',
+    );
+    const settle = defineCapability({ ...create, id: 'notifications.effect.settle' });
+    const catalog = buildCatalog([module([create, notifying, settle])]);
     expect(catalog.operations.find((o) => o.id === 'task.assign')?.destinations).toBeUndefined();
     expect(() => catalogOf([reply], [{ ...notify, offline: 'drop' } as OsAction])).toThrow('queue');
   });
