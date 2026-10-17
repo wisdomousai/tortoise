@@ -157,3 +157,41 @@ test('a link shared to the web app is held, then prefills a task for the session
       provenance: { kind: 'share', handler: 'task.from-shared-link' },
     });
   }));
+
+test('a reminder waits for the desktop, shows with Mark done, and the reply sets the status once', () =>
+  withHost(async (call) => {
+    const command = (operation: string, input: unknown, idempotencyKey: string) =>
+      call(`commands/${operation}`, { input, idempotencyKey });
+    const project = (await command('project.create', { name: 'Launch' }, 'p-1')).result;
+    const task = (await command('task.create', { projectId: project.id, title: 'Plan' }, 't-1'))
+      .result;
+    expect((await command('task.remind', { id: task.id }, 'r-1')).result.reminder).toBe('pending');
+
+    // Electron main attaches by polling for instructions as the owner's session.
+    const relayed = await call('shell/actions?platform=macos');
+    expect(relayed.instruction).toMatchObject({
+      kind: 'notify',
+      action: 'task.reminder',
+      category: 'task-reminder',
+      title: 'Plan',
+      buttons: [{ id: 'done', title: 'Mark done', handler: 'task.reminder-reply' }],
+    });
+    await call(`shell/actions/${relayed.id}/result`, { ok: true });
+    const get = async () => (await call('queries/task.get', { input: { id: task.id } })).data;
+    for (let tries = 0; (await get()).reminder !== 'accepted' && tries < 100; tries += 1)
+      await Bun.sleep(20);
+    expect(await get()).toMatchObject({ reminder: 'accepted', status: 'todo' });
+
+    const [button] = relayed.instruction.buttons;
+    const reply = () =>
+      call('shell/requests', {
+        platform: 'macos',
+        request: { kind: 'reply', handler: button.handler, nonce: button.nonce, action: 'done' },
+      });
+    expect(await reply()).toEqual({ status: 'consumed', handler: 'task.reminder-reply' });
+    const done = await get();
+    expect(done.status).toBe('done');
+    // The OS may report the choice twice; the nonce works once, so nothing changes again.
+    await reply();
+    expect((await get()).revision).toBe(done.revision);
+  }));

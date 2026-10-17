@@ -1,4 +1,4 @@
-import { app, shell, ShareMenu } from 'electron';
+import { app, Notification, shell, ShareMenu } from 'electron';
 import { lstat, readFile, realpath } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { OsActionResult, OsPlatform } from '@agent-native/contracts';
@@ -9,6 +9,7 @@ import {
   receivedArguments,
   type DesktopArguments,
   type DesktopShellClient,
+  type ShellNotification,
 } from '@agent-native/shell';
 
 const platform: OsPlatform =
@@ -93,6 +94,37 @@ async function existingFile(path: string): Promise<string | undefined> {
 const refused = (detail: string): OsActionResult => ({ ok: false, detail });
 
 /**
+ * Notifications shown and not yet closed, by id. Electron drops the events of a notification it
+ * no longer references, so each is kept until it closes; one shown again under its id replaces it.
+ */
+const shown = new Map<string, Notification>();
+
+/** Show a notification with its buttons; Windows and macOS show actions, Linux only the text. */
+async function notify(
+  notification: ShellNotification,
+  choose: (button: string) => void,
+): Promise<OsActionResult> {
+  if (!Notification.isSupported()) return refused('notifications are not supported here');
+  shown.get(notification.id)?.close();
+  const native = new Notification({
+    id: notification.id,
+    title: notification.title,
+    ...(notification.body !== undefined ? { body: notification.body } : {}),
+    actions: notification.buttons.map((button) => ({ type: 'button', text: button.title })),
+  });
+  native.on('action', (details) => {
+    const button = notification.buttons[details.actionIndex];
+    if (button) choose(button.id);
+  });
+  native.on('close', () => {
+    if (shown.get(notification.id) === native) shown.delete(notification.id);
+  });
+  shown.set(notification.id, native);
+  native.show();
+  return { ok: true };
+}
+
+/**
  * The Electron side of the OS integration: link and file events, the launch command line, the
  * second-instance hand-over and the relayed actions, wired to the framework's desktop shell.
  * Register it before `ready`, because macOS delivers the launching link or file before that.
@@ -161,6 +193,7 @@ export function createOsShell(scheme: string) {
               },
             }
           : {}),
+        notify,
         focus: onDelivered,
         report: (message) => console.warn(`[os] ${message}`),
       });

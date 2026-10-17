@@ -11,10 +11,11 @@ const id = z
  * How the OS reaches project-tasks: links to a task or a project open its screen, a text or
  * Markdown file opened with the application prefills a new task, and an image or PDF prefills
  * one with the file attached. Text, a link or an image or PDF shared from another app prefills
- * a task the same way. Content declares paths only;
+ * a task the same way. A reminder shows as a notification on the desktop or phone, and its Mark
+ * done action sets the task to done. Content declares paths only;
  * the scheme comes from the application identity, so these links read
- * `<scheme>://tasks/<id>`. Nothing here commits: a prefilled task is created only when the
- * person adds it.
+ * `<scheme>://tasks/<id>`. Nothing unsolicited commits: a prefilled task is created only when
+ * the person adds it, and only the reply to a reminder this application showed sets a status.
  */
 export const projectTasksOs: OsDeclarations = {
   handlers: [
@@ -93,6 +94,29 @@ export const projectTasksOs: OsDeclarations = {
       accepts: { text: true },
       maxBytes: 10_000,
       target: { prepare: 'task.create', input: { description: '{text}' } },
+    },
+    {
+      id: 'task.reminder-reply',
+      kind: 'reply',
+      description: 'A choice made on a task reminder, redeemed by the notifications plugin.',
+      consumer: 'notifications',
+    },
+  ],
+  actions: [
+    {
+      id: 'task.reminder',
+      kind: 'notify',
+      description: 'Show a task reminder with a Mark done action.',
+      dataClasses: ['task-title'],
+      categories: [
+        {
+          id: 'task-reminder',
+          actions: [{ id: 'done', title: 'Mark done', reply: 'task.reminder-reply' }],
+        },
+      ],
+      // task.remind queues these; a reminder waits until a desktop or phone shows it.
+      targets: ['task-reminders'],
+      offline: 'queue',
     },
   ],
 };

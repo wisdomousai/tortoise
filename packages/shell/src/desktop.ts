@@ -11,6 +11,7 @@ import type {
 import { openActionFor, openUrl } from './actions';
 import { pathName, type DesktopArguments } from './desktop-arguments';
 import { fileHandlerFor, fileRequest } from './local-files';
+import { replyRequest, shellNotification, type ShellNotification } from './notifications';
 
 /**
  * How a desktop shell reaches its authority, as the session the window also uses. Each call
@@ -39,6 +40,14 @@ export interface DesktopShellDependencies {
   readonly openFile: (path: string) => Promise<OsActionResult>;
   /** Show the system share menu with text or a URL; absent, share actions are refused. */
   readonly share?: (content: { text?: string; url?: string }) => Promise<OsActionResult>;
+  /**
+   * Show a notification, replacing one with the same id. `choose` is called with the id of the
+   * button a person chose and submits its reply. Absent, notify actions are refused.
+   */
+  readonly notify?: (
+    notification: ShellNotification,
+    choose: (button: string) => void,
+  ) => Promise<OsActionResult>;
   /** Bring the window forward after a request was delivered to it. */
   readonly focus: () => void;
   readonly report?: (message: string) => void;
@@ -54,6 +63,7 @@ async function runInstruction(
   dependencies: DesktopShellDependencies,
   actions: CatalogOs['actions'],
   instruction: OsInstruction,
+  submit: (request: RawOsRequest) => Promise<void>,
 ): Promise<OsActionResult> {
   switch (instruction.kind) {
     case 'open':
@@ -74,6 +84,15 @@ async function runInstruction(
         ...(url !== undefined ? { url } : {}),
       });
     }
+    case 'notify': {
+      if (!dependencies.notify)
+        return { ok: false, detail: 'notify is not supported on this desktop' };
+      const notification = shellNotification(instruction);
+      return dependencies.notify(notification, (button) => {
+        const request = replyRequest(notification.buttons, button);
+        if (request) void submit(request).catch(() => dependencies.report?.('Reply failed'));
+      });
+    }
     default:
       return { ok: false, detail: `${instruction.kind} is not supported on this desktop` };
   }
@@ -84,6 +103,7 @@ async function relay(
   dependencies: DesktopShellDependencies,
   actions: () => CatalogOs['actions'],
   signal: AbortSignal,
+  submit: (request: RawOsRequest) => Promise<void>,
 ) {
   const { client } = dependencies;
   while (!signal.aborted) {
@@ -93,7 +113,7 @@ async function relay(
       if (next)
         await client.answer(
           next.id,
-          await runInstruction(dependencies, actions(), next.instruction).catch(() => ({
+          await runInstruction(dependencies, actions(), next.instruction, submit).catch(() => ({
             ok: false,
           })),
         );
@@ -119,7 +139,7 @@ export function createDesktopShell(dependencies: DesktopShellDependencies) {
   async function submit(request: RawOsRequest) {
     const outcome = await client.submit(request);
     if (outcome?.status === 'delivered') dependencies.focus();
-    else if (outcome) report(`OS request ${outcome.status}`);
+    else if (outcome && outcome.status !== 'consumed') report(`OS request ${outcome.status}`);
   }
   async function submitFile(os: CatalogOs, path: string) {
     const name = pathName(path);
@@ -148,7 +168,7 @@ export function createDesktopShell(dependencies: DesktopShellDependencies) {
       const pending = buffered;
       buffered = [];
       for (const input of pending) await deliver(input);
-      void relay(dependencies, () => declarations?.actions ?? [], stopping.signal);
+      void relay(dependencies, () => declarations?.actions ?? [], stopping.signal, submit);
     },
     /**
      * A URL the window asked to open. Only one a declared open action builds is opened, and then

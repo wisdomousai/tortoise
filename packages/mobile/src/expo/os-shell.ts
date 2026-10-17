@@ -1,7 +1,9 @@
 import { File } from 'expo-file-system';
+import * as Notifications from 'expo-notifications';
 import { clearSharedPayloads, getSharedPayloads } from 'expo-sharing';
 import { Linking, Platform, Share } from 'react-native';
 import type { MobileShare } from '@agent-native/shell/mobile';
+import type { ShellNotification } from '@agent-native/shell/notifications';
 import type { MobileOsBindings } from '../os';
 
 /**
@@ -40,8 +42,60 @@ async function shared(uri: string, scheme: string): Promise<readonly MobileShare
 }
 
 /**
- * The device's link, file and share calls through React Native's `Linking` and `Share`, Expo's
- * file system and `expo-sharing`.
+ * Show a notification now under its id, so showing it again replaces it. A category is
+ * registered per set of buttons, because the OS reads button titles from the category; each
+ * button opens the app, since a reply is submitted by the running authority, and one that
+ * requires unlock asks for it first. The buttons, nonces included, travel in the data.
+ */
+async function notify(notification: ShellNotification) {
+  const { granted } = await Notifications.requestPermissionsAsync();
+  if (!granted) throw new Error('Notifications are not permitted');
+  const category = notification.buttons.length
+    ? [notification.category, ...notification.buttons.map((button) => button.id)].join('.')
+    : undefined;
+  if (category)
+    await Notifications.setNotificationCategoryAsync(
+      category,
+      notification.buttons.map((button) => ({
+        identifier: button.id,
+        buttonTitle: button.title,
+        options: {
+          opensAppToForeground: true,
+          isAuthenticationRequired: button.requiresUnlock === true,
+        },
+      })),
+    );
+  await Notifications.scheduleNotificationAsync({
+    identifier: notification.id,
+    content: {
+      title: notification.title,
+      ...(notification.body !== undefined ? { body: notification.body } : {}),
+      ...(category ? { categoryIdentifier: category } : {}),
+      data: { buttons: notification.buttons },
+    },
+    trigger: null,
+  });
+}
+
+/** The buttons a person chose, the one that launched the app first; a plain tap is no reply. */
+function replies(listener: (buttons: unknown, button: string) => void) {
+  const answer = (response: Notifications.NotificationResponse) => {
+    if (response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+    listener(response.notification.request.content.data?.buttons, response.actionIdentifier);
+  };
+  const launched = Notifications.getLastNotificationResponse();
+  if (launched) {
+    Notifications.clearLastNotificationResponse();
+    answer(launched);
+  }
+  const subscription = Notifications.addNotificationResponseReceivedListener(answer);
+  return () => subscription.remove();
+}
+
+/**
+ * The device's link, file, share and notification calls through React Native's `Linking` and
+ * `Share`, Expo's file system, `expo-sharing` and `expo-notifications`. It sets the process's
+ * notification handler so a notification also shows while the app is in the foreground.
  * Links come from the launching intent or URL and each later one; a file is read once, after its
  * size is checked, and checked again after reading. Opening a URL goes through `Linking`, so the
  * OS chooses the browser or app for it.
@@ -52,6 +106,14 @@ export function expoOsBindings(
 ): MobileOsBindings {
   if (Platform.OS !== 'android' && Platform.OS !== 'ios')
     throw new Error(`The mobile shell runs on Android and iOS, not ${Platform.OS}`);
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
   return {
     platform: Platform.OS,
     scheme,
@@ -82,6 +144,8 @@ export function expoOsBindings(
         ...(title ? { title } : {}),
       } as Parameters<typeof Share.share>[0]);
     },
+    notify,
+    replies,
     report,
   };
 }

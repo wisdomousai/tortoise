@@ -12,7 +12,9 @@ import {
   defineModule,
   jsonSchema,
 } from '@agent-native/contracts';
-import { defineApplication } from '@agent-native/kernel/application';
+import { defineApplication, type ApplicationConnections } from '@agent-native/kernel/application';
+import { defineHostPlugin } from '@agent-native/kernel/plugin';
+import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
 import { createHandlerFactory } from '@agent-native/runtime';
 import { defineManifest } from '@agent-native/kernel/manifest';
 import { createMobilePlatform, openMobileAuthority, type MobileBindings } from '../src/index';
@@ -54,14 +56,22 @@ const list = defineCapability({
 type State = { captures: string[] };
 const bind = createHandlerFactory<State, unknown>();
 
-function field(components: Parameters<typeof defineManifest>[0]['components'] = []) {
+function field(
+  components: Parameters<typeof defineManifest>[0]['components'] = [],
+  extra: {
+    plugins?: Parameters<typeof defineApplication>[0]['plugins'];
+    connect?: () => ApplicationConnections;
+  } = {},
+) {
   return defineApplication<State>({
     manifest: defineManifest({
       id: 'field',
       title: 'Field',
       modules: [defineModule({ id: 'captures', capabilities: [capture, list] })],
       components,
+      plugins: (extra.plugins ?? []).map((plugin) => plugin.manifest),
     }),
+    ...extra,
     createState: () => ({ captures: [] }),
     handlers: [
       bind(capture, async (input, ctx) => {
@@ -140,4 +150,44 @@ test('foreground and background start and stop the integration loops', async () 
   expect(await opened.backgroundPass(100)).toMatchObject({ synced: [] });
   await opened.close();
   await opened.close();
+});
+
+test('each foreground starts the plugin and application observers again; background and close stop them', async () => {
+  const calls: string[] = [];
+  const observer = (name: string) => ({ stop: async () => void calls.push(`stop ${name}`) });
+  const plugin = defineHostPlugin({
+    manifest: definePluginManifest({
+      id: 'watcher',
+      title: 'Watcher',
+      platforms: ['bun', 'android', 'ios'],
+    }),
+    open: async () => ({
+      async start(context) {
+        calls.push(`start ${context.delegate({ operations: [] }).principalId}`);
+        return [observer('plugin')];
+      },
+    }),
+  });
+  const connect = () => ({
+    observe: async () => {
+      calls.push('observe');
+      return [observer('application')];
+    },
+  });
+  const opened = await openMobileAuthority(field([], { plugins: [plugin], connect }), {
+    platform: createMobilePlatform(bindings()),
+  });
+  expect(calls).toEqual([]);
+  opened.foreground();
+  opened.foreground();
+  await opened.background();
+  expect(calls).toEqual(['start owner', 'observe', 'stop plugin', 'stop application']);
+  calls.length = 0;
+  await opened.backgroundPass(100);
+  expect(calls).toEqual([]);
+  opened.foreground();
+  await opened.close();
+  expect(calls).toEqual(['start owner', 'observe', 'stop plugin', 'stop application']);
+  opened.foreground();
+  expect(calls).toHaveLength(4);
 });

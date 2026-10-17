@@ -106,3 +106,37 @@ export async function performOsAction(
   );
   return { status: 'performed', action: id };
 }
+
+/**
+ * Run an instruction a capability plugin built, such as a notification carrying the reply
+ * nonces that plugin issued, through the adapter attached for `context`'s principal. The
+ * instruction must name a declared action of the same kind that the site has not disabled; the
+ * per-action rate applies. Without an attached adapter it is refused as `unattached`, so the
+ * caller can keep it queued.
+ */
+export async function relayOsInstruction(
+  dependencies: PerformDependencies,
+  context: ExecutionContext,
+  instruction: OsInstruction,
+): Promise<OsActionOutcome> {
+  const { audit } = dependencies;
+  const id = instruction.action;
+  const refuse = async (reason: OsRefusal, data: JsonObject = {}): Promise<OsActionOutcome> => {
+    await audit.record(context, { kind: 'os.action.refused', reason, id }, data);
+    return { status: 'refused', reason, action: id };
+  };
+  const action = dependencies.declarations.actions.get(id);
+  if (!action || action.kind !== instruction.kind) return refuse('no-handler');
+  if (dependencies.disabled.has(id)) return refuse('disabled');
+  if (!dependencies.allow(id)) return refuse('rate-limited');
+  const adapter = dependencies.adapters.for(context);
+  if (!adapter) return refuse('unattached', describe(instruction));
+  const result = await adapter.perform(instruction).catch(() => ({ ok: false }));
+  if (!result.ok) return refuse('failed', { ...describe(instruction), platform: adapter.platform });
+  await audit.record(
+    context,
+    { kind: 'os.action.performed', id, platform: adapter.platform },
+    describe(instruction),
+  );
+  return { status: 'performed', action: id };
+}

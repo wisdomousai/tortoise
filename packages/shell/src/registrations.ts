@@ -170,10 +170,19 @@ function sharePlugin(os: CatalogOs | undefined): [string, Record<string, unknown
   ];
 }
 
+/** The `expo-notifications` config plugin when a notify action is declared; local only, no push. */
+function notificationsPlugin(
+  os: CatalogOs | undefined,
+): [string, Record<string, unknown>] | undefined {
+  return os?.actions.some((action) => action.kind === 'notify')
+    ? ['expo-notifications', {}]
+    : undefined;
+}
+
 /**
  * Expo app configuration for the OS handlers: the scheme, Android intent filters for verified
  * links, opened files and custom intents, iOS associated domains and document types, and the
- * config plugins that register shares.
+ * config plugins that register shares and notifications.
  * `mobile:prepare` writes it into `apps/mobile/generated/native.json`.
  */
 export function nativeOsConfig(
@@ -191,7 +200,7 @@ export function nativeOsConfig(
         : [],
       infoPlist: iosDocumentTypes(os, identity.appId) as Record<string, unknown>,
     },
-    plugins: [sharePlugin(os)].filter((plugin) => plugin !== undefined),
+    plugins: [sharePlugin(os), notificationsPlugin(os)].filter((plugin) => plugin !== undefined),
   };
 }
 

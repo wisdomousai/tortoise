@@ -148,7 +148,12 @@ export interface PluginInstance {
   readonly service?: unknown;
   /** After the runtime exists and before anything is served: attestation, crash recovery. */
   ready?(application: HostedApplication): Promise<void>;
-  /** Serving host only, after it listens. Returned observers stop before `close`. */
+  /**
+   * Serving host only, after it listens, and the mobile authority each time the app comes to the
+   * foreground. Returned observers stop before `close`; on mobile they also stop when the app goes
+   * to the background, and `start` runs again on the next foreground, so it must not assume it
+   * runs once.
+   */
   start?(context: PluginStartContext): Promise<readonly Observer[]>;
   /**
    * Serving host only: a request no session covers, such as a device exchanging an enrollment

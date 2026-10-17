@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   blobRefSchema,
   defineAgent,
+  effectOutcomeSchema,
   defineCapability,
   defineModule,
   jsonSchema,
@@ -32,6 +33,7 @@ export const taskSchema = z.strictObject({
   status: statusSchema,
   privateNote: z.string().optional(),
   attachment: blobRefSchema.optional(),
+  reminder: z.enum(['pending', 'accepted', 'rejected']).optional(),
 });
 const byId = jsonSchema(z.strictObject({ id }));
 const page = {
@@ -61,6 +63,10 @@ const descriptions: Readonly<Record<string, string>> = {
     'Edit task title or description in an active project as owner or editor; privateNote is owner-only. Project reassignment is not accepted. Supply task:<id> in expectedRevisions to prevent overwriting a concurrent edit.',
   'task.set-status':
     'Set a task to todo, doing or done in an active project as owner or editor. Supply task:<id> in expectedRevisions to detect concurrent changes.',
+  'task.remind':
+    'Remind yourself of a task with a notification on your desktop or phone. It waits until one of them is running; its Mark done action sets the task to done as you, if you still may. Needs owner or editor on an active project.',
+  'task-reminders.effect.settle':
+    'Integration principal only: record whether a desktop or phone showed a task reminder.',
   'task.delete':
     'Remove a task from an active project as owner or editor, with its attachment. This capability has no restore operation. Supply task:<id> in expectedRevisions to detect concurrent changes.',
 };
@@ -77,6 +83,7 @@ function operation<
   action: string,
   resourceType: string,
   blobs?: BlobLimits,
+  extra: { integration?: { target: string; delivery: 'outbox' }; ui?: { exception: string } } = {},
 ) {
   const description = descriptions[name];
   if (!description) throw new Error(`Missing operation description: ${name}`);
@@ -88,8 +95,9 @@ function operation<
     output: jsonSchema(output),
     permission: { action, resourceType },
     dependencies: ['project', 'task'],
-    ui: { binding: name },
+    ui: extra.ui ?? { binding: name },
     ...(blobs ? { blobs } : {}),
+    ...(extra.integration ? { integration: extra.integration } : {}),
   });
 }
 const idInput = z.strictObject({ id });
@@ -185,6 +193,35 @@ export const operations = {
     taskSchema,
     'update',
     'Task',
+  ),
+  taskRemind: operation(
+    'task.remind',
+    'command',
+    idInput,
+    taskSchema,
+    'update',
+    'Task',
+    undefined,
+    { integration: { target: 'task-reminders', delivery: 'outbox' } },
+  ),
+  taskRemindersSettle: operation(
+    'task-reminders.effect.settle',
+    'command',
+    z.strictObject({
+      effectId: z.string().min(1).max(128),
+      outcome: effectOutcomeSchema,
+      fence: z.number().int().min(1).optional(),
+    }),
+    z.strictObject({}),
+    'settle',
+    'TaskReminder',
+    undefined,
+    {
+      ui: {
+        exception:
+          'Called by the notification dispatcher with the outcome of a reminder; people see it on the task.',
+      },
+    },
   ),
   taskDelete: operation(
     'task.delete',

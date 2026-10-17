@@ -5,6 +5,7 @@ import {
   type MobileFileInfo,
   type MobileShare,
 } from '@agent-native/shell/mobile';
+import type { ShellNotification } from '@agent-native/shell/notifications';
 import type { MobileAuthority } from './authority';
 
 /** The device's link and file calls; the Expo bindings are `expoOsBindings`. */
@@ -23,6 +24,13 @@ export interface MobileOsBindings {
   shared?(uri: string): Promise<readonly MobileShare[] | undefined>;
   /** Show the system share sheet; absent, share actions are refused. */
   share?(content: { text?: string; url?: string; title?: string }): Promise<void>;
+  /** Show a local notification with its buttons in its data; absent, notify actions are refused. */
+  notify?(notification: ShellNotification): Promise<void>;
+  /**
+   * Each notification button a person chose, with the buttons the notification's data held,
+   * starting with the one that launched the app, until the returned function is called.
+   */
+  replies?(listener: (buttons: unknown, button: string) => void): () => void;
   report?(message: string): void;
 }
 
@@ -96,6 +104,9 @@ export function connectMobileShell(
             bindings.share!(content),
         }
       : {}),
+    ...(bindings.notify
+      ? { notify: (notification: ShellNotification) => bindings.notify!(notification) }
+      : {}),
     ...(bindings.report ? { report: (message: string) => bindings.report!(message) } : {}),
   });
   let detach: (() => void) | undefined;
@@ -106,6 +117,8 @@ export function connectMobileShell(
     return { deliveries: { subscribe: () => () => undefined }, close: () => undefined };
   }
   const unsubscribe = bindings.subscribe((uri) => void shell.receive(uri));
+  // A reply is submitted as the device's owner; the notifications plugin checks its nonce.
+  const unreplies = bindings.replies?.((buttons, button) => void shell.replied(buttons, button));
   void bindings
     .initialUri()
     .then((uri) => (uri ? shell.receive(uri) : undefined))
@@ -123,6 +136,7 @@ export function connectMobileShell(
     },
     close() {
       unsubscribe();
+      unreplies?.();
       detach?.();
       listeners.clear();
     },

@@ -30,6 +30,7 @@
         "@agent-native/managed-config": "workspace:*",
         "@agent-native/mobile": "workspace:*",
         "@agent-native/network": "workspace:*",
+        "@agent-native/notifications": "workspace:*",
         "@agent-native/observation": "workspace:*",
         "@agent-native/operator-ui": "workspace:*",
         "@agent-native/os": "workspace:*",
@@ -275,6 +276,10 @@
       "name": "@agent-native/network",
       "version": "0.1.0",
     },
+    "plugins/notifications": {
+      "name": "@agent-native/notifications",
+      "version": "0.1.0",
+    },
     "plugins/os": {
       "name": "@agent-native/os",
       "version": "0.1.0",
@@ -355,6 +360,8 @@
     "@agent-native/mobile-shell": ["@agent-native/mobile-shell@workspace:apps/mobile"],
 
     "@agent-native/network": ["@agent-native/network@workspace:plugins/network"],
+
+    "@agent-native/notifications": ["@agent-native/notifications@workspace:plugins/notifications"],
 
     "@agent-native/observation": ["@agent-native/observation@workspace:packages/observation"],
 
