@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react';
+import { Paperclip } from 'lucide-react';
+import { isBlobRef, type BlobRef } from '@agent-native/contracts';
 import { operations } from '../../contracts';
 import { OsProvenanceNotice } from '@/components/os-provenance';
 import { Button } from '@/components/ui/button';
@@ -10,6 +12,18 @@ import { client } from '@/lib/session';
 import type { Project } from './shared';
 
 const text = (value: unknown) => (typeof value === 'string' ? value : '');
+const size = (bytes: number) =>
+  bytes < 1024 * 1024 ? `${Math.ceil(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
+/** The file a prefill attaches; it is attached only when the person adds the task. */
+function PreparedAttachment({ attachment }: { attachment: BlobRef }) {
+  return (
+    <p className="text-muted-foreground flex items-center gap-2 text-sm">
+      <Paperclip className="size-4" aria-hidden />
+      Attachment: {attachment.mediaType}, {size(attachment.size)}
+    </p>
+  );
+}
 
 /** The prefilled fields, editable; one idempotency key per prefill, so a retry adds one task. */
 function PreparedFields({
@@ -27,6 +41,7 @@ function PreparedFields({
 }) {
   const [title, setTitle] = useState(text(prepared.input.title).slice(0, 200));
   const [description, setDescription] = useState(text(prepared.input.description));
+  const attachment = isBlobRef(prepared.input.attachment) ? prepared.input.attachment : undefined;
   const key = useRef(crypto.randomUUID());
   return (
     <form
@@ -36,7 +51,12 @@ function PreparedFields({
         void action(async () => {
           await client.command(
             operations.taskCreate,
-            { projectId: project.id, title, ...(description ? { description } : {}) },
+            {
+              projectId: project.id,
+              title,
+              ...(description ? { description } : {}),
+              ...(attachment ? { attachment } : {}),
+            },
             { idempotencyKey: key.current },
           );
           onDone();
@@ -63,6 +83,7 @@ function PreparedFields({
           onChange={(event) => setDescription(event.target.value)}
         />
       </div>
+      {attachment && <PreparedAttachment attachment={attachment} />}
       <Button type="submit" disabled={busy}>
         Add task to {project.name}
       </Button>
@@ -71,7 +92,7 @@ function PreparedFields({
 }
 
 /**
- * A task an OS request prefilled, such as a text file opened with the application. It shows
+ * A task an OS request prefilled, such as a text file or an image opened with the application. It shows
  * where the values came from and is created in the open project only when the person adds it;
  * discarding drops the prefill. An archived project takes no new tasks, so it shows nothing.
  */

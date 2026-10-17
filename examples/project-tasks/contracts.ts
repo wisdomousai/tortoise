@@ -1,13 +1,16 @@
 import { z } from 'zod';
 import {
+  blobRefSchema,
   defineAgent,
   defineCapability,
   defineModule,
   jsonSchema,
   proposalOperations,
+  type BlobLimits,
 } from '@agent-native/contracts';
 
 export { proposalOperations };
+import { attachmentLimits } from './attachments';
 import { projectTasksOs } from './os';
 
 const id = z.string().min(1).max(128);
@@ -28,6 +31,7 @@ export const taskSchema = z.strictObject({
   description: z.string(),
   status: statusSchema,
   privateNote: z.string().optional(),
+  attachment: blobRefSchema.optional(),
 });
 const byId = jsonSchema(z.strictObject({ id }));
 const page = {
@@ -48,7 +52,7 @@ const descriptions: Readonly<Record<string, string>> = {
   'project.set-member':
     'Set or remove a project membership as project owner. A null role removes access; workspace-owner membership is fixed. Permission changes invalidate affected views. Supply project:<id> in expectedRevisions.',
   'task.create':
-    'Create a todo task in an accessible, active project as owner or editor. Only owners may supply privateNote. Returns the task and its committed revision.',
+    'Create a todo task in an accessible, active project as owner or editor. Only owners may supply privateNote. An attachment is a blob reference uploaded first: a PNG, JPEG or PDF of at most 10 MiB. Returns the task and its committed revision.',
   'task.get':
     'Read one accessible task and its current revision. privateNote is included only for project owners. Use this revision in a later mutation expectedRevisions map.',
   'task.list':
@@ -58,14 +62,22 @@ const descriptions: Readonly<Record<string, string>> = {
   'task.set-status':
     'Set a task to todo, doing or done in an active project as owner or editor. Supply task:<id> in expectedRevisions to detect concurrent changes.',
   'task.delete':
-    'Remove a task from an active project as owner or editor. This capability has no restore operation. Supply task:<id> in expectedRevisions to detect concurrent changes.',
+    'Remove a task from an active project as owner or editor, with its attachment. This capability has no restore operation. Supply task:<id> in expectedRevisions to detect concurrent changes.',
 };
 function operation<
   const Id extends string,
   const Kind extends 'command' | 'query',
   I extends z.ZodType,
   O extends z.ZodType,
->(name: Id, kind: Kind, input: I, output: O, action: string, resourceType: string) {
+>(
+  name: Id,
+  kind: Kind,
+  input: I,
+  output: O,
+  action: string,
+  resourceType: string,
+  blobs?: BlobLimits,
+) {
   const description = descriptions[name];
   if (!description) throw new Error(`Missing operation description: ${name}`);
   return defineCapability({
@@ -77,6 +89,7 @@ function operation<
     permission: { action, resourceType },
     dependencies: ['project', 'task'],
     ui: { binding: name },
+    ...(blobs ? { blobs } : {}),
   });
 }
 const idInput = z.strictObject({ id });
@@ -130,10 +143,12 @@ export const operations = {
       title: z.string().min(1).max(200),
       description: z.string().max(10000).optional(),
       privateNote: z.string().max(10000).optional(),
+      attachment: blobRefSchema.optional(),
     }),
     taskSchema,
     'create',
     'Task',
+    attachmentLimits,
   ),
   taskGet: operation('task.get', 'query', idInput, taskSchema, 'read', 'Task'),
   taskList: operation(

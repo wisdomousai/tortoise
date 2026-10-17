@@ -1,6 +1,12 @@
 import { useEffect } from 'react';
-import type { CatalogOs, JsonObject, OsActionOutcome, RawOsRequest } from '@agent-native/contracts';
-import { landingRequest, strictText, textFileHandler } from '@agent-native/shell';
+import type {
+  BlobRef,
+  CatalogOs,
+  JsonObject,
+  OsActionOutcome,
+  RawOsRequest,
+} from '@agent-native/contracts';
+import { fileHandlerFor, fileRequest, landingRequest } from '@agent-native/shell';
 import { hostJson } from './host-client';
 
 /** What Chromium hands an installed web app that was opened with files. */
@@ -22,13 +28,24 @@ const declared = () =>
     actions: [],
   })));
 
-/** A launched file is read only when a declared text file handler accepts it, within its limit. */
+/** Stage a blob payload in the blob store as this page's session; refused uploads submit nothing. */
+async function upload(bytes: Uint8Array, mediaType: string): Promise<BlobRef | undefined> {
+  const response = await fetch('/api/v1/blobs', {
+    method: 'POST',
+    headers: { 'Content-Type': mediaType },
+    body: bytes as Uint8Array<ArrayBuffer>,
+  });
+  return response.status === 201 ? ((await response.json()) as BlobRef) : undefined;
+}
+
+/** A launched file is read only when a declared file handler accepts it, within its limit. */
 async function submitFile(handle: { getFile(): Promise<File> }) {
   const file = await handle.getFile();
-  const handler = textFileHandler(await declared(), file.name);
+  const handler = fileHandlerFor(await declared(), file.name, file.type || undefined);
   if (!handler || file.size > handler.maxBytes) return;
-  const text = strictText(await file.arrayBuffer());
-  if (text !== undefined) await submit({ kind: 'file', name: file.name, text });
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const request = await fileRequest(handler, file.name, bytes, upload, file.type || undefined);
+  if (request) await submit(request);
 }
 
 let landingTaken = false;

@@ -2021,14 +2021,14 @@ Output:
 
 ## task.create
 
-Create a todo task in an accessible, active project as owner or editor. Only owners may supply privateNote. Returns the task and its committed revision.
+Create a todo task in an accessible, active project as owner or editor. Only owners may supply privateNote. An attachment is a blob reference uploaded first: a PNG, JPEG or PDF of at most 10 MiB. Returns the task and its committed revision.
 
 - Kind: command
 - MCP: `task_create`
 - Permission: `create` on `Task`
 - UI: task.create
 - Agents: `project.planner` (propose)
-- CLI: `agent-native-desktop-starter task create [--description <string>] [--private-note <string>] --project-id <string> --title <string> [--key <idempotency-key>]`
+- CLI: `agent-native-desktop-starter task create [--attachment <json>] [--description <string>] [--private-note <string>] --project-id <string> --title <string> [--key <idempotency-key>]`
 
 Input:
 
@@ -2037,6 +2037,30 @@ Input:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "attachment": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "mediaType": {
+          "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\\/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$",
+          "type": "string"
+        },
+        "size": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "digest",
+        "size",
+        "mediaType"
+      ],
+      "type": "object"
+    },
     "description": {
       "maxLength": 10000,
       "type": "string"
@@ -2071,6 +2095,30 @@ Output:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "attachment": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "mediaType": {
+          "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\\/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$",
+          "type": "string"
+        },
+        "size": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "digest",
+        "size",
+        "mediaType"
+      ],
+      "type": "object"
+    },
     "description": {
       "type": "string"
     },
@@ -2118,7 +2166,7 @@ Output:
 
 ## task.delete
 
-Remove a task from an active project as owner or editor. This capability has no restore operation. Supply task:<id> in expectedRevisions to detect concurrent changes.
+Remove a task from an active project as owner or editor, with its attachment. This capability has no restore operation. Supply task:<id> in expectedRevisions to detect concurrent changes.
 
 - Kind: command
 - MCP: `task_delete`
@@ -2203,6 +2251,30 @@ Output:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "attachment": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "mediaType": {
+          "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\\/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$",
+          "type": "string"
+        },
+        "size": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "digest",
+        "size",
+        "mediaType"
+      ],
+      "type": "object"
+    },
     "description": {
       "type": "string"
     },
@@ -2321,6 +2393,30 @@ Output:
       "items": {
         "additionalProperties": false,
         "properties": {
+          "attachment": {
+            "additionalProperties": false,
+            "properties": {
+              "digest": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "mediaType": {
+                "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\\/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$",
+                "type": "string"
+              },
+              "size": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "digest",
+              "size",
+              "mediaType"
+            ],
+            "type": "object"
+          },
           "description": {
             "type": "string"
           },
@@ -2422,6 +2518,30 @@ Output:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "attachment": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "mediaType": {
+          "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\\/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$",
+          "type": "string"
+        },
+        "size": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "digest",
+        "size",
+        "mediaType"
+      ],
+      "type": "object"
+    },
     "description": {
       "type": "string"
     },
@@ -2517,6 +2637,30 @@ Output:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "attachment": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "mediaType": {
+          "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\\/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$",
+          "type": "string"
+        },
+        "size": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "digest",
+        "size",
+        "mediaType"
+      ],
+      "type": "object"
+    },
     "description": {
       "type": "string"
     },

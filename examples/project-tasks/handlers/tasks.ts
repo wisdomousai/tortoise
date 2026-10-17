@@ -28,9 +28,13 @@ export const taskHandlers = (): HandlerContribution<ProjectTaskState, ProjectTas
       description: input.description ?? '',
       status: 'todo',
       ...(input.privateNote === undefined ? {} : { privateNote: input.privateNote }),
+      ...(input.attachment === undefined ? {} : { attachment: input.attachment }),
     };
     put(ctx.state.tasks, id, value);
     ctx.change(`task:${id}`);
+    // The runtime accepts the reference only within the declared limits and only if this caller
+    // uploaded it recently or may already read it; it commits with the task or not at all.
+    if (input.attachment) ctx.attach(`task:${id}`, input.attachment);
     return dto(value, ctx, true);
   }),
   handler(operations.taskGet, (input, ctx) => dto(task(ctx.state, input.id), ctx)),
@@ -69,6 +73,8 @@ export const taskHandlers = (): HandlerContribution<ProjectTaskState, ProjectTas
     put(ctx.state.deletedTasks, value.id, value.projectId);
     delete ctx.state.tasks[value.id];
     ctx.change(`task:${value.id}`);
+    // Without a reference the blob store sweeps the bytes after its grace period.
+    if (value.attachment) ctx.detach(`task:${value.id}`, value.attachment.digest);
     return { id: value.id };
   }),
 ];

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, Paperclip, X } from 'lucide-react';
 import { operations } from '../../contracts';
 import { ConflictBanner } from '@/components/conflict-banner';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,13 @@ const nextStatus: Record<Status, { to: Status; verb: string }> = {
   doing: { to: 'done', verb: 'Finish' },
   done: { to: 'todo', verb: 'Reopen' },
 };
+
+const extensions: Readonly<Record<string, string>> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'application/pdf': 'pdf',
+};
+const extensionFor = (mediaType: string) => extensions[mediaType] ?? 'bin';
 
 /**
  * One task's commands and title draft. Editing starts from a fresh read, and a dirty draft
@@ -181,6 +188,19 @@ export function TaskRow({
           >
             {task.title}
           </button>
+        )}
+        {task.attachment && (
+          // Served by the authority to callers who may read this task, sandboxed and never
+          // rendered on its origin; the browser or desktop saves it as a download.
+          <Button size="icon-sm" variant="ghost" asChild>
+            <a
+              href={`/api/v1/blobs/${encodeURIComponent(task.attachment.digest)}`}
+              download={`${task.title}.${extensionFor(task.attachment.mediaType)}`}
+              aria-label={`Download the attachment of ${task.title}`}
+            >
+              <Paperclip />
+            </a>
+          </Button>
         )}
         <Button
           size="icon-sm"

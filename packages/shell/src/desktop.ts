@@ -1,4 +1,5 @@
 import type {
+  BlobRef,
   CatalogOs,
   OsActionOutcome,
   OsActionRequest,
@@ -9,7 +10,7 @@ import type {
 } from '@agent-native/contracts';
 import { openActionFor, openUrl } from './actions';
 import { pathName, type DesktopArguments } from './desktop-arguments';
-import { textFileHandler } from './local-files';
+import { fileHandlerFor, fileRequest } from './local-files';
 
 /**
  * How a desktop shell reaches its authority, as the session the window also uses. Each call
@@ -22,14 +23,16 @@ export interface DesktopShellClient {
   /** The next relayed instruction, `null` when the wait ended without one. */
   next(signal: AbortSignal): Promise<{ id: string; instruction: OsInstruction } | null | undefined>;
   answer(id: string, result: OsActionResult): Promise<void>;
+  /** Store a blob payload in the blob store; `undefined` when the authority keeps no blobs. */
+  upload(bytes: Uint8Array, mediaType: string): Promise<BlobRef | undefined>;
 }
 
 /** The OS calls a desktop shell makes. Paths come from the authority, which resolved them. */
 export interface DesktopShellDependencies {
   readonly platform: OsPlatform;
   readonly client: DesktopShellClient;
-  /** A regular file's content as strict UTF-8 of at most `maxBytes`, or `undefined`. */
-  readonly readText: (path: string, maxBytes: number) => Promise<string | undefined>;
+  /** A regular file's bytes when it holds at most `maxBytes`, or `undefined`. */
+  readonly readFile: (path: string, maxBytes: number) => Promise<Uint8Array | undefined>;
   /** Open a URL in the system's default handler. */
   readonly open: (url: string) => Promise<void>;
   readonly reveal: (path: string) => Promise<OsActionResult>;
@@ -92,7 +95,7 @@ async function relay(
 
 /**
  * The desktop shell adapter, independent of Electron: it submits links and files the OS opened
- * the application with, performs the actions the authority relays to it, and checks URLs the
+ * the application with (a blob payload uploaded first), performs the actions the authority relays to it, and checks URLs the
  * window asks to open against the declared open actions. Input is buffered until `connect`.
  * The caller supplies the OS calls and the authority client, so this file reaches neither.
  */
@@ -109,11 +112,12 @@ export function createDesktopShell(dependencies: DesktopShellDependencies) {
   }
   async function submitFile(os: CatalogOs, path: string) {
     const name = pathName(path);
-    const handler = textFileHandler(os, name);
+    const handler = fileHandlerFor(os, name);
     if (!handler) return report('No declared file handler for this file type');
-    const text = await dependencies.readText(path, handler.maxBytes);
-    if (text === undefined) return report('The file is not readable UTF-8 text within its limit');
-    await submit({ kind: 'file', name, text });
+    const bytes = await dependencies.readFile(path, handler.maxBytes);
+    const request = bytes && (await fileRequest(handler, name, bytes, client.upload));
+    if (!request) return report(`The file does not fit ${handler.id}`);
+    await submit(request);
   }
   async function deliver(input: DesktopArguments) {
     if (!declarations) {

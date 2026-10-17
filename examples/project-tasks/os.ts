@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { jsonSchema, type OsDeclarations } from '@agent-native/contracts';
+import { attachmentLimits } from './attachments';
 
 const id = z
   .string()
@@ -7,8 +8,9 @@ const id = z
   .describe('A project or task ID as it appears in a link.');
 
 /**
- * How the OS reaches project-tasks: links to a task or a project open its screen, and a text or
- * Markdown file opened with the application prefills a new task. Content declares paths only;
+ * How the OS reaches project-tasks: links to a task or a project open its screen, a text or
+ * Markdown file opened with the application prefills a new task, and an image or PDF prefills
+ * one with the file attached. Content declares paths only;
  * the scheme comes from the application identity, so these links read
  * `<scheme>://tasks/<id>`. Nothing here commits: a prefilled task is created only when the
  * person adds it.
@@ -46,6 +48,24 @@ export const projectTasksOs: OsDeclarations = {
       target: {
         prepare: 'task.create',
         input: { title: '{file.stem}', description: '{file.text}' },
+      },
+    },
+    {
+      id: 'task.from-attachment',
+      kind: 'file',
+      description: 'Prefill a new task from an image or PDF: its name, with the file attached.',
+      types: [
+        { extensions: ['png'], mediaTypes: ['image/png'], description: 'PNG image' },
+        { extensions: ['jpg', 'jpeg'], mediaTypes: ['image/jpeg'], description: 'JPEG image' },
+        { extensions: ['pdf'], mediaTypes: ['application/pdf'], description: 'PDF document' },
+      ],
+      role: 'viewer',
+      payload: 'blob',
+      // The shell uploads the file before submitting it; task.create attaches at most this.
+      maxBytes: attachmentLimits.maxBytes,
+      target: {
+        prepare: 'task.create',
+        input: { title: '{file.stem}', attachment: '{file.blob}' },
       },
     },
   ],

@@ -18,7 +18,7 @@ const api = (page: Page, path: string, body: unknown) =>
     [path, body] as const,
   );
 
-test('a protocol-handler landing opens the task; a file prefills a task the person adds', async ({
+test('a protocol-handler landing opens the task; files prefill tasks the person adds', async ({
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-os-e2e-'));
@@ -28,7 +28,12 @@ test('a protocol-handler landing opens the task; a file prefills a task the pers
     const manifest = await (await page.request.get(`${host.origin}/manifest.webmanifest`)).json();
     const protocol: string = manifest.protocol_handlers[0].protocol;
     expect(manifest.protocol_handlers[0].url).toBe('/?os=%s');
-    expect(manifest.file_handlers[0].accept['text/markdown']).toEqual(['.md', '.markdown']);
+    const accepted = Object.assign(
+      {},
+      ...manifest.file_handlers.map((handler: { accept: object }) => handler.accept),
+    );
+    expect(accepted['text/markdown']).toEqual(['.md', '.markdown']);
+    expect(accepted['application/pdf']).toEqual(['.pdf']);
 
     await page.goto(host.launchUrl);
     await page.getByLabel('New project').fill('Alpha');
@@ -62,6 +67,32 @@ test('a protocol-handler landing opens the task; a file prefills a task the pers
     await prefilled.getByRole('button', { name: /^Add task to / }).click();
     await expect(prefilled).toBeHidden();
     await expect(page.getByRole('button', { name: 'Release notes', exact: true })).toBeVisible();
+
+    // An image is uploaded first, as the shell does, and prefills a task with it attached.
+    const blob = await page.evaluate(async () => {
+      const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+      const response = await fetch('/api/v1/blobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'image/png' },
+        body: png,
+      });
+      return response.json();
+    });
+    await api(page, 'shell/requests', {
+      platform: 'web',
+      request: { kind: 'file', name: 'Receipt.png', mediaType: 'image/png', blob },
+    });
+    await expect(prefilled.getByText('Opened from a file: Receipt.png')).toBeVisible();
+    await expect(prefilled.getByText('Attachment: image/png, 1 KB')).toBeVisible();
+    await prefilled.getByRole('button', { name: /^Add task to / }).click();
+    await expect(prefilled).toBeHidden();
+    const attachment = page.getByRole('link', { name: 'Download the attachment of Receipt' });
+    const href = await attachment.getAttribute('href');
+    const downloaded = await page.evaluate(async (href) => {
+      const response = await fetch(href!);
+      return [...new Uint8Array(await response.arrayBuffer())];
+    }, href);
+    expect(downloaded).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   } finally {
     await host?.stop();
     await rm(workspace, { recursive: true, force: true });

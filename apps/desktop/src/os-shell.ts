@@ -7,7 +7,6 @@ import {
   desktopArguments,
   pathName,
   receivedArguments,
-  strictText,
   type DesktopArguments,
   type DesktopShellClient,
 } from '@agent-native/shell';
@@ -43,17 +42,32 @@ function authorityClient(endpoint: string, token: string): DesktopShellClient {
     perform: (request) => call('shell/actions', request),
     next: (signal) => call(`shell/actions?platform=${platform}`, undefined, signal),
     answer: async (id, result) => void (await call(`shell/actions/${id}/result`, result)),
+    // A refused upload (no blob store, or no operation this session may invoke accepts it)
+    // leaves the file unsubmitted; the shell reports it.
+    async upload(bytes, mediaType) {
+      const response = await fetch(`${endpoint}/api/v1/blobs`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': mediaType },
+        body: bytes as Uint8Array<ArrayBuffer>,
+        signal: AbortSignal.timeout(120_000),
+        redirect: 'error',
+      });
+      return response.status === 201 ? response.json() : undefined;
+    },
   };
 }
 
-/** A regular file read once, within `maxBytes`, as strict UTF-8; anything else is `undefined`. */
-async function readText(path: string, maxBytes: number): Promise<string | undefined> {
+/**
+ * A regular file read once, after its size is checked against `maxBytes`, and checked again
+ * after reading in case it grew; anything else is `undefined`.
+ */
+async function readBytes(path: string, maxBytes: number): Promise<Uint8Array | undefined> {
   try {
     const real = await realpath(path);
-    if (!(await lstat(real)).isFile()) return undefined;
+    const info = await lstat(real);
+    if (!info.isFile() || info.size > maxBytes) return undefined;
     const bytes = await readFile(real);
-    if (bytes.byteLength > maxBytes) return undefined;
-    return strictText(bytes);
+    return bytes.byteLength > maxBytes ? undefined : bytes;
   } catch {
     return undefined;
   }
@@ -121,7 +135,7 @@ export function createOsShell(scheme: string) {
       desktop = createDesktopShell({
         platform,
         client: authorityClient(endpoint, token),
-        readText,
+        readFile: readBytes,
         open: (url) => shell.openExternal(url),
         reveal: async (path) => {
           const real = await existingFile(path);
