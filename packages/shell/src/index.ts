@@ -23,3 +23,4 @@ export {
   type DesktopShellClient,
   type DesktopShellDependencies,
 } from './desktop';
+export { landingRequest, strictText, textFileHandler } from './local-files';

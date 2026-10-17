@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, test } from 'bun:test';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
@@ -132,8 +132,11 @@ async function serve(
 ) {
   const directory = await mkdtemp(join(tmpdir(), 'os-'));
   directories.push(directory);
+  await mkdir(join(directory, 'web'));
+  await writeFile(join(directory, 'web', 'index.html'), '<!doctype html><title>Notes</title>');
   const host = await startHost(application, {
     workspacePath: join(directory, 'workspace'),
+    webRoot: join(directory, 'web'),
     integration: false,
     settings,
   });
@@ -302,6 +305,35 @@ describe('OS plugin', () => {
       expect((await page(`shell/actions/${relayed.id}/result`, { ok: true })).status).toBe(404);
       expect((await main(`shell/actions/${relayed.id}/result`, { ok: true })).status).toBe(200);
       expect(await (await performed).json()).toEqual({ status: 'performed', action: 'notes.docs' });
+    } finally {
+      await host.close();
+    }
+  });
+
+  test('a link landing is the only cross-site request served, and only as a page', async () => {
+    const { host } = await serve(notesApplication());
+    try {
+      const visit = (path: string, mode = 'navigate', dest = 'document') =>
+        fetch(`${host.url}${path}`, {
+          headers: {
+            'sec-fetch-site': 'cross-site',
+            'sec-fetch-mode': mode,
+            'sec-fetch-dest': dest,
+          },
+        });
+      const landing = await visit(`/?os=${encodeURIComponent('web+devexamplenotes://notes/n-1')}`);
+      expect(landing.status).toBe(200);
+      expect(await landing.text()).toContain('<title>Notes</title>');
+      expect((await visit('/?os-shortcut=new-note')).status).toBe(200);
+      for (const refused of [
+        visit('/'),
+        visit('/?os=x&extra=1'),
+        visit('/index.html?os=x'),
+        visit('/?os=x', 'cors', 'empty'),
+        visit('/?os=x', 'navigate', 'iframe'),
+        visit('/api/v1/ui/deliveries?os=x'),
+      ])
+        expect((await refused).status).toBe(403);
     } finally {
       await host.close();
     }

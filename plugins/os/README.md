@@ -20,7 +20,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 | `@agent-native/os/plugin`          | server only        | `osPlugin` and `createOsPlugin`.                                                 |
 | `@agent-native/os/*`               | server only        | One source file: `open`, `receive`, `perform`, `declarations` or `audit`.        |
 
-The scheme comes from the application identity: the launcher passes `appId`'s scheme as `os-scheme`. Without it, no scheme link matches.
+The scheme comes from the application identity: the desktop shell and the starter service pass `appId`'s scheme (or `app.config.json`'s `scheme`) as `os-scheme`. Without it, no scheme link matches.
 
 ## Trust boundary
 

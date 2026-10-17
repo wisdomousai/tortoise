@@ -14,6 +14,7 @@ import {
 import {
   createDesktopShell,
   desktopArguments,
+  landingRequest,
   openActionFor,
   receivedArguments,
   type DesktopShellClient,
@@ -104,6 +105,19 @@ describe('desktop arguments', () => {
       ),
     ).toEqual({ urls: [`${scheme}://notes/n-1`], paths: ['/a'] });
     expect(receivedArguments('nonsense', scheme)).toEqual({ urls: [], paths: [] });
+  });
+});
+
+describe('browser landing', () => {
+  test('exactly one landing parameter becomes a request; anything else is ignored', () => {
+    expect(landingRequest('?os=web%2Bnotes%3A%2F%2Fnotes%2Fn-1')).toEqual({
+      kind: 'url',
+      url: 'web+notes://notes/n-1',
+    });
+    expect(landingRequest('?os-shortcut=new-note')).toEqual({ kind: 'shortcut', id: 'new-note' });
+    for (const search of ['', '?os=a&os=b', '?os=a&next=b', '?other=1', '?os-shortcut=New Note'])
+      expect(landingRequest(search)).toBeUndefined();
+    expect(landingRequest(`?os=${'a'.repeat(2049)}`)).toBeUndefined();
   });
 });
 

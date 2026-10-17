@@ -15,7 +15,7 @@ import {
 } from './host/options';
 import { routeHostRequest, type HostRouteContext } from './host/routes';
 import { createShellRelay } from './host/shell-relay';
-import { serveStatic } from './host/static';
+import { serveOsLanding, serveStatic } from './host/static';
 import { createUiDeliveries, createUiSessions } from './host/ui-sessions';
 
 export type { StartHostOptions } from './host/options';
@@ -181,7 +181,8 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       sessions,
       origin: () => origin,
       pollMs: options.pollMs,
-      publicRoute: agents.providers.callback,
+      publicRoute: async (request) =>
+        (await agents.providers.callback(request)) ?? serveOsLanding(options.webRoot, request),
       extra: (request, session) => routeHostRequest(request, session, routes),
       static: (path) => serveStatic(options.webRoot, path),
     });

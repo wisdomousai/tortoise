@@ -7,6 +7,7 @@ import {
   desktopArguments,
   pathName,
   receivedArguments,
+  strictText,
   type DesktopArguments,
   type DesktopShellClient,
 } from '@agent-native/shell';
@@ -52,7 +53,7 @@ async function readText(path: string, maxBytes: number): Promise<string | undefi
     if (!(await lstat(real)).isFile()) return undefined;
     const bytes = await readFile(real);
     if (bytes.byteLength > maxBytes) return undefined;
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    return strictText(bytes);
   } catch {
     return undefined;
   }

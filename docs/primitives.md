@@ -301,7 +301,7 @@ A request reaches the frame as a delivery for the session that submitted it. The
 
 Guarantees: composition refuses duplicate ids, two handlers on one path shape, file extension or media type, a template naming a field the request does not carry, a prefill whose command has no UI binding or whose keys are not input fields, and payload limits outside 1 byte to 1 MiB of text or 256 MiB of blob. Matching accepts only the application's own scheme and configured verified hosts, validates parameters with the handler's schema, and refuses credentials, dot segments and encoded slashes. An unsolicited request never commits: it only opens a resource the caller may read (checked when queued and again when taken), navigates or prefills. Deliveries go only to the submitting session and expire after two minutes. Requests are audited by digest and reason code, never content. The security manifest lists every handler as local ingress.
 
-Gaps: the desktop adapter submits links and text files, but nothing has been received from a real OS yet: macOS reads the scheme and document types only from a packaged bundle, and the Linux and Windows `dir` builds register no file types. No browser or mobile adapter exists. Blob payloads, share, intent, shortcut and reply handlers wait for their plugins.
+Gaps: the desktop adapter submits links and text files, but nothing has been received from a real OS yet: macOS reads the scheme and document types only from a packaged bundle, and the Linux and Windows `dir` builds register no file types. The browser adapter submits `?os=` landings and launch-queue text files, and the web manifest declares the handlers, but no installed web app has registered them yet. No mobile adapter exists. Blob payloads, share, intent, shortcut and reply handlers wait for their plugins.
 
 partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `plugins/compliance` `apps/desktop` `examples/project-tasks`
 
@@ -317,7 +317,7 @@ The desktop window opens a URL only when a declared open action builds it; the p
 
 Gaps: no action has been performed on a real OS yet. Without the OS plugin, the desktop opens a declared URL itself and nothing is audited. No plugin declares the root directory settings that reveal and open-file need, and notify waits for its plugin.
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance` `packages/agents` `apps/desktop`
+partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance` `packages/agents` `apps/desktop` `packages/frame`
 
 ### Shell port
 
@@ -329,7 +329,9 @@ Guarantees: without a provider every call is `UNAVAILABLE`, and two providers re
 
 The desktop shell adapter (`createDesktopShell`) holds the platform-neutral part: buffering until the authority is reachable, reading only declared text files, the relay loop and the open check. Electron main supplies the OS calls and the loopback client.
 
-Gaps: the embedded authority has no shell routes. Only HTTP adapters can attach on the Bun host. No browser or Expo adapter exists yet.
+A browser page attaches no adapter: it runs an open or share instruction itself (`runOsAction`).
+
+Gaps: the embedded authority has no shell routes. Only HTTP adapters can attach on the Bun host. No Expo adapter exists yet.
 
 partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell` `plugins/os` `apps/desktop`
 

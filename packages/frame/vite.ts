@@ -1,7 +1,10 @@
 import { createRequire } from 'node:module';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
-import { loadManifest, readStarterConfig } from '@agent-native/host/config';
+import { deploymentCatalog } from '@agent-native/host/components';
+import { loadManifest, readStarterConfig, type StarterConfig } from '@agent-native/host/config';
+import type { ApplicationManifest } from '@agent-native/host/manifest';
+import { webManifestOs } from '@agent-native/shell';
 
 const SCREENS = 'virtual:agent-native/screens';
 const escapeHtml = (value: string) =>
@@ -11,6 +14,86 @@ const escapeHtml = (value: string) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!,
   );
 
+/** A monogram icon from the display name, so an installed web app has an icon of its own. */
+function iconSvg(displayName: string) {
+  const letter = escapeHtml(displayName.trim().charAt(0).toUpperCase() || 'A');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#18181b"/><text x="256" y="256" dy=".35em" text-anchor="middle" font-family="system-ui,sans-serif" font-size="300" font-weight="600" fill="#fafafa">${letter}</text></svg>\n`;
+}
+
+/**
+ * The web app manifest: the trusted identity's name and an icon, plus the protocol and file
+ * handlers and shortcuts generated from the application's declared OS handlers. A Chromium
+ * browser registers them only when the person installs the application.
+ */
+function webManifest(config: StarterConfig, manifest: ApplicationManifest) {
+  const os = webManifestOs(deploymentCatalog(manifest).os, {
+    appId: config.appId,
+    scheme: config.scheme,
+    displayName: config.displayName,
+  });
+  return `${JSON.stringify(
+    {
+      id: './',
+      name: config.displayName,
+      short_name: config.displayName,
+      start_url: './',
+      scope: './',
+      display: 'standalone',
+      icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
+      ...os,
+    },
+    null,
+    2,
+  )}\n`;
+}
+
+/** The window title from the trusted identity, and the manifest and icon links. */
+function titlePlugin(displayName: string): Plugin {
+  return {
+    name: 'application-title',
+    transformIndexHtml(html) {
+      if (!/<title>[\s\S]*?<\/title>/i.test(html))
+        throw new Error('Browser HTML template requires a title');
+      return {
+        html: html.replace(
+          /<title>[\s\S]*?<\/title>/i,
+          () => `<title>${escapeHtml(displayName)}</title>`,
+        ),
+        tags: [
+          { tag: 'link', attrs: { rel: 'manifest', href: './manifest.webmanifest' } },
+          { tag: 'link', attrs: { rel: 'icon', href: './icon.svg', type: 'image/svg+xml' } },
+        ],
+      };
+    },
+  };
+}
+
+/** Serve `manifest.webmanifest` and `icon.svg` in development and emit them into the build. */
+function webManifestPlugin(config: StarterConfig, manifest: ApplicationManifest): Plugin {
+  const files: Record<string, { type: string; body: string }> = {
+    'manifest.webmanifest': {
+      type: 'application/manifest+json',
+      body: webManifest(config, manifest),
+    },
+    'icon.svg': { type: 'image/svg+xml', body: iconSvg(config.displayName) },
+  };
+  return {
+    name: 'application-web-manifest',
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const file = request.url ? files[request.url.split('?')[0]!.slice(1)] : undefined;
+        if (!file) return next();
+        response.setHeader('Content-Type', file.type);
+        response.end(file.body);
+      });
+    },
+    generateBundle() {
+      for (const [fileName, file] of Object.entries(files))
+        this.emitFile({ type: 'asset', fileName, source: file.body });
+    },
+  };
+}
+
 /**
  * Build-time wiring of the web frame for the starter's configured application:
  *
@@ -19,7 +102,9 @@ const escapeHtml = (value: string) =>
  * - `@/` resolves against the starter's own `src` first, then the frame and operator registry
  *   sources. Registry files import `@/components/ui/button` exactly as they will after `shadcn
  *   add`; here they are used in place, so a starter file at the same path shadows the frame's;
- * - the window title comes from the trusted starter identity, never from the template.
+ * - the window title comes from the trusted starter identity, never from the template;
+ * - `manifest.webmanifest` and `icon.svg` are generated from that identity and the declared OS
+ *   handlers, served in development and emitted into the build.
  *
  * Returns the plugins and the output directory `dist/web/<application id>` under `repository`.
  * Fails when the configuration is invalid or the application has no manifest.
@@ -73,17 +158,8 @@ export async function frame(options: { appSource: string; configPath: string; ou
         return `${code}\n${sources.map((path) => `@source ${JSON.stringify(path)};`).join('\n')}\n`;
       },
     },
-    {
-      name: 'application-title',
-      transformIndexHtml(html) {
-        if (!/<title>[\s\S]*?<\/title>/i.test(html))
-          throw new Error('Browser HTML template requires a title');
-        return html.replace(
-          /<title>[\s\S]*?<\/title>/i,
-          () => `<title>${escapeHtml(config.displayName)}</title>`,
-        );
-      },
-    },
+    titlePlugin(config.displayName),
+    webManifestPlugin(config, manifest),
   ];
   return { plugins, manifest, outDir: join(options.outRoot, manifest.id) };
 }

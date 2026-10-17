@@ -54,6 +54,8 @@ One authority per workspace, enforced by the same OS lock for a serving and an e
 
 The shell routes answer `UNAVAILABLE` unless a plugin provides the shell port. A request an adapter submits is delivered only to the submitting session's frame, after the delivery store authorizes it; the response says only whether it was delivered, consumed or refused. An adapter in another process attaches by long-polling `GET /api/v1/shell/actions` with its own bearer; only that session can answer the instructions it took, an unanswered instruction counts as not performed after 30 seconds, and a relay that stops polling for a minute or whose session is revoked is detached. The embedded authority (one-shot CLI, embedded MCP) has no shell routes and attaches no adapter.
 
+Every cross-site request is refused except two public routes: the provider OAuth callback, and the browser landing for OS links (`serveOsLanding`). The landing serves only `index.html`, only for a top-level document navigation (`Sec-Fetch-Mode: navigate`, `Sec-Fetch-Dest: document`) to `/` with exactly one `os` or `os-shortcut` parameter, because a protocol handler navigates there from whichever site held the link. The page then submits the link same-origin as its own session.
+
 Provider credentials pay for inference and never grant workspace access. Startup and status never read the vault.
 
 Environment the host reads: `WORKSPACE_PATH`, `AGENT_NATIVE_APPLICATION`, `AGENT_NATIVE_CONNECTION`, `AGENT_NATIVE_GRANT_FILE`, `AGENT_RUNTIME_MANIFEST`, plus each composed plugin's declared settings (`readPluginSettings`).

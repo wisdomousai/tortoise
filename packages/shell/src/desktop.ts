@@ -9,6 +9,7 @@ import type {
 } from '@agent-native/contracts';
 import { openActionFor, openUrl } from './actions';
 import { pathName, type DesktopArguments } from './desktop-arguments';
+import { textFileHandler } from './local-files';
 
 /**
  * How a desktop shell reaches its authority, as the session the window also uses. Each call
@@ -42,19 +43,6 @@ export interface DesktopShellDependencies {
 
 /** OS input that arrived before the authority was reachable; the oldest is dropped beyond this. */
 const bufferLimit = 16;
-
-/** The text file handler for a name's extension; files nothing declares are never read. */
-function textHandler(declarations: CatalogOs, name: string) {
-  const extension = name.includes('.') ? name.split('.').pop()!.toLowerCase() : '';
-  for (const handler of declarations.handlers)
-    if (
-      handler.kind === 'file' &&
-      handler.payload === 'text' &&
-      handler.types.some((type) => type.extensions.includes(extension))
-    )
-      return handler;
-  return undefined;
-}
 
 /** Run one relayed instruction; an open URL is checked against the declarations again. */
 async function runInstruction(
@@ -121,7 +109,7 @@ export function createDesktopShell(dependencies: DesktopShellDependencies) {
   }
   async function submitFile(os: CatalogOs, path: string) {
     const name = pathName(path);
-    const handler = textHandler(os, name);
+    const handler = textFileHandler(os, name);
     if (!handler) return report('No declared file handler for this file type');
     const text = await dependencies.readText(path, handler.maxBytes);
     if (text === undefined) return report('The file is not readable UTF-8 text within its limit');

@@ -180,7 +180,10 @@ The host platform is shown on a fake platform: `packages/kernel/test/kernel.test
 - Desktop adapter, without Electron: command lines with and without `--`, injected switches, UNC and relative paths, second-instance data, input buffered until connect, undeclared files left unread, relayed actions checked against the declarations again, and page opens with and without the shell port (`packages/shell/test/desktop.test.ts`). The ChatGPT authorization URL is one the declared `openai.authorize` action builds, and a changed flow, endpoint, callback or extra parameter is not (`packages/agents/test/requirements.test.ts`).
 - Project tasks over HTTP: a task link opens its task, a Markdown file prefills `task.create` without committing, and adding it twice with one key adds one task (`examples/project-tasks/test/os.test.ts`).
 
-**Not shown.** Nothing has been registered with, received from or performed through a real OS: the Electron wiring (`apps/desktop/src/os-shell.ts`) has no native run, and a macOS link or file reaches it only from a packaged bundle. No browser or mobile adapter exists. The frame's delivery handling and prefilled forms have no browser test yet.
+- Browser landing: a landing URL with exactly one `os` or `os-shortcut` parameter becomes a request (`packages/shell/test/desktop.test.ts`), and the host serves that one cross-site navigation as a page while it refuses other cross-site requests, other paths, extra parameters, frames and fetches (`plugins/os/test/os.test.ts`).
+- Browser, Chromium (`examples/project-tasks/e2e/os.pw.ts`): the served web manifest carries the protocol and file handlers; a `?os=` landing with a task link opens that task's project, shows where it came from and clears the address; a submitted Markdown file shows the prefilled task with its provenance, and adding it creates the task.
+
+**Not shown.** Nothing has been registered with, received from or performed through a real OS: the Electron wiring (`apps/desktop/src/os-shell.ts`) has no native run, and a macOS link or file reaches it only from a packaged bundle. No installed web app has registered the protocol or file handlers, the launch queue path has not run in a browser, and whether a Chromium version accepts the SVG icon for installation is not checked. `runOsAction` has no caller yet. No mobile adapter exists.
 
 ### Layers and scaffold
 

@@ -109,7 +109,7 @@
       "name": "command-palette",
       "type": "registry:component",
       "title": "Capability palette",
-      "description": "⌘K palette over the discovered contract: the human mirror of an agent's tool list.",
+      "description": "\u2318K palette over the discovered contract: the human mirror of an agent's tool list.",
       "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "cmdk"],
       "registryDependencies": [
         "command",
@@ -168,17 +168,26 @@
       ]
     },
     {
+      "name": "os-browser",
+      "type": "registry:lib",
+      "title": "Browser OS input",
+      "description": "Submits the link or shortcut a browser landing URL carries and the files an installed web app was launched with, and runs declared OS actions a page may perform itself.",
+      "dependencies": ["@agent-native/contracts", "@agent-native/shell"],
+      "registryDependencies": ["@agent-native/ui-session"],
+      "files": [
+        {
+          "path": "src/lib/os-browser.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "os-provenance",
       "type": "registry:component",
       "title": "OS provenance notice",
       "description": "Shows where a screen or a prefilled form the OS handed the application came from, with a dismiss or discard action.",
       "dependencies": ["@agent-native/contracts"],
-      "registryDependencies": [
-        "alert",
-        "button",
-        "@agent-native/os-deliveries",
-        "@agent-native/os-provenance"
-      ],
+      "registryDependencies": ["alert", "button", "@agent-native/os-deliveries"],
       "files": [
         {
           "path": "src/components/os-provenance.tsx",
@@ -196,8 +205,7 @@
         "button",
         "input",
         "native-select",
-        "@agent-native/ui-session",
-        "@agent-native/os-deliveries"
+        "@agent-native/ui-session"
       ],
       "files": [
         {
@@ -210,9 +218,15 @@
       "name": "app-shell",
       "type": "registry:component",
       "title": "App shell",
-      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (⌘K). Exports NavigationCount, SidebarSection and SidebarLink.",
+      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (\u2318K). Exports NavigationCount, SidebarSection and SidebarLink.",
       "dependencies": ["@tanstack/react-router", "lucide-react"],
-      "registryDependencies": ["kbd", "@agent-native/command-palette", "@agent-native/frame"],
+      "registryDependencies": [
+        "kbd",
+        "@agent-native/command-palette",
+        "@agent-native/frame",
+        "@agent-native/os-provenance",
+        "@agent-native/os-deliveries"
+      ],
       "files": [
         {
           "path": "src/components/app-shell.tsx",
@@ -236,7 +250,9 @@
         "tooltip",
         "@agent-native/session",
         "@agent-native/screens",
-        "@agent-native/app-shell"
+        "@agent-native/app-shell",
+        "@agent-native/os-deliveries",
+        "@agent-native/os-browser"
       ],
       "files": [
         {

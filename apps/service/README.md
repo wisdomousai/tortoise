@@ -22,7 +22,7 @@ Environment: `WORKSPACE_PATH` (default `.workspace`), `PORT` (default `4317`, `0
 
 ## Trust boundary
 
-The starter trusts the application it is configured with; it runs with the host's privileges. Callers are untrusted and are authenticated by the host. The service prints a single-use, short-lived `launchUrl` and writes a connection file, both of which are local credentials. Without a site policy the service is isolated: loopback only. The starter names no plugin; the application composes them.
+The starter trusts the application it is configured with; it runs with the host's privileges. Callers are untrusted and are authenticated by the host. The service prints a single-use, short-lived `launchUrl` and writes a connection file, both of which are local credentials. Without a site policy the service is isolated: loopback only. The starter names no plugin; the application composes them. `runService` passes the application's URL scheme from `app.config.json` as the default of `AGENT_NATIVE_OS_SCHEME`, which only the OS plugin reads; the launcher's environment wins.
 
 ## Dependencies
 
