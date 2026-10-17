@@ -184,7 +184,7 @@ acceptance(
       'Archive a note.',
     ]);
     await run([...cli, 'target', 'ledger', '--collection', 'note']);
-    for (const script of ['format', 'generate', 'check:generated', 'typecheck', 'build'])
+    for (const script of ['format', 'generate', 'typecheck', 'build'])
       await run(['bun', 'run', script]);
     await run(['bun', 'test', 'examples/field-notes']);
     await run(['bunx', 'playwright', 'test', 'examples/field-notes']);

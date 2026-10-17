@@ -36,7 +36,7 @@ An application has three entrypoints:
 - a server **definition** with state, handlers, authorization, services and connections to other systems;
 - its **screens**.
 
-`app.config.json` names the application the starter hosts. One running authority hosts one application, with its own catalog, generated reference in `docs/reference/<id>/`, web build and workspace. The definition is trusted code that runs with the host's privileges; only callers are untrusted.
+`app.config.json` names the application the starter hosts. One running authority hosts one application, with its own catalog, generated reference (`bun run generate`, into `dist/reference/<id>/`), web build and workspace. The definition is trusted code that runs with the host's privileges; only callers are untrusted.
 
 All surfaces call the same runtime, and principal, workspace and grant always come from the host session, never from operation input:
 
@@ -77,7 +77,7 @@ bun run dev                      # build web and open the desktop window
 bun run cli list                 # list operations
 bun run cli project create --name Launch --key k1
 bun run mcp                      # MCP over stdio
-bun run generate                 # regenerate docs/reference/<id>/ from the catalogs
+bun run generate                 # write dist/reference/<id>/ from the catalogs
 bun run check                    # full local gate
 bun run test:e2e                 # Playwright
 bun run scaffold <dir> --name <n> [--example <name>]

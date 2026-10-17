@@ -17,7 +17,7 @@ This example is one [Application](../../docs/primitives.md#application). It comp
 - the deterministic [Agent run](../../docs/primitives.md#agent-run) harness behind **Create tasks from brief**;
 - the `project.planner` [Agent definition](../../docs/primitives.md#agent-definition), which proposes tasks and status changes about `project:<id>` or `task:<id>`. The **Proposals** screen (the frame's `proposal-review`) accepts them as the signed-in member, and the task rules then apply to that member.
 
-The generated [operation reference](../../docs/reference/project-tasks/operations.md) lists every operation with its schema, permission and CLI form.
+`bun run generate` writes the operation reference, with every operation's schema, permission and CLI form, to `dist/reference/project-tasks/operations.md`.
 
 ## Entrypoints
 

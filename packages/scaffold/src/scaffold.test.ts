@@ -102,8 +102,6 @@ test('an example export keeps only that example and configures it as the hosted 
         join(source, 'examples', name, 'manifest.ts'),
         `export default defineManifest({ id: '${name}-app', title: 'T', modules: [] });`,
       );
-      await mkdir(join(source, 'docs/reference', `${name}-app`), { recursive: true });
-      await writeFile(join(source, 'docs/reference', `${name}-app`, 'contract.json'), '{}');
     }
     await writeFile(
       join(source, 'package.json'),
@@ -158,7 +156,6 @@ test('an example export keeps only that example and configures it as the hosted 
     expect(manifest.files.map((file) => file.path)).toEqual([
       'app.config.json',
       'bun.lock',
-      'docs/reference/beta-app/contract.json',
       'examples/beta/manifest.ts',
       'examples/beta/package.json',
       'package.json',
@@ -243,7 +240,6 @@ standalone(
         ['bun', 'run', 'check:format'],
         ['bun', 'run', 'typecheck'],
         ['bun', 'run', 'generate'],
-        ['bun', 'run', 'check:generated'],
         ['bun', 'run', 'build'],
         ['bun', 'test'],
       ]) {
@@ -308,7 +304,6 @@ test('authored summary is available through the exported HTTP host', async () =>
         ['bun', 'run', 'format'],
         ['bun', 'run', 'check:format'],
         ['bun', 'run', 'generate'],
-        ['bun', 'run', 'check:generated'],
         ['bun', 'run', 'typecheck'],
         ['bun', 'test', 'examples/project-tasks/scaffold-extension.test.ts'],
       ]) {
@@ -324,7 +319,7 @@ test('authored summary is available through the exported HTTP host', async () =>
           );
       }
       const generated = JSON.parse(
-        await readFile(join(target, 'docs/reference/project-tasks/contract.json'), 'utf8'),
+        await readFile(join(target, 'dist/reference/project-tasks/contract.json'), 'utf8'),
       ) as {
         operations: { id: string; mcpName: string; ui: { exception?: string } }[];
         workflows: { operations: string[] }[];
@@ -339,17 +334,17 @@ test('authored summary is available through the exported HTTP host', async () =>
         generated.workflows.some((workflow) => workflow.operations.includes('project.summary')),
       ).toBe(true);
       expect(
-        await readFile(join(target, 'docs/reference/project-tasks/openapi.json'), 'utf8'),
+        await readFile(join(target, 'dist/reference/project-tasks/openapi.json'), 'utf8'),
       ).toContain('/api/v1/queries/project.summary');
       expect(
-        await readFile(join(target, 'docs/reference/project-tasks/operations.md'), 'utf8'),
+        await readFile(join(target, 'dist/reference/project-tasks/operations.md'), 'utf8'),
       ).toContain('project.summary');
       expect(
-        await readFile(join(target, 'docs/reference/project-tasks/workflows.md'), 'utf8'),
+        await readFile(join(target, 'dist/reference/project-tasks/workflows.md'), 'utf8'),
       ).toContain('project.summary');
       expect(
         await readFile(
-          join(target, 'docs/reference/project-tasks/application-skill/SKILL.md'),
+          join(target, 'dist/reference/project-tasks/application-skill/SKILL.md'),
           'utf8',
         ),
       ).toContain('project_summary');

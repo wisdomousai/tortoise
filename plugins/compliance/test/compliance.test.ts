@@ -300,8 +300,6 @@ describe('generated compliance artifacts', () => {
       expect(iso27001.length + nist80053.length + csf.length).toBeGreaterThan(0);
       expect(control.evidence.tests.length + control.evidence.artifacts.length).toBeGreaterThan(0);
       for (const file of control.evidence.tests) expect(existsSync(join(root, file))).toBe(true);
-      for (const artifact of control.evidence.artifacts)
-        if (artifact.startsWith('docs/')) expect(existsSync(join(root, artifact))).toBe(true);
       for (const kind of control.evidence.events) expect(kind in auditEventKinds).toBe(true);
     }
     expect(controlsMarkdown()).toContain('### IEC 62443-4-2');

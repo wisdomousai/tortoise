@@ -11,7 +11,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `c
 - [Host plugin](../../docs/primitives.md#host-plugin): `compliancePlugin` requires `site` and `audit` and reads their services. It is written only against `@agent-native/host/plugin`.
 - [UI registry](../../docs/primitives.md#ui-registry): `compliance-screen`, the plugin's own shadcn registry in [`registry.json`](registry.json).
 
-[Security and compliance](../../docs/security-and-compliance.md) describes the bundle. Generated output for each application is under `docs/reference/<id>/`, and the control mapping is [`docs/reference/controls.md`](../../docs/reference/controls.md). Firewall and orchestrator rule exports belong to the [network plugin](../network/README.md).
+[Security and compliance](../../docs/security-and-compliance.md) describes the bundle. `bun run generate` writes each application's output to `dist/reference/<id>/` and the control mapping to `dist/reference/controls.md`; none of it is committed. Firewall and orchestrator rule exports belong to the [network plugin](../network/README.md).
 
 ## Entrypoints
 
@@ -36,7 +36,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `c
 
 The compliance capabilities are queries only. Nothing here changes configuration, and the log stays append-only. Each call needs `read` on `Audit` from the plugin's own policy over its `compliance` slice. The workspace owner is the only auditor at creation (`createComplianceState`), and each call is itself audited. The application's policy never decides these operations, and this policy never sees application state. A host without an audit log reports unavailable, not empty.
 
-Generation is deterministic and drift-checked by `bun run check:generated`. Control mappings are indicative and are not a certification. Control IDs (`AN-<area>-<n>`) are stable and never renumbered.
+Generation is deterministic. Control mappings are indicative and are not a certification. Control IDs (`AN-<area>-<n>`) are stable and never renumbered.
 
 ## Dependencies
 

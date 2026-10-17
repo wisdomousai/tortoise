@@ -160,13 +160,9 @@ function exportedContent(path: string, source: string, context: ExportContext): 
   return content;
 }
 
-/** Whether a path belongs to an example (or its generated reference) the export leaves out. */
+/** Whether a path belongs to an example the export leaves out. */
 const leftOut = (path: string, excluded: readonly ExcludedExample[]) =>
-  excluded.some(
-    ({ directory, applicationId }) =>
-      path.startsWith(`${directory}/`) ||
-      (applicationId !== undefined && path.startsWith(`docs/reference/${applicationId}/`)),
-  );
+  excluded.some(({ directory }) => path.startsWith(`${directory}/`));
 
 async function exportedFiles(
   locations: { requestedSourceRoot: string; sourceRoot: string },

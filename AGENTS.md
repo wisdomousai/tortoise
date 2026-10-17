@@ -19,7 +19,7 @@ These protect data and security; `bun run check` and the conformance suites test
 - Every business write goes through the application runtime, never from a transport or harness.
 - Authorize the operation, object and fields inside the transaction. Filter rows before paging or counting. Recheck delegated grants and event access.
 - Server code reaches the network and child processes only through the network port.
-- MCP, API, schema and reference docs are generated from the catalog. Run `bun run generate` after changing contracts.
+- MCP, API, schema and reference docs are generated from the catalog when they are served or built. Nothing generated is committed; `bun run generate` writes the reference to `dist/reference/` for reading.
 
 ## Guidance
 
@@ -30,7 +30,7 @@ Design on engineering merits. The rest of this section is advice; depart from it
 - Keep modules focused. `check:size` lists long files and functions as hints; split by responsibility, not by line count.
 - An operation usually gets a behavioral scenario and a UI binding.
 - Each workspace has a README saying what it is for, what it trusts, and how to run its tests. Comment the non-obvious: transaction and authorization ordering, trust boundaries, failure behavior.
-- When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. Record what was actually run in `docs/implementation-status.md`, keeping deterministic tests, device runs and live provider runs apart.
+- When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and the known gaps; don't restate what tests prove.
 
 ## Working practice
 

@@ -8,7 +8,7 @@ Layer: framework (`packages/*`). Server only.
 
 - [Task package](../../docs/primitives.md#task-package): `createBundle`, `BundleDescription`, `verifyBundle`, `BundleRefused`, `BundleManifest`, `BundleFile`, `BundleRequirements`, `parseBundleManifest`, `safeBundlePath`, `generateSigningKey`, `signManifest`, `verifyManifestSignature`, `SigningKey`, `TrustedKey`, `BundleSignature`, `admissionRefusals`, `requirementChanges`, `RequirementChange`, `requirementsDigest`, `SiteApproval`, `SiteTarget`.
 
-The root script `bun run bundle` (`scripts/bundle.ts`) builds one from the configured application with `keygen`, `create`, `verify` and `admit`. The script reads the security manifest that `bun run generate` wrote, so this package never imports the compliance plugin.
+The root script `bun run bundle` (`scripts/bundle.ts`) builds one from the configured application with `keygen`, `create`, `verify` and `admit`. The script builds the security manifest, contract and SBOM from the catalog and lockfile at that moment, so this package never imports the compliance plugin.
 
 ## Entrypoints
 

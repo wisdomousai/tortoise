@@ -28,4 +28,4 @@ The application contract version defaults to `1.0.0`. A breaking change to an op
 
 ## Generated artifacts
 
-`bun run generate` writes the catalog, schemas, OpenAPI, operation reference, workflows and each application's end-user skill to `docs/reference/<id>/`, and `bun run check:generated` fails on drift.
+`bun run generate` writes the catalog, schemas, OpenAPI, operation reference, workflows and each application's end-user skill to `dist/reference/<id>/`. The output is not committed; `bun run check` runs the generator so a catalog that cannot be documented fails.

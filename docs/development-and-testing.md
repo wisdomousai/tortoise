@@ -8,8 +8,7 @@ Install the pinned dependencies with `bun install --frozen-lockfile`. The starte
 
 ```sh
 bun run typecheck
-bun run generate          # then commit the regenerated docs/reference
-bun run check:generated
+bun run generate          # writes dist/reference/<id>/; not committed
 bun run check:boundaries
 bun run check:readmes
 bun run check:size
@@ -21,7 +20,7 @@ bun run build
 
 | Check              | What it catches                                                                                                                                                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `check:generated`  | Drift between the catalog and the generated references and security artifacts, or a leftover reference directory.                                                                                                   |
+| `generate`         | A catalog that cannot be documented: the reference artifacts are written to `dist/reference/` and not committed. |
 | `check:boundaries` | Imports across layers, server code reaching browser bundles, and direct network or process APIs outside the egress guard. Portable packages may not import `node:` or `bun:` modules or use Node or Bun globals.    |
 | `check:readmes`    | A workspace without a README, a README whose title is not the package name, or a dead link.                                                                                                                         |
 | `check:size`       | Code in a package `src/index.ts` besides re-exports. Long files and functions are listed as hints and do not fail.                                                                                                  |
@@ -96,6 +95,6 @@ A line-station host starts a station bridge only when `STATION_HMI_URL` is set. 
 
 Fixture tests prove adapter behavior, not login or inference. Provider checks are opt-in and use an explicitly configured account. Never discover credentials from unrelated configuration, and never switch silently to a paid key. The in-memory vault is a test fixture, never a fallback.
 
-The [implementation status](implementation-status.md) records local tests, CI, browser and desktop observations, provider checks and release status separately. An export, a bundled sidecar or a passing suite is not a release. Skipped acceptance tests and unsupported platforms are reported as such.
+The [implementation status](implementation-status.md) records browser, native, live and by-hand runs separately, with what has not been shown. An export, a bundled sidecar or a passing suite is not a release. Skipped acceptance tests and unsupported platforms are reported as such.
 
 CI follows the [GitHub-hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) and the [Bun CI guide](https://bun.sh/guides/runtime/cicd). The workflow has not yet run remotely.
