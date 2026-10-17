@@ -19,7 +19,7 @@ These protect data and security; `bun run check` and the conformance suites test
 - Contracts are browser-safe. Handlers, React components, scenarios and provider code live in separate entrypoints.
 - Every business write goes through the application runtime, never from a transport or harness.
 - Authorize the operation, object and fields inside the transaction. Filter rows before paging or counting. Recheck delegated grants and event access.
-- Server code reaches the network and child processes only through the network port.
+- Server code reaches the network only through the network port, and starts child processes only through the process port.
 - MCP, API, schema and reference docs are generated from the catalog when they are served or built. Nothing generated is committed; `bun run generate` writes the reference to `dist/reference/` for reading.
 
 ## Guidance

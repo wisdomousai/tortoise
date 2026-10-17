@@ -96,7 +96,7 @@ The conformance suites and `bun run check` test these:
 - The host derives principal, workspace and grant; input cannot choose or widen them. Authorization is rechecked inside the transaction, on replay and on event delivery, and rows are scoped before they are counted or paged.
 - One authority writes each workspace. A command commits state, revisions, receipt, journal and outbox effects together, or nothing.
 - Handlers make no network or model calls. Other systems are changed through outbox effects and read through declared remote queries.
-- Server code reaches the network and child processes only through the network port.
+- Server code reaches the network only through the network port, and starts child processes only through the process port.
 - Framework packages and the starter import no example or plugin.
 
 Everything else in these docs describes how the code is built today, not a rule. Change it when a better design needs it.

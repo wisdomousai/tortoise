@@ -307,13 +307,13 @@ implemented · `packages/station` `packages/integration` `plugins/connector-driv
 
 _A driver's state fields, actions with delivery mode and hazard class, and events, as data with a digest the driver must echo at its handshake._
 
-partial · `plugins/connector-driver` `examples/quality-inspection`
+partial · `plugins/connector-driver` `examples/quality-inspection` `examples/line-station`
 
 ### Driver process
 
 _A supervised child process that controls or reads equipment, speaking JSON-RPC over its stdio and started through the process port. Its events can enter as ingest commands._
 
-partial · `plugins/connector-driver` `plugins/process` `examples/quality-inspection`
+partial · `plugins/connector-driver` `plugins/process` `examples/quality-inspection` `examples/line-station`
 
 ### Driver SDK
 

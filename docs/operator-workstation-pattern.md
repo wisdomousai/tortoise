@@ -1,6 +1,6 @@
 # Operator workstations
 
-This pattern treats legacy station software as a screen-mediated authority. It extends the [system-of-record pattern](system-of-record-pattern.md) to the point where work meets machines. On many shop floors, controller-level hardware sits behind proprietary station software: a vendor HMI, a test-bench program, a measurement application or a homebrew MES client. That software rarely has a usable API, is often validated or under warranty, and must not be modified. This pattern covers the case where the only stable interface is its screen. Where the software exposes an automation interface such as COM, a local RPC service, files or a decodable network protocol, the same ports apply with a different adapter.
+This pattern treats legacy station software as a screen-mediated authority. It extends the [system-of-record pattern](system-of-record-pattern.md) to the point where work meets machines. On many shop floors, controller-level hardware sits behind proprietary station software: a vendor HMI, a test-bench program, a measurement application or a homebrew MES client. That software rarely has a usable API, is often validated or under warranty, and must not be modified. This pattern covers the case where the only stable interface is its screen. Where the software exposes an automation interface such as COM, a local RPC service, files or a decodable network protocol, the same ports apply with a different adapter: a [hardware driver](hardware-drivers.md) in its own process, as in [Automation route](#automation-route).
 
 The goal is instrumentation on top of that stack. Monitor the station, let operators and agents act through the application's interaction contract, and reach the legacy software only through its screen, by way of a background computer-use agent that the application controls. The hardware stays behind the legacy software, which keeps all controller interaction.
 
@@ -100,6 +100,12 @@ Local inference keeps frames on site. The reference adapters are:
 Everything specific to one installation is versioned data, not code. A station profile names the application and its version pattern, identifies screens by anchors, maps fields to locators or regions and extractors, marks forbidden regions, and declares procedures with preconditions, steps, readback, hazard class and rerun safety. Profile validation rejects any procedure step that targets a forbidden region or an unknown field.
 
 When the vendor updates the HMI or a model changes, the golden-frame gate replays labeled frames through the profile's extractors. It reports per-field accuracy and confidence before the new version is activated.
+
+## Automation route
+
+A station whose software has an automation interface can be reached through a driver instead of its screen. The driver's contract carries the fields the screen profile reads and the same procedures, with the same preconditions, readback and hazard classes. Its bridge runs as the same station principal with the same grant, target and control query. Observations and outbox effects look the same to the domain, so handlers, contracts and screens do not change with the route. The driver's `control` field takes the place of the screen's local input check. The bridge mode and the seat gate it as they gate the screen route.
+
+`examples/line-station` configures each station on one route. Its automation driver is written in C# against the station software's COM server; see [hardware drivers](hardware-drivers.md#examples).
 
 ## Safety
 

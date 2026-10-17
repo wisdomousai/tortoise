@@ -2,7 +2,7 @@
 
 Hardware drivers in any language behind the outbox. A driver is an executable that controls equipment (an instrument, a controller, a vendor COM server). The host starts it through the process port and talks to it with JSON-RPC 2.0, one message per line, over its stdio. Driver actions become outbox targets, and driver state becomes readings. The equipment's own code runs in the driver process, so a crash, a 32-bit COM server or a device permission never touches the process that holds the workspace.
 
-Layer: plugins (`plugins/*`). `contracts`, `plugin-manifest` and `plugin-screens` are browser-safe; everything else is server only. Background and phases: [the hardware driver plan](../../docs/hardware-driver-plan.md).
+Layer: plugins (`plugins/*`). `contracts`, `plugin-manifest` and `plugin-screens` are browser-safe; everything else is server only. Design and limits: [hardware drivers](../../docs/hardware-drivers.md).
 
 ## Wiring an application
 

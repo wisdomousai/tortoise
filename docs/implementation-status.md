@@ -99,6 +99,18 @@ The kit's interaction tests also pass.
 - **Computer use:** there is no live computer-use driver, and no VNC, RDP or UI Automation transport.
 - **Safety:** nothing here is safety-rated or validated.
 
+### Hardware drivers
+
+**Shown, browser.** `examples/quality-inspection/e2e/instrument.pw.ts` on macOS: the real service with a site policy binding the Python instrument driver, which reads a simulated instrument over a pseudo-terminal pair; the inspector uses the reading as a result. It is skipped where uv or a cached pyserial is missing.
+
+**Not shown.**
+
+- **Equipment:** no physical instrument, controller or station software has been connected. The instrument driver has run only against its pseudo-terminal simulator, and the station automation driver only against its simulated station.
+- **Windows:** the .NET SDK's STA handler thread, COM interop and a `win-x86` build have not run. The line-station `ComStation` has never run, and its member names are an assumed object model, not a real vendor's.
+- **Linux:** the Python and .NET driver tests have run only on macOS.
+- **Served automation route:** line-station's automation route has run only in tests that start the driver directly; a served host starting it through the process plugin from a site binding (`STATION_ROUTE=automation`) has not run.
+- **Not built:** a remote transport for a driver on another machine, live non-journaled readings, remote queries over driver state, Android native-module drivers and a C++ SDK.
+
 ### Security and compliance
 
 **Shown, browser.** The Compliance screen shows a new denial without a reload.
