@@ -20,7 +20,7 @@ Layer: framework (`packages/*`). The mobile starter in `apps/mobile` renders `Na
 | `@agent-native/frame-native/plugin-screens` | any host     | `definePluginNativeScreens`, `PluginNativeScreens`.                                              |
 | `@agent-native/frame-native/frame`          | React Native | `NativeFrame`, `useNativeScreens`, `useFrameNavigation`, `RAIL_WIDTH`.                           |
 | `@agent-native/frame-native/session`        | React Native | `SessionProvider`, `useSession`, `NativeSession`.                                                |
-| `@agent-native/frame-native/os-deliveries`  | React Native | `OsDeliveries`, `applyOsDelivery`, `usePreparedInput`, `useShownProvenance`.                      |
+| `@agent-native/frame-native/os-deliveries`  | React Native | `OsDeliveries`, `applyOsDelivery`, `usePreparedInput`, `useShownProvenance`.                     |
 | `@agent-native/frame-native/os-provenance`  | React Native | `OsProvenanceNotice`, `ShownProvenance`.                                                         |
 | `@agent-native/frame-native/components/*`   | React Native | Registry components: `hold-button`, `status-pill`, `list-row`.                                   |
 | `@agent-native/frame-native/theme.css`      | build time   | The native theme: signal colors for light and dark appearance, glove target and text sizes.      |

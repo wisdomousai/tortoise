@@ -14,11 +14,11 @@ Layer: framework (`packages/*`). Pure functions with no Node, Bun or browser API
 
 ## Entrypoints
 
-| Import                              | Runs in  | Contents                                                                                                                   |
-| ----------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `@agent-native/shell`               | any host | Everything listed under Primitives.                                                                                        |
+| Import                              | Runs in  | Contents                                                                                                                                                           |
+| ----------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@agent-native/shell`               | any host | Everything listed under Primitives.                                                                                                                                |
 | `@agent-native/shell/*`             | any host | One source file: `parse`, `match`, `targets`, `actions`, `registrations`, `desktop`, `desktop-arguments`, `local-files`, `mobile`, `provenance` or `associations`. |
-| `@agent-native/shell/registrations` | any host | The generators alone, for `mobile:prepare`, desktop packaging and the frame's Vite plugin.                                 |
+| `@agent-native/shell/registrations` | any host | The generators alone, for `mobile:prepare`, desktop packaging and the frame's Vite plugin.                                                                         |
 
 ## Trust boundary
 
