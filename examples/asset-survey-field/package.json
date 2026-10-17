@@ -1,0 +1,10 @@
+{
+  "name": "@agent-native/asset-survey-field",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./screens-native": "./screens-native.tsx",
+    "./*": "./*.ts"
+  }
+}

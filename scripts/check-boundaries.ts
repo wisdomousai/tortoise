@@ -163,7 +163,10 @@ function portableImport(file: string, dependency: string) {
   // A stylesheet is compiled by the bundler (Uniwind on React Native), not run.
   if (!dependency.startsWith('.') || dependency.endsWith('.css')) return true;
   const target = relative(root, resolve(file, '..', dependency)).replaceAll('\\', '/');
-  return [target, `${target}.ts`, `${target}.tsx`].some(isPortable);
+  // An example's browser-safe modules (contracts, manifest) already reach neither Node nor Bun.
+  return [target, `${target}.ts`, `${target}.tsx`].some(
+    (path) => isPortable(path) || browserContent.test(path),
+  );
 }
 // Server code connects to other hosts only through the egress guard; see `egressExemptions`.
 const exemptionUsed = new Set<string>();

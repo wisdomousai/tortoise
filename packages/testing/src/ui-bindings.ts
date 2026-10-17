@@ -1,6 +1,11 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { buildCatalog, type AnyCapability, type CapabilityModule } from '@agent-native/contracts';
+import {
+  buildCatalog,
+  type AnyCapability,
+  type BuildCatalogOptions,
+  type CapabilityModule,
+} from '@agent-native/contracts';
 
 async function files(dir: string): Promise<string[]> {
   // A single screen file, such as a shared frame screen the application routes.
@@ -59,15 +64,17 @@ export async function referencedCapabilities(
 }
 
 /**
- * Operations of `modules` that claim a UI binding but that no screen under `source` references
- *. An application's UI-binding test expects this to be empty.
+ * Operations of `modules` that claim a UI binding but that no screen under `source` references.
+ * An application's UI-binding test expects this to be empty. `options` passes the plugin
+ * components when an operation forwards to a destination a plugin declares.
  */
 export async function unboundOperations(
   modules: readonly CapabilityModule[],
   source: string | readonly string[],
+  options: BuildCatalogOptions = {},
 ): Promise<string[]> {
   const referenced = await referencedCapabilities(source);
-  return buildCatalog(modules)
+  return buildCatalog(modules, options)
     .operations.filter((operation) => operation.ui.binding && !referenced.has(operation.id))
     .map((operation) => operation.id);
 }

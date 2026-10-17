@@ -1,0 +1,187 @@
+import { useEffect, useRef, useState } from 'react';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { File } from 'expo-file-system';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
+import type { BlobRef } from '@agent-native/contracts';
+import { HoldButton } from '@agent-native/frame-native/components/hold-button';
+import { useSession } from '@agent-native/frame-native/session';
+import type { CaptureKind } from '@agent-native/asset-survey/domain';
+import { fieldOperations as ops } from '../contracts';
+import type { FieldCapture } from '../domain';
+import { ActionButton, ErrorText, Screen } from './shared';
+
+type Condition = NonNullable<FieldCapture['condition']>;
+const conditions: Condition[] = ['good', 'fair', 'poor', 'failed'];
+const maxPhotos = 8;
+
+function Chips<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly T[];
+  value: T | undefined;
+  onChange: (value: T | undefined) => void;
+}) {
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel={label}
+      className="flex-row flex-wrap gap-2"
+    >
+      {options.map((option) => {
+        const selected = option === value;
+        return (
+          <Pressable
+            key={option}
+            accessibilityRole="radio"
+            accessibilityState={{ selected }}
+            onPress={() => onChange(selected ? undefined : option)}
+            className={`min-h-target justify-center rounded-full border px-4 ${selected ? 'border-primary bg-primary' : 'border-border'}`}
+          >
+            <Text
+              className={`text-operator ${selected ? 'text-primary-foreground' : 'text-foreground'}`}
+            >
+              {option}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/**
+ * Take photos and record one capture. Each photo is stored as a blob on the device as soon as it
+ * is taken, so the capture command only references them; the camera's temporary files are
+ * deleted when the screen closes. The capture goes to the hub through the outbox whenever the
+ * device reaches it.
+ */
+export function CaptureScreen() {
+  const params = useRoute().params as { assignmentId: string; nodeId?: string; codes?: string[] };
+  const navigation = useNavigation();
+  const { live, client, transport } = useSession();
+  const [permission, requestPermission] = useCameraPermissions();
+  const camera = useRef<CameraView>(null);
+  const files = useRef<File[]>([]);
+  const [photos, setPhotos] = useState<{ ref: BlobRef; uri: string }[]>([]);
+  const [kind, setKind] = useState<CaptureKind>();
+  const [condition, setCondition] = useState<Condition>();
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>();
+  const assignment = useQuery(live.liveQueryOptions(ops.assignmentList, {})).data?.items.find(
+    (item) => item.id === params.assignmentId,
+  );
+  const node = useQuery(
+    live.liveQueryOptions(ops.nodeList, { assignmentId: params.assignmentId }),
+  ).data?.items.find((item) => item.id === params.nodeId);
+  const kinds = assignment?.kinds ?? [];
+  const chosenKind = kind ?? (kinds.length === 1 ? kinds[0] : undefined);
+
+  useEffect(
+    () => () => {
+      for (const file of files.current) if (file.exists) file.delete();
+    },
+    [],
+  );
+
+  const take = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      const picture = await camera.current?.takePictureAsync({ quality: 0.7 });
+      if (!picture) return;
+      const file = new File(picture.uri);
+      files.current.push(file);
+      const ref = await transport.blobs!.put(await file.bytes(), 'image/jpeg');
+      setPhotos((list) => [...list, { ref, uri: picture.uri }]);
+    } catch (reason) {
+      setError(reason);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const save = () => {
+    if (!chosenKind) return;
+    setBusy(true);
+    setError(undefined);
+    const id = crypto.randomUUID();
+    client
+      .command(
+        ops.captureRecord,
+        {
+          id,
+          assignmentId: params.assignmentId,
+          ...(params.nodeId ? { nodeId: params.nodeId } : {}),
+          kind: chosenKind,
+          photos: photos.map((photo) => photo.ref),
+          codes: params.codes ?? [],
+          ...(condition ? { condition } : {}),
+          note: note.trim(),
+          takenAt: Date.now(),
+        },
+        { idempotencyKey: id },
+      )
+      .then(() => navigation.goBack(), setError)
+      .finally(() => setBusy(false));
+  };
+
+  if (!permission) return <Screen>{null}</Screen>;
+  if (!permission.granted)
+    return (
+      <Screen>
+        <Text className="text-operator text-foreground">
+          The camera is needed to photograph the equipment.
+        </Text>
+        <ActionButton label="Allow the camera" onPress={() => void requestPermission()} />
+      </Screen>
+    );
+  return (
+    <ScrollView contentContainerClassName="gap-4 p-4" className="flex-1 bg-background">
+      <Text className="text-operator font-semibold text-foreground">
+        {node ? `${node.designation} · ${node.name}` : 'Unplaced: the hub places it later'}
+      </Text>
+      <CameraView ref={camera} style={{ height: 320, borderRadius: 12 }} facing="back" />
+      <ActionButton
+        label={`Take photo (${photos.length}/${maxPhotos})`}
+        disabled={busy || photos.length >= maxPhotos}
+        onPress={() => void take()}
+      />
+      {photos.length ? (
+        <ScrollView horizontal contentContainerClassName="gap-2">
+          {photos.map((photo) => (
+            <Image
+              key={photo.ref.digest}
+              source={{ uri: photo.uri }}
+              accessibilityLabel="Photo taken"
+              style={{ width: 96, height: 96, borderRadius: 8 }}
+            />
+          ))}
+        </ScrollView>
+      ) : null}
+      <Chips label="Kind" options={kinds} value={chosenKind} onChange={setKind} />
+      <Chips label="Condition" options={conditions} value={condition} onChange={setCondition} />
+      <TextInput
+        value={note}
+        onChangeText={setNote}
+        placeholder="Note"
+        accessibilityLabel="Note"
+        multiline
+        maxLength={1000}
+        className="min-h-target rounded-xl border border-border px-4 py-3 text-operator text-foreground"
+      />
+      <ErrorText error={error} />
+      <HoldButton
+        label="Save capture"
+        holdingLabel="Keep holding to save"
+        disabled={busy || !photos.length || !chosenKind}
+        onConfirm={save}
+      />
+    </ScrollView>
+  );
+}

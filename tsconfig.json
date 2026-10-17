@@ -41,6 +41,9 @@
     "packages/frame-native/src/components",
     "packages/frame-native/src/os-provenance.tsx",
     "packages/frame-native/src/native-env.d.ts",
-    "plugins/*/src/expo"
+    "plugins/*/src/expo",
+    "examples/asset-survey-field/application.ts",
+    "examples/asset-survey-field/screens-native.tsx",
+    "examples/asset-survey-field/ui-native"
   ]
 }
