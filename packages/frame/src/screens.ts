@@ -6,10 +6,13 @@ import type { PluginScreens } from './plugin-screens';
  * them with `useParams({ strict: false })`, since the route id also names the layout.
  * `layout: 'full'` renders it without the application sidebar and palette, for a station or
  * kiosk screen that owns the whole window; it keeps the session, live invalidation and routing.
+ * `compact` replaces `component` on a narrow viewport (a phone, or a tablet in portrait or in a
+ * hub's web view); it binds the same capabilities, laid out for touch and one column.
  */
 export interface ScreenRoute {
   readonly path: string;
   readonly component: () => ReactNode;
+  readonly compact?: () => ReactNode;
   readonly layout?: 'shell' | 'full';
 }
 

@@ -45,6 +45,8 @@ In a browser the frame root also submits OS input. A landing URL counts only wit
 
 Routes render inside the sidebar shell or, with `layout: 'full'`, full-window (a station screen). Both layouts are pathless routes, so a screen reads its params with `useParams({ strict: false })`; a `from:` route id no longer matches. The shell fills its slots from `screens`: title, context line, a sidebar section above the navigation, navigation count badges and status. `app-shell` exports `NavigationCount`, `SidebarSection` and `SidebarLink` for those slots.
 
+Below the shell's two-column breakpoint (64rem: phones, and tablets in portrait or in a hub's web view) the sidebar becomes a bar with the title, a menu button that opens the same panel as a sheet, and the palette button. A route may declare `compact`, a component rendered instead of `component` there; `useCompact()` (`src/lib/compact.ts`) is the same test for a screen that adapts in place.
+
 ## Dependencies
 
 Framework: `@agent-native/contracts`, `@agent-native/shell`, `@agent-native/client`, `@agent-native/react`, `@agent-native/host/manifest` and `@agent-native/host/config` (the Vite plugin only). External: `react`, `@tanstack/react-router`, `@tanstack/react-query`, `@tanstack/react-table`, `lucide-react`, `vite`. Stock shadcn primitives come from the starter's `src/components/ui`. Browser files must not import host-only modules; `bun run check:boundaries` bundles every application through this frame to prove it.

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
-import { Link2 } from 'lucide-react-native';
+import { Link2, MonitorSmartphone } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { HoldButton } from '@agent-native/frame-native/components/hold-button';
 import { ListRow } from '@agent-native/frame-native/components/list-row';
@@ -9,6 +9,7 @@ import { definePluginNativeScreens } from '@agent-native/frame-native/plugin-scr
 import { useSession } from '@agent-native/frame-native/session';
 import { hubLinkOperations as ops } from '../contracts';
 import type { HubLinkService } from '../pairing';
+import { HubView } from './hub-view';
 
 const field = 'min-h-target rounded-xl border border-border px-4 text-operator text-foreground';
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
@@ -96,10 +97,19 @@ function Pairing() {
   );
 }
 
-/** The pairing screen, its tab and the screen the `hub.*` capabilities open. */
+/**
+ * The pairing screen, the hub's own screens for an attached tablet, their tabs, and the screen the
+ * `hub.*` capabilities open.
+ */
 export const hubLinkNativeScreens = definePluginNativeScreens({
   id: 'hub-link',
-  routes: [{ path: '/hub', title: 'Hub', component: Pairing }],
-  navigation: [{ to: '/hub', label: 'Hub', icon: Link2 }],
+  routes: [
+    { path: '/hub', title: 'Hub', component: Pairing },
+    { path: '/hub/screens', title: 'Hub screens', component: HubView },
+  ],
+  navigation: [
+    { to: '/hub', label: 'Hub', icon: Link2 },
+    { to: '/hub/screens', label: 'Hub screens', icon: MonitorSmartphone },
+  ],
   capabilityScreens: [{ prefix: 'hub.', to: '/hub' }],
 });

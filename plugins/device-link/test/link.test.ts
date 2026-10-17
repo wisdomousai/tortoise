@@ -226,6 +226,58 @@ test('an attached tablet acts as the person who enrolled it, within the operatio
   expect(enroll.status).toBe(403);
 });
 
+test('an attached tablet opens the hub screens with a launch key, and loses them once revoked', async () => {
+  const { hub, command, enrollment } = await startHub();
+  const { pairing, token } = await openField();
+  await expect(pairing.launch()).rejects.toThrow('not paired');
+  const { code } = await enrollment('attached', ['captures.list']);
+  const paired = await pairing.pair({ origin: hub.url, code });
+  expect(paired.kind).toBe('attached');
+
+  // The tablet's hub screen: the device asks for a key with its credential, and the hub page
+  // exchanges it for a cookie, as the web frame does on a `#launch=` link.
+  const page = await pairing.launch();
+  expect(page.origin).toBe(hub.url);
+  const key = new URLSearchParams(new URL(page.url).hash.slice(1)).get('launch')!;
+  const exchange = await fetch(`${hub.url}/api/v1/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Origin: hub.url },
+    body: JSON.stringify({ launch: key }),
+  });
+  expect(exchange.status).toBe(200);
+  const cookie = exchange.headers.get('Set-Cookie')!.split(';')[0]!;
+  expect(cookie).not.toContain(token());
+  const reused = await fetch(`${hub.url}/api/v1/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Origin: hub.url },
+    body: JSON.stringify({ launch: key }),
+  });
+  expect(reused.status).toBe(403);
+
+  const browser = (operation: string) =>
+    fetch(`${hub.url}/api/v1/queries/${operation}`, {
+      method: 'POST',
+      headers: { Cookie: cookie, Origin: hub.url, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: {} }),
+    });
+  expect((await browser('captures.list')).status).toBe(200);
+  // The browser session has the device's operations, not the person's.
+  expect((await browser('link.device.list')).status).toBe(403);
+
+  const stream = await fetch(`${hub.url}/api/v1/events`, { headers: { Cookie: cookie } });
+  const reader = stream.body!.getReader();
+  expect((await reader.read()).done).toBe(false);
+
+  await command('link.device.revoke', { deviceId: paired.deviceId });
+  await expect(pairing.launch()).rejects.toThrow();
+  const revoked = await browser('captures.list');
+  expect(revoked.status).toBe(403);
+  expect(((await revoked.json()) as any).error.details).toEqual({ credential: 'rejected' });
+  // The stream ends at its next poll instead of following the journal for a revoked device.
+  let done = false;
+  while (!done) done = (await reader.read()).done;
+});
+
 test('enrollment codes are used once, expire after ten minutes, and guessing is throttled', async () => {
   const clock = { now: Date.now() };
   const { enrollment, redeem } = await startHub(clock);

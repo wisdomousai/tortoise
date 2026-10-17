@@ -38,6 +38,18 @@ export interface HttpHandlerOptions {
  * `details.credential`, so a client can tell a missing or revoked credential from a denied
  * operation, which is also FORBIDDEN.
  */
+/**
+ * A stored session with its credential's current context, or undefined once the credential is
+ * refused, which also ends the stored session.
+ */
+async function current(options: HttpHandlerOptions, session: HostSession) {
+  if (session.credential === undefined) return session;
+  const resolved = await options.authenticateToken?.(session.credential);
+  if (resolved) return { ...session, context: resolved.context };
+  options.sessions.revoke(session.token);
+  return undefined;
+}
+
 async function authenticate(
   options: HttpHandlerOptions,
   request: Request,
@@ -50,9 +62,12 @@ async function authenticate(
     ?.match(/(?:^|;\s*)agent_session=([A-Za-z0-9_-]+)/)?.[1];
   if (!bearer && request.method !== 'GET' && requestOrigin !== origin)
     throw new ApplicationError('FORBIDDEN', 'Browser writes require same-origin validation');
-  const session =
-    options.sessions.get(bearer ?? cookie ?? '') ??
-    (bearer ? await options.authenticateToken?.(bearer) : undefined);
+  const stored = options.sessions.get(bearer ?? cookie ?? '');
+  const session = stored
+    ? await current(options, stored)
+    : bearer
+      ? await options.authenticateToken?.(bearer)
+      : undefined;
   if (!session)
     throw new ApplicationError('FORBIDDEN', 'Local session required', { credential: 'rejected' });
   return session;

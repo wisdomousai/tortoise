@@ -9,6 +9,7 @@ interface StreamOptions {
   readonly sessions: Sessions;
   readonly cursors: Cursors;
   readonly pollMs?: number;
+  readonly authenticateToken?: (token: string) => Promise<HostSession | undefined>;
 }
 
 /** Wait one poll interval, or less if the request is aborted. */
@@ -44,7 +45,14 @@ export function eventStreamResponse(
   let first = true;
   const encoder = new TextEncoder();
   let ended = false;
-  const live = () => !request.signal.aborted && !!options.sessions.get(session.token);
+  // A bearer credential session is not stored; one minted from it is, and both recheck the
+  // credential once per pull, so a revoked device's stream ends at the next poll.
+  const live = () =>
+    !request.signal.aborted &&
+    (session.credential === session.token || !!options.sessions.get(session.token));
+  const valid = async () =>
+    live() &&
+    (session.credential === undefined || !!(await options.authenticateToken?.(session.credential)));
   /** One SSE frame; a frame over 256 KiB is replaced by a reset. */
   const frame = (batch: EventBatch) => {
     // No await between final access decision and enqueue. Reset rather than disclose
@@ -79,7 +87,7 @@ export function eventStreamResponse(
         };
         try {
           if (!first) await pause(request.signal, options.pollMs ?? 150);
-          if (!live()) return end();
+          if (!(await valid())) return end();
           await options.application.deliverEvents(after, context, (batch) => {
             if (!live()) return end();
             controller.enqueue(frame(batch));

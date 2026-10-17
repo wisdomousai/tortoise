@@ -39,7 +39,7 @@ function CommandDialog({
       label={title}
       className={cn('top-1/3 overflow-hidden rounded-xl! p-0', className)}
     >
-      {children}
+      <Command>{children}</Command>
     </NativeDialog>
   );
 }
