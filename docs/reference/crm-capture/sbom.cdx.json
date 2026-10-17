@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:35d490f1-0964-53e8-91b3-1ac4192940f4",
+  "serialNumber": "urn:uuid:f822ab2e-88e2-57b3-83b3-d55a16fe1d2d",
   "version": 1,
   "metadata": {
     "tools": {
@@ -15752,6 +15752,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/bundle",
+      "name": "@agent-native/bundle",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "packages/bundle"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/client",
       "name": "@agent-native/client",
       "properties": [
@@ -16469,6 +16481,7 @@
         "workspace:@agent-native/agents",
         "workspace:@agent-native/audit",
         "workspace:@agent-native/automation",
+        "workspace:@agent-native/bundle",
         "workspace:@agent-native/client",
         "workspace:@agent-native/compliance",
         "workspace:@agent-native/contracts",
@@ -23741,6 +23754,10 @@
     },
     {
       "ref": "workspace:@agent-native/automation",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/bundle",
       "dependsOn": []
     },
     {

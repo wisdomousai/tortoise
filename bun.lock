@@ -9,6 +9,7 @@
         "@agent-native/agents": "workspace:*",
         "@agent-native/audit": "workspace:*",
         "@agent-native/automation": "workspace:*",
+        "@agent-native/bundle": "workspace:*",
         "@agent-native/client": "workspace:*",
         "@agent-native/compliance": "workspace:*",
         "@agent-native/contracts": "workspace:*",
@@ -152,6 +153,10 @@
       "name": "@agent-native/agents",
       "version": "0.1.0",
     },
+    "packages/bundle": {
+      "name": "@agent-native/bundle",
+      "version": "0.1.0",
+    },
     "packages/client": {
       "name": "@agent-native/client",
       "version": "0.1.0",
@@ -282,6 +287,8 @@
     "@agent-native/audit": ["@agent-native/audit@workspace:plugins/audit"],
 
     "@agent-native/automation": ["@agent-native/automation@workspace:plugins/automation"],
+
+    "@agent-native/bundle": ["@agent-native/bundle@workspace:packages/bundle"],
 
     "@agent-native/client": ["@agent-native/client@workspace:packages/client"],
 
