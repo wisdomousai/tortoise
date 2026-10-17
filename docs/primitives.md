@@ -319,7 +319,7 @@ partial · `plugins/connector-driver` `plugins/process` `examples/quality-inspec
 
 _A library in another language that answers the driver protocol for a driver author: mode gating, once-per-effect delivery with a journal, events and stubs generated from the contract. Each proves itself against the base's reference contract._
 
-partial · `sdks/driver-python`
+partial · `sdks/driver-python` `sdks/driver-dotnet`
 
 ### Reconciliation
 

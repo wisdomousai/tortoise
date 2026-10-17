@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A console runner rather than a test framework: test frameworks are NuGet packages, and
+       this SDK builds offline from the .NET SDK alone. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/AgentNative.Driver/AgentNative.Driver.csproj" />
+  </ItemGroup>
+</Project>

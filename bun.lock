@@ -315,6 +315,10 @@
       "name": "@agent-native/webhook",
       "version": "0.1.0",
     },
+    "sdks/driver-dotnet": {
+      "name": "@agent-native/driver-sdk-dotnet",
+      "version": "0.1.0",
+    },
     "sdks/driver-python": {
       "name": "@agent-native/driver-sdk-python",
       "version": "0.1.0",
@@ -353,6 +357,8 @@
     "@agent-native/device-link": ["@agent-native/device-link@workspace:plugins/device-link"],
 
     "@agent-native/devices": ["@agent-native/devices@workspace:packages/devices"],
+
+    "@agent-native/driver-sdk-dotnet": ["@agent-native/driver-sdk-dotnet@workspace:sdks/driver-dotnet"],
 
     "@agent-native/driver-sdk-python": ["@agent-native/driver-sdk-python@workspace:sdks/driver-python"],
 

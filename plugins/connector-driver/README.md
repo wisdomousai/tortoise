@@ -25,7 +25,8 @@ The site policy binds each driver's process ID to an absolute executable, and op
 
 A driver speaks the protocol in any language. This plugin is the language-neutral base: the contract definition, the wire protocol, the host side and the checks a driver must pass. It depends on no SDK. Each language SDK is its own package under `sdks/`, depends only on this base, and proves itself with the base's reference chamber:
 
-- [`sdks/driver-python`](../../sdks/driver-python/README.md).
+- [`sdks/driver-python`](../../sdks/driver-python/README.md);
+- [`sdks/driver-dotnet`](../../sdks/driver-dotnet/README.md).
 
 An SDK answers the protocol, gates by mode, delivers once per effect with a journal, sends events and generates stubs from `app driver contract <id>`. Its host test runs `checkDriver` and `chamberConformance` against its simulated chamber as a real child process.
 

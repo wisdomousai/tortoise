@@ -247,6 +247,14 @@ The driver connector is a plugin, in line with the `framework-roadmap` D2 connec
 - **Conformance.** The shared conformance suite's lost-reply case now also accepts an effect held on the retry. A driver that crashed after acting learns only on the resend that it may have acted. The dispatcher holds the effect then, too.
 - **Evidence.** The simulated chamber passes `checkDriver` and the suite for every delivery mode, as a real child process, on macOS. It has not run on Linux yet.
 
+The .NET SDK is done, with these changes from the plan:
+
+- **Dependencies.** The base class library only, instead of StreamJsonRpc: no NuGet packages, so the solution builds offline and a published driver bundles nothing extra. Its own tests are a console runner for the same reason. It targets .NET 10.
+- **API.** Same rules and journal format as the Python SDK. `Action<TInput>` takes a synchronous handler and `ActionAsync<TInput>` an async one, so a handler returning null is never ambiguous.
+- **COM.** `HandlerThread` runs every handler on one STA thread on Windows, with awaits returning to it. It relies on the runtime pumping COM messages during managed waits; it is not a Win32 message loop.
+- **Stubs.** Records with `JsonPropertyName`. The chamber stub is committed, and the host test checks it against the generator's output.
+- **Evidence.** On macOS, the SDK's 16 tests pass, and the simulated chamber passes `checkDriver` and the suite for every delivery mode as a real child process. Not run: the STA apartment, COM interop and a `win-x86` build, which need Windows.
+
 ### A5. Remote driver transport and live telemetry (later)
 
 - **mTLS socket transport.** A driver host runs on the machine with the hardware, such as a Windows station PC with the vendor SDK. The authority connects to it through the network port's `socket`, to a declared `site` destination.

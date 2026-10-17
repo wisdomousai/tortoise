@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/AgentNative.Driver/AgentNative.Driver.csproj" />
+  <Project Path="src/AgentNative.Driver.Stubgen/AgentNative.Driver.Stubgen.csproj" />
+  <Project Path="tests/AgentNative.Driver.Tests/AgentNative.Driver.Tests.csproj" />
+  <Project Path="examples/ChamberSim/ChamberSim.csproj" />
+</Solution>
