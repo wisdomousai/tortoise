@@ -189,13 +189,13 @@ implemented · `packages/kernel` `packages/host`
 
 _A cross-cutting part an application composes: modules, a state slice, a policy, ports and lifecycle hooks._
 
-Some concerns belong to many applications but to no domain: a site policy, an audit trail, compliance evidence, a notifier. A plugin has the same three entrypoints as an application, and the application lists its plugins in each of them. Plugins can provide the kernel's ports, hand a service to later plugins, and use each other through the composed ports rather than through imports. A plugin declares the [host platforms](#host-platform) it runs on (absent means Bun only). A plugin can provide settings for other plugins before any of them opens, as a managed-configuration reader would. A plugin runs code at fixed points: before storage opens, before the first request, once a serving host listens (as a delegated caller), and at shutdown in reverse order. `plugins/webhook` stands in for a third-party plugin.
+Some concerns belong to many applications but to no domain: a site policy, an audit trail, compliance evidence, a notifier. A plugin has the same three entrypoints as an application, and the application lists its plugins in each of them. Plugins can provide the kernel's ports, hand a service to later plugins, and use each other through the composed ports rather than through imports. A plugin declares the [host platforms](#host-platform) it runs on (absent means Bun only). A plugin can provide settings for other plugins before any of them opens, as `plugins/managed-config` does with the values device management pushes. A plugin that needs native code on a phone ships an Expo module and names it, and optionally an Expo config plugin, in its manifest; the mobile build links the module and runs the config plugin with the settings the composed plugins declare. A plugin runs code at fixed points: before storage opens, before the first request, once a serving host listens (as a delegated caller), and at shutdown in reverse order. `plugins/webhook` stands in for a third-party plugin.
 
-Guarantees: a plugin's state is its own slice, which the application's upgrade and other plugins cannot rewrite, and its policy decides only its own operations and resource types. The kernel's ports default closed: no network, the platform's own listener (loopback on Bun, none on a platform without ingress) and no event log. A plugin listed on a platform it does not declare refuses startup. Provided settings override launcher settings unless the launcher is a development build; two providers of one key refuse startup. A refusal while opening stops startup before state is opened. Two providers of one port, a supplied setting no plugin claims, and a port a plugin's configuration needs that nobody provides all refuse startup. `check:boundaries` keeps the framework and the starter from importing plugins, and plugins from importing the starter or content.
+Guarantees: a plugin's state is its own slice, which the application's upgrade and other plugins cannot rewrite, and its policy decides only its own operations and resource types. The kernel's ports default closed: no network, the platform's own listener (loopback on Bun, none on a platform without ingress) and no event log. A plugin listed on a platform it does not declare refuses startup. A manifest that names native code without a mobile platform is refused, and a plugin whose native module the build lacks refuses startup with the command that rebuilds it. Provided settings override launcher settings unless the launcher is a development build; two providers of one key refuse startup. A refusal while opening stops startup before state is opened. Two providers of one port, a supplied setting no plugin claims, and a port a plugin's configuration needs that nobody provides all refuse startup. `check:boundaries` keeps the framework and the starter from importing plugins, and plugins from importing the starter or content.
 
-Gaps: plugins are trusted code with the host's privileges. Nothing sandboxes one plugin from another's services. Environment variables that no plugin claims are ignored rather than refused. The kernel fixes the set of port kinds, so a plugin cannot introduce a new one.
+Gaps: plugins are trusted code with the host's privileges. Nothing sandboxes one plugin from another's services. Environment variables that no plugin claims are ignored rather than refused. The kernel fixes the set of port kinds, so a plugin cannot introduce a new one. Native plugin code (Kotlin, Swift) is not compiled by `bun run check`; only the prebuild output and autolinking have been checked.
 
-implemented · `packages/kernel` `packages/host` `packages/frame`
+implemented · `packages/kernel` `packages/host` `packages/frame` `packages/mobile` `plugins/managed-config`
 
 ### Host platform
 
@@ -295,15 +295,15 @@ implemented · `packages/agents`
 
 _Device input normalized into events and routed to an intent without a model turn._
 
-Scanners are callers too. A wedge, serial, HID or camera scanner produces a normalized scan; a configured route turns it into the same command a button or tool call would submit.
+Scanners are callers too. A wedge, serial, HID or camera scanner, or a rugged Android device's scanner app broadcasting an intent, produces a normalized scan; a configured route turns it into the same command a button or tool call would submit.
 
 Guarantees: sources are registered explicitly. Decoding validates GS1 check digits and AIM symbologies and corrects keyboard-layout mismatch. Routes are site configuration.
 
 Each non-wedge source is declared as a device requirement, so the security manifest lists it.
 
-Gaps: no source has been checked on real hardware. Device access is declared but not mediated.
+Gaps: no source has been checked on real hardware. Device access is declared but not mediated. The intent receiver accepts broadcasts from any app unless the profile names a sender permission.
 
-implemented · `packages/devices`
+implemented · `packages/devices` `plugins/intent-scanner`
 
 ### UI registry
 

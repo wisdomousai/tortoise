@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:f531fe23-b2ce-58c3-868b-91354f680e08",
+  "serialNumber": "urn:uuid:1ae2be15-9066-5ffa-a7c9-ca06ca2e562c",
   "version": 1,
   "metadata": {
     "tools": {
@@ -15884,6 +15884,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/intent-scanner",
+      "name": "@agent-native/intent-scanner",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/intent-scanner"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/kernel",
       "name": "@agent-native/kernel",
       "properties": [
@@ -15902,6 +15914,18 @@
         {
           "name": "workspace:path",
           "value": "examples/line-station"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "bom-ref": "workspace:@agent-native/managed-config",
+      "name": "@agent-native/managed-config",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/managed-config"
         }
       ],
       "scope": "required"
@@ -16360,8 +16384,10 @@
         "workspace:@agent-native/frame-native",
         "workspace:@agent-native/host",
         "workspace:@agent-native/integration",
+        "workspace:@agent-native/intent-scanner",
         "workspace:@agent-native/kernel",
         "workspace:@agent-native/line-station",
+        "workspace:@agent-native/managed-config",
         "workspace:@agent-native/mobile",
         "workspace:@agent-native/network",
         "workspace:@agent-native/operator-ui",
@@ -23662,11 +23688,19 @@
       "dependsOn": []
     },
     {
+      "ref": "workspace:@agent-native/intent-scanner",
+      "dependsOn": []
+    },
+    {
       "ref": "workspace:@agent-native/kernel",
       "dependsOn": []
     },
     {
       "ref": "workspace:@agent-native/line-station",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/managed-config",
       "dependsOn": []
     },
     {

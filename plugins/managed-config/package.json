@@ -1,0 +1,14 @@
+{
+  "name": "@agent-native/managed-config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Managed configuration host plugin: settings pushed through device management (Android app restrictions, iOS managed app configuration) become plugin settings.",
+  "exports": {
+    "./plugin-manifest": "./src/plugin-manifest.ts",
+    "./plugin": "./src/expo/plugin.ts",
+    "./managed-config": "./src/managed-config.ts",
+    "./app.plugin": "./app.plugin.js",
+    "./app.plugin.js": "./app.plugin.js"
+  }
+}

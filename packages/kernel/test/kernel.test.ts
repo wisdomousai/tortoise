@@ -401,4 +401,16 @@ test('application targets must be known and every plugin must run on each', () =
   expect(() => definePluginManifest({ id: 'p', title: 'P', platforms: [] })).toThrow(
     'lists no platform',
   );
+  // Native code needs a phone platform, a config plugin a package specifier, a module a name.
+  expect(() =>
+    definePluginManifest({ id: 'p', title: 'P', native: { module: 'Scanner' } }),
+  ).toThrow('brings native code but lists neither android nor ios');
+  const native = (value: object) =>
+    definePluginManifest({ id: 'p', title: 'P', platforms: ['android'], native: value });
+  expect(() => native({ expoPlugin: '../../escape' })).toThrow('invalid Expo config plugin');
+  expect(() => native({ module: 'not a name' })).toThrow('invalid native module name');
+  expect(native({ expoPlugin: '@agent-native/p/app.plugin', module: 'Scanner' }).native).toEqual({
+    expoPlugin: '@agent-native/p/app.plugin',
+    module: 'Scanner',
+  });
 });

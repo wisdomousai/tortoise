@@ -8,3 +8,4 @@ export {
   type MobileAuthority,
   type MobileAuthorityOptions,
 } from './authority';
+export { requirePluginNativeModule, type NativeModuleLookup } from './native-module';

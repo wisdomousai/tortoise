@@ -9,9 +9,11 @@ const root = resolve(import.meta.dir, '..');
  * Write the mobile app's entry for the application `app.config.json` names for mobile. Metro
  * bundles only what it can see, so the starter imports `virtual:agent-native/mobile-entry` and
  * Metro maps it to this file; the starter's source never names content. The entry imports the
- * application's server definition and its `screens-native`. Fails when the application does not
- * list `mobile` among its targets; `defineManifest` has already refused plugins that cannot run
- * there. Returns the entry path and the application specifier.
+ * application's server definition and its `screens-native`. Beside it, `native.json` lists the
+ * Expo config plugins of the composed plugins with `{ application, settings }`, which
+ * `app.config.ts` passes to `expo prebuild`. Fails when the application does not list `mobile`
+ * among its targets; `defineManifest` has already refused plugins that cannot run there. Returns
+ * the entry path and the application specifier.
  */
 export async function writeMobileEntry({
   configPath = join(root, 'app.config.json'),
@@ -40,9 +42,26 @@ export async function writeMobileEntry({
     '',
     'export default { application, screens };',
   ];
+  const plugins = manifest.plugins ?? [];
+  const settings = plugins
+    .flatMap((plugin) => plugin.settings ?? [])
+    .map(({ key, description }) => ({ key, description }));
+  const native = {
+    plugins: plugins.flatMap((plugin) =>
+      plugin.native?.expoPlugin
+        ? [
+            [
+              plugin.native.expoPlugin,
+              { application: { id: manifest.id, title: manifest.title }, settings },
+            ],
+          ]
+        : [],
+    ),
+  };
   await mkdir(directory, { recursive: true });
   const entry = join(directory, 'entry.ts');
   await writeFile(entry, lines.join('\n') + '\n');
+  await writeFile(join(directory, 'native.json'), JSON.stringify(native, null, 2) + '\n');
   return { entry, application: config.application };
 }
 

@@ -14,19 +14,19 @@ Layer: framework (`packages/*`). `@agent-native/host` re-exports the definition 
 
 ## Entrypoints
 
-| Import                                 | Runs in  | Contents                                                                                                                      |
-| -------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `@agent-native/kernel`                 | any host | The public API listed under Primitives.                                                                                       |
-| `@agent-native/kernel/*`               | any host | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                        |
-| `@agent-native/kernel/manifest`        | browser  | `defineManifest` and the application's `targets` (`desktop`, `web`, `mobile`), checked against each plugin's `platforms`.     |
-| `@agent-native/kernel/plugin-manifest` | browser  | `definePluginManifest`, `PluginSetting`, `platformIds`. `platforms` absent means the plugin runs only on `bun`.               |
-| `@agent-native/kernel/plugin`          | any host | `defineHostPlugin`, the port types and the lifecycle contexts. `NetworkPort.socket` and `childEnvironment` are optional here. |
-| `@agent-native/kernel/application`     | any host | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                |
-| `@agent-native/kernel/integrations`    | any host | `combineIntegrations`: one delivery and sync loop over the application's connections.                                         |
-| `@agent-native/kernel/components`      | any host | `deploymentComponents`, `deploymentCatalog`, `deploymentRequirements`, each taking the platform's own components.             |
-| `@agent-native/kernel/platform`        | any host | `HostPlatform`, `PlatformOwnership`, `PlatformCapability`, `assertPlatformSupports`.                                          |
-| `@agent-native/kernel/authority`       | any host | `openAuthority`, `LOCAL_WORKSPACE`, `LOCAL_OWNER`.                                                                            |
-| `@agent-native/kernel/globals`         | any host | `installGlobals`, `assertGlobals`, `missingGlobals`.                                                                          |
+| Import                                 | Runs in  | Contents                                                                                                                                                                                                         |
+| -------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/kernel`                 | any host | The public API listed under Primitives.                                                                                                                                                                          |
+| `@agent-native/kernel/*`               | any host | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                                                                                                           |
+| `@agent-native/kernel/manifest`        | browser  | `defineManifest` and the application's `targets` (`desktop`, `web`, `mobile`), checked against each plugin's `platforms`.                                                                                        |
+| `@agent-native/kernel/plugin-manifest` | browser  | `definePluginManifest`, `PluginSetting`, `PluginNative`, `platformIds`. `platforms` absent means the plugin runs only on `bun`; `native` names an Expo module and config plugin and requires `android` or `ios`. |
+| `@agent-native/kernel/plugin`          | any host | `defineHostPlugin`, the port types and the lifecycle contexts. `NetworkPort.socket` and `childEnvironment` are optional here.                                                                                    |
+| `@agent-native/kernel/application`     | any host | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                                                                                                   |
+| `@agent-native/kernel/integrations`    | any host | `combineIntegrations`: one delivery and sync loop over the application's connections.                                                                                                                            |
+| `@agent-native/kernel/components`      | any host | `deploymentComponents`, `deploymentCatalog`, `deploymentRequirements`, each taking the platform's own components.                                                                                                |
+| `@agent-native/kernel/platform`        | any host | `HostPlatform`, `PlatformOwnership`, `PlatformCapability`, `assertPlatformSupports`.                                                                                                                             |
+| `@agent-native/kernel/authority`       | any host | `openAuthority`, `LOCAL_WORKSPACE`, `LOCAL_OWNER`.                                                                                                                                                               |
+| `@agent-native/kernel/globals`         | any host | `installGlobals`, `assertGlobals`, `missingGlobals`.                                                                                                                                                             |
 
 `plugins/compose`, `plugins/ports`, `plugins/settings` and `plugins/lifecycle` are importable by path for the host's wrappers; prefer the root export.
 

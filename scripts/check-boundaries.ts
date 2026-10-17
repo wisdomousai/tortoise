@@ -30,6 +30,17 @@ async function files(directory: string): Promise<string[]> {
   return result;
 }
 const all = await files(root);
+// A plugin whose manifest lists Android or iOS runs its server part on Hermes, so all of its
+// source is portable, like the kernel's.
+const mobilePlugins: string[] = [];
+for (const file of all) {
+  const plugin = /^plugins\/([^/]+)\/src\/plugin-manifest\.ts$/.exec(relative(root, file));
+  if (plugin && /platforms:\s*\[[^\]]*'(?:android|ios)'/.test(await readFile(file, 'utf8')))
+    mobilePlugins.push(plugin[1]!);
+}
+const isPortable = (name: string) =>
+  portableSource.test(name) ||
+  mobilePlugins.some((plugin) => name.startsWith(`plugins/${plugin}/src/`));
 /** Comments mention APIs without calling them. */
 const withoutComments = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
@@ -127,10 +138,10 @@ for (const file of all) {
         (dependency.startsWith('.') && hostSourcePath.test(resolve(file, '..', dependency))))
     )
       errors.push(`${name}: browser imports host module ${dependency}`);
-    if (portableSource.test(name) && !portableImport(file, dependency))
+    if (isPortable(name) && !portableImport(file, dependency))
       errors.push(`${name}: portable source imports ${dependency}, which needs Node or Bun`);
   }
-  if (portableSource.test(name) && nonPortableGlobal.test(withoutComments(source)))
+  if (isPortable(name) && nonPortableGlobal.test(withoutComments(source)))
     errors.push(`${name}: portable source uses a Node or Bun global`);
 }
 /** Whether portable source may import `dependency`: no built-in or Bun-only package, and a
@@ -140,7 +151,7 @@ function portableImport(file: string, dependency: string) {
   // A stylesheet is compiled by the bundler (Uniwind on React Native), not run.
   if (!dependency.startsWith('.') || dependency.endsWith('.css')) return true;
   const target = relative(root, resolve(file, '..', dependency)).replaceAll('\\', '/');
-  return [target, `${target}.ts`, `${target}.tsx`].some((path) => portableSource.test(path));
+  return [target, `${target}.ts`, `${target}.tsx`].some(isPortable);
 }
 // Server code connects to other hosts only through the egress guard; see `egressExemptions`.
 const exemptionUsed = new Set<string>();

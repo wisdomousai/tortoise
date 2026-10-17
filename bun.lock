@@ -19,8 +19,10 @@
         "@agent-native/frame-native": "workspace:*",
         "@agent-native/host": "workspace:*",
         "@agent-native/integration": "workspace:*",
+        "@agent-native/intent-scanner": "workspace:*",
         "@agent-native/kernel": "workspace:*",
         "@agent-native/line-station": "workspace:*",
+        "@agent-native/managed-config": "workspace:*",
         "@agent-native/mobile": "workspace:*",
         "@agent-native/network": "workspace:*",
         "@agent-native/operator-ui": "workspace:*",
@@ -107,6 +109,11 @@
     "apps/mobile": {
       "name": "@agent-native/mobile-shell",
       "version": "0.1.0",
+      "dependencies": {
+        "expo": "58.0.14",
+        "react": "19.3.0",
+        "react-native": "0.88.0",
+      },
     },
     "apps/service": {
       "name": "@agent-native/service",
@@ -216,6 +223,14 @@
       "name": "@agent-native/compliance",
       "version": "0.1.0",
     },
+    "plugins/intent-scanner": {
+      "name": "@agent-native/intent-scanner",
+      "version": "0.1.0",
+    },
+    "plugins/managed-config": {
+      "name": "@agent-native/managed-config",
+      "version": "0.1.0",
+    },
     "plugins/network": {
       "name": "@agent-native/network",
       "version": "0.1.0",
@@ -265,9 +280,13 @@
 
     "@agent-native/integration": ["@agent-native/integration@workspace:packages/integration"],
 
+    "@agent-native/intent-scanner": ["@agent-native/intent-scanner@workspace:plugins/intent-scanner"],
+
     "@agent-native/kernel": ["@agent-native/kernel@workspace:packages/kernel"],
 
     "@agent-native/line-station": ["@agent-native/line-station@workspace:examples/line-station"],
+
+    "@agent-native/managed-config": ["@agent-native/managed-config@workspace:plugins/managed-config"],
 
     "@agent-native/mobile": ["@agent-native/mobile@workspace:packages/mobile"],
 

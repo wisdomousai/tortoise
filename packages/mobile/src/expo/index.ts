@@ -25,3 +25,4 @@ export function expoPlatform() {
 export { expoBlobStore } from './blob-store';
 export { expoSqlDriver } from './sql-driver';
 export { defineBackgroundDelivery, followAppState } from './lifecycle';
+export { pluginNativeModule } from './native-module';

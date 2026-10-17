@@ -5,9 +5,18 @@ import { keyboardLayouts } from './layouts';
  * How one scanner at one station reaches the application and how its output is normalized.
  * Cheap scanners are keyboard-wedge (USB HID keyboard) devices; mid-range ones add a virtual COM
  * port; expensive ones speak HID POS or have a vendor SDK; a tablet camera is the fallback.
+ * Rugged Android devices deliver scans as broadcast intents (`intent`), configured in the
+ * vendor's scanner app.
  * Every field is plain JSON so profiles can be stored through the device configuration module.
  */
-export const scannerTransports = ['wedge', 'serial', 'hid-pos', 'camera', 'host-plugin'] as const;
+export const scannerTransports = [
+  'wedge',
+  'serial',
+  'hid-pos',
+  'camera',
+  'host-plugin',
+  'intent',
+] as const;
 export type ScannerTransport = (typeof scannerTransports)[number];
 
 const shortText = z.string().max(16);
@@ -49,6 +58,28 @@ export const scannerProfileSchema = z.strictObject({
       reportId: z.number().int().min(0).max(255).optional(),
       lengthByte: z.number().int().min(0).max(63),
       dataOffset: z.number().int().min(0).max(63),
+    })
+    .optional(),
+  /**
+   * Android broadcast intent the device's scanner app sends per scan: its action and the string
+   * extra that carries the data. `senderPermission`, when set, is a permission the sender must
+   * hold, so other apps cannot inject scans.
+   */
+  intent: z
+    .strictObject({
+      action: z
+        .string()
+        .max(200)
+        .regex(/^[A-Za-z][\w]*(?:\.[A-Za-z_][\w]*)+$/),
+      dataExtra: z
+        .string()
+        .max(200)
+        .regex(/^[A-Za-z][\w.]*$/),
+      senderPermission: z
+        .string()
+        .max(200)
+        .regex(/^[A-Za-z][\w]*(?:\.[A-Za-z_][\w]*)+$/)
+        .optional(),
     })
     .optional(),
   /** Ignore an identical camera read within this window. */

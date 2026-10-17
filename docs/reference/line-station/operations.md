@@ -809,6 +809,31 @@ Output:
             "pattern": "^[a-z0-9][a-z0-9-]*$",
             "type": "string"
           },
+          "intent": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+                "type": "string"
+              },
+              "dataExtra": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w.]*$",
+                "type": "string"
+              },
+              "senderPermission": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "action",
+              "dataExtra"
+            ],
+            "type": "object"
+          },
           "label": {
             "maxLength": 100,
             "minLength": 1,
@@ -883,7 +908,8 @@ Output:
               "serial",
               "hid-pos",
               "camera",
-              "host-plugin"
+              "host-plugin",
+              "intent"
             ],
             "type": "string"
           }
@@ -1089,6 +1115,31 @@ Output:
             "pattern": "^[a-z0-9][a-z0-9-]*$",
             "type": "string"
           },
+          "intent": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+                "type": "string"
+              },
+              "dataExtra": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w.]*$",
+                "type": "string"
+              },
+              "senderPermission": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "action",
+              "dataExtra"
+            ],
+            "type": "object"
+          },
           "label": {
             "maxLength": 100,
             "minLength": 1,
@@ -1163,7 +1214,8 @@ Output:
               "serial",
               "hid-pos",
               "camera",
-              "host-plugin"
+              "host-plugin",
+              "intent"
             ],
             "type": "string"
           }
@@ -1338,6 +1390,31 @@ Output:
             "pattern": "^[a-z0-9][a-z0-9-]*$",
             "type": "string"
           },
+          "intent": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+                "type": "string"
+              },
+              "dataExtra": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w.]*$",
+                "type": "string"
+              },
+              "senderPermission": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "action",
+              "dataExtra"
+            ],
+            "type": "object"
+          },
           "label": {
             "maxLength": 100,
             "minLength": 1,
@@ -1412,7 +1489,8 @@ Output:
               "serial",
               "hid-pos",
               "camera",
-              "host-plugin"
+              "host-plugin",
+              "intent"
             ],
             "type": "string"
           }
@@ -1518,6 +1596,31 @@ Input:
           "pattern": "^[a-z0-9][a-z0-9-]*$",
           "type": "string"
         },
+        "intent": {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "maxLength": 200,
+              "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+              "type": "string"
+            },
+            "dataExtra": {
+              "maxLength": 200,
+              "pattern": "^[A-Za-z][\\w.]*$",
+              "type": "string"
+            },
+            "senderPermission": {
+              "maxLength": 200,
+              "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "action",
+            "dataExtra"
+          ],
+          "type": "object"
+        },
         "label": {
           "maxLength": 100,
           "minLength": 1,
@@ -1592,7 +1695,8 @@ Input:
             "serial",
             "hid-pos",
             "camera",
-            "host-plugin"
+            "host-plugin",
+            "intent"
           ],
           "type": "string"
         }
@@ -1725,6 +1829,31 @@ Output:
             "pattern": "^[a-z0-9][a-z0-9-]*$",
             "type": "string"
           },
+          "intent": {
+            "additionalProperties": false,
+            "properties": {
+              "action": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+                "type": "string"
+              },
+              "dataExtra": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w.]*$",
+                "type": "string"
+              },
+              "senderPermission": {
+                "maxLength": 200,
+                "pattern": "^[A-Za-z][\\w]*(?:\\.[A-Za-z_][\\w]*)+$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "action",
+              "dataExtra"
+            ],
+            "type": "object"
+          },
           "label": {
             "maxLength": 100,
             "minLength": 1,
@@ -1799,7 +1928,8 @@ Output:
               "serial",
               "hid-pos",
               "camera",
-              "host-plugin"
+              "host-plugin",
+              "intent"
             ],
             "type": "string"
           }

@@ -38,6 +38,7 @@
     "packages/frame-native/src/frame.tsx",
     "packages/frame-native/src/session.tsx",
     "packages/frame-native/src/components",
-    "packages/frame-native/src/native-env.d.ts"
+    "packages/frame-native/src/native-env.d.ts",
+    "plugins/*/src/expo"
   ]
 }

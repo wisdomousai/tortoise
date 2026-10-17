@@ -63,6 +63,38 @@ test('the entry imports the application and its native screens by relative path'
   expect(source).toContain('from "../../fixture/application";');
   expect(source).toContain('from "../../fixture/screens-native";');
   expect(source).not.toContain(root);
+  expect(JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'))).toEqual({ plugins: [] });
+});
+
+test('native.json lists config plugins with the application and every declared setting', async () => {
+  // Inside the repository, so the manifest resolves the kernel; git ignores `generated/`.
+  const field = scratch(join(root, 'apps/mobile/generated'));
+  writeFileSync(
+    join(field, 'manifest.ts'),
+    [
+      "import { defineManifest } from '@agent-native/kernel/manifest';",
+      "import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';",
+      "const mdm = definePluginManifest({ id: 'mdm', title: 'MDM', platforms: ['android', 'ios'], native: { module: 'Mdm', expoPlugin: '@example/mdm/app.plugin' } });",
+      "const scan = definePluginManifest({ id: 'scan', title: 'Scan', platforms: ['android'], native: { module: 'Scan' } });",
+      "const link = definePluginManifest({ id: 'link', title: 'Link', platforms: ['android', 'ios'], settings: [{ key: 'hub-url', env: 'HUB_URL', kind: 'string', description: 'Hub origin' }] });",
+      "export default defineManifest({ id: 'field', title: 'Field', modules: [], plugins: [mdm, scan, link], targets: ['mobile'] });",
+      '',
+    ].join('\n'),
+  );
+  const directory = scratch();
+  await writeMobileEntry({ directory, env: { AGENT_NATIVE_MOBILE_APPLICATION: field } });
+  // Only plugins that name a config plugin are listed; a module alone is autolinked.
+  expect(JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'))).toEqual({
+    plugins: [
+      [
+        '@example/mdm/app.plugin',
+        {
+          application: { id: 'field', title: 'Field' },
+          settings: [{ key: 'hub-url', description: 'Hub origin' }],
+        },
+      ],
+    ],
+  });
 });
 
 test('an application that does not target mobile is refused', async () => {
