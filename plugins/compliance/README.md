@@ -6,7 +6,8 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `c
 
 ## Primitives
 
-- [Compliance bundle](../../docs/primitives.md#compliance-bundle): `securityManifest`, `dataFlowsMarkdown`, `controls`, `controlsMarkdown`, `cycloneDx`, `assessPosture`, `createPostureMonitor`, `complianceModule`, `createComplianceHandlers`, `compliancePlugin`, `compliancePluginManifest`, `complianceScreens`, `complianceCommand`, `complianceCliCommand`.
+- [Compliance bundle](../../docs/primitives.md#compliance-bundle): `securityManifest`, `dataFlowsMarkdown`, `osManifest`, `osTables`, `controls`, `controlsMarkdown`, `cycloneDx`, `assessPosture`, `createPostureMonitor`, `complianceModule`, `createComplianceHandlers`, `compliancePlugin`, `compliancePluginManifest`, `complianceScreens`, `complianceCommand`, `complianceCliCommand`.
+- [OS handler](../../docs/primitives.md#os-handler) and [OS action](../../docs/primitives.md#os-action): the manifest's `os` section lists handlers as local ingress and actions with their data classes, and the data-flow document adds a table for each when any are declared.
 - [Host plugin](../../docs/primitives.md#host-plugin): `compliancePlugin` requires `site` and `audit` and reads their services. It is written only against `@agent-native/host/plugin`.
 - [UI registry](../../docs/primitives.md#ui-registry): `compliance-screen`, the plugin's own shadcn registry in [`registry.json`](registry.json).
 
@@ -56,7 +57,7 @@ bun test plugins/compliance
 
 `test/compliance.test.ts`:
 
-- manifest ownership and a deterministic SBOM;
+- manifest ownership, the OS handler and action section, and a deterministic SBOM;
 - controls whose evidence exists;
 - posture findings and `posture.checked`;
 - audit-event paging;

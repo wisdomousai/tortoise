@@ -17,23 +17,23 @@ Each example's `manifest.ts` and `application.ts` show the two content entrypoin
 
 ## Entrypoints
 
-| Import                                 | Runs in     | Contents                                                                                                                       |
-| -------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `@agent-native/host`                   | server only | The public API listed under Primitives.                                                                                        |
-| `@agent-native/host/*`                 | server only | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                         |
-| `@agent-native/host/manifest`          | browser     | `defineManifest`: an application's id, title and modules. Imports no host code.                                                |
-| `@agent-native/host/plugin-manifest`   | browser     | `definePluginManifest`, `PluginSetting`: a plugin's id, modules, components and settings. Imports no host code.                |
-| `@agent-native/host/plugin`            | server only | The kernel's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket` and `childEnvironment`. |
-| `@agent-native/host/application`       | server only | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                 |
-| `@agent-native/host/config`            | server only | `app.config.json` reading and runtime resolution of the configured application (`loadApplication`, `loadManifest`).            |
-| `@agent-native/host/serve`             | server only | `serve`: run the HTTP authority until SIGINT/SIGTERM; the first stdout line is a `listening` JSON record.                      |
-| `@agent-native/host/cli`               | server only | `createCli`: catalog-derived CLI with `serve`, `mcp`, `drain`, `sync` and attached or `--embedded` authorities.                |
-| `@agent-native/host/platform/bun`      | server only | `bunPlatform` and `workspaceStorage`: the kernel's host platform on Bun.                                                       |
-| `@agent-native/host/embedded`          | server only | `openEmbeddedAuthority`, `workspaceStorage`, `LOCAL_OWNER`, `LOCAL_WORKSPACE`.                                                 |
-| `@agent-native/host/components`        | server only | The host's own declared requirements (listener, providers), `deploymentCatalog` and `deploymentRequirements`.                  |
-| `@agent-native/host/providers`         | server only | `createProviderAccess`: provider accounts, API-key funding and harness construction.                                           |
-| `@agent-native/host/runtime-manifest`  | server only | Digest checks for the packaged service and its shipped site policy.                                                            |
-| `@agent-native/host/optional-packages` | server only | Packages loaded only when an optional adapter is configured; standalone builds keep them external.                             |
+| Import                                 | Runs in     | Contents                                                                                                                             |
+| -------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `@agent-native/host`                   | server only | The public API listed under Primitives.                                                                                              |
+| `@agent-native/host/*`                 | server only | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                               |
+| `@agent-native/host/manifest`          | browser     | `defineManifest`: an application's id, title and modules. Imports no host code.                                                      |
+| `@agent-native/host/plugin-manifest`   | browser     | `definePluginManifest`, `PluginSetting`: a plugin's id, modules, components and settings. Imports no host code.                      |
+| `@agent-native/host/plugin`            | server only | The kernel's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket` and `childEnvironment`.       |
+| `@agent-native/host/application`       | server only | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                       |
+| `@agent-native/host/config`            | server only | `app.config.json` reading, the URL scheme, and runtime resolution of the configured application (`loadApplication`, `loadManifest`). |
+| `@agent-native/host/serve`             | server only | `serve`: run the HTTP authority until SIGINT/SIGTERM; the first stdout line is a `listening` JSON record.                            |
+| `@agent-native/host/cli`               | server only | `createCli`: catalog-derived CLI with `serve`, `mcp`, `drain`, `sync` and attached or `--embedded` authorities.                      |
+| `@agent-native/host/platform/bun`      | server only | `bunPlatform` and `workspaceStorage`: the kernel's host platform on Bun.                                                             |
+| `@agent-native/host/embedded`          | server only | `openEmbeddedAuthority`, `workspaceStorage`, `LOCAL_OWNER`, `LOCAL_WORKSPACE`.                                                       |
+| `@agent-native/host/components`        | server only | The host's own declared requirements (listener, providers), `deploymentCatalog` and `deploymentRequirements`.                        |
+| `@agent-native/host/providers`         | server only | `createProviderAccess`: provider accounts, API-key funding and harness construction.                                                 |
+| `@agent-native/host/runtime-manifest`  | server only | Digest checks for the packaged service and its shipped site policy.                                                                  |
+| `@agent-native/host/optional-packages` | server only | Packages loaded only when an optional adapter is configured; standalone builds keep them external.                                   |
 
 `host` and `integrations` are also importable by path; prefer the root export.
 
@@ -66,4 +66,4 @@ bun test packages/host
 bun run test:service
 ```
 
-`test/plugins.test.ts` covers plugin composition and the kernel ports: manifest merge and collisions, list order and `requires`, slices kept across upgrades, policy routing, open order, cleanup after a failed open, duplicate ports, null defaults, claimed settings, `ready` in an embedded authority and `start` as a delegated caller. `test/providers.test.ts` covers provider access: no credential reads at startup, single-use OAuth callbacks bound to their session, explicit API-key funding and no leaked provider error text. Host behavior against real operations is tested in content: each example's `test/application.test.ts`, and `examples/project-tasks/test/host.test.ts`, `hardening.test.ts` and `security-conformance.test.ts`.
+`test/config.test.ts` covers the URL scheme: its default from the application ID and the refusal of reserved or malformed schemes. `test/plugins.test.ts` covers plugin composition and the kernel ports: manifest merge and collisions, list order and `requires`, slices kept across upgrades, policy routing, open order, cleanup after a failed open, duplicate ports, null defaults, claimed settings, `ready` in an embedded authority and `start` as a delegated caller. `test/providers.test.ts` covers provider access: no credential reads at startup, single-use OAuth callbacks bound to their session, explicit API-key funding and no leaked provider error text. Host behavior against real operations is tested in content: each example's `test/application.test.ts`, and `examples/project-tasks/test/host.test.ts`, `hardening.test.ts` and `security-conformance.test.ts`.

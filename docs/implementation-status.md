@@ -170,6 +170,12 @@ The host platform is shown on a fake platform: `packages/kernel/test/kernel.test
 
 **Not shown.** No platform other than Bun exists, and the globals check has not run under Hermes. The shell is a placeholder: no authority, screens or plugins run on a device. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
 
+### OS integration
+
+**Shown, deterministic.** Modules and host components declare OS handlers and OS actions. The catalog validates them (`packages/contracts/test/os.test.ts`), and the security manifest and data-flow document list them (`plugins/compliance/test/compliance.test.ts`). The URL scheme comes from the application identity and refuses reserved schemes (`packages/host/test/config.test.ts`).
+
+**Not shown.** Nothing is registered with, received from or performed through the OS on any platform yet. No shell port, adapter or OS plugin exists.
+
 ### Layers and scaffold
 
 **Shown, deterministic.** The boundary check resolves imports by layer, including workspace package names and the browser graph of each application. A single-example export installs with a frozen lockfile and passes its own checks.

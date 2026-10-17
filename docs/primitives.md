@@ -291,6 +291,36 @@ Gaps: no source has been checked on real hardware. Device access is declared but
 
 implemented · `packages/devices`
 
+### OS handler
+
+_A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or reply, and where its requests go._
+
+Other applications on the device are callers too: a link clicked in a mail client, a file opened from Finder, text shared from a browser. A module or host component declares what it registers and a target for each request: open a selectable resource, navigate to a screen, prefill a command's form, or hand the request to a composed plugin. Platform registrations (Electron packaging, Expo configuration, the web manifest) are generated from the same declarations, so nothing registers at runtime. The URL scheme comes from the application identity, so content declares paths and never names the product.
+
+Guarantees: composition refuses duplicate ids, two handlers on one path shape, file extension or media type, a template naming a field the request does not carry, a prefill whose command has no UI binding or whose keys are not input fields, and payload limits outside 1 byte to 1 MiB of text or 256 MiB of blob. The security manifest lists every handler as local ingress.
+
+Gaps: requests are not yet received or delivered on any platform. An unsolicited request is meant only to open or prefill, with a person confirming; that rule is not enforced until the shell port exists.
+
+proposed · `packages/contracts` `plugins/compliance`
+
+### OS action
+
+_A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it carries._
+
+The outbound counterpart of an OS handler. An application can only ask the OS for what it declared, and the URL or path is built from the declaration's template, never from a caller's string, so no generic URL-opening method exists for an agent or a page. A notify action can carry an outbox target, so a command's effect becomes a notification.
+
+Guarantees: an open action is `https:`, `mailto:` or `tel:` with a fixed host and no credentials, query or fragment, and its placeholders must be declared parameters. A notify action's replies must name declared reply handlers, and one that carries an outbox target must queue while offline. The security manifest lists each action with its data classes.
+
+Gaps: no action is performed yet; the desktop still opens the provider authorization page through its own check.
+
+proposed · `packages/contracts` `plugins/compliance`
+
+### Shell port
+
+_The kernel port that receives OS requests and performs OS actions; its default refuses both._
+
+proposed
+
 ### UI registry
 
 _Reusable screen parts published as shadcn registries over stock shadcn primitives._

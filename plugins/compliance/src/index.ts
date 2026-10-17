@@ -16,6 +16,7 @@ export {
   type DataFlow,
   type SecurityManifest,
 } from './manifest';
+export { osManifest, osTables, type OsManifest } from './os-manifest';
 export { controls, controlsMarkdown, type Control } from './controls';
 export { cycloneDx, parseBunLock, type SbomOptions } from './sbom';
 export {

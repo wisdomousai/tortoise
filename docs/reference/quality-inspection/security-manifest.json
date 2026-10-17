@@ -226,6 +226,10 @@
       "auditFields": []
     }
   ],
+  "os": {
+    "handlers": [],
+    "actions": []
+  },
   "summary": {
     "egress": 5,
     "ingress": 1,
