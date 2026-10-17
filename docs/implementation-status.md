@@ -168,7 +168,9 @@ Control mappings are indicative, not a certification.
 
 The host platform is shown on a fake platform: `packages/kernel/test/kernel.test.ts` opens, closes and reopens an authority on an in-memory platform with no Node or Bun API, and checks the platform, capability, settings-provider and target refusals. The Bun host opens its embedded and serving authorities through the same kernel path, and the host and example suites pass unchanged. `bun run test:portable` runs the kernel, runtime, client and integration suites with `structuredClone`, `AbortSignal.any`, `AbortSignal.timeout` and `crypto.randomUUID` removed and the kernel's replacements installed. The audit and event-log hash chains use a pure JavaScript SHA-256 that produces the same digests as before.
 
-**Not shown.** No platform other than Bun exists, and the globals check has not run under Hermes. The shell is a placeholder: no authority, screens or plugins run on a device. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
+The mobile platform opens the same authority in Bun tests with Bun's SQLite and files in place of Expo's: a capture with a photo persists across close and reopen, a second open is refused, and a deployment with an ingress destination is refused. The snapshot storage runs over one driver interface for `bun:sqlite` and `expo-sqlite`, and the storage conformance suite passes on the Bun driver.
+
+**Not shown.** The mobile platform has not run on a device: the Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes. The shell is a placeholder: no authority, screens or plugins run on a device. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
 
 ### Layers and scaffold
 

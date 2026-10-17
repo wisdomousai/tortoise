@@ -20,6 +20,7 @@
         "@agent-native/integration": "workspace:*",
         "@agent-native/kernel": "workspace:*",
         "@agent-native/line-station": "workspace:*",
+        "@agent-native/mobile": "workspace:*",
         "@agent-native/network": "workspace:*",
         "@agent-native/operator-ui": "workspace:*",
         "@agent-native/project-tasks": "workspace:*",
@@ -173,6 +174,10 @@
       "name": "@agent-native/kernel",
       "version": "0.1.0",
     },
+    "packages/mobile": {
+      "name": "@agent-native/mobile",
+      "version": "0.1.0",
+    },
     "packages/operator-ui": {
       "name": "@agent-native/operator-ui",
       "version": "0.1.0",
@@ -255,6 +260,8 @@
     "@agent-native/kernel": ["@agent-native/kernel@workspace:packages/kernel"],
 
     "@agent-native/line-station": ["@agent-native/line-station@workspace:examples/line-station"],
+
+    "@agent-native/mobile": ["@agent-native/mobile@workspace:packages/mobile"],
 
     "@agent-native/mobile-shell": ["@agent-native/mobile-shell@workspace:apps/mobile"],
 

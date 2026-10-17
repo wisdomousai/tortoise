@@ -21,6 +21,10 @@
     "packages/kernel/src",
     "packages/adapters/src/application-port.ts",
     "packages/adapters/src/direct-transport.ts",
+    "packages/adapters/src/sql-driver.ts",
+    "packages/adapters/src/snapshot-storage.ts",
+    "packages/adapters/src/exclusive-lock.ts",
+    "packages/mobile/src",
     "packages/event-log/src/chain.ts",
     "packages/event-log/src/memory.ts",
     "packages/event-log/src/forward.ts"

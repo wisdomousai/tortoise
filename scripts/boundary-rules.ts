@@ -96,10 +96,10 @@ export const egressExemptions: Readonly<Record<string, string>> = {
  * reach Node or Bun, nor a server-only package, so the mobile bundle never pulls one in.
  */
 export const portableSource =
-  /^(?:packages\/(?:contracts|runtime|client|integration|kernel)\/src\/|packages\/adapters\/src\/(?:application-port|direct-transport)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|apps\/mobile\/(?:index\.ts$|src\/))/;
+  /^(?:packages\/(?:contracts|runtime|client|integration|kernel)\/src\/|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/))/;
 /** Imports portable source may not make: Node and Bun built-ins and the Bun-only packages. */
 export const portableForbiddenImport =
-  /^(?:node:|bun:|@agent-native\/(?:host|agents|egress|station)(?:\/|$)|@agent-native\/adapters(?!\/(?:application-port|direct-transport)$)(?:\/|$)|@agent-native\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;
+  /^(?:node:|bun:|@agent-native\/(?:host|agents|egress|station)(?:\/|$)|@agent-native\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@agent-native\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;
 /** Node and Bun globals; React Native declares `process` too, so the type check alone misses it. */
 export const nonPortableGlobal =
   /(?<![\w$.])(?:Bun|process|Buffer|__dirname|__filename|require)\s*[.(]/;

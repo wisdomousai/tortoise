@@ -135,7 +135,7 @@ implemented · `packages/runtime` `packages/adapters`
 
 _The port for the authority's transactional state._
 
-Storage holds feature state together with the framework's receipts, revisions, journal and outbox, which is what lets a command commit all of them at once. Memory and SQLite snapshot adapters ship; a production store implements the same port.
+Storage holds feature state together with the framework's receipts, revisions, journal and outbox, which is what lets a command commit all of them at once. Memory and SQLite snapshot adapters ship; the SQLite one runs over a small synchronous driver, so the desktop and the phone share it. A production store implements the same port.
 
 Guarantees: atomic `transact` and consistent `read` per workspace; rejected work commits nothing. A replacement passes the storage conformance suite.
 
@@ -201,13 +201,13 @@ implemented · `packages/kernel` `packages/host` `packages/frame`
 
 _What the kernel needs from the machine it runs on: workspace ownership, storage, the host's own components and its capabilities._
 
-The kernel opens an authority without any Node, Bun or React Native API. A platform supplies exclusive ownership of a workspace, the workspace's snapshot storage and [blob store](#blob-store), the requirements the host itself adds to every deployment (the Bun host's listener and agent providers), an optional default listener, and the set of capabilities it has: raw sockets, child processes and ingress. The Bun host is one platform; the mobile host is another. Before plugins open, the kernel checks that the JavaScript host has the Web globals the runtime calls and installs the ones it can write in JavaScript.
+The kernel opens an authority without any Node, Bun or React Native API. A platform supplies exclusive ownership of a workspace, the workspace's snapshot storage and [blob store](#blob-store), the requirements the host itself adds to every deployment (the Bun host's listener and agent providers), an optional default listener, and the set of capabilities it has: raw sockets, child processes and ingress. The Bun host is one platform; Android and iOS share the mobile platform, which has none of the three capabilities and owns its workspace with a lock database. Before plugins open, the kernel checks that the JavaScript host has the Web globals the runtime calls and installs the ones it can write in JavaScript.
 
 Guarantees: a deployment that declares a socket destination, an ingress destination or a child process refuses startup on a platform without the matching capability, naming the component that declared it. A missing global refuses startup before any state opens. The runtime, client, integration and kernel suites also run with the globals Hermes may lack removed and the kernel's replacements installed. `check:boundaries` keeps Node and Bun imports and globals out of the portable packages.
 
-Gaps: only the Bun platform exists. A platform is trusted code; nothing checks that its ownership is really exclusive beyond its own tests.
+Gaps: the mobile platform has run only in Bun tests with Bun's SQLite and files, not yet on a device. A platform is trusted code; nothing checks that its ownership is really exclusive beyond its own tests.
 
-partial · `packages/kernel` `packages/host`
+partial · `packages/kernel` `packages/host` `packages/mobile`
 
 ### Web frame
 

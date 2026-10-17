@@ -26,5 +26,12 @@
     "tests",
     "playwright.config.ts"
   ],
-  "exclude": ["node_modules", "dist", "artifacts", "apps/mobile/index.ts", "apps/mobile/src"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "artifacts",
+    "apps/mobile/index.ts",
+    "apps/mobile/src",
+    "packages/mobile/src/expo"
+  ]
 }

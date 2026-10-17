@@ -10,7 +10,8 @@ Layer: framework (`packages/*`). The host composes these; applications rarely im
 - [Authority](../../docs/primitives.md#authority): `acquireWorkspaceOwnership`, `WorkspaceOwnedError`.
 - [Execution context](../../docs/primitives.md#execution-context): `readGrantFile`, `readConnection`.
 - [Policy](../../docs/primitives.md#policy): the CASL adapter, `createScopedAbility`, `scopeToSql`.
-- [Storage](../../docs/primitives.md#storage): `SQLiteStorage`.
+- [Storage](../../docs/primitives.md#storage): `SQLiteStorage`, `SnapshotStorage`, `SqlDriver`, `SqlValue`, `bunSqlDriver`.
+- [Authority](../../docs/primitives.md#authority): `acquireExclusiveLock`, the portable lock the mobile platform owns its workspace with.
 - [Blob store](../../docs/primitives.md#blob-store): `createFileBlobStore`, the HTTP routes `POST /api/v1/blobs` and `GET /api/v1/blobs/:digest`, and blobs on the direct transport.
 - [UI session context](../../docs/primitives.md#ui-session-context): `UiSessionStore`.
 
@@ -31,7 +32,10 @@ Import a subpath. The root export holds only `adapterContractVersion`.
 | `@agent-native/adapters/direct`           | server only | `createDirectTransport`, `readGrantFile` for in-process callers.                                       |
 | `@agent-native/adapters/direct-transport` | any host    | `createDirectTransport` alone, with no Node or Bun API, for in-process callers on mobile.              |
 | `@agent-native/adapters/application-port` | any host    | `ApplicationPort`, the surface every adapter calls, and `withSignal`.                                  |
-| `@agent-native/adapters/sqlite`           | server only | `SQLiteStorage`, the reference snapshot store.                                                         |
+| `@agent-native/adapters/sqlite`           | server only | `SQLiteStorage` and `bunSqlDriver`: the snapshot storage on `bun:sqlite`.                              |
+| `@agent-native/adapters/snapshot-storage` | any host    | `SnapshotStorage`: one JSON snapshot per workspace over any `SqlDriver`.                               |
+| `@agent-native/adapters/sql-driver`       | any host    | `SqlDriver`, the synchronous SQLite calls `bun:sqlite` and `expo-sqlite` both offer.                   |
+| `@agent-native/adapters/exclusive-lock`   | any host    | `acquireExclusiveLock` and `WorkspaceOwnedError`.                                                      |
 | `@agent-native/adapters/blob-files`       | server only | `createFileBlobStore`: blobs under a workspace directory, written to a temporary file and renamed.     |
 | `@agent-native/adapters/ownership`        | server only | `acquireWorkspaceOwnership`: an OS-held SQLite lock, one owner per workspace.                          |
 | `@agent-native/adapters/casl`             | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.  |

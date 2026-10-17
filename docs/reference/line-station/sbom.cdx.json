@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:4df79da5-7a9f-5fba-826f-06168978d104",
+  "serialNumber": "urn:uuid:f00ec81a-1707-52a5-84b5-4623ba5bf107",
   "version": 1,
   "metadata": {
     "tools": {
@@ -15714,6 +15714,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/mobile",
+      "name": "@agent-native/mobile",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "packages/mobile"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/mobile-shell",
       "name": "@agent-native/mobile-shell",
       "properties": [
@@ -16235,6 +16247,7 @@
         "workspace:@agent-native/integration",
         "workspace:@agent-native/kernel",
         "workspace:@agent-native/line-station",
+        "workspace:@agent-native/mobile",
         "workspace:@agent-native/network",
         "workspace:@agent-native/operator-ui",
         "workspace:@agent-native/project-tasks",
@@ -23466,6 +23479,10 @@
     },
     {
       "ref": "workspace:@agent-native/line-station",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/mobile",
       "dependsOn": []
     },
     {
