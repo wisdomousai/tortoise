@@ -1,8 +1,11 @@
-import { isAbsolute } from 'node:path';
+import { writeFile } from 'node:fs/promises';
+import { isAbsolute, resolve } from 'node:path';
+import { takeFlag } from '@agent-native/adapters/cli';
 import { ApplicationError } from '@agent-native/contracts';
 import type { PluginCommand } from '@agent-native/host/plugin';
 import { baseEnvironment, startChild, terminateTree } from '@agent-native/process/spawn';
 import type { DriverContract } from './contracts/define';
+import { driverContractDocument } from './contracts/document';
 import { driverContractDigest, type DriverProcess } from './supervisor';
 import { checkDriver } from './testing/check';
 
@@ -16,6 +19,8 @@ export const driverUsage = (
       and its actions with delivery mode and hazard class
   ${program} driver check <driver-id> -- <absolute executable> [args...]
       start the executable and check it against the driver's contract; never invokes an action
+  ${program} driver contract <driver-id> [--out file]
+      the contract document and its digest as JSON, for the Python and .NET stub generators
 `;
 
 function list(contracts: readonly DriverContract[]) {
@@ -82,7 +87,27 @@ async function check(contracts: readonly DriverContract[], args: string[]) {
   return checks.every((item) => item.passed) ? 0 : 1;
 }
 
-/** `driver list` and `driver check` for one application's drivers. */
+/**
+ * The file the stub generators read: the contract document and its digest. The generators
+ * recompute the digest from the document and refuse a file where they differ.
+ */
+export function driverContractFile(contract: DriverContract) {
+  return { digest: driverContractDigest(contract), document: driverContractDocument(contract) };
+}
+
+async function contractFile(contracts: readonly DriverContract[], args: string[]) {
+  const out = takeFlag(args, 'out');
+  const [id, ...extra] = args;
+  if (!id || extra.length) throw usage('driver contract takes one driver ID');
+  const contract = contracts.find((item) => item.id === id);
+  if (!contract) throw usage(`No driver ${id} is declared; see driver list`);
+  const text = `${JSON.stringify(driverContractFile(contract), null, 2)}\n`;
+  if (out) await writeFile(resolve(out), text, { mode: 0o644 });
+  else process.stdout.write(text);
+  return 0;
+}
+
+/** `driver list`, `driver check` and `driver contract` for one application's drivers. */
 export function driverCliCommand(contracts: readonly DriverContract[]): PluginCommand {
   return {
     usage: driverUsage,
@@ -91,6 +116,7 @@ export function driverCliCommand(contracts: readonly DriverContract[]): PluginCo
       if (verb !== 'driver') return undefined;
       if (sub === 'list' && !rest.length) return list(contracts);
       if (sub === 'check') return check(contracts, rest);
+      if (sub === 'contract') return contractFile(contracts, rest);
       throw usage('Unknown driver command; see help');
     },
   };

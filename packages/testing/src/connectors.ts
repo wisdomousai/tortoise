@@ -183,7 +183,9 @@ function transientCase<Item>(setup: Setup<Item>): ConformanceCase {
 
 /**
  * The dispatcher may resend only what the port says is safe. After a reply was lost, the port
- * must either have thrown `DeliveryUncertain` (held) or report the delivery on retry.
+ * must hold the effect (throw `DeliveryUncertain`, on the first attempt or on the retry) or
+ * report the delivery on retry. The dispatcher holds an effect at whichever attempt turns
+ * uncertain, so a port that only learns on retry that it may have acted is still safe.
  */
 function interruptedCase<Item>(setup: Setup<Item>): ConformanceCase {
   return {
@@ -194,12 +196,16 @@ function interruptedCase<Item>(setup: Setup<Item>): ConformanceCase {
       interruptNext();
       const error = await rejects(port.deliver(effect, signal()));
       if (error instanceof DeliveryUncertain) return;
-      const again = await redeliver(port, effect);
+      const again = await redeliver(port, effect).catch((caught: unknown) => {
+        if (caught instanceof DeliveryUncertain) return 'held' as const;
+        throw caught;
+      });
+      check((await applied(effect)) <= 1, 'a lost reply led to a second application');
+      if (again === 'held') return;
       check(
         again === undefined || again.status !== 'rejected',
         'a retry after a lost reply was refused',
       );
-      check((await applied(effect)) <= 1, 'a lost reply led to a second application');
     }),
   };
 }

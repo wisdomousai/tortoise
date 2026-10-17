@@ -20,13 +20,17 @@ An application declares its driver contracts once and passes the same list to bo
 
 The site policy binds each driver's process ID to an absolute executable, and optionally pins its hash. `app driver list` prints the process IDs and contract digests to bind.
 
+## Writing a driver
+
+A driver speaks the protocol in any language. The [Python SDK](sdk/python/README.md) answers it for a Python driver: mode gating, once-per-effect delivery with a journal, events and stubs generated from `app driver contract <id>`. A .NET SDK follows.
+
 ## Contents
 
 | Import                                           | Runs in            | Contents                                                                                                                                                   |
 | ------------------------------------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@agent-native/connector-driver/contracts`       | browser and server | `defineDriverContract`, `driverContractDocument` (JSON, schemas as JSON Schema), `driverComponent`, `stateValueFits`, and the status query                 |
 | `@agent-native/connector-driver/plugin-manifest` | browser and server | `driverPluginManifest(contracts)`                                                                                                                          |
-| `@agent-native/connector-driver/plugin`          | server             | `createDriverPlugin({ contracts, configuration?, healthMs?, backoff? })`, with the `driver list` and `driver check` commands                               |
+| `@agent-native/connector-driver/plugin`          | server             | `createDriverPlugin({ contracts, configuration?, healthMs?, backoff? })`, with the `driver list`, `driver check` and `driver contract` commands            |
 | `@agent-native/connector-driver/plugin-screens`  | browser            | `driverScreens`: the status screen; also the `driver-screen` registry item                                                                                 |
 | `@agent-native/connector-driver/open`            | server             | `driverServiceOf`, and the service: one supervisor per driver, status, and event and session subscriptions                                                 |
 | `@agent-native/connector-driver/protocol`        | server             | The JSON-RPC connection, `DriverError` and the checked answer schemas                                                                                      |
@@ -80,7 +84,7 @@ Gaps:
 - the observer reports the first unit a driver lists, not each unit;
 - events reach subscribers, but no adapter turns them into readings yet.
 
-The fake driver and a test script are the only drivers so far; the Python and .NET SDKs follow.
+The fake driver, a test script and the Python SDK's simulated chamber are the only drivers so far; none has controlled equipment. The .NET SDK follows.
 
 ## Tests
 
@@ -105,3 +109,4 @@ bun test plugins/connector-driver
   - the status policy;
   - the observer's device provenance, gate reset on restart and type checks.
 - `test/check.test.ts` runs `checkDriver` against the fake driver, and `driver check` against `test/fixtures/chamber-driver.ts` as a real child process over stdio.
+- `test/python-driver.test.ts` runs the Python SDK: its unit tests, the stub generator, and the simulated chamber through `checkDriver` and the conformance suite as a real child process, including a crash after acting. It is skipped without `python3`.

@@ -239,6 +239,14 @@ The driver connector is a plugin, in line with the `framework-roadmap` D2 connec
 - **C++:** deferred. A header-only stdio JSON-RPC helper over nlohmann/json once someone needs it.
 - **Gate:** both SDKs' sample drivers pass the A3 conformance suite in CI on macOS and Linux. The .NET COM path needs the Windows smoke test in B2.
 
+**Status, 2026-10-17.** The Python SDK is done, with these changes from the plan:
+
+- **Dependencies.** Standard library only: the stubs are `TypedDict`s, not pydantic models, so a packaged driver bundles nothing extra. The host validates input against the JSON Schema before it sends an action.
+- **Contract file.** `app driver contract <id>` writes `{digest, document}`. The stub generator recomputes the digest with the host's canonical JSON and refuses a mismatch.
+- **Journal.** Deduplication is a journal that records `started` (fsynced) before a handler runs and the outcome after. A contract with `once` actions requires a journal path. A started effect with no outcome reads as `uncertain`. `convergent` actions are not deduplicated.
+- **Conformance.** The shared conformance suite's lost-reply case now also accepts an effect held on the retry. A driver that crashed after acting learns only on the resend that it may have acted. The dispatcher holds the effect then, too.
+- **Evidence.** The simulated chamber passes `checkDriver` and the suite for every delivery mode, as a real child process, on macOS. It has not run on Linux yet.
+
 ### A5. Remote driver transport and live telemetry (later)
 
 - **mTLS socket transport.** A driver host runs on the machine with the hardware, such as a Windows station PC with the vendor SDK. The authority connects to it through the network port's `socket`, to a declared `site` destination.
