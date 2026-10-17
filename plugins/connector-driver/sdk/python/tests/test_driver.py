@@ -191,6 +191,33 @@ class ServeTest(unittest.TestCase):
         self.assertEqual([(event["seq"], event["payload"]) for event in events], [(0, {"force": 1})])
 
 
+class LineReaderTest(unittest.TestCase):
+    def test_an_oversized_line_is_dropped_and_a_last_line_needs_no_newline(self):
+        import os
+        import threading
+
+        from agent_native_driver.rpc import MAX_LINE, LineReader
+
+        read, write = os.pipe()
+
+        def send():
+            # More than a pipe buffer holds, so it is written while the reader reads.
+            with os.fdopen(write, "wb") as writer:
+                writer.write(b"one\n" + b"x" * (MAX_LINE + 10) + b"\ntwo\nthree")
+
+        threading.Thread(target=send, daemon=True).start()
+
+        async def lines():
+            with os.fdopen(read, "rb") as stream:
+                reader = LineReader(stream, asyncio.get_running_loop())
+                found = []
+                while (line := await reader.next()) is not None:
+                    found.append(line)
+                return found
+
+        self.assertEqual(run(lines()), [b"one\n", b"two\n", b"three"])
+
+
 class StubTest(unittest.TestCase):
     def test_stub_holds_digest_contract_and_typed_inputs(self):
         text = generate({"digest": contract_digest(CONTRACT), "document": CONTRACT})

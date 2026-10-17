@@ -64,16 +64,23 @@ async function lookupUnknown(session: DriverSession, timeoutMs: number) {
     : `an unseen effect was looked up as ${parsed.data.status}`;
 }
 
-/** Shutdown is answered and the process exits by itself, before the host has to stop it. */
+/**
+ * Shutdown is answered and the process exits by itself with code 0, before the host has to stop
+ * it. The host keeps stdin open, so a driver that crashes while its reader is blocked on stdin
+ * (an abort at interpreter shutdown, say) fails here.
+ */
 async function shutdown(session: DriverSession, timeoutMs: number) {
   await session.rpc.request('shutdown', {}, { timeoutMs });
   let timer: ReturnType<typeof setTimeout> | undefined;
   const exited = await Promise.race([
-    session.exited.then(() => true),
-    new Promise<false>((resolve) => (timer = setTimeout(() => resolve(false), timeoutMs))),
+    session.exited,
+    new Promise<undefined>((resolve) => (timer = setTimeout(() => resolve(undefined), timeoutMs))),
   ]);
   clearTimeout(timer);
-  return exited ? undefined : 'the driver did not exit after shutdown';
+  if (!exited) return 'the driver did not exit after shutdown';
+  return exited.code === 0
+    ? undefined
+    : `the driver exited with ${exited.signal ?? `code ${exited.code}`} after shutdown`;
 }
 
 /**

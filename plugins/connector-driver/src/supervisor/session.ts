@@ -17,7 +17,7 @@ export interface DriverProcess {
     readonly stdin: NodeJS.WritableStream;
     readonly stdout: NodeJS.ReadableStream;
     readonly stderr: NodeJS.ReadableStream;
-    on(event: 'exit', listener: (code: number | null) => void): unknown;
+    on(event: 'exit', listener: (code: number | null, signal: string | null) => void): unknown;
     on(event: 'error', listener: (error: Error) => void): unknown;
   };
   terminate(): void;
@@ -30,13 +30,19 @@ export type DriverMode = 'monitor-only' | 'assist' | 'actuate';
 export const driverContractDigest = (contract: DriverContract) =>
   createHash('sha256').update(driverContractText(contract)).digest('hex');
 
+/** How a driver process ended: an exit code, or the signal that stopped it. */
+export interface DriverExit {
+  readonly code: number | null;
+  readonly signal: string | null;
+}
+
 /** One running driver after a successful handshake. */
 export interface DriverSession {
   readonly rpc: RpcConnection;
   readonly process: DriverProcess;
   readonly hello: InitializeAnswer;
-  /** Resolves when the process exits, for whatever reason. */
-  readonly exited: Promise<void>;
+  /** Resolves when the process exits, for whatever reason, with its exit code or signal. */
+  readonly exited: Promise<DriverExit>;
 }
 
 export interface SessionOptions {
@@ -58,8 +64,8 @@ export async function openSession(
   started: DriverProcess,
   options: SessionOptions,
 ): Promise<DriverSession> {
-  let exit!: () => void;
-  const exited = new Promise<void>((resolve) => (exit = resolve));
+  let exit!: (how: DriverExit) => void;
+  const exited = new Promise<DriverExit>((resolve) => (exit = resolve));
   const rpc = createRpcConnection(
     { input: started.child.stdout, output: started.child.stdin },
     {
@@ -71,12 +77,18 @@ export async function openSession(
       onMalformed: () => options.onProblem('Driver wrote a line that is not a JSON-RPC message'),
     },
   );
-  const stop = (error: DriverError) => (rpc.close(error), exit());
-  started.child.on('exit', (code) =>
-    stop(new DriverError('exited', `Driver ${options.contract.id} exited (${code ?? 'signal'})`)),
+  const stop = (error: DriverError, how: DriverExit) => (rpc.close(error), exit(how));
+  started.child.on('exit', (code, signal) =>
+    stop(new DriverError('exited', `Driver ${options.contract.id} exited (${code ?? signal})`), {
+      code,
+      signal,
+    }),
   );
   started.child.on('error', () =>
-    stop(new DriverError('exited', `Driver ${options.contract.id} could not run`)),
+    stop(new DriverError('exited', `Driver ${options.contract.id} could not run`), {
+      code: null,
+      signal: null,
+    }),
   );
   // Driver diagnostics stay local; they may contain device paths or vendor output.
   started.child.stderr.resume();
