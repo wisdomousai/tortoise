@@ -1,9 +1,9 @@
 /**
  * Read-only MQTT observation, Sparkplug B included, through the network port. Server only,
- * except `./component`, which declares the broker as browser-safe data.
+ * except `./contracts`, which declares the broker as browser-safe data.
  */
 export { createMqttSubscriber, type MqttSubscriber, type MqttSubscriberOptions } from './client';
-export { mqttBroker } from './component';
+export { mqttBroker } from './contracts';
 export {
   createMqttObserver,
   filtersFor,

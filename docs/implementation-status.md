@@ -86,6 +86,8 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 - `connector-opcua`'s client against an asyncua 2.1.0 server on loopback: an anonymous session with security policy None read a Double, a String, an Int32, a UInt64 above 2^53, an array (reported unsupported), the server's current time (`i=2258`) and an unknown node (bad status), then closed the session and channel.
 - `connector-mqtt`'s observer against an amqtt 0.12.1 broker, with a paho-mqtt 2.1.0 publisher encoding Sparkplug B with protobuf 7.36.2 from the Eclipse Tahu schema: a node birth, then data by alias, became the readings `temp` 72.25 and `count` -7, both `observed`.
 
+**Shown, browser.** `examples/receiving/e2e/receiving.pw.ts` on macOS: the real service with a site policy binding the three ERP exchange folders to temporary directories. The notice is imported from the inbox, a line is counted, classified and posted, the goods receipt file appears in the drop folder, the test answers as the ERP with a receipt file, and the ERP screen shows it accepted.
+
 **Not shown.**
 
 - **Equipment:** no real PLC, OPC UA gateway, Sparkplug edge node or plant broker, and no broker over TLS or with credentials.

@@ -2,7 +2,7 @@
 
 Read-only observation of an OPC UA server. Node values are polled with the Read service and become gated readings, submitted through the application's ingest command as the screen and driver observers do. Nothing is ever written to the server.
 
-Layer: plugins (`plugins/*`). `./component` is browser-safe data; everything else is server only. The UA binary client is implemented here, with no client library. [Observation](../../docs/primitives.md#observation) and [Connector](../../docs/primitives.md#connector) in the primitives index.
+Layer: plugins (`plugins/*`). `./contracts` is browser-safe data; everything else is server only. The UA binary client is implemented here, with no client library. [Observation](../../docs/primitives.md#observation) and [Connector](../../docs/primitives.md#connector) in the primitives index.
 
 ## Wiring an application
 
@@ -15,7 +15,7 @@ Layer: plugins (`plugins/*`). `./component` is browser-safe data; everything els
 | Import | Runs in | Contents |
 | --- | --- | --- |
 | `@agent-native/connector-opcua` | server | Everything below |
-| `@agent-native/connector-opcua/component` | browser and server | `opcUaServer` |
+| `@agent-native/connector-opcua/contracts` | browser and server | `opcUaServer` |
 | `@agent-native/connector-opcua/client` | server | `OpcUaClient` (`connect`, `read`, `close`), `OpcUaError` |
 | `@agent-native/connector-opcua/types` | server | Node IDs in every binary form, variants, data values and status helpers (`isBad`, `isUncertain`) |
 | `@agent-native/connector-opcua/observe` | server | `createOpcUaObserver` |

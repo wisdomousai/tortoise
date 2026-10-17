@@ -1,8 +1,8 @@
 /**
  * File exchange connectors: a system of record reached through shared folders. Server only,
- * except `./component`, which declares the folders as browser-safe data.
+ * except `./contracts`, which declares the folders as browser-safe data.
  */
-export { fileExchange, type FileExchangeFolders } from './component';
+export { fileExchange, type FileExchangeFolders } from './contracts';
 export { fileDropPort, type Encoded, type FileDropOptions } from './drop';
 export { folderFeed, type FileSource, type FolderFeedOptions } from './feed';
 export {

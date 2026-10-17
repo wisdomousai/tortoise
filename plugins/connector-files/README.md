@@ -2,7 +2,7 @@
 
 A system of record reached through shared folders, as many homebrew MES, test benches and lab systems are. Effects are dropped as files, their outcome is read from receipt files or the archive the other system moves accepted files into, and result exports in an inbox folder feed inbound sync.
 
-Layer: plugins (`plugins/*`). `./component` is browser-safe data; everything else is server only and reaches the file system only through folders the site policy binds. [Connector](../../docs/primitives.md#connector) and [Requirement declaration](../../docs/primitives.md#requirement-declaration) in the primitives index.
+Layer: plugins (`plugins/*`). `./contracts` is browser-safe data; everything else is server only and reaches the file system only through folders the site policy binds. [Connector](../../docs/primitives.md#connector) and [Requirement declaration](../../docs/primitives.md#requirement-declaration) in the primitives index.
 
 ## Wiring an application
 
@@ -17,7 +17,7 @@ Either half may be left out: a target that only reports needs no drop folder, an
 | Import | Runs in | Contents |
 | --- | --- | --- |
 | `@agent-native/connector-files` | server | Everything below |
-| `@agent-native/connector-files/component` | browser and server | `fileExchange`, the folder declarations |
+| `@agent-native/connector-files/contracts` | browser and server | `fileExchange`, the folder declarations |
 | `@agent-native/connector-files/drop` | server | `fileDropPort`: delivery by file drop with lookup through receipts or the archive |
 | `@agent-native/connector-files/feed` | server | `folderFeed`: inbound sync from a folder of result exports |
 | `@agent-native/connector-files/formats` | server | `parseRecords` and `serializeRecords` for JSON, NDJSON, CSV (RFC 4180) and flat XML |

@@ -2,7 +2,7 @@
 
 Read-only observation of an MQTT broker: plain topics with JSON or scalar payloads, and Sparkplug B edge nodes and devices. Values become gated readings and are submitted through the application's ingest command, as the screen and driver observers do. Nothing is ever published.
 
-Layer: plugins (`plugins/*`). `./component` is browser-safe data; everything else is server only. The MQTT 3.1.1 client, the protobuf reader and the Sparkplug B state are implemented here, with no client library. [Observation](../../docs/primitives.md#observation) and [Connector](../../docs/primitives.md#connector) in the primitives index.
+Layer: plugins (`plugins/*`). `./contracts` is browser-safe data; everything else is server only. The MQTT 3.1.1 client, the protobuf reader and the Sparkplug B state are implemented here, with no client library. [Observation](../../docs/primitives.md#observation) and [Connector](../../docs/primitives.md#connector) in the primitives index.
 
 ## Wiring an application
 
@@ -22,7 +22,7 @@ A field is one of:
 | Import | Runs in | Contents |
 | --- | --- | --- |
 | `@agent-native/connector-mqtt` | server | Everything below |
-| `@agent-native/connector-mqtt/component` | browser and server | `mqttBroker` |
+| `@agent-native/connector-mqtt/contracts` | browser and server | `mqttBroker` |
 | `@agent-native/connector-mqtt/client` | server | `createMqttSubscriber`: clean session, QoS 1 subscriptions, keep-alive, reconnect with backoff up to 60 s |
 | `@agent-native/connector-mqtt/sparkplug` | server | `decodePayload`, `parseTopic`, `DataType` and `SparkplugState` |
 | `@agent-native/connector-mqtt/observe` | server | `createMqttObserver`, `filtersFor` |

@@ -16,6 +16,10 @@
         "@agent-native/client": "workspace:*",
         "@agent-native/compliance": "workspace:*",
         "@agent-native/connector-driver": "workspace:*",
+        "@agent-native/connector-files": "workspace:*",
+        "@agent-native/connector-http": "workspace:*",
+        "@agent-native/connector-mqtt": "workspace:*",
+        "@agent-native/connector-opcua": "workspace:*",
         "@agent-native/contracts": "workspace:*",
         "@agent-native/crm-capture": "workspace:*",
         "@agent-native/device-link": "workspace:*",
@@ -41,6 +45,7 @@
         "@agent-native/project-tasks": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
         "@agent-native/react": "workspace:*",
+        "@agent-native/receiving": "workspace:*",
         "@agent-native/runtime": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
         "@agent-native/share-target": "workspace:*",
@@ -163,6 +168,10 @@
     },
     "examples/quality-inspection": {
       "name": "@agent-native/quality-inspection",
+      "version": "0.1.0",
+    },
+    "examples/receiving": {
+      "name": "@agent-native/receiving",
       "version": "0.1.0",
     },
     "packages/adapters": {
@@ -793,6 +802,8 @@
     "@agent-native/quality-inspection": ["@agent-native/quality-inspection@workspace:examples/quality-inspection"],
 
     "@agent-native/react": ["@agent-native/react@workspace:packages/react"],
+
+    "@agent-native/receiving": ["@agent-native/receiving@workspace:examples/receiving"],
 
     "@agent-native/runtime": ["@agent-native/runtime@workspace:packages/runtime"],
 

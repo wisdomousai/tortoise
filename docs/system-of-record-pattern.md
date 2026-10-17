@@ -6,6 +6,7 @@ Two examples carry the pattern:
 
 - **`quality-inspection`**: inspection lots, specifications and code groups arrive from an in-memory quality system. Inspectors, or an agent, record measured values and codes, and each result is forwarded and then accepted or rejected.
 - **`crm-capture`**: a live search over a fake CRM that each caller uses with their own access, and adoption of what they find.
+- **`receiving`**: an ERP reached only through shared folders, with notices imported from an inbox and goods receipts delivered by file drop and settled from receipt files.
 
 ## Topologies
 

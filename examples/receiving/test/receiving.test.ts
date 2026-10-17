@@ -1,0 +1,248 @@
+import { afterEach, describe, expect, test } from 'bun:test';
+import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { buildCatalog } from '@agent-native/contracts';
+import { FakeFileConsumer } from '@agent-native/connector-files/testing';
+import { openEmbeddedAuthority } from '@agent-native/host';
+import { agentGrant, type ExecutionContext } from '@agent-native/runtime';
+import { createReceivingApplication } from '../application';
+import { receivingModule } from '../contracts';
+import { erpExchange, erpFolders } from '../contracts/erp-target';
+
+const owner = { workspaceId: 'local', principalId: 'owner' };
+const viewer = { workspaceId: 'local', principalId: 'viewer' };
+/** The discrepancy agent, run on the owner's behalf: it may read and propose, nothing else. */
+const agent: ExecutionContext = {
+  ...owner,
+  runId: 'run-1',
+  grant: agentGrant(
+    buildCatalog([receivingModule], { components: [erpExchange] }),
+    'receiving.discrepancy',
+    owner,
+    {
+      now: Date.now(),
+      runId: 'run-1',
+    },
+  ),
+};
+
+const cleanup: (() => Promise<void>)[] = [];
+afterEach(async () => {
+  for (const step of cleanup.splice(0).reverse()) await step();
+});
+
+const notice = [
+  'id,purchaseOrder,supplier,sku,description,expected',
+  'ASN-1001-1,PO-4711,Acme Fasteners,M8-40,"Hex bolt M8x40, zinc",500',
+  'ASN-1001-2,PO-4711,Acme Fasteners,W8,Washer 8 mm,600',
+].join('\n');
+
+type Folder = keyof typeof erpFolders;
+type Binding = { path: string } | { disabled: true; reason: string };
+
+/** A workspace and the ERP's exchange folders, bound by a site policy file the host loads. */
+async function site() {
+  const directory = await mkdtemp(join(tmpdir(), 'receiving-'));
+  cleanup.push(() => rm(directory, { recursive: true, force: true }));
+  const path = (folder: Folder) => join(directory, 'share', erpFolders[folder]);
+  for (const folder of Object.keys(erpFolders) as Folder[])
+    await mkdir(path(folder), { recursive: true });
+  const consumer = (decide?: ConstructorParameters<typeof FakeFileConsumer>[0]['decide']) =>
+    new FakeFileConsumer({
+      drop: path('drop'),
+      receipts: path('receipts'),
+      format: 'csv',
+      ...(decide ? { decide } : {}),
+    });
+  async function open(bindings: Partial<Record<Folder, Binding>> = {}) {
+    const policy = join(directory, 'site-policy.json');
+    const folders = Object.fromEntries(
+      (Object.keys(erpFolders) as Folder[]).map((folder) => [
+        erpFolders[folder],
+        bindings[folder] ?? { path: path(folder) },
+      ]),
+    );
+    await writeFile(
+      policy,
+      JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' }, folders }),
+    );
+    const authority = await openEmbeddedAuthority(
+      createReceivingApplication({
+        members: { viewer: 'viewer' },
+        quietMs: 0,
+        services: { now: () => 1_000 },
+      }),
+      { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
+    );
+    cleanup.push(() => authority.close());
+    let keys = 0;
+    const command = (operation: string, input: unknown, context: ExecutionContext = owner) =>
+      authority.application.invokeRaw(
+        { operation, input, idempotencyKey: `${operation}-${++keys}` },
+        context,
+      );
+    const query = (operation: string, input: unknown, context: ExecutionContext = viewer) =>
+      authority.application.queryRaw({ operation, input }, context);
+    const line = async (id: string) =>
+      (await query('delivery.get', { id })).data as Record<string, any>;
+    // Deliver now, past the retry and lookup backoff a running dispatcher would wait out.
+    const deliver = () =>
+      authority.integrations
+        .target('erp')
+        .dispatcher.runOnce(new AbortController().signal, { ignoreBackoff: true });
+    return { ...authority, command, query, line, deliver };
+  }
+  return { directory, path, consumer, open };
+}
+
+describe('receiving through the ERP exchange folders', () => {
+  test('a notice becomes lines; a short count is classified by an accepted proposal and posted as a file the ERP settles', async () => {
+    const share = await site();
+    const host = await share.open();
+    await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
+    await host.integrations.sync();
+    expect(
+      ((await host.query('delivery.list', { status: 'expected' })).data as any).items.map(
+        (item: any) => [item.id, item.expected],
+      ),
+    ).toEqual([
+      ['ASN-1001-1', 500],
+      ['ASN-1001-2', 600],
+    ]);
+
+    await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
+    const counted = await host.command('delivery.receive', { id: 'ASN-1001-2', counted: 540 });
+    await expect(host.command('erp.send', { id: 'ASN-1001-2' })).rejects.toMatchObject({
+      code: 'CONFLICT',
+    });
+
+    // The agent may read and propose, but not classify the line itself.
+    await expect(
+      host.command('delivery.classify', { id: 'ASN-1001-2', reason: 'short' }, agent),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(await host.query('delivery.get', { id: 'ASN-1001-2' }, agent)).toMatchObject({
+      data: { counted: 540 },
+    });
+    const revision = counted.revisions['delivery:ASN-1001-2']!;
+    const proposal = await host.command(
+      'proposal.submit',
+      {
+        operation: 'delivery.classify',
+        input: { id: 'ASN-1001-2', reason: 'short', note: 'One carton of 60 missing' },
+        rationale: 'Counted 540 of 600; the gap is one full carton.',
+        confidence: 0.8,
+        resource: 'delivery:ASN-1001-2',
+        baseRevisions: { 'delivery:ASN-1001-2': revision },
+      },
+      agent,
+    );
+    // A viewer cannot accept: the classify command's editor rule applies to the accepter.
+    const id = (proposal.result as { id: string }).id;
+    await expect(host.command('proposal.accept', { id }, viewer)).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    });
+    await host.command('proposal.accept', { id });
+    expect(await host.line('ASN-1001-2')).toMatchObject({
+      reason: 'short',
+      note: 'One carton of 60 missing',
+    });
+
+    await host.command('erp.send', { id: 'ASN-1001-1' });
+    await host.command('erp.send', { id: 'ASN-1001-2' });
+    expect(await host.deliver()).toMatchObject({ upstream: 2 });
+    expect((await readdir(share.path('drop'))).length).toBe(2);
+    expect((await host.line('ASN-1001-2')).posting).toMatchObject({ sync: 'pending' });
+
+    const erp = share.consumer();
+    await erp.process();
+    expect([...erp.records.values()].flat()).toContainEqual({
+      delivery: 'ASN-1001-2',
+      purchaseOrder: 'PO-4711',
+      sku: 'W8',
+      counted: '540',
+      reason: 'short',
+      note: 'One carton of 60 missing',
+    });
+    await host.deliver();
+    const posted = await host.line('ASN-1001-2');
+    expect(posted).toMatchObject({ status: 'posted', posting: { sync: 'accepted' } });
+    expect(posted.posting.sorRef).toStartWith('DOC-');
+    expect((await host.query('erp.sync.status', {})).data).toMatchObject({
+      pending: 0,
+      accepted: 2,
+      rejected: 0,
+    });
+    // A posted line is closed to further counts.
+    await expect(
+      host.command('delivery.receive', { id: 'ASN-1001-1', counted: 1 }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+  });
+
+  test('with the drop folder unbound a receipt waits in the outbox, and is delivered once the site binds it', async () => {
+    const share = await site();
+    let host = await share.open({ drop: { disabled: true, reason: 'Share not mounted yet' } });
+    await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
+    await host.integrations.sync();
+    await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
+    await host.command('erp.send', { id: 'ASN-1001-1' });
+    expect(await host.deliver()).toMatchObject({ retried: 1, upstream: 0 });
+    expect(await readdir(share.path('drop'))).toEqual([]);
+    await host.close();
+
+    host = await share.open();
+    expect(await host.deliver()).toMatchObject({
+      upstream: 1,
+    });
+    await share.consumer().process();
+    await host.deliver();
+    expect((await host.line('ASN-1001-1')).posting).toMatchObject({ sync: 'accepted' });
+  });
+
+  test('a rejected receipt reopens the line, which can be recounted and posted again', async () => {
+    const share = await site();
+    const host = await share.open();
+    await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
+    await host.integrations.sync();
+    await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
+    await host.command('erp.send', { id: 'ASN-1001-1' });
+    await host.deliver();
+    await share.consumer(() => ({ code: 'PO_CLOSED', message: 'PO-4711 is closed' })).process();
+    await host.deliver();
+    expect(await host.line('ASN-1001-1')).toMatchObject({
+      status: 'counted',
+      posting: { sync: 'rejected', rejection: { code: 'PO_CLOSED' } },
+    });
+    await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 499 });
+    await host.command('delivery.classify', { id: 'ASN-1001-1', reason: 'damaged' });
+    await host.command('erp.send', { id: 'ASN-1001-1' });
+    await host.deliver();
+    await share.consumer().process();
+    await host.deliver();
+    expect((await host.line('ASN-1001-1')).posting).toMatchObject({ sync: 'accepted' });
+  });
+
+  test('a corrected notice updates an uncounted line only, and a malformed export applies nothing', async () => {
+    const share = await site();
+    const host = await share.open();
+    await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
+    await host.integrations.sync();
+    await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
+    await Bun.sleep(20);
+    await writeFile(
+      join(share.path('inbox'), 'asn-1001.csv'),
+      notice.replace(',500', ',480').replace(',600', ',610'),
+    );
+    await host.integrations.sync();
+    expect((await host.line('ASN-1001-1')).expected).toBe(500);
+    expect((await host.line('ASN-1001-2')).expected).toBe(610);
+
+    await Bun.sleep(20);
+    await writeFile(
+      join(share.path('inbox'), 'asn-1002.csv'),
+      'id,purchaseOrder,supplier,sku,description,expected\nASN-1002-1,PO-4712,Acme,M6,Bolt,many',
+    );
+    await expect(host.integrations.sync()).rejects.toThrow('asn-1002.csv row 1');
+    await expect(host.line('ASN-1002-1')).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
+});
