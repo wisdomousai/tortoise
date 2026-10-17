@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { runGolden, type GoldenFrame } from '../src/golden';
 import { createAccessibilityExtractor } from '../src/perception/accessibility';
@@ -13,6 +14,12 @@ import { toAccessibility } from '../src/transports/playwright';
 import { createHmi, profile } from './support';
 
 const signal = new AbortController().signal;
+const echoWorker = fileURLToPath(new URL('./fixtures/echo-worker.ts', import.meta.url));
+/** Starts the fixture worker directly; a host starts it through its process port instead. */
+async function startEchoWorker() {
+  const child = spawn(process.execPath, [echoWorker], { env: {}, stdio: 'pipe' });
+  return { child, terminate: () => void child.kill() };
+}
 const pixels: Frame = {
   capturedAt: 1,
   width: 1024,
@@ -102,10 +109,7 @@ test('a JSON-lines worker reports its model and answers only requested fields', 
   const worker = createWorkerExtractor({
     id: 'worker-ocr',
     modality: 'ocr',
-    command: [
-      process.execPath,
-      fileURLToPath(new URL('./fixtures/echo-worker.ts', import.meta.url)),
-    ],
+    start: startEchoWorker,
     startupTimeoutMs: 10_000,
   });
   try {
@@ -126,10 +130,7 @@ test('a worker that exits is restarted and becomes ready again', async () => {
   const worker = createWorkerExtractor({
     id: 'worker-ocr',
     modality: 'ocr',
-    command: [
-      process.execPath,
-      fileURLToPath(new URL('./fixtures/echo-worker.ts', import.meta.url)),
-    ],
+    start: startEchoWorker,
     startupTimeoutMs: 5_000,
   });
   try {

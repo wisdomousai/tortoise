@@ -62,6 +62,11 @@ export interface ProcessRequirement {
   readonly availability: Availability;
   /** Network destinations the child process may reach. Anything else is undeclared egress. */
   readonly network?: readonly string[];
+  /**
+   * Environment variables the deployment supplies from its secret store (a vendor licence, a
+   * device password). Names only; values never appear in declarations, policies or manifests.
+   */
+  readonly secrets?: readonly string[];
 }
 
 export interface Requirements {
@@ -94,6 +99,8 @@ export interface CatalogRequirements {
   readonly processes: readonly Owned<ProcessRequirement>[];
 }
 
+/** An environment variable name a process secret is supplied under. */
+const secretNamePattern = /^[A-Z][A-Z0-9_]{0,63}$/;
 const idPattern = /^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$/;
 const loopbackHosts = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
 const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -157,6 +164,9 @@ export function collectRequirements(
     for (const child of requirements?.processes ?? []) {
       claim('processes', owner, child.id);
       if (!child.executable) throw new Error(`Missing executable for process ${child.id}`);
+      for (const name of child.secrets ?? [])
+        if (!secretNamePattern.test(name))
+          throw new Error(`Invalid secret variable ${name} for process ${child.id}`);
       processes.push({ ...child, owner });
     }
   }

@@ -81,8 +81,12 @@ export async function openAuthority(
     });
     await plugins.ready(application);
     const connections =
-      definition.connect?.({ application, workspaceId: LOCAL_WORKSPACE, network: ports.network }) ??
-      {};
+      definition.connect?.({
+        application,
+        workspaceId: LOCAL_WORKSPACE,
+        network: ports.network,
+        processes: ports.processes,
+      }) ?? {};
     const integrations = combineIntegrations({
       application,
       workspaceId: LOCAL_WORKSPACE,

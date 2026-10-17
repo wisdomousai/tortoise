@@ -4,6 +4,7 @@ import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
 import { automationPluginManifest } from '@agent-native/automation/plugin-manifest';
 import { compliancePluginManifest } from '@agent-native/compliance/plugin-manifest';
 import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
+import { processPluginManifest } from '@agent-native/process/plugin-manifest';
 import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 import { deviceConfigModule } from '@agent-native/devices/contracts';
 import { scannerDevicesComponent } from '@agent-native/devices/requirements';
@@ -39,6 +40,7 @@ export default defineManifest({
   plugins: [
     sitePluginManifest,
     networkPluginManifest,
+    processPluginManifest,
     auditPluginManifest,
     compliancePluginManifest,
     automationPluginManifest,

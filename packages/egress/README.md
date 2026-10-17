@@ -6,7 +6,7 @@ Layer: framework (`packages/*`). Server only.
 
 ## Primitives
 
-- [Site policy](../../docs/primitives.md#site-policy): `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`.
+- [Site policy](../../docs/primitives.md#site-policy): `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`, and for the `processes` section `ProcessBinding`, `DeclaredProcess` and `ResolvedProcess`: an absolute executable, arguments, working directory, optional SHA-256 pin and environment variables per declared process, or `disabled`. Findings refuse an undeclared or unbound required process, a relative path, and a variable the process plugin owns (proxy, loader or a declared secret).
 - [Egress guard](../../docs/primitives.md#egress-guard): `createEgress`, `Egress`, `DestinationClient`, `EgressDenied`, `startEgressProxy`.
 - [Execution host](../../docs/primitives.md#execution-host): `startEgressProxy` confines declared children to their destinations.
 

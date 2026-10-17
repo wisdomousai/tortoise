@@ -34,10 +34,35 @@ const bindingSchema = z.union([
     tls: z.boolean().optional(),
   }),
 ]);
+/** An environment variable name, as a process binding sets it. */
+const variable = z.string().regex(/^[A-Z][A-Z0-9_]{0,63}$/, 'Upper-case environment variable name');
+/**
+ * Where a declared child process comes from on this site. Paths are absolute: a site names the
+ * installed executable, never a name looked up on `PATH`. Values in `env` are configuration and
+ * appear in reports; secrets come from the secret store under the names the process declares.
+ */
+const processBindingSchema = z.union([
+  z.strictObject({ disabled: z.literal(true), reason: z.string().max(500).optional() }),
+  z.strictObject({
+    executable: z.string().min(1),
+    /** Fixed leading arguments, before any the caller adds. */
+    args: z.array(z.string().max(4096)).max(64).default([]),
+    /** Working directory; the executable's directory when absent. */
+    cwd: z.string().min(1).optional(),
+    /** SHA-256 of the executable file, checked before every start. */
+    sha256: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/, 'Lower-case hex SHA-256')
+      .optional(),
+    env: z.record(variable, z.string().max(4096)).default({}),
+  }),
+]);
+export type ProcessBinding = z.output<typeof processBindingSchema>;
 export const sitePolicySchema = z.strictObject({
   profile: z.enum(hardeningProfiles).default('desktop-local'),
   mode: z.enum(['isolated', 'connected']).default('isolated'),
   destinations: z.record(z.string(), bindingSchema).default({}),
+  processes: z.record(z.string(), processBindingSchema).default({}),
   audit: z
     .strictObject({
       mode: z.enum(['fail-closed', 'best-effort']).default('fail-closed'),

@@ -1,4 +1,3 @@
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { z } from 'zod';
 import type { Extractor, ModelIdentity } from '../ports';
@@ -16,14 +15,27 @@ import type { Extractor, ModelIdentity } from '../ports';
  * Audio models use the same protocol with `modality: "audio"`; the frame then carries the clip
  * reference in a field hint. The model identity the worker reports is recorded with every reading.
  */
+/** A started worker: its piped streams and the way to stop its process tree. */
+export interface WorkerProcess {
+  readonly child: {
+    readonly stdin: NodeJS.WritableStream;
+    readonly stdout: NodeJS.ReadableStream;
+    readonly stderr: NodeJS.ReadableStream;
+    on(event: 'exit', listener: (code: number | null) => void): unknown;
+    on(event: 'error', listener: (error: Error) => void): unknown;
+  };
+  terminate(): void;
+}
+
 export interface WorkerExtractorOptions {
   readonly id: string;
   readonly modality: Extractor['modality'];
-  /** Executable and arguments. Configured explicitly; never discovered. */
-  readonly command: readonly [string, ...string[]];
-  readonly cwd?: string;
-  /** The worker's whole environment. Nothing is inherited, so host credentials never leak in. */
-  readonly env?: Readonly<Record<string, string>>;
+  /**
+   * Start the worker process. A host passes its process port's start for the declared
+   * `perception-worker` process, so the site policy decides the executable and the process
+   * plugin builds its environment. Called again after the worker exits.
+   */
+  readonly start: () => Promise<WorkerProcess>;
   readonly startupTimeoutMs?: number;
   readonly requestTimeoutMs?: number;
 }
@@ -58,7 +70,7 @@ interface Pending {
 /** One extractor's process lifetime: the child, its handshake and the requests awaiting answers. */
 interface WorkerState {
   readonly options: WorkerExtractorOptions;
-  child?: ChildProcessWithoutNullStreams;
+  child?: WorkerProcess;
   starting?: Promise<void>;
   /** The last identity a worker reported, kept for readers across restarts. */
   model?: ModelIdentity;
@@ -70,24 +82,20 @@ interface WorkerState {
  * End the current process lifetime. `owner` fences callbacks: a late exit or error from an
  * earlier process must not reject requests or kill the process that replaced it.
  */
-function fail(state: WorkerState, error: Error, owner?: ChildProcessWithoutNullStreams) {
+function fail(state: WorkerState, error: Error, owner?: WorkerProcess) {
   if (owner && owner !== state.child) return;
   for (const pending of state.waiting.values()) pending.reject(error);
   state.waiting.clear();
-  state.child?.kill();
+  state.child?.terminate();
   state.child = undefined;
   state.starting = undefined;
 }
 
 /** Route stdout lines: the first valid `ready` completes the handshake, later lines answer ids. */
-function readLines(
-  state: WorkerState,
-  process: ChildProcessWithoutNullStreams,
-  onReady: () => void,
-) {
+function readLines(state: WorkerState, worker: WorkerProcess, onReady: () => void) {
   // The handshake belongs to this process; `model` keeps the last identity for readers.
   let greeted = false;
-  createInterface({ input: process.stdout }).on('line', (line) => {
+  createInterface({ input: worker.child.stdout }).on('line', (line) => {
     let message: unknown;
     try {
       message = JSON.parse(line);
@@ -110,34 +118,43 @@ function readLines(
 
 /** Start the worker once per lifetime; resolves on its handshake. */
 function start(state: WorkerState): Promise<void> {
+  state.starting ??= launch(state);
+  return state.starting;
+}
+
+/** One process lifetime: start it, then wait for its `ready` line, an exit or the timeout. */
+async function launch(state: WorkerState): Promise<void> {
   const { options } = state;
-  state.starting ??= new Promise<void>((resolve, reject) => {
-    const [command, ...args] = options.command;
-    const process = spawn(command, args, {
-      cwd: options.cwd,
-      env: { ...options.env },
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    state.child = process;
+  let worker: WorkerProcess;
+  try {
+    worker = await options.start();
+  } catch (error) {
+    state.starting = undefined;
+    throw error;
+  }
+  state.child = worker;
+  return new Promise<void>((resolve, reject) => {
     const timer = setTimeout(
       () => (
         reject(new Error(`Worker ${options.id} did not become ready`)),
-        fail(state, new Error('Worker startup timed out'), process)
+        fail(state, new Error('Worker startup timed out'), worker)
       ),
       options.startupTimeoutMs ?? 30_000,
     );
-    process.on(
+    worker.child.on(
       'error',
-      (error) => (clearTimeout(timer), reject(error), fail(state, error, process)),
+      (error) => (clearTimeout(timer), reject(error), fail(state, error, worker)),
     );
-    process.on('exit', (code) =>
-      fail(state, new Error(`Worker ${options.id} exited (${code ?? 'signal'})`), process),
-    );
+    worker.child.on('exit', (code) => {
+      const error = new Error(`Worker ${options.id} exited (${code ?? 'signal'})`);
+      clearTimeout(timer);
+      reject(error);
+      fail(state, error, worker);
+    });
     // Worker diagnostics stay local; they may contain paths or model output.
-    process.stderr.resume();
-    readLines(state, process, () => (clearTimeout(timer), resolve()));
+    worker.child.stderr.resume();
+    readLines(state, worker, () => (clearTimeout(timer), resolve()));
   });
-  return state.starting;
 }
 
 /** Send one extract request and wait for its answer, a timeout or cancellation. */
@@ -166,7 +183,7 @@ function request(
         once: true,
       },
     );
-    state.child!.stdin.write(
+    state.child!.child.stdin.write(
       `${JSON.stringify({
         id,
         type: 'extract',
@@ -200,9 +217,9 @@ export function createWorkerExtractor(options: WorkerExtractorOptions): Extracto
       return parsed.readings.filter((reading) => wanted.has(reading.field));
     },
     async close() {
-      const process = state.child;
+      const worker = state.child;
+      worker?.child.stdin.end();
       fail(state, new Error('Worker closed'));
-      process?.stdin.end();
     },
   };
 }
