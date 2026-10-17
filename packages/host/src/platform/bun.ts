@@ -4,6 +4,7 @@ import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
 import { createFileBlobStore } from '@agent-native/adapters/blob-files';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
 import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
 import type { HostPlatform } from '@agent-native/kernel/platform';
 import { hostComponents } from '../components';
 import { loopbackIngress } from '../plugins/ports';
@@ -18,16 +19,18 @@ export const JOURNAL_RETENTION = 50_000;
  * upgrade on load.
  */
 export function workspaceStorage(definition: AnyApplicationDefinition, canonicalPath: string) {
-  return new SQLiteStorage<unknown>(
-    join(canonicalPath, 'workspace.sqlite'),
-    () => definition.createState(LOCAL_OWNER),
-    {
-      retention: { journal: JOURNAL_RETENTION },
-      ...(definition.upgradeState
-        ? { upgrade: (state: unknown) => definition.upgradeState!(state, LOCAL_OWNER) }
-        : {}),
-    },
-  );
+  return workspaceDatabase(definition, join(canonicalPath, WORKSPACE_DATABASE));
+}
+
+/** The workspace database's file name inside a workspace directory. */
+export const WORKSPACE_DATABASE = 'workspace.sqlite';
+
+/** `workspaceStorage` over a database file, such as a staged copy being migrated. */
+export function workspaceDatabase(definition: AnyApplicationDefinition, file: string) {
+  return new SQLiteStorage<unknown>(file, () => definition.createState(LOCAL_OWNER), {
+    retention: { journal: JOURNAL_RETENTION },
+    upgrade: stateUpgrade(definition, LOCAL_OWNER),
+  });
 }
 
 /**

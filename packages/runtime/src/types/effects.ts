@@ -22,6 +22,11 @@ export interface Effect extends EffectRequest {
   readonly operation: string;
   readonly principalId: string;
   readonly createdAt: number;
+  /**
+   * The application's `contractVersion` when the command enqueued it. An upgrade never rewrites a
+   * recorded effect, so its target reads the payload by this version. Absent when none was set.
+   */
+  readonly contractVersion?: string;
   /** `cancelled`: a command withdrew it before any worker claimed it; it was never sent. */
   readonly status: 'pending' | EffectOutcome['status'] | 'cancelled';
   readonly attempts: number;

@@ -101,6 +101,12 @@ _The port for the authority's transactional state._
 
 implemented · `packages/runtime` `packages/adapters`
 
+### State migration
+
+_Numbered versions of an application's and each plugin's state, with the steps between them, stamped per workspace and applied to a checked copy before it replaces the database._
+
+implemented · `packages/kernel/src/migrations.ts` `packages/kernel/src/state-upgrade.ts` `packages/host/src/cli/migrate-command.ts`
+
 ### Blob store
 
 _Content-addressed bytes, such as photos and documents, that commands reference from resources._

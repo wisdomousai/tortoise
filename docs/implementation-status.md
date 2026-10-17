@@ -55,6 +55,21 @@ On macOS arm64 with Bun 1.4.0.
 
 **Not shown.** No installer consumes a bundle yet, and nothing verifies one at launch. Bundles are directories, not archives. Approvals are unsigned site data. No cross-platform build has been verified on its target.
 
+### State migrations
+
+**Shown, deterministic.** `packages/host/test/migrations.test.ts`:
+
+- `migrate --dry-run` migrates and checks a copy, then leaves the database unchanged.
+- `migrate` switches to the migrated copy and keeps the previous database beside it.
+- A pending effect keeps the payload and contract version it was recorded with.
+- Clients reset their cached reads after the switch.
+- Storage refuses the version 1 code on version 2 state.
+- A migration step that throws leaves the workspace at its old version, still serving.
+- After a compatible step, the previous version still runs on the migrated state.
+- A step chain with a gap or the wrong end is refused at definition time.
+
+**Not shown.** `migrate` is not yet run by a bundle install; that comes with `site install`. The examples declare no migrations yet, and keep their unversioned `upgradeState`. A target port that maps effects by `contractVersion` has not been written. The phone's storage stamps versions, but has no staged `migrate`.
+
 ### Authorization and live views
 
 **Shown, deterministic.**

@@ -72,7 +72,7 @@ bun test packages/adapters
 ```
 
 - `src/casl.test.ts`: CASL, memory and SQL scopes agree; rules fail closed.
-- `src/row-storage.test.ts`: a commit writes only changed rows; the cached snapshot is dropped after a failure or another connection's commit; retention and the journal reset; version 1 conversion; backup, verification and restore; and a large-state benchmark against the document layout.
+- `src/row-storage.test.ts` (each workspace's state version stamps are stored as `version` rows, and `upgrade` is a `StateUpgrade`): a commit writes only changed rows; the cached snapshot is dropped after a failure or another connection's commit; retention and the journal reset; version 1 conversion; backup, verification and restore; and a large-state benchmark against the document layout.
 - `src/sqlite.test.ts`: a rolled-back transaction leaves the initial state untouched; blob references persist and older documents load without them.
 - `src/blob-files.test.ts`: storing, listing, reading and removing by digest; a repeated store refreshes `storedAt`; invalid digests never become paths.
 - `src/http-blobs.test.ts`: upload, attach and read over HTTP with the client transport; sandboxed download headers; size and media-type refusals; blobs on the direct transport.

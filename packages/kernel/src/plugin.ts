@@ -7,6 +7,7 @@ import type {
 } from '@agent-native/runtime';
 import type { HostedApplication, Observer } from './application';
 import type { ApplicationManifest } from './manifest';
+import type { StateMigrations } from './migrations';
 import type { HostPlatform, SecretStore } from './platform';
 import type { PluginManifest } from './plugin-manifest';
 import type { PluginSettings } from './plugins/settings';
@@ -187,6 +188,9 @@ export interface HostPlugin<Slice = any, Services = any> {
   readonly requires?: readonly string[];
   readonly state?: {
     create(ownerId: string): Slice;
+    /** Versions of this slice; see `StateMigrations`. */
+    readonly migrations?: StateMigrations;
+    /** Unversioned normalization run on every load after the migrations. */
     upgrade?(stored: unknown, ownerId: string): Slice;
   };
   readonly handlers?: readonly HandlerContribution<Slice, Services>[];
