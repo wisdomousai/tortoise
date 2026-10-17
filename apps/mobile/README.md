@@ -1,6 +1,6 @@
 # @agent-native/mobile-shell
 
-The starter's mobile app: one Expo project for Android and iOS. It opens the configured mobile application's authority on the device and renders its native screens in the native frame. The application runs offline with its own workspace (embedded mode). Opening a hub's screens on a tablet (attached mode) is not built yet; [implementation status](../../docs/implementation-status.md) tracks it.
+The starter's mobile app: one Expo project for Android and iOS. It opens the configured mobile application's authority on the device and renders its native screens in the native frame. The application runs offline with its own workspace (embedded mode). A tablet paired with a hub opens the hub's own screens (attached mode) through the [hub-link](../../plugins/hub-link/README.md) plugin's screens; see the [mobile guide](../../docs/mobile.md).
 
 Layer: starter (`apps/*`). Like `apps/web`, it never names content: app identity and the application come from `app.config.json`.
 

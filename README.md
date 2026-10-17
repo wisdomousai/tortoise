@@ -10,6 +10,7 @@ Where to read next:
 - [Architecture](docs/architecture.md): layers, the kernel and the invariants the checks test.
 - [Systems of record](docs/system-of-record-pattern.md): outbox, inbound sync, live search and the CLI, as the `quality-inspection` and `crm-capture` examples use them.
 - [Operator workstations](docs/operator-workstation-pattern.md): station software reached through its screen, as `line-station` uses it, with [point-of-work input](docs/point-of-work-input.md) for scanners and glove-sized screens.
+- [Mobile host](docs/mobile.md): the Expo app, embedded and attached modes, pairing with a hub, and the device's trust boundary, as `asset-survey-field` uses them.
 - [Security and compliance](docs/security-and-compliance.md): declared egress under a site policy, hardening profiles, the audit log and the generated audit bundle.
 - [Implementation status](docs/implementation-status.md): what has been run, what has not, and the [known defects](docs/implementation-status.md#known-defects).
 
