@@ -41,7 +41,7 @@ The `site-policy` setting (`--site-policy` / `AGENT_NATIVE_SITE_POLICY`) is a tr
 A supplied policy declares the ports it depends on (`portsNeeded`):
 
 - binding destinations (connected mode) needs `network`;
-- selecting mTLS needs `ingress`;
+- selecting a TLS or mTLS listener needs `ingress`;
 - asking for a fail-closed or forwarded audit trail needs `eventLog`.
 
 The host refuses a composition in which none of the composed plugins provides one of them, so a policy never looks enforced while nothing enforces it.

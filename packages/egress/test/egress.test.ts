@@ -172,6 +172,43 @@ describe('site policy', () => {
     ).toEqual([]);
   });
 
+  test('a site hub serves paired devices over TLS; desktop-local and zero-trust do not', async () => {
+    const hub = {
+      profile: 'site-hub',
+      grants: { maxTtlSeconds: 600 },
+      ingress: { listen: 'tls', host: 'hub.site', port: 8443, cert: 'hub.pem', key: 'hub.key' },
+    } as SitePolicyInput;
+    // The local owner still runs a site hub; its audit and egress floors are the sandbox's.
+    expect(codes(hub)).toEqual([]);
+    expect(codes({ ...hub, audit: { mode: 'best-effort' } })).toEqual(['AUDIT_NOT_REQUIRED']);
+    expect(codes({ ...hub, profile: 'desktop-local' })).toEqual(['INGRESS_FLOOR']);
+    expect(
+      codes({ ...hub, profile: 'zero-trust', identity: 'external' } as SitePolicyInput),
+    ).toContain('INGRESS_FLOOR');
+    expect(codes({ ...hub, ingress: { listen: 'tls' } } as SitePolicyInput)).toEqual([
+      'INGRESS_FLOOR',
+      'INGRESS_FLOOR',
+    ]);
+    // A client CA on a plain TLS listener would look enforced while nothing checks it.
+    expect(
+      codes({ ...hub, ingress: { ...hub.ingress, clientCa: 'ca.pem' } } as SitePolicyInput),
+    ).toEqual(['INGRESS_FLOOR']);
+    const directory = await mkdtemp(join(tmpdir(), 'egress-tls-'));
+    try {
+      await writeFile(join(directory, 'hub.pem'), 'cert');
+      await writeFile(join(directory, 'hub.key'), 'key');
+      await writeFile(join(directory, 'policy.json'), JSON.stringify(hub));
+      const loaded = await loadSitePolicy(join(directory, 'policy.json'), requirements);
+      expect(loaded.findings).toEqual([]);
+      expect(loaded.ingressTls).toEqual({
+        cert: join(directory, 'hub.pem'),
+        key: join(directory, 'hub.key'),
+      });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   test('a non-loopback listener needs mutual TLS with a named host and fixed port', async () => {
     const floor = { profile: 'sandbox', identity: 'grant-file', grants: { maxTtlSeconds: 600 } };
     expect(codes({ ...floor, ingress: { listen: 'mtls' } } as SitePolicyInput)).toEqual([

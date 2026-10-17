@@ -1,13 +1,17 @@
 import type { JsonValue } from '@agent-native/contracts';
+import type { ExecutionContext } from '@agent-native/runtime';
 import type { AnyApplicationDefinition, HostedApplication, Observer } from '../application';
 import { deploymentCatalog } from '../components';
-import { assertPlatformSupports, type HostPlatform } from '../platform';
+import { assertPlatformSupports, scopedSecrets, type HostPlatform } from '../platform';
 import type { HostPorts, PluginInstance, PluginStartContext } from '../plugin';
 import { defaultPorts, latePorts, resolvePorts } from './ports';
 import { assertClaimed, mergeSettings, settingsFor, type PluginSettings } from './settings';
 
 /** The parts of a platform that opening plugins needs. */
-export type PluginPlatform = Pick<HostPlatform, 'id' | 'capabilities' | 'components' | 'ingress'>;
+export type PluginPlatform = Pick<
+  HostPlatform,
+  'id' | 'capabilities' | 'components' | 'ingress' | 'secrets'
+>;
 
 export interface OpenPluginsOptions {
   readonly platform: PluginPlatform;
@@ -52,6 +56,9 @@ async function openEach(
             instance: options.instance,
             serving: options.serving,
             settings: settingsFor(plugin.manifest, settings),
+            ...(platform.secrets
+              ? { secrets: scopedSecrets(platform.secrets, options.workspacePath, id) }
+              : {}),
             services: { ...services },
             ports: late.ports,
           })
@@ -138,6 +145,22 @@ export async function openPlugins(
       for (const { instance } of opened)
         if (instance.start) observers.push(...(await instance.start({ ...context, ports })));
       return observers;
+    },
+    /** The first plugin answer to a request no session covers, in composition order. */
+    async publicRoute(request: Request): Promise<Response | undefined> {
+      for (const { instance } of opened) {
+        const response = await instance.publicRoute?.(request);
+        if (response) return response;
+      }
+      return undefined;
+    },
+    /** The caller a plugin-issued bearer token stands for, from the first plugin that knows it. */
+    async authenticate(token: string): Promise<ExecutionContext | undefined> {
+      for (const { instance } of opened) {
+        const context = await instance.authenticate?.(token);
+        if (context) return context;
+      }
+      return undefined;
     },
     /** The plugins' facts for the `listening` record, keyed by plugin id. */
     describe(): Record<string, JsonValue> {

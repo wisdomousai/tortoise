@@ -7,7 +7,7 @@ import type {
 } from '@agent-native/runtime';
 import type { HostedApplication, Observer } from './application';
 import type { ApplicationManifest } from './manifest';
-import type { HostPlatform } from './platform';
+import type { HostPlatform, SecretStore } from './platform';
 import type { PluginManifest } from './plugin-manifest';
 import type { PluginSettings } from './plugins/settings';
 import type { ShellPort } from './shell';
@@ -95,6 +95,8 @@ export interface PluginOpenContext {
   readonly serving: boolean;
   /** This plugin's settings that the launcher supplied. */
   readonly settings: Readonly<Record<string, string>>;
+  /** This plugin's own secrets in this workspace, where the platform keeps secrets. */
+  readonly secrets?: SecretStore;
   /** Services of the plugins opened before this one, keyed by plugin id. */
   readonly services: Readonly<Record<string, unknown>>;
   /**
@@ -135,6 +137,20 @@ export interface PluginInstance {
   ready?(application: HostedApplication): Promise<void>;
   /** Serving host only, after it listens. Returned observers stop before `close`. */
   start?(context: PluginStartContext): Promise<readonly Observer[]>;
+  /**
+   * Serving host only: a request no session covers, such as a device exchanging an enrollment
+   * code. It runs after the host's Host-header check and before its origin and session checks, so
+   * the plugin owns every other check (one-use codes, rate limits, methods). Read the body only
+   * of a request you answer; undefined passes the request on unread.
+   */
+  publicRoute?(request: Request): Promise<Response | undefined>;
+  /**
+   * Serving host only: the caller a bearer token stands for when it is not a host session, such
+   * as a paired device; undefined when this plugin did not issue the token. The host asks on
+   * every request, so a revoked credential stops working at the next one. The returned context
+   * is trusted like a session's, so the plugin decides its principal and grant.
+   */
+  authenticate?(token: string): Promise<ExecutionContext | undefined>;
   /** Facts for the `listening` record, such as the active profile. */
   describe?(): Record<string, JsonValue>;
   /** Release what `open` acquired. Called once, in reverse opening order. */

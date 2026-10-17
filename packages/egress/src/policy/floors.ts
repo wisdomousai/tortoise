@@ -46,19 +46,37 @@ function checkIngress(
   report: Findings,
 ) {
   const { error, warn } = report;
-  const zeroTrust = policy.profile === 'zero-trust';
-  if (policy.ingress.listen === 'mtls' && !zeroTrust && policy.profile !== 'sandbox')
-    warn('INGRESS_MTLS', 'mTLS ingress is intended for sandbox or zero-trust deployments');
-  if (policy.profile === 'desktop-local' && policy.ingress.listen !== 'loopback')
+  const { listen, host, port, cert, key, clientCa } = policy.ingress;
+  if (listen === 'mtls' && policy.profile === 'desktop-local')
+    warn(
+      'INGRESS_MTLS',
+      'mTLS ingress is intended for site-hub, sandbox or zero-trust deployments',
+    );
+  if (policy.profile === 'desktop-local' && listen !== 'loopback')
     error('INGRESS_FLOOR', 'desktop-local listens on loopback only');
-  const mtls = policy.ingress.listen === 'mtls';
-  if (mtls && (!policy.ingress.cert || !policy.ingress.key || !policy.ingress.clientCa))
-    error('INGRESS_FLOOR', 'mTLS ingress requires cert, key and clientCa');
-  if (mtls && (!policy.ingress.host || !policy.ingress.port))
-    error('INGRESS_FLOOR', 'mTLS ingress requires the host name clients use and a fixed port');
+  // Without client certificates, the network reaches the listener; zero-trust never allows that.
+  if (policy.profile === 'zero-trust' && listen === 'tls')
+    error('INGRESS_FLOOR', 'zero-trust admits network clients only over mutual TLS');
+  if (listen === 'loopback') return;
+  const name = listen === 'mtls' ? 'mTLS' : 'TLS';
+  if (!cert || !key || (listen === 'mtls' && !clientCa))
+    error(
+      'INGRESS_FLOOR',
+      `${name} ingress requires ${listen === 'mtls' ? 'cert, key and clientCa' : 'cert and key'}`,
+    );
+  if (listen === 'tls' && clientCa)
+    error(
+      'INGRESS_FLOOR',
+      'clientCa applies to mtls only; a TLS listener does not check client certificates',
+    );
+  if (!host || !port)
+    error('INGRESS_FLOOR', `${name} ingress requires the host name clients use and a fixed port`);
   // Files are checked only when the caller loaded them (`loadSitePolicy`), as for CA bundles.
-  if (mtls && ingressFiles && (!ingressFiles.cert || !ingressFiles.key || !ingressFiles.clientCa))
-    error('INGRESS_UNREADABLE', 'mTLS certificate, key or client CA could not be read');
+  if (
+    ingressFiles &&
+    (!ingressFiles.cert || !ingressFiles.key || (listen === 'mtls' && !ingressFiles.clientCa))
+  )
+    error('INGRESS_UNREADABLE', `${name} certificate, key or client CA could not be read`);
 }
 
 /** Audit, identity, ingress and grant floors of the selected profile. */

@@ -8,7 +8,7 @@
 export { networkPlugin } from './plugin';
 export { networkPluginManifest } from './plugin-manifest';
 export { openNetwork, networkServiceOf, type NetworkService } from './open';
-export { mtlsIngress } from './ingress';
+export { policyIngress } from './ingress';
 export {
   networkRules,
   type AllowRule,

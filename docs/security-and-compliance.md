@@ -85,21 +85,23 @@ The `quality-inspection` example ships a complete sandbox policy. The desktop bu
 
 A profile is a floor: startup refuses a policy below it, and `site check` reports the same findings.
 
-| Floor                      | desktop-local       | sandbox                              | zero-trust                                     |
-| -------------------------- | ------------------- | ------------------------------------ | ---------------------------------------------- |
-| Network default            | isolated            | isolated                             | isolated                                       |
-| Plain HTTP/WS off the host | allowed if declared | refused                              | refused; TLS with a CA bundle or pins required |
-| Ingress                    | loopback only       | loopback, or mTLS                    | loopback, or mTLS                              |
-| Identity                   | local owner         | launcher grant or external           | external only                                  |
-| Audit log                  | configurable        | fail-closed                          | fail-closed and forwarded off the host         |
-| Delegated grants           | as issued           | expire within `grants.maxTtlSeconds` | as sandbox, at most one hour                   |
+| Floor                      | desktop-local       | site-hub                             | sandbox                              | zero-trust                                     |
+| -------------------------- | ------------------- | ------------------------------------ | ------------------------------------ | ---------------------------------------------- |
+| Network default            | isolated            | isolated                             | isolated                             | isolated                                       |
+| Plain HTTP/WS off the host | allowed if declared | refused                              | refused                              | refused; TLS with a CA bundle or pins required |
+| Ingress                    | loopback only       | loopback, TLS or mTLS                | loopback, TLS or mTLS                | loopback, or mTLS                              |
+| Identity                   | local owner         | local owner, launcher grant          | launcher grant or external           | external only                                  |
+| Audit log                  | configurable        | fail-closed                          | fail-closed                          | fail-closed and forwarded off the host         |
+| Delegated grants           | as issued           | expire within `grants.maxTtlSeconds` | expire within `grants.maxTtlSeconds` | as sandbox, at most one hour                   |
+
+`site-hub` is for a hub that paired phones and tablets reach over the site network: the sandbox's floors, with the person running the hub as the local owner. Devices authenticate with the credentials the [device-link plugin](../plugins/device-link/README.md) issues.
 
 The identity settings:
 
 - **`grant-file`:** the host issues no local-owner session and writes no owner credential. Only a launcher grant within the maximum lifetime is admitted, including for embedded CLI and MCP calls.
 - **`external`:** startup refuses, because no workforce identity adapter exists yet. It never falls back to the local owner.
 
-**mTLS.** The listener binds the configured address and admits only clients whose certificate chains to `clientCa`. Every API call still needs a session token. Certificate paths resolve next to the policy file.
+**TLS and mTLS.** The listener binds the configured address with the site's certificate. With `mtls` it admits only clients whose certificate chains to `clientCa`; with `tls` any client on the network completes the handshake, and a policy that sets `clientCa` on a `tls` listener is refused, since nothing would check it. Either way every API call still needs a session token or a device credential. Certificate paths resolve next to the policy file.
 
 ## 3. Enforcement
 

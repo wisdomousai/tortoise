@@ -60,10 +60,11 @@ export interface ResolvedPolicy {
   /** SHA-256 of the canonical policy, for attestation events and reports. */
   readonly digest: string;
   /**
-   * Absolute PEM paths for an `mtls` listener, checked readable by `loadSitePolicy`. Paths, not
-   * contents, so the private key never sits in an object that reports and monitors pass around.
+   * Absolute PEM paths for a `tls` or `mtls` listener (`clientCa` for `mtls` only), checked
+   * readable by `loadSitePolicy`. Paths, not contents, so the private key never sits in an object
+   * that reports and monitors pass around.
    */
-  readonly ingressTls?: { readonly cert: string; readonly key: string; readonly clientCa: string };
+  readonly ingressTls?: { readonly cert: string; readonly key: string; readonly clientCa?: string };
 }
 
 /** Listener files as `loadSitePolicy` found them: absolute paths that exist and are readable. */
@@ -106,10 +107,14 @@ function resolveBindings(
   return { bindings, disabled };
 }
 
-const ingressTlsOf = (policy: SitePolicy, files: IngressFiles | undefined) =>
-  policy.ingress.listen === 'mtls' && files?.cert && files.key && files.clientCa
+function ingressTlsOf(policy: SitePolicy, files: IngressFiles | undefined) {
+  const { listen } = policy.ingress;
+  if (listen === 'loopback' || !files?.cert || !files.key) return {};
+  if (listen === 'tls') return { ingressTls: { cert: files.cert, key: files.key } };
+  return files.clientCa
     ? { ingressTls: { cert: files.cert, key: files.key, clientCa: files.clientCa } }
     : {};
+}
 
 /**
  * Validate a site policy against the declared requirements and the profile's floor. Never
@@ -187,7 +192,7 @@ export async function loadSitePolicy(
   ]);
   return resolveSitePolicy(raw, requirements, {
     ca,
-    ...(ingress?.listen === 'mtls' ? { ingress: { cert, key, clientCa } } : {}),
+    ...(ingress && ingress.listen !== 'loopback' ? { ingress: { cert, key, clientCa } } : {}),
   });
 }
 

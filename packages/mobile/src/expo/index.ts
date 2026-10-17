@@ -7,6 +7,7 @@ import { getRandomValues } from 'expo-crypto';
 import { Platform } from 'react-native';
 import { createMobilePlatform } from '../platform';
 import { expoBlobStore } from './blob-store';
+import { expoSecretStore } from './secrets';
 import { expoSqlDriver } from './sql-driver';
 
 installGlobals({ getRandomValues: (array) => getRandomValues(array) });
@@ -19,10 +20,12 @@ export function expoPlatform() {
     id: Platform.OS,
     openDatabase: expoSqlDriver,
     openBlobs: expoBlobStore,
+    secrets: expoSecretStore,
   });
 }
 
 export { expoBlobStore } from './blob-store';
+export { expoSecretStore } from './secrets';
 export { expoSqlDriver } from './sql-driver';
 export { defineBackgroundDelivery, followAppState } from './lifecycle';
 export { pluginNativeModule } from './native-module';

@@ -23,6 +23,16 @@ export interface PlatformOwnership {
 }
 
 /**
+ * Small secrets kept outside workspace state, such as a paired device's credential: the OS
+ * keychain or keystore. Names use letters, digits, `.`, `-` and `_`.
+ */
+export interface SecretStore {
+  get(name: string): Promise<string | undefined>;
+  set(name: string, value: string): Promise<void>;
+  delete(name: string): Promise<void>;
+}
+
+/**
  * Everything the kernel needs from the machine it runs on. The kernel itself uses no Node, Bun or
  * React Native API; a platform supplies ownership, storage and the host's own requirements.
  *
@@ -55,6 +65,29 @@ export interface HostPlatform {
   ): Storage<unknown> & { close(): Promise<void> };
   /** The workspace's blob store, such as photos its commands attach. One store per workspace. */
   openBlobs(ownership: PlatformOwnership): BlobStore;
+  /**
+   * The platform's secret store. The kernel hands each plugin a view scoped to the workspace and
+   * the plugin, so plugins cannot read each other's secrets. Absent where the platform keeps none.
+   */
+  readonly secrets?: SecretStore;
+}
+
+const secretName = /^[A-Za-z0-9._-]{1,64}$/;
+
+/**
+ * The part of `store` one plugin of one workspace sees: every name is prefixed with both, and a
+ * name outside the allowed characters is refused, so a name cannot reach another plugin's keys.
+ */
+export function scopedSecrets(store: SecretStore, workspace: string, plugin: string): SecretStore {
+  const key = (name: string) => {
+    if (!secretName.test(name)) throw new Error(`Invalid secret name "${name}"`);
+    return `${workspace.replace(/[^A-Za-z0-9._-]/g, '_')}.${plugin}.${name}`;
+  };
+  return {
+    get: (name) => store.get(key(name)),
+    set: (name, value) => store.set(key(name), value),
+    delete: (name) => store.delete(key(name)),
+  };
 }
 
 /**

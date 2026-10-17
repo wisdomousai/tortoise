@@ -3,18 +3,28 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createClient, type Transport } from '@agent-native/client';
 import { createLiveBindings } from '@agent-native/react/query';
 
-function createSession(transport: Transport) {
+/** Services the open authority's plugins expose, keyed by plugin id. */
+export type PluginServices = Readonly<Record<string, unknown>>;
+
+function createSession(transport: Transport, services: PluginServices) {
   return {
     transport,
+    /**
+     * In-process plugin services, such as pairing on the device. They are trusted code of this
+     * app; a screen calls only the service of its own plugin and every write still goes through
+     * the authority's commands.
+     */
+    services,
     client: createClient(transport),
     live: createLiveBindings(transport),
     queryClient: new QueryClient(),
   };
 }
 
-/** The transport, client, live bindings and query cache of the open authority. */
+/** The transport, client, live bindings, query cache and plugin services of the open authority. */
 export type NativeSession = ReturnType<typeof createSession>;
 
+const noServices: PluginServices = {};
 const SessionContext = createContext<NativeSession | undefined>(undefined);
 
 function LiveInvalidation({ session }: { session: NativeSession }) {
@@ -29,12 +39,14 @@ function LiveInvalidation({ session }: { session: NativeSession }) {
  */
 export function SessionProvider({
   transport,
+  services = noServices,
   children,
 }: {
   transport: Transport;
+  services?: PluginServices;
   children: ReactNode;
 }) {
-  const session = useMemo(() => createSession(transport), [transport]);
+  const session = useMemo(() => createSession(transport, services), [transport, services]);
   return (
     <SessionContext.Provider value={session}>
       <QueryClientProvider client={session.queryClient}>

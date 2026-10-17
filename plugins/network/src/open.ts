@@ -7,7 +7,7 @@ import {
 } from '@agent-native/egress';
 import type { HostPorts, PluginInstance, PluginOpenContext } from '@agent-native/host/plugin';
 import { siteServiceOf } from '@agent-native/site/open';
-import { mtlsIngress } from './ingress';
+import { policyIngress } from './ingress';
 
 /** What the network plugin exposes to later plugins as `services.network`. */
 export interface NetworkService {
@@ -57,7 +57,7 @@ function networkPort(egress: Egress, proxy: EgressProxy | undefined): HostPorts[
  *    composed event log in that log's egress mode.
  * 2. In a serving host, start the loopback CONNECT proxy that declared child processes (provider
  *    CLIs) must use.
- * 3. Provide the network port, and the ingress port when the policy selects mutual TLS.
+ * 3. Provide the network port, and the ingress port when the policy selects a TLS or mutual TLS listener.
  *
  * Throws when the site plugin is not composed or the proxy cannot start.
  */
@@ -65,7 +65,7 @@ export async function openNetwork(context: PluginOpenContext): Promise<PluginIns
   const { policy, requirements } = siteServiceOf(context.services);
   const egress = createEgress({ policy, requirements, eventLog: composedEventLog(context.ports) });
   const proxy = context.serving ? await startEgressProxy(egress) : undefined;
-  const ingress = mtlsIngress(policy);
+  const ingress = policyIngress(policy);
   const service: NetworkService = { egress, ...(proxy ? { proxy } : {}) };
   return {
     ports: { network: networkPort(egress, proxy), ...(ingress ? { ingress } : {}) },

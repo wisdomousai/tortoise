@@ -42,7 +42,7 @@ export function networkPolicy(rules: RuleSet, options: ExportOptions): string {
       podSelector: { matchLabels: { 'app.kubernetes.io/name': d.name } },
       policyTypes: ['Ingress', 'Egress'],
       ingress:
-        rules.ingress.listen === 'mtls' && rules.ingress.port
+        rules.ingress.listen !== 'loopback' && rules.ingress.port
           ? [{ ports: [{ protocol: 'TCP', port: rules.ingress.port }] }]
           : [],
       egress: [
