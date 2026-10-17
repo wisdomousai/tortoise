@@ -19,7 +19,7 @@ export async function openAuthority(
   cleanup: CleanupStack,
 ) {
   const authority = await openOnPlatform(definition, {
-    platform: bunPlatform,
+    platform: options.platform ?? bunPlatform,
     ownership,
     component: 'authority',
     serving: true,

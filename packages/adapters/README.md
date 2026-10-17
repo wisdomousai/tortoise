@@ -1,6 +1,6 @@
 # @agent-native/adapters
 
-The reference adapters behind the runtime's ports and the surface adapters that expose the authority: SQLite storage, a CASL policy profile, workspace ownership, HTTP/SSE, MCP, the CLI, an in-process transport and UI sessions. Each surface is a thin translation onto the raw command and query entry points. None holds business logic or its own operation list, so adding a capability adds it to every surface.
+The reference adapters behind the runtime's ports and the surface adapters that expose the authority: SQLite and Postgres storage, a workspace lease, a CASL policy profile, workspace ownership, HTTP/SSE, MCP, the CLI, an in-process transport and UI sessions. Each surface is a thin translation onto the raw command and query entry points. None holds business logic or its own operation list, so adding a capability adds it to every surface.
 
 Layer: framework (`packages/*`). The host composes these; applications rarely import them directly.
 
@@ -11,8 +11,9 @@ Layer: framework (`packages/*`). The host composes these; applications rarely im
 - [Authority](../../docs/primitives.md#authority): `acquireWorkspaceOwnership`, `WorkspaceOwnedError`.
 - [Execution context](../../docs/primitives.md#execution-context): `readGrantFile`, `readConnection`.
 - [Policy](../../docs/primitives.md#policy): the CASL adapter, `createScopedAbility`, `scopeToSql`.
-- [Storage](../../docs/primitives.md#storage): `SQLiteStorage`, `RowStorage` (`RowStorageOptions`, `Retention`, `WriteStats`, `ROW_SCHEMA_VERSION`), `SnapshotStorage`, `SqlDriver`, `SqlRowsDriver`, `SqlValue`, `bunSqlDriver`, and `verifyBackup`, `restoreBackup` (`BackupSummary`).
+- [Storage](../../docs/primitives.md#storage): `SQLiteStorage`, `RowStorage` (`RowStorageOptions`, `Retention`, `WriteStats`, `ROW_SCHEMA_VERSION`), `SnapshotStorage`, `SqlDriver`, `SqlRowsDriver`, `SqlValue`, `bunSqlDriver`, `verifyBackup`, `restoreBackup` (`BackupSummary`), and `PostgresStorage` (`PostgresStorageOptions`, `PG_SCHEMA_VERSION`) over a `PgDriver` (`PgQuery`, `PgValue`), with `bunPostgres` on `Bun.SQL`.
 - [Authority](../../docs/primitives.md#authority): `acquireExclusiveLock`, the portable lock the mobile platform owns its workspace with.
+- [Workspace lease](../../docs/primitives.md#workspace-lease): `acquireWorkspaceLease` (`WorkspaceLease`, `LeaseOptions`), `WorkspaceLeaseLostError`.
 - [Blob store](../../docs/primitives.md#blob-store): `createFileBlobStore`, the HTTP routes `POST /api/v1/blobs` and `GET /api/v1/blobs/:digest`, and blobs on the direct transport.
 - [UI session context](../../docs/primitives.md#ui-session-context): `UiSessionStore`.
 - [Shell port](../../docs/primitives.md#shell-port): `UiDeliveryStore`, `validDelivery`: what accepted OS requests asked each session's frame to show.
@@ -42,6 +43,9 @@ Import a subpath. The root export holds only `adapterContractVersion`.
 | `@agent-native/adapters/exclusive-lock`   | any host    | `acquireExclusiveLock` and `WorkspaceOwnedError`.                                                                                                                                               |
 | `@agent-native/adapters/blob-files`       | server only | `createFileBlobStore`: blobs under a workspace directory, written to a temporary file and renamed.                                                                                              |
 | `@agent-native/adapters/ownership`        | server only | `acquireWorkspaceOwnership`: an OS-held SQLite lock, one owner per workspace.                                                                                                                   |
+| `@agent-native/adapters/postgres-storage` | server only | `PostgresStorage` and the `PgDriver` interface: the row layout of `RowStorage` on Postgres, shared safely by several hosts. |
+| `@agent-native/adapters/postgres-lease`   | server only | `acquireWorkspaceLease`, `WorkspaceLeaseLostError`: one holder per workspace in a shared database, with a fencing token each commit checks. |
+| `@agent-native/adapters/postgres-bun`     | server only | `bunPostgres(url)`: a pooled `PgDriver` on Bun's built-in Postgres client. |
 | `@agent-native/adapters/casl`             | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.                                                                                           |
 | `@agent-native/adapters/ui-sessions`      | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents.                                                                                                                  |
 | `@agent-native/adapters/ui-deliveries`    | server only | `UiDeliveryStore`: what accepted OS requests asked each session's frame to show, held per session token.                                                                                        |
@@ -50,6 +54,7 @@ Import a subpath. The root export holds only `adapterContractVersion`.
 
 - `src/http/`: sessions, sealed cursors, response headers and status codes, bounded body parsing, the pull-based event stream and the framework's authenticated routes. `http.ts` keeps the host, origin and cross-site checks and authentication, in that order.
 - `src/cli/`: the connection file, argument parsing and coercion, help text, dry-run validation and execution, and text formatting. `cli.ts` keeps the dispatcher, exit codes and the main guard.
+- `src/postgres/`: the `PgDriver` interface, the schema and the async row reads and writes behind `postgres-storage.ts` and `postgres-lease.ts`. Rows are built and compared by the same helpers as `src/row-storage/`.
 
 ## Trust boundary
 
@@ -61,11 +66,13 @@ A session that stands for such a credential (`HostSession.credential`) can mint 
 
 A blob upload is read only up to the largest size any operation declares, and its media type comes from `Content-Type`. A blob download carries `Content-Security-Policy: sandbox`, `nosniff` and `no-store`, so an uploaded document cannot run script on the authority's origin and a revoked reader gets nothing from a cache. The file store accepts only `sha256:` digests as names, so no reference becomes a path outside its directory.
 
+Postgres storage serializes commits to one workspace across every connection with a transaction-scoped advisory lock on the workspace key, then runs the `fence` (a lease's `check`), then reads the generation, so a cached snapshot is reused only when no other host committed. A lease's `check` takes a share lock on the lease row inside the commit's transaction: a takeover waits for that commit, and every later commit of the old holder fails with `WorkspaceLeaseLostError` before it reads or writes. Expiry uses the database's clock. The database URL and its credentials are launcher configuration; `bunPostgres` connects outside the network port because the platform opens storage before any plugin (see `scripts/boundary-rules.ts`).
+
 Row storage keeps the last committed snapshot in memory only while the stored generation matches, so a second connection's commit is always reloaded. A restore removes the old write-ahead log before renaming the copy into place, so its pages never replay onto the restored file; the caller must own the workspace. Ownership never trusts PID files: a live `EXCLUSIVE` SQLite transaction is the lock, and a crash releases it. CASL scopes accept scalar columns only, and unsupported conditions fail closed. A connection file is a local credential.
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/client`. External: `@casl/ability`, `@modelcontextprotocol/sdk`, `zod`. Bun's SQLite driver for storage and ownership.
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/client`. External: `@casl/ability`, `@modelcontextprotocol/sdk`, `zod`. Bun's SQLite driver for storage and ownership, and Bun's Postgres client for `bunPostgres`.
 
 ## Tests
 
@@ -83,8 +90,12 @@ bun test packages/adapters
 - `src/mcp.test.ts`: each agent definition is an MCP resource with its instructions, tool names and budgets.
 - `src/cli.test.ts`: catalog-derived words and typed flags, `--json` input, dry-run, generated help and exit codes mapped from error codes.
 
+Postgres storage and the lease are tested in `packages/testing` (`test/storage.test.ts`, `test/postgres-lease.test.ts`), where the storage conformance suite and the PGlite driver live; set `STORAGE_POSTGRES_URL` to run them against a server too.
+
 Surface parity is proven in content, where real operations exist: `examples/project-tasks/test/transport-conformance.test.ts` runs the same scenarios through direct, HTTP, CLI subprocess and MCP.
 
 ## Skills
 
-None. Replacing a port adapter or adding a transport follows [adapters](../../docs/adapters.md); add a skill when that becomes a repeated task.
+- [run-a-hosted-authority](../host/skills/run-a-hosted-authority/SKILL.md): Postgres storage and the workspace lease behind a hosted instance, and proving a new storage adapter with the conformance suite.
+
+Replacing another port adapter or adding a transport follows [adapters](../../docs/adapters.md).

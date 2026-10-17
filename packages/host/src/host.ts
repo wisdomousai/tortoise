@@ -1,6 +1,6 @@
 import { mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
-import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
+import { bunPlatform } from './platform/bun';
 import {
   createHttpHandler,
   Sessions,
@@ -168,7 +168,7 @@ function uiRoutes(
  */
 export async function startHost(definition: AnyApplicationDefinition, options: StartHostOptions) {
   await mkdir(options.workspacePath, { recursive: true });
-  const ownership = await acquireWorkspaceOwnership(options.workspacePath);
+  const ownership = await (options.platform ?? bunPlatform).acquireOwnership(options.workspacePath);
   const cleanup = createCleanupStack(() => ownership.release());
   try {
     const authority = await openAuthority(definition, options, ownership, cleanup);

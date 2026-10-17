@@ -19,9 +19,11 @@
     "./*": "./src/*.ts"
   },
   "dependencies": {
+    "@agent-native/adapters": "workspace:*",
     "@agent-native/agents": "workspace:*",
     "@agent-native/contracts": "workspace:*",
     "@agent-native/integration": "workspace:*",
-    "@agent-native/runtime": "workspace:*"
+    "@agent-native/runtime": "workspace:*",
+    "@electric-sql/pglite": "0.5.8"
   }
 }

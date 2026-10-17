@@ -60,6 +60,7 @@
         "@ai-sdk/openai": "4.0.86",
         "@anthropic-ai/claude-agent-sdk": "0.3.292",
         "@casl/ability": "7.0.1",
+        "@electric-sql/pglite": "0.5.8",
         "@fontsource-variable/ibm-plex-sans": "^5.3.0",
         "@fontsource/ibm-plex-mono": "^5.3.0",
         "@modelcontextprotocol/sdk": "1.32.1",
@@ -297,6 +298,9 @@
         "@ai-sdk/openai": "4.0.86",
         "@modelcontextprotocol/sdk": "1.32.1",
       },
+      "devDependencies": {
+        "@agent-native/testing": "workspace:*",
+      },
     },
     "packages/integration": {
       "name": "@agent-native/integration",
@@ -411,10 +415,12 @@
       "name": "@agent-native/testing",
       "version": "0.1.0",
       "dependencies": {
+        "@agent-native/adapters": "workspace:*",
         "@agent-native/agents": "workspace:*",
         "@agent-native/contracts": "workspace:*",
         "@agent-native/integration": "workspace:*",
         "@agent-native/runtime": "workspace:*",
+        "@electric-sql/pglite": "0.5.8",
       },
     },
     "plugins/android-intents": {
@@ -1051,6 +1057,8 @@
     "@dotenvx/dotenvx": ["@dotenvx/dotenvx@1.75.1", "https://registry.yarnpkg.com/@dotenvx/dotenvx/-/dotenvx-1.75.1.tgz", { "dependencies": { "@dotenvx/primitives": "^0.8.0", "commander": "^11.1.0", "conf": "^10.2.0", "dotenv": "^17.2.1", "enquirer": "^2.4.1", "env-paths": "^2.2.1", "execa": "^5.1.1", "fdir": "^6.2.0", "ignore": "^5.3.0", "object-treeify": "1.1.33", "open": "^8.4.2", "picomatch": "^4.0.4", "systeminformation": "^5.22.11", "undici": "^7.11.0", "which": "^4.0.0", "yocto-spinner": "^1.1.0" }, "bin": { "dotenvx": "src/cli/dotenvx.js" } }, "sha512-/BITOC9dmS/edY2zQwZNicQ059O6RKabtQfyEafV0nGtfYRNHYy1DIPiYVcov40+tob9hfmBnbR963dS+EQ1DQ=="],
 
     "@dotenvx/primitives": ["@dotenvx/primitives@0.8.0", "https://registry.yarnpkg.com/@dotenvx/primitives/-/primitives-0.8.0.tgz", {}, "sha512-VYJy0uhFm9zTJ1TxBaW/pA8bjbOM/OttaNMwZ1RHG4JKyRG7DhSdiqD1ipQoAyoD22olUtxbP78W9xY3Wd11bg=="],
+
+    "@electric-sql/pglite": ["@electric-sql/pglite@0.5.8", "https://registry.yarnpkg.com/@electric-sql/pglite/-/pglite-0.5.8.tgz", {}, "sha512-n9tsbUOhwx2epK1V0ZG9Ar4SHWUju04dhmzZXiSBXwBoleOvIfals33NAaWgagQVAL4Rbvx/Ptsu3P+pA09f6Q=="],
 
     "@electron-internal/extract-zip": ["@electron-internal/extract-zip@1.0.5", "https://registry.yarnpkg.com/@electron-internal/extract-zip/-/extract-zip-1.0.5.tgz", {}, "sha512-+bqFCP98pLI0Tt0XQo1TmlXtwjWchISndDOxCkEcIuUgXWpBnLyRI+2DU+mesvnMMX6L1XDqYNA0lXNDHd/yiA=="],
 

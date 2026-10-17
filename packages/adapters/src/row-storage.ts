@@ -29,7 +29,7 @@ export interface RowStorageOptions<State> {
 }
 
 /** Drop history past the retention limits before it is written. */
-function retain<State>(snapshot: WorkspaceSnapshot<State>, retention: Retention = {}) {
+export function retain<State>(snapshot: WorkspaceSnapshot<State>, retention: Retention = {}) {
   if (retention.journal !== undefined && snapshot.journal.length > retention.journal) {
     const removed = snapshot.journal.splice(0, snapshot.journal.length - retention.journal);
     snapshot.journalFloor = removed.at(-1)!.cursor;

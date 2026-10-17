@@ -1,6 +1,6 @@
 import type { ExecutionContext } from '@agent-native/runtime';
-import type { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
 import type { Harness } from '@agent-native/agents/types';
+import type { ServingOwnership, ServingPlatform } from '../platform/bun';
 import type { PluginSettings } from '../plugins/settings';
 
 export interface StartHostOptions {
@@ -26,9 +26,14 @@ export interface StartHostOptions {
    * composed plugin declares refuses startup rather than be ignored.
    */
   settings?: PluginSettings;
+  /**
+   * Where the workspace's ownership and storage live: the Bun platform's local SQLite files by
+   * default, or `hostedPlatform` for a workspace in a shared database.
+   */
+  platform?: ServingPlatform;
 }
 
-export type WorkspaceOwnership = Awaited<ReturnType<typeof acquireWorkspaceOwnership>>;
+export type WorkspaceOwnership = ServingOwnership;
 
 /**
  * Teardown registered during startup, run newest first if startup fails. Each step is isolated:

@@ -20,6 +20,7 @@ description: Choose and run the checks for a change in this repository and repor
 | The CLI, MCP or the sandbox binary | `bun run test:sandbox`, `bun run test:service` |
 | The execution host, the process port or the seccomp filter | `bun test plugins/execution-host plugins/process`, then `bun run test:execution-host:linux` (Docker) for the bubblewrap tests, which skip off Linux |
 | A model entry, the model server or the model gate | `bun test plugins/model-server packages/agents`; a real llama-server or vLLM run is live evidence |
+| A storage adapter, the workspace lease or the hosted platform | `bun test packages/testing/test/storage.test.ts packages/testing/test/postgres-lease.test.ts packages/host/test/hosted-platform.test.ts`; with `STORAGE_POSTGRES_URL` set against a throwaway server, reported as by-hand evidence |
 | Network or firewall exports | `bun test plugins/network`; regenerate goldens with `UPDATE_GOLDEN=1` and review the diff |
 | Mobile or native screens | `bun run typecheck`, `bun run check:mobile-bundle` |
 | A driver SDK | the commands in that SDK's README |

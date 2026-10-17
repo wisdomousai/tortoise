@@ -21,6 +21,28 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Limits.** Row storage still serializes every row to find the change, so commit CPU grows with state. Receipts are kept by default. The phone's snapshot storage has neither rows nor retention. No encryption at rest.
 
+### Hosted authority
+
+**By hand.** On 18 October 2026, against a throwaway Postgres 17.6 container (the `supabase/postgres` image, with a password set for the run), on macOS arm64:
+
+- With `STORAGE_POSTGRES_URL` set, the storage conformance cases and the lease cases passed through `Bun.SQL`. Two pools raced for one lease, and one won.
+- Two project-tasks instances ran `serve --hosted-workspace live-f1`, each with its own local directory. The second was refused with `CONFLICT`, and `project.create` committed through the first.
+- The first was paused with SIGSTOP for 33 seconds. A new instance then took the lease with fence 2 and listed the project.
+- The first was resumed. It logged `lease-lost` and exited.
+
+**Not shown.**
+
+- No hosted instance has run behind a public TLS listener with workforce OIDC sign-in.
+- None has run under a real orchestrator, or on Linux.
+- No commit from a paused holder has been caught by the fence in a live run. The resumed instance's renewal found the loss first, and the tests cover the fence.
+
+**Limits.**
+
+- One process serves one workspace. Many workspaces need one instance each behind a router.
+- Blobs, agent run history, the audit log and the plugins' local files stay in the instance's local directory. A takeover on another machine starts without them unless that directory is on shared storage.
+- The embedded CLI verbs (`sync`, `drain`, `backup`, `restore`, `migrate`, `--embedded`) open a local workspace only. Back up the database with its own tools.
+- No Cloudflare Durable Object host exists. The host uses Bun APIs, and a Workers entry is not written.
+
 ### Site bundles
 
 **By hand.** `bun run bundle create` built a 69 MB project-tasks bundle (46 files) on macOS arm64, which `verify` accepted and `admit` refused until approved. Rerun on 17 October 2026 after the bundle began writing its contract, security manifest and SBOM from the catalog: the signature verified and `admit` listed the requirements to approve.
@@ -217,7 +239,7 @@ These are improvements, not defects:
 
 ## Out of scope
 
-- cloud hosting and multi-device synchronization;
+- managed cloud hosting (the hosted platform runs on any server with Postgres; no provider is targeted) and multi-device synchronization;
 - more than one application per authority;
 - package publication;
 - signed distribution.

@@ -54,6 +54,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Run agent tools in a sandbox: bubblewrap, grants, egress | [run-agent-tools-in-a-sandbox](plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) |
 | Serve a local or fine-tuned model: entries, digests, datasets, the gate | [serve-a-local-model](plugins/model-server/skills/serve-a-local-model/SKILL.md) |
 | Deploy to a site: policy, signed bundles, install | [deploy-to-site](plugins/site/skills/deploy-to-site/SKILL.md) |
+| Run a hosted authority: Postgres storage, the workspace lease, TLS and workforce sign-in | [run-a-hosted-authority](packages/host/skills/run-a-hosted-authority/SKILL.md) |
 
 How skills stay current with the code (`bun run check:skills` enforces the first three points):
 

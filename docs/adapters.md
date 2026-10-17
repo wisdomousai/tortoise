@@ -14,9 +14,9 @@ Feature contracts never mention how the application is hosted or stored. Each ex
 
 ## Storage
 
-Storage offers two operations: a transaction and a read, each scoped to one workspace. The core treats feature state as opaque, cloneable data and keeps framework metadata beside it. The memory adapter isolates copies and serializes work per workspace. The SQLite adapter stores one versioned, validated document per workspace inside explicit transactions. It is a reference snapshot adapter, not a set of per-table repositories.
+Storage offers two operations: a transaction and a read, each scoped to one workspace. The core treats feature state as opaque, cloneable data and keeps framework metadata beside it. The memory adapter isolates copies and serializes work per workspace. The SQLite adapter stores one row per record (a module slice, a collection, a record) inside explicit transactions and writes only the rows a commit changed. The Postgres adapter uses the same row layout and serializes commits to one workspace across hosts with an advisory lock; a workspace lease adds a fencing check to every commit. Neither is a set of per-table repositories.
 
-A different database can back the same port if it gives the same atomicity: receipts and journal entries are written in the business transaction, never after it. Run history is stored separately and is not a substitute for receipts.
+A different database can back the same port if it gives the same atomicity: receipts and journal entries are written in the business transaction, never after it. `storageConformance` in `packages/testing` is the suite a new adapter passes; `pgliteDriver` runs the Postgres adapter in process for it. Run history is stored separately and is not a substitute for receipts.
 
 ## Systems of record are not storage
 

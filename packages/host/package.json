@@ -19,6 +19,9 @@
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
   },
+  "devDependencies": {
+    "@agent-native/testing": "workspace:*"
+  },
   "dependencies": {
     "@agent-native/adapters": "workspace:*",
     "@agent-native/agents": "workspace:*",

@@ -1,6 +1,7 @@
 import type { ExecutionContext } from '@agent-native/runtime';
 import type { AnyApplicationDefinition } from './application';
 import { startHost } from './host';
+import type { ServingPlatform } from './platform/bun';
 import type { PluginSettings } from './plugins/settings';
 
 /**
@@ -17,6 +18,7 @@ export async function serve(
     runtimeManifest?: string;
     agentConnection?: { context: ExecutionContext; path: string };
     settings?: PluginSettings;
+    platform?: ServingPlatform;
   },
 ) {
   const host = await startHost(definition, options);
@@ -38,7 +40,7 @@ export async function serve(
     process.on(signal, () => {
       if (stopping) return;
       stopping = true;
-      void host.close().then(() => process.exit(0));
+      void host.close().then(() => process.exit(process.exitCode ?? 0));
     });
   return host;
 }

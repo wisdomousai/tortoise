@@ -97,9 +97,9 @@ implemented · `packages/contracts` `packages/runtime`
 
 ### Storage
 
-_The port for the authority's transactional state._
+_The port for the authority's transactional state, with memory, SQLite and Postgres adapters and a conformance suite every adapter passes._
 
-implemented · `packages/runtime` `packages/adapters`
+implemented · `packages/runtime` `packages/adapters` `packages/testing`
 
 ### State migration
 
@@ -142,6 +142,12 @@ implemented · `packages/kernel` `packages/host` `packages/frame` `packages/mobi
 _What the kernel needs from the machine it runs on: workspace ownership, storage, the host's own components and its capabilities._
 
 partial · `packages/kernel` `packages/host` `packages/mobile`
+
+### Workspace lease
+
+_One authority's hold on a workspace kept in a shared database, with a fencing token every commit checks, so another instance can take the workspace over safely._
+
+implemented · `packages/adapters` `packages/host`
 
 ### Web frame
 

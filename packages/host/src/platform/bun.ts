@@ -5,7 +5,7 @@ import { createFileBlobStore } from '@agent-native/adapters/blob-files';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
 import { LOCAL_OWNER } from '@agent-native/kernel/authority';
 import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
-import type { HostPlatform } from '@agent-native/kernel/platform';
+import type { HostPlatform, PlatformOwnership } from '@agent-native/kernel/platform';
 import { hostComponents } from '../components';
 import { loopbackIngress } from '../plugins/ports';
 
@@ -33,6 +33,15 @@ export function workspaceDatabase(definition: AnyApplicationDefinition, file: st
   });
 }
 
+/** Ownership a serving host can also announce: `publish` records its endpoint for clients. */
+export interface ServingOwnership extends PlatformOwnership {
+  publish(endpoint: string): Promise<void>;
+}
+/** A platform a serving host runs on: its ownership can publish the endpoint. */
+export interface ServingPlatform extends HostPlatform {
+  acquireOwnership(workspacePath: string): Promise<ServingOwnership>;
+}
+
 /**
  * The desktop and server platform. Ownership is an OS-held SQLite lock in the workspace
  * directory, so a crash releases it; storage is one SQLite file next to it, one row per record, and blobs
@@ -40,7 +49,7 @@ export function workspaceDatabase(definition: AnyApplicationDefinition, file: st
  * own components (its HTTP listener and the agent providers) join every deployment, and the
  * default listener is loopback.
  */
-export const bunPlatform: HostPlatform = Object.freeze({
+export const bunPlatform: ServingPlatform = Object.freeze({
   id: 'bun',
   capabilities: new Set(['sockets', 'child-process', 'ingress', 'folders'] as const),
   components: hostComponents,

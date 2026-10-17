@@ -40,6 +40,7 @@ export const directEgress: readonly { readonly api: string; readonly pattern: Re
   },
   { api: 'Bun.connect', pattern: /\bBun\.connect\b/ },
   { api: 'Bun.spawn', pattern: /\bBun\.spawn(?:Sync)?\b/ },
+  { api: 'Bun.SQL', pattern: /\bBun\.SQL\b|import\s*\{[^}]*\bSQL\b[^}]*\}\s*from\s*['"]bun['"]/ },
   { api: 'WebSocket', pattern: /\bnew\s+WebSocket\b/ },
   {
     api: 'socket or process module',
@@ -96,6 +97,8 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Test fixture run inside the sandbox: it attempts the connections and processes the sandbox must refuse.',
   'plugins/model-server/test/fixtures/':
     'Test stand-in for llama-server, started as a child through the process port: it listens on the loopback port the site policy binds to local-inference.',
+  'packages/adapters/src/postgres-bun.ts':
+    "The hosted platform's workspace database, opened before any plugin from the URL the launcher configures; it holds workspace state, as the local SQLite file does.",
   'plugins/process/src/spawn.ts':
     'Starts declared child processes from site-policy bindings with a built environment; the process port is the only caller.',
   'packages/station/src/perception/openai-compatible-vision.ts':

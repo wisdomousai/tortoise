@@ -53,7 +53,22 @@ export function loadRows<State>(
       'SELECT value FROM workspace_journal WHERE workspace_id = ? ORDER BY cursor',
       workspaceId,
     )
-    .map((row) => JSON.parse(row.value) as ChangeEvent);
+    .map((row) => row.value);
+  return snapshotFrom(rows, journal, meta, initialState, upgrade);
+}
+
+/**
+ * A snapshot from stored rows (in stored order), journal entries as JSON text in cursor order and
+ * the counters; shared by every row-storage dialect.
+ */
+export function snapshotFrom<State>(
+  rows: Rows,
+  journalValues: readonly string[],
+  meta: Meta | null,
+  initialState: () => State,
+  upgrade?: StateUpgrade<State>,
+): Loaded<State> {
+  const journal = journalValues.map((value) => JSON.parse(value) as ChangeEvent);
   const stored = meta ? (stateFrom(rows.get('state')!) as State) : structuredClone(initialState());
   const versions = rows.get('version')!.size
     ? (recordFrom(rows.get('version')) as StateVersions)

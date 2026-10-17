@@ -20,6 +20,7 @@ const pluginSettingsUsage = (manifest: ApplicationManifest) => {
 
 const authorityUsage = (program: string, manifest: ApplicationManifest) => `Authority:
   ${program} serve [--workspace dir] [--port n] [--web-root dir] [--grant-file f --grant-connection out]
+      [--hosted-workspace name]   keep the workspace in Postgres (AGENT_NATIVE_DATABASE_URL) under a lease
   ${program} mcp [--connection file] | mcp --embedded --grant-file f [--workspace dir]
   ${program} sync [--workspace dir]               pull master data from the system of record once
   ${program} drain [--workspace dir] [--timeout ms]  deliver pending effects; exit ${PENDING_EXIT_CODE} if any remain

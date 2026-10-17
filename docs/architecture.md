@@ -56,6 +56,8 @@ The host is a Bun loopback service that owns its workspace exclusively. It store
 
 Opening an authority is portable. The kernel composes the definition and its plugins, checks identity, opens storage and the runtime, runs the plugins' `ready` hooks and builds the integrations, on whatever host platform the starter passes in. A platform supplies workspace ownership, storage, the host's own components and its capabilities (raw sockets, child processes, ingress). The Bun host is one platform; a mobile host is another, and a deployment that needs a capability its platform lacks refuses startup.
 
+A hosted authority is the Bun host on `hostedPlatform`: the workspace lives in a shared Postgres database, and ownership is a lease in that database with a fencing token, renewed while the instance runs. Every commit checks the fence inside its own transaction, so when an instance pauses past its lease and another takes over, the old one's next commit is refused rather than written. One instance serves one workspace; many workspaces run as many instances behind a router. Ingress with public TLS and workforce sign-in come from the site plugin's policy, as on a site.
+
 ## Plugins
 
 Network access, devices and child processes are declared by modules, components and plugins, never discovered at runtime. The host is a kernel with ports for the network, inbound connections, identity and an audit log. By default those ports refuse every destination, bind loopback, admit the trusted local owner and keep no log. Host plugins provide the ports and add modules, state, policy and lifecycle hooks. A plugin has the same three entrypoints as an application, and the application lists its plugins in each of them, so generated artifacts follow from the application alone. A plugin's state is its own slice, and its policy decides only its own operations and resource types. `open` runs before storage and may refuse startup, `ready` runs before the first request, `start` runs once a serving host listens, with a delegated grant, and `close` runs in reverse order. A setting that no composed plugin claims, or a port that configuration needs and no plugin provides, refuses startup, so configuration never looks enforced while it is ignored.
@@ -71,7 +73,7 @@ Plugins reach each other through the composed ports, never through imports. The 
 
 ## Storage
 
-Storage is generic, with atomic transaction and read callbacks. There is no universal record ORM. Core state must be structured-clone-compatible, and shared memory is refused because it would alias across a transaction's copies. The SQLite snapshot adapter accepts only JSON, and rejects sparse arrays rather than reloading their holes as nulls. This is a small snapshot reference, not a relational backend for large data. A replacement keeps the atomicity and snapshot guarantees its conformance suite checks.
+Storage is generic, with atomic transaction and read callbacks. There is no universal record ORM. Core state must be structured-clone-compatible, and shared memory is refused because it would alias across a transaction's copies. The SQLite snapshot adapter accepts only JSON, and rejects sparse arrays rather than reloading their holes as nulls. The SQLite and Postgres adapters store one row per record and write only what a commit changed; they are not a relational model of the feature state. A replacement passes `storageConformance` in `packages/testing`, which checks the atomicity, isolation and persistence the kernel relies on.
 
 ## Systems of record
 

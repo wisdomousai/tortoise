@@ -8,6 +8,7 @@ Layer: framework (`packages/*`). Test code; production code never imports it.
 
 - [Behavioral scenario](../../docs/primitives.md#behavioral-scenario): `BehavioralScenario`, `ScenarioDriver`, `runScenarios`, `directDriver`, `assertEquivalent`.
 - [Model entry](../../docs/primitives.md#model-entry): `gateModel` produces the `ModelActivation` a managed model server requires.
+- [Storage](../../docs/primitives.md#storage): `storageConformance`, `StorageHarness`, `ConformanceState`, `ConformanceStorage`, and `pgliteDriver`, an in-process Postgres `PgDriver`.
 - [Agent scenario](../../docs/primitives.md#agent-scenario): `AgentScenario`, `runAgentScenario`, `runAgentScenarios`, `assertAgentScenarios`, `scenarioRegressions`.
 
 ## Entrypoints
@@ -15,12 +16,14 @@ Layer: framework (`packages/*`). Test code; production code never imports it.
 | Import                              | Runs in        | Contents                                                                                    |
 | ----------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
 | `@agent-native/testing`             | server (tests) | `scenarios` and `agent-scenarios`.                                                          |
-| `@agent-native/testing/*`           | server (tests) | One source file: `scenarios`, `agent-scenarios`, `ui-bindings` or `connectors`.             |
+| `@agent-native/testing/*`           | server (tests) | One source file: `scenarios`, `agent-scenarios`, `activation`, `ui-bindings`, `connectors`, `storage` or `postgres`. |
 | `@agent-native/testing/scenarios`   | server (tests) | `ScenarioDriver`, `BehavioralScenario`, `directDriver`, `runScenarios`, `assertEquivalent`. |
 | `@agent-native/testing/activation` | server (tests) | `gateModel`, `scenariosDigest`: the activation gate for a local model. |
 | `@agent-native/testing/agent-scenarios` | server (tests) | `AgentScenario`, `runAgentScenario`, `runAgentScenarios`, `assertAgentScenarios`, `scenarioRegressions`, `containsValue`, `liveScenariosRequested`. |
 | `@agent-native/testing/ui-bindings` | server (tests) | `referencedCapabilities`, `unboundOperations`: static scan of an application's screens.     |
 | `@agent-native/testing/connectors`  | server (tests) | `connectorConformance`, `ConnectorHarness`, `conformanceEffect`: the connector contract.    |
+| `@agent-native/testing/storage`     | server (tests) | `storageConformance`, `StorageHarness`: the cases any `Storage` adapter must pass.          |
+| `@agent-native/testing/postgres`    | server (tests) | `pgliteDriver`: Postgres compiled to WebAssembly behind `PgDriver`, for tests without a server. |
 
 Each example uses both: `examples/<name>/test/conformance.test.ts` runs its scenarios through every driver, and `examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty.
 
@@ -35,6 +38,17 @@ Each example uses both: `examples/<name>/test/conformance.test.ts` runs its scen
 - `pull` resumes from its last cursor without repeating items.
 
 A case returns `{ passed: true }`, or `{ skipped: reason }` when its hook is missing, and throws a message naming the broken rule. It runs under any test runner; a connector's own command line can run it too.
+
+`storageConformance(harness)` checks any `Storage` the way the kernel uses it. Each case opens a fresh database from the harness, and a second `open` on it is what a restart sees:
+
+- a commit stores state, journal, revisions and receipts together, and a reopen sees them;
+- a transaction that throws commits nothing, before and after a reopen;
+- a reader's mutation never reaches the next read or transaction;
+- the initial state factory's object is never handed to a transaction;
+- concurrent transactions on one workspace run one after another;
+- workspaces are independent;
+- a removed record stays removed, and a stored `__proto__` key stays data;
+- outbox effects and blob references are stored with the commit.
 
 ## Agent scenarios
 
@@ -60,7 +74,7 @@ Scenarios receive the `ExecutionContext` from the test, which stands in for the 
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime` (types and `agentGrant`), `@agent-native/agents` (the run supervisor, for `agent-scenarios`), `@agent-native/integration` (the port and its errors, for `connectors`). Framework tests must never import an example; content imports this package, not the other way round.
+Framework: `@agent-native/contracts`, `@agent-native/runtime` (types and `agentGrant`), `@agent-native/agents` (the run supervisor, for `agent-scenarios`), `@agent-native/integration` (the port and its errors, for `connectors`), `@agent-native/adapters` (the `PgDriver` type, for `postgres`). External: `@electric-sql/pglite`. Framework tests must never import an example; content imports this package, not the other way round.
 
 ## Tests
 
@@ -68,6 +82,8 @@ Framework: `@agent-native/contracts`, `@agent-native/runtime` (types and `agentG
 bun test packages/testing
 bun run test:conformance
 ```
+
+`test/storage.test.ts` runs the storage cases against the memory, SQLite and Postgres (PGlite) storages, and against a Postgres server when `STORAGE_POSTGRES_URL` names one. `test/postgres-lease.test.ts` races two hosts for one workspace lease: one wins, a takeover after expiry gets a larger fence, and the old holder's commit and renewal are refused; the same cases run against the server.
 
 `test/connectors.test.ts` runs the connector cases against a conforming in-memory target. It also runs them against flawed ones (duplicates on retry, refusals thrown, abort ignored), and each fails with the rule it breaks. `test/agent-scenarios.test.ts` runs agent scenarios over a lots fixture with the deterministic harness and a scripted model harness: a proposal judged as passing, a direct write and a proposal outside the selection refused, extra commits and a wrong outcome failing, the model's prompt, tools and budget, regressions, and the model gate passing, failing with a regression and refusing a harness that serves another entry. `plugins/model-server` runs the gate against a managed server. `examples/receiving/test/agent-scenarios.test.ts` runs the discrepancy agent's scenarios. The behavioral scenario and UI-binding helpers have no suite of their own; they are exercised by the conformance and UI-binding tests of every example. Together they check that every operation behaves the same on every surface and that every operation claiming a UI binding is referenced by a screen.
 

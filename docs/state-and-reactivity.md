@@ -16,7 +16,7 @@ Optimistic concurrency is opt-in through expected revisions. Two callers holding
 
 ## Storage adapters
 
-The memory adapter uses clone-on-write snapshots and serializes per workspace. The SQLite adapter stores state and metadata as one versioned document. A crash after commit but before notification keeps both the receipt and the journal entry. These adapters suit small local workspaces. The snapshot is not an indexing system, and the journal is not yet pruned.
+The memory adapter uses clone-on-write snapshots and serializes per workspace. The SQLite and Postgres adapters store state and metadata as one row per record and write only what changed, with the journal kept to a retention limit. A crash after commit but before notification keeps both the receipt and the journal entry. The rows are not an indexing system: a query still reads the snapshot.
 
 ## Queries and live views
 
