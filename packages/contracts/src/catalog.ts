@@ -5,6 +5,7 @@ import type {
   PermissionRequirement,
   RemoteReadDeclaration,
 } from './capability';
+import { catalogAgents, type CatalogAgent } from './agent';
 import { canonicalJson, type JsonObject } from './json';
 import {
   collectRequirements,
@@ -41,6 +42,8 @@ export interface Catalog {
     readonly operations: readonly string[];
     readonly text: string;
   }[];
+  /** Agent definitions with their module, sorted by ID. */
+  readonly agents: readonly CatalogAgent[];
 }
 
 /** Generators consume this pure representation, never application handlers or host services. */
@@ -221,6 +224,10 @@ export function buildCatalog(
     formatVersion: 1,
     operations: operations.sort(byId),
     workflows: catalogWorkflows(modules, seen.ids),
+    agents: catalogAgents(
+      modules,
+      new Map(operations.map((operation) => [operation.id, operation])),
+    ),
     requirements,
   };
   // Copy metadata so later application mutations cannot silently alter a built catalog.

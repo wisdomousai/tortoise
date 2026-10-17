@@ -64,6 +64,7 @@ function fixture() {
         formatVersion: 1,
         operations: [],
         workflows: [],
+        agents: [],
         requirements: { network: [], devices: [], processes: [] },
       };
     },

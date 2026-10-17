@@ -1,3 +1,4 @@
+import type { AgentDefinition } from './agent';
 import type { Schema } from './schema';
 import type { Requirements } from './requirements';
 
@@ -78,6 +79,8 @@ export interface CapabilityModule<C extends readonly AnyCapability[] = readonly 
     readonly operations: readonly string[];
     readonly text: string;
   }[];
+  /** Agents that work with this module's operations. See `defineAgent`. */
+  readonly agents?: readonly AgentDefinition[];
 }
 export function defineModule<const C extends readonly AnyCapability[]>(
   module: CapabilityModule<C>,

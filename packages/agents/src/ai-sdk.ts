@@ -43,7 +43,8 @@ export class AiSdkHarness implements Harness {
       model: this.options.model,
       prompt: modelPrompt(turn),
       tools,
-      stopWhen: isStepCount(this.options.maxSteps ?? 12),
+      // A run budget can only lower the configured limit.
+      stopWhen: isStepCount(Math.min(this.options.maxSteps ?? 12, turn.budget?.turns ?? Infinity)),
       maxOutputTokens: this.options.maxOutputTokens ?? 4_096,
       abortSignal: turn.signal,
     });

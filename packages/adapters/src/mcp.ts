@@ -7,7 +7,12 @@ import {
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { createHttpTransport, type Transport } from '@agent-native/client';
-import { errorEnvelope, type Catalog, type CatalogOperation } from '@agent-native/contracts';
+import {
+  errorEnvelope,
+  type Catalog,
+  type CatalogAgent,
+  type CatalogOperation,
+} from '@agent-native/contracts';
 import { readConnection } from './cli';
 
 /** Command transport metadata is outside the domain input, so models cannot forge trusted context. */
@@ -88,7 +93,22 @@ async function callTool(client: McpClient, request: CallToolRequest) {
   }
 }
 
-/** The contract and each workflow, as readable resources. */
+/**
+ * An agent definition as the agent reads it: its instructions, then the tools it may call and
+ * its budgets. Text only; the host, not this resource, enforces the operations and budgets.
+ */
+function agentText(catalog: Catalog, agent: CatalogAgent): string {
+  const tools = agent.operations.map(
+    (id) => catalog.operations.find((operation) => operation.id === id)?.mcpName ?? id,
+  );
+  const mode =
+    agent.output === 'direct'
+      ? 'You run these commands yourself.'
+      : 'Your commands are recorded as proposals for a person to accept; they are not applied.';
+  return `# ${agent.title}\n\n${agent.instructions}\n\n${mode}\n\nTools: ${tools.map((name) => `\`${name}\``).join(', ')}.\n\nBudgets per run: ${agent.budgets.turns} turns, ${agent.budgets.toolCalls} tool calls, ${agent.budgets.wallTimeMs / 1000} seconds.\n`;
+}
+
+/** The contract, each workflow and each agent definition, as readable resources. */
 async function listResources(client: McpClient) {
   const catalog = await client.catalog();
   return {
@@ -103,6 +123,12 @@ async function listResources(client: McpClient) {
         name: workflow.id,
         mimeType: 'text/markdown',
       })),
+      // A catalog from a host older than agent definitions has none.
+      ...(catalog.agents ?? []).map((agent) => ({
+        uri: `app://agents/${agent.id}`,
+        name: agent.title,
+        mimeType: 'text/markdown',
+      })),
     ],
   };
 }
@@ -111,6 +137,9 @@ async function readResource(client: McpClient, uri: string) {
   const catalog = await client.catalog();
   if (uri === 'app://contract')
     return { contents: [{ uri, mimeType: 'application/json', text: JSON.stringify(catalog) }] };
+  const agent = (catalog.agents ?? []).find((item) => `app://agents/${item.id}` === uri);
+  if (agent)
+    return { contents: [{ uri, mimeType: 'text/markdown', text: agentText(catalog, agent) }] };
   const workflow = catalog.workflows.find((item) => `app://workflows/${item.id}` === uri);
   if (!workflow) throw new Error('Unknown resource');
   return { contents: [{ uri, mimeType: 'text/markdown', text: workflow.text }] };

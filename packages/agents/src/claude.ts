@@ -80,7 +80,8 @@ function sdkOptions(
       ANTHROPIC_API_KEY: options.apiKey,
     }),
     model: options.model,
-    maxTurns: options.maxTurns ?? 12,
+    // A run budget can only lower the configured limit.
+    maxTurns: Math.min(options.maxTurns ?? 12, turn.budget?.turns ?? Infinity),
     tools: [],
     allowedTools: definitions.map(applicationToolName),
     mcpServers: { application },

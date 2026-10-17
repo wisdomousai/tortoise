@@ -54,7 +54,19 @@ export interface RunSnapshot {
   events: RunEvent[];
   nextSequence: number;
   resumeData?: Record<string, string>;
+  /** Limits from the agent definition the run was started under; the supervisor enforces them. */
+  budget?: RunBudget;
   failure?: { code: string; message: string };
+}
+/**
+ * Per-run limits. The supervisor fails a run with `BUDGET_EXCEEDED` when it would make one tool
+ * call more than `toolCalls` or runs past `wallTimeMs`. `turns` is passed to the harness, and
+ * adapters that count model turns stop there.
+ */
+export interface RunBudget {
+  turns?: number;
+  toolCalls?: number;
+  wallTimeMs?: number;
 }
 /** Persist atomically per snapshot. Stores must not contain credentials or prompts. */
 export interface RunStore {
@@ -70,6 +82,7 @@ export interface HarnessTurn {
   signal: AbortSignal;
   tools: ToolPort;
   resumeData?: Record<string, string>;
+  budget?: RunBudget;
   question(message: string, choices?: readonly string[]): Promise<string>;
   approve(message: string): Promise<boolean>;
 }

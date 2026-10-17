@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { Harness, RunSnapshot } from '../types';
+import type { Harness, RunBudget, RunSnapshot } from '../types';
 import { terminalStates } from '../types';
 import { execute } from './execute';
 import { setState, type Active, type SupervisorKernel } from './run';
@@ -10,6 +10,8 @@ export interface StartInput {
   conversationId?: string;
   context?: Record<string, unknown>;
   resumeData?: Record<string, string>;
+  /** Limits for this run, usually an agent definition's budgets. */
+  budget?: RunBudget;
 }
 
 /**
@@ -35,6 +37,7 @@ export async function startRun(
     events: [],
     nextSequence: 1,
     resumeData: input.resumeData,
+    ...(input.budget ? { budget: structuredClone(input.budget) } : {}),
   };
   const run: Active = {
     controller: new AbortController(),

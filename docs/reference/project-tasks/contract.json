@@ -1,4 +1,25 @@
 {
+  "agents": [
+    {
+      "budgets": {
+        "toolCalls": 40,
+        "turns": 12,
+        "wallTimeMs": 300000
+      },
+      "id": "project.planner",
+      "instructions": "Break the selected project into concrete tasks. Read the project and its task list first, add only tasks that are missing, and set the status of tasks the brief says are done. Never delete tasks or change members.",
+      "model": "any",
+      "module": "project-tasks",
+      "operations": [
+        "project.get",
+        "task.list",
+        "task.create",
+        "task.set-status"
+      ],
+      "output": "direct",
+      "title": "Project planner"
+    }
+  ],
   "formatVersion": 1,
   "operations": [
     {

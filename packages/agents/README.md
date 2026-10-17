@@ -6,7 +6,7 @@ Layer: framework (`packages/*`). Server only. The host constructs harnesses with
 
 ## Primitives
 
-- [Agent run](../../docs/primitives.md#agent-run): `Harness`, `HarnessEvent`, `createRunSupervisor`, `RunState`, `RunStore`, `MemoryRunStore`, `deterministicHarness`, `CodexHarness`, `ClaudeHarness`, `AiSdkHarness`.
+- [Agent run](../../docs/primitives.md#agent-run): `Harness`, `HarnessEvent`, `createRunSupervisor`, `RunState`, `RunStore`, `MemoryRunStore`, `deterministicHarness`, `CodexHarness`, `ClaudeHarness`, `AiSdkHarness`, and `RunBudget`, the per-run limits of an [agent definition](../../docs/primitives.md#agent-definition) that the supervisor enforces.
 - [UI session context](../../docs/primitives.md#ui-session-context): `modelPrompt` shows the model the captured selection and the revisions the person saw, nothing else.
 - [Credential vault](../../docs/primitives.md#credential-vault): `CredentialVault`, `OsCredentialVault`, `MemoryCredentialVault`; `OidcAccountConnection` and `ChatGptAccountConnection`.
 
@@ -58,6 +58,7 @@ bun run test:harness
 Deterministic fixtures only; they prove adapter and protocol behavior, not provider login or inference access.
 
 - `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions, interrupted-run recovery.
+- `test/budget.test.ts`: a run fails with `BUDGET_EXCEEDED` instead of making one tool call more than its budget or running past its wall time (releasing a waiting question), and the harness receives the turn limit.
 - `test/adapters.test.ts`: each harness against shared fixtures; every model sees the captured selection and never the run's identity or grant.
 - `test/chatgpt.test.ts`: PKCE, OIDC validation, locked-vault abort, serialized refresh and logout.
 - `test/process.test.ts`: explicit environments, JSON-RPC failure propagation, subprocess-tree cancellation.

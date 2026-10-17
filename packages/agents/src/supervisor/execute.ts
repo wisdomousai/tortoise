@@ -14,6 +14,13 @@ import {
 
 type Calls = Map<string, { fingerprint: string; result: Promise<unknown> }>;
 
+/** Stop the run because a budget ran out: abort its work and release a waiting request. */
+function exceed(run: Active, budget: string) {
+  run.budgetExceeded ??= budget;
+  run.controller.abort(new Error(`Run ${budget} budget exhausted`));
+  run.pending?.reject(new Error(`Run ${budget} budget exhausted`));
+}
+
 /**
  * The application's tools as this run sees them: refused once the run is aborted or terminal,
  * and idempotent per invocation ID, which is reused only with the same arguments.
@@ -31,6 +38,12 @@ function runTools(kernel: SupervisorKernel, run: Active, calls: Calls): ToolPort
       if (call && call.fingerprint !== fingerprint)
         throw new Error('Tool invocation ID reused with different arguments');
       if (!call) {
+        // A repeated invocation ID is the same call, so only new calls count against the budget.
+        const limit = run.snapshot.budget?.toolCalls;
+        if (limit !== undefined && calls.size >= limit) {
+          exceed(run, 'tool call');
+          throw new Error('Run tool call budget exhausted');
+        }
         const result = tools.execute(operation, input, {
           runId: run.snapshot.id,
           signal: run.controller.signal,
@@ -59,6 +72,7 @@ async function streamTurn(
     context: Object.freeze(structuredClone(run.snapshot.context)),
     signal: run.controller.signal,
     resumeData: run.snapshot.resumeData,
+    ...(run.snapshot.budget ? { budget: structuredClone(run.snapshot.budget) } : {}),
     tools: runTools(kernel, run, calls),
     question: async (message, choices) =>
       String(await request(kernel, run, 'question', message, choices)),
@@ -84,7 +98,13 @@ async function settleFailure(kernel: SupervisorKernel, run: Active, error: unkno
   if (terminalStates.has(run.snapshot.state)) return;
   // Partial output before a failure is kept, scrubbed like every other event.
   if (!run.persistenceFailed) await flushText(kernel, run).catch(() => {});
-  if (run.controller.signal.aborted) await setState(kernel, run, 'cancelled');
+  if (run.budgetExceeded) {
+    run.snapshot.failure = {
+      code: 'BUDGET_EXCEEDED',
+      message: `The run used its ${run.budgetExceeded} budget`,
+    };
+    await setState(kernel, run, 'failed');
+  } else if (run.controller.signal.aborted) await setState(kernel, run, 'cancelled');
   else {
     run.snapshot.failure = {
       code: 'HARNESS_FAILED',
@@ -104,6 +124,9 @@ export async function execute(
   harness: Harness,
   prompt: string,
 ) {
+  const wallTime = run.snapshot.budget?.wallTimeMs;
+  const timer =
+    wallTime === undefined ? undefined : setTimeout(() => exceed(run, 'wall time'), wallTime);
   try {
     abortCheck(run);
     const status = await harness.availability();
@@ -119,6 +142,7 @@ export async function execute(
   } catch (error) {
     await settleFailure(kernel, run, error);
   } finally {
+    clearTimeout(timer);
     // Retain the terminal snapshot in the store; active entries hold no provider tokens.
     if (!run.persistenceFailed) kernel.active.delete(run.snapshot.id);
   }

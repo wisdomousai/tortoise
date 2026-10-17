@@ -13,6 +13,7 @@ Layer: framework (`packages/*`). Feature state is opaque to the runtime; domains
 - [Collection](../../docs/primitives.md#collection): `records` (`Records`), `collectionGetHandler`, `collectionListHandler`, `DEFAULT_PAGE`, and the prototype-safe `own` and `put`.
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceAnswer`, and the `sources` and `remoteDeadlineMs` options.
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
+- [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed grant.
 - [Policy](../../docs/primitives.md#policy): the `AuthorizationPort` (`AuthorizationRequest`, `Decision`), and `definePolicy` with `PolicySpec`, `OperationRule`, `IntegrationLane`, `EventRule`, `Access` and `isDelegated`.
 - [Membership](../../docs/primitives.md#membership): `membershipHandler`, `membershipRule`, `roleIn`, `MembershipStore`.
 - [Storage](../../docs/primitives.md#storage): the `Storage` port, `WorkspaceSnapshot`, `createMemoryStorage`, `createWorkspaceSnapshot`.
@@ -60,6 +61,7 @@ bun test packages/runtime
 - `test/remote-query.test.ts`: paging passes the cursor in and `next` out, even for a page that scoping emptied; a denied caller never reaches the source, a revocation during the call drops the result, policy projects the source's rows, a service answer to a caller-only query is refused, deadline and cancellation reach the source, and audit records no rows.
 - `test/compose.test.ts`: modules see only their slice; unrouted operations fail closed.
 - `test/policy.test.ts`: the fixed decision order of `definePolicy` (lanes, caller gate, person-only, grant resources, container roles, both snapshots or the previous one at commit, event types), and `set-member` refusing non-managers, self-changes and reserved principals.
+- `test/agent-grant.test.ts`: an agent's grant stays within the issuer's operations, resources and expiry, leaves a proposing agent's commands out, and is bound to the issuer and run.
 - `test/collection.test.ts`: generated lists scope before filters, counts and pages; a hidden record reads as missing; writes declare their resource and conflict on a stale revision.
 - `test/audit.test.ts`: a failed required append rolls the commit back; crash recovery.
 

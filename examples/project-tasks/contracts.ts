@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { defineAgent, defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
 
 const id = z.string().min(1).max(128);
 const role = z.enum(['owner', 'editor', 'viewer']);
@@ -180,6 +180,20 @@ export const projectTasksModule = defineModule({
       operations: ['project.create', 'task.create', 'task.list', 'task.set-status'],
       text: 'Create a project from the brief, add concrete tasks, inspect the scoped task list, and update each task status as work progresses.',
     },
+  ],
+  agents: [
+    // Not resource-scoped: task commands resolve to task resources, which a grant listing only
+    // the selected project would refuse. Every command it runs has a screen of its own.
+    defineAgent({
+      id: 'project.planner',
+      title: 'Project planner',
+      instructions:
+        'Break the selected project into concrete tasks. Read the project and its task list first, add only tasks that are missing, and set the status of tasks the brief says are done. Never delete tasks or change members.',
+      operations: ['project.get', 'task.list', 'task.create', 'task.set-status'],
+      model: 'any',
+      output: 'direct',
+      budgets: { turns: 12, toolCalls: 40, wallTimeMs: 300_000 },
+    }),
   ],
 });
 export { byId };

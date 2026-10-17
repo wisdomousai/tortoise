@@ -22,6 +22,8 @@ export type Active = {
   /** Raw streamed text held back because a secret or token may continue in the next delta. */
   textCarry: string;
   persistenceFailed?: boolean;
+  /** Set when a budget stopped the run, so the abort reads as a failure, not a cancellation. */
+  budgetExceeded?: string;
 };
 
 /** What every part of the supervisor shares. */

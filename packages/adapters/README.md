@@ -7,6 +7,7 @@ Layer: framework (`packages/*`). The host composes these; applications rarely im
 ## Primitives
 
 - [Surface adapter](../../docs/primitives.md#surface-adapter): `createHttpHandler`, `createMcpServer`, `runCli`, `createDirectTransport`, `withSignal`, `exitCodes`.
+- [Agent definition](../../docs/primitives.md#agent-definition): `createMcpServer` serves each definition as the `app://agents/<id>` resource.
 - [Authority](../../docs/primitives.md#authority): `acquireWorkspaceOwnership`, `WorkspaceOwnedError`.
 - [Execution context](../../docs/primitives.md#execution-context): `readGrantFile`, `readConnection`.
 - [Policy](../../docs/primitives.md#policy): the CASL adapter, `createScopedAbility`, `scopeToSql`.
@@ -19,19 +20,19 @@ The [adapter guide](../../docs/adapters.md) explains how to replace one.
 
 Import a subpath. The root export holds only `adapterContractVersion`.
 
-| Import                               | Runs in     | Contents                                                                                               |
-| ------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------ |
-| `@agent-native/adapters`             | server only | `adapterContractVersion`.                                                                              |
-| `@agent-native/adapters/*`           | server only | One adapter per file, listed below.                                                                    |
-| `@agent-native/adapters/http`        | server only | `createHttpHandler`, sessions, `withSignal`, JSON helpers.                                             |
-| `@agent-native/adapters/mcp`         | server only | `createMcpServer`, `toolInputSchema`. Also runnable as `bun run mcp` (stdio bridge to a running host). |
-| `@agent-native/adapters/cli`         | server only | `runCli`, `readConnection`, `exitCodes`. Process clients attach to the running authority.              |
-| `@agent-native/adapters/cli-syntax`  | server only | Pure CLI words, flags and synopsis from the catalog. No IO, so generators use it without a transport.  |
-| `@agent-native/adapters/direct`      | server only | `createDirectTransport`, `readGrantFile` for in-process callers.                                       |
-| `@agent-native/adapters/sqlite`      | server only | `SQLiteStorage`, the reference snapshot store.                                                         |
-| `@agent-native/adapters/ownership`   | server only | `acquireWorkspaceOwnership`: an OS-held SQLite lock, one owner per workspace.                          |
-| `@agent-native/adapters/casl`        | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.  |
-| `@agent-native/adapters/ui-sessions` | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents.                         |
+| Import                               | Runs in     | Contents                                                                                                                                                                                        |
+| ------------------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/adapters`             | server only | `adapterContractVersion`.                                                                                                                                                                       |
+| `@agent-native/adapters/*`           | server only | One adapter per file, listed below.                                                                                                                                                             |
+| `@agent-native/adapters/http`        | server only | `createHttpHandler`, sessions, `withSignal`, JSON helpers.                                                                                                                                      |
+| `@agent-native/adapters/mcp`         | server only | `createMcpServer`, `toolInputSchema`. Serves the contract, workflows and agent definitions (`app://agents/<id>`) as resources. Also runnable as `bun run mcp` (stdio bridge to a running host). |
+| `@agent-native/adapters/cli`         | server only | `runCli`, `readConnection`, `exitCodes`. Process clients attach to the running authority.                                                                                                       |
+| `@agent-native/adapters/cli-syntax`  | server only | Pure CLI words, flags and synopsis from the catalog. No IO, so generators use it without a transport.                                                                                           |
+| `@agent-native/adapters/direct`      | server only | `createDirectTransport`, `readGrantFile` for in-process callers.                                                                                                                                |
+| `@agent-native/adapters/sqlite`      | server only | `SQLiteStorage`, the reference snapshot store.                                                                                                                                                  |
+| `@agent-native/adapters/ownership`   | server only | `acquireWorkspaceOwnership`: an OS-held SQLite lock, one owner per workspace.                                                                                                                   |
+| `@agent-native/adapters/casl`        | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.                                                                                           |
+| `@agent-native/adapters/ui-sessions` | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents.                                                                                                                  |
 
 `version` holds `adapterContractVersion`, which the root barrel re-exports. Two adapters are composers over a folder of parts that are imported only from inside the package:
 
@@ -57,6 +58,7 @@ bun test packages/adapters
 - `src/casl.test.ts`: CASL, memory and SQL scopes agree; rules fail closed.
 - `src/sqlite.test.ts`: a rolled-back transaction leaves the initial state untouched.
 - `src/ownership.test.ts`: one owner per workspace across processes, path aliases and a killed owner.
+- `src/mcp.test.ts`: each agent definition is an MCP resource with its instructions, tool names and budgets.
 - `src/cli.test.ts`: catalog-derived words and typed flags, `--json` input, dry-run, generated help and exit codes mapped from error codes.
 
 Surface parity is proven in content, where real operations exist: `examples/project-tasks/test/transport-conformance.test.ts` runs the same scenarios through direct, HTTP, CLI subprocess and MCP.

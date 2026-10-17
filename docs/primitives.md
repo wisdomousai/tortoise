@@ -67,7 +67,7 @@ _The composed, validated description of everything the application can do._
 
 The catalog is the single list that every surface and artifact reads. It is what makes "every operation from UI, MCP, CLI and API" true by construction instead of by discipline.
 
-Guarantees: deterministic output. Composition fails before startup on duplicate IDs, missing or cyclic dependencies, missing UI declarations, unresolved workflow references and colliding MCP names.
+Guarantees: deterministic output. Composition fails before startup on duplicate IDs, missing or cyclic dependencies, missing UI declarations, unresolved workflow and agent references and colliding MCP names.
 
 implemented · `packages/contracts`
 
@@ -241,7 +241,7 @@ _Maps one surface onto the authority's raw command and query entry points._
 
 HTTP, MCP, the CLI and in-process calls are thin translations. They carry no business logic and keep no operation list, so adding a capability adds it to all of them.
 
-Guarantees: MCP tool names, CLI subcommands and typed flags are derived from the catalog. Errors keep their meaning across surfaces: HTTP status, MCP tool error and CLI exit code map from the same code. A per-request signal only adds to the trusted context's cancellation (`withSignal`). Direct and HTTP cursors both carry the authorization revision they were issued under, so a subscription resets when access changed after the snapshot.
+Guarantees: MCP tool names, CLI subcommands and typed flags are derived from the catalog. MCP also serves the contract, each workflow and each agent definition as resources. Errors keep their meaning across surfaces: HTTP status, MCP tool error and CLI exit code map from the same code. A per-request signal only adds to the trusted context's cancellation (`withSignal`). Direct and HTTP cursors both carry the authorization revision they were issued under, so a subscription resets when access changed after the snapshot.
 
 implemented · `packages/adapters`
 
@@ -275,9 +275,23 @@ _An agent session acting as one more caller on the catalog._
 
 The supervisor makes an agent an ordinary caller: its tools are catalog operations, its authority is the narrowed grant of whoever started it, and its narration is kept apart from what it actually committed. Codex, Claude and AI SDK harnesses are adapters behind one port, next to a deterministic harness that needs no provider.
 
-Guarantees: tools are catalog operations only. Text and progress stream separately from commits. Cancellation stops future work without undoing commits, and a restart marks unfinished runs interrupted instead of replaying them.
+Guarantees: tools are catalog operations only. Text and progress stream separately from commits. Cancellation stops future work without undoing commits, and a restart marks unfinished runs interrupted instead of replaying them. A run started with a budget fails with `BUDGET_EXCEEDED` instead of making one tool call more than allowed or running past its wall time; the turn limit goes to the harness, and the Claude and AI SDK adapters lower their own limit to it.
 
 implemented · `packages/agents`
+
+### Agent definition
+
+_A named agent in the catalog: its instructions, the operations it may call, its scope, model requirement, output mode and budgets._
+
+`defineAgent` declares an agent on a module, next to its workflows. The catalog validates it like any other reference, the generator writes `agents.md`, names each agent on the operations it may call and lists agents in the application skill, and MCP serves each definition as `app://agents/<id>`. `agentGrant` turns a definition into the delegation grant a run executes with. A definition holds no authority of its own: a run acts as the person or grant that started it.
+
+`direct` agents run their commands themselves. `propose` agents run their queries and record their commands as proposals for someone to accept; their grant leaves the commands out. `resourceTypes` scopes a run to the resources of those types it was started on, and suits applications whose grant rules resolve every operation the agent calls to one of those types.
+
+Guarantees: the catalog refuses an agent that names an unknown operation, repeats one, has no operations, has budgets outside fixed bounds, or is `direct` on a command without a UI binding, so every direct write is one a person can make and see. `agentGrant` only narrows: operations within the issuer's grant, resources within the issuer's resources, expiry at the earlier of the issuer's and the wall-time budget, bound to the issuer's principal, workspace and run.
+
+Gaps: the host does not yet start a run from a definition; runs still start from a person's prompt with the issuer's grant. Proposals, triggers and standing grants are not implemented, so `propose` is declared but has no accept path. The model requirement is recorded but no provider is chosen by it. `scaffold add agent` is not implemented.
+
+implemented · `packages/contracts` `packages/runtime` `packages/agents` `packages/adapters`
 
 ### Input source
 

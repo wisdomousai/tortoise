@@ -10,6 +10,7 @@ import {
   securityManifest,
 } from '@agent-native/compliance';
 import rootPackage from '../package.json';
+import { agentSkillSection, agentsMarkdown, agentsOf } from './agent-reference';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
 
@@ -136,7 +137,7 @@ function artifacts(manifest: ApplicationManifest) {
         catalog.operations
           .map(
             (operation) =>
-              `## ${operation.id}\n\n${operation.description || operation.id}\n\n- Kind: ${operation.kind}\n- MCP: \`${operation.mcpName}\`\n- Permission: \`${operation.permission.action}\` on \`${operation.permission.resourceType}\`\n- UI: ${operation.ui.binding ?? operation.ui.exception}\n${operation.integration ? `- System of record: forwarded to \`${operation.integration.target}\` through the outbox. A receipt proves the local commit, not acceptance by the target.\n` : ''}${operation.remote ? `- System of record: reads \`${operation.remote.target}\` live when called, as ${operation.remote.identity === 'caller' ? 'the caller' : 'the caller, or a service account when the caller has no credential'}. Nothing is stored; the result reports the source status and fetch time.\n` : ''}- CLI: \`${synopsis(operation, program)}\`\n\nInput:\n\n\`\`\`json\n${JSON.stringify(operation.inputSchema, null, 2)}\n\`\`\`\n\nOutput:\n\n\`\`\`json\n${JSON.stringify(operation.outputSchema, null, 2)}\n\`\`\`\n`,
+              `## ${operation.id}\n\n${operation.description || operation.id}\n\n- Kind: ${operation.kind}\n- MCP: \`${operation.mcpName}\`\n- Permission: \`${operation.permission.action}\` on \`${operation.permission.resourceType}\`\n- UI: ${operation.ui.binding ?? operation.ui.exception}\n${operation.integration ? `- System of record: forwarded to \`${operation.integration.target}\` through the outbox. A receipt proves the local commit, not acceptance by the target.\n` : ''}${operation.remote ? `- System of record: reads \`${operation.remote.target}\` live when called, as ${operation.remote.identity === 'caller' ? 'the caller' : 'the caller, or a service account when the caller has no credential'}. Nothing is stored; the result reports the source status and fetch time.\n` : ''}${agentsOf(catalog, operation.id)}- CLI: \`${synopsis(operation, program)}\`\n\nInput:\n\n\`\`\`json\n${JSON.stringify(operation.inputSchema, null, 2)}\n\`\`\`\n\nOutput:\n\n\`\`\`json\n${JSON.stringify(operation.outputSchema, null, 2)}\n\`\`\`\n`,
           )
           .join('\n'),
     ],
@@ -150,6 +151,7 @@ function artifacts(manifest: ApplicationManifest) {
           )
           .join('\n'),
     ],
+    ['agents.md', agentsMarkdown(catalog)],
     ['security-manifest.json', json(security)],
     ['data-flows.md', dataFlowsMarkdown(security)],
     [
@@ -167,6 +169,7 @@ function artifacts(manifest: ApplicationManifest) {
       'application-skill/SKILL.md',
       '---\nname: use-application\ndescription: Operate this application through its registered MCP capabilities, inspect scoped data, and apply authorized business commands. Use when asked to work in the connected application.\n---\n\n# Use the application\n\nRead the `app://contract` MCP resource and discover current tools before acting. Identity and delegation come from the host; never supply roles or principals in tool arguments. Query the current object and revision before changing it.\n\nQuery tools take `{ "input": ... }`. Commands take `{ "input": ..., "idempotencyKey": "unique-request-id", "expectedRevisions": { "type:id": 1 } }`. Keep the same key and exact request when retrying after a lost response. A conflict requires a new query and deliberate reconciliation. A successful command receipt proves committed work; streamed agent text does not.\n\n' +
         `## From a shell\n\nThe same operations are subcommands of the \`${program}\` binary. Run \`${program} help\` and \`${program} help <command>\` for generated flags; \`help\`, \`schema\` and \`workflows\` work without an authority. Add \`--embedded --workspace <dir>\` to run in-process in a sandbox, or attach to a running authority with \`--connection <file>\`; your identity comes from that file or the launcher's grant file, never from flags. Pass \`--key <id>\` on commands and reuse it when retrying, \`--dry-run\` to validate first, and \`--output text\` for tables. Branch on the exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, 6 idempotency conflict, 7 cancelled, 8 unavailable (for example the audit log in fail-closed mode). Before a sandbox is discarded, \`${program} drain\` must exit 0; 75 means captured work has not reached the system of record yet.\n\n` +
+        agentSkillSection(catalog) +
         catalog.workflows
           .map(
             (workflow) =>

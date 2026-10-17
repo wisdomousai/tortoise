@@ -841,6 +841,7 @@ Read one accessible project and its current revision. The membership map is incl
 - MCP: `project_get`
 - Permission: `read` on `Project`
 - UI: project.get
+- Agents: `project.planner` (direct)
 - CLI: `agent-native-desktop-starter project get --id <string>`
 
 Input:
@@ -1198,6 +1199,7 @@ Create a todo task in an accessible, active project as owner or editor. Only own
 - MCP: `task_create`
 - Permission: `create` on `Task`
 - UI: task.create
+- Agents: `project.planner` (direct)
 - CLI: `agent-native-desktop-starter task create [--description <string>] [--private-note <string>] --project-id <string> --title <string> [--key <idempotency-key>]`
 
 Input:
@@ -1426,6 +1428,7 @@ List tasks in accessible projects, with public-field search, status/project filt
 - MCP: `task_list`
 - Permission: `read` on `Task`
 - UI: task.list
+- Agents: `project.planner` (direct)
 - CLI: `agent-native-desktop-starter task list [--limit <integer>] [--offset <integer>] [--project-id <string>] [--search <string>] [--sort <title|status>] [--status <todo|doing|done>]`
 
 Input:
@@ -1552,6 +1555,7 @@ Set a task to todo, doing or done in an active project as owner or editor. Suppl
 - MCP: `task_set_status`
 - Permission: `update` on `Task`
 - UI: task.set-status
+- Agents: `project.planner` (direct)
 - CLI: `agent-native-desktop-starter task set-status --id <string> --status <todo|doing|done> [--key <idempotency-key>]`
 
 Input:
