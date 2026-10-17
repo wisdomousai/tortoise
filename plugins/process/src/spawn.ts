@@ -64,9 +64,14 @@ export function terminateTree(child: ChildProcessWithoutNullStreams, force: bool
     }).on('error', () => child.kill());
     return;
   }
+  const signal = force ? 'SIGKILL' : 'SIGTERM';
   try {
-    process.kill(-child.pid, force ? 'SIGKILL' : 'SIGTERM');
+    process.kill(-child.pid, signal);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
+    const { code } = error as NodeJS.ErrnoException;
+    // macOS answers EPERM for a group whose leader exited but is not reaped yet (its exit event
+    // is still pending); signalling the child itself is then a no-op instead of a throw.
+    if (code === 'EPERM') child.kill(signal);
+    else if (code !== 'ESRCH') throw error;
   }
 }

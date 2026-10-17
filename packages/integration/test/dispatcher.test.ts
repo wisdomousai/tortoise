@@ -19,6 +19,7 @@ import {
   createInboundSync,
   type SystemOfRecordPort,
 } from '../src/index';
+import { createLoop } from '../src/loop';
 
 const outcome = z.union([
   z.strictObject({ status: z.literal('accepted'), externalRef: z.string().optional() }),
@@ -349,5 +350,17 @@ describe('inbound sync', () => {
     expect(await inbound.runOnce()).toEqual({ batches: 2, items: 3 });
     expect(keys).toEqual(['sync::2', 'sync:2:3']);
     expect(await inbound.runOnce()).toEqual({ batches: 0, items: 0 });
+  });
+});
+
+describe('background loop', () => {
+  test('a stop right after a start returns without waiting out the interval', async () => {
+    const loop = createLoop(async () => {
+      throw new Error('pass failed');
+    });
+    loop.start(60_000);
+    const started = Date.now();
+    await loop.stop();
+    expect(Date.now() - started).toBeLessThan(1_000);
   });
 });

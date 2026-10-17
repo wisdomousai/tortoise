@@ -231,7 +231,7 @@ describe('settleDelivery', () => {
 });
 
 describe('connectTarget', () => {
-  test('refuses a target without a feed', () => {
+  test('a target without a feed only delivers: its inbound side pulls nothing', async () => {
     const outbound = defineTarget({
       target: 'mail',
       resourceType: 'Mail',
@@ -239,14 +239,16 @@ describe('connectTarget', () => {
       status: {},
       descriptions: { settle: 'Settle.', status: 'Status.' },
     });
-    expect(() =>
-      connectTarget({
-        target: outbound,
-        application: setup(),
-        port: port(),
-        workspaceId: 'w',
-        principalId: 'mail-bot',
-      }),
-    ).toThrow('Target mail declares no feed to pull');
+    const mail = connectTarget({
+      target: outbound,
+      application: setup(),
+      port: { ...port(), describe: () => ({ target: 'mail', idempotentDelivery: true }) },
+      workspaceId: 'w',
+      principalId: 'mail-bot',
+    });
+    expect(mail.target).toBe('mail');
+    expect(await mail.inbound.runOnce()).toEqual({ batches: 0, items: 0 });
+    mail.start({ deliverMs: 60_000, syncMs: 60_000 });
+    await mail.stop();
   });
 });

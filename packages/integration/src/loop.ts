@@ -1,6 +1,8 @@
 /** Resolve after `ms`, or as soon as `signal` aborts. Never rejects. */
 export function abortableSleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise<void>((resolve) => {
+    // A signal aborted before the sleep starts (a stop right after a start) adds no listener event.
+    if (signal.aborted) return resolve();
     const timer = setTimeout(resolve, ms);
     signal.addEventListener(
       'abort',

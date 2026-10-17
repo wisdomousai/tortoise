@@ -173,6 +173,17 @@ describe('process plugin', () => {
     await opened.close();
   });
 
+  test('terminating a child that has just finished does not throw', async () => {
+    const opened = await open({ echo: bun });
+    const started = await bunProcesses(opened.ports.processes)('echo');
+    // Its output closes as it exits, often before the exit event: the group is then a zombie,
+    // which macOS refuses to signal with EPERM.
+    started.child.stdin.end();
+    await new Promise((resolve) => started.child.stdout.on('end', resolve).resume());
+    expect(() => started.terminate()).not.toThrow();
+    await opened.close();
+  });
+
   test('a pinned executable must match its digest before it runs', async () => {
     const digest = createHash('sha256')
       .update(await readFile(process.execPath))

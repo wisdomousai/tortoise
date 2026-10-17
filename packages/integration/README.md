@@ -1,6 +1,6 @@
 # @agent-native/integration
 
-Delivery to and from systems that keep their own records. A command commits an outbox effect with its local change; the dispatcher delivers it later, outside any transaction, through a `SystemOfRecordPort`, and settles the outcome through an ordinary command under a narrow integration principal. Inbound sync imports upstream pages the same way, bound to a watermark. `createTargetIntegration` builds all of this for one target, so an application's `connect` declares targets instead of wiring workers. `targetHandlers` implements the settle, sync and status operations of a target declared with `defineTarget` in `@agent-native/contracts`, and `connectTarget` connects it to its port.
+Delivery to and from systems that keep their own records. A command commits an outbox effect with its local change; the dispatcher delivers it later, outside any transaction, through a `SystemOfRecordPort`, and settles the outcome through an ordinary command under a narrow integration principal. Inbound sync imports upstream pages the same way, bound to a watermark. `createTargetIntegration` builds all of this for one target, so an application's `connect` declares targets instead of wiring workers. `targetHandlers` implements the settle, sync and status operations of a target declared with `defineTarget` in `@agent-native/contracts`, and `connectTarget` connects it to its port; a target declared without a feed only delivers, and its inbound side pulls nothing.
 
 Layer: framework (`packages/*`). Server only. Domain-neutral: the domain supplies the port implementation and the settlement and sync commands.
 
@@ -48,8 +48,8 @@ bun run test:integration
 ```
 
 - `test/remote-source.test.ts` covers remote reads: the caller's credential first, a declared service fallback, refusal otherwise, a port without `search` as unavailable, safe failure messages, and the page cursor passing through in both directions.
-- `test/dispatcher.test.ts`: delivery outside the transaction, backoff, rejection as data, lookup before resend, integration-grant limits, watermark-bound sync, and `drain` while the target stays down.
-- `test/target.test.ts`: a declared target's derived IDs and grant, delivery and feed through `connectTarget`, the watermark conflict and side lists, settling another target's effect, the lane closing settle and sync to everyone else, and `settleDelivery` on a mismatched record.
+- `test/dispatcher.test.ts`: delivery outside the transaction, backoff, rejection as data, lookup before resend, integration-grant limits, watermark-bound sync, `drain` while the target stays down, and a loop stopped right after it started.
+- `test/target.test.ts`: a declared target's derived IDs and grant, delivery and feed through `connectTarget`, the watermark conflict and side lists, settling another target's effect, the lane closing settle and sync to everyone else, `settleDelivery` on a mismatched record, and a target without a feed connected with an idle inbound side.
 - `test/held.test.ts`: uncertain outcomes are held, not resent, including on shutdown; only held effects can be released; drain deadlines and cross-target accounting.
 - `test/convergent.test.ts`: acceptance without acting, the not-ready, precondition and act paths, consecutive reads, interruption and the lookup rules, against a fake instrument.
 - `test/reliability.test.ts`: a paused worker against the one after its lease, a kill after the target accepted, an acknowledged effect polled and drained, cancel before a claim, the actor recheck before the first claim and after revocation, and out-of-order upstream versions.
