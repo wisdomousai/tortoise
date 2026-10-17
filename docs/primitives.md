@@ -399,7 +399,7 @@ A request reaches the frame as a delivery for the session that submitted it. The
 
 Guarantees: composition refuses duplicate ids, two handlers on one path shape, file extension or media type, a template naming a field the request does not carry, a prefill whose command has no UI binding or whose keys are not input fields, and payload limits outside 1 byte to 1 MiB of text or 256 MiB of blob. Matching accepts only the application's own scheme and configured verified hosts, validates parameters with the handler's schema, and refuses credentials, dot segments and encoded slashes. An unsolicited request never commits: it only opens a resource the caller may read (checked when queued and again when taken), navigates or prefills. Deliveries go only to the submitting session and expire after two minutes. Requests are audited by digest and reason code, never content. The security manifest lists every handler as local ingress.
 
-Gaps: the desktop adapter submits links and text files, but nothing has been received from a real OS yet: macOS reads the scheme and document types only from a packaged bundle, and the Linux and Windows `dir` builds register no file types. The browser adapter submits `?os=` landings and launch-queue text files, and the web manifest declares the handlers, but no installed web app has registered them yet. No mobile adapter exists. Blob payloads, share, intent, shortcut and reply handlers wait for their plugins.
+Gaps: the desktop adapter submits links and files, a blob file uploaded to the blob store first, but nothing has been received from a real OS yet: macOS reads the scheme and document types only from a packaged bundle, and the Linux and Windows `dir` builds register no file types. The browser adapter submits `?os=` landings and launch-queue files the same way, and the web manifest declares the handlers, but no installed web app has registered them yet. A staged upload lives in the authority's memory, so a prefill that waits across a restart loses its attachment and the person must open the file again. No mobile adapter exists. Share, intent, shortcut and reply handlers wait for their plugins.
 
 partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `plugins/compliance` `apps/desktop` `examples/project-tasks`
 
@@ -425,7 +425,7 @@ The kernel has no OS integration of its own. The OS plugin provides the port; th
 
 Guarantees: without a provider every call is `UNAVAILABLE`, and two providers refuse startup. A request is attributed to the submitting session and never sets the principal, workspace or grant. A relayed instruction can be answered only by the session that took it, counts as not performed after 30 seconds, and the relay detaches when its session is revoked or stops polling. Startup refuses a declared kind that no composed plugin serves.
 
-The desktop shell adapter (`createDesktopShell`) holds the platform-neutral part: buffering until the authority is reachable, reading only declared text files, the relay loop and the open check. Electron main supplies the OS calls and the loopback client.
+The desktop shell adapter (`createDesktopShell`) holds the platform-neutral part: buffering until the authority is reachable, reading only declared files and uploading a blob payload before submitting it, the relay loop and the open check. Electron main supplies the OS calls and the loopback client.
 
 A browser page attaches no adapter: it runs an open or share instruction itself (`runOsAction`).
 

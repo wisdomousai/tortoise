@@ -74,6 +74,7 @@ Handlers accept requests from any application or web page on the device; an unso
 | Handler | Owner | Kind | Registers | Target |
 | --- | --- | --- | --- | --- |
 | `project.open` | project-tasks | link | scheme /projects/:projectId | open project |
+| `task.from-attachment` | project-tasks | file | .png .jpg .jpeg .pdf | prepare task.create |
 | `task.from-text` | project-tasks | file | .txt .md .markdown | prepare task.create |
 | `task.open` | project-tasks | link | scheme /tasks/:taskId | open task |
 

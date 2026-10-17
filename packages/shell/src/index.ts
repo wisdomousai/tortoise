@@ -23,4 +23,10 @@ export {
   type DesktopShellClient,
   type DesktopShellDependencies,
 } from './desktop';
-export { landingRequest, strictText, textFileHandler } from './local-files';
+export {
+  fileHandlerFor,
+  fileRequest,
+  landingRequest,
+  strictText,
+  type BlobUpload,
+} from './local-files';

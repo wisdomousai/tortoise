@@ -8,7 +8,7 @@ Layer: starter (`apps/*`). Owned by whoever forks or scaffolds the starter.
 
 - [Starter](../../docs/primitives.md#starter): the desktop wrapper around `apps/service` and `apps/web`.
 - [Shell port](../../docs/primitives.md#shell-port): the Electron calls behind the desktop shell adapter in `@agent-native/shell`.
-- [OS handler](../../docs/primitives.md#os-handler): links and files from `open-url`, `open-file`, the command line and a second instance, and the macOS bundle registrations.
+- [OS handler](../../docs/primitives.md#os-handler): links and files from `open-url`, `open-file`, the command line and a second instance, and the macOS bundle registrations; a blob file is uploaded to the [Blob store](../../docs/primitives.md#blob-store) before it is submitted.
 - [OS action](../../docs/primitives.md#os-action): window opens leave only as declared open actions; relayed open, reveal and open-file run here.
 
 [Desktop](../../docs/desktop.md) covers the lifecycle and the native build.
@@ -34,7 +34,7 @@ The renderer is sandboxed with context isolation, no Node integration and web se
 
 The shell owns only the exact child it launched and stops only that child; closing an attached window leaves an existing authority running. Workspace, port, web root, runtime manifest and site policy are applied after any developer environment, so a launch cannot override them. A packaged process ignores the development flag and keeps the digest checks; changed native bytes, path traversal and links in native packages are refused. `src/service-lifecycle.ts` is a reviewed egress exemption in `scripts/boundary-rules.ts`: it starts the loopback sidecar. `src/os-shell.ts` is the other: it calls the shell API of that sidecar.
 
-OS input is submitted as the connection-file session, the session the window's launch URL signs in, so a link or file reaches this window and no other. Main passes the application's scheme to the sidecar as `AGENT_NATIVE_OS_SCHEME`; an application without the OS plugin ignores it. On Windows main registers the scheme at startup with `--` before the link, because the installer's registration has no separator. A packaged macOS bundle declares the scheme and document types in its `Info.plist` (`package:stage` writes `os-registrations.json`, `package:desktop` reads it); the Linux and Windows `dir` targets register no file types. Relayed `reveal` and `open-file` instructions open only a regular file that is not executable and has no extension the OS would run.
+OS input is submitted as the connection-file session, the session the window's launch URL signs in, so a link or file reaches this window and no other. Main passes the application's scheme to the sidecar as `AGENT_NATIVE_OS_SCHEME`; an application without the OS plugin ignores it. On Windows main registers the scheme at startup with `--` before the link, because the installer's registration has no separator. A packaged macOS bundle declares the scheme and document types in its `Info.plist` (`package:stage` writes `os-registrations.json`, `package:desktop` reads it); the Linux and Windows `dir` targets register no file types. A file is read once, only after its size is checked against the handler's limit, and checked again after reading. Relayed `reveal` and `open-file` instructions open only a regular file that is not executable and has no extension the OS would run.
 
 ## Dependencies
 

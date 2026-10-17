@@ -1,4 +1,4 @@
-import type { Proposal } from '@agent-native/contracts';
+import type { BlobRef, Proposal } from '@agent-native/contracts';
 
 export type Role = 'owner' | 'editor' | 'viewer';
 export interface Project {
@@ -14,6 +14,8 @@ export interface Task {
   description: string;
   status: 'todo' | 'doing' | 'done';
   privateNote?: string;
+  /** A file attached when the task was created, held in the blob store. */
+  attachment?: BlobRef;
 }
 export interface ProjectTaskState {
   workspaceOwnerId: string;

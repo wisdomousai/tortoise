@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
 import {
+  blobRefSchema,
   buildCatalog,
   defineCapability,
   defineModule,
@@ -24,10 +25,17 @@ const scheme = 'dev.example.notes';
 const create = defineCapability({
   id: 'notes.create',
   kind: 'command',
-  input: jsonSchema(z.strictObject({ title: z.string(), body: z.string() })),
+  input: jsonSchema(
+    z.strictObject({
+      title: z.string(),
+      body: z.string().optional(),
+      scan: blobRefSchema.optional(),
+    }),
+  ),
   output: jsonSchema(z.strictObject({})),
   permission: { action: 'write', resourceType: 'Note' },
   ui: { binding: 'notes.create' },
+  blobs: { maxBytes: 1024, mediaTypes: ['image/png'] },
 });
 const fromText: OsHandler = {
   id: 'note.from-text',
@@ -39,12 +47,22 @@ const fromText: OsHandler = {
   maxBytes: 64,
   target: { prepare: 'notes.create', input: { title: '{file.stem}', body: '{file.text}' } },
 };
+const fromScan: OsHandler = {
+  id: 'note.from-scan',
+  kind: 'file',
+  description: 'Create a note from a scanned page.',
+  types: [{ extensions: ['png'], mediaTypes: ['image/png'], description: 'PNG image' }],
+  role: 'viewer',
+  payload: 'blob',
+  maxBytes: 1024,
+  target: { prepare: 'notes.create', input: { title: '{file.stem}', scan: '{file.blob}' } },
+};
 const os = buildCatalog([
   defineModule({
     id: 'notes',
     capabilities: [create],
     os: {
-      handlers: [fromText],
+      handlers: [fromText, fromScan],
       actions: [
         {
           id: 'notes.docs',
@@ -146,6 +164,7 @@ function fakeClient(outcome: OsActionOutcome | undefined) {
   const submitted: RawOsRequest[] = [];
   const answers: unknown[] = [];
   const relayed: { id: string; instruction: OsInstruction }[] = [];
+  const uploads: { size: number; mediaType: string }[] = [];
   const client: DesktopShellClient = {
     declarations: async () => os as CatalogOs,
     submit: async (request) => (submitted.push(request), { status: 'delivered' }),
@@ -157,19 +176,27 @@ function fakeClient(outcome: OsActionOutcome | undefined) {
       return undefined;
     },
     answer: async (id, result) => void answers.push({ id, result }),
+    upload: async (bytes, mediaType) => (
+      uploads.push({ size: bytes.byteLength, mediaType }),
+      { digest: `sha256:${'a'.repeat(64)}`, size: bytes.byteLength, mediaType }
+    ),
   };
-  return { client, submitted, answers, relayed };
+  return { client, submitted, answers, relayed, uploads };
 }
 
 describe('desktop shell', () => {
-  test('input before connect is buffered, and only declared text files are read', async () => {
+  test('input before connect is buffered, and only declared files are read', async () => {
     const fake = fakeClient(undefined);
     const read: string[] = [];
     let focused = 0;
     const desktop = createDesktopShell({
       platform: 'macos',
       client: fake.client,
-      readText: async (path) => (read.push(path), 'milk'),
+      readFile: async (path, maxBytes) => {
+        read.push(path);
+        if (path.endsWith('big.png')) return maxBytes < 2048 ? undefined : new Uint8Array(2048);
+        return new TextEncoder().encode(path.endsWith('.png') ? 'png!' : 'milk');
+      },
       open: async () => undefined,
       reveal: async () => ({ ok: true }),
       openFile: async () => ({ ok: true }),
@@ -177,16 +204,24 @@ describe('desktop shell', () => {
     });
     await desktop.receive({
       urls: [`${scheme}://notes/n-1`],
-      paths: ['/x/Groceries.txt', '/x/a.pdf'],
+      paths: ['/x/Groceries.txt', '/x/a.pdf', '/x/Receipt.png', '/x/big.png'],
     });
     expect(fake.submitted).toEqual([]);
     await desktop.connect();
-    expect(read).toEqual(['/x/Groceries.txt']);
+    expect(read).toEqual(['/x/Groceries.txt', '/x/Receipt.png', '/x/big.png']);
+    // The blob payload is uploaded first, as the declared media type, and sent as its reference.
+    expect(fake.uploads).toEqual([{ size: 4, mediaType: 'image/png' }]);
     expect(fake.submitted).toEqual([
       { kind: 'url', url: `${scheme}://notes/n-1` },
       { kind: 'file', name: 'Groceries.txt', text: 'milk' },
+      {
+        kind: 'file',
+        name: 'Receipt.png',
+        mediaType: 'image/png',
+        blob: { digest: `sha256:${'a'.repeat(64)}`, size: 4, mediaType: 'image/png' },
+      },
     ]);
-    expect(focused).toBe(2);
+    expect(focused).toBe(3);
     desktop.close();
   });
 
@@ -211,7 +246,7 @@ describe('desktop shell', () => {
     const desktop = createDesktopShell({
       platform: 'linux',
       client: fake.client,
-      readText: async () => undefined,
+      readFile: async () => undefined,
       open: async (url) => void opened.push(url),
       reveal: async () => ({ ok: true }),
       openFile: async () => ({ ok: true }),
@@ -239,7 +274,7 @@ describe('desktop shell', () => {
     const desktop = createDesktopShell({
       platform: 'windows',
       client: fake.client,
-      readText: async () => undefined,
+      readFile: async () => undefined,
       open: async (url) => void opened.push(url),
       reveal: async () => ({ ok: true }),
       openFile: async () => ({ ok: true }),

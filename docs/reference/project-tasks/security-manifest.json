@@ -179,6 +179,13 @@
         "target": "open project"
       },
       {
+        "id": "task.from-attachment",
+        "owner": "project-tasks",
+        "kind": "file",
+        "registers": ".png .jpg .jpeg .pdf",
+        "target": "prepare task.create"
+      },
+      {
         "id": "task.from-text",
         "owner": "project-tasks",
         "kind": "file",

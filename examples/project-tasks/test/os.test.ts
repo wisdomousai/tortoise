@@ -9,7 +9,13 @@ const scheme = 'dev.example.project-tasks';
 const directories: string[] = [];
 afterAll(() => Promise.all(directories.map((path) => rm(path, { recursive: true, force: true }))));
 
-test('a task link opens its project; a text file prefills a task that is added once', async () => {
+/** A started host and calls as the owner's session, closed after `run`. */
+async function withHost(
+  run: (
+    call: (path: string, body?: unknown) => Promise<any>,
+    session: { url: string; token: string },
+  ) => Promise<void>,
+) {
   const directory = await mkdtemp(join(tmpdir(), 'project-tasks-os-'));
   directories.push(directory);
   const host = await startHost(projectTasks, {
@@ -30,6 +36,14 @@ test('a task link opens its project; a text file prefills a task that is added o
       });
       return response.json();
     };
+    await run(call, { url: host.url, token });
+  } finally {
+    await host.close();
+  }
+}
+
+test('a task link opens its project; a text file prefills a task that is added once', () =>
+  withHost(async (call) => {
     const command = (operation: string, input: unknown, idempotencyKey: string) =>
       call(`commands/${operation}`, { input, idempotencyKey });
     const project = (await command('project.create', { name: 'Launch' }, 'p-1')).result;
@@ -71,7 +85,53 @@ test('a task link opens its project; a text file prefills a task that is added o
     expect((await call(`queries/task.list`, { input: { projectId: project.id } })).data.count).toBe(
       2,
     );
-  } finally {
-    await host.close();
-  }
-});
+  }));
+
+test('an image is staged, prefills a task, and is attached only when the person adds it', () =>
+  withHost(async (call, session) => {
+    const command = (operation: string, input: unknown, idempotencyKey: string) =>
+      call(`commands/${operation}`, { input, idempotencyKey });
+    const project = (await command('project.create', { name: 'Expenses' }, 'p-1')).result;
+    const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    // The shell uploads the file as its session before submitting the request.
+    const uploaded = await fetch(`${session.url}/api/v1/blobs`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${session.token}`, 'content-type': 'image/png' },
+      body: bytes,
+    });
+    expect(uploaded.status).toBe(201);
+    const blob = await uploaded.json();
+
+    expect(
+      await call('shell/requests', {
+        platform: 'web',
+        request: { kind: 'file', name: 'Receipt.png', mediaType: 'image/png', blob },
+      }),
+    ).toEqual({ status: 'delivered', handler: 'task.from-attachment' });
+    const [prefill] = await call('ui/deliveries');
+    expect(prefill.delivery).toMatchObject({
+      type: 'prepare',
+      input: { title: 'Receipt', attachment: blob },
+      provenance: { kind: 'file', handler: 'task.from-attachment', label: 'Receipt.png' },
+    });
+    // Staged, not attached: no task references it, so nobody may read it yet.
+    const unread = await fetch(`${session.url}/api/v1/blobs/${blob.digest}`, {
+      headers: { authorization: `Bearer ${session.token}` },
+    });
+    expect(unread.ok).toBe(false);
+
+    // A reference to bytes this session never uploaded is refused like any unknown blob.
+    const forged = { ...blob, digest: `sha256:${'0'.repeat(64)}` };
+    expect(
+      (await command('task.create', { projectId: project.id, title: 'x', attachment: forged }, 'f'))
+        .error,
+    ).toBeDefined();
+
+    const input = { projectId: project.id, ...prefill.delivery.input };
+    const task = (await command('task.create', input, `prefill-${prefill.id}`)).result;
+    expect(task.attachment).toEqual(blob);
+    const read = await fetch(`${session.url}/api/v1/blobs/${blob.digest}`, {
+      headers: { authorization: `Bearer ${session.token}` },
+    });
+    expect(new Uint8Array(await read.arrayBuffer())).toEqual(bytes);
+  }));

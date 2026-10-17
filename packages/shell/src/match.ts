@@ -139,10 +139,18 @@ function matchFile(
     throw new OsRequestError('invalid', `${handler.id} needs the file's ${handler.payload}`);
   if (size > handler.maxBytes)
     throw new OsRequestError('too-large', `${raw.name} is larger than ${handler.id} accepts`);
+  // A blob carries its own media type; it must be one the handler declares and agree with the
+  // type the request reports, so a file cannot match by one type and be stored as another.
+  if (
+    handler.payload === 'blob' &&
+    ((raw.mediaType !== undefined && raw.mediaType !== raw.blob!.mediaType) ||
+      !handler.types.some((type) => type.mediaTypes.includes(raw.blob!.mediaType)))
+  )
+    throw new OsRequestError('invalid', `${raw.name} is not a media type ${handler.id} declares`);
   const values: Record<string, JsonValue> = {
     'file.name': raw.name,
     'file.stem': dot > 0 ? raw.name.slice(0, dot) : raw.name,
-    'file.mediaType': raw.mediaType ?? '',
+    'file.mediaType': (handler.payload === 'blob' ? raw.blob!.mediaType : raw.mediaType) ?? '',
   };
   if (handler.payload === 'text') values['file.text'] = raw.text!;
   else values['file.blob'] = raw.blob as unknown as JsonValue;
