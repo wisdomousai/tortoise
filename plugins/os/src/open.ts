@@ -1,5 +1,5 @@
 import type { OsActionKind, OsHandlerKind } from '@agent-native/contracts';
-import type { PluginInstance, PluginOpenContext, ShellPort } from '@agent-native/host/plugin';
+import type { PluginInstance, PluginOpenContext, ShellPort } from '@agent-native/kernel/plugin';
 import { webScheme } from '@agent-native/shell';
 import { createOsAudit, createRateLimit } from './audit';
 import {

@@ -1,8 +1,9 @@
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {
+  createNavigationContainerRef,
   NavigationContainer,
   useNavigation,
   type NavigationProp,
@@ -10,6 +11,8 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { Transport } from '@agent-native/client';
+import { OsDeliveries, type OsDeliverySource } from './os-deliveries';
+import { ShownProvenance } from './os-provenance';
 import { nativeScreenForCapability, type NativeApplicationScreens } from './screens';
 import { SessionProvider, type PluginServices } from './session';
 
@@ -20,6 +23,18 @@ const TABS = '(tabs)';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ScreensContext = createContext<NativeApplicationScreens | undefined>(undefined);
+
+/** Open a screen by path, whether it is a tab or a pushed screen. */
+function openScreen(
+  navigation: Pick<NavigationProp<ParamListBase>, 'navigate'>,
+  screens: NativeApplicationScreens,
+  to: string,
+  params?: Record<string, unknown>,
+) {
+  if (screens.navigation.some((item) => item.to === to))
+    navigation.navigate(TABS, { screen: to, params });
+  else navigation.navigate(to, params);
+}
 
 function Tabs({ screens }: { screens: NativeApplicationScreens }) {
   const { width } = useWindowDimensions();
@@ -53,18 +68,30 @@ function Tabs({ screens }: { screens: NativeApplicationScreens }) {
  * The native frame for one application. Tabs carry the navigation items, at the bottom on phones
  * and as a rail on tablets; every other screen is pushed on a stack above them. The status slot
  * renders above every screen. The session (query cache and live invalidation) follows `transport`.
+ * With `os`, what OS requests asked for opens once navigation is ready, under a notice that says
+ * where it came from.
  */
 export function NativeFrame({
   screens,
   transport,
   services,
+  os,
 }: {
   screens: NativeApplicationScreens;
   transport: Transport;
   /** The authority's plugin services, for plugin screens that drive their own plugin. */
   services?: PluginServices;
+  /** Deliveries from the mobile host's OS connection. */
+  os?: OsDeliverySource;
 }) {
   const tabs = useMemo(() => new Set(screens.navigation.map((item) => item.to)), [screens]);
+  const navigation = useMemo(() => createNavigationContainerRef<ParamListBase>(), []);
+  const [ready, setReady] = useState(false);
+  const open = useMemo(
+    () => (to: string, params?: Record<string, unknown>) =>
+      openScreen(navigation, screens, to, params),
+    [navigation, screens],
+  );
   const Status = screens.status;
   return (
     <SafeAreaProvider>
@@ -72,8 +99,10 @@ export function NativeFrame({
         <ScreensContext.Provider value={screens}>
           <SafeAreaView edges={['top']} style={{ flex: 1 }}>
             {Status ? <Status /> : null}
+            {os ? <ShownProvenance /> : null}
+            {os && ready ? <OsDeliveries source={os} screens={screens} open={open} /> : null}
             <View style={{ flex: 1 }}>
-              <NavigationContainer>
+              <NavigationContainer ref={navigation} onReady={() => setReady(true)}>
                 <Stack.Navigator>
                   <Stack.Screen name={TABS} options={{ headerShown: false }}>
                     {() => <Tabs screens={screens} />}
@@ -113,11 +142,8 @@ export function useFrameNavigation() {
   const screens = useNativeScreens();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   return useMemo(() => {
-    const tabs = new Set(screens.navigation.map((item) => item.to));
-    const open = (to: string, params?: Record<string, unknown>) => {
-      if (tabs.has(to)) navigation.navigate(TABS, { screen: to, params });
-      else navigation.navigate(to, params);
-    };
+    const open = (to: string, params?: Record<string, unknown>) =>
+      openScreen(navigation, screens, to, params);
     return {
       open,
       openCapability(id: string, params?: Record<string, unknown>) {

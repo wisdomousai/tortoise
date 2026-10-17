@@ -60,7 +60,12 @@ export async function fileRequest(
   if (bytes.byteLength > handler.maxBytes) return undefined;
   if (handler.payload === 'text') {
     const text = strictText(bytes);
-    return text === undefined ? undefined : { kind: 'file', name, text };
+    if (text === undefined) return undefined;
+    // A name without a declared extension, such as an Android content id, matches by type.
+    const declared =
+      reportedMediaType &&
+      handler.types.some((type) => type.mediaTypes.includes(reportedMediaType));
+    return { kind: 'file', name, text, ...(declared ? { mediaType: reportedMediaType } : {}) };
   }
   const mediaType = uploadMediaType(handler, name, reportedMediaType);
   if (!mediaType) return undefined;
