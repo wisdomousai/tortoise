@@ -88,3 +88,7 @@ bun test plugins/notifications
 - startup refused without the plugin, and a carried target without a settle command refused.
 
 The desktop path over HTTP, from the Electron relay to the reply, is covered by `examples/project-tasks/test/os.test.ts`.
+
+## Skills
+
+- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

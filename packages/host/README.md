@@ -74,3 +74,8 @@ bun run test:service
 ```
 
 The shell and delivery routes are tested with a fixture application in `plugins/os/test/os.test.ts`. `test/config.test.ts` covers the URL scheme: its default from the application ID and the refusal of reserved or malformed schemes. `test/plugins.test.ts` covers plugin composition and the kernel ports: manifest merge and collisions, list order and `requires`, slices kept across upgrades, policy routing, open order, cleanup after a failed open, duplicate ports, null defaults, claimed settings, `ready` in an embedded authority and `start` as a delegated caller. `test/workspace-backup.test.ts` backs up a live workspace through the CLI and refuses to restore while a host owns it. `test/migrations.test.ts` runs `migrate` with a pending effect, after a failed step and over a compatible step, and checks that storage refuses older code. `test/providers.test.ts` covers provider access: no credential reads at startup, single-use OAuth callbacks bound to their session, explicit API-key funding and no leaked provider error text. Host behavior against real operations is tested in content: each example's `test/application.test.ts`, and `examples/project-tasks/test/host.test.ts`, `hardening.test.ts` and `security-conformance.test.ts`.
+
+## Skills
+
+- [write-host-plugin](../../skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
+- [create-agent-native-app](../../skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.

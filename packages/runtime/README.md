@@ -76,3 +76,7 @@ bun test packages/runtime
 - `test/blobs.test.ts`: references commit with the command and only they enter the snapshot; reads follow the referencing resource, grant scope and revocation; attaching needs an own recent upload or read access; limits and declarations; a rejected command's upload is swept after the grace period while referenced and freshly stored blobs stay; connectors read an effect's blobs; audit by digest.
 
 The storage conformance suite that every `Storage` adapter must pass is `examples/project-tasks/test/storage-conformance.test.ts`.
+
+## Skills
+
+- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.

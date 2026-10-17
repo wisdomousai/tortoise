@@ -10,12 +10,30 @@
  *   skill cannot keep naming a file after it moved. Paths with `<placeholder>` or globs are skipped;
  * - AGENTS.md does not list the skill, or the owning workspace's README does not link it.
  *
+ * It keeps skills current with the code they describe. Every package, plugin and SDK README has a
+ * `## Skills` section naming the skills that cover it, or why none do. The check fails when a
+ * workspace's public surface (entrypoints and exported names, see `skill-surface.ts`) or the root
+ * package scripts differ from `skills/reviewed-surface.json`, and names the skills to review;
+ * `bun run skills:stamp` records the surface once they are reviewed. When the agents' link
+ * directories exist, a missing or stale link fails too.
+ *
  * What a skill says is left to its author. Reads files only; writes nothing.
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { brokenLinks } from './markdown-links';
-import { layers, root, skills } from './skills';
+import { currentSurface } from './skill-surface';
+import {
+  layers,
+  linkDirectories,
+  reviewedSurfaceFile,
+  root,
+  rootScripts,
+  rootScriptSkills,
+  skills,
+  skillsSection,
+  surfaceWorkspaces,
+} from './skills';
 
 const errors: string[] = [];
 const found = skills();
@@ -83,8 +101,76 @@ for (const skill of found) {
   }
 }
 
+// Coverage: each tracked workspace names the skills that cover it, or says why none do.
+const byName = new Map(found.map((skill) => [skill.name, skill]));
+const reviewers = new Map<string, readonly string[]>([[rootScripts, rootScriptSkills]]);
+for (const workspace of surfaceWorkspaces()) {
+  const section = skillsSection(workspace);
+  if (!section) {
+    errors.push(
+      `${workspace}/README.md: add a "## Skills" section linking the skills that cover it, or saying why none do`,
+    );
+    continue;
+  }
+  if (!section.text) errors.push(`${workspace}/README.md: the Skills section is empty`);
+  for (const name of section.skills)
+    if (!byName.has(name)) errors.push(`${workspace}/README.md: links unknown skill ${name}`);
+  reviewers.set(workspace, section.skills);
+}
+
+// Drift: the surface the skills were last reviewed against.
+let recorded: Record<string, string[]> = {};
+try {
+  recorded = JSON.parse(readFileSync(join(root, reviewedSurfaceFile), 'utf8'));
+} catch {
+  errors.push(
+    `${reviewedSurfaceFile} is missing; review the skills, then run bun run skills:stamp`,
+  );
+}
+const current = currentSurface(root);
+const listed = (items: string[]) =>
+  items.length > 8
+    ? `${items.slice(0, 8).join(', ')} and ${items.length - 8} more`
+    : items.join(', ');
+for (const key of new Set([...Object.keys(current), ...Object.keys(recorded)])) {
+  const now = current[key];
+  const then = recorded[key];
+  const stamp = `bun run skills:stamp ${key === rootScripts ? 'package.json' : key}`;
+  if (!now) {
+    errors.push(`${reviewedSurfaceFile}: ${key} no longer exists; run ${stamp}`);
+    continue;
+  }
+  const added = now.filter((item) => !then?.includes(item)).map((item) => `+${item}`);
+  const removed = (then ?? []).filter((item) => !now.includes(item)).map((item) => `-${item}`);
+  if (then && !added.length && !removed.length) continue;
+  const names = reviewers.get(key);
+  const review = !names
+    ? `add a Skills section to ${key}/README.md`
+    : names.length
+      ? `review ${names.map((name) => `${byName.get(name)?.directory ?? name}/SKILL.md`).join(', ')}`
+      : `decide whether ${key} now needs a skill (its README says none)`;
+  errors.push(
+    `${key}: ${then ? `surface changed (${listed([...added, ...removed])})` : 'surface not reviewed yet'}; ${review}, then run ${stamp}`,
+  );
+}
+
+// Discovery: when the agents' link directories exist, every skill is linked to its source.
+for (const destination of linkDirectories) {
+  if (!existsSync(join(root, destination))) continue;
+  for (const skill of found) {
+    let target: string | undefined;
+    try {
+      target = realpathSync(join(root, destination, skill.name));
+    } catch {}
+    if (target !== realpathSync(join(root, skill.directory)))
+      errors.push(`${destination}/${skill.name}: missing or stale; run bun run skills:link`);
+  }
+}
+
 if (errors.length) {
   console.error(errors.join('\n'));
   process.exit(1);
 }
-console.log(`${found.length} skills with valid frontmatter, links and paths, all listed.`);
+console.log(
+  `${found.length} skills with valid frontmatter, links and paths, all listed, linked and reviewed against the current surface.`,
+);

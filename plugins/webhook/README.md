@@ -48,3 +48,7 @@ bun test plugins/webhook
 - a behavioral scenario through the direct driver.
 
 The status screen's binding is checked by `examples/project-tasks/test/ui-bindings.test.ts`.
+
+## Skills
+
+- [write-host-plugin](../../skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.

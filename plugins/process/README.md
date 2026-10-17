@@ -70,3 +70,8 @@ bun test plugins/process packages/kernel/test/processes.test.ts
 - abort and close stopping the tree.
 
 The kernel suite covers the refusing default and two providers refused at composition. The station's perception tests run the worker protocol over an injected start.
+
+## Skills
+
+- [write-hardware-driver](../connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.
+- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): site policy, signed bundles and install.

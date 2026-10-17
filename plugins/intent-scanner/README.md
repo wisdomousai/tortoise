@@ -63,3 +63,7 @@ bun test plugins/intent-scanner
 ```
 
 `test/source.test.ts` drives `createIntentSource` with a fake module standing in for the receiver: the receiver is registered with the profile's sender permission, a broadcast becomes a decoded GS1 scan with its AIM symbology, broadcasts for another action and after stopping are ignored, stopping unregisters the receiver, and a missing module or a profile without `intent` reports the source unsupported. Profiles refuse actions and extras that are not Android names, and the manifest runs on Android only. The Kotlin receiver has not been compiled or run; the device test with `adb shell am broadcast` runs on demand.
+
+## Skills
+
+- [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md): scanner sources, profiles and routes.

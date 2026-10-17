@@ -49,3 +49,9 @@ bun run test:conformance
 ```
 
 `test/connectors.test.ts` runs the connector cases against a conforming in-memory target. It also runs them against flawed ones (duplicates on retry, refusals thrown, abort ignored), and each fails with the rule it breaks. The scenario and UI-binding helpers have no suite of their own; they are exercised by the conformance and UI-binding tests of every example. Together they check that every operation behaves the same on every surface and that every operation claiming a UI binding is referenced by a screen.
+
+## Skills
+
+- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
+- [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox settlement, sync and live reads.
+- [check-a-change](../../skills/check-a-change/SKILL.md): which checks to run and how to report the evidence.

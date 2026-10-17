@@ -42,3 +42,7 @@ bun test plugins/share-target
 ```
 
 `test/web.test.ts` serves a fixture notes application over HTTP. It covers shared text held and claimed once as a prefill, the cross-site landing, an unknown or reused code, a link and its text going to the link handler, a shared PDF staged for the claiming session, files of an undeclared type or over the limit dropped, refused methods, form types and oversized posts, expiry, the eight-post limit, a share action returned to the page, and startup refused without the plugin. `test/mobile.test.ts` runs the same application on the mobile authority with Bun bindings for the device: text and a PDF shared through the `expo-sharing` link prefill the form, an undeclared type is never read, and a share action opens the share sheet.
+
+## Skills
+
+- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

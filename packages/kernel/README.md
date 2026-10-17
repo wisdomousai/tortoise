@@ -66,3 +66,8 @@ bun run test:portable
 ```
 
 `test/kernel.test.ts` opens authorities on the in-memory platform in `test/fake-platform.ts`, which uses no Node or Bun API. It covers state persisted across reopen, a plugin refused on the wrong platform, capability refusals for sockets, child processes and ingress, settings providers (precedence, `launcherSettingsWin`, unclaimed keys, duplicate providers), cleanup after a failed `ready`, the closed default ingress, and manifest validation of `targets`, `platforms` and `expoPlugins`. `test/shell.test.ts` covers the default shell port's refusals and a single provider composed through `resolvePorts` and the late view. `test/globals.test.ts` checks that the required globals behave as the runtime expects. `bun run test:portable` runs the kernel, runtime, client and integration suites with `test/without-web-globals.ts` preloaded: it deletes the globals Hermes may lack and installs the kernel's replacements, so those suites prove they run without Bun's versions.
+
+## Skills
+
+- [write-host-plugin](../../skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
+- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.

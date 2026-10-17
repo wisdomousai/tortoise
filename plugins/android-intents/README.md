@@ -54,3 +54,7 @@ bun test plugins/android-intents
 - startup refused without the plugin.
 
 The intent matching, listening and instruction checks are tested in `packages/shell/test/intents.test.ts`, and the config plugin in `packages/mobile/test/intent-filters.test.ts`. The Kotlin module is not compiled by `bun run check`.
+
+## Skills
+
+- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

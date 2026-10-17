@@ -47,3 +47,7 @@ bun test plugins/device-link
 - `test/link.test.ts` runs a hub with `startHost` on loopback and a field app on the mobile platform with Bun's SQLite and files, paired through `@agent-native/hub-link`. A capture taken before pairing waits with the reason; a wrong code is shown on the device; after pairing, a lost response is replayed without a second capture on the hub; the photo arrives before the record; an offline capture goes once the network returns; a hub rejection reaches the device with its code; assignments come back through the feed. A phone can call only the sync operations, a revoked phone is refused as a credential and its records stay pending until it pairs again, a tablet works within its chosen operations, and codes are single-use, expire and are throttled.
 - `test/tls.test.ts` (skipped without `openssl`) starts the hub under a `site-hub` policy with a TLS listener and a throwaway site CA: a client without the CA fails the handshake, and a phone that trusts it pairs and delivers.
 - `test/scenarios.test.ts` runs the `link.*` operations through the direct driver; `test/ui-bindings.test.ts` checks that the devices screen references every bound operation.
+
+## Skills
+
+- [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): native plugins, native screens and pairing.

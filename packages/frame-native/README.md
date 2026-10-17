@@ -56,3 +56,7 @@ bun run check:mobile-bundle
 ```
 
 `test/os-deliveries.test.ts` covers a delivery opening a declared screen, a resource's screen or a prepared command's form, and the refusal of a target no screen declares. `test/screens.test.ts` covers plugin merging, the longest-prefix capability lookup and each definition-time refusal. The frame and the components have no render tests; `typecheck` checks them against React Native's and Uniwind's types, and `check:mobile-bundle` bundles them with the starter's fixture application through Metro and Uniwind. They have not run on a device.
+
+## Skills
+
+- [extend-mobile-host](../mobile/skills/extend-mobile-host/SKILL.md): native plugins, native screens and pairing.

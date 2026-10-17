@@ -1,6 +1,6 @@
 # Development and testing
 
-Install the pinned dependencies with `bun install --frozen-lockfile`, then run `bun run skills:link` so coding agents discover the task skills listed in [AGENTS.md](../AGENTS.md#skills). The starter hosts the application that `app.config.json` names; `AGENT_NATIVE_APPLICATION`, a package name or a path, overrides it for one launch. The layers are described in [architecture](architecture.md). To add behavior, follow [capability authoring](capability-authoring.md).
+Install the pinned dependencies with `bun install --frozen-lockfile`. Its `postinstall` links the task skills listed in [AGENTS.md](../AGENTS.md#skills) for coding agents (`bun run skills:link` does the same by hand). The starter hosts the application that `app.config.json` names; `AGENT_NATIVE_APPLICATION`, a package name or a path, overrides it for one launch. The layers are described in [architecture](architecture.md). To add behavior, follow [capability authoring](capability-authoring.md).
 
 ## The checks
 
@@ -28,7 +28,7 @@ bun run build
 | `check:manifests`  | A framework package whose manifest does not list what its published files import, or packages at different versions.                                                                                                |
 | `check:framework`  | More than one installed framework version.                                                                                                                                                                          |
 | `check:readmes`    | A workspace without a README, a README whose title is not the package name, or a dead link.                                                                                                                         |
-| `check:skills`     | A skill whose name, description, links, package scripts or named paths are wrong, or that AGENTS.md does not list or its workspace README does not link. |
+| `check:skills`     | A skill whose name, description, links, package scripts or named paths are wrong, or that AGENTS.md does not list or its workspace README does not link. A package, plugin or SDK whose exports, or root scripts, changed since the skills covering them were last reviewed (`bun run skills:stamp` records the review). A missing or stale skill link. |
 | `check:size`       | Code in a package `src/index.ts` besides re-exports. Long files and functions are listed as hints and do not fail.                                                                                                  |
 | `test:portable`    | Kernel, runtime, client, integration and mobile platform code that only works because Bun supplies a Web global Hermes may lack. The suites run with those globals removed and the kernel's replacements installed. |
 | `test:sandbox`     | A standalone binary that does not resolve. It compiles the CLI and runs it in an empty environment, then verifies its audit log.                                                                                    |

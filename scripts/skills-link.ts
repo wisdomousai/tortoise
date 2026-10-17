@@ -3,7 +3,8 @@
  * from `.claude/skills/` and Codex from `.agents/skills/`. Each entry is a relative directory
  * symlink to the skill's source in `skills/` or `<workspace>/skills/`, so editing the source is
  * enough and nothing is copied. Both directories are ignored by Git and left out of a scaffold
- * export; run this after cloning or exporting, and again after adding or renaming a skill.
+ * export. `bun install` runs it as the root `postinstall`; run it by hand after adding or renaming
+ * a skill, which `bun run check:skills` reports.
  *
  * It replaces only symlinks, and removes only symlinks that point into this checkout and no longer
  * name a skill. A real file or directory at a skill's name is left alone and reported.
@@ -18,9 +19,11 @@ import {
   symlinkSync,
 } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
-import { root, skills } from './skills';
+import { linkDirectories, root, skills } from './skills';
 
-const destinations = ['.claude/skills', '.agents/skills'];
+// `--postinstall` (from `bun install`) reports a blocked link instead of failing the install.
+const postinstall = process.argv.includes('--postinstall');
+const destinations = linkDirectories;
 const found = skills();
 const blocked: string[] = [];
 let changed = 0;
@@ -67,7 +70,7 @@ function isLink(path: string): boolean {
 
 if (blocked.length) {
   console.error(`Not a symlink, left alone: ${blocked.join(', ')}`);
-  process.exit(1);
+  if (!postinstall) process.exit(1);
 }
 console.log(
   `${found.length} skills linked into ${destinations.join(' and ')}${changed ? ` (${changed} links changed)` : ''}.`,

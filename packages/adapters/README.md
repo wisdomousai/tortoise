@@ -84,3 +84,7 @@ bun test packages/adapters
 - `src/cli.test.ts`: catalog-derived words and typed flags, `--json` input, dry-run, generated help and exit codes mapped from error codes.
 
 Surface parity is proven in content, where real operations exist: `examples/project-tasks/test/transport-conformance.test.ts` runs the same scenarios through direct, HTTP, CLI subprocess and MCP.
+
+## Skills
+
+None. Replacing a port adapter or adding a transport follows [adapters](../../docs/adapters.md); add a skill when that becomes a repeated task.

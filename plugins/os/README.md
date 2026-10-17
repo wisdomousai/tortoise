@@ -47,3 +47,7 @@ bun test plugins/os
 ```
 
 `test/os.test.ts` uses a fixture notes application served over HTTP. It covers the shell API answering 503 without the plugin; a link and a text file delivered to the submitting session only, with no content in the log; an unreadable resource refused when queued; refusal reasons for unknown, malformed, disabled and rate-limited requests; an open action returned to a page and relayed to an adapter that only its own session can answer; and startup refused for an unserved kind or an unknown disabled id. The [share target plugin](../share-target/README.md) uses `hold` for web share target posts, and the [notifications plugin](../notifications/README.md) uses `relay` and `attached`; their tests cover both. `test/mobile.test.ts` runs a fixture application on the mobile authority with Bun bindings for the device: a launch link held until the frame subscribes, a `content:` text file matched by media type, undeclared types never read, an unreadable resource not shown, a PDF staged in the blob store as a form's reference, an open action run through the device, and nothing attached without the plugin.
+
+## Skills
+
+- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

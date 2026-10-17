@@ -9,7 +9,7 @@ Layer: framework (`packages/*`). Server-side CLI.
 - [Scaffold](../../docs/primitives.md#scaffold): `scaffold`, `scaffoldNew`, `scaffoldAdd`, `ScaffoldOptions`, `ScaffoldManifest`, `NewOptions`, `AddRequest`, `AddOptions`.
 - [Framework release](../../docs/primitives.md#framework-release): `installedFramework`, the check behind `bun run check:framework`.
 
-Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` [UI registry](../../docs/primitives.md#ui-registry) item. The root [README](../../README.md#create-another-app) shows the export flow, and the [setup skill](../../skills/create-agent-native-app/SKILL.md) guides an agent through both. An export carries every skill in `skills/` and in workspace `skills/` directories, but not the `.claude/skills` and `.agents/skills` links; run `bun run skills:link` in the new checkout.
+Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` [UI registry](../../docs/primitives.md#ui-registry) item. The root [README](../../README.md#create-another-app) shows the export flow, and the [setup skill](../../skills/create-agent-native-app/SKILL.md) guides an agent through both. An export carries every skill in `skills/` and in workspace `skills/` directories, but not the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
 
 ## Entrypoints
 
@@ -61,3 +61,7 @@ bun run test:scaffold:full   # the export flows, and a new application installed
 ```
 
 `src/scaffold.test.ts` covers deterministic export, private and runtime artifacts left out, images copied unchanged, single-example selection with the examples it imports, and rejection of checkout-specific paths. `src/generate.test.ts` covers `new` (one generated workspace, root dependency and lockfile entries, no example copied), `add` of each kind at the markers, refusals, marker insertion, lockfile ordering and template rendering. The full acceptance runs are opt-in (`SCAFFOLD_ACCEPTANCE=1`) so an exported test cannot export itself recursively. The generated application's acceptance run adds a collection, a capability and a target, then runs format, generate, typecheck, build, its tests and its Playwright spec of the default screens. The registry run packs the framework, serves it on loopback, exports with `--registry`, installs, reinstalls with `--frozen-lockfile` from a clean `node_modules`, adds a target and runs the application's whole `check` and its Playwright spec. `src/versions.test.ts` covers the mixed-version refusal.
+
+## Skills
+
+- [create-agent-native-app](../../skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.

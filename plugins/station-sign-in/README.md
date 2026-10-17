@@ -72,3 +72,7 @@ bun test plugins/station-sign-in
 - revoking a badge ends its sessions.
 
 **`test/scenarios.test.ts`** runs the operations through the direct driver.
+
+## Skills
+
+- [bridge-station-screen](../../packages/station/skills/bridge-station-screen/SKILL.md): station software reached through its screen.

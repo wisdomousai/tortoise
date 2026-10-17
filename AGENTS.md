@@ -35,7 +35,7 @@ Design on engineering merits. The rest of this section is advice; depart from it
 
 ## Skills
 
-Skills are task guides for coding agents. A repo-wide skill lives in `skills/<name>/`; a workspace keeps the skills for its own extension points in `<workspace>/skills/<name>/`. Run `bun run skills:link` once per checkout so Claude Code (`.claude/skills/`) and Codex (`.agents/skills/`) discover them; the links are not committed.
+Skills are task guides for coding agents. A repo-wide skill lives in `skills/<name>/`; a workspace keeps the skills for its own extension points in `<workspace>/skills/<name>/`. `bun install` links them into `.claude/skills/` (Claude Code) and `.agents/skills/` (Codex) through the root `postinstall`; after adding or renaming a skill, run `bun run skills:link`. The links are not committed.
 
 | Task | Skill |
 | --- | --- |
@@ -52,10 +52,11 @@ Skills are task guides for coding agents. A repo-wide skill lives in `skills/<na
 | Write a hardware driver | `plugins/connector-driver/skills/write-hardware-driver/SKILL.md` |
 | Deploy to a site: policy, signed bundles, install | `plugins/site/skills/deploy-to-site/SKILL.md` |
 
-How skills grow with the code (`bun run check:skills` enforces the first and last points):
+How skills stay current with the code (`bun run check:skills` enforces the first three points):
 
 - A skill is named for a task, not a package, and names are unique across the repo. The owning workspace's README links it, and this table lists it.
-- A change that adds or changes an extension point, a command or a check updates that workspace's skill in the same commit.
+- Every package, plugin and SDK README has a `## Skills` section that links the skills covering it, or says why none do.
+- `skills/reviewed-surface.json` records each of those workspaces' entrypoints and exported names, and the root package scripts, as of the last skill review. When the code changes that surface, the check names the skills to review. Update them in the same commit for what changed, then run `bun run skills:stamp <workspace>`. Stamping without reading the skills defeats the check; the stamp's diff shows reviewers what was reviewed.
 - When a workspace gains an extension point that other code uses and no skill covers it, add a skill there.
 - When two skills repeat the same steps, move those steps into a repo-wide skill and link to it.
 - A skill links to docs and READMEs for detail instead of copying it. Paths it names must exist.

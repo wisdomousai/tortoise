@@ -46,3 +46,7 @@ bun test plugins/managed-config
 ```
 
 `test/managed-config.test.ts` opens an application that composes this plugin and a plugin declaring `hub-url` on the mobile platform with Bun's SQLite and files. Managed values reach the other plugin and win over the launcher's value, except with `launcherSettingsWin`; an undeclared key and a value that is not text refuse startup. It also checks the restrictions XML the config plugin writes, including escaping. The prebuild output (the XML file and the manifest meta-data) and autolinking of both modules were checked once with `expo prebuild --platform android`; the native modules have not been compiled or run.
+
+## Skills
+
+- [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): native plugins, native screens and pairing.

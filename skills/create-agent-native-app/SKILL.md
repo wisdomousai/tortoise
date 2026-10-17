@@ -37,7 +37,7 @@ Pick the closest example as the pattern to read:
 | Site policy, signed bundles, install on a machine | `plugins/site/skills/deploy-to-site/SKILL.md` |
 | Which checks to run and how to report them | `skills/check-a-change/SKILL.md` |
 
-AGENTS.md lists the same skills; `bun run skills:link` makes them discoverable to Claude Code and Codex in a checkout.
+AGENTS.md lists the same skills; `bun install` links them for Claude Code and Codex.
 
 ## Reporting
 

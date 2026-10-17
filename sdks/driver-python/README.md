@@ -73,3 +73,7 @@ bun test sdks/driver-python
 ```
 
 The first runs the SDK's rules without a host: gating, deduplication, the journal across a restart, serving over pipes, and the stub generator. The second runs from the repository root as part of `bun run check`. It generates the stub from the base's reference contract (`chamber` in `@agent-native/connector-driver/testing`) and checks the simulated chamber with `checkDriver`. It then runs `chamberConformance`, the shared connector conformance suite, against the chamber as a real child process for each delivery mode, including a driver crash after acting. It is skipped when `python3` is not on PATH.
+
+## Skills
+
+- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.

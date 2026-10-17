@@ -63,3 +63,36 @@ export function skills(): Skill[] {
       found.push(...skillsIn(`${layer}/${name}/skills`, `${layer}/${name}`));
   return found;
 }
+
+/** Workspaces whose public surface the skills are reviewed against. */
+export const surfaceLayers = ['packages', 'plugins', 'sdks'] as const;
+/** The key under which the root package scripts are recorded, and the skills that cover them. */
+export const rootScripts = 'package.json scripts';
+export const rootScriptSkills = ['check-a-change', 'create-agent-native-app'];
+export const reviewedSurfaceFile = 'skills/reviewed-surface.json';
+/** Where Claude Code and Codex read project skills; `skills-link` fills both. */
+export const linkDirectories = ['.claude/skills', '.agents/skills'];
+
+export function surfaceWorkspaces(): string[] {
+  return surfaceLayers.flatMap((layer) =>
+    subdirectories(join(root, layer))
+      .filter((name) => existsSync(join(root, layer, name, 'package.json')))
+      .map((name) => `${layer}/${name}`),
+  );
+}
+
+/**
+ * A workspace README's `## Skills` section: the skills it links, or the stated reason it has
+ * none. Undefined when the README has no such section.
+ */
+export function skillsSection(workspace: string): { skills: string[]; text: string } | undefined {
+  const readme = join(root, workspace, 'README.md');
+  if (!existsSync(readme)) return undefined;
+  const match = /\n## Skills\n([\s\S]*?)(?=\n## |$)/.exec(readFileSync(readme, 'utf8'));
+  if (!match) return undefined;
+  const text = match[1]!.trim();
+  const skills = [...text.matchAll(/\]\([^)]*skills\/([a-z0-9-]+)\/SKILL\.md\)/g)].map(
+    (link) => link[1]!,
+  );
+  return { skills, text };
+}

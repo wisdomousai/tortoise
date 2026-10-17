@@ -36,3 +36,7 @@ bun test packages/event-log
 ```
 
 `test/event-log.test.ts`: chaining and canonical form, concurrent appends, durable reopen, rotation, tamper detection, torn-line recovery, rejected batches, verification up to the writer head, the single-writer lock and RFC 5424 forwarding. The rollback of a command whose required append fails is tested in `packages/runtime/test/audit.test.ts`.
+
+## Skills
+
+None. It is opened by `plugins/audit` and has no extension point of its own.

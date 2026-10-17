@@ -40,3 +40,7 @@ bun test plugins/os-shortcuts
 ```
 
 `test/shortcuts.test.ts` runs a fixture notes application on the mobile authority. It covers the shortcut link a launcher opens prefilling the form with its provenance, an undeclared shortcut and a shortcut link with more in it being refused, and startup refused without the plugin. The link form, the matching order and the registrations are tested in `packages/shell/test/shortcuts.test.ts`, and the Android config plugin in `packages/mobile/test/shortcuts-plugin.test.ts`. project-tasks' `e2e/os.pw.ts` opens its web shortcut.
+
+## Skills
+
+- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

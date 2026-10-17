@@ -26,3 +26,8 @@ bun test packages/observation packages/station
 ```
 
 `test/observation.test.ts` covers the gate with device provenance, uncertain and unknown fields, and the heartbeat and key rules. The station suites cover the same rules through the screen observer.
+
+## Skills
+
+- [bridge-station-screen](../station/skills/bridge-station-screen/SKILL.md): station software reached through its screen.
+- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.

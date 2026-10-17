@@ -47,3 +47,7 @@ bun test plugins/hub-link
 ```
 
 `test/network.test.ts` checks that a hub is reached over https or loopback http only, that the credential goes only to the paired origin with redirects refused, and that every other destination is unavailable. `test/scenarios.test.ts` records an error, a pairing and an unpairing through the direct driver and denies anyone but the holder. `test/ui-bindings.test.ts` checks the pairing screen. `test/attached.test.ts` checks the launch request and the origin check. The launch exchange, the browser session's operations and revocation run against a real hub in `plugins/device-link/test/link.test.ts`. The WebView has not run on a device. Pairing end to end, delivery and revocation are tested with a real hub in `plugins/device-link/test`. The screen has been type-checked, not rendered on a device.
+
+## Skills
+
+- [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): native plugins, native screens and pairing.

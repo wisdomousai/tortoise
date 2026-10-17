@@ -70,3 +70,7 @@ Deterministic fixtures only; they prove adapter and protocol behavior, not provi
 - `test/local.test.ts`: the local harness against a loopback OpenAI-compatible fixture server (tool call, finish, placeholder key, unserved model, unbound destination), harness choice by model requirement, and the model identity on the run record.
 
 `scripts/live-smoke.ts` is an opt-in live probe with a fixed synthetic prompt. It needs an explicitly configured account and never reads developer credential files.
+
+## Skills
+
+None. Adding a harness adapter or provider connection follows [agent harnesses](../../docs/agent-harnesses.md) and [providers](../../docs/providers.md); add a skill when that becomes a repeated task.

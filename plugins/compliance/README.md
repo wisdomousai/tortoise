@@ -64,3 +64,7 @@ bun test plugins/compliance
 - behavioral scenarios through the direct driver.
 
 Each example's `test/ui-bindings.test.ts` checks the screen's bindings, and `examples/quality-inspection/e2e/compliance.pw.ts` drives the screen in Chromium.
+
+## Skills
+
+- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): site policy, signed bundles and install.

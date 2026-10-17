@@ -57,3 +57,7 @@ The plugin is exercised through applications that compose it:
 - the project-tasks suite covers attestation, auditing over every channel, fail-closed rollback and crash recovery;
 - the quality-inspection suite covers `audit verify` and tamper detection;
 - the sandbox test verifies the compiled binary's chain.
+
+## Skills
+
+- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): site policy, signed bundles and install.

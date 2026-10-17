@@ -91,3 +91,7 @@ bun test sdks/driver-dotnet
 The first runs the SDK's rules without a host: gating, deduplication, the journal across a restart, serving over streams, the line reader, the handler thread, canonical JSON and the stub generator. The second runs from the repository root as part of `bun run check`. It builds the solution into a temporary artifacts directory, so no `bin` or `obj` lands in the tree, and runs the unit tests. It checks that the committed `ChamberContract.cs` is what the generator writes from the base's reference contract (`chamber` in `@agent-native/connector-driver/testing`). Then it checks the simulated chamber with `checkDriver` and runs `chamberConformance` against it as a real child process for each delivery mode, including a driver crash after acting. It is skipped when `dotnet` is not on PATH.
 
 Not run here: the STA apartment and COM interop, which need Windows, and a `win-x86` build.
+
+## Skills
+
+- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.

@@ -42,3 +42,7 @@ bun test plugins/automation
 
 - `test/automation.test.ts`: an event runs its job once as the issuer, and a crash after the commit but before the record replays on restart instead of repeating; the audit log records the run's command under the issuer and run and the recorded outcome; revoking stops future runs; a demoted issuer's run fails once into an open failure that only the issuer sees and resolves; only people issue, renew and revoke, each their own, and only the loop records progress; a schedule runs once per slot from the next one, within its budget; triggers that name unknown operations, jobs or agents, schedules under a minute, and runs that would start themselves are refused when the plugin opens.
 - `test/host.test.ts`: a serving host runs an enabled trigger and resumes from recorded progress after a restart; the screen references every bound operation.
+
+## Skills
+
+- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.

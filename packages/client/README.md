@@ -35,3 +35,7 @@ bun test packages/client
 ```
 
 `src/client.test.ts`: the snapshot cursor closes the subscription race, a revocation reset clears data behind a pending refresh, unsubscribe stops late responses, an older failure cannot erase a newer snapshot, and HTTP errors keep caller-safe field details.
+
+## Skills
+
+None. Screens use it through `packages/react` and the frame, which the build-screens skill covers.

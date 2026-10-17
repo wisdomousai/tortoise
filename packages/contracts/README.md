@@ -58,3 +58,9 @@ bun test packages/contracts
 `test/os.test.ts` covers OS declarations: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
 
 `test/contracts.test.ts` rejects an operation without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
+
+## Skills
+
+- [add-capability](../../skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
+- [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox settlement, sync and live reads.
+- [add-os-integration](../shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.

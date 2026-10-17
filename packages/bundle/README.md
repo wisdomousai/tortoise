@@ -36,3 +36,7 @@ bun test packages/bundle
 ```
 
 `test/bundle.test.ts` verifies a bundle against its key and refuses another key, a key listed under a foreign ID, an added file, a replaced file, a changed manifest, a link in the payload and a path that escapes. It refuses another platform, an unreadable storage schema and another application, and requires an approval of the exact requirements for a first install or a widening.
+
+## Skills
+
+- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): site policy, signed bundles and install.

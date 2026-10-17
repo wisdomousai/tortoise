@@ -67,3 +67,7 @@ bun test plugins/webhook examples/project-tasks/test/security.test.ts examples/p
 - a connected policy refused without this plugin.
 
 The webhook suite shows a third-party plugin refused by the guard for an unbound destination. The project-tasks suites cover bound and refused provider destinations, the child proxy and mTLS. `bun run test:isolated` and `bun run test:sandbox` check that no path escapes it.
+
+## Skills
+
+- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): site policy, signed bundles and install.

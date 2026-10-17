@@ -49,3 +49,8 @@ bun run check:registry:operator
 ```
 
 `test/primitives.test.ts` covers numeric entry and tolerance, the tap guard, key-burst filtering, and that `registry.json` and the theme stylesheet match the manifest with every import declared. `check:registry:operator` fails on registry drift. Gap: no scratch-app `shadcn add` acceptance test.
+
+## Skills
+
+- [build-screens](../frame/skills/build-screens/SKILL.md): screens, forms, live queries and registry items.
+- [add-scanner-input](../devices/skills/add-scanner-input/SKILL.md): scanner sources, profiles and routes.

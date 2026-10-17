@@ -45,3 +45,7 @@ bun test packages/react
 
 - `src/bindings.test.ts`: dependency-indexed refetch, permission changes clear the cache (also behind a hung refetch and for data cached before the stream's first batch), a remote query ignores local changes, keeps its abort signal and resets on a permission change; a paged remote query sends each page's `next` back and stops without one; and scanner bursts are told apart from typing.
 - `src/context.test.ts`: captured targets stay fixed after selection changes; session routing, acknowledgement and stale registrations.
+
+## Skills
+
+- [build-screens](../frame/skills/build-screens/SKILL.md): screens, forms, live queries and registry items.
