@@ -196,7 +196,7 @@
       "type": "registry:lib",
       "title": "OS deliveries",
       "description": "Takes what OS requests from this session asked the frame to open, navigate to or prefill, acknowledges each, and holds prefills for capability forms.",
-      "dependencies": ["@tanstack/react-router", "@agent-native/contracts"],
+      "dependencies": ["@tanstack/react-router", "@agent-native/contracts", "@agent-native/shell"],
       "registryDependencies": ["@agent-native/screens", "@agent-native/ui-session"],
       "files": [
         {

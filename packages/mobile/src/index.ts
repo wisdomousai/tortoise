@@ -9,3 +9,4 @@ export {
   type MobileAuthorityOptions,
 } from './authority';
 export { requirePluginNativeModule, type NativeModuleLookup } from './native-module';
+export { connectMobileShell, type MobileOsBindings, type MobileOsConnection } from './os';

@@ -4,6 +4,8 @@ import type { JsonObject, OsDelivery, OsProvenance } from '@agent-native/contrac
 import { screenForCapability, type ApplicationScreens } from '@agent-native/frame/screens';
 import { hostJson } from './host-client';
 
+export { describeProvenance } from '@agent-native/shell/provenance';
+
 /** A form prefill an OS request asked for, until the person submits or dismisses it. */
 export interface PreparedInput {
   readonly id: string;
@@ -19,19 +21,6 @@ const subscribe = (listener: () => void) => {
   listeners.add(listener);
   return () => listeners.delete(listener);
 };
-
-/** "Opened from a file: notes.txt". Labels are untrusted and rendered only as text. */
-export function describeProvenance(provenance: OsProvenance): string {
-  const what = {
-    link: 'Opened from a link',
-    file: 'Opened from a file',
-    share: 'Shared from another app',
-    intent: 'Opened by another app',
-    shortcut: 'Opened from a shortcut',
-    reply: 'Opened from a notification',
-  }[provenance.kind];
-  return provenance.label ? `${what}: ${provenance.label}` : what;
-}
 
 /**
  * The prefill waiting for `operation`, if an OS request asked for one. A form shows its

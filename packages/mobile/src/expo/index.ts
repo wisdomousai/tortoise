@@ -29,3 +29,4 @@ export { expoSecretStore } from './secrets';
 export { expoSqlDriver } from './sql-driver';
 export { defineBackgroundDelivery, followAppState } from './lifecycle';
 export { pluginNativeModule } from './native-module';
+export { expoOsBindings } from './os-shell';

@@ -1,4 +1,4 @@
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin } from '@agent-native/kernel/plugin';
 import { openOs } from './open';
 import { osPluginManifest } from './plugin-manifest';
 

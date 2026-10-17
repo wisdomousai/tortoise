@@ -221,19 +221,19 @@ implemented · `packages/devices` `plugins/intent-scanner`
 
 _A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or reply, and where its requests go._
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `plugins/compliance` `apps/desktop` `examples/project-tasks`
+partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `packages/frame-native` `packages/mobile` `plugins/compliance` `apps/desktop` `apps/mobile` `examples/project-tasks`
 
 ### OS action
 
 _A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it carries._
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance` `packages/agents` `apps/desktop` `packages/frame`
+partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance` `packages/agents` `apps/desktop` `packages/frame` `packages/mobile`
 
 ### Shell port
 
 _The kernel port that receives OS requests and performs OS actions; its default refuses both._
 
-partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell` `plugins/os` `apps/desktop`
+partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell` `packages/mobile` `plugins/os` `apps/desktop` `apps/mobile`
 
 ### Process port
 

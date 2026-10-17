@@ -30,3 +30,12 @@ export {
   strictText,
   type BlobUpload,
 } from './local-files';
+export {
+  createMobileShell,
+  mobileInput,
+  type MobileFileInfo,
+  type MobileShell,
+  type MobileShellDependencies,
+} from './mobile';
+export { describeProvenance } from './provenance';
+export { associationFiles, type AssociationIdentity } from './associations';
