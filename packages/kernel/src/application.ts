@@ -11,7 +11,7 @@ import type { CapabilityModule, EventLogPort, HostComponent } from '@agent-nativ
 import type { TargetIntegration } from '@agent-native/integration';
 import type { ApplicationManifest } from './manifest';
 import { deploymentComponents } from './components';
-import type { AnyHostPlugin, NetworkPort } from './plugin';
+import type { AnyHostPlugin, NetworkPort, ProcessPort } from './plugin';
 import {
   checkPlugins,
   composeAuthorization,
@@ -65,6 +65,8 @@ export interface ConnectContext {
   readonly workspaceId: string;
   /** The deployment's network port: integrations reach their declared destinations through it. */
   readonly network: NetworkPort;
+  /** The deployment's process port: perception workers and drivers start through it. */
+  readonly processes: ProcessPort;
 }
 
 /** A long-running observer, such as a station screen bridge. */

@@ -9,6 +9,7 @@
         "@agent-native/agents": "workspace:*",
         "@agent-native/audit": "workspace:*",
         "@agent-native/automation": "workspace:*",
+        "@agent-native/bundle": "workspace:*",
         "@agent-native/client": "workspace:*",
         "@agent-native/compliance": "workspace:*",
         "@agent-native/contracts": "workspace:*",
@@ -30,6 +31,7 @@
         "@agent-native/network": "workspace:*",
         "@agent-native/operator-ui": "workspace:*",
         "@agent-native/os": "workspace:*",
+        "@agent-native/process": "workspace:*",
         "@agent-native/project-tasks": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
         "@agent-native/react": "workspace:*",
@@ -152,6 +154,10 @@
       "name": "@agent-native/agents",
       "version": "0.1.0",
     },
+    "packages/bundle": {
+      "name": "@agent-native/bundle",
+      "version": "0.1.0",
+    },
     "packages/client": {
       "name": "@agent-native/client",
       "version": "0.1.0",
@@ -260,6 +266,10 @@
       "name": "@agent-native/os",
       "version": "0.1.0",
     },
+    "plugins/process": {
+      "name": "@agent-native/process",
+      "version": "0.1.0",
+    },
     "plugins/site": {
       "name": "@agent-native/site",
       "version": "0.1.0",
@@ -282,6 +292,8 @@
     "@agent-native/audit": ["@agent-native/audit@workspace:plugins/audit"],
 
     "@agent-native/automation": ["@agent-native/automation@workspace:plugins/automation"],
+
+    "@agent-native/bundle": ["@agent-native/bundle@workspace:packages/bundle"],
 
     "@agent-native/client": ["@agent-native/client@workspace:packages/client"],
 
@@ -328,6 +340,8 @@
     "@agent-native/operator-ui": ["@agent-native/operator-ui@workspace:packages/operator-ui"],
 
     "@agent-native/os": ["@agent-native/os@workspace:plugins/os"],
+
+    "@agent-native/process": ["@agent-native/process@workspace:plugins/process"],
 
     "@agent-native/project-tasks": ["@agent-native/project-tasks@workspace:examples/project-tasks"],
 

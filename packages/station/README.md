@@ -24,7 +24,7 @@ The [operator workstation pattern](../../docs/operator-workstation-pattern.md) e
 
 `controller` and `profile` compose parts that are imported only from inside the package. `src/controller/` holds the shared kernel (perception, clock, stable confirmation and this process's attempt memory), the safety gate (bridge state and forbidden zones), payload and precondition checks before delivery, the step runner with its per-action guard, and lookup. `src/profile/` holds `$input` bindings, region geometry and profile validation; `profile` re-exports them, so existing imports are unchanged.
 
-Extractors: `createAccessibilityExtractor` (accessibility tree), `createWorkerExtractor` (a JSON-lines worker process for OCR, classifiers or local models), `createOpenAiCompatibleVisionExtractor` (a local OpenAI-compatible vision endpoint) and `createFixtureExtractor` (replays recorded readings in CI). The Playwright transport is typed structurally, so this package does not depend on Playwright.
+Extractors: `createAccessibilityExtractor` (accessibility tree), `createWorkerExtractor` (a JSON-lines worker process for OCR, classifiers or local models; it receives a `start` that returns a `WorkerProcess`, so the host's process port, not this package, starts it), `createOpenAiCompatibleVisionExtractor` (a local OpenAI-compatible vision endpoint) and `createFixtureExtractor` (replays recorded readings in CI). The Playwright transport is typed structurally, so this package does not depend on Playwright.
 
 ## Trust boundary
 

@@ -49,6 +49,12 @@ On macOS arm64 with Bun 1.4.0.
 
 **Limits.** Row storage still serializes every row to find the change, so commit CPU grows with state. Receipts are kept by default. The phone's snapshot storage has neither rows nor retention. No encryption at rest.
 
+### Site bundles
+
+**Shown, deterministic.** `packages/bundle/test/bundle.test.ts`: a bundle verifies against its publisher key; another key, a key listed under a foreign ID, an added or replaced file, a changed manifest, a link in the payload and an escaping path are refused; another platform, an unreadable storage schema and another application are refused; a first install and every added or widened requirement need a site approval of the exact requirements digest, and narrower requirements need none. `bun run bundle create` built a 69 MB project-tasks bundle (46 files) on macOS arm64, which `verify` accepted and `admit` refused until approved.
+
+**Not shown.** No installer consumes a bundle yet, and nothing verifies one at launch. Bundles are directories, not archives. Approvals are unsigned site data. No cross-platform build has been verified on its target.
+
 ### Authorization and live views
 
 **Shown, deterministic.**

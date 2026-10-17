@@ -7,6 +7,6 @@ import { startFakeHmi } from './fake-hmi/server';
  */
 const hmi = startFakeHmi({ simulationEndpoints: true });
 process.env.STATION_HMI_URL ??= hmi.url;
-if (!process.env.STATION_VISION_BASE_URL && !process.env.STATION_PERCEPTION_WORKER)
+if (!process.env.STATION_VISION_BASE_URL && process.env.STATION_PERCEPTION_WORKER !== '1')
   process.env.STATION_SIMULATOR ??= '1';
 console.log(`Fake HMI: ${hmi.url} (simulation endpoints under /__sim/)`);

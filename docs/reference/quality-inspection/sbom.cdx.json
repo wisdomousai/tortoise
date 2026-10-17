@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:35d490f1-0964-53e8-91b3-1ac4192940f4",
+  "serialNumber": "urn:uuid:2cf2258c-4eaa-5df9-a632-005fe867085f",
   "version": 1,
   "metadata": {
     "tools": {
@@ -15752,6 +15752,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/bundle",
+      "name": "@agent-native/bundle",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "packages/bundle"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/client",
       "name": "@agent-native/client",
       "properties": [
@@ -16022,6 +16034,18 @@
         {
           "name": "workspace:path",
           "value": "plugins/os"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "bom-ref": "workspace:@agent-native/process",
+      "name": "@agent-native/process",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/process"
         }
       ],
       "scope": "required"
@@ -16469,6 +16493,7 @@
         "workspace:@agent-native/agents",
         "workspace:@agent-native/audit",
         "workspace:@agent-native/automation",
+        "workspace:@agent-native/bundle",
         "workspace:@agent-native/client",
         "workspace:@agent-native/compliance",
         "workspace:@agent-native/contracts",
@@ -16490,6 +16515,7 @@
         "workspace:@agent-native/network",
         "workspace:@agent-native/operator-ui",
         "workspace:@agent-native/os",
+        "workspace:@agent-native/process",
         "workspace:@agent-native/project-tasks",
         "workspace:@agent-native/quality-inspection",
         "workspace:@agent-native/react",
@@ -23744,6 +23770,10 @@
       "dependsOn": []
     },
     {
+      "ref": "workspace:@agent-native/bundle",
+      "dependsOn": []
+    },
+    {
       "ref": "workspace:@agent-native/client",
       "dependsOn": []
     },
@@ -23833,6 +23863,10 @@
     },
     {
       "ref": "workspace:@agent-native/os",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/process",
       "dependsOn": []
     },
     {

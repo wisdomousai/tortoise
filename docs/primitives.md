@@ -387,7 +387,7 @@ implemented · `packages/scaffold`
 
 _A signed, versioned package with declared requirements, staged activation and rollback._
 
-proposed
+partial · `packages/bundle` `scripts/bundle.ts`
 
 ## Adding or changing a primitive
 

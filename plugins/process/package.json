@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/process",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Process host plugin: starts declared child processes from the site policy's executable bindings, with a built environment, pin checks, audit records and process-tree shutdown.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}
