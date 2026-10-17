@@ -16,6 +16,8 @@ export interface DataFlow {
   /** `outbox`: forwarded after commit. `remote-read`: the request goes out when called; nothing is stored. */
   readonly path: 'outbox' | 'remote-read';
   readonly destinations: readonly string[];
+  /** Child processes that carry the effects instead, such as a hardware driver over its stdio. */
+  readonly processes?: readonly string[];
   readonly dataClasses: readonly string[];
   /** Input fields recorded in plain text in the audit log; all others only as a digest. */
   readonly auditFields: readonly string[];
@@ -80,7 +82,9 @@ export function securityManifest(options: {
   const os = osManifest(catalog);
   const flows = catalog.operations
     .filter(
-      (operation) => (operation.integration || operation.remote) && operation.destinations?.length,
+      (operation) =>
+        (operation.integration || operation.remote) &&
+        (operation.destinations?.length || operation.processes?.length),
     )
     .map((operation) => ({
       operation: operation.id,
@@ -88,8 +92,11 @@ export function securityManifest(options: {
       module: operation.module,
       target: (operation.integration ?? operation.remote)!.target,
       path: operation.integration ? ('outbox' as const) : ('remote-read' as const),
-      destinations: [...operation.destinations!],
-      dataClasses: sorted(operation.destinations!.flatMap((id) => byId.get(id)?.dataClasses ?? [])),
+      destinations: [...(operation.destinations ?? [])],
+      ...(operation.processes?.length ? { processes: [...operation.processes] } : {}),
+      dataClasses: sorted(
+        (operation.destinations ?? []).flatMap((id) => byId.get(id)?.dataClasses ?? []),
+      ),
       auditFields: [...(operation.audit?.fields ?? [])],
     }));
   return {
@@ -176,7 +183,12 @@ function destinationTables(manifest: SecurityManifest): string[] {
     '| --- | --- | --- | --- | --- | --- |',
     ...manifest.flows.map(
       (flow) =>
-        `| \`${flow.operation}\` | ${flow.target} | ${flow.path} | ${flow.destinations.map((id) => `\`${id}\``).join(', ')} | ${cell(flow.dataClasses.join(', '))} | ${flow.auditFields.join(', ') || 'digest only'} |`,
+        `| \`${flow.operation}\` | ${flow.target} | ${flow.path} | ${[
+          ...flow.destinations.map((id) => `\`${id}\``),
+          ...(flow.processes ?? []).map((id) => `process \`${id}\``),
+        ].join(
+          ', ',
+        )} | ${cell(flow.dataClasses.join(', '))} | ${flow.auditFields.join(', ') || 'digest only'} |`,
     ),
     '',
   ];

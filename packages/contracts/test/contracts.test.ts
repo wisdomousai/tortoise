@@ -131,6 +131,26 @@ describe('portable application catalog', () => {
     expect(() => buildCatalog([defineModule({ id: 'a', capabilities: [command] })])).toThrow(
       'no declared network destination',
     );
+    // A child process may carry the target instead, as a hardware driver does over its stdio.
+    const carried = buildCatalog([
+      defineModule({
+        id: 'a',
+        capabilities: [command],
+        requirements: {
+          processes: [
+            {
+              id: 'quality-driver',
+              executable: 'configured',
+              purpose: 'Drives the quality station',
+              availability: 'optional',
+              targets: ['quality-system'],
+            },
+          ],
+        },
+      }),
+    ]);
+    expect(carried.operations[0]).toMatchObject({ processes: ['quality-driver'] });
+    expect(carried.operations[0]).not.toHaveProperty('destinations');
   });
 });
 

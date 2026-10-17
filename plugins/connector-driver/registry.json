@@ -1,0 +1,25 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "agent-native-driver",
+  "homepage": "https://registry.example.invalid/agent-native/driver",
+  "items": [
+    {
+      "name": "driver-screen",
+      "type": "registry:component",
+      "title": "Driver screen",
+      "description": "Read-only hardware driver status: process state, reported units, and each action's delivery mode and hazard class, from driver.status.get. Polls; each read is itself audited.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@agent-native/connector-driver",
+        "@agent-native/contracts"
+      ],
+      "registryDependencies": ["badge", "card", "table", "@agent-native/session"],
+      "files": [
+        {
+          "path": "src/components/driver-screen.tsx",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
+}

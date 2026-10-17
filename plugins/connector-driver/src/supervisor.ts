@@ -26,8 +26,11 @@ export interface DriverSupervisorOptions {
   readonly contract: DriverContract;
   /** Start the driver executable. A host passes its process port's start for the declared process. */
   readonly start: () => Promise<DriverProcess>;
-  /** The bridge mode now; sent at every handshake and with every action. */
-  readonly mode: () => DriverMode;
+  /**
+   * The bridge mode sent at the handshake; defaults to monitor-only. Each action carries the mode
+   * the connector read for it, so a mode change applies to the next action without a restart.
+   */
+  readonly mode?: () => DriverMode;
   readonly configuration?: JsonObject;
   readonly handshakeMs?: number;
   /** Health check interval; 0 turns it off. A failed check stops the driver. */
@@ -87,7 +90,7 @@ export function createDriverSupervisor(options: DriverSupervisorOptions) {
     const opened = await openSession(await options.start(), {
       contract: options.contract,
       digest,
-      mode: options.mode(),
+      mode: options.mode?.() ?? 'monitor-only',
       ...(options.configuration ? { configuration: options.configuration } : {}),
       handshakeMs: options.handshakeMs ?? 10_000,
       onEvent: (event) => events.push(event, opened.hello, options.onEvent),
@@ -162,12 +165,13 @@ export function createDriverSupervisor(options: DriverSupervisorOptions) {
       action: string,
       input: JsonValue,
       effectId: string,
+      mode: DriverMode,
       signal?: AbortSignal,
     ): Promise<InvokeAnswer> => {
       const timeoutMs = options.contract.actions[action]!.timeoutMs;
       return call(
         'action.invoke',
-        { action, input, effectId, mode: options.mode(), deadline: now() + timeoutMs },
+        { action, input, effectId, mode, deadline: now() + timeoutMs },
         invokeAnswer,
         timeoutMs,
         signal,

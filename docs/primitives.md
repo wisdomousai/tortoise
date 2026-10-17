@@ -245,7 +245,7 @@ partial · `packages/kernel` `packages/egress` `packages/host` `plugins/process`
 
 _Reusable screen parts published as registries over stock shadcn primitives._
 
-implemented · `packages/operator-ui` `packages/frame` `packages/frame-native` `plugins/compliance`
+implemented · `packages/operator-ui` `packages/frame` `packages/frame-native` `plugins/compliance` `plugins/connector-driver`
 
 ## Integrations
 
@@ -259,7 +259,7 @@ implemented · `packages/runtime`
 
 _The port that delivers effects to one target and looks up their outcome._
 
-implemented · `packages/integration` `packages/station`
+implemented · `packages/integration` `packages/station` `packages/testing` `plugins/connector-driver`
 
 ### Dispatcher
 
@@ -295,13 +295,25 @@ partial · `packages/contracts` `packages/integration` `examples/crm-capture`
 
 _A reading from a source that cannot be queried, submitted through an ingest command._
 
-implemented · `packages/observation` `packages/station`
+implemented · `packages/observation` `packages/station` `plugins/connector-driver`
 
 ### Gated actuator
 
 _Lets a model propose screen actions while deterministic code executes and verifies them._
 
-implemented · `packages/station` `packages/integration`
+implemented · `packages/station` `packages/integration` `plugins/connector-driver`
+
+### Driver contract
+
+_A driver's state fields, actions with delivery mode and hazard class, and events, as data with a digest the driver must echo at its handshake._
+
+partial · `plugins/connector-driver`
+
+### Driver process
+
+_A supervised child process that controls equipment, speaking JSON-RPC over its stdio and started through the process port._
+
+partial · `plugins/connector-driver` `plugins/process`
 
 ### Reconciliation
 
@@ -331,7 +343,7 @@ partial · `plugins/device-link` `plugins/hub-link`
 
 ### Requirement declaration
 
-_What a module or host component needs outside the process, as data: network destinations, devices and child processes._
+_What a module or host component needs outside the process, as data: network destinations, devices and child processes, with the outbox targets each carries._
 
 implemented · `packages/contracts`
 

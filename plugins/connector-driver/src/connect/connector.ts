@@ -134,13 +134,14 @@ export function createDriverConnector(options: DriverConnectorOptions): SystemOf
   async function act(
     effect: Readonly<Effect>,
     action: DriverAction,
+    mode: DriverMode,
     observe: (signal: AbortSignal) => Promise<StateAnswer>,
     signal: AbortSignal,
   ) {
     let ref: string | undefined;
     try {
-      ref = (await supervisor.invoke(effect.type, effect.payload as JsonValue, effect.id, signal))
-        .ref;
+      const input = effect.payload as JsonValue;
+      ref = (await supervisor.invoke(effect.type, input, effect.id, mode, signal)).ref;
       attempts.touch(effect.id);
     } catch (error) {
       // The driver's own refusals mean nothing was done; anything else may have reached the equipment.
@@ -172,7 +173,8 @@ export function createDriverConnector(options: DriverConnectorOptions): SystemOf
     const problem = payloadProblem(action, effect.payload);
     if (problem) return problem;
     attempts.attempt(effect.id);
-    const blocked = blockedBy((await options.control(signal)).mode, action);
+    const { mode } = await options.control(signal);
+    const blocked = blockedBy(mode, action);
     if (blocked) throw new DeliveryFailure(blocked);
     const observe = observer(action);
     return deliverConvergent(
@@ -185,7 +187,7 @@ export function createDriverConnector(options: DriverConnectorOptions): SystemOf
         accepted: () => accepted(),
         notReady: (view) => (local(view) ? `${contract.title} is under local control` : undefined),
         preconditions: confirmed(observe, action.preconditions ?? [], effect.payload),
-        act: (_view, inner) => act(effect, action, observe, inner),
+        act: (_view, inner) => act(effect, action, mode, observe, inner),
       },
       signal,
     );
