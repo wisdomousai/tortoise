@@ -14,8 +14,6 @@ const descriptions: Readonly<Record<string, string>> = {
   'line.reason.list': 'List stop reasons published by the MES.',
   'line.order.list':
     'List MES orders released to a station, and the active one, with material and recipe.',
-  'line.sync.status':
-    'Summarize synchronization for your stations: records pending, held, accepted and rejected per target (MES and station software), recent rejections and the last MES sync.',
   'line.control.get':
     'Station bridge only: read the bridge mode and who holds the station screen. The bridge reads this before every screen action.',
   'line.order.start':
@@ -34,10 +32,6 @@ const descriptions: Readonly<Record<string, string>> = {
     'Take over the station screen from the bridge (seat=operator) or hand it back (seat=agent) as operator or supervisor. Taking over stops any running screen procedure before its next action.',
   'line.observation.ingest':
     'Station bridge only: submit what the station screen currently shows. Stable confident readings become observed values, unsure ones become attention items, and machine state changes open and close stops.',
-  'line.mes.sync':
-    'MES integration only: apply orders and stop reasons from the MES and advance the watermark. A stale from watermark conflicts.',
-  'line.effect.settle':
-    'Integration only: record the outcome of a forwarded record (MES) or a screen procedure (station bridge). Each integration principal settles only its own target.',
 };
 
 /**

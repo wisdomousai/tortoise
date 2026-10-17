@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { collectionList } from '@agent-native/contracts';
 import { lots } from './collections';
 import { operation } from './operation';
+import { qualityTarget } from './target';
 import {
   id,
   timestamp,
@@ -69,25 +70,7 @@ export const queryOperations = {
     { action: 'read', resourceType: 'Plant' },
     { dependencies: ['plant'] },
   ),
-  syncStatus: operation(
-    'inspection.sync.status',
-    'query',
-    z.strictObject({}),
-    z.strictObject({
-      watermark: z.string().optional(),
-      lastSyncAt: timestamp.optional(),
-      pending: z.number().int(),
-      accepted: z.number().int(),
-      rejected: z.number().int(),
-      retrying: z.number().int(),
-      oldestPendingAt: timestamp.optional(),
-      rejections: z.array(
-        z.strictObject({ resource: z.string(), lotId: id, code: z.string(), message: z.string() }),
-      ),
-    }),
-    { action: 'read', resourceType: 'Synchronization' },
-    { dependencies: ['lot', 'result', 'defect', 'sync'] },
-  ),
+  syncStatus: qualityTarget.status,
   metricsSummary: operation(
     'inspection.metrics.summary',
     'query',

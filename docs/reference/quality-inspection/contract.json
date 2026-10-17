@@ -1118,7 +1118,6 @@
           },
           "sync": {
             "enum": [
-              "pending",
               "accepted",
               "rejected"
             ],
@@ -1136,7 +1135,7 @@
         "resourceType": "Synchronization"
       },
       "ui": {
-        "exception": "integration principal (outbox dispatcher)"
+        "exception": "integration principal; the outbox dispatcher and inbound sync"
       }
     },
     {
@@ -1875,7 +1874,7 @@
             "maxLength": 256,
             "type": "string"
           },
-          "lots": {
+          "items": {
             "items": {
               "additionalProperties": false,
               "properties": {
@@ -2003,7 +2002,7 @@
         },
         "required": [
           "to",
-          "lots"
+          "items"
         ],
         "type": "object"
       },
@@ -2014,7 +2013,7 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
-          "lots": {
+          "items": {
             "maximum": 9007199254740991,
             "minimum": -9007199254740991,
             "type": "integer"
@@ -2025,16 +2024,16 @@
         },
         "required": [
           "watermark",
-          "lots"
+          "items"
         ],
         "type": "object"
       },
       "permission": {
         "action": "sync",
-        "resourceType": "InspectionLot"
+        "resourceType": "Synchronization"
       },
       "ui": {
-        "exception": "integration principal (inbound sync job)"
+        "exception": "integration principal; the outbox dispatcher and inbound sync"
       }
     },
     {

@@ -10,8 +10,6 @@ const descriptions: Readonly<Record<string, string>> = {
     'List qualitative code groups and defect codes published by the quality system, with their valuation.',
   'inspection.plant.list':
     'List plants where you hold a role. Supervisors also see the plant membership.',
-  'inspection.sync.status':
-    'Summarize synchronization with the quality system for your plants: pending, accepted and rejected records, the oldest pending item, recent rejections and the last master-data sync.',
   'inspection.metrics.summary':
     'Summarize capture economics for your plants: datapoints captured by humans and by agents with median and 90th-percentile milliseconds from ready to commit, corrections, out-of-tolerance results, and how long the quality system took to accept forwarded records.',
   'inspection.result.record':
@@ -24,10 +22,6 @@ const descriptions: Readonly<Record<string, string>> = {
     'Record a defect with a catalog code and quantity for an open lot as inspector or supervisor.',
   'inspection.decision.set':
     'Set the usage decision for a fully inspected open lot as supervisor. Supply lot:<id> in expectedRevisions so results recorded after you reviewed the lot cause a conflict instead of being ignored.',
-  'inspection.lot.sync':
-    'Integration principal only: apply a batch of lots and code groups from the quality system and advance the watermark. A stale from watermark conflicts.',
-  'inspection.effect.settle':
-    'Integration principal only: record the quality system outcome for a forwarded result, defect or decision.',
 };
 
 /** Define one operation with its catalog description and UI binding or exception. */

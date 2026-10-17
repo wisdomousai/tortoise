@@ -1042,7 +1042,7 @@ Integration principal only: record the quality system outcome for a forwarded re
 - Kind: command
 - MCP: `inspection_effect_settle`
 - Permission: `settle` on `Synchronization`
-- UI: integration principal (outbox dispatcher)
+- UI: integration principal; the outbox dispatcher and inbound sync
 - CLI: `agent-native-desktop-starter inspection effect settle --effect-id <string> --outcome <json> [--key <idempotency-key>]`
 
 Input:
@@ -1124,7 +1124,6 @@ Output:
     },
     "sync": {
       "enum": [
-        "pending",
         "accepted",
         "rejected"
       ],
@@ -1813,9 +1812,9 @@ Integration principal only: apply a batch of lots and code groups from the quali
 
 - Kind: command
 - MCP: `inspection_lot_sync`
-- Permission: `sync` on `InspectionLot`
-- UI: integration principal (inbound sync job)
-- CLI: `agent-native-desktop-starter inspection lot sync [--code-groups <json>] [--from <string>] --lots <json> --to <string> [--key <idempotency-key>]`
+- Permission: `sync` on `Synchronization`
+- UI: integration principal; the outbox dispatcher and inbound sync
+- CLI: `agent-native-desktop-starter inspection lot sync [--code-groups <json>] [--from <string>] --items <json> --to <string> [--key <idempotency-key>]`
 
 Input:
 
@@ -1878,7 +1877,7 @@ Input:
       "maxLength": 256,
       "type": "string"
     },
-    "lots": {
+    "items": {
       "items": {
         "additionalProperties": false,
         "properties": {
@@ -2006,7 +2005,7 @@ Input:
   },
   "required": [
     "to",
-    "lots"
+    "items"
   ],
   "type": "object"
 }
@@ -2019,7 +2018,7 @@ Output:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
-    "lots": {
+    "items": {
       "maximum": 9007199254740991,
       "minimum": -9007199254740991,
       "type": "integer"
@@ -2030,7 +2029,7 @@ Output:
   },
   "required": [
     "watermark",
-    "lots"
+    "items"
   ],
   "type": "object"
 }

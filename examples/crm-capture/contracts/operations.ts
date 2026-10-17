@@ -1,15 +1,8 @@
 import { z } from 'zod';
 import { collectionList, defineCapability, jsonSchema } from '@agent-native/contracts';
 import { accounts } from './collections';
-import {
-  accountDetailSchema,
-  accountSnapshotSchema,
-  activitySchema,
-  externalId,
-  localStatus,
-  outcomeSchema,
-  timestamp,
-} from './schemas';
+import { crmTarget } from './target';
+import { accountDetailSchema, activitySchema, externalId, localStatus, timestamp } from './schemas';
 
 const TARGET = 'crm';
 const accountRead = { action: 'read', resourceType: 'CrmAccount' };
@@ -58,21 +51,7 @@ export const operations = {
       'Read one followed account with its activities and whether the CRM accepted each one.',
     dependencies: ['account', 'activity'],
   }),
-  syncStatus: operation('crm.sync.status', 'query', {
-    input: z.strictObject({}),
-    output: z.strictObject({
-      following: z.number().int(),
-      adopted: z.number().int(),
-      rejected: z.number().int(),
-      pending: z.number().int(),
-      lastSyncAt: timestamp.optional(),
-      watermark: z.string().optional(),
-    }),
-    permission: { action: 'read', resourceType: 'CrmSync' },
-    description:
-      'Summarize synchronization with the CRM: accounts following, adopted and rejected, records waiting to be sent, and the last feed sync.',
-    dependencies: ['account', 'activity', 'sync'],
-  }),
+  syncStatus: crmTarget.status,
   accountAdopt: operation('crm.account.adopt', 'command', {
     input: z.strictObject({ externalId }),
     output: z.strictObject({ id: externalId, status: localStatus.exclude(['none']) }),
@@ -96,26 +75,6 @@ export const operations = {
     dependencies: ['account', 'activity'],
     forwards: true,
   }),
-  accountSync: operation('crm.account.sync', 'command', {
-    input: z.strictObject({
-      from: z.string().optional(),
-      to: z.string(),
-      accounts: z.array(accountSnapshotSchema).max(500),
-    }),
-    output: z.strictObject({ watermark: z.string(), accounts: z.number().int() }),
-    permission: { action: 'sync', resourceType: 'CrmSync' },
-    description:
-      'Integration principal only: apply CRM snapshots of followed accounts and advance the watermark. A stale from watermark conflicts.',
-    dependencies: ['account', 'sync'],
-    exception: 'integration principal; the CRM feed',
-  }),
-  effectSettle: operation('crm.effect.settle', 'command', {
-    input: z.strictObject({ effectId: z.string(), outcome: outcomeSchema }),
-    output: z.strictObject({ resource: z.string(), sync: z.enum(['accepted', 'rejected']) }),
-    permission: { action: 'settle', resourceType: 'CrmSync' },
-    description:
-      'Integration principal only: record the CRM outcome for a follow request or a logged activity.',
-    dependencies: ['account', 'activity'],
-    exception: 'integration principal; the outbox dispatcher',
-  }),
+  accountSync: crmTarget.sync,
+  effectSettle: crmTarget.settle,
 } as const;

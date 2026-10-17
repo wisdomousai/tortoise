@@ -117,6 +117,10 @@ export const orderSchema = z.strictObject({
   quantity: z.number().min(0),
   status: z.enum(['released', 'active', 'completed']),
 });
+/** An MES order as its feed delivers it: `closed` instead of the local status. */
+export const orderSnapshotSchema = orderSchema
+  .omit({ status: true })
+  .extend({ closed: z.boolean() });
 export const reasonSchema = z.strictObject({
   code: z.string().min(1).max(32),
   text: z.string().max(200),
@@ -169,14 +173,6 @@ export const stationDetailSchema = z.strictObject({
   desired: desiredSchema.optional(),
   currentStop: stopSchema.optional(),
 });
-export const outcomeSchema = z.union([
-  z.strictObject({ status: z.literal('accepted'), externalRef: z.string().max(256).optional() }),
-  z.strictObject({
-    status: z.literal('rejected'),
-    code: z.string().min(1).max(128),
-    message: z.string().min(1).max(2000),
-  }),
-]);
 export const page = {
   offset: z.number().int().min(0).optional(),
   limit: z.number().int().min(1).max(100).optional(),

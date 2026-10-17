@@ -1359,7 +1359,6 @@
                         },
                         "sync": {
                           "enum": [
-                            "pending",
                             "accepted",
                             "rejected"
                           ],
@@ -2198,7 +2197,7 @@
                         "maxLength": 256,
                         "type": "string"
                       },
-                      "lots": {
+                      "items": {
                         "items": {
                           "additionalProperties": false,
                           "properties": {
@@ -2326,7 +2325,7 @@
                     },
                     "required": [
                       "to",
-                      "lots"
+                      "items"
                     ],
                     "type": "object"
                   },
@@ -2361,7 +2360,7 @@
                       "$schema": "https://json-schema.org/draft/2020-12/schema",
                       "additionalProperties": false,
                       "properties": {
-                        "lots": {
+                        "items": {
                           "maximum": 9007199254740991,
                           "minimum": -9007199254740991,
                           "type": "integer"
@@ -2372,7 +2371,7 @@
                       },
                       "required": [
                         "watermark",
-                        "lots"
+                        "items"
                       ],
                       "type": "object"
                     },

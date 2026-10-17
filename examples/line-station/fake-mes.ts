@@ -107,7 +107,7 @@ export function toSyncInput(batch: {
   return {
     ...(batch.from === undefined ? {} : { from: batch.from }),
     to: batch.to,
-    orders: batch.items.flatMap((item) => (item.kind === 'order' ? [item.order] : [])),
+    items: batch.items.flatMap((item) => (item.kind === 'order' ? [item.order] : [])),
     reasons: batch.items.flatMap((item) => (item.kind === 'reason' ? [item.reason] : [])),
   };
 }

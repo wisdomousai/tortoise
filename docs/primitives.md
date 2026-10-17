@@ -331,7 +331,7 @@ _The worker that delivers pending effects and settles them under a narrow integr
 
 Guarantees: at-least-once delivery with backoff and journaled attempts, so screens can show retrying. The integration grant can only settle, sync and read status. `drain` reports whether anything is still pending, and its deadline aborts a delivery in flight. `drainTargets` drains every dispatcher a host composed and accounts for the whole outbox by target, so a target with work but no dispatcher in this process is reported as not deliverable instead of being left out. An uncertain outcome is recorded and held even when shutdown interrupts the pass.
 
-`createTargetIntegration` builds one target's connector, integration context, dispatcher and inbound sync from a port, so an application's `connect` declares targets instead of wiring workers.
+`createTargetIntegration` builds one target's connector, integration context, dispatcher and inbound sync from a port, and `connectTarget` does the same from a [target](#target) declaration, so an application's `connect` declares targets instead of wiring workers.
 
 Gaps: no worker claims or fencing, no upstream-pending state, no cancel-before-dispatch, no dispatch-time recheck of the original actor's authority.
 
@@ -348,6 +348,18 @@ Guarantees: the watermark is part of the command's input, so a stale page confli
 Gaps: no upstream versions for out-of-order feeds.
 
 implemented · `packages/integration`
+
+### Target
+
+_A system of record declared once: its settle, feed and status operations, its principal's grant and its policy lane._
+
+Every application that forwards to another system wrote the same three operations by hand: settle an effect's outcome, apply a feed batch over a watermark, and report synchronization status. `defineTarget` (browser-safe) declares them from the target name, the records it settles, the feed's item schema and side lists, and the application's own status fields. `targetHandlers` implements them; the application supplies how an outcome changes the forwarded record (`settleDelivery` for the usual record with `effectId`, `sync`, `sorRef` and `rejection`), how a batch changes local state and its scoped status counts. `targetContext`, `targetLane` and `targetRules` give the integration principal's grant, its policy lane and the rules for the three operations, and `connectTarget` wires the declaration to a port. crm-capture, quality-inspection and line-station use it.
+
+Guarantees: settle checks inside the transaction that the effect exists and belongs to the calling principal's target (by default the declared target; line-station overrides this so each station bridge settles its own screen target), then records the outcome on the forwarded record and declares it changed. A forwarded record that is missing or forwarded another effect is `NOT_FOUND`, so an outcome never lands on the wrong record. A feed batch whose `from` is not the stored watermark conflicts before anything is applied. The grant and the lane name exactly the target's operations; settle and sync are closed to every other caller, and status is open and scoped by the application's handler.
+
+Gaps: one feed per target, ordered by watermark only. The status counts are still written by each application, because what a caller may count depends on its scope.
+
+implemented · `packages/contracts` `packages/integration`
 
 ### Remote query
 

@@ -1,18 +1,15 @@
 import { z } from 'zod';
 import { plantMembership } from './membership';
 import { operation } from './operation';
+import { qualityTarget } from './target';
 import {
   id,
   revision,
   timestamp,
-  syncStatus,
   resultSchema,
   defectSchema,
   decisionSchema,
-  codeGroupSchema,
-  lotSnapshotSchema,
   measurement,
-  outcomeSchema,
 } from './schemas';
 
 const capture = { action: 'capture', resourceType: 'InspectionLot' };
@@ -84,28 +81,6 @@ export const commandOperations = {
     { dependencies: ['lot'], integration: true },
   ),
   plantSetMember: plantMembership.setMember,
-  lotSync: operation(
-    'inspection.lot.sync',
-    'command',
-    z.strictObject({
-      from: z.string().max(256).optional(),
-      to: z.string().min(1).max(256),
-      lots: z.array(lotSnapshotSchema).max(200),
-      codeGroups: z.array(codeGroupSchema).max(100).optional(),
-    }),
-    z.strictObject({ watermark: z.string(), lots: z.number().int() }),
-    { action: 'sync', resourceType: 'InspectionLot' },
-    { dependencies: ['lot', 'sync'], exception: 'integration principal (inbound sync job)' },
-  ),
-  effectSettle: operation(
-    'inspection.effect.settle',
-    'command',
-    z.strictObject({ effectId: id, outcome: outcomeSchema }),
-    z.strictObject({ resource: z.string(), sync: syncStatus }),
-    { action: 'settle', resourceType: 'Synchronization' },
-    {
-      dependencies: ['lot', 'result', 'defect'],
-      exception: 'integration principal (outbox dispatcher)',
-    },
-  ),
+  lotSync: qualityTarget.sync,
+  effectSettle: qualityTarget.settle,
 } as const;

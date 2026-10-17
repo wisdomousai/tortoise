@@ -2399,8 +2399,6 @@
           },
           "sync": {
             "enum": [
-              "pending",
-              "held",
               "accepted",
               "rejected"
             ],
@@ -2418,13 +2416,13 @@
         "resourceType": "Synchronization"
       },
       "ui": {
-        "exception": "integration principals (outbox dispatchers)"
+        "exception": "integration principal; the outbox dispatcher and inbound sync"
       }
     },
     {
       "dependencies": [
         "order",
-        "mes"
+        "sync"
       ],
       "description": "MES integration only: apply orders and stop reasons from the MES and advance the watermark. A stale from watermark conflicts.",
       "errors": [],
@@ -2437,7 +2435,7 @@
             "maxLength": 256,
             "type": "string"
           },
-          "orders": {
+          "items": {
             "items": {
               "additionalProperties": false,
               "properties": {
@@ -2525,7 +2523,7 @@
         },
         "required": [
           "to",
-          "orders"
+          "items"
         ],
         "type": "object"
       },
@@ -2536,7 +2534,7 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
-          "orders": {
+          "items": {
             "maximum": 9007199254740991,
             "minimum": -9007199254740991,
             "type": "integer"
@@ -2547,16 +2545,16 @@
         },
         "required": [
           "watermark",
-          "orders"
+          "items"
         ],
         "type": "object"
       },
       "permission": {
         "action": "sync",
-        "resourceType": "Order"
+        "resourceType": "Synchronization"
       },
       "ui": {
-        "exception": "MES integration principal (inbound sync job)"
+        "exception": "integration principal; the outbox dispatcher and inbound sync"
       }
     },
     {
@@ -3200,7 +3198,7 @@
     },
     {
       "dependencies": [
-        "mes"
+        "sync"
       ],
       "description": "List stop reasons published by the MES.",
       "errors": [],
@@ -4330,7 +4328,7 @@
         "station",
         "stop",
         "count",
-        "mes"
+        "sync"
       ],
       "description": "Summarize synchronization for your stations: records pending, held, accepted and rejected per target (MES and station software), recent rejections and the last MES sync.",
       "errors": [],

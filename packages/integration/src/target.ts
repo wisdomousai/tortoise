@@ -1,4 +1,6 @@
+import type { Target } from '@agent-native/contracts';
 import type { ExecutionContext } from '@agent-native/runtime';
+import { targetContext } from './target-handlers.js';
 import { createEffectDispatcher, type DispatcherApplication } from './dispatcher.js';
 import { createInboundSync, type InboundSyncOptions } from './inbound-sync.js';
 import type { SystemOfRecordPort } from './port.js';
@@ -66,3 +68,29 @@ export function createTargetIntegration<Item>(options: TargetIntegrationOptions<
   };
 }
 export type TargetIntegration<Item = unknown> = ReturnType<typeof createTargetIntegration<Item>>;
+
+/**
+ * Wire a declared target (`defineTarget`) to its port under its integration principal. The
+ * settle, sync and status operations and the principal's narrow grant come from the
+ * declaration; `toInput` defaults to passing the pulled batch through as the sync input.
+ */
+export function connectTarget<Item>(options: {
+  readonly target: Target;
+  readonly application: TargetIntegrationOptions<Item>['application'];
+  readonly port: SystemOfRecordPort<Item>;
+  readonly workspaceId: string;
+  readonly principalId: string;
+  readonly toInput?: TargetIntegrationOptions<Item>['toInput'];
+}): TargetIntegration<Item> {
+  if (!options.target.sync)
+    throw new Error(`Target ${options.target.target} declares no feed to pull`);
+  return createTargetIntegration<Item>({
+    application: options.application,
+    port: options.port,
+    context: targetContext(options.target, options.workspaceId, options.principalId),
+    settleOperation: options.target.settle.id,
+    syncOperation: options.target.sync.id,
+    statusOperation: options.target.status.id,
+    toInput: options.toInput ?? ((batch) => batch),
+  });
+}

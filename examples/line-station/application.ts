@@ -1,6 +1,5 @@
-import type { ExecutionContext } from '@agent-native/runtime';
 import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { createTargetIntegration, type SystemOfRecordPort } from '@agent-native/integration';
+import { connectTarget, type SystemOfRecordPort } from '@agent-native/integration';
 import {
   createDeviceHandlers,
   createDeviceState,
@@ -13,7 +12,7 @@ import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
-import { operations } from './contracts';
+import { mesTarget } from './contracts';
 import { stationRole, type LineState } from './domain';
 import {
   createLineHandlers,
@@ -32,20 +31,6 @@ export interface LineStationState {
 
 /** The homebrew MES integration; separate from every person and every station bridge. */
 export const MES_PRINCIPAL = 'mes-integration';
-
-/** MES identity: its grant cannot reach station screens, observations or any person's command. */
-export function mesContext(workspaceId: string): ExecutionContext {
-  return {
-    workspaceId,
-    principalId: MES_PRINCIPAL,
-    channel: 'integration',
-    grant: {
-      operations: [operations.mesSync.id, operations.effectSettle.id, operations.syncStatus.id],
-      principalId: MES_PRINCIPAL,
-      workspaceId,
-    },
-  };
-}
 
 /**
  * Demo only: bridge the simulated filler HMI when `STATION_HMI_URL` names it (start it with
@@ -114,7 +99,7 @@ const lineStationAuthorization = () =>
     authorizationRoute(
       'lineStation',
       lineStationModule,
-      ['station', 'stop', 'count', 'attention', 'order', 'counters', 'mes'],
+      ['station', 'stop', 'count', 'attention', 'order', 'counters', 'sync'],
       linePolicy,
     ),
     // Device configuration follows station roles: supervisors administer, everyone else reads.
@@ -187,13 +172,12 @@ export function createLineStationApplication(
     ...(options.services ? { services: options.services } : {}),
     connect: ({ application, workspaceId }) => ({
       integrations: [
-        createTargetIntegration<MesItem>({
+        connectTarget<MesItem>({
+          target: mesTarget,
           application,
           port: options.mes ?? new FakeMes(),
-          context: mesContext(workspaceId),
-          settleOperation: operations.effectSettle.id,
-          syncOperation: operations.mesSync.id,
-          statusOperation: operations.syncStatus.id,
+          workspaceId,
+          principalId: MES_PRINCIPAL,
           toInput: toSyncInput,
         }),
       ],

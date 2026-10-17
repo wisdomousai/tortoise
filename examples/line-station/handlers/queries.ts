@@ -60,10 +60,7 @@ function listStops(
 }
 
 /** Outbox counts per target and recent rejections, for the stations the caller can see. */
-function syncStatus(
-  _: InputOf<typeof operations.syncStatus>,
-  ctx: Context,
-): OutputOf<typeof operations.syncStatus> {
+export function syncStatus(ctx: Context) {
   const stations = accessibleStations(ctx);
   const visible = new Set(stations.map((station) => station.id));
   const inScope = (effect: Effect) => {
@@ -100,16 +97,11 @@ function syncStatus(
           ]
         : [],
     );
-  return compact({
-    watermark: ctx.state.watermark,
-    lastSyncAt: ctx.state.lastSyncAt,
-    // The MES integration reads only its watermark here.
-    targets: visible.size ? targets : [],
-    rejections,
-  });
+  // The MES integration sees no station, so it reads only its watermark here.
+  return { targets: visible.size ? targets : [], rejections };
 }
 
-/** Station, stop, order, reason and synchronization reads. */
+/** Station, stop, order and reason reads. */
 export function queryHandlers(): HandlerContribution<LineState, LineServices>[] {
   return [
     handler(operations.stationList, (_, ctx) => ({
@@ -135,7 +127,6 @@ export function queryHandlers(): HandlerContribution<LineState, LineServices>[] 
         )
         .map((order) => ({ ...order })),
     })),
-    handler(operations.syncStatus, syncStatus),
     handler(operations.controlGet, (input, ctx) => {
       const station = stationOf(ctx.state, input.station);
       return { mode: station.mode, seat: station.seat };

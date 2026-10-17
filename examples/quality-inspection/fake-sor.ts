@@ -120,7 +120,7 @@ export function toSyncInput(batch: {
   return {
     ...(batch.from === undefined ? {} : { from: batch.from }),
     to: batch.to,
-    lots: batch.items.flatMap((item) => (item.kind === 'lot' ? [item.lot] : [])),
+    items: batch.items.flatMap((item) => (item.kind === 'lot' ? [item.lot] : [])),
     codeGroups: batch.items.flatMap((item) => (item.kind === 'codeGroup' ? [item.group] : [])),
   };
 }

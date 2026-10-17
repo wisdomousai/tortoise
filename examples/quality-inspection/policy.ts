@@ -1,5 +1,6 @@
+import { targetLane, targetRules } from '@agent-native/integration';
 import { definePolicy, membershipRule, own, type OperationRule } from '@agent-native/runtime';
-import { operations } from './contracts';
+import { operations, qualityTarget } from './contracts';
 import { plantMembership } from './contracts/membership';
 import { plantRole, type PlantRole, type QualityState } from './domain';
 
@@ -65,18 +66,13 @@ const lotEvent = (type: string) => ({
 export const qualityPolicy = definePolicy<QualityState, PlantRole>({
   roleOf: plantRole,
   integrations: [
-    {
-      is: (state, principalId) => principalId === state.integrationPrincipalId,
-      operations: [operations.lotSync.id, operations.effectSettle.id, operations.syncStatus.id],
-    },
+    targetLane(qualityTarget, (state, principalId) => principalId === state.integrationPrincipalId),
   ],
   operations: {
-    [operations.lotSync.id]: 'integration',
-    [operations.effectSettle.id]: 'integration',
+    ...targetRules(qualityTarget),
     [operations.lotList.id]: 'open',
     [operations.codeList.id]: 'open',
     [operations.plantList.id]: 'open',
-    [operations.syncStatus.id]: 'open',
     [operations.metricsSummary.id]: 'open',
     [operations.lotGet.id]: onLot((input) => input.id),
     [operations.worklist.id]: onLot(byLotId),
@@ -102,7 +98,7 @@ export const qualityPolicy = definePolicy<QualityState, PlantRole>({
     plant: lotEvent('plant'),
     // Master-data sync changes are visible to anyone who works at some plant.
     sync: (id, state, context) =>
-      id === 'quality' &&
+      id === qualityTarget.target &&
       Object.keys(state.plants).some((plant) => plantRole(state, context.principalId, plant)),
   },
 });

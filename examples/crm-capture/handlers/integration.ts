@@ -1,54 +1,77 @@
+import type { z } from 'zod';
 import { ApplicationError } from '@agent-native/contracts';
+import { settleDelivery, targetHandlers } from '@agent-native/integration';
 import type { EffectOutcome, HandlerContribution } from '@agent-native/runtime';
-import { operations } from '../contracts';
-import type { CrmState } from '../domain';
-import { accountRecords, activityRecords, handler, now, type CrmServices } from './context';
+import { accountSnapshotSchema } from '../contracts/schemas';
+import { crmTarget } from '../contracts/target';
+import { coversRegion, type CrmState } from '../domain';
+import {
+  accountRecords,
+  activityRecords,
+  now,
+  TARGET,
+  type Context,
+  type CrmServices,
+} from './context';
 
-/** The CRM feed and outbox settlement, for the integration principal only. */
-export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices>[] => [
-  handler(operations.accountSync, (input, ctx) => {
-    // Watermarks order feed batches; a stale or replayed range cannot reapply old snapshots.
-    if (input.from !== ctx.state.watermark)
-      throw new ApplicationError('CONFLICT', 'Watermark changed', {
-        watermark: ctx.state.watermark ?? null,
-      });
-    const accounts = accountRecords(ctx);
-    let applied = 0;
-    for (const { externalId, ...details } of input.accounts) {
-      // The feed only carries accounts this workspace follows; anything else is ignored.
-      const account = accounts.get(externalId);
-      if (!account || account.status === 'rejected') continue;
-      accounts.update(externalId, { ...details, status: 'adopted', syncedAt: now(ctx) }, 'synced');
-      applied++;
-    }
-    ctx.state.watermark = input.to;
-    ctx.state.lastSyncAt = now(ctx);
-    ctx.change('sync:crm');
-    return { watermark: input.to, accounts: applied };
-  }),
-  handler(operations.effectSettle, (input, ctx) => {
-    const effect = ctx.settleEffect(input.effectId, input.outcome as EffectOutcome);
-    const [type, id = ''] = effect.resource.split(':', 2) as [string, string?];
-    if (type === 'account') {
-      const account = accountRecords(ctx).get(id);
-      if (!account || account.effectId !== effect.id)
-        throw new ApplicationError('NOT_FOUND', 'Followed account unavailable');
-      // Accepted keeps `following`: the details arrive with the next feed batch.
-      if (input.outcome.status === 'rejected') {
-        account.status = 'rejected';
-        account.rejection = { code: input.outcome.code, message: input.outcome.message };
+/** A follow request settles its account; accepted keeps it following until the feed delivers it. */
+function settleFollow(ctx: Context, id: string, effectId: string, outcome: EffectOutcome) {
+  const account = accountRecords(ctx).get(id);
+  if (!account || account.effectId !== effectId)
+    throw new ApplicationError('NOT_FOUND', 'Followed account unavailable');
+  if (outcome.status === 'rejected') {
+    account.status = 'rejected';
+    account.rejection = { code: outcome.code, message: outcome.message };
+  }
+}
+
+/** The CRM feed, outbox settlement and synchronization status. */
+export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices>[] =>
+  targetHandlers<CrmState, CrmServices, z.output<typeof accountSnapshotSchema>>(crmTarget, {
+    cursor: (state) => state,
+    now,
+    onOutcome(effect, outcome, ctx) {
+      const separator = effect.resource.indexOf(':');
+      const [type, id] = [
+        effect.resource.slice(0, separator),
+        effect.resource.slice(separator + 1),
+      ];
+      if (type === 'account') settleFollow(ctx, id, effect.id, outcome);
+      else
+        settleDelivery(
+          type === 'activity' ? activityRecords(ctx).get(id) : undefined,
+          effect,
+          outcome,
+        );
+    },
+    applyBatch({ items }, ctx) {
+      const accounts = accountRecords(ctx);
+      let applied = 0;
+      for (const { externalId, ...details } of items) {
+        // The feed only carries accounts this workspace follows; anything else is ignored.
+        const account = accounts.get(externalId);
+        if (!account || account.status === 'rejected') continue;
+        accounts.update(
+          externalId,
+          { ...details, status: 'adopted', syncedAt: now(ctx) },
+          'synced',
+        );
+        applied++;
       }
-    } else {
-      const activity = activityRecords(ctx).get(id);
-      if (type !== 'activity' || !activity || activity.effectId !== effect.id)
-        throw new ApplicationError('NOT_FOUND', 'Forwarded activity unavailable');
-      activity.sync = input.outcome.status;
-      if (input.outcome.status === 'accepted' && input.outcome.externalRef)
-        activity.sorRef = input.outcome.externalRef;
-      if (input.outcome.status === 'rejected')
-        activity.rejection = { code: input.outcome.code, message: input.outcome.message };
-    }
-    ctx.change(effect.resource);
-    return { resource: effect.resource, sync: input.outcome.status };
-  }),
-];
+      return applied;
+    },
+    status(ctx) {
+      // Region scope first: accounts outside the caller's regions are not counted.
+      const visible = Object.values(ctx.state.accounts).filter((account) =>
+        coversRegion(ctx.state, ctx.context.principalId, account.region),
+      );
+      const count = (status: string) =>
+        visible.filter((account) => account.status === status).length;
+      return {
+        following: count('following'),
+        adopted: count('adopted'),
+        rejected: count('rejected'),
+        pending: ctx.effects({ status: 'pending', target: TARGET }).length,
+      };
+    },
+  });

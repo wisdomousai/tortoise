@@ -74,11 +74,3 @@ export const accountSnapshotSchema = z.strictObject({
   region,
   owner: z.string().max(100),
 });
-export const outcomeSchema = z.union([
-  z.strictObject({ status: z.literal('accepted'), externalRef: z.string().max(128).optional() }),
-  z.strictObject({
-    status: z.literal('rejected'),
-    code: z.string().max(64),
-    message: z.string().max(500),
-  }),
-]);

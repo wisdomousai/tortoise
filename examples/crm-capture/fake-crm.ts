@@ -205,12 +205,3 @@ export class FakeCrm implements SystemOfRecordPort<CrmFeedItem, string> {
     return new Map(this.activities);
   }
 }
-
-/** Map one feed batch to the sync command's input. */
-export function toSyncInput(batch: { from?: string; to: string; items: readonly CrmFeedItem[] }) {
-  return {
-    ...(batch.from === undefined ? {} : { from: batch.from }),
-    to: batch.to,
-    accounts: [...batch.items],
-  };
-}

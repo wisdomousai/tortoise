@@ -2893,8 +2893,6 @@
                         },
                         "sync": {
                           "enum": [
-                            "pending",
-                            "held",
                             "accepted",
                             "rejected"
                           ],
@@ -2951,7 +2949,7 @@
                         "maxLength": 256,
                         "type": "string"
                       },
-                      "orders": {
+                      "items": {
                         "items": {
                           "additionalProperties": false,
                           "properties": {
@@ -3039,7 +3037,7 @@
                     },
                     "required": [
                       "to",
-                      "orders"
+                      "items"
                     ],
                     "type": "object"
                   },
@@ -3074,7 +3072,7 @@
                       "$schema": "https://json-schema.org/draft/2020-12/schema",
                       "additionalProperties": false,
                       "properties": {
-                        "orders": {
+                        "items": {
                           "maximum": 9007199254740991,
                           "minimum": -9007199254740991,
                           "type": "integer"
@@ -3085,7 +3083,7 @@
                       },
                       "required": [
                         "watermark",
-                        "orders"
+                        "items"
                       ],
                       "type": "object"
                     },

@@ -37,6 +37,7 @@ On macOS arm64 with Bun 1.4.0.
 
 - Collections: generated `get` and `list` scope rows before filters, search, counts and paging, and `records` writes declare their resource. crm-capture's account list and quality-inspection's lot list are generated, and all four examples use the runtime's prototype-safe `own` and `put`.
 
+- Integration targets: crm-capture, quality-inspection and line-station declare their system of record with `defineTarget` and implement it with `targetHandlers`; their outbox, held-effect, drain, conformance and role-matrix tests pass, and `packages/integration/test/target.test.ts` covers the shared settle, sync and status behaviour.
 - Declarative policy: all four examples' policies are built with `definePolicy`, and their role matrices, security, transport and storage suites pass unchanged. quality-inspection and line-station set roles through `defineMembership`.
 
 **Limits.** SQLite stores whole JSON snapshots, which suits small local workspaces. Journal and receipts are never pruned.

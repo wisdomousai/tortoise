@@ -1,5 +1,6 @@
+import { targetLane, targetRules } from '@agent-native/integration';
 import { definePolicy, membershipRule, type OperationRule } from '@agent-native/runtime';
-import { operations } from './contracts';
+import { mesTarget, operations } from './contracts';
 import { stationMembership } from './contracts/membership';
 import { bridgeStation, own, stationRole, type LineState, type StationRole } from './domain';
 
@@ -69,20 +70,15 @@ export const linePolicy = definePolicy<LineState, StationRole>({
       events: (event, state, principalId) =>
         stationOfResource(state, event.resource) === bridgeStation(state, principalId)!.id,
     },
-    {
-      is: (state, principalId) => principalId === state.mesPrincipalId,
-      operations: [operations.mesSync.id, operations.syncStatus.id, operations.effectSettle.id],
-    },
+    targetLane(mesTarget, (state, principalId) => principalId === state.mesPrincipalId),
   ],
   operations: {
     [operations.observationIngest.id]: 'integration',
     [operations.controlGet.id]: 'integration',
-    [operations.effectSettle.id]: 'integration',
-    [operations.mesSync.id]: 'integration',
+    ...targetRules(mesTarget),
     // Handlers scope these to the caller's stations before filtering and counting.
     [operations.stationList.id]: 'open',
     [operations.reasonList.id]: 'open',
-    [operations.syncStatus.id]: 'open',
     // Reconcile names an effect; the handler resolves its station and checks the role there.
     [operations.effectReconcile.id]: person({}),
     [operations.stationGet.id]: atStation(named),
@@ -112,8 +108,8 @@ export const linePolicy = definePolicy<LineState, StationRole>({
     attention: stationEvent('attention'),
     order: stationEvent('order'),
     // MES master-data changes are visible to anyone who works at some station.
-    mes: (id, state, context) =>
-      id === 'sync' &&
+    sync: (id, state, context) =>
+      id === mesTarget.target &&
       Object.keys(state.stations).some((station) =>
         stationRole(state, context.principalId, station),
       ),

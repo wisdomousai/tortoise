@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { operation } from './operation';
+import { mesTarget } from './target';
 import {
   id,
-  timestamp,
   page,
   station,
   bridgeModeSchema,
@@ -52,7 +52,7 @@ export const queryOperations = {
     z.strictObject({}),
     z.strictObject({ items: z.array(reasonSchema) }),
     { action: 'read', resourceType: 'StopReason' },
-    { dependencies: ['mes'] },
+    { dependencies: ['sync'] },
   ),
   orderList: operation(
     'line.order.list',
@@ -62,35 +62,7 @@ export const queryOperations = {
     stationRead,
     { dependencies: ['station', 'order'] },
   ),
-  syncStatus: operation(
-    'line.sync.status',
-    'query',
-    z.strictObject({}),
-    z.strictObject({
-      watermark: z.string().optional(),
-      lastSyncAt: timestamp.optional(),
-      targets: z.array(
-        z.strictObject({
-          target: z.string(),
-          pending: z.number().int(),
-          held: z.number().int(),
-          retrying: z.number().int(),
-          accepted: z.number().int(),
-          rejected: z.number().int(),
-        }),
-      ),
-      rejections: z.array(
-        z.strictObject({
-          resource: z.string(),
-          station: id,
-          code: z.string(),
-          message: z.string(),
-        }),
-      ),
-    }),
-    { action: 'read', resourceType: 'Synchronization' },
-    { dependencies: ['station', 'stop', 'count', 'mes'], binding: 'line.station.bridge' },
-  ),
+  syncStatus: mesTarget.status,
   controlGet: operation(
     'line.control.get',
     'query',

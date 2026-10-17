@@ -1,13 +1,12 @@
-import type { ExecutionContext } from '@agent-native/runtime';
 import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
-import { createTargetIntegration, type SystemOfRecordPort } from '@agent-native/integration';
+import { connectTarget, type SystemOfRecordPort } from '@agent-native/integration';
 import { defineApplication } from '@agent-native/host/application';
 import { auditPlugin } from '@agent-native/audit/plugin';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
-import { operations } from './contracts';
+import { operations, qualityTarget } from './contracts';
 import type { QualityState } from './domain';
 import {
   createQualityHandlers,
@@ -24,23 +23,6 @@ export interface QualityInspectionState {
 
 /** The quality system integration's principal; distinct from every person and station. */
 export const INTEGRATION_PRINCIPAL = 'integration';
-
-/**
- * Trusted identity for the outbox dispatcher and inbound sync. Its grant names only the
- * operations those jobs need, so a misbehaving SoR adapter cannot drive business commands.
- */
-export function integrationContext(workspaceId: string): ExecutionContext {
-  return {
-    workspaceId,
-    principalId: INTEGRATION_PRINCIPAL,
-    channel: 'integration',
-    grant: {
-      operations: [operations.lotSync.id, operations.effectSettle.id, operations.syncStatus.id],
-      principalId: INTEGRATION_PRINCIPAL,
-      workspaceId,
-    },
-  };
-}
 
 /**
  * Demo only: the deterministic in-memory quality system, so the reference needs no enterprise
@@ -101,13 +83,12 @@ export function createQualityInspectionApplication(
     selectableResources: { lot: operations.lotGet.id },
     connect: ({ application, workspaceId }) => ({
       integrations: [
-        createTargetIntegration<QualityItem>({
+        connectTarget<QualityItem>({
+          target: qualityTarget,
           application,
           port: options.systemOfRecord ?? demoSystemOfRecord(),
-          context: integrationContext(workspaceId),
-          settleOperation: operations.effectSettle.id,
-          syncOperation: operations.lotSync.id,
-          statusOperation: operations.syncStatus.id,
+          workspaceId,
+          principalId: INTEGRATION_PRINCIPAL,
           toInput: toSyncInput,
         }),
       ],

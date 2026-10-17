@@ -26,8 +26,8 @@ export {
   reasonSchema,
   stationSummarySchema,
   stationDetailSchema,
-  outcomeSchema,
 } from './contracts/schemas';
+export { mesTarget } from './contracts/target';
 
 export const operations = { ...queryOperations, ...commandOperations } as const;
 

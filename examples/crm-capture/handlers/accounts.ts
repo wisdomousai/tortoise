@@ -3,7 +3,7 @@ import { collectionListHandler, type HandlerContribution } from '@agent-native/r
 import { operations } from '../contracts';
 import { accounts } from '../contracts/collections';
 import { coversRegion, visibleAccount, type CrmState, type LocalAccount } from '../domain';
-import { accountDto, compact, handler, TARGET, type CrmServices } from './context';
+import { accountDto, compact, handler, type CrmServices } from './context';
 
 /** Local reads of followed and adopted accounts, region-scoped before anything is counted. */
 export const accountHandlers = (): HandlerContribution<CrmState, CrmServices>[] => [
@@ -26,20 +26,5 @@ export const accountHandlers = (): HandlerContribution<CrmState, CrmServices>[] 
       .sort((a, b) => b.occurredAt - a.occurredAt)
       .map(({ effectId: _effectId, recordedAt: _recordedAt, ...activity }) => compact(activity));
     return { ...accountDto(ctx.state, account), history };
-  }),
-  handler(operations.syncStatus, (_input, ctx) => {
-    const accounts = Object.values(ctx.state.accounts).filter((account) =>
-      coversRegion(ctx.state, ctx.context.principalId, account.region),
-    );
-    const count = (status: string) =>
-      accounts.filter((account) => account.status === status).length;
-    return compact({
-      following: count('following'),
-      adopted: count('adopted'),
-      rejected: count('rejected'),
-      pending: ctx.effects({ status: 'pending', target: TARGET }).length,
-      lastSyncAt: ctx.state.lastSyncAt,
-      watermark: ctx.state.watermark,
-    });
   }),
 ];

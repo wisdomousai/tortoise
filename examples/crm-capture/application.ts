@@ -1,5 +1,4 @@
-import type { ExecutionContext } from '@agent-native/runtime';
-import { createRemoteSource, createTargetIntegration } from '@agent-native/integration';
+import { connectTarget, createRemoteSource } from '@agent-native/integration';
 import { defineApplication } from '@agent-native/host/application';
 import { auditPlugin } from '@agent-native/audit/plugin';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
@@ -7,29 +6,13 @@ import { networkPlugin } from '@agent-native/network/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
+import { crmTarget } from './contracts/target';
 import { createCrmState, REGIONS, type CrmState, type Member } from './domain';
-import { FakeCrm, toSyncInput, type CrmFeedItem } from './fake-crm';
+import { FakeCrm, type CrmFeedItem } from './fake-crm';
 import { createCrmHandlers, crmPolicy, type CrmServices } from './server';
 
 /** The CRM integration's principal; distinct from every person. */
 export const INTEGRATION_PRINCIPAL = 'integration';
-
-/**
- * Trusted identity for the outbox dispatcher and the CRM feed. Its grant names only the
- * operations those jobs need, so a misbehaving adapter cannot adopt accounts or log activities.
- */
-export function integrationContext(workspaceId: string): ExecutionContext {
-  return {
-    workspaceId,
-    principalId: INTEGRATION_PRINCIPAL,
-    channel: 'integration',
-    grant: {
-      operations: [operations.accountSync.id, operations.effectSettle.id, operations.syncStatus.id],
-      principalId: INTEGRATION_PRINCIPAL,
-      workspaceId,
-    },
-  };
-}
 
 /**
  * Demo only: the in-memory CRM, so the reference needs no CRM account. The local owner signs in
@@ -74,14 +57,12 @@ export function createCrmCaptureApplication(
       crm: createRemoteSource({ target: 'crm', port: crm, credentials: crm.credentials }),
     },
     connect: ({ application, workspaceId }) => {
-      const integration = createTargetIntegration<CrmFeedItem>({
+      const integration = connectTarget<CrmFeedItem>({
+        target: crmTarget,
         application,
         port: crm,
-        context: integrationContext(workspaceId),
-        settleOperation: operations.effectSettle.id,
-        syncOperation: operations.accountSync.id,
-        statusOperation: operations.syncStatus.id,
-        toInput: toSyncInput,
+        workspaceId,
+        principalId: INTEGRATION_PRINCIPAL,
       });
       // The feed carries only followed accounts, so it is cheap to poll every second: an adopted
       // account fills in shortly after the CRM accepts the follow request.

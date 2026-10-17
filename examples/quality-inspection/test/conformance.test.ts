@@ -7,7 +7,9 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createHttpTransport } from '@agent-native/client';
 import { createMcpServer } from '@agent-native/adapters/mcp';
 import { startHost } from '@agent-native/host/host';
-import { createQualityInspectionApplication, integrationContext } from '../application';
+import { targetContext } from '@agent-native/integration';
+import { createQualityInspectionApplication, INTEGRATION_PRINCIPAL } from '../application';
+import { qualityTarget } from '../contracts';
 import { FakeQualitySystem } from '../fake-sor';
 
 test('a datapoint captured over any transport commits once, is forwarded once and settles live', async () => {
@@ -157,7 +159,11 @@ test('a datapoint captured over any transport commits once, is forwarded once an
     expect(retryHttp.result).toEqual(recorded.result);
     expect(retryCli.exitCode).toBe(0);
     expect(retryCli.value.result).toEqual(recorded.result);
-    expect(await host.application.pendingEffects(integrationContext('local'))).toHaveLength(1);
+    expect(
+      await host.application.pendingEffects(
+        targetContext(qualityTarget, 'local', INTEGRATION_PRINCIPAL),
+      ),
+    ).toHaveLength(1);
 
     // Delivery happens after commit; the outcome is written back through a domain command.
     const report = await host.integrations.target('quality-system').dispatcher.runOnce();

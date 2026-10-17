@@ -1352,8 +1352,8 @@ Integration principal only: apply CRM snapshots of followed accounts and advance
 - Kind: command
 - MCP: `crm_account_sync`
 - Permission: `sync` on `CrmSync`
-- UI: integration principal; the CRM feed
-- CLI: `agent-native-desktop-starter crm account sync --accounts <json> [--from <string>] --to <string> [--key <idempotency-key>]`
+- UI: integration principal; the outbox dispatcher and inbound sync
+- CLI: `agent-native-desktop-starter crm account sync [--from <string>] --items <json> --to <string> [--key <idempotency-key>]`
 
 Input:
 
@@ -1362,7 +1362,11 @@ Input:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
-    "accounts": {
+    "from": {
+      "maxLength": 256,
+      "type": "string"
+    },
+    "items": {
       "items": {
         "additionalProperties": false,
         "properties": {
@@ -1406,16 +1410,15 @@ Input:
       "maxItems": 500,
       "type": "array"
     },
-    "from": {
-      "type": "string"
-    },
     "to": {
+      "maxLength": 256,
+      "minLength": 1,
       "type": "string"
     }
   },
   "required": [
     "to",
-    "accounts"
+    "items"
   ],
   "type": "object"
 }
@@ -1428,7 +1431,7 @@ Output:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
-    "accounts": {
+    "items": {
       "maximum": 9007199254740991,
       "minimum": -9007199254740991,
       "type": "integer"
@@ -1439,7 +1442,7 @@ Output:
   },
   "required": [
     "watermark",
-    "accounts"
+    "items"
   ],
   "type": "object"
 }
@@ -1868,7 +1871,7 @@ Integration principal only: record the CRM outcome for a follow request or a log
 - Kind: command
 - MCP: `crm_effect_settle`
 - Permission: `settle` on `CrmSync`
-- UI: integration principal; the outbox dispatcher
+- UI: integration principal; the outbox dispatcher and inbound sync
 - CLI: `agent-native-desktop-starter crm effect settle --effect-id <string> --outcome <json> [--key <idempotency-key>]`
 
 Input:
@@ -1879,6 +1882,8 @@ Input:
   "additionalProperties": false,
   "properties": {
     "effectId": {
+      "maxLength": 128,
+      "minLength": 1,
       "type": "string"
     },
     "outcome": {
@@ -1887,7 +1892,7 @@ Input:
           "additionalProperties": false,
           "properties": {
             "externalRef": {
-              "maxLength": 128,
+              "maxLength": 256,
               "type": "string"
             },
             "status": {
@@ -1904,11 +1909,13 @@ Input:
           "additionalProperties": false,
           "properties": {
             "code": {
-              "maxLength": 64,
+              "maxLength": 128,
+              "minLength": 1,
               "type": "string"
             },
             "message": {
-              "maxLength": 500,
+              "maxLength": 2000,
+              "minLength": 1,
               "type": "string"
             },
             "status": {

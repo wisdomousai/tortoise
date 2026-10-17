@@ -2339,7 +2339,7 @@ Integration only: record the outcome of a forwarded record (MES) or a screen pro
 - Kind: command
 - MCP: `line_effect_settle`
 - Permission: `settle` on `Synchronization`
-- UI: integration principals (outbox dispatchers)
+- UI: integration principal; the outbox dispatcher and inbound sync
 - CLI: `agent-native-desktop-starter line effect settle --effect-id <string> --outcome <json> [--key <idempotency-key>]`
 
 Input:
@@ -2421,8 +2421,6 @@ Output:
     },
     "sync": {
       "enum": [
-        "pending",
-        "held",
         "accepted",
         "rejected"
       ],
@@ -2443,9 +2441,9 @@ MES integration only: apply orders and stop reasons from the MES and advance the
 
 - Kind: command
 - MCP: `line_mes_sync`
-- Permission: `sync` on `Order`
-- UI: MES integration principal (inbound sync job)
-- CLI: `agent-native-desktop-starter line mes sync [--from <string>] --orders <json> [--reasons <json>] --to <string> [--key <idempotency-key>]`
+- Permission: `sync` on `Synchronization`
+- UI: integration principal; the outbox dispatcher and inbound sync
+- CLI: `agent-native-desktop-starter line mes sync [--from <string>] --items <json> [--reasons <json>] --to <string> [--key <idempotency-key>]`
 
 Input:
 
@@ -2458,7 +2456,7 @@ Input:
       "maxLength": 256,
       "type": "string"
     },
-    "orders": {
+    "items": {
       "items": {
         "additionalProperties": false,
         "properties": {
@@ -2546,7 +2544,7 @@ Input:
   },
   "required": [
     "to",
-    "orders"
+    "items"
   ],
   "type": "object"
 }
@@ -2559,7 +2557,7 @@ Output:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
-    "orders": {
+    "items": {
       "maximum": 9007199254740991,
       "minimum": -9007199254740991,
       "type": "integer"
@@ -2570,7 +2568,7 @@ Output:
   },
   "required": [
     "watermark",
-    "orders"
+    "items"
   ],
   "type": "object"
 }

@@ -38,6 +38,8 @@ The dispatcher delivers pending effects outside any transaction. It records each
 
 Inbound sync pulls changes after the stored watermark and submits them as a sync command bound to that range. A stale range conflicts, so two pullers cannot apply the same page. The integration principal can only sync, settle and read status, so a misbehaving adapter cannot drive business commands.
 
+An application declares each system of record once with `defineTarget`. The declaration produces the settle, sync and status operations, the integration principal's grant and its policy lane; `targetHandlers` implements the watermark check, the ownership check on settle and the status envelope, and the application supplies only what is domain-specific: how an outcome changes the forwarded record, how a feed item changes local state, and which records the caller may count. A record that forwards carries its effect ID and delivery state (`sync`, `sorRef`, `rejection`), and settle refuses an outcome for a record that forwarded a different effect.
+
 Delivery is pending (with attempts and safe failure text), accepted (with the external reference and time) or rejected (with code and message). A correction supersedes a rejected result and is forwarded again. Worker claims, reconciliation state, cancel-before-dispatch and rechecking the original actor at dispatch are not implemented ([status](#status-against-the-reference-plan)).
 
 `app drain` delivers to every target until nothing is pending, then exits `0`. While effects remain it exits `75`, listing per target what is pending, what is held, and which targets this process cannot reach. An orchestrator keeps an ephemeral sandbox, or its workspace, until drain exits `0`. `app sync` pulls master data once per target.

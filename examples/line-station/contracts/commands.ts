@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { stationMembership } from './membership';
 import { operation } from './operation';
+import { mesTarget } from './target';
 import {
   id,
   revision,
@@ -12,10 +13,7 @@ import {
   readingSchema,
   stopSchema,
   countReportSchema,
-  orderSchema,
-  reasonSchema,
   desiredSchema,
-  outcomeSchema,
 } from './schemas';
 
 const operate = { action: 'operate', resourceType: 'Station' };
@@ -94,28 +92,6 @@ export const commandOperations = {
       exception: 'station bridge principal (screen observer)',
     },
   ),
-  mesSync: operation(
-    'line.mes.sync',
-    'command',
-    z.strictObject({
-      from: z.string().max(256).optional(),
-      to: z.string().min(1).max(256),
-      orders: z.array(orderSchema.omit({ status: true }).extend({ closed: z.boolean() })).max(200),
-      reasons: z.array(reasonSchema).max(200).optional(),
-    }),
-    z.strictObject({ watermark: z.string(), orders: z.number().int() }),
-    { action: 'sync', resourceType: 'Order' },
-    { dependencies: ['order', 'mes'], exception: 'MES integration principal (inbound sync job)' },
-  ),
-  effectSettle: operation(
-    'line.effect.settle',
-    'command',
-    z.strictObject({ effectId: id, outcome: outcomeSchema }),
-    z.strictObject({ resource: z.string(), sync: syncSchema }),
-    { action: 'settle', resourceType: 'Synchronization' },
-    {
-      dependencies: ['station', 'stop', 'count'],
-      exception: 'integration principals (outbox dispatchers)',
-    },
-  ),
+  mesSync: mesTarget.sync,
+  effectSettle: mesTarget.settle,
 } as const;

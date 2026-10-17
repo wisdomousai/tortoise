@@ -135,14 +135,6 @@ export const measurement = {
   occurredAt: timestamp,
   capture: captureTelemetrySchema.optional(),
 };
-export const outcomeSchema = z.union([
-  z.strictObject({ status: z.literal('accepted'), externalRef: z.string().max(256).optional() }),
-  z.strictObject({
-    status: z.literal('rejected'),
-    code: z.string().min(1).max(128),
-    message: z.string().min(1).max(2000),
-  }),
-]);
 export const latency = z.strictObject({
   count: z.number().int(),
   medianMs: z.number().optional(),

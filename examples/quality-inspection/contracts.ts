@@ -13,8 +13,8 @@ export {
   lotDetailSchema,
   codeGroupSchema,
   lotSnapshotSchema,
-  outcomeSchema,
 } from './contracts/schemas';
+export { qualityTarget } from './contracts/target';
 
 export const operations = { ...queryOperations, ...commandOperations } as const;
 

@@ -6,6 +6,7 @@ import {
   type OutputOf,
 } from '@agent-native/contracts';
 import type { HandlerContext, HandlerContribution } from '@agent-native/runtime';
+import { qualityTarget } from '../contracts/target';
 import { own, type InspectionLot, type QualityState } from '../domain';
 
 export interface QualityServices {
@@ -23,7 +24,8 @@ export type Measurement = {
   capture?: { durationMs: number; input: 'keyboard' | 'scanner' | 'instrument' | 'touch' };
 };
 
-export const TARGET = 'quality-system';
+/** Outbox target of every forwarded result, defect and usage decision. */
+export const TARGET = qualityTarget.target;
 /** Paper backlogs are entered later the same shift; anything older needs the SoR's own process. */
 export const MAX_AGE_MS = 24 * 3_600_000;
 export const MAX_CLOCK_SKEW_MS = 5 * 60_000;

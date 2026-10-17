@@ -1,5 +1,7 @@
+import { targetLane, targetRules } from '@agent-native/integration';
 import { definePolicy, own, type OperationRule } from '@agent-native/runtime';
 import { crmAccounts, crmContacts, operations } from './contracts';
+import { crmTarget } from './contracts/target';
 import { memberOf, visibleAccount, type CrmState } from './domain';
 
 const accountIdOf = (input: Record<string, unknown>) =>
@@ -11,12 +13,9 @@ const onAccount: OperationRule<CrmState, never> = {
     !!visibleAccount(state, context.principalId, accountIdOf(input)),
 };
 const open = Object.fromEntries(
-  [
-    ...crmAccounts.capabilities,
-    ...crmContacts.capabilities,
-    operations.accountList,
-    operations.syncStatus,
-  ].map((capability) => [capability.id, 'open' as const]),
+  [...crmAccounts.capabilities, ...crmContacts.capabilities, operations.accountList].map(
+    (capability) => [capability.id, 'open' as const],
+  ),
 );
 
 /**
@@ -26,16 +25,12 @@ const open = Object.fromEntries(
  */
 export const crmPolicy = definePolicy<CrmState, never>({
   integrations: [
-    {
-      is: (state, principalId) => principalId === state.integrationPrincipalId,
-      operations: [operations.accountSync.id, operations.effectSettle.id, operations.syncStatus.id],
-    },
+    targetLane(crmTarget, (state, principalId) => principalId === state.integrationPrincipalId),
   ],
   caller: { allow: (state, context) => !!memberOf(state, context.principalId) },
   operations: {
     ...open,
-    [operations.accountSync.id]: 'integration',
-    [operations.effectSettle.id]: 'integration',
+    ...targetRules(crmTarget),
     [operations.accountGet.id]: onAccount,
     [operations.activityLog.id]: onAccount,
     // Adopting starts with an account this workspace does not hold yet; the CRM decides then.

@@ -107,7 +107,7 @@ describe('quality inspection on top of a system of record', () => {
     ]);
     await expect(
       app.invokeRaw(
-        { operation: 'inspection.lot.sync', input: { from: 'stale', to: '9', lots: [] } },
+        { operation: 'inspection.lot.sync', input: { from: 'stale', to: '9', items: [] } },
         integration,
       ),
     ).rejects.toMatchObject({ code: 'CONFLICT' });
@@ -115,7 +115,7 @@ describe('quality inspection on top of a system of record', () => {
     expect(await inbound.runOnce()).toEqual({ batches: 1, items: 1 });
     expect((await query('inspection.lot.get', { id: '4000002' })).status).toBe('closed');
     await expect(
-      app.invokeRaw({ operation: 'inspection.lot.sync', input: { to: '1', lots: [] } }, inspector),
+      app.invokeRaw({ operation: 'inspection.lot.sync', input: { to: '1', items: [] } }, inspector),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 

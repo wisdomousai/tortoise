@@ -1356,7 +1356,11 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
-          "accounts": {
+          "from": {
+            "maxLength": 256,
+            "type": "string"
+          },
+          "items": {
             "items": {
               "additionalProperties": false,
               "properties": {
@@ -1400,16 +1404,15 @@
             "maxItems": 500,
             "type": "array"
           },
-          "from": {
-            "type": "string"
-          },
           "to": {
+            "maxLength": 256,
+            "minLength": 1,
             "type": "string"
           }
         },
         "required": [
           "to",
-          "accounts"
+          "items"
         ],
         "type": "object"
       },
@@ -1420,7 +1423,7 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
-          "accounts": {
+          "items": {
             "maximum": 9007199254740991,
             "minimum": -9007199254740991,
             "type": "integer"
@@ -1431,7 +1434,7 @@
         },
         "required": [
           "watermark",
-          "accounts"
+          "items"
         ],
         "type": "object"
       },
@@ -1440,7 +1443,7 @@
         "resourceType": "CrmSync"
       },
       "ui": {
-        "exception": "integration principal; the CRM feed"
+        "exception": "integration principal; the outbox dispatcher and inbound sync"
       }
     },
     {
@@ -1881,6 +1884,8 @@
         "additionalProperties": false,
         "properties": {
           "effectId": {
+            "maxLength": 128,
+            "minLength": 1,
             "type": "string"
           },
           "outcome": {
@@ -1889,7 +1894,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "externalRef": {
-                    "maxLength": 128,
+                    "maxLength": 256,
                     "type": "string"
                   },
                   "status": {
@@ -1906,11 +1911,13 @@
                 "additionalProperties": false,
                 "properties": {
                   "code": {
-                    "maxLength": 64,
+                    "maxLength": 128,
+                    "minLength": 1,
                     "type": "string"
                   },
                   "message": {
-                    "maxLength": 500,
+                    "maxLength": 2000,
+                    "minLength": 1,
                     "type": "string"
                   },
                   "status": {
@@ -1963,7 +1970,7 @@
         "resourceType": "CrmSync"
       },
       "ui": {
-        "exception": "integration principal; the outbox dispatcher"
+        "exception": "integration principal; the outbox dispatcher and inbound sync"
       }
     },
     {

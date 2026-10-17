@@ -1,57 +1,8 @@
 import { type HandlerContribution } from '@agent-native/runtime';
 import { operations } from '../contracts';
-import { percentile, type QualityState, type Synchronized } from '../domain';
+import { percentile, type QualityState } from '../domain';
 import { accessiblePlants, lotVisible, resourceVisible } from '../server/access';
 import { TARGET, compact, handler, type QualityServices } from '../server/context';
-
-/** Counts by sync state over visible records; a superseded rejection counts as resolved. */
-const syncStatusHandler = () =>
-  handler(operations.syncStatus, (_, ctx) => {
-    const plants = accessiblePlants(ctx);
-    const records: { resource: string; lotId: string; record: Synchronized; active: boolean }[] = [
-      ...Object.values(ctx.state.results).map((result) => ({
-        resource: `result:${result.id}`,
-        lotId: result.lotId,
-        record: result as Synchronized,
-        active: result.supersededBy === undefined,
-      })),
-      ...Object.values(ctx.state.defects).map((defect) => ({
-        resource: `defect:${defect.id}`,
-        lotId: defect.lotId,
-        record: defect as Synchronized,
-        active: true,
-      })),
-      ...Object.values(ctx.state.lots).flatMap((lot) =>
-        lot.decision
-          ? [{ resource: `lot:${lot.id}`, lotId: lot.id, record: lot.decision, active: true }]
-          : [],
-      ),
-    ].filter((entry) => lotVisible(ctx, plants, entry.lotId));
-    const pendingEffects = ctx
-      .effects({ status: 'pending', target: TARGET })
-      .filter((effect) => resourceVisible(ctx, plants, effect.resource));
-    const count = (status: Synchronized['sync']) =>
-      records.filter((entry) => entry.record.sync === status).length;
-    return compact({
-      watermark: ctx.state.watermark,
-      lastSyncAt: ctx.state.lastSyncAt,
-      pending: count('pending'),
-      accepted: count('accepted'),
-      rejected: count('rejected'),
-      retrying: pendingEffects.filter((effect) => effect.attempts > 0).length,
-      oldestPendingAt: pendingEffects[0]?.createdAt,
-      // A superseded rejection was resolved by its correction.
-      rejections: records
-        .filter((entry) => entry.active && entry.record.sync === 'rejected')
-        .slice(0, 50)
-        .map((entry) => ({
-          resource: entry.resource,
-          lotId: entry.lotId,
-          code: entry.record.rejection?.code ?? 'REJECTED',
-          message: entry.record.rejection?.message ?? 'Rejected by the quality system',
-        })),
-    });
-  });
 
 /** Capture timing per actor, corrections and forwarding latency, within the caller's scope. */
 const metricsSummaryHandler = () =>
@@ -106,8 +57,7 @@ const metricsSummaryHandler = () =>
     };
   });
 
-/** Synchronization and capture metrics, aggregated only over lots the caller may see. */
+/** Capture metrics, aggregated only over lots the caller may see. */
 export const reportHandlers = (): HandlerContribution<QualityState, QualityServices>[] => [
-  syncStatusHandler(),
   metricsSummaryHandler(),
 ];
