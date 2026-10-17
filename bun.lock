@@ -8,6 +8,7 @@
         "@agent-native/adapters": "workspace:*",
         "@agent-native/agents": "workspace:*",
         "@agent-native/audit": "workspace:*",
+        "@agent-native/automation": "workspace:*",
         "@agent-native/client": "workspace:*",
         "@agent-native/compliance": "workspace:*",
         "@agent-native/contracts": "workspace:*",
