@@ -269,6 +269,15 @@ Domain contracts, drivers, simulators and screens live in the examples. Two appl
   - a browser spec of the confirm flow;
   - the ledger records "pty simulation, no physical instrument".
 
+**Status, 2026-10-17.** Done, with these changes from the plan:
+
+- **Simulator.** A pseudo-terminal pair from Python's `pty` module instead of socat, which is not installed everywhere. The driver's pyserial code opens and configures the tty as it would a USB serial port.
+- **Readings.** `measurement.taken` becomes an instrument reading through `inspection.instrument.ingest`, run by a new instrument principal. The capture station offers the newest unconfirmed reading. **Use reading** records it through `inspection.result.record` with `instrumentReading`, so the existing capture flow and its forwarding are unchanged. The authority refuses a reading that is used, older than 10 minutes, in another unit, or not the one on screen.
+- **Plugin.** `createDriverEventIngest` in `plugins/connector-driver/connect` is the adapter from driver events to an ingest command, and keeps an event-only driver running. The application starts it only when the site binds the driver process.
+- **Conformance.** The connector conformance suite checks action delivery, and this contract has no actions. The driver's gate is `checkDriver` instead, which it passes over the pty pair.
+- **Browser spec.** The real service runs with a site policy binding the Python driver. The policy may not set `PYTHONPATH`, so the spec builds a venv with pyserial from uv's cache and the SDK on a `.pth` path, as a site would install it. It is skipped where uv or the cached pyserial is missing.
+- **Evidence.** The deterministic, pty and browser tests pass on macOS. They have not run on Linux yet. No physical instrument.
+
 ### B2. `line-station`: automation-interface route, actuate
 
 - A `station-automation` driver contract with the same desired-state effect as the screen route's recipe loading: `recipe.load` (convergent, with readback of the loaded recipe), preconditions (machine stopped), hazard `low`, and `alarm.raised` and counter telemetry.
@@ -403,3 +412,4 @@ Recommended options first. Settled through coordination: observation goes to `pa
 - Phase 2 adds `packages/observation` and `packages/integration/src/convergent/` as new files; `dispatcher/delivery.ts` and `target.ts` are unchanged.
 - The user decided that this plan stays in `docs/` while the work runs. In phase 6 it moves into `docs/hardware-drivers.md` and is deleted.
 - 98a49bb (the driver connector library) merged into `framework-roadmap` at `b330849`; `hardware-drivers` is rebased on it. The rest of phase 3 adds two additive framework changes: `ConnectContext.services` (`packages/kernel`) and `ProcessRequirement.targets` with `CatalogOperation.processes` (`packages/contracts`), and touches `plugins/compliance/src/manifest.ts` to list process-carried flows.
+- Phase 3 merged into `framework-roadmap` at `5dbe58e`. The Python SDK (`a8927a9`, `7aee8e9`) merged by fast-forward. B1 edits only `examples/quality-inspection`, `plugins/connector-driver` and this repository's driver entries in `docs/primitives.md`; the roadmap confirmed nobody else is in those example files.

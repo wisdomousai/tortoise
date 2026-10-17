@@ -4,9 +4,17 @@ import { defineApplication } from '@agent-native/host/application';
 import { auditPlugin } from '@agent-native/audit/plugin';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
+import { processPlugin } from '@agent-native/process/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
+import { createDriverPlugin } from '@agent-native/connector-driver/plugin';
+import {
+  createDriverEventIngest,
+  type DriverEventIngestOptions,
+} from '@agent-native/connector-driver/connect';
+import { driverServiceOf } from '@agent-native/connector-driver/open';
 import manifest from './manifest';
 import { operations, qualityTarget } from './contracts';
+import { instrumentContract } from './contracts/instrument';
 import type { QualityState } from './domain';
 import {
   createQualityHandlers,
@@ -23,6 +31,18 @@ export interface QualityInspectionState {
 
 /** The quality system integration's principal; distinct from every person and station. */
 export const INTEGRATION_PRINCIPAL = 'integration';
+/** The instrument driver's principal; it may only report readings. */
+export const INSTRUMENT_PRINCIPAL = 'instrument';
+
+/** The capture station's instrument driver, started through the process plugin when bound. */
+export const instrumentDriverPlugin = createDriverPlugin({ contracts: [instrumentContract] });
+
+const qualityState = (ownerId: string) =>
+  createQualityState({
+    supervisorId: ownerId,
+    integrationPrincipalId: INTEGRATION_PRINCIPAL,
+    instrumentPrincipalId: INSTRUMENT_PRINCIPAL,
+  });
 
 /**
  * Demo only: the deterministic in-memory quality system, so the reference needs no enterprise
@@ -40,6 +60,39 @@ export function demoSystemOfRecord(env: Record<string, string | undefined> = pro
 }
 
 /**
+ * Instrument readings into the application: each `measurement.taken` event from the instrument
+ * driver runs the ingest command as the instrument principal, whose grant names nothing else.
+ */
+export function createInstrumentIngest(options: {
+  application: DriverEventIngestOptions['application'];
+  workspaceId: string;
+  service: DriverEventIngestOptions['service'];
+  now?: () => number;
+}) {
+  return createDriverEventIngest({
+    contract: instrumentContract,
+    service: options.service,
+    application: options.application,
+    context: {
+      workspaceId: options.workspaceId,
+      principalId: INSTRUMENT_PRINCIPAL,
+      grant: { operations: [operations.instrumentIngest.id] },
+    },
+    ingestOperation: operations.instrumentIngest.id,
+    events: ['measurement.taken'],
+    // The payload goes first, so it cannot replace the provenance fields.
+    toInput: ({ session, seq, payload, observedAt, device }) => ({
+      ...(payload as object),
+      session,
+      seq,
+      observedAt,
+      device,
+    }),
+    ...(options.now ? { now: options.now } : {}),
+  });
+}
+
+/**
  * The quality-inspection application. `systemOfRecord` is the quality system port; without one,
  * every authority gets its own demo fake configured from the environment.
  */
@@ -48,21 +101,18 @@ export function createQualityInspectionApplication(
 ) {
   return defineApplication<QualityInspectionState, QualityServices>({
     manifest,
-    createState: (ownerId) => ({
-      quality: createQualityState({
-        supervisorId: ownerId,
-        integrationPrincipalId: INTEGRATION_PRINCIPAL,
-      }),
-    }),
+    createState: (ownerId) => ({ quality: qualityState(ownerId) }),
     upgradeState: (state, ownerId) => {
       const value = (state ?? {}) as Partial<QualityInspectionState>;
+      // State saved before instrument readings existed gains the empty set and its principal.
       return {
-        quality:
-          value.quality ??
-          createQualityState({
-            supervisorId: ownerId,
-            integrationPrincipalId: INTEGRATION_PRINCIPAL,
-          }),
+        quality: value.quality
+          ? {
+              ...value.quality,
+              instrumentPrincipalId: value.quality.instrumentPrincipalId ?? INSTRUMENT_PRINCIPAL,
+              instrumentReadings: value.quality.instrumentReadings ?? {},
+            }
+          : qualityState(ownerId),
       };
     },
     handlers: sliceHandlers<QualityInspectionState, 'quality', QualityServices>(
@@ -73,15 +123,22 @@ export function createQualityInspectionApplication(
       authorizationRoute(
         'quality',
         qualityInspectionModule,
-        ['lot', 'result', 'defect', 'plant', 'sync'],
+        ['lot', 'result', 'defect', 'plant', 'sync', 'instrument'],
         qualityPolicy,
       ),
     ]),
     // The workspace owner (the supervisor) is the compliance plugin's first auditor.
-    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
+    plugins: [
+      sitePlugin,
+      networkPlugin,
+      auditPlugin,
+      compliancePlugin,
+      processPlugin,
+      instrumentDriverPlugin,
+    ],
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { lot: operations.lotGet.id },
-    connect: ({ application, workspaceId }) => ({
+    connect: ({ application, workspaceId, processes, services }) => ({
       integrations: [
         connectTarget<QualityItem>({
           target: qualityTarget,
@@ -92,6 +149,17 @@ export function createQualityInspectionApplication(
           toInput: toSyncInput,
         }),
       ],
+      observe: async (onError) => {
+        // Optional hardware: without a site binding for the driver there is nothing to watch.
+        if (!processes.availability(instrumentContract.process.id).available) return [];
+        const ingest = createInstrumentIngest({
+          application,
+          workspaceId,
+          service: driverServiceOf(services),
+        });
+        ingest.start((error) => onError('instrument', error));
+        return [ingest];
+      },
     }),
   });
 }

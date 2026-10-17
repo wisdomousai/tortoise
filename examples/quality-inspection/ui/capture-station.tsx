@@ -1,6 +1,7 @@
 import { CaptureHeading, TakenAlert } from './capture-station/capture-heading';
 import { CharacteristicSamples } from './capture-station/characteristic-samples';
 import { CodeEntry } from './capture-station/code-entry';
+import { InstrumentReadingOffer } from './capture-station/instrument-reading';
 import type { CodeGroups, LotDetail } from './capture-station/format';
 import { useCapture, type CaptureForm } from './capture-station/use-capture';
 import { ValueEntry } from './capture-station/value-entry';
@@ -89,14 +90,22 @@ export function CaptureStation({ lot, codeGroups }: { lot: LotDetail; codeGroups
           }}
         >
           {characteristic.kind === 'quantitative' ? (
-            <ValueEntry
-              form={form}
-              characteristic={characteristic}
-              target={target}
-              taken={taken !== undefined}
-              valueField={capture.valueField}
-              setPinned={capture.setPinned}
-            />
+            <>
+              <InstrumentReadingOffer
+                characteristic={characteristic}
+                disabled={taken !== undefined}
+                error={capture.readingError}
+                onUse={(reading) => void capture.recordReading(reading)}
+              />
+              <ValueEntry
+                form={form}
+                characteristic={characteristic}
+                target={target}
+                taken={taken !== undefined}
+                valueField={capture.valueField}
+                setPinned={capture.setPinned}
+              />
+            </>
           ) : (
             <CodeEntry
               form={form}

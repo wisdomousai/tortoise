@@ -2,7 +2,7 @@ import { targetLane, targetRules } from '@agent-native/integration';
 import { definePolicy, membershipRule, own, type OperationRule } from '@agent-native/runtime';
 import { operations, qualityTarget } from './contracts';
 import { plantMembership } from './contracts/membership';
-import { plantRole, type PlantRole, type QualityState } from './domain';
+import { capturesAnywhere, plantRole, type PlantRole, type QualityState } from './domain';
 
 /**
  * Resolve the lot that owns a journal or outbox resource (`lot:`, `result:`, `defect:`), or
@@ -59,7 +59,7 @@ const lotEvent = (type: string) => ({
 /**
  * Plant-scoped policy. Plant roles come from authoritative state; the integration principal may
  * only sync master data, settle outbox outcomes and read its watermark, and nobody else may do
- * the first two. Reads that list records are open to every caller and scoped to their plants in
+ * the first two. The instrument principal may only report readings, and nobody else may. Reads that list records are open to every caller and scoped to their plants in
  * the handler, before anything is counted. Commands are evaluated against the current and the
  * proposed state at commit time.
  */
@@ -67,6 +67,12 @@ export const qualityPolicy = definePolicy<QualityState, PlantRole>({
   roleOf: plantRole,
   integrations: [
     targetLane(qualityTarget, (state, principalId) => principalId === state.integrationPrincipalId),
+    // The instrument driver only reports readings; it reads no journal events.
+    {
+      is: (state, principalId) => principalId === state.instrumentPrincipalId,
+      operations: [operations.instrumentIngest.id],
+      events: () => false,
+    },
   ],
   operations: {
     ...targetRules(qualityTarget),
@@ -74,6 +80,9 @@ export const qualityPolicy = definePolicy<QualityState, PlantRole>({
     [operations.codeList.id]: 'open',
     [operations.plantList.id]: 'open',
     [operations.metricsSummary.id]: 'open',
+    // Scoped in the handler to people who capture at some plant.
+    [operations.instrumentReadings.id]: 'open',
+    [operations.instrumentIngest.id]: 'integration',
     [operations.lotGet.id]: onLot((input) => input.id),
     [operations.worklist.id]: onLot(byLotId),
     [operations.resultRecord.id]: onLot(byLotId, capture),
@@ -97,6 +106,8 @@ export const qualityPolicy = definePolicy<QualityState, PlantRole>({
     defect: lotEvent('defect'),
     plant: lotEvent('plant'),
     // Master-data sync changes are visible to anyone who works at some plant.
+    // Readings belong to the station, not a lot: anyone who captures somewhere may see them.
+    instrument: (_id, state, context) => capturesAnywhere(state, context.principalId),
     sync: (id, state, context) =>
       id === qualityTarget.target &&
       Object.keys(state.plants).some((plant) => plantRole(state, context.principalId, plant)),

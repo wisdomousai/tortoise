@@ -2,8 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 import { useCaptureLoop, useScannerInput } from '@agent-native/react/capture';
 import { useCapabilityForm } from '@agent-native/react/form';
 import { operations } from '../../contracts';
-import { transport } from '@/lib/session';
-import type { CodeGroups, LotDetail, Target } from './format';
+import { client, transport } from '@/lib/session';
+import type { CodeGroups, InstrumentReading, LotDetail, RecordedResult, Target } from './format';
 
 /**
  * The sample being measured and the form that records it. The worklist names the next sample;
@@ -16,6 +16,7 @@ export function useCapture(lot: LotDetail, codeGroups: CodeGroups) {
   // while the operator types; the value still describes the sample they were measuring.
   const [pinned, setPinned] = useState<Target>();
   const [announcement, setAnnouncement] = useState('');
+  const [readingError, setReadingError] = useState('');
   const target = override ?? pinned ?? lot.next ?? undefined;
   const characteristic = lot.characteristics.find((item) => item.id === target?.characteristicId);
   // Another caller recorded the draft's sample first: the draft is not silently moved elsewhere.
@@ -50,18 +51,43 @@ export function useCapture(lot: LotDetail, codeGroups: CodeGroups) {
         ...(durationMs === undefined ? {} : { capture: { durationMs, input: scanner.lastInput } }),
       };
     },
-    onCommitted: (receipt) => {
-      const result = receipt.result;
-      setAnnouncement(
-        `Recorded ${result.value ?? result.code} for ${characteristic?.code} sample ${result.sample}: ${
-          result.evaluation === 'accepted' ? 'in tolerance' : 'out of tolerance'
-        }`,
-      );
-      setOverride(undefined);
-      setPinned(undefined);
-      form.reset();
-    },
+    onCommitted: (receipt) => committed(receipt.result),
   });
+  function committed(result: RecordedResult) {
+    setAnnouncement(
+      `Recorded ${result.value ?? result.code} for ${characteristic?.code} sample ${result.sample}: ${
+        result.evaluation === 'accepted' ? 'in tolerance' : 'out of tolerance'
+      }`,
+    );
+    setReadingError('');
+    setOverride(undefined);
+    setPinned(undefined);
+    form.reset();
+  }
+  /**
+   * Confirm an instrument reading as this sample's result. The value and time are the reading's
+   * own; the authority checks they still match it, so a newer reading is never recorded instead.
+   */
+  const recordReading = async (reading: InstrumentReading) => {
+    if (!target || !characteristic || taken) return;
+    setReadingError('');
+    const durationMs = elapsed();
+    try {
+      const receipt = await client.command(operations.resultRecord, {
+        lotId: lot.id,
+        characteristicId: target.characteristicId,
+        sample: target.sample,
+        value: reading.value,
+        occurredAt: reading.observedAt,
+        instrumentReading: reading.id,
+        station: 'web',
+        ...(durationMs === undefined ? {} : { capture: { durationMs, input: 'instrument' } }),
+      });
+      committed(receipt.result);
+    } catch (cause) {
+      setReadingError(cause instanceof Error ? cause.message : 'Recording the reading failed');
+    }
+  };
   const discard = () => {
     setOverride(undefined);
     setPinned(undefined);
@@ -86,6 +112,8 @@ export function useCapture(lot: LotDetail, codeGroups: CodeGroups) {
     form,
     discard,
     submitCode,
+    recordReading,
+    readingError,
   };
 }
 

@@ -4,6 +4,8 @@ import type { operations } from '../../contracts';
 export type LotDetail = OutputOf<typeof operations.lotGet>;
 export type CodeGroups = OutputOf<typeof operations.codeList>['groups'];
 export type Characteristic = LotDetail['characteristics'][number];
+export type InstrumentReading = OutputOf<typeof operations.instrumentReadings>['readings'][number];
+export type RecordedResult = OutputOf<typeof operations.resultRecord>;
 /** One sample of one characteristic: the unit of capture. */
 export type Target = { characteristicId: string; sample: number };
 

@@ -17,6 +17,7 @@ An application declares its driver contracts once and passes the same list to bo
 - **`connect`:**
   1. It takes `driverServiceOf(services).supervisor(id)`.
   2. It wires each driver with `createDriverIntegration`, passing a `defineTarget` target named after the contract, the bridge mode through `control`, and optionally an ingest command for the observer.
+  3. For events that should become records, it starts `createDriverEventIngest` from `observe`: one ingest command per event, keyed `driver:<id>:<session>:<seq>`. It also keeps an event-only driver running, since such a driver gets no other request. `examples/quality-inspection` wires a measuring instrument this way, starting it only when `processes.availability` says the site binds the driver.
 
 The site policy binds each driver's process ID to an absolute executable, and optionally pins its hash. `app driver list` prints the process IDs and contract digests to bind.
 
@@ -35,7 +36,7 @@ A driver speaks the protocol in any language. The [Python SDK](sdk/python/README
 | `@agent-native/connector-driver/open`            | server             | `driverServiceOf`, and the service: one supervisor per driver, status, and event and session subscriptions                                                 |
 | `@agent-native/connector-driver/protocol`        | server             | The JSON-RPC connection, `DriverError` and the checked answer schemas                                                                                      |
 | `@agent-native/connector-driver/supervisor`      | server             | `createDriverSupervisor`: handshake with digest check, restart with backoff, health checks, ordered events, shutdown                                       |
-| `@agent-native/connector-driver/connect`         | server             | `createDriverConnector` (a `SystemOfRecordPort` over one driver), `createDriverObserver` (state as gated readings), `createDriverIntegration` (both wired) |
+| `@agent-native/connector-driver/connect`         | server             | `createDriverConnector` (a `SystemOfRecordPort` over one driver), `createDriverObserver` (state as gated readings), `createDriverIntegration` (both wired), `createDriverEventIngest` (events into an ingest command) |
 | `@agent-native/connector-driver/testing`         | server (tests)     | `createFakeDriver`, the protocol in process with injected faults, and `checkDriver`, which checks a driver executable against its contract                 |
 
 A contract declares state fields, actions and events. Each action has an input schema, a delivery mode, a hazard class, a timeout, and optionally a readback and preconditions on state.
@@ -54,7 +55,8 @@ A driver is deployment code the site binds by path and optional hash. Its answer
 - its stderr is drained and never shown;
 - its messages are capped at 500 characters before they reach application state;
 - the observer reads a value that does not fit its declared type or options as `null` with confidence 0, so it reaches the domain as uncertain, never as fact;
-- `observedAt` is the host's clock, not the driver's.
+- `observedAt` is the host's clock, not the driver's;
+- event payloads reach the ingest command as sent, and its input schema is what validates them.
 
 The host gates every action before the driver sees it:
 
@@ -108,5 +110,6 @@ bun test plugins/connector-driver
   - the service starting a driver through the process port and fanning out events past a failing listener;
   - the status policy;
   - the observer's device provenance, gate reset on restart and type checks.
+- `test/events.test.ts` covers the event ingest: one command per wanted event, keyed by session and sequence, with the reporting unit; a failed ingest reported without stopping later events.
 - `test/check.test.ts` runs `checkDriver` against the fake driver, and `driver check` against `test/fixtures/chamber-driver.ts` as a real child process over stdio.
 - `test/python-driver.test.ts` runs the Python SDK: its unit tests, the stub generator, and the simulated chamber through `checkDriver` and the conformance suite as a real child process, including a crash after acting. It is skipped without `python3`.

@@ -24,6 +24,25 @@ export const captureSchema = z.strictObject({
   durationMs: z.number().int().min(0).optional(),
   input: captureTelemetrySchema.shape.input.optional(),
 });
+export const instrumentDeviceSchema = z.strictObject({
+  driver: z.string().min(1).max(128),
+  driverVersion: z.string().max(64).optional(),
+  serial: z.string().max(128).optional(),
+  firmware: z.string().max(128).optional(),
+});
+export const instrumentProvenanceSchema = z.strictObject({
+  readingId: id,
+  ...instrumentDeviceSchema.shape,
+});
+export const instrumentReadingSchema = z.strictObject({
+  id,
+  revision,
+  value: z.number(),
+  unit: z.string(),
+  observedAt: timestamp,
+  device: instrumentDeviceSchema,
+  usedBy: id.optional(),
+});
 export const plantRoleSchema = z.enum(['inspector', 'supervisor', 'viewer']);
 export const characteristicSchema = z.strictObject({
   id,
@@ -54,6 +73,7 @@ export const resultSchema = z.strictObject({
   supersedes: id.optional(),
   supersededBy: id.optional(),
   reason: z.string().optional(),
+  instrument: instrumentProvenanceSchema.optional(),
   capture: captureSchema,
   ...synchronized,
 });

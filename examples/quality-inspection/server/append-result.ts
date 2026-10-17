@@ -6,6 +6,7 @@ import {
   put,
   type InspectionLot,
   type InspectionResult,
+  type InstrumentProvenance,
 } from '../domain';
 import {
   compact,
@@ -21,6 +22,8 @@ import {
 
 type Characteristic = InspectionLot['characteristics'][number];
 type Correction = { original: InspectionResult; reason: string };
+/** A correction supersedes `original`; an instrument reading records which unit measured. */
+type Origin = { correction?: Correction; instrument?: InstrumentProvenance };
 
 /** A value at the declared precision, or a code from the characteristic's code group. */
 function checkMeasurement(ctx: Context, characteristic: Characteristic, measurement: Measurement) {
@@ -104,6 +107,8 @@ function forward(
       station,
       supersedesRef: correction?.original.sorRef,
       reason: correction?.reason,
+      // The quality system records the test equipment with the result.
+      instrument: result.instrument && compact({ serial: result.instrument.serial }),
     }) as JsonValue,
   });
 }
@@ -117,7 +122,7 @@ export function appendResult(
   lot: InspectionLot,
   measurement: Measurement,
   station: string | undefined,
-  correction?: Correction,
+  { correction, instrument }: Origin = {},
 ): InspectionResult {
   const characteristic = lot.characteristics.find(
     (item) => item.id === measurement.characteristicId,
@@ -144,6 +149,7 @@ export function appendResult(
     station,
     supersedes: correction?.original.id,
     reason: correction?.reason,
+    instrument,
     // Delegated runs and grants are agents; telemetry is reported, never trusted for access.
     capture: compact({
       actor:
@@ -151,7 +157,7 @@ export function appendResult(
           ? ('agent' as const)
           : ('human' as const),
       durationMs: measurement.capture?.durationMs,
-      input: measurement.capture?.input,
+      input: instrument ? ('instrument' as const) : measurement.capture?.input,
     }),
     effectId: '',
     sync: 'pending' as const,

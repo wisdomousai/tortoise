@@ -4,12 +4,13 @@ import { unboundOperations } from '@agent-native/testing/ui-bindings';
 import manifest from '../manifest';
 
 test('every operation that claims a UI binding is referenced by a screen', async () => {
-  // The Compliance screen comes from the compliance plugin, which routes it at /compliance.
-  const securityScreen = resolve(
-    import.meta.dir,
-    '../../../plugins/compliance/src/components/compliance-screen.tsx',
-  );
+  // The Compliance and Drivers screens come from their plugins, which route them.
+  const plugins = resolve(import.meta.dir, '../../../plugins');
   expect(
-    await unboundOperations(manifest.modules, [resolve(import.meta.dir, '..'), securityScreen]),
+    await unboundOperations(manifest.modules, [
+      resolve(import.meta.dir, '..'),
+      resolve(plugins, 'compliance/src/components/compliance-screen.tsx'),
+      resolve(plugins, 'connector-driver/src/components/driver-screen.tsx'),
+    ]),
   ).toEqual([]);
 });

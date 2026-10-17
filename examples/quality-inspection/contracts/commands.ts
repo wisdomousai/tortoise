@@ -9,8 +9,11 @@ import {
   resultSchema,
   defectSchema,
   decisionSchema,
+  instrumentDeviceSchema,
+  instrumentReadingSchema,
   measurement,
 } from './schemas';
+import { instrumentMeasurementSchema } from './instrument';
 
 const capture = { action: 'capture', resourceType: 'InspectionLot' };
 
@@ -19,10 +22,15 @@ export const commandOperations = {
   resultRecord: operation(
     'inspection.result.record',
     'command',
-    z.strictObject({ lotId: id, station: z.string().max(64).optional(), ...measurement }),
+    z.strictObject({
+      lotId: id,
+      station: z.string().max(64).optional(),
+      ...measurement,
+      instrumentReading: id.optional(),
+    }),
     resultSchema,
     capture,
-    { dependencies: ['lot', 'result'], integration: true },
+    { dependencies: ['lot', 'result', 'instrument'], integration: true },
   ),
   resultRecordBatch: operation(
     'inspection.result.record-batch',
@@ -79,6 +87,20 @@ export const commandOperations = {
     z.strictObject({ lotId: id, revision, decision: decisionSchema }),
     { action: 'decide', resourceType: 'InspectionLot' },
     { dependencies: ['lot'], integration: true },
+  ),
+  instrumentIngest: operation(
+    'inspection.instrument.ingest',
+    'command',
+    z.strictObject({
+      session: z.string().min(1).max(128),
+      seq: z.number().int().min(0),
+      ...instrumentMeasurementSchema.shape,
+      observedAt: timestamp,
+      device: instrumentDeviceSchema,
+    }),
+    instrumentReadingSchema,
+    { action: 'observe', resourceType: 'InstrumentReading' },
+    { dependencies: ['instrument'], exception: 'instrument driver principal (driver events)' },
   ),
   plantSetMember: plantMembership.setMember,
   lotSync: qualityTarget.sync,

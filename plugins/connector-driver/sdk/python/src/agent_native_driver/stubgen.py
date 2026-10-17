@@ -12,7 +12,6 @@ and one ``TypedDict`` per action input, result and event payload.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import keyword
 import re
@@ -20,14 +19,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
-def canonical_json(value: Any) -> str:
-    """The host's canonical JSON: sorted keys, no whitespace, non-ASCII kept as is."""
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-
-
-def contract_digest(document: Any) -> str:
-    return hashlib.sha256(canonical_json(document).encode("utf-8")).hexdigest()
+from .digest import canonical_json, contract_digest
 
 
 def _class_name(*parts: str) -> str:

@@ -10,6 +10,7 @@ import {
   nextSample,
   lotDetailSchema,
   codeGroupSchema,
+  instrumentReadingSchema,
   latency,
 } from './schemas';
 
@@ -89,5 +90,13 @@ export const queryOperations = {
     }),
     { action: 'read', resourceType: 'CaptureMetrics' },
     { dependencies: ['result', 'sync'] },
+  ),
+  instrumentReadings: operation(
+    'inspection.instrument.readings',
+    'query',
+    z.strictObject({}),
+    z.strictObject({ readings: z.array(instrumentReadingSchema).max(5) }),
+    { action: 'read', resourceType: 'InstrumentReading' },
+    { dependencies: ['instrument'] },
   ),
 } as const;

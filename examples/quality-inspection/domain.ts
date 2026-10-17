@@ -64,6 +64,8 @@ export interface InspectionResult extends Synchronized {
   supersedes?: string;
   supersededBy?: string;
   reason?: string;
+  /** The instrument reading the inspector confirmed, and the unit that took it. */
+  instrument?: InstrumentProvenance;
   /** Capture telemetry; `actor` is derived by the authority, the rest is client-reported. */
   capture: {
     actor: 'human' | 'agent';
@@ -87,6 +89,35 @@ export interface UsageDecision extends Synchronized {
   decidedBy: string;
   decidedAt: number;
 }
+/** The unit behind an instrument reading, as its driver reported it at the handshake. */
+export interface InstrumentDevice {
+  driver: string;
+  driverVersion?: string;
+  serial?: string;
+  firmware?: string;
+}
+export interface InstrumentProvenance extends InstrumentDevice {
+  readingId: string;
+}
+/**
+ * A value the station's instrument sent, waiting for an inspector to confirm it as a result. It
+ * is not a result until then: the instrument does not know which part or characteristic it
+ * measured. A reading is used at most once.
+ */
+export interface InstrumentReading {
+  id: string;
+  value: number;
+  unit: string;
+  /** The authority host's clock when the reading arrived. */
+  observedAt: number;
+  device: InstrumentDevice;
+  usedBy?: string;
+}
+/** Readings kept; older ones are dropped as new ones arrive. */
+export const INSTRUMENT_READING_LIMIT = 20;
+/** A reading older than this cannot be confirmed; the part may no longer be on the gauge. */
+export const INSTRUMENT_READING_TTL_MS = 10 * 60_000;
+
 export interface CodeGroup {
   id: string;
   codes: { code: string; text: string; valuation: Valuation }[];
@@ -94,29 +125,39 @@ export interface CodeGroup {
 export interface QualityState {
   /** The only principal allowed to sync master data and settle outbox effects. */
   integrationPrincipalId: string;
+  /** The only principal allowed to report instrument readings. */
+  instrumentPrincipalId: string;
   plants: Record<string, { members: Record<string, PlantRole> }>;
   lots: Record<string, InspectionLot>;
   results: Record<string, InspectionResult>;
   defects: Record<string, Defect>;
   codeGroups: Record<string, CodeGroup>;
+  instrumentReadings: Record<string, InstrumentReading>;
   /** SoR watermark of the last applied sync batch. */
   watermark?: string;
   lastSyncAt?: number;
 }
 
 export function createQualityState(
-  options: { supervisorId?: string; integrationPrincipalId?: string; plants?: string[] } = {},
+  options: {
+    supervisorId?: string;
+    integrationPrincipalId?: string;
+    instrumentPrincipalId?: string;
+    plants?: string[];
+  } = {},
 ): QualityState {
   const plants: QualityState['plants'] = {};
   for (const plant of options.plants ?? ['P100'])
     plants[plant] = { members: { [options.supervisorId ?? 'owner']: 'supervisor' } };
   return {
     integrationPrincipalId: options.integrationPrincipalId ?? 'integration',
+    instrumentPrincipalId: options.instrumentPrincipalId ?? 'instrument',
     plants,
     lots: {},
     results: {},
     defects: {},
     codeGroups: {},
+    instrumentReadings: {},
   };
 }
 
@@ -130,6 +171,14 @@ export function plantRole(
 ): PlantRole | undefined {
   const entry = own(state.plants, plant);
   return entry ? own(entry.members, principalId) : undefined;
+}
+
+/** Whether the principal may capture results at some plant, and so see instrument readings. */
+export function capturesAnywhere(state: QualityState, principalId: string): boolean {
+  return Object.keys(state.plants).some((plant) => {
+    const role = plantRole(state, principalId, plant);
+    return role === 'inspector' || role === 'supervisor';
+  });
 }
 
 /** Results that have not been superseded by a correction. */

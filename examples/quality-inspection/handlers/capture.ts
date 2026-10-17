@@ -3,6 +3,7 @@ import { type HandlerContribution } from '@agent-native/runtime';
 import { operations } from '../contracts';
 import { own, put, type Defect, type QualityState } from '../domain';
 import { appendResult } from '../server/append-result';
+import { confirmReading, useReading } from './instrument';
 import {
   TARGET,
   DEFECT_CODE_GROUP,
@@ -68,8 +69,14 @@ export const captureHandlers = (): HandlerContribution<QualityState, QualityServ
   handler(operations.resultRecord, (input, ctx) => {
     const lot = lotOf(ctx.state, input.lotId);
     requireOpen(lot);
-    const { lotId: _lotId, station, ...measurement } = input;
-    return resultDto(ctx, appendResult(ctx, lot, measurement, station), true);
+    const { lotId: _lotId, station, instrumentReading, ...measurement } = input;
+    const instrument =
+      instrumentReading === undefined
+        ? undefined
+        : confirmReading(ctx, lot, { ...measurement, instrumentReading });
+    const result = appendResult(ctx, lot, measurement, station, compact({ instrument }));
+    if (instrument) useReading(ctx, instrument.readingId, result.id);
+    return resultDto(ctx, result, true);
   }),
   handler(operations.resultRecordBatch, (input, ctx) => {
     const lot = lotOf(ctx.state, input.lotId);
@@ -97,7 +104,7 @@ export const captureHandlers = (): HandlerContribution<QualityState, QualityServ
         occurredAt: input.occurredAt ?? original.occurredAt,
       }),
       original.station,
-      { original, reason: input.reason },
+      { correction: { original, reason: input.reason } },
     );
     original.supersededBy = corrected.id;
     ctx.change(`result:${original.id}`);
