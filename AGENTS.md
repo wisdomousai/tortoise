@@ -30,7 +30,7 @@ Design on engineering merits. The rest of this section is advice; depart from it
 - Keep modules focused. `check:size` lists long files and functions as hints; split by responsibility, not by line count.
 - An operation usually gets a behavioral scenario and a UI binding.
 - Each workspace has a README saying what it is for, what it trusts, and how to run its tests. Comment the non-obvious: transaction and authorization ordering, trust boundaries, failure behavior.
-- When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. Record what was actually run in `docs/implementation-status.md`, keeping deterministic tests, device runs and live provider runs apart.
+- When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and the known gaps; don't restate what tests prove.
 
 ## Working practice
 

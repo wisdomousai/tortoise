@@ -95,6 +95,6 @@ A line-station host starts a station bridge only when `STATION_HMI_URL` is set. 
 
 Fixture tests prove adapter behavior, not login or inference. Provider checks are opt-in and use an explicitly configured account. Never discover credentials from unrelated configuration, and never switch silently to a paid key. The in-memory vault is a test fixture, never a fallback.
 
-The [implementation status](implementation-status.md) records local tests, CI, browser and desktop observations, provider checks and release status separately. An export, a bundled sidecar or a passing suite is not a release. Skipped acceptance tests and unsupported platforms are reported as such.
+The [implementation status](implementation-status.md) records browser, native, live and by-hand runs separately, with what has not been shown. An export, a bundled sidecar or a passing suite is not a release. Skipped acceptance tests and unsupported platforms are reported as such.
 
 CI follows the [GitHub-hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) and the [Bun CI guide](https://bun.sh/guides/runtime/cicd). The workflow has not yet run remotely.
