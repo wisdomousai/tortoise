@@ -71,7 +71,6 @@ describe('driver supervisor', () => {
     const supervisor = createDriverSupervisor({
       contract: chamber,
       start: driver.start,
-      mode: () => 'actuate',
       backoff: { minMs: 60_000, maxMs: 60_000 },
     });
     await expect(supervisor.read(['setpoint'])).rejects.toMatchObject({ kind: 'protocol' });
@@ -91,7 +90,6 @@ describe('driver supervisor', () => {
     const supervisor = createDriverSupervisor({
       contract: chamber,
       start: driver.start,
-      mode: () => 'monitor-only',
       backoff: { minMs: 0, maxMs: 0 },
       onSession: (hello) => sessions.push(hello.session),
       onEvent: (event, hello) =>
@@ -121,12 +119,20 @@ describe('driver supervisor', () => {
   test('a request in flight when the driver exits fails as exited; a hung one can be cancelled', async () => {
     const { driver, supervisor } = chamberConnector();
     driver.crashNext();
-    await expect(supervisor.invoke('label.print', { text: 'x' }, 'e1')).rejects.toMatchObject({
+    await expect(
+      supervisor.invoke('label.print', { text: 'x' }, 'e1', 'actuate'),
+    ).rejects.toMatchObject({
       kind: 'exited',
     });
     driver.hangNext();
     const controller = new AbortController();
-    const pending = supervisor.invoke('label.print', { text: 'y' }, 'e2', controller.signal);
+    const pending = supervisor.invoke(
+      'label.print',
+      { text: 'y' },
+      'e2',
+      'actuate',
+      controller.signal,
+    );
     controller.abort();
     await expect(pending).rejects.toMatchObject({ kind: 'cancelled' });
     await supervisor.close();
@@ -140,7 +146,9 @@ describe('driver connector', () => {
       'monitor-only',
     );
     expect(host.driver.applied('label.print-1')).toBe(0);
-    await expect(host.supervisor.invoke('label.print', { text: 'x' }, 'e1')).rejects.toMatchObject({
+    await expect(
+      host.supervisor.invoke('label.print', { text: 'x' }, 'e1', 'monitor-only'),
+    ).rejects.toMatchObject({
       kind: 'refused',
     });
     await host.supervisor.close();

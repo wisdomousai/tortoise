@@ -84,7 +84,6 @@ export function chamberConnector(mode: DriverMode = 'actuate', options: { digest
   const supervisor = createDriverSupervisor({
     contract: chamber,
     start: driver.start,
-    mode: () => mode,
     backoff: { minMs: 0, maxMs: 0 },
     onProblem: (problem) => problems.push(problem),
   });

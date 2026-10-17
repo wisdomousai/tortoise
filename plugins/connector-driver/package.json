@@ -6,6 +6,7 @@
   "description": "Driver connector host plugin: hardware drivers in any language as supervised child processes speaking JSON-RPC over stdio, delivered to as outbox targets and observed as readings.",
   "exports": {
     ".": "./src/index.ts",
+    "./plugin-screens": "./src/plugin-screens.tsx",
     "./*": "./src/*.ts"
   }
 }

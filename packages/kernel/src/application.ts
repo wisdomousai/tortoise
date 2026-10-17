@@ -82,6 +82,12 @@ export interface ConnectContext {
   readonly network: NetworkPort;
   /** The deployment's process port: perception workers and drivers start through it. */
   readonly processes: ProcessPort;
+  /**
+   * Services of the composed plugins, keyed by plugin id, as handlers see them. A plugin that
+   * owns long-lived resources (driver supervisors) exposes them here, so the application wires
+   * them into its integrations without starting a second copy.
+   */
+  readonly services: Readonly<Record<string, unknown>>;
 }
 
 /** A long-running observer, such as a station screen bridge. */

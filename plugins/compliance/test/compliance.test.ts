@@ -7,9 +7,13 @@ import {
   auditEventKinds,
   buildCatalog,
   collectRequirements,
+  defineCapability,
   defineHostComponent,
+  defineModule,
+  jsonSchema,
   type NetworkDestination,
 } from '@agent-native/contracts';
+import { z } from 'zod';
 import { loadSitePolicy } from '@agent-native/egress';
 import { openJsonlEventLog, verifyEventLog } from '@agent-native/event-log';
 import { createApplication, createMemoryStorage } from '@agent-native/runtime';
@@ -122,6 +126,56 @@ describe('generated compliance artifacts', () => {
     expect(markdown).toContain('| `scanner` | plant | hid |');
     expect(manifest.os).toEqual({ handlers: [], actions: [] });
     expect(markdown).not.toContain('## OS handlers and actions');
+  });
+
+  test('an outbox target carried by a child process is listed as a flow through that process', () => {
+    const forward = defineCapability({
+      id: 'chamber.setpoint.set',
+      kind: 'command',
+      input: jsonSchema(z.strictObject({})),
+      output: jsonSchema(z.strictObject({})),
+      permission: { action: 'update', resourceType: 'Chamber' },
+      ui: { exception: 'test' },
+      integration: { target: 'chamber', delivery: 'outbox' },
+    });
+    const driver = defineHostComponent({
+      id: 'driver.chamber',
+      description: 'Test chamber driver',
+      requirements: {
+        processes: [
+          {
+            id: 'chamber-driver',
+            executable: 'configured',
+            purpose: 'Drives the test chamber',
+            availability: 'optional',
+            targets: ['chamber'],
+          },
+        ],
+      },
+    });
+    const manifest = securityManifest({
+      application: 'agent-native',
+      catalog: buildCatalog([defineModule({ id: 'chamber', capabilities: [forward] })], {
+        components: [driver],
+      }),
+      components: [driver],
+    });
+    expect(manifest.flows).toEqual([
+      {
+        operation: 'chamber.setpoint.set',
+        kind: 'command',
+        module: 'chamber',
+        target: 'chamber',
+        path: 'outbox',
+        destinations: [],
+        processes: ['chamber-driver'],
+        dataClasses: [],
+        auditFields: [],
+      },
+    ]);
+    expect(dataFlowsMarkdown(manifest)).toContain(
+      '| `chamber.setpoint.set` | chamber | outbox | process `chamber-driver` |',
+    );
   });
 
   test('OS handlers are listed as local ingress and OS actions with their data classes', () => {

@@ -206,6 +206,23 @@ The driver connector is a plugin, in line with the `framework-roadmap` D2 connec
 
   The conformance suite passes the fake driver and fails a deliberately broken one.
 
+**Status, 2026-10-17.** Done, with these changes from the plan:
+
+- **Starting drivers.** Supervisors are created in `open` and start a driver on its first request, not in `start`. A driver's process starts only when something uses it, and one-shot commands start nothing.
+- **Mode.** The supervisor's mode is per action. The connector reads it from the application's `control` and sends it with each `action.invoke`. The handshake sends monitor-only.
+- **Command line.** The verbs are `driver list` (process IDs, digests, actions and hazards) and `driver check <id> -- <executable>`. The check runs a driver against its contract and never invokes an action. No authority runs during a CLI verb, so it has no status to report; status is the `driver.status.get` query and its screen.
+- **Generated artifacts.**
+  - A process requirement may name the outbox targets it carries (`ProcessRequirement.targets` in `packages/contracts`). The catalog records them on the operation as `processes`, so a command forwarding to a driver composes without a network destination.
+  - The security manifest lists the flow through the driver process.
+  - The driver plugin's manifest adds one agent workflow per driver, naming each action's delivery mode and hazard class.
+  - A driver's target is named after its contract, and `createDriverIntegration` refuses any other name.
+- **Kernel.** `ConnectContext.services` gives `connect` the plugin services, so an application reaches the supervisors the plugin owns.
+- **Not done.**
+  - `createDriverSource` (remote query over driver state);
+  - an adapter from driver events to readings;
+  - composition in an example, which comes with B1.
+- **Ledger.** The evidence entries wait for mobile-host's trim of `docs/implementation-status.md`. Until then the evidence is the test list in the plugin README.
+
 ### A4. Language SDKs
 
 - **Python, `plugins/connector-driver/sdk/python`** (uv project, `agent_native_driver`):
@@ -368,7 +385,7 @@ Recommended options first. Settled through coordination: observation goes to `pa
 
 - `hardware-drivers` moved to `framework-roadmap` `8aa77bd`. Between `d17e8bb` and `8aa77bd`:
   - C4 storage (`cd3b5cb`): row storage at schema version 2 and a capped journal, with `EventBatch.reset` and `WorkspaceSnapshot.journalFloor`;
-  - regenerated SBOMs;
+  - regenerated SBOMs. SBOMs are no longer committed since mobile-host `eb6e95a`; `bundle create` builds them;
   - the os-hooks blob file payloads.
 
   `796c9bf` is still not included.
@@ -377,3 +394,4 @@ Recommended options first. Settled through coordination: observation goes to `pa
 - Phase 1 committed as `07fe98a` and merged into `framework-roadmap` at `fc6bbb3`, which also brings the guidance cleanup (`42fac14`): the docs freeze is lifted, `primitives.md` is an index, and `check:readmes` and `check:size` are reduced. `hardware-drivers` is rebased on `fc6bbb3`. mobile-asset-survey-showcase reported no conflict with its phase 6.
 - Phase 2 adds `packages/observation` and `packages/integration/src/convergent/` as new files; `dispatcher/delivery.ts` and `target.ts` are unchanged.
 - The user decided that this plan stays in `docs/` while the work runs. In phase 6 it moves into `docs/hardware-drivers.md` and is deleted.
+- 98a49bb (the driver connector library) merged into `framework-roadmap` at `b330849`; `hardware-drivers` is rebased on it. The rest of phase 3 adds two additive framework changes: `ConnectContext.services` (`packages/kernel`) and `ProcessRequirement.targets` with `CatalogOperation.processes` (`packages/contracts`), and touches `plugins/compliance/src/manifest.ts` to list process-carried flows.

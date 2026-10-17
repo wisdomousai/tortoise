@@ -67,6 +67,12 @@ export interface ProcessRequirement {
    * device password). Names only; values never appear in declarations, policies or manifests.
    */
   readonly secrets?: readonly string[];
+  /**
+   * Outbox targets whose effects this child process carries over its stdio, such as a hardware
+   * driver. A command forwarding to one of them needs no network destination; the catalog records
+   * the process instead, so the data-flow manifest shows where its effects go.
+   */
+  readonly targets?: readonly string[];
 }
 
 export interface Requirements {
@@ -179,6 +185,16 @@ export function collectRequirements(
     devices: devices.sort(byId),
     processes: processes.sort(byId),
   };
+}
+
+/** Child processes that carry effects for `target`. */
+export function processesForTarget(
+  requirements: CatalogRequirements,
+  target: string,
+): readonly string[] {
+  return requirements.processes
+    .filter((child) => child.targets?.includes(target))
+    .map((child) => child.id);
 }
 
 /** Destinations that carry effects for `target`. */

@@ -147,3 +147,24 @@ export function defineDriverContract<const C extends DriverContract>(contract: C
     );
   return Object.freeze(contract);
 }
+
+/**
+ * Whether a value a driver reported fits its state field's declaration: type, finite numbers and
+ * enum options. `null` always fits; it means the driver could not read the field.
+ */
+export function stateValueFits(
+  field: DriverStateField,
+  value: string | number | boolean | null,
+): boolean {
+  if (value === null) return true;
+  switch (field.type) {
+    case 'number':
+      return typeof value === 'number' && Number.isFinite(value);
+    case 'boolean':
+      return typeof value === 'boolean';
+    case 'enum':
+      return typeof value === 'string' && (field.options ?? []).includes(value);
+    case 'text':
+      return typeof value === 'string';
+  }
+}

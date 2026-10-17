@@ -49,8 +49,9 @@ export const driverContractText = (contract: DriverContract) =>
 
 /**
  * The host component that declares what the driver needs: its process (an executable the site
- * policy binds), its devices and its network destinations. List it in the application manifest's
- * `components`, so the security manifest, the site policy check and the firewall exports see it.
+ * policy binds, carrying the outbox target named after the contract), its devices and its network
+ * destinations. The driver plugin's manifest lists it, so the security manifest, the site policy
+ * check and the firewall exports see it.
  */
 export function driverComponent(contract: DriverContract): HostComponent {
   const { id, purpose, availability, network, secrets } = contract.process;
@@ -65,6 +66,7 @@ export function driverComponent(contract: DriverContract): HostComponent {
           purpose,
           availability,
           network: network ?? [],
+          targets: [contract.id],
           ...(secrets ? { secrets } : {}),
         },
       ],
