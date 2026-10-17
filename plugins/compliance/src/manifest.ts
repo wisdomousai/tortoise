@@ -5,6 +5,7 @@ import type {
   NetworkDestination,
   ProcessRequirement,
 } from '@agent-native/contracts';
+import { osManifest, osTables, type OsManifest } from './os-manifest';
 
 /** One operation's path off the host: which destinations its effects reach, carrying what. */
 export interface DataFlow {
@@ -32,6 +33,8 @@ export interface SecurityManifest {
   readonly devices: readonly (DeviceRequirement & { readonly owner: string })[];
   readonly processes: readonly (ProcessRequirement & { readonly owner: string })[];
   readonly flows: readonly DataFlow[];
+  /** OS handlers (local ingress) and OS actions (local egress). See `OsManifest`. */
+  readonly os: OsManifest;
   readonly summary: {
     readonly egress: number;
     readonly ingress: number;
@@ -74,6 +77,7 @@ export function securityManifest(options: {
       ? { id, kind: 'component' as const, description: components.get(id)!.description }
       : { id, kind: 'module' as const },
   );
+  const os = osManifest(catalog);
   const flows = catalog.operations
     .filter(
       (operation) => (operation.integration || operation.remote) && operation.destinations?.length,
@@ -96,6 +100,7 @@ export function securityManifest(options: {
     devices: [...devices],
     processes: [...processes],
     flows,
+    os,
     summary: {
       egress: network.filter((item) => item.direction === 'egress').length,
       ingress: network.filter((item) => item.direction === 'ingress').length,
@@ -107,7 +112,10 @@ export function securityManifest(options: {
       required: sorted(
         network.filter((item) => item.availability === 'required').map((item) => item.id),
       ),
-      dataClasses: sorted(network.flatMap((item) => item.dataClasses)),
+      dataClasses: sorted([
+        ...network.flatMap((item) => item.dataClasses),
+        ...os.actions.flatMap((item) => item.dataClasses),
+      ]),
     },
   };
 }
@@ -218,5 +226,6 @@ export function dataFlowsMarkdown(manifest: SecurityManifest): string {
     ...flowDiagram(manifest),
     ...destinationTables(manifest),
     ...deviceAndProcessTables(manifest),
+    ...osTables(manifest.os),
   ].join('\n');
 }

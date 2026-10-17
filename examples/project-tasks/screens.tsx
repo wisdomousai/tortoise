@@ -5,6 +5,7 @@ import { webhookScreens } from '@agent-native/webhook/plugin-screens';
 import manifest from './manifest';
 import { ProjectList, ProjectScreen, ProjectsScreen } from './ui/projects';
 import { OpenProposalCount, ProposalsScreen } from './ui/proposals';
+import { projectPath, taskProjectPath } from './ui/projects/shared';
 
 /**
  * The project-tasks screens the web frame renders. The sidebar lists the projects; each opens at
@@ -25,6 +26,8 @@ export default defineScreens({
     { prefix: 'task.', to: '/projects' },
     { prefix: 'proposal.', to: '/proposals' },
   ],
+  // Where a project or task resource opens, for OS links and agent runs alike.
+  resources: { project: projectPath, task: taskProjectPath },
   sidebar: ProjectList,
   plugins: [complianceScreens, webhookScreens],
 });

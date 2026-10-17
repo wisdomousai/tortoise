@@ -16,6 +16,8 @@ import {
 import { readApplicationIdentity } from '@agent-native/host/config';
 import { optionalHostPackages } from '@agent-native/host/optional-packages';
 import { loadManifest, readStarterConfig } from '@agent-native/host/config';
+import { deploymentCatalog } from '@agent-native/host/components';
+import { desktopOsConfig } from '@agent-native/shell';
 import { writeApplicationEntry } from './application-entry';
 
 export async function stageDesktop(target: DesktopTarget, output?: string) {
@@ -70,7 +72,13 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   });
   if (!build.success) throw new Error(build.logs.map((log) => log.message).join('\n'));
   await chmod(service, 0o755);
-  const { id } = await loadManifest(readStarterConfig(resolve(root, 'app.config.json')));
+  const application = await loadManifest(readStarterConfig(resolve(root, 'app.config.json')));
+  const { id } = application;
+  // The URL scheme and file types the package registers, derived from the declared OS handlers.
+  await writeFile(
+    resolve(stage, 'os-registrations.json'),
+    `${JSON.stringify(desktopOsConfig(deploymentCatalog(application).os, identity), null, 2)}\n`,
+  );
   // The web build of the hosted application (`bun run build:web`).
   await cp(resolve(root, 'dist/web', id), resolve(resources, 'web'), { recursive: true });
   const sitePolicy = resolve(resources, 'site-policy.json');

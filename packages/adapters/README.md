@@ -15,6 +15,7 @@ Layer: framework (`packages/*`). The host composes these; applications rarely im
 - [Authority](../../docs/primitives.md#authority): `acquireExclusiveLock`, the portable lock the mobile platform owns its workspace with.
 - [Blob store](../../docs/primitives.md#blob-store): `createFileBlobStore`, the HTTP routes `POST /api/v1/blobs` and `GET /api/v1/blobs/:digest`, and blobs on the direct transport.
 - [UI session context](../../docs/primitives.md#ui-session-context): `UiSessionStore`.
+- [Shell port](../../docs/primitives.md#shell-port): `UiDeliveryStore`, `validDelivery`: what accepted OS requests asked each session's frame to show.
 
 The [adapter guide](../../docs/adapters.md) explains how to replace one.
 
@@ -41,6 +42,7 @@ Import a subpath. The root export holds only `adapterContractVersion`.
 | `@agent-native/adapters/ownership`        | server only | `acquireWorkspaceOwnership`: an OS-held SQLite lock, one owner per workspace.                                                                                                                   |
 | `@agent-native/adapters/casl`             | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.                                                                                           |
 | `@agent-native/adapters/ui-sessions`      | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents.                                                                                                                  |
+| `@agent-native/adapters/ui-deliveries`    | server only | `UiDeliveryStore`: what accepted OS requests asked each session's frame to show, held per session token.                                                                                        |
 
 `version` holds `adapterContractVersion`, which the root barrel re-exports. Two adapters are composers over a folder of parts that are imported only from inside the package:
 
@@ -69,6 +71,7 @@ bun test packages/adapters
 - `src/sqlite.test.ts`: a rolled-back transaction leaves the initial state untouched; blob references persist and older documents load without them.
 - `src/blob-files.test.ts`: storing, listing, reading and removing by digest; a repeated store refreshes `storedAt`; invalid digests never become paths.
 - `src/http-blobs.test.ts`: upload, attach and read over HTTP with the client transport; sandboxed download headers; size and media-type refusals; blobs on the direct transport.
+- `src/ui-deliveries.test.ts`: deliveries are taken only by the session that submitted the request, expire, are revalidated and rejected when access is gone; malformed deliveries, a token reused by another principal and a full inbox.
 - `src/ownership.test.ts`: one owner per workspace across processes, path aliases and a killed owner.
 - `src/mcp.test.ts`: each agent definition is an MCP resource with its instructions, tool names and budgets.
 - `src/cli.test.ts`: catalog-derived words and typed flags, `--json` input, dry-run, generated help and exit codes mapped from error codes.

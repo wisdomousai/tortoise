@@ -8,6 +8,24 @@ export interface ApplicationIdentity {
   name: string;
   displayName: string;
   appId: string;
+  /**
+   * The custom URL scheme OS link handlers register under. `app.config.json` may set it; the
+   * default is the reverse-DNS `appId` in lower case (RFC 8252), so content never names one.
+   */
+  scheme: string;
+}
+
+const reservedSchemes = new Set(
+  'about blob data file ftp http https javascript mailto sms tel ws wss content intent'.split(' '),
+);
+/** A valid, unreserved RFC 3986 scheme, from configuration or derived from the application ID. */
+function urlScheme(configured: unknown, appId: string): string {
+  if (configured !== undefined && typeof configured !== 'string')
+    throw new Error('Invalid application identity fields');
+  const scheme = configured ?? appId.toLowerCase().replace(/_/g, '-');
+  if (!/^[a-z][a-z0-9+.-]{1,63}$/.test(scheme) || reservedSchemes.has(scheme))
+    throw new Error(`Invalid URL scheme "${scheme}"`);
+  return scheme;
 }
 /**
  * The starter's configuration (`app.config.json`): its platform identity and the one application
@@ -39,7 +57,12 @@ export function readApplicationIdentity(path: string): ApplicationIdentity {
     !/^[A-Za-z][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)+$/.test(identity.appId)
   )
     throw new Error('Invalid application identity fields');
-  return { name: identity.name, displayName: identity.displayName, appId: identity.appId };
+  return {
+    name: identity.name,
+    displayName: identity.displayName,
+    appId: identity.appId,
+    scheme: urlScheme(identity.scheme, identity.appId),
+  };
 }
 
 /**

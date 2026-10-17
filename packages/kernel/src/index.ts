@@ -61,3 +61,4 @@ export {
   type OpenAuthorityOptions,
 } from './authority';
 export { assertGlobals, installGlobals, missingGlobals, type RequiredGlobal } from './globals';
+export { noShell, type ShellAdapter, type ShellPort } from './shell';

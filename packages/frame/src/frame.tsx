@@ -6,6 +6,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  Outlet,
   redirect,
   RouterProvider,
 } from '@tanstack/react-router';
@@ -13,6 +14,8 @@ import type { ApplicationScreens } from '@agent-native/frame/screens';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AppShell } from '@/components/app-shell';
 import { ScreensProvider } from '@/screens-context';
+import { useBrowserOsInput } from '@/lib/os-browser';
+import { useOsDeliveries } from '@/lib/os-deliveries';
 import { live, queryClient } from '@/lib/session';
 
 /**
@@ -21,8 +24,18 @@ import { live, queryClient } from '@/lib/session';
  * Hash history: the local authority serves a flat static directory without SPA fallbacks, and
  * Electron loads the same build; deep links still work on reload.
  */
+/**
+ * Every layout's parent: submits the links and files the browser launched the page with, and
+ * takes what OS requests asked the frame to open or prefill.
+ */
+function FrameRoot({ screens }: { screens: ApplicationScreens }) {
+  useBrowserOsInput();
+  useOsDeliveries(screens);
+  return <Outlet />;
+}
+
 function createFrameRouter(screens: ApplicationScreens) {
-  const rootRoute = createRootRoute();
+  const rootRoute = createRootRoute({ component: () => <FrameRoot screens={screens} /> });
   const indexRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/',

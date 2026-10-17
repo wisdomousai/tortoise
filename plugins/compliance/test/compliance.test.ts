@@ -120,6 +120,46 @@ describe('generated compliance artifacts', () => {
     expect(markdown).toContain('```mermaid');
     expect(markdown).toContain('proc_agent_cli -. may reach .-> vendor_api');
     expect(markdown).toContain('| `scanner` | plant | hid |');
+    expect(manifest.os).toEqual({ handlers: [], actions: [] });
+    expect(markdown).not.toContain('## OS handlers and actions');
+  });
+
+  test('OS handlers are listed as local ingress and OS actions with their data classes', () => {
+    const opener = defineHostComponent({
+      id: 'docs-opener',
+      description: 'Opens documentation.',
+      requirements: {},
+      os: {
+        actions: [
+          {
+            id: 'docs.open',
+            kind: 'open',
+            description: 'Open the documentation.',
+            url: 'https://docs.example.com/guide',
+            dataClasses: ['docs-link'],
+          },
+        ],
+      },
+    });
+    const withOs = buildCatalog([complianceModule], { components: [plant, opener] });
+    const manifest = securityManifest({
+      application: 'agent-native',
+      catalog: withOs,
+      components: [plant, opener],
+    });
+    expect(manifest.os.actions).toEqual([
+      {
+        id: 'docs.open',
+        owner: 'docs-opener',
+        kind: 'open',
+        reaches: 'https://docs.example.com/guide',
+        dataClasses: ['docs-link'],
+      },
+    ]);
+    expect(manifest.summary.dataClasses).toContain('docs-link');
+    expect(dataFlowsMarkdown(manifest)).toContain(
+      '| `docs.open` | docs-opener | open | https://docs.example.com/guide | docs-link |',
+    );
   });
 
   const lock = `{

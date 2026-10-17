@@ -1,3 +1,4 @@
+import type { OsDeclarations } from './os';
 /**
  * Declared environment requirements: what a module or host component needs from the network,
  * attached devices and child processes. Declarations are browser-safe data. They grant nothing by
@@ -78,6 +79,8 @@ export interface HostComponent {
   readonly id: string;
   readonly description: string;
   readonly requirements: Requirements;
+  /** OS handlers and actions the component uses, such as opening a provider's sign-in page. */
+  readonly os?: OsDeclarations;
 }
 export function defineHostComponent<const C extends HostComponent>(component: C): C {
   return Object.freeze(component);

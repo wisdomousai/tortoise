@@ -6139,6 +6139,88 @@
       }
     }
   ],
+  "os": {
+    "actions": [
+      {
+        "dataClasses": [
+          "oauth-authorization"
+        ],
+        "description": "Open ChatGPT sign-in in the system browser.",
+        "id": "openai.authorize",
+        "kind": "open",
+        "owner": "openai",
+        "params": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "agent_name_hint": {
+              "maxLength": 200,
+              "type": "string"
+            },
+            "client_id": {
+              "pattern": "^[A-Za-z0-9_.:-]{1,256}$",
+              "type": "string"
+            },
+            "code_challenge": {
+              "pattern": "^[A-Za-z0-9_-]{43}$",
+              "type": "string"
+            },
+            "code_challenge_method": {
+              "const": "S256",
+              "type": "string"
+            },
+            "ext_agent_host_id": {
+              "pattern": "^urn:uuid:[A-Fa-f0-9-]{36}$",
+              "type": "string"
+            },
+            "login_hint": {
+              "maxLength": 320,
+              "type": "string"
+            },
+            "nonce": {
+              "pattern": "^[A-Za-z0-9_-]{43}$",
+              "type": "string"
+            },
+            "redirect_uri": {
+              "pattern": "^http:\\/\\/(?:127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}\\/oauth\\/chatgpt\\/callback$",
+              "type": "string"
+            },
+            "resource": {
+              "const": "https://api.openai.com/v1",
+              "type": "string"
+            },
+            "response_type": {
+              "const": "code",
+              "type": "string"
+            },
+            "scope": {
+              "pattern": "^[a-z_.:]+(?: [a-z_.:]+){0,15}$",
+              "type": "string"
+            },
+            "state": {
+              "pattern": "^[A-Za-z0-9_-]{43}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "client_id",
+            "ext_agent_host_id",
+            "response_type",
+            "redirect_uri",
+            "scope",
+            "resource",
+            "state",
+            "nonce",
+            "code_challenge_method",
+            "code_challenge"
+          ],
+          "type": "object"
+        },
+        "url": "https://auth.openai.com/api/accounts/authorize"
+      }
+    ],
+    "handlers": []
+  },
   "requirements": {
     "devices": [
       {

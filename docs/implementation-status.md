@@ -186,6 +186,21 @@ Plugins can ship native code. Manifests that name native code without a mobile p
 
 **Not shown.** The mobile platform has not run on a device: the Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes. The native frame and components have not rendered. The plugins' Kotlin and Swift modules have not been compiled: no Android or iOS build has been produced, and nothing has run on an emulator, simulator or device. Test DPC restrictions, `simctl` managed configuration and `adb` scan broadcasts are the planned on-demand checks.
 
+### OS integration
+
+**Shown, deterministic.**
+
+- Declarations: modules and host components declare OS handlers and OS actions. The catalog validates them (`packages/contracts/test/os.test.ts`), and the security manifest and data-flow document list them (`plugins/compliance/test/compliance.test.ts`). The URL scheme comes from the application identity and refuses reserved schemes (`packages/host/test/config.test.ts`).
+- Matching and generation: request parsing, link and file matching, target templates, open-URL and file-path construction, and the native, desktop and web registrations (`packages/shell/test/shell.test.ts`).
+- The shell port: the kernel default refuses every call (`packages/kernel/test/shell.test.ts`). With the OS plugin, a fixture application served over HTTP delivers a link and a text file to the submitting session only, refuses unknown, malformed, disabled and rate-limited requests, logs no content, returns an open action to a page, relays it to an attached adapter, and refuses startup for an unserved kind (`plugins/os/test/os.test.ts`). Deliveries are per session, expire and are revalidated (`packages/adapters/src/ui-deliveries.test.ts`).
+- Desktop adapter, without Electron: command lines with and without `--`, injected switches, UNC and relative paths, second-instance data, input buffered until connect, undeclared files left unread, relayed actions checked against the declarations again, and page opens with and without the shell port (`packages/shell/test/desktop.test.ts`). The ChatGPT authorization URL is one the declared `openai.authorize` action builds, and a changed flow, endpoint, callback or extra parameter is not (`packages/agents/test/requirements.test.ts`).
+- Project tasks over HTTP: a task link opens its task, a Markdown file prefills `task.create` without committing, and adding it twice with one key adds one task (`examples/project-tasks/test/os.test.ts`).
+
+- Browser landing: a landing URL with exactly one `os` or `os-shortcut` parameter becomes a request (`packages/shell/test/desktop.test.ts`), and the host serves that one cross-site navigation as a page while it refuses other cross-site requests, other paths, extra parameters, frames and fetches (`plugins/os/test/os.test.ts`).
+- Browser, Chromium (`examples/project-tasks/e2e/os.pw.ts`): the served web manifest carries the protocol and file handlers; a `?os=` landing with a task link opens that task's project, shows where it came from and clears the address; a submitted Markdown file shows the prefilled task with its provenance, and adding it creates the task.
+
+**Not shown.** Nothing has been registered with, received from or performed through a real OS: the Electron wiring (`apps/desktop/src/os-shell.ts`) has no native run, and a macOS link or file reaches it only from a packaged bundle. No installed web app has registered the protocol or file handlers, the launch queue path has not run in a browser, and whether a Chromium version accepts the SVG icon for installation is not checked. `runOsAction` has no caller yet. No mobile adapter exists.
+
 ### Layers and scaffold
 
 **Shown, deterministic.** The boundary check resolves imports by layer, including workspace package names and the browser graph of each application. A single-example export installs with a frozen lockfile and passes its own checks. `scaffold new` generates an application that installs with a frozen lockfile; after `add collection`, `add capability` and `add target` it passes format, generation and the drift check, typecheck, build, its unit tests and a Playwright spec that creates, opens and edits a record through the default screens (`bun run test:scaffold:full`, 17 October 2026).

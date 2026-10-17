@@ -11,7 +11,7 @@ import type { JsonObject } from './json';
 
 /** Which surface carried the request. Derived by the host, never supplied by the caller. */
 export type AuditChannel =
-  'direct' | 'http' | 'mcp' | 'cli' | 'embedded' | 'integration' | 'harness' | 'host';
+  'direct' | 'http' | 'mcp' | 'cli' | 'embedded' | 'integration' | 'harness' | 'host' | 'shell';
 
 export type AuditOutcome =
   | 'accepted'
@@ -101,6 +101,11 @@ export const auditEventKinds = {
   'blob.stored': 'A caller uploaded a blob into the workspace staging area.',
   'blob.read': 'A caller read a blob through a resource it may read.',
   'blob.denied': 'A blob upload or read was refused.',
+  'os.request.received':
+    'An OS request matched a declared handler; delivering it to the frame is authorized separately.',
+  'os.request.refused': 'An OS request matched no enabled handler or failed validation.',
+  'os.action.performed': 'A declared OS action was handed to the shell.',
+  'os.action.refused': 'An OS action was undeclared, disabled, malformed or had no shell.',
 } as const;
 export type FrameworkAuditKind = keyof typeof auditEventKinds;
 

@@ -17,3 +17,25 @@ export async function serveStatic(webRoot: string | undefined, path: string) {
   if (!(await file.exists())) return undefined;
   return new Response(file, { headers: staticHeaders });
 }
+
+/**
+ * The page an OS link lands on in a browser. A protocol handler navigates to `/?os=<link>` (and a
+ * manifest shortcut to `/?os-shortcut=<id>`) from whichever site held the link, so this one
+ * top-level document navigation is served although it is cross-site; every other cross-site
+ * request stays refused. It returns only the static frame. The page then submits the link
+ * same-origin as its own session, and an unsolicited request can only open or prefill.
+ */
+export async function serveOsLanding(webRoot: string | undefined, request: Request) {
+  const url = new URL(request.url);
+  const keys = [...url.searchParams.keys()];
+  if (
+    request.method !== 'GET' ||
+    url.pathname !== '/' ||
+    keys.length !== 1 ||
+    !['os', 'os-shortcut'].includes(keys[0]!) ||
+    request.headers.get('sec-fetch-mode') !== 'navigate' ||
+    request.headers.get('sec-fetch-dest') !== 'document'
+  )
+    return undefined;
+  return serveStatic(webRoot, '/');
+}

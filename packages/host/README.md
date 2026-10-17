@@ -10,6 +10,7 @@ Layer: framework (`packages/*`). The starter's `apps/service` calls it; content 
 - [Host](../../docs/primitives.md#host): `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `readMobileTarget`, `loadApplication`, `loadManifest`, `hostComponents`, `deploymentCatalog`, `deploymentRequirements`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `PluginManifest`, `PluginSetting`, `PluginModules`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `PluginOpenContext`, `PluginStartContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `readPluginSettings`, `PluginSettings`. The definitions and the ports come from [`@agent-native/kernel`](../kernel/README.md); the host re-exports them and adds the Bun parts.
 - [Host platform](../../docs/primitives.md#host-platform): `bunPlatform` (sockets, child processes and loopback ingress; SQLite storage, a file blob store in the workspace's `blobs` directory and the OS workspace lock), `BunNetworkPort`, `bunSocket`, `childEnvironment`.
+- [Shell port](../../docs/primitives.md#shell-port): the shell routes (`POST /api/v1/shell/requests`, `POST /api/v1/shell/actions`, `GET /api/v1/shell/actions` and `POST /api/v1/shell/actions/:id/result` for an adapter in another process, `GET /api/v1/shell/declarations`) and the delivery routes (`GET /api/v1/ui/deliveries`, `POST /api/v1/ui/deliveries/:id/ack`).
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus host components the generators read.
 
@@ -17,24 +18,24 @@ Each example's `manifest.ts` and `application.ts` show the two content entrypoin
 
 ## Entrypoints
 
-| Import                                 | Runs in     | Contents                                                                                                                       |
-| -------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `@agent-native/host`                   | server only | The public API listed under Primitives.                                                                                        |
-| `@agent-native/host/*`                 | server only | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                         |
-| `@agent-native/host/manifest`          | browser     | `defineManifest`: an application's id, title and modules. Imports no host code.                                                |
-| `@agent-native/host/plugin-manifest`   | browser     | `definePluginManifest`, `PluginSetting`: a plugin's id, modules, components and settings. Imports no host code.                |
-| `@agent-native/host/plugin`            | server only | The kernel's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket` and `childEnvironment`. |
-| `@agent-native/host/application`       | server only | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                 |
-| `@agent-native/host/config`            | server only | `app.config.json` reading and runtime resolution of the configured application (`loadApplication`, `loadManifest`).            |
-| `@agent-native/host/mobile-target`     | build time  | `readMobileTarget`: the application the mobile app hosts, from `targets.mobile` in `app.config.json`.                          |
-| `@agent-native/host/serve`             | server only | `serve`: run the HTTP authority until SIGINT/SIGTERM; the first stdout line is a `listening` JSON record.                      |
-| `@agent-native/host/cli`               | server only | `createCli`: catalog-derived CLI with `serve`, `mcp`, `drain`, `sync` and attached or `--embedded` authorities.                |
-| `@agent-native/host/platform/bun`      | server only | `bunPlatform` and `workspaceStorage`: the kernel's host platform on Bun.                                                       |
-| `@agent-native/host/embedded`          | server only | `openEmbeddedAuthority`, `workspaceStorage`, `LOCAL_OWNER`, `LOCAL_WORKSPACE`.                                                 |
-| `@agent-native/host/components`        | server only | The host's own declared requirements (listener, providers), `deploymentCatalog` and `deploymentRequirements`.                  |
-| `@agent-native/host/providers`         | server only | `createProviderAccess`: provider accounts, API-key funding and harness construction.                                           |
-| `@agent-native/host/runtime-manifest`  | server only | Digest checks for the packaged service and its shipped site policy.                                                            |
-| `@agent-native/host/optional-packages` | server only | Packages loaded only when an optional adapter is configured; standalone builds keep them external.                             |
+| Import                                 | Runs in     | Contents                                                                                                                             |
+| -------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `@agent-native/host`                   | server only | The public API listed under Primitives.                                                                                              |
+| `@agent-native/host/*`                 | server only | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                               |
+| `@agent-native/host/manifest`          | browser     | `defineManifest`: an application's id, title and modules. Imports no host code.                                                      |
+| `@agent-native/host/plugin-manifest`   | browser     | `definePluginManifest`, `PluginSetting`: a plugin's id, modules, components and settings. Imports no host code.                      |
+| `@agent-native/host/plugin`            | server only | The kernel's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket` and `childEnvironment`.       |
+| `@agent-native/host/application`       | server only | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                       |
+| `@agent-native/host/config`            | server only | `app.config.json` reading, the URL scheme, and runtime resolution of the configured application (`loadApplication`, `loadManifest`). |
+| `@agent-native/host/mobile-target`     | build time  | `readMobileTarget`: the application the mobile app hosts, from `targets.mobile` in `app.config.json`.                                |
+| `@agent-native/host/serve`             | server only | `serve`: run the HTTP authority until SIGINT/SIGTERM; the first stdout line is a `listening` JSON record.                            |
+| `@agent-native/host/cli`               | server only | `createCli`: catalog-derived CLI with `serve`, `mcp`, `drain`, `sync` and attached or `--embedded` authorities.                      |
+| `@agent-native/host/platform/bun`      | server only | `bunPlatform` and `workspaceStorage`: the kernel's host platform on Bun.                                                             |
+| `@agent-native/host/embedded`          | server only | `openEmbeddedAuthority`, `workspaceStorage`, `LOCAL_OWNER`, `LOCAL_WORKSPACE`.                                                       |
+| `@agent-native/host/components`        | server only | The host's own declared requirements (listener, providers), `deploymentCatalog` and `deploymentRequirements`.                        |
+| `@agent-native/host/providers`         | server only | `createProviderAccess`: provider accounts, API-key funding and harness construction.                                                 |
+| `@agent-native/host/runtime-manifest`  | server only | Digest checks for the packaged service and its shipped site policy.                                                                  |
+| `@agent-native/host/optional-packages` | server only | Packages loaded only when an optional adapter is configured; standalone builds keep them external.                                   |
 
 `host` and `integrations` are also importable by path; prefer the root export.
 
@@ -52,6 +53,10 @@ An application definition is trusted code: its policy, handlers and connections 
 
 One authority per workspace, enforced by the same OS lock for a serving and an embedded host. Embedded authorities never start observers. Observers start only after the host listens, and a failed start stops the ones already running. Plugins are trusted code like the definition. They open before storage, so a plugin that refuses (an unusable policy) stops startup before state is opened. A plugin's `start` runs only in a serving host, after it listens, as the local owner narrowed by a grant. Without a provider the network port refuses every destination, ingress binds 127.0.0.1, identity admits the local owner and there is no audit log. Two providers of one port refuse startup, and so does a supplied setting no plugin declares. Agent runs reach providers only through `ports.network`. `providers.ts` falls back to global `fetch` only when constructed without one, an exemption listed in `scripts/boundary-rules.ts`, and `check:boundaries` fails if `src/` imports `security`, `assurance`, `egress` or `event-log`.
 
+The shell routes answer `UNAVAILABLE` unless a plugin provides the shell port. A request an adapter submits is delivered only to the submitting session's frame, after the delivery store authorizes it; the response says only whether it was delivered, consumed or refused. An adapter in another process attaches by long-polling `GET /api/v1/shell/actions` with its own bearer; only that session can answer the instructions it took, an unanswered instruction counts as not performed after 30 seconds, and a relay that stops polling for a minute or whose session is revoked is detached. The embedded authority (one-shot CLI, embedded MCP) has no shell routes and attaches no adapter.
+
+Every cross-site request is refused except two public routes: the provider OAuth callback, and the browser landing for OS links (`serveOsLanding`). The landing serves only `index.html`, only for a top-level document navigation (`Sec-Fetch-Mode: navigate`, `Sec-Fetch-Dest: document`) to `/` with exactly one `os` or `os-shortcut` parameter, because a protocol handler navigates there from whichever site held the link. The page then submits the link same-origin as its own session.
+
 Provider credentials pay for inference and never grant workspace access. Startup and status never read the vault.
 
 Environment the host reads: `WORKSPACE_PATH`, `AGENT_NATIVE_APPLICATION`, `AGENT_NATIVE_CONNECTION`, `AGENT_NATIVE_GRANT_FILE`, `AGENT_RUNTIME_MANIFEST`, plus each composed plugin's declared settings (`readPluginSettings`).
@@ -67,4 +72,4 @@ bun test packages/host
 bun run test:service
 ```
 
-`test/plugins.test.ts` covers plugin composition and the kernel ports: manifest merge and collisions, list order and `requires`, slices kept across upgrades, policy routing, open order, cleanup after a failed open, duplicate ports, null defaults, claimed settings, `ready` in an embedded authority and `start` as a delegated caller. `test/providers.test.ts` covers provider access: no credential reads at startup, single-use OAuth callbacks bound to their session, explicit API-key funding and no leaked provider error text. Host behavior against real operations is tested in content: each example's `test/application.test.ts`, and `examples/project-tasks/test/host.test.ts`, `hardening.test.ts` and `security-conformance.test.ts`.
+The shell and delivery routes are tested with a fixture application in `plugins/os/test/os.test.ts`. `test/config.test.ts` covers the URL scheme: its default from the application ID and the refusal of reserved or malformed schemes. `test/plugins.test.ts` covers plugin composition and the kernel ports: manifest merge and collisions, list order and `requires`, slices kept across upgrades, policy routing, open order, cleanup after a failed open, duplicate ports, null defaults, claimed settings, `ready` in an embedded authority and `start` as a delegated caller. `test/providers.test.ts` covers provider access: no credential reads at startup, single-use OAuth callbacks bound to their session, explicit API-key funding and no leaked provider error text. Host behavior against real operations is tested in content: each example's `test/application.test.ts`, and `examples/project-tasks/test/host.test.ts`, `hardening.test.ts` and `security-conformance.test.ts`.

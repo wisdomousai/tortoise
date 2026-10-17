@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:ada841d8-f23a-57ee-9a68-e2cabb12dc3f",
+  "serialNumber": "urn:uuid:c0205c2b-5d9d-5941-841b-a55fee71c920",
   "version": 1,
   "metadata": {
     "tools": {
@@ -15992,6 +15992,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/os",
+      "name": "@agent-native/os",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/os"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/project-tasks",
       "name": "@agent-native/project-tasks",
       "properties": [
@@ -16061,6 +16073,18 @@
         }
       ],
       "scope": "excluded"
+    },
+    {
+      "type": "library",
+      "bom-ref": "workspace:@agent-native/shell",
+      "name": "@agent-native/shell",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "packages/shell"
+        }
+      ],
+      "scope": "required"
     },
     {
       "type": "library",
@@ -16438,11 +16462,13 @@
         "workspace:@agent-native/mobile",
         "workspace:@agent-native/network",
         "workspace:@agent-native/operator-ui",
+        "workspace:@agent-native/os",
         "workspace:@agent-native/project-tasks",
         "workspace:@agent-native/quality-inspection",
         "workspace:@agent-native/react",
         "workspace:@agent-native/runtime",
         "workspace:@agent-native/scaffold",
+        "workspace:@agent-native/shell",
         "workspace:@agent-native/site",
         "workspace:@agent-native/station",
         "workspace:@agent-native/testing",
@@ -23771,6 +23797,10 @@
       "dependsOn": []
     },
     {
+      "ref": "workspace:@agent-native/os",
+      "dependsOn": []
+    },
+    {
       "ref": "workspace:@agent-native/project-tasks",
       "dependsOn": []
     },
@@ -23792,6 +23822,10 @@
     },
     {
       "ref": "workspace:@agent-native/service",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/shell",
       "dependsOn": []
     },
     {

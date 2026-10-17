@@ -389,6 +389,50 @@ Gaps: no source has been checked on real hardware. Device access is declared but
 
 implemented · `packages/devices` `plugins/intent-scanner`
 
+### OS handler
+
+_A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or reply, and where its requests go._
+
+Other applications on the device are callers too: a link clicked in a mail client, a file opened from Finder, text shared from a browser. A module or host component declares what it registers and a target for each request: open a selectable resource, navigate to a screen, prefill a command's form, or hand the request to a composed plugin. Platform registrations (Electron packaging, Expo configuration, the web manifest) are generated from the same declarations, so nothing registers at runtime. The URL scheme comes from the application identity, so content declares paths and never names the product.
+
+A request reaches the frame as a delivery for the session that submitted it. The frame opens the resource through the screen its kind declares, navigates, or fills the command's form and shows where the values came from; a person submits it through the ordinary binding.
+
+Guarantees: composition refuses duplicate ids, two handlers on one path shape, file extension or media type, a template naming a field the request does not carry, a prefill whose command has no UI binding or whose keys are not input fields, and payload limits outside 1 byte to 1 MiB of text or 256 MiB of blob. Matching accepts only the application's own scheme and configured verified hosts, validates parameters with the handler's schema, and refuses credentials, dot segments and encoded slashes. An unsolicited request never commits: it only opens a resource the caller may read (checked when queued and again when taken), navigates or prefills. Deliveries go only to the submitting session and expire after two minutes. Requests are audited by digest and reason code, never content. The security manifest lists every handler as local ingress.
+
+Gaps: the desktop adapter submits links and text files, but nothing has been received from a real OS yet: macOS reads the scheme and document types only from a packaged bundle, and the Linux and Windows `dir` builds register no file types. The browser adapter submits `?os=` landings and launch-queue text files, and the web manifest declares the handlers, but no installed web app has registered them yet. No mobile adapter exists. Blob payloads, share, intent, shortcut and reply handlers wait for their plugins.
+
+partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `plugins/compliance` `apps/desktop` `examples/project-tasks`
+
+### OS action
+
+_A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it carries._
+
+The outbound counterpart of an OS handler. An application can only ask the OS for what it declared, and the URL or path is built from the declaration's template, never from a caller's string, so no generic URL-opening method exists for an agent or a page. A notify action can carry an outbox target, so a command's effect becomes a notification.
+
+Guarantees: an open action is `https:`, `mailto:` or `tel:` with a fixed host and no credentials, query or fragment, and its placeholders must be declared parameters; values are encoded into their own path segment and the result must keep the declared host. A file path stays below a configured root. A notify action's replies must name declared reply handlers, and one that carries an outbox target must queue while offline. An action runs through the adapter attached for the caller, or returns to a page to run while it has user activation. The security manifest lists each action with its data classes; the audit log records only the URL's origin.
+
+The desktop window opens a URL only when a declared open action builds it; the provider sign-in is the `openai.authorize` action of the OpenAI host component, so its whole rule is that action's parameter schema.
+
+Gaps: no action has been performed on a real OS yet. Without the OS plugin, the desktop opens a declared URL itself and nothing is audited. No plugin declares the root directory settings that reveal and open-file need, and notify waits for its plugin.
+
+partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance` `packages/agents` `apps/desktop` `packages/frame`
+
+### Shell port
+
+_The kernel port that receives OS requests and performs OS actions; its default refuses both._
+
+The kernel has no OS integration of its own. The OS plugin provides the port; the host exposes it over HTTP, so Electron main and a browser page submit requests with their session's bearer, and an adapter in another process attaches by long-polling for instructions. A platform that runs the OS in-process, as mobile will, supplies its adapter on the host platform.
+
+Guarantees: without a provider every call is `UNAVAILABLE`, and two providers refuse startup. A request is attributed to the submitting session and never sets the principal, workspace or grant. A relayed instruction can be answered only by the session that took it, counts as not performed after 30 seconds, and the relay detaches when its session is revoked or stops polling. Startup refuses a declared kind that no composed plugin serves.
+
+The desktop shell adapter (`createDesktopShell`) holds the platform-neutral part: buffering until the authority is reachable, reading only declared text files, the relay loop and the open check. Electron main supplies the OS calls and the loopback client.
+
+A browser page attaches no adapter: it runs an open or share instruction itself (`runOsAction`).
+
+Gaps: the embedded authority has no shell routes. Only HTTP adapters can attach on the Bun host. No Expo adapter exists yet.
+
+partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell` `plugins/os` `apps/desktop`
+
 ### UI registry
 
 _Reusable screen parts published as shadcn registries over stock shadcn primitives._

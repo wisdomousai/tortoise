@@ -10,6 +10,9 @@ import type { ApplicationManifest } from './manifest';
 import type { HostPlatform } from './platform';
 import type { PluginManifest } from './plugin-manifest';
 import type { PluginSettings } from './plugins/settings';
+import type { ShellPort } from './shell';
+
+export { noShell, type ShellAdapter, type ShellPort } from './shell';
 
 /**
  * The only way host code reaches the network. Without a plugin that provides it, every call
@@ -60,13 +63,14 @@ export interface IdentityPort {
 
 /**
  * The kernel's ports. Each has at most one provider plugin and a safe default otherwise: no
- * network, no audit log, a loopback listener, the local owner admitted.
+ * network, no audit log, a loopback listener, the local owner admitted, no OS integration.
  */
 export interface HostPorts {
   readonly eventLog?: EventLogPort;
   readonly network: NetworkPort;
   readonly ingress: IngressPort;
   readonly identity: IdentityPort;
+  readonly shell: ShellPort;
 }
 
 /** What `provideSettings` receives. */

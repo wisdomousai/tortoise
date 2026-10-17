@@ -1,5 +1,6 @@
 import { ApplicationError } from '@agent-native/contracts';
 import type { HostPorts, IngressPort, NetworkPort, PluginInstance } from '../plugin';
+import { noShell } from '../shell';
 
 const unreachable = (what: string) =>
   new ApplicationError(
@@ -39,13 +40,14 @@ export const noIngress: IngressPort = Object.freeze({
 
 /**
  * The kernel's ports when no plugin provides them: no network, no audit log, the platform's
- * listener if it has one, and the local owner admitted.
+ * listener if it has one, the local owner admitted and no OS integration.
  */
 export function defaultPorts(ingress: IngressPort = noIngress): HostPorts {
   return Object.freeze({
     network: isolatedNetwork,
     ingress,
     identity: Object.freeze({ admit: () => undefined, localOwnerSessions: true }),
+    shell: noShell,
   });
 }
 
@@ -110,6 +112,9 @@ export function latePorts() {
     },
     get identity() {
       return resolved().identity;
+    },
+    get shell() {
+      return resolved().shell;
     },
   };
   return {

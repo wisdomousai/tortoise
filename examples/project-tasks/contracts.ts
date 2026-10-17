@@ -8,6 +8,7 @@ import {
 } from '@agent-native/contracts';
 
 export { proposalOperations };
+import { projectTasksOs } from './os';
 
 const id = z.string().min(1).max(128);
 const role = z.enum(['owner', 'editor', 'viewer']);
@@ -203,5 +204,6 @@ export const projectTasksModule = defineModule({
       budgets: { turns: 12, toolCalls: 40, wallTimeMs: 300_000 },
     }),
   ],
+  os: projectTasksOs,
 });
 export { byId };

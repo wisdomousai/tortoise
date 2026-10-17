@@ -1,6 +1,7 @@
 import { ApplicationError } from '@agent-native/contracts';
 import type { ExecutionContext } from '@agent-native/runtime';
 import type { Sessions } from '@agent-native/adapters/http';
+import { UiDeliveryStore } from '@agent-native/adapters/ui-deliveries';
 import { UiSessionStore, type UiContextInput } from '@agent-native/adapters/ui-sessions';
 import type { HostedApplication } from '../application';
 
@@ -52,6 +53,33 @@ export function createUiSessions(
         )
       )
         throw new ApplicationError('INVALID_INPUT', 'Unknown review operation');
+    },
+  });
+}
+
+/**
+ * Deliveries from OS requests. An opened resource must be readable now, as for an agent's
+ * intent; a prepared form must belong to a command the application offers in its UI. Prefilled
+ * values are untrusted and are validated again by the command when a person submits the form.
+ */
+export function createUiDeliveries(
+  application: HostedApplication,
+  sessions: Sessions,
+  selectableResources: Readonly<Record<string, string>>,
+) {
+  return new UiDeliveryStore({
+    isActive: (token) => !!sessions.get(token),
+    async validate(context, delivery) {
+      if (delivery.type === 'openResource')
+        await validateResources(application, selectableResources, context, {
+          selectedResources: [delivery.resource],
+          observedRevisions: { [delivery.resource]: 0 },
+        });
+      if (delivery.type === 'prepare') {
+        const operation = application.catalog.operations.find((o) => o.id === delivery.operation);
+        if (operation?.kind !== 'command' || !operation.ui?.binding)
+          throw new ApplicationError('INVALID_INPUT', 'Unknown prepared command');
+      }
     },
   });
 }

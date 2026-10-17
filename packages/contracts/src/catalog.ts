@@ -8,6 +8,7 @@ import type {
 } from './capability';
 import { catalogAgents, type CatalogAgent } from './agent';
 import { canonicalJson, type JsonObject } from './json';
+import { collectOs, osActionTargets, type CatalogOs } from './os-catalog';
 import {
   collectRequirements,
   destinationsForRead,
@@ -46,6 +47,8 @@ export interface Catalog {
   }[];
   /** Agent definitions with their module, sorted by ID. */
   readonly agents: readonly CatalogAgent[];
+  /** OS handlers and actions; absent when nothing is declared. */
+  readonly os?: CatalogOs;
 }
 
 /** Generators consume this pure representation, never application handlers or host services. */
@@ -108,6 +111,7 @@ function checkNaming(
 function integrationDestinations(
   capability: AnyCapability,
   requirements: CatalogRequirements,
+  osTargets: ReadonlySet<string>,
 ): readonly string[] {
   if (
     capability.integration &&
@@ -121,7 +125,12 @@ function integrationDestinations(
   const destinations = capability.integration
     ? destinationsForTarget(requirements, capability.integration.target)
     : [];
-  if (capability.integration && destinations.length === 0)
+  // A target may instead be carried by a queueing OS action, such as a local notification.
+  if (
+    capability.integration &&
+    destinations.length === 0 &&
+    !osTargets.has(capability.integration.target)
+  )
     throw new Error(
       `Outbox target ${capability.integration.target} has no declared network destination: ${capability.id}`,
     );
@@ -214,6 +223,7 @@ export function buildCatalog(
 ): Catalog {
   const moduleIds = checkModules(modules, options.components ?? []);
   const requirements = collectRequirements([...modules, ...(options.components ?? [])]);
+  const os = collectOs([...modules, ...(options.components ?? [])], modules);
   const seen = { ids: new Set<string>(), mcpNames: new Set<string>() };
   const operations: CatalogOperation[] = [];
   for (const module of modules) {
@@ -223,7 +233,7 @@ export function buildCatalog(
     for (const capability of module.capabilities) {
       const mcpName = checkNaming(capability, seen);
       const destinations = [
-        ...integrationDestinations(capability, requirements),
+        ...integrationDestinations(capability, requirements, osActionTargets(os)),
         ...remoteDestinations(capability, requirements),
       ];
       checkAuditFields(capability);
@@ -240,6 +250,7 @@ export function buildCatalog(
       new Map(operations.map((operation) => [operation.id, operation])),
     ),
     requirements,
+    ...(os ? { os } : {}),
   };
   // Copy metadata so later application mutations cannot silently alter a built catalog.
   return JSON.parse(canonicalJson(catalog)) as Catalog;

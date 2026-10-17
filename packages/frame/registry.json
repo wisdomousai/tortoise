@@ -37,7 +37,7 @@
       "name": "capability-form",
       "type": "registry:component",
       "title": "Capability form",
-      "description": "A complete form for any command capability, generated from its JSON Schema, with contract validation, a per-form idempotency key and field-level server errors.",
+      "description": "A complete form for any command capability, generated from its JSON Schema, with contract validation, a per-form idempotency key and field-level server errors. A prefill from an OS request fills the fields and shows its provenance; the person still submits.",
       "dependencies": [
         "@tanstack/react-form",
         "@agent-native/react",
@@ -50,7 +50,8 @@
         "label",
         "native-select",
         "textarea",
-        "@agent-native/session"
+        "@agent-native/session",
+        "@agent-native/os-provenance"
       ],
       "files": [
         {
@@ -165,7 +166,7 @@
       "name": "screens",
       "type": "registry:lib",
       "title": "Application screens contract",
-      "description": "The declaration an application hands the frame: routes, navigation, the screen each capability family opens, and a sidebar status slot.",
+      "description": "The declaration an application hands the frame: routes, navigation, the screen each capability family opens, the screen that shows each selectable resource kind, and sidebar slots.",
       "files": [
         {
           "path": "src/screens.ts",
@@ -187,6 +188,48 @@
         {
           "path": "src/lib/host-client.ts",
           "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "os-deliveries",
+      "type": "registry:lib",
+      "title": "OS deliveries",
+      "description": "Takes what OS requests from this session asked the frame to open, navigate to or prefill, acknowledges each, and holds prefills for capability forms.",
+      "dependencies": ["@tanstack/react-router", "@agent-native/contracts"],
+      "registryDependencies": ["@agent-native/screens", "@agent-native/ui-session"],
+      "files": [
+        {
+          "path": "src/lib/os-deliveries.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "os-browser",
+      "type": "registry:lib",
+      "title": "Browser OS input",
+      "description": "Submits the link or shortcut a browser landing URL carries and the files an installed web app was launched with, and runs declared OS actions a page may perform itself.",
+      "dependencies": ["@agent-native/contracts", "@agent-native/shell"],
+      "registryDependencies": ["@agent-native/ui-session"],
+      "files": [
+        {
+          "path": "src/lib/os-browser.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "os-provenance",
+      "type": "registry:component",
+      "title": "OS provenance notice",
+      "description": "Shows where a screen or a prefilled form the OS handed the application came from, with a dismiss or discard action.",
+      "dependencies": ["@agent-native/contracts"],
+      "registryDependencies": ["alert", "button", "@agent-native/os-deliveries"],
+      "files": [
+        {
+          "path": "src/components/os-provenance.tsx",
+          "type": "registry:component"
         }
       ]
     },
@@ -215,7 +258,13 @@
       "title": "App shell",
       "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (\u2318K). Exports NavigationCount, SidebarSection and SidebarLink.",
       "dependencies": ["@tanstack/react-router", "lucide-react"],
-      "registryDependencies": ["kbd", "@agent-native/command-palette", "@agent-native/frame"],
+      "registryDependencies": [
+        "kbd",
+        "@agent-native/command-palette",
+        "@agent-native/frame",
+        "@agent-native/os-provenance",
+        "@agent-native/os-deliveries"
+      ],
       "files": [
         {
           "path": "src/components/app-shell.tsx",
@@ -239,7 +288,9 @@
         "tooltip",
         "@agent-native/session",
         "@agent-native/screens",
-        "@agent-native/app-shell"
+        "@agent-native/app-shell",
+        "@agent-native/os-deliveries",
+        "@agent-native/os-browser"
       ],
       "files": [
         {

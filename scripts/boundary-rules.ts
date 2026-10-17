@@ -81,6 +81,8 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Falls back to global fetch only when constructed without one; the host injects the guard.',
   'apps/desktop/src/service-lifecycle.ts':
     'The desktop shell starts its own authority sidecar, which listens on loopback.',
+  'apps/desktop/src/os-shell.ts':
+    'The desktop shell submits OS requests to and polls OS actions from its loopback authority.',
   'examples/line-station/station-bridge.ts':
     'Launches Chromium for the station screen and reads simulator counters; to be routed through the station-screen destination.',
   'packages/station/src/perception/worker.ts':

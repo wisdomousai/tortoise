@@ -38,6 +38,12 @@ export interface ApplicationScreens {
   readonly home: string;
   readonly routes: readonly ScreenRoute[];
   readonly navigation: readonly NavigationItem[];
+  /**
+   * The screen path that shows a selectable resource, by kind, for an OS link or file that opens
+   * `kind:id`. A kind without an entry cannot be opened that way. Runs in the frame's query
+   * context, so it may read an authorized query, such as a task's project.
+   */
+  readonly resources?: Readonly<Record<string, (id: string) => string | Promise<string>>>;
   /** Capability id prefixes and the screen that binds them; the longest matching prefix wins. */
   readonly capabilityScreens?: readonly { readonly prefix: string; readonly to: string }[];
   /** Under the title: where and as whom the person works, for example plant and role. */

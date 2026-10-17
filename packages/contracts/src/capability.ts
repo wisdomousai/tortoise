@@ -1,6 +1,7 @@
 import type { AgentDefinition } from './agent';
 import type { BlobLimits } from './blob';
 import type { Schema } from './schema';
+import type { OsDeclarations } from './os';
 import type { Requirements } from './requirements';
 
 export interface PermissionRequirement {
@@ -80,6 +81,8 @@ export interface CapabilityModule<C extends readonly AnyCapability[] = readonly 
   readonly requires?: readonly string[];
   /** Network destinations, devices and child processes this module needs. See `Requirements`. */
   readonly requirements?: Requirements;
+  /** URL, file, share and intent handlers and the OS actions this module uses. See `OsDeclarations`. */
+  readonly os?: OsDeclarations;
   readonly workflows?: readonly {
     readonly id: string;
     readonly operations: readonly string[];

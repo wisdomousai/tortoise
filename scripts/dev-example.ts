@@ -18,7 +18,11 @@
  */
 import { join, resolve } from 'node:path';
 import { readStarterConfig } from '@agent-native/host/config';
-import { configuredApplication, starterConfigPath } from '../apps/service/src/application';
+import {
+  configuredApplication,
+  starterConfig,
+  starterConfigPath,
+} from '../apps/service/src/application';
 import { runService } from '../apps/service/src/index';
 
 export interface PreparedDevelopment {
@@ -84,7 +88,7 @@ export async function prepareDevelopment(argv: string[]): Promise<PreparedDevelo
 
 if (import.meta.main) {
   const prepared = await prepareDevelopment(process.argv.slice(2));
-  const host = await runService(await configuredApplication());
+  const host = await runService(await configuredApplication(), starterConfig());
   console.log(
     `\n${prepared.title}: open ${host.launchUrl}\n` +
       `  The link signs you in once and expires after one minute; restart for a fresh one.\n` +

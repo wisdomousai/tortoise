@@ -1,0 +1,26 @@
+export { OsRequestError, parseRawOsRequest } from './parse';
+export { matchOsRequest, type MatchOptions, type OsMatch, type OsRequestValues } from './match';
+export { fillTemplate, resolveTarget } from './targets';
+export { buildInstruction, openActionFor, openUrl, OsActionError } from './actions';
+export {
+  desktopOsConfig,
+  nativeOsConfig,
+  webManifestOs,
+  webScheme,
+  type ExpoIntentFilter,
+  type OsIdentity,
+  type OsRegistrationOptions,
+} from './registrations';
+export {
+  desktopArguments,
+  pathName,
+  receivedArguments,
+  type DesktopArguments,
+} from './desktop-arguments';
+export {
+  createDesktopShell,
+  type DesktopShell,
+  type DesktopShellClient,
+  type DesktopShellDependencies,
+} from './desktop';
+export { landingRequest, strictText, textFileHandler } from './local-files';
