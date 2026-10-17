@@ -376,7 +376,7 @@ export const controls: readonly Control[] = [
     id: 'AN-SUP-01',
     title: 'Software bill of materials',
     implementation:
-      'A CycloneDX 1.6 SBOM is generated from the lockfile with hashes, runtime/development scope and the dependency graph, and lists declared network destinations as services with their data flows.',
+      'A CycloneDX 1.6 SBOM is generated from the lockfile when a site bundle is built, with hashes, runtime/development scope and the dependency graph, and lists declared network destinations as services with their data flows. It is signed with the bundle it describes.',
     limits:
       'Licenses are not recorded in the lockfile and are omitted; vulnerability matching is a separate process.',
     status: 'implemented',
@@ -388,7 +388,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: ['plugins/compliance/test/compliance.test.ts'],
-      artifacts: ['docs/reference/quality-inspection/sbom.cdx.json'],
+      artifacts: ['sbom.cdx.json in each signed site bundle (scripts/bundle.ts)'],
       events: [],
     },
   },
