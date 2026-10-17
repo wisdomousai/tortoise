@@ -8,6 +8,7 @@
         "@agent-native/adapters": "workspace:*",
         "@agent-native/agents": "workspace:*",
         "@agent-native/android-intents": "workspace:*",
+        "@agent-native/asset-survey": "workspace:*",
         "@agent-native/audit": "workspace:*",
         "@agent-native/automation": "workspace:*",
         "@agent-native/bundle": "workspace:*",
@@ -137,6 +138,10 @@
     },
     "apps/web": {
       "name": "@agent-native/web",
+      "version": "0.1.0",
+    },
+    "examples/asset-survey": {
+      "name": "@agent-native/asset-survey",
       "version": "0.1.0",
     },
     "examples/crm-capture": {
@@ -335,6 +340,8 @@
     "@agent-native/agents": ["@agent-native/agents@workspace:packages/agents"],
 
     "@agent-native/android-intents": ["@agent-native/android-intents@workspace:plugins/android-intents"],
+
+    "@agent-native/asset-survey": ["@agent-native/asset-survey@workspace:examples/asset-survey"],
 
     "@agent-native/audit": ["@agent-native/audit@workspace:plugins/audit"],
 

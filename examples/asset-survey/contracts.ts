@@ -1,0 +1,126 @@
+import { defineModule } from '@agent-native/contracts';
+import { fieldOperations } from './contracts/captures';
+import { extractionOperations, modelTarget } from './contracts/extraction';
+import { eamAssets, eamTarget, filingOperations } from './contracts/filing';
+import { structureOperations } from './contracts/structure';
+
+export { fieldOperations } from './contracts/captures';
+export { extractionOperations, modelTarget, ATTENTION_BELOW } from './contracts/extraction';
+export { eamAssets, eamTarget, filingOperations } from './contracts/filing';
+export { structureOperations } from './contracts/structure';
+
+/** Every operation of the hub by short name, for screens and tests. */
+export const operations = {
+  ...structureOperations,
+  ...fieldOperations,
+  extractionRequest: extractionOperations.request,
+  extractionAccept: extractionOperations.accept,
+  extractionStatus: extractionOperations.status,
+  filingFile: filingOperations.file,
+  filingList: filingOperations.list,
+  filingStatus: filingOperations.status,
+} as const;
+
+export const structureModule = defineModule({
+  id: 'survey-structure',
+  capabilities: Object.values(structureOperations),
+  workflows: [
+    {
+      id: 'prepare-structure',
+      operations: [
+        'structure.tree',
+        'structure.node.search',
+        'document.list',
+        'structure.node.propose',
+      ],
+      text: 'Read structure.tree and the documents of the area. For each object a schematic or plan shows that the tree lacks, check structure.node.search for its designation, then propose it with structure.node.propose under the right parent, naming the document. A manager accepts proposals; never create nodes yourself.',
+    },
+  ],
+});
+
+export const fieldModule = defineModule({
+  id: 'survey-field',
+  capabilities: Object.values(fieldOperations),
+});
+
+export const extractionModule = defineModule({
+  id: 'survey-extraction',
+  capabilities: [
+    extractionOperations.request,
+    extractionOperations.accept,
+    ...modelTarget.capabilities,
+  ],
+  requirements: {
+    network: [
+      {
+        id: 'model-api',
+        purpose:
+          'Send capture photos to the extraction model and read back the values it proposes.',
+        direction: 'egress',
+        scope: 'internet',
+        protocol: 'https',
+        targets: ['model'],
+        dataClasses: ['equipment-photo', 'nameplate-values'],
+        availability: 'optional',
+        offline: 'queue',
+      },
+    ],
+  },
+  workflows: [
+    {
+      id: 'review-captures',
+      operations: [
+        'capture.list',
+        'capture.get',
+        'structure.node.search',
+        'capture.place',
+        'extraction.request',
+        'extraction.accept',
+        'capture.discard',
+      ],
+      text: 'Work through capture.list with review new. Open each with capture.get. Place an unplaced capture with capture.place after finding its node through structure.node.search on a scanned code or the designation on the photo. Request an extraction for nameplates without one. When the proposal arrives, compare every value flagged attention with the photo region and correct what is wrong; then a person accepts it with extraction.accept. An agent prepares and reports which captures are ready and which values it doubts; it cannot accept. Discard unusable captures with the reason.',
+    },
+  ],
+});
+
+export const filingModule = defineModule({
+  id: 'survey-filing',
+  capabilities: [
+    ...eamAssets.capabilities,
+    filingOperations.file,
+    filingOperations.list,
+    ...eamTarget.capabilities,
+  ],
+  requirements: {
+    network: [
+      {
+        id: 'eam-api',
+        purpose:
+          'Search assets in the enterprise asset management system, file surveyed nodes with their attributes and photos, and read back the assets filed.',
+        direction: 'egress',
+        scope: 'site',
+        protocol: 'https',
+        targets: ['eam'],
+        reads: ['eam'],
+        dataClasses: ['asset-record', 'equipment-photo'],
+        availability: 'optional',
+        offline: 'queue',
+      },
+    ],
+  },
+  workflows: [
+    {
+      id: 'file-assets',
+      operations: [
+        'structure.node.get',
+        'eam.asset.search',
+        'filing.file',
+        'filing.list',
+        'filing.status',
+      ],
+      text: 'For each node with accepted attributes, read structure.node.get, then search eam.asset.search by its designation and its serial. File with filing.file and the matching assetId to update, or without one to create. If the search is unavailable, do not file: an unchecked create can duplicate an asset. Afterwards read filing.list and explain every rejection; do not file the same node again until the cause is fixed.',
+    },
+  ],
+});
+
+export const surveyModules = [structureModule, fieldModule, extractionModule, filingModule];

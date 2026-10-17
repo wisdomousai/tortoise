@@ -22,8 +22,13 @@ const listOf = (setting: string | undefined) =>
  * digest only. Once the host listens it serves the enrollment route and resolves device
  * credentials on every request; before that both answer as unavailable. Startup refuses sync
  * operations the catalog does not contain.
+ *
+ * `syncOperations` is the application's default for what a field device may call; the
+ * `device-link-sync-operations` setting replaces it for one deployment.
  */
-export function createDeviceLinkPlugin(options: { readonly now?: () => number } = {}) {
+export function createDeviceLinkPlugin(
+  options: { readonly now?: () => number; readonly syncOperations?: readonly string[] } = {},
+) {
   const now = options.now ?? Date.now;
   return defineHostPlugin<DeviceLinkState, DeviceLinkServices>({
     manifest: deviceLinkPluginManifest,
@@ -32,7 +37,9 @@ export function createDeviceLinkPlugin(options: { readonly now?: () => number } 
     authorization: { resourceTypes: ['device', 'enrollment'], port: deviceLinkPolicy },
     async open({ catalog, settings }) {
       const operations = new Set(catalog.operations.map((operation) => operation.id));
-      const syncOperations = listOf(settings['device-link-sync-operations']);
+      const configured = settings['device-link-sync-operations'];
+      const syncOperations =
+        configured === undefined ? [...(options.syncOperations ?? [])] : listOf(configured);
       const unknown = syncOperations.filter((operation) => !operations.has(operation));
       if (unknown.length)
         throw new Error(

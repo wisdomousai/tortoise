@@ -16,12 +16,12 @@ Layer: plugins (`plugins/*`). Bun only: a hub is a serving host.
 | ------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `@agent-native/device-link/contracts`       | browser and any host | `deviceLinkOperations`, `deviceLinkModule`, `enrollPath`, `deviceKinds`, `deviceSchema`, `enrollmentSchema`. |
 | `@agent-native/device-link/plugin-manifest` | browser and any host | `deviceLinkPluginManifest`, with the setting `device-link-sync-operations`.                                  |
-| `@agent-native/device-link/plugin`          | Bun host             | `createDeviceLinkPlugin({ now? })` and `deviceLinkPlugin`, for `defineApplication({ plugins })`.             |
+| `@agent-native/device-link/plugin`          | Bun host             | `createDeviceLinkPlugin({ now?, syncOperations? })` and `deviceLinkPlugin`, for `defineApplication({ plugins })`. |
 | `@agent-native/device-link/plugin-screens`  | browser              | `deviceLinkScreens`: device list, enrollment code, rename and revoke.                                        |
 
 Two kinds of device:
 
-- `field-sync`, a phone that keeps its own workspace. It acts as principal `device:<id>` with a grant of the operations in `device-link-sync-operations` (comma-separated; environment `AGENT_NATIVE_DEVICE_LINK_SYNC_OPERATIONS`). The application's policy decides what `device:*` principals may do within that grant. Startup fails when the setting names an operation the catalog lacks.
+- `field-sync`, a phone that keeps its own workspace. It acts as principal `device:<id>` with a grant of the operations in `device-link-sync-operations` (comma-separated; environment `AGENT_NATIVE_DEVICE_LINK_SYNC_OPERATIONS`). An application that knows its field operations passes them as the default with `createDeviceLinkPlugin({ syncOperations })`; the setting still overrides it. The application's policy decides what `device:*` principals may do within that grant. Startup fails when the setting names an operation the catalog lacks.
 - `attached`, a tablet that shows the hub's screens. It acts as the person who created the code, with a grant of the operations chosen at enrollment, or every operation except `link.*` when none were chosen.
 
 `POST /api/v1/link/enroll` with `{ "code": "..." }` answers `201 { token, device: { id, label, kind } }` with `Cache-Control: no-store`. Codes are ten characters from an alphabet without look-alike letters, accepted without case or separators, valid for ten minutes, and pruned from state a day after they expire or are used. The token is 32 random bytes in base64url. Failed exchanges are limited to ten per minute for all callers together; after that the route answers `UNAVAILABLE` until the window passes.
