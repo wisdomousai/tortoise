@@ -1,0 +1,15 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "types": [],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "allowJs": false
+  },
+  "include": ["apps/mobile/index.ts", "apps/mobile/src"],
+  "exclude": ["node_modules", "dist", "artifacts"]
+}

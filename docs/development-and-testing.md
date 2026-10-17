@@ -31,24 +31,27 @@ When `check:size` fails, split by responsibility, not by line count. An inner fu
 
 A successful build is not a browser interaction or a packaged desktop launch, and each of those is checked separately.
 
+`typecheck` runs two TypeScript projects. `tsconfig.json` covers everything with Bun and Node types. `tsconfig.native.json` covers the React Native sources without them, because React Native declares globals that conflict with Node's, and so the root project excludes those sources.
+
 ## Focused scripts
 
-| Command                                       | Scope                                                                                     |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `bun run test:unit`                           | Contracts, runtime, client ordering and UI context.                                       |
-| `bun run test:conformance`                    | Policy, repositories, adapters and example-domain scenarios.                              |
-| `bun run test:service`                        | The host and each example's HTTP boundary and authority behavior.                         |
-| `bun run test:harness`                        | Harness and supervision fixtures that need no provider.                                   |
-| `bun run test:integration`                    | Outbox dispatch and inbound sync against fake systems of record.                          |
-| `bun run test:isolated`                       | The whole suite, failing on any non-loopback connection from the test process.            |
-| `bun run test:e2e`                            | Browser acceptance with Playwright.                                                       |
-| `bun run test:package`                        | Desktop packaging checks available on this platform.                                      |
-| `bun run test:scaffold`                       | Deterministic export and its overwrite and privacy safeguards.                            |
-| `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` | A fresh export that installs, typechecks, builds, tests and adds a capability on its own. |
-| `bun run dev` / `dev:web`                     | Open the configured application in the desktop window, or in a browser.                   |
-| `cd examples/<name> && bun run dev`           | One example on its own port and workspace.                                                |
-| `bun run build:cli`                           | Compile the configured application's CLI.                                                 |
-| `bun run build:registry:operator`             | Build the operator shadcn registry.                                                       |
+| Command                                       | Scope                                                                                       |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `bun run test:unit`                           | Contracts, runtime, client ordering and UI context.                                         |
+| `bun run test:conformance`                    | Policy, repositories, adapters and example-domain scenarios.                                |
+| `bun run test:service`                        | The host and each example's HTTP boundary and authority behavior.                           |
+| `bun run test:harness`                        | Harness and supervision fixtures that need no provider.                                     |
+| `bun run test:integration`                    | Outbox dispatch and inbound sync against fake systems of record.                            |
+| `bun run test:isolated`                       | The whole suite, failing on any non-loopback connection from the test process.              |
+| `bun run test:e2e`                            | Browser acceptance with Playwright.                                                         |
+| `bun run test:package`                        | Desktop packaging checks available on this platform.                                        |
+| `bun run test:scaffold`                       | Deterministic export and its overwrite and privacy safeguards.                              |
+| `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` | A fresh export that installs, typechecks, builds, tests and adds a capability on its own.   |
+| `bun run dev` / `dev:web`                     | Open the configured application in the desktop window, or in a browser.                     |
+| `cd examples/<name> && bun run dev`           | One example on its own port and workspace.                                                  |
+| `bun run build:cli`                           | Compile the configured application's CLI.                                                   |
+| `bun run build:registry:operator`             | Build the operator shadcn registry.                                                         |
+| `bun run check:mobile-bundle`                 | Bundle `apps/mobile` for Android with Metro, which fails on an unresolved workspace import. |
 
 Firewall exports are compared with golden files in the network plugin. Regenerate them with `UPDATE_GOLDEN=1 bun test plugins/network` and review the diff. The mTLS test issues throwaway certificates with `openssl` and is skipped where `openssl` is missing.
 

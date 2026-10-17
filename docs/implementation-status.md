@@ -161,6 +161,12 @@ Control mappings are indicative, not a certification.
 - credential-vault set, get and delete on any platform;
 - signing, notarization, installers and updates.
 
+### Mobile
+
+**Shown, deterministic.** `apps/mobile` typechecks under `tsconfig.native.json` without Bun or Node types. `bun run check:mobile-bundle` bundles it for Android with Expo SDK 58 and resolves workspace packages through their `exports` maps. Expo autolinking finds an Expo module in a workspace plugin through the root `node_modules`, checked with `expo-modules-autolinking resolve` against a temporary probe module.
+
+**Not shown.** The shell is a placeholder: no authority, screens or plugins run on a device. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
+
 ### Layers and scaffold
 
 **Shown, deterministic.** The boundary check resolves imports by layer, including workspace package names and the browser graph of each application. A single-example export installs with a frozen lockfile and passes its own checks.

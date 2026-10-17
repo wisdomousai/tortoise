@@ -7,6 +7,7 @@ const rootFiles = new Set([
   'app.config.json',
   'bun.lock',
   'tsconfig.json',
+  'tsconfig.native.json',
   'playwright.config.ts',
   'README.md',
   'LICENSE',
@@ -45,6 +46,13 @@ const excludedDirectories = new Set([
   'profiles',
   'provider-runs',
   'provider-conversations',
+  '.expo',
+]);
+// Native projects and entries that `expo prebuild` and `mobile:prepare` regenerate.
+const generatedDirectories = new Set([
+  'apps/mobile/ios',
+  'apps/mobile/android',
+  'apps/mobile/generated',
 ]);
 const sourceExtensions = new Set([
   '.ts',
@@ -84,6 +92,7 @@ export async function collect(root: string): Promise<string[]> {
       if (entry.isDirectory()) {
         if (
           !excludedDirectories.has(entry.name) &&
+          !generatedDirectories.has(child) &&
           !entry.name.startsWith('.scaffold-') &&
           (path || sourceDirectories.has(entry.name))
         )

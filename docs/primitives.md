@@ -203,6 +203,8 @@ The starter wires framework to content: `app.config.json` names its identity and
 
 Guarantees: the starter imports no content statically; the boundary check fails a direct import from `examples/*`. A development desktop launch cannot skip packaged digest checks: the development flag is honored only when Electron reports the app is unpackaged (`apps/desktop/test/development-launch.test.ts`).
 
+Gaps: `apps/mobile` is an Expo shell for Android and iOS that does not yet host the configured application.
+
 implemented · `apps/service` `apps/web` `apps/desktop` `app.config.json`
 
 ## Callers: every surface on the same contract
@@ -499,7 +501,7 @@ _The evidence an auditor checks, generated from the catalog and site policy and 
 
 Guarantees: the security manifest, data flows, control mapping (ISO/IEC 27001 Annex A, NIST SP 800-53 and CSF, IEC 62443-4-2) and CycloneDX SBOM are deterministic and drift-checked. Every control names tests, artifacts and event kinds that exist. A posture monitor re-verifies the log and records `posture.checked`. Through the `compliance` [host plugin](#host-plugin), listed auditors read posture and the log with ordinary authorized queries and a screen, and an offline report works against a copied log.
 
-Gaps: control mappings are indicative, not a certification.
+Gaps: control mappings are indicative, not a certification. The SBOM covers the whole lockfile, so every application's bill lists the desktop, web and mobile toolchains (Electron, Vite, Expo, React Native) as `required`, not only what that application ships on one target.
 
 implemented · `plugins/compliance` `packages/host`
 
