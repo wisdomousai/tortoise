@@ -6,20 +6,27 @@ import {
   defineCapability,
   defineModule,
   jsonSchema,
+  proposalOperations,
+  type Proposal,
 } from '@agent-native/contracts';
 import { createMemoryEventLog } from '@agent-native/event-log';
 import { defaultPorts } from '@agent-native/host';
 import { createApplicationRuntime, defineApplication } from '@agent-native/host/application';
 import { defineManifest } from '@agent-native/host/manifest';
 import type { PluginStartContext } from '@agent-native/host/plugin';
+import { networkPlugin } from '@agent-native/network/plugin';
+import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
 import {
   createMemoryStorage,
   own,
+  proposalHandlers,
   put,
   type AuthorizationPort,
   type ExecutionContext,
   type HandlerContext,
 } from '@agent-native/runtime';
+import { sitePlugin } from '@agent-native/site/plugin';
+import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 import { defineTrigger, type TriggerDefinition } from '../contracts';
 import type { Job } from '../jobs';
 import { passOnce, type Loop } from '../loop';
@@ -68,15 +75,26 @@ const lotChecker = defineAgent({
   output: 'direct',
   budgets: { turns: 2, toolCalls: 2, wallTimeMs: 10_000 },
 });
+// An agent on a local model that reads a received lot and proposes its inspection.
+const lotReviewer = defineAgent({
+  id: 'lot.reviewer',
+  title: 'Lot reviewer',
+  instructions: 'Read the received lot and propose lot.inspect for it.',
+  operations: ['lot.get', 'lot.inspect'],
+  model: 'local',
+  output: 'propose',
+  budgets: { turns: 4, toolCalls: 4, wallTimeMs: 10_000 },
+});
 const lotsModule = defineModule({
   id: 'lots',
-  capabilities: [lotReceive, lotInspect, lotGet, roleSet],
-  agents: [lotChecker],
+  capabilities: [lotReceive, lotInspect, lotGet, roleSet, ...Object.values(proposalOperations)],
+  agents: [lotChecker, lotReviewer],
 });
 
 interface Lots {
   roles: Record<string, 'inspector' | 'viewer'>;
   lots: Record<string, { id: string; inspections: number }>;
+  proposals: Record<string, Proposal>;
 }
 type Ctx = HandlerContext<{ lots: Lots }, unknown>;
 const handlers = [
@@ -108,6 +126,13 @@ const handlers = [
       return {};
     },
   },
+  ...proposalHandlers<{ lots: Lots }, unknown>({
+    store: (state) => state.lots.proposals,
+    commands: [lotReceive, lotInspect],
+    visible: () => true,
+    newId: () => crypto.randomUUID(),
+    now: () => Date.now(),
+  }),
 ];
 // Inspecting needs the inspector role in the current state; everything else is open.
 const policy: AuthorizationPort<{ lots: Lots }> = {
@@ -137,6 +162,13 @@ export const checkOnReceive = defineTrigger({
   on: { event: { resourceType: 'lot', operations: ['lot.receive'] } },
   run: { agent: 'lot.checker' },
 });
+export const reviewOnReceive = defineTrigger({
+  id: 'review-on-receive',
+  title: 'Review received lots',
+  prompt: 'A lot was received. Read it and propose its inspection.',
+  on: { event: { resourceType: 'lot', operations: ['lot.receive'], types: ['created'] } },
+  run: { agent: 'lot.reviewer' },
+});
 export const defaultJobs: Record<string, Job> = {
   inspect: async ({ event, command }) =>
     void (await command('lot.inspect', { id: event!.resource.slice(4) })),
@@ -157,6 +189,8 @@ export function lotsApplication(
     intervalMs?: number;
     localModel?: AutomationOptions['localModel'];
     agentHarnesses?: readonly Harness[];
+    /** Compose the site and network plugins, so the site policy binds `local-inference`. */
+    network?: boolean;
   } = {},
 ) {
   let ids = 0;
@@ -177,17 +211,20 @@ export function lotsApplication(
       id: 'lots',
       title: 'Lots',
       modules: [lotsModule],
-      plugins: [automationPluginManifest],
+      plugins: options.network
+        ? [sitePluginManifest, networkPluginManifest, automationPluginManifest]
+        : [automationPluginManifest],
     }),
     createState: () => ({
       lots: {
         roles: { ann: 'inspector', vic: 'viewer' },
         lots: { l0: { id: 'l0', inspections: 0 } },
+        proposals: {},
       },
     }),
     handlers: handlers as never,
     authorization: policy,
-    plugins: [plugin],
+    plugins: options.network ? [sitePlugin, networkPlugin, plugin] : [plugin],
   });
   return {
     definition,
