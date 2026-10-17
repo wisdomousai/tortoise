@@ -12,15 +12,20 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
  * with an empty environment, as a sandbox image would.
  */
 const application = resolve(import.meta.dir, '..');
+const buildCli = resolve(import.meta.dir, '../../../scripts/build-cli.ts');
 let directory = '';
 let command: string[] = [];
 
 beforeAll(async () => {
   directory = await mkdtemp(join(tmpdir(), 'agent-sandbox-'));
   if (process.env.SANDBOX_BINARY === '1') {
-    // The shipped build configuration, not a copy of it.
-    const { compileCli } = await import('../../../scripts/build-cli');
-    command = [await compileCli(join(directory, 'app'), undefined, application)];
+    // The shipped build configuration, not a copy of it. Compiled in a child process: Bun.build
+    // inside the `bun test` process fails at random to resolve this application's module graph.
+    const outfile = join(directory, 'app');
+    const script = `await (await import(${JSON.stringify(buildCli)})).compileCli(${JSON.stringify(outfile)}, undefined, ${JSON.stringify(application)});`;
+    const compiled = Bun.spawnSync([process.execPath, '-e', script], { stderr: 'pipe' });
+    if (compiled.exitCode !== 0) throw new Error(compiled.stderr.toString());
+    command = [outfile];
   } else {
     // The same static entry the binary compiles, run from source.
     const { writeApplicationEntry } = await import('../../../scripts/application-entry');
