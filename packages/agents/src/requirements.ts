@@ -3,7 +3,8 @@ import { defineHostComponent } from '@agent-native/contracts';
 /**
  * Network and process requirements of the provider harnesses, as data. Importing this file loads
  * no SDK. Every destination is optional and `unavailable` offline: without a site-policy binding
- * the deterministic harness and loopback models keep working and provider runs report why not.
+ * the deterministic harness keeps working and model runs report why not. The local model's
+ * destination is loopback-scoped, so the guard refuses any binding that leaves this host.
  */
 export const openAiComponent = defineHostComponent({
   id: 'openai',
@@ -74,4 +75,30 @@ export const anthropicComponent = defineHostComponent({
   },
 });
 
-export const providerComponents = [openAiComponent, anthropicComponent] as const;
+/** The destination a local model server is bound to; the site policy supplies its address. */
+export const LOCAL_INFERENCE_DESTINATION = 'local-inference';
+
+export const localInferenceComponent = defineHostComponent({
+  id: 'local-inference',
+  description: 'OpenAI-compatible model server on this host (llama.cpp, Ollama, vLLM).',
+  requirements: {
+    network: [
+      {
+        id: LOCAL_INFERENCE_DESTINATION,
+        purpose: 'Inference for agents that require a local model. Prompts stay on this host.',
+        direction: 'egress',
+        scope: 'loopback',
+        protocol: 'http',
+        dataClasses: ['prompt', 'application-context', 'tool-results'],
+        availability: 'optional',
+        offline: 'unavailable',
+      },
+    ],
+  },
+});
+
+export const providerComponents = [
+  openAiComponent,
+  anthropicComponent,
+  localInferenceComponent,
+] as const;

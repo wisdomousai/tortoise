@@ -1,4 +1,4 @@
-import type { AgentBudgets, Catalog } from '@agent-native/contracts';
+import type { AgentBudgets, Catalog, ModelRequirement } from '@agent-native/contracts';
 import { agentGrant } from '@agent-native/runtime';
 import type { TriggerDefinition } from './contracts';
 import type { Job } from './jobs';
@@ -8,6 +8,8 @@ export interface ResolvedTrigger extends TriggerDefinition {
   /** What a standing grant for it lists: the job's operations or the agent's grant. */
   readonly operations: readonly string[];
   readonly budgets: Pick<AgentBudgets, 'toolCalls' | 'wallTimeMs'> & { readonly turns?: number };
+  /** For an agent trigger, where the agent's model may run. */
+  readonly model?: ModelRequirement;
 }
 
 const DEFAULT_JOB_BUDGETS = { toolCalls: 100, wallTimeMs: 60_000 };
@@ -29,7 +31,7 @@ function runOperations(
       { principalId: '-', workspaceId: '-' },
       { now: 0 },
     );
-    return { operations, budgets: agent.budgets };
+    return { operations, budgets: agent.budgets, model: agent.model };
   }
   if (!jobs.has(run.job)) throw new Error(`Trigger ${trigger.id} runs unregistered job ${run.job}`);
   return {
@@ -53,7 +55,8 @@ export function resolveTriggers(
   for (const trigger of triggers) {
     if (!ID.test(trigger.id) || resolved.has(trigger.id))
       throw new Error(`Invalid or duplicate trigger ID: ${trigger.id}`);
-    const { operations, budgets } = runOperations(trigger, catalog, jobs);
+    const { model, ...run } = runOperations(trigger, catalog, jobs);
+    const { operations, budgets } = run;
     const unknown = operations.filter((operation) => !known.has(operation));
     if (unknown.length)
       throw new Error(`Trigger ${trigger.id} names unknown operations: ${unknown.join(', ')}`);
@@ -71,7 +74,7 @@ export function resolveTriggers(
       trigger.on.schedule.everyMs < 60_000
     )
       throw new Error(`Trigger ${trigger.id} schedule must be at least one minute`);
-    resolved.set(trigger.id, { ...trigger, operations, budgets });
+    resolved.set(trigger.id, { ...trigger, operations, budgets, ...(model ? { model } : {}) });
   }
   return resolved;
 }

@@ -5,6 +5,7 @@ import type { Harness, HarnessEvent, HarnessTurn } from './types';
 export class DeterministicHarness implements Harness {
   readonly id = 'deterministic';
   readonly features = { questions: true, approvals: true, resume: false };
+  readonly inference = 'none';
   async availability() {
     return { available: true };
   }

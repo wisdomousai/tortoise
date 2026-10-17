@@ -11152,6 +11152,41 @@
       ]
     },
     {
+      "bom-ref": "service:local-inference",
+      "name": "local-inference",
+      "description": "Inference for agents that require a local model. Prompts stay on this host.",
+      "trustZone": "loopback",
+      "x-trust-boundary": false,
+      "data": [
+        {
+          "flow": "outbound",
+          "classification": "prompt"
+        },
+        {
+          "flow": "outbound",
+          "classification": "application-context"
+        },
+        {
+          "flow": "outbound",
+          "classification": "tool-results"
+        }
+      ],
+      "properties": [
+        {
+          "name": "agent-native:owner",
+          "value": "local-inference"
+        },
+        {
+          "name": "agent-native:availability",
+          "value": "optional"
+        },
+        {
+          "name": "agent-native:offline",
+          "value": "unavailable"
+        }
+      ]
+    },
+    {
       "bom-ref": "service:mes-api",
       "name": "mes-api",
       "description": "Forward stop classifications and count confirmations to the MES and pull orders and reasons.",

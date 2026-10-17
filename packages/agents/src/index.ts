@@ -7,3 +7,5 @@ export * from './chatgpt';
 export * from './codex';
 export * from './claude';
 export * from './ai-sdk';
+export * from './local';
+export * from './placement';

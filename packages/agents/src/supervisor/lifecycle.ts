@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { ApplicationError, type ModelRequirement } from '@agent-native/contracts';
+import { satisfiesModel } from '../placement';
 import type { Harness, RunBudget, RunSnapshot } from '../types';
 import { terminalStates } from '../types';
 import { execute } from './execute';
@@ -18,6 +20,8 @@ export interface StartInput {
    * throws; a random ID is used when omitted.
    */
   id?: string;
+  /** The agent definition's model requirement; a harness that does not meet it is refused. */
+  model?: ModelRequirement;
 }
 
 /**
@@ -30,6 +34,11 @@ export async function startRun(
   harness: Harness,
   input: StartInput,
 ) {
+  if (input.model && !satisfiesModel(input.model, harness))
+    throw new ApplicationError(
+      'FORBIDDEN',
+      `Harness ${harness.id} does not meet the ${input.model} model requirement`,
+    );
   const id = input.id ?? randomUUID();
   if (input.id !== undefined && (kernel.active.has(id) || (await kernel.store.get(id))))
     throw new Error(`Run ${id} already exists`);
@@ -46,6 +55,7 @@ export async function startRun(
     nextSequence: 1,
     resumeData: input.resumeData,
     ...(input.budget ? { budget: structuredClone(input.budget) } : {}),
+    ...(harness.model ? { model: { ...harness.model } } : {}),
   };
   const run: Active = {
     controller: new AbortController(),

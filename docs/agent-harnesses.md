@@ -26,6 +26,7 @@ Cancellation aborts the active work and is checked before commit. Commands that 
 | Codex         | The bundled app-server over stdio JSON-RPC     | Environment chosen by the host; isolated home directory     |
 | Claude        | The Agent SDK with the application's MCP tools | Explicit API key; ambient settings and credentials excluded |
 | AI SDK        | A tool loop over an injected model             | Explicit provider configuration                             |
+| Local         | The AI SDK tool loop on a loopback model       | None; reaches only the `local-inference` destination        |
 
 The default profile exposes application tools and denies shell and file approvals. A process running as the same OS user is not a sandbox, so code that is not trusted needs a stronger isolation adapter. Credentials and process APIs never reach browser code.
 

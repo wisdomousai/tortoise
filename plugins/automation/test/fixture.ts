@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { buildCatalog, defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import type { Harness } from '@agent-native/agents/types';
+import {
+  buildCatalog,
+  defineAgent,
+  defineCapability,
+  defineModule,
+  jsonSchema,
+} from '@agent-native/contracts';
 import { createMemoryEventLog } from '@agent-native/event-log';
 import { defaultPorts } from '@agent-native/host';
 import { createApplicationRuntime, defineApplication } from '@agent-native/host/application';
@@ -16,7 +23,7 @@ import {
 import { defineTrigger, type TriggerDefinition } from '../contracts';
 import type { Job } from '../jobs';
 import { passOnce, type Loop } from '../loop';
-import { createAutomationPlugin } from '../plugin';
+import { createAutomationPlugin, type AutomationOptions } from '../plugin';
 import { automationPluginManifest } from '../plugin-manifest';
 import { createTriggerRuns } from '../run';
 import { resolveTriggers } from '../triggers';
@@ -51,9 +58,20 @@ const roleSet = defineCapability({
   permission: { action: 'manage', resourceType: 'Role' },
   ...fixture,
 });
+// An agent that reads a received lot and must keep its model on this host.
+const lotChecker = defineAgent({
+  id: 'lot.checker',
+  title: 'Lot checker',
+  instructions: 'Read the received lot.',
+  operations: ['lot.get'],
+  model: 'local',
+  output: 'direct',
+  budgets: { turns: 2, toolCalls: 2, wallTimeMs: 10_000 },
+});
 const lotsModule = defineModule({
   id: 'lots',
   capabilities: [lotReceive, lotInspect, lotGet, roleSet],
+  agents: [lotChecker],
 });
 
 interface Lots {
@@ -113,6 +131,12 @@ export const everyMinute = defineTrigger({
   run: { job: 'reference', operations: ['lot.inspect'] },
   budgets: { toolCalls: 1, wallTimeMs: 10_000 },
 });
+export const checkOnReceive = defineTrigger({
+  id: 'check-on-receive',
+  title: 'Check received lots',
+  on: { event: { resourceType: 'lot', operations: ['lot.receive'] } },
+  run: { agent: 'lot.checker' },
+});
 export const defaultJobs: Record<string, Job> = {
   inspect: async ({ event, command }) =>
     void (await command('lot.inspect', { id: event!.resource.slice(4) })),
@@ -131,6 +155,8 @@ export function lotsApplication(
     jobs?: Record<string, Job>;
     now?: () => number;
     intervalMs?: number;
+    localModel?: AutomationOptions['localModel'];
+    agentHarnesses?: readonly Harness[];
   } = {},
 ) {
   let ids = 0;
@@ -143,6 +169,8 @@ export function lotsApplication(
     now,
     newId: () => `id${++ids}`,
     intervalMs: options.intervalMs ?? 10,
+    ...(options.localModel ? { localModel: options.localModel } : {}),
+    ...(options.agentHarnesses ? { agentHarnesses: options.agentHarnesses } : {}),
   });
   const definition = defineApplication<{ lots: Lots }>({
     manifest: defineManifest({
@@ -172,7 +200,11 @@ export function lotsApplication(
 
 /** The application in process with a trigger loop driven one pass at a time. */
 export function inProcess(
-  options: { triggers?: readonly TriggerDefinition[]; jobs?: Record<string, Job> } = {},
+  options: {
+    triggers?: readonly TriggerDefinition[];
+    jobs?: Record<string, Job>;
+    agentHarnesses?: readonly Harness[];
+  } = {},
 ) {
   let clock = 1_000_000;
   const now = () => clock;
@@ -200,7 +232,12 @@ export function inProcess(
   };
   /** A fresh loop, as after a restart: a new run supervisor and no in-memory cursors. */
   const loop = (wrap?: (run: Loop['run']) => Loop['run']): Loop => {
-    const run = createTriggerRuns(application, jobs, undefined);
+    const run = createTriggerRuns(
+      application,
+      jobs,
+      options.agentHarnesses ?? [],
+      resolved.values(),
+    );
     return {
       context,
       catalog,

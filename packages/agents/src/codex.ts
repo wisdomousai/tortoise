@@ -25,6 +25,7 @@ export interface CodexOptions {
 export class CodexHarness implements Harness {
   readonly id = 'codex';
   readonly features = { questions: true, approvals: false, resume: true };
+  readonly inference = 'remote';
   constructor(private readonly options: CodexOptions) {}
   availability() {
     return executableAvailable(this.options.executable);

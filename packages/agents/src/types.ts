@@ -56,6 +56,8 @@ export interface RunSnapshot {
   resumeData?: Record<string, string>;
   /** Limits from the agent definition the run was started under; the supervisor enforces them. */
   budget?: RunBudget;
+  /** The harness's model when the run started, if it declares one. */
+  model?: ModelIdentity;
   failure?: { code: string; message: string };
 }
 /**
@@ -86,9 +88,26 @@ export interface HarnessTurn {
   question(message: string, choices?: readonly string[]): Promise<string>;
   approve(message: string): Promise<boolean>;
 }
+/**
+ * Where a harness sends prompts. `local`: a model on this host, over a loopback destination.
+ * `remote`: a model provider. `none`: no model at all (scripted fixtures, jobs), so nothing
+ * leaves the host. A harness that does not say is treated as remote.
+ */
+export type HarnessInference = 'local' | 'remote' | 'none';
+
+/** The model a harness runs, recorded on each run so its work names the model that did it. */
+export interface ModelIdentity {
+  readonly provider: string;
+  readonly model: string;
+  /** Content digest of the weights, as the deployment configured it. */
+  readonly digest?: string;
+}
+
 export interface Harness {
   readonly id: string;
   readonly features: { questions: boolean; approvals: boolean; resume: boolean };
+  readonly inference?: HarnessInference;
+  readonly model?: ModelIdentity;
   availability(): Promise<{ available: boolean; reason?: string }>;
   run(turn: HarnessTurn): AsyncIterable<HarnessEvent>;
 }

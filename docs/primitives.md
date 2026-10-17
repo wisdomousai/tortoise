@@ -275,9 +275,11 @@ implemented · `packages/adapters` `packages/react` `packages/agents`
 
 _An agent session acting as one more caller on the catalog._
 
-The supervisor makes an agent an ordinary caller: its tools are catalog operations, its authority is the narrowed grant of whoever started it, and its narration is kept apart from what it actually committed. Codex, Claude and AI SDK harnesses are adapters behind one port, next to a deterministic harness that needs no provider.
+The supervisor makes an agent an ordinary caller: its tools are catalog operations, its authority is the narrowed grant of whoever started it, and its narration is kept apart from what it actually committed. Codex, Claude and AI SDK harnesses are adapters behind one port, next to a deterministic harness that needs no provider and a local harness over an OpenAI-compatible server on this host (llama.cpp, Ollama, vLLM). Each harness says where it sends prompts (`local`, `remote` or `none`) and may name its model and weights digest, which the run record keeps.
 
-Guarantees: tools are catalog operations only. Text and progress stream separately from commits. Cancellation stops future work without undoing commits, and a restart marks unfinished runs interrupted instead of replaying them. A run started with a budget fails with `BUDGET_EXCEEDED` instead of making one tool call more than allowed or running past its wall time; the turn limit goes to the harness, and the Claude and AI SDK adapters lower their own limit to it. A caller may choose the run ID, as [triggers](#trigger) do, so a run repeated after a restart reuses its tool calls' idempotency keys.
+Guarantees: tools are catalog operations only. Text and progress stream separately from commits. Cancellation stops future work without undoing commits, and a restart marks unfinished runs interrupted instead of replaying them. A run started with a budget fails with `BUDGET_EXCEEDED` instead of making one tool call more than allowed or running past its wall time; the turn limit goes to the harness, and the Claude and AI SDK adapters lower their own limit to it. A caller may choose the run ID, as [triggers](#trigger) do, so a run repeated after a restart reuses its tool calls' idempotency keys. A run started with a model requirement refuses a harness that does not meet it, and a harness that does not declare where it sends prompts never meets `local`. The local harness reaches its server only through the `local-inference` destination, which is loopback-scoped, so the egress guard refuses a binding that leaves the host; it sends no provider key and reads no provider environment.
+
+Gaps: the local harness reports the configured digest; it does not verify the served weights. No run has used a real local model yet. The host's run panel does not offer the local harness; trigger runs do.
 
 implemented · `packages/agents`
 
@@ -291,7 +293,7 @@ _A named agent in the catalog: its instructions, the operations it may call, its
 
 Guarantees: the catalog refuses an agent that names an unknown operation, repeats one, has no operations, has budgets outside fixed bounds, or is `direct` on a command without a UI binding, so every direct write is one a person can make and see. `agentGrant` only narrows: operations within the issuer's grant, resources within the issuer's resources, expiry at the earlier of the issuer's and the wall-time budget, bound to the issuer's principal, workspace and run.
 
-Gaps: the host's run panel does not start a run from a definition; runs there still start from a person's prompt with the issuer's grant. A [trigger](#trigger) starts one under a [standing grant](#standing-grant). A `propose` agent cannot also be resource-scoped, because grant resources match exactly and do not cover the [proposal](#proposal) records it creates. The model requirement is recorded but no provider is chosen by it. `scaffold add agent` is not implemented.
+Gaps: the host's run panel does not start a run from a definition; runs there still start from a person's prompt with the issuer's grant. A [trigger](#trigger) starts one under a [standing grant](#standing-grant). A `propose` agent cannot also be resource-scoped, because grant resources match exactly and do not cover the [proposal](#proposal) records it creates. A [trigger](#trigger) chooses its agent's harness by the model requirement; the host's run panel does not. `scaffold add agent` is not implemented.
 
 implemented · `packages/contracts` `packages/runtime` `packages/agents` `packages/adapters`
 

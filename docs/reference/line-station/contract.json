@@ -6076,6 +6076,21 @@
         "scope": "loopback"
       },
       {
+        "availability": "optional",
+        "dataClasses": [
+          "prompt",
+          "application-context",
+          "tool-results"
+        ],
+        "direction": "egress",
+        "id": "local-inference",
+        "offline": "unavailable",
+        "owner": "local-inference",
+        "protocol": "http",
+        "purpose": "Inference for agents that require a local model. Prompts stay on this host.",
+        "scope": "loopback"
+      },
+      {
         "availability": "required",
         "dataClasses": [
           "stop-classification",

@@ -1,6 +1,6 @@
 import { ApplicationError, errorEnvelope, type Catalog } from '@agent-native/contracts';
 import { agentGrant, type DelegationGrant, type ExecutionContext } from '@agent-native/runtime';
-import { createRunSupervisor } from '@agent-native/agents';
+import { chooseHarness, createRunSupervisor } from '@agent-native/agents';
 import type { Harness, ToolPort } from '@agent-native/agents/types';
 import type { HostedApplication } from '@agent-native/host/application';
 import type { OutputOf } from '@agent-native/contracts';
@@ -60,14 +60,42 @@ export function runContext(
 }
 
 /**
+ * Model-facing tools: the operations agent triggers may call, each taking the same
+ * `{ input, expectedRevisions }` envelope as the host's run tools. Listing only those keeps a
+ * small local model's tool list short; the run's grant still decides every call.
+ */
+function toolDefinitions(application: HostedApplication, operations: ReadonlySet<string>) {
+  return application.catalog.operations
+    .filter((operation) => operations.has(operation.id))
+    .map((operation) => ({
+      operation: operation.id,
+      description: operation.description || operation.id,
+      inputSchema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          input: operation.inputSchema,
+          expectedRevisions: {
+            type: 'object',
+            additionalProperties: { type: 'integer', minimum: 0 },
+          },
+        },
+        required: ['input'],
+      },
+    }));
+}
+
+/**
  * Tools over the application for trigger runs. Authority comes from the context the loop
  * registered for the run ID, never from the call. Keys arrive prefixed with the run ID.
  */
 function createRunTools(
   application: HostedApplication,
   contexts: ReadonlyMap<string, ExecutionContext>,
+  agentOperations: ReadonlySet<string>,
 ): ToolPort {
   return {
+    definitions: toolDefinitions(application, agentOperations),
     async execute(operation, body, call) {
       const context = contexts.get(call.runId);
       if (!context) throw new ApplicationError('FORBIDDEN', 'Run authority unavailable');
@@ -91,16 +119,24 @@ function createRunTools(
   };
 }
 
-/** Start trigger runs in a supervisor of their own and wait for each to finish. */
+/**
+ * Start trigger runs in a supervisor of their own and wait for each to finish. An agent run
+ * uses the first available harness that meets the agent's model requirement; when none is
+ * available the run fails with UNAVAILABLE instead of using a harness the agent does not allow.
+ */
 export function createTriggerRuns(
   application: HostedApplication,
   jobs: ReadonlyMap<string, Job>,
-  agentHarness: Harness | undefined,
+  agentHarnesses: readonly Harness[],
+  triggers: Iterable<ResolvedTrigger>,
 ) {
   const contexts = new Map<string, ExecutionContext>();
+  const agentOperations = new Set(
+    [...triggers].flatMap((trigger) => ('agent' in trigger.run ? trigger.operations : [])),
+  );
   const supervisor = createRunSupervisor({
-    harnesses: [createJobHarness(jobs), ...(agentHarness ? [agentHarness] : [])],
-    tools: createRunTools(application, contexts),
+    harnesses: [createJobHarness(jobs), ...agentHarnesses],
+    tools: createRunTools(application, contexts, agentOperations),
   });
   return async function run(
     trigger: ResolvedTrigger,
@@ -110,10 +146,13 @@ export function createTriggerRuns(
     const id = context.runId!;
     contexts.set(id, context);
     try {
+      const harness =
+        'agent' in trigger.run ? await chooseHarness(trigger.model!, agentHarnesses) : undefined;
       await supervisor.start({
         id,
-        ...startInput(trigger, start, agentHarness),
+        ...startInput(trigger, start, harness),
         budget: { ...trigger.budgets },
+        ...(trigger.model ? { model: trigger.model } : {}),
       });
       for await (const _event of supervisor.events(id));
       const final = await supervisor.get(id);
@@ -143,7 +182,8 @@ function startInput(
   start: { event?: TriggerEvent; slot?: number },
   agentHarness: Harness | undefined,
 ) {
-  if ('job' in trigger.run) {
+  if ('job' in trigger.run || !agentHarness) {
+    if (!('job' in trigger.run)) throw new Error(`Trigger ${trigger.id} has no agent harness`);
     const prompt: JobPrompt = { job: trigger.run.job, trigger: trigger.id, ...start };
     return { harnessId: JOB_HARNESS, prompt: JSON.stringify(prompt) };
   }
@@ -153,7 +193,7 @@ function startInput(
     ? `Started by ${event.type} of ${event.resource} (revision ${event.revision}) through ${event.operation}.`
     : `Started by the schedule (slot ${start.slot}).`;
   return {
-    harnessId: agentHarness!.id,
+    harnessId: agentHarness.id,
     prompt: `${trigger.prompt ?? trigger.title}\n\n${cause}`,
     context: {
       trigger: trigger.id,

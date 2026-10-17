@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
+import { localHarness, type LocalModel } from '@agent-native/agents/local';
+import { satisfiesModel } from '@agent-native/agents/placement';
+import { LOCAL_INFERENCE_DESTINATION } from '@agent-native/agents/requirements';
 import type { Harness } from '@agent-native/agents/types';
-import { defineHostPlugin } from '@agent-native/host/plugin';
+import { defineHostPlugin, type HostPorts } from '@agent-native/host/plugin';
 import type { TriggerDefinition } from './contracts';
 import type { Job } from './jobs';
 import { startLoop } from './loop';
@@ -19,8 +22,14 @@ export interface AutomationOptions {
   readonly triggers: readonly TriggerDefinition[];
   /** Jobs the triggers run, by ID. Server code: they reach state only through operations. */
   readonly jobs?: Readonly<Record<string, Job>>;
-  /** The harness agent triggers run with; required when a trigger runs an agent. */
-  readonly agentHarness?: Harness;
+  /**
+   * A model on this host for agents that require `local` (or allow `any`), reached only through
+   * the network port's `local-inference` destination, which the site policy binds to a loopback
+   * address. Listed before `agentHarnesses`, so it is preferred where both qualify.
+   */
+  readonly localModel?: LocalModel;
+  /** Further harnesses agent triggers may run with, such as a provider harness. */
+  readonly agentHarnesses?: readonly Harness[];
   readonly intervalMs?: number;
   readonly now?: () => number;
   readonly newId?: () => string;
@@ -44,25 +53,46 @@ export function createAutomationPlugin(options: AutomationOptions) {
     },
     async open({ catalog }) {
       const triggers = resolveTriggers(options.triggers, catalog, jobs);
-      if (!options.agentHarness && [...triggers.values()].some((trigger) => 'agent' in trigger.run))
-        throw new Error('An agent trigger needs the automation plugin agentHarness option');
+      // Ports resolve only once every plugin opened, so the local harness looks them up per call.
+      let ports: HostPorts | undefined;
+      const harnesses = agentHarnesses(options, () => ports!);
+      for (const trigger of triggers.values())
+        if (trigger.model && !harnesses.some((harness) => satisfiesModel(trigger.model!, harness)))
+          throw new Error(
+            `Trigger ${trigger.id} runs an agent that requires a ${trigger.model} model; configure localModel or agentHarnesses`,
+          );
       return {
         service: { triggers, now, newId: options.newId ?? randomUUID },
-        start: async (context) => [
-          startLoop(
-            {
-              context,
-              catalog,
-              triggers,
-              run: createTriggerRuns(context.application, jobs, options.agentHarness),
-              now,
-              cursors: new Map(),
-            },
-            options.intervalMs ?? 1_000,
-          ),
-        ],
+        start: async (context) => {
+          ports = context.ports;
+          return [
+            startLoop(
+              {
+                context,
+                catalog,
+                triggers,
+                run: createTriggerRuns(context.application, jobs, harnesses, triggers.values()),
+                now,
+                cursors: new Map(),
+              },
+              options.intervalMs ?? 1_000,
+            ),
+          ];
+        },
         describe: () => ({ triggers: [...triggers.keys()] }),
       };
     },
   });
+}
+
+function agentHarnesses(options: AutomationOptions, ports: () => HostPorts): Harness[] {
+  const local = options.localModel
+    ? [
+        localHarness({
+          ...options.localModel,
+          client: () => ports().network.client(LOCAL_INFERENCE_DESTINATION),
+        }),
+      ]
+    : [];
+  return [...local, ...(options.agentHarnesses ?? [])];
 }

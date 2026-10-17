@@ -9,14 +9,14 @@ Layer: plugins (`plugins/*`). It has the three plugin entrypoints an application
 - [Trigger](../../docs/primitives.md#trigger): `defineTrigger`, `TriggerDefinition`, `TriggerSource`, the jobs a trigger runs (`Job`, `JobContext`, `TriggerEvent`) and the checks `resolveTriggers` applies when the plugin opens.
 - [Standing grant](../../docs/primitives.md#standing-grant): `automation.grant.issue`, `renew` and `revoke`, the `standingGrantSchema` record, and `runContext`, which turns a grant into the context one run executes under.
 - [Host plugin](../../docs/primitives.md#host-plugin): `createAutomationPlugin`, `automationPluginManifest`, `automationScreens`.
-- [Agent run](../../docs/primitives.md#agent-run): runs go through a run supervisor of the plugin's own, with the job harness (`createJobHarness`) and the agent harness the application passes.
+- [Agent run](../../docs/primitives.md#agent-run): runs go through a run supervisor of the plugin's own, with the job harness (`createJobHarness`), the local harness when `localModel` is set, and any `agentHarnesses`. An agent run uses the first available harness that meets the agent's model requirement and fails with `UNAVAILABLE` when none does. Its model sees only the operations agent triggers may call.
 
 ## Entrypoints
 
 | Import                                     | Runs in            | Contents                                                                                                      |
 | ------------------------------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------- |
 | `@agent-native/automation/plugin-manifest` | browser and server | `automationPluginManifest`: the `automation` module.                                                          |
-| `@agent-native/automation/plugin`          | server only        | `createAutomationPlugin({ triggers, jobs, agentHarness, intervalMs, now, newId })`.                           |
+| `@agent-native/automation/plugin`          | server only        | `createAutomationPlugin({ triggers, jobs, localModel, agentHarnesses, intervalMs, now, newId })`.             |
 | `@agent-native/automation/plugin-screens`  | browser            | `automationScreens`: the `/automation` route with triggers, grants and failed runs.                           |
 | `@agent-native/automation/*`               | see file           | `contracts` (browser-safe), `jobs`, `triggers`, `server` (state, handlers, policy), `run`, `loop`, `run-ids`. |
 
@@ -26,7 +26,7 @@ Run IDs name the grant and the event cursor or slot (`auto:<grant>:event:<cursor
 
 ## Trust boundary
 
-A run is a caller like any other. Its context is the grant's issuer with a delegation listing the trigger's operations (for an agent, narrowed again by `agentGrant`), expiring at the earlier of the grant's expiry and the run's wall-time budget. The application's policy authorizes every call as the issuer, so a role they lost since issuing is refused, and the refusal becomes an open failure. Only a person (no run, no grant) issues, renews or revokes a grant, and only their own; issuing replaces any other active grant for the trigger, so one event never starts two runs. `automation.progress.record` is allowed only for a context with the issuer's principal and a run ID under that grant, which only the in-process loop creates. The plugin reaches nothing outside the authority.
+A run is a caller like any other. Its context is the grant's issuer with a delegation listing the trigger's operations (for an agent, narrowed again by `agentGrant`), expiring at the earlier of the grant's expiry and the run's wall-time budget. The application's policy authorizes every call as the issuer, so a role they lost since issuing is refused, and the refusal becomes an open failure. Only a person (no run, no grant) issues, renews or revokes a grant, and only their own; issuing replaces any other active grant for the trigger, so one event never starts two runs. `automation.progress.record` is allowed only for a context with the issuer's principal and a run ID under that grant, which only the in-process loop creates. The plugin reaches nothing outside the authority except the local model, which it calls only through the network port's `local-inference` destination; the site policy binds it to a loopback address, and the guard refuses any other.
 
 Gaps: revoking a grant stops future runs; a run in progress finishes within its budget. Runs use the plugin's own supervisor, so they do not appear in the host's run panel. Triggers are declared in code, not created at run time. Model harnesses are not chosen by an agent's model requirement; the application passes one.
 

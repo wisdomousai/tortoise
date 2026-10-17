@@ -6,7 +6,7 @@ Layer: framework (`packages/*`). Server only. The host constructs harnesses with
 
 ## Primitives
 
-- [Agent run](../../docs/primitives.md#agent-run): `Harness`, `HarnessEvent`, `createRunSupervisor`, `RunState`, `RunStore`, `MemoryRunStore`, `deterministicHarness`, `CodexHarness`, `ClaudeHarness`, `AiSdkHarness`, and `RunBudget`, the per-run limits of an [agent definition](../../docs/primitives.md#agent-definition) that the supervisor enforces.
+- [Agent run](../../docs/primitives.md#agent-run): `Harness`, `HarnessEvent`, `createRunSupervisor`, `RunState`, `RunStore`, `MemoryRunStore`, `deterministicHarness`, `CodexHarness`, `ClaudeHarness`, `AiSdkHarness`, `localHarness` (`LocalModel`, `LocalModelClient`, `LocalHarnessOptions`), `HarnessInference` and `ModelIdentity`, the placement checks `satisfiesModel` and `chooseHarness`, and `RunBudget`, the per-run limits of an [agent definition](../../docs/primitives.md#agent-definition) that the supervisor enforces.
 - [UI session context](../../docs/primitives.md#ui-session-context): `modelPrompt` shows the model the captured selection and the revisions the person saw, nothing else.
 - [Credential vault](../../docs/primitives.md#credential-vault): `CredentialVault`, `OsCredentialVault`, `MemoryCredentialVault`; `OidcAccountConnection` and `ChatGptAccountConnection`.
 
@@ -14,21 +14,23 @@ Read the [harness guide](../../docs/agent-harnesses.md), [providers](../../docs/
 
 ## Entrypoints
 
-| Import                               | Runs in     | Contents                                                                              |
-| ------------------------------------ | ----------- | ------------------------------------------------------------------------------------- |
-| `@agent-native/agents`               | server only | Everything below except `process` and `requirements`.                                 |
-| `@agent-native/agents/*`             | server only | One source file, listed below. Import a subpath to avoid loading every provider SDK.  |
-| `@agent-native/agents/types`         | server only | `Harness`, `ToolPort`, `RunState`, `RunEvent`, `RunStore`, `modelPrompt`, `toolName`. |
-| `@agent-native/agents/supervisor`    | server only | `createRunSupervisor`, `MemoryRunStore`.                                              |
-| `@agent-native/agents/deterministic` | server only | `deterministicHarness`: a declarative command script, credential-free.                |
-| `@agent-native/agents/codex`         | server only | `CodexHarness`, `chatGptCodexOptions` (Codex app-server over JSON-RPC).               |
-| `@agent-native/agents/claude`        | server only | `ClaudeHarness` (Claude Agent SDK with an in-process MCP server).                     |
-| `@agent-native/agents/ai-sdk`        | server only | `AiSdkHarness` over a host-constructed AI SDK model.                                  |
-| `@agent-native/agents/chatgpt`       | server only | `ChatGptAccountConnection`: dynamic registration, PKCE, profile, refresh and logout.  |
-| `@agent-native/agents/oidc`          | server only | `OidcAccountConnection`, `verifyOidcIdentity`.                                        |
-| `@agent-native/agents/credentials`   | server only | Vault port and the OS keyring and in-memory implementations.                          |
-| `@agent-native/agents/process`       | server only | Process-tree termination, explicit native environments, stdio JSON-RPC.               |
-| `@agent-native/agents/requirements`  | server only | `providerComponents`: the provider destinations and processes as data. Loads no SDK.  |
+| Import                               | Runs in     | Contents                                                                                      |
+| ------------------------------------ | ----------- | --------------------------------------------------------------------------------------------- |
+| `@agent-native/agents`               | server only | Everything below except `process` and `requirements`.                                         |
+| `@agent-native/agents/*`             | server only | One source file, listed below. Import a subpath to avoid loading every provider SDK.          |
+| `@agent-native/agents/types`         | server only | `Harness`, `ToolPort`, `RunState`, `RunEvent`, `RunStore`, `modelPrompt`, `toolName`.         |
+| `@agent-native/agents/supervisor`    | server only | `createRunSupervisor`, `MemoryRunStore`.                                                      |
+| `@agent-native/agents/deterministic` | server only | `deterministicHarness`: a declarative command script, credential-free.                        |
+| `@agent-native/agents/codex`         | server only | `CodexHarness`, `chatGptCodexOptions` (Codex app-server over JSON-RPC).                       |
+| `@agent-native/agents/claude`        | server only | `ClaudeHarness` (Claude Agent SDK with an in-process MCP server).                             |
+| `@agent-native/agents/ai-sdk`        | server only | `AiSdkHarness` over a host-constructed AI SDK model.                                          |
+| `@agent-native/agents/chatgpt`       | server only | `ChatGptAccountConnection`: dynamic registration, PKCE, profile, refresh and logout.          |
+| `@agent-native/agents/oidc`          | server only | `OidcAccountConnection`, `verifyOidcIdentity`.                                                |
+| `@agent-native/agents/credentials`   | server only | Vault port and the OS keyring and in-memory implementations.                                  |
+| `@agent-native/agents/process`       | server only | Process-tree termination, explicit native environments, stdio JSON-RPC.                       |
+| `@agent-native/agents/local`         | server only | `localHarness` over an OpenAI-compatible server on this host. Loads the SDK per run.          |
+| `@agent-native/agents/placement`     | server only | `satisfiesModel`, `chooseHarness`: which harness may run a model requirement.                 |
+| `@agent-native/agents/requirements`  | server only | `providerComponents` (with `localInferenceComponent`, `LOCAL_INFERENCE_DESTINATION`) as data. |
 
 Four entries are composers over a folder of parts that are imported only from inside the package:
 
@@ -42,6 +44,8 @@ Four entries are composers over a folder of parts that are imported only from in
 Tools are catalog operations only; tool implementations derive identity and grant from the run, never from model arguments, and recheck cancellation at their commit boundary. A duplicate invocation ID executes once. Text and progress stream separately from commits, partial output never turns a failed run into a success, and secrets are redacted before persistence, including a secret split across streamed deltas. Cancellation stops future work without undoing commits; a restart marks unfinished runs interrupted instead of replaying them.
 
 Provider credentials pay for inference and never grant workspace access. They are never discovered from the environment or developer configuration, never reach browser state, model context or run logs, and an exhausted plan never falls back silently to an API key. The OS vault fails closed when the keyring is locked or unavailable; `MemoryCredentialVault` is an explicitly selected fixture, not a fallback. Account connections serialize credential writes, so a logout cannot be undone by a sign-in or refresh already in flight.
+
+The local harness never builds its own address: it hands relative paths to a client the host takes from the network port's `local-inference` destination, whose loopback scope the guard enforces. It sends the placeholder key `local` and so never reads `OPENAI_API_KEY` or `OPENAI_BASE_URL`. A run started with a model requirement refuses a harness that does not meet it; a harness that does not declare `inference` counts as remote, so it never runs a `local` agent.
 
 Child processes get an explicit environment and the egress proxy variables. `process.ts`, `claude.ts`, `chatgpt.ts` and `oidc.ts` are reviewed egress exemptions in `scripts/boundary-rules.ts`.
 
@@ -62,5 +66,6 @@ Deterministic fixtures only; they prove adapter and protocol behavior, not provi
 - `test/adapters.test.ts`: each harness against shared fixtures; every model sees the captured selection and never the run's identity or grant.
 - `test/chatgpt.test.ts`: PKCE, OIDC validation, locked-vault abort, serialized refresh and logout.
 - `test/process.test.ts`: explicit environments, JSON-RPC failure propagation, subprocess-tree cancellation.
+- `test/local.test.ts`: the local harness against a loopback OpenAI-compatible fixture server (tool call, finish, placeholder key, unserved model, unbound destination), harness choice by model requirement, and the model identity on the run record.
 
 `scripts/live-smoke.ts` is an opt-in live probe with a fixed synthetic prompt. It needs an explicitly configured account and never reads developer credential files.

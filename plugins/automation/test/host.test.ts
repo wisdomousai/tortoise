@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { startHost } from '@agent-native/host/host';
 import { unboundOperations } from '@agent-native/testing/ui-bindings';
 import { automationModule } from '../contracts';
-import { lotsApplication, person } from './fixture';
+import { checkOnReceive, lotsApplication, person } from './fixture';
 
 async function until(check: () => Promise<boolean>) {
   for (let attempt = 0; attempt < 300; attempt++) {
@@ -67,4 +67,49 @@ test('a serving host runs enabled triggers and resumes from recorded progress af
 
 test('every automation operation that claims a UI binding is referenced by its screen', async () => {
   expect(await unboundOperations([automationModule], join(import.meta.dir, '../ui'))).toEqual([]);
+});
+
+test('a local model is reached only through the network port; without a binding the run fails', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'automation-'));
+  const options = { workspacePath: join(directory, 'workspace'), integration: false as const };
+  try {
+    // No harness meets the agent's local requirement: the plugin refuses to open.
+    await expect(
+      startHost(lotsApplication({ triggers: [checkOnReceive] }).definition, options),
+    ).rejects.toThrow('requires a local model');
+    // With a local model but no network plugin, the kernel's port reaches nothing.
+    const host = await startHost(
+      lotsApplication({ triggers: [checkOnReceive], localModel: { model: 'qwen-local' } })
+        .definition,
+      options,
+    );
+    try {
+      await host.application.invokeRaw(
+        {
+          operation: 'automation.grant.issue',
+          input: { trigger: 'check-on-receive', expiresInMs: 3_600_000 },
+        },
+        person('ann'),
+      );
+      await Bun.sleep(50);
+      await host.application.invokeRaw(
+        { operation: 'lot.receive', input: { id: 'l1' } },
+        person('vic'),
+      );
+      const failures = async () =>
+        (
+          (await host.application.queryRaw(
+            { operation: 'automation.failure.list', input: { open: true } },
+            person('ann'),
+          )) as { data: { items: { code: string; message: string }[] } }
+        ).data.items;
+      await until(async () => (await failures()).length === 1);
+      expect((await failures())[0]).toMatchObject({ code: 'UNAVAILABLE' });
+      expect((await failures())[0]!.message).toContain('unreachable or unbound');
+    } finally {
+      await host.close();
+    }
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

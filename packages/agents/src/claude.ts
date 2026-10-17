@@ -117,6 +117,7 @@ function translate(message: SDKMessage): { events: HarnessEvent[]; complete?: tr
 export class ClaudeHarness implements Harness {
   readonly id = 'claude';
   readonly features = { questions: false, approvals: false, resume: true };
+  readonly inference = 'remote';
   constructor(private readonly options: ClaudeOptions) {}
   async availability() {
     if (!this.options.apiKey)

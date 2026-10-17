@@ -12,10 +12,19 @@ A harness streams text, progress, tool and native-session events. A run succeeds
 | `codex`         | The pinned Codex app-server over JSON-RPC    | A ChatGPT plan profile     | Thread ID     | Native questions; shell and file approvals always declined |
 | `claude`        | The Claude Agent SDK and a pinned executable | An Anthropic API key       | Session ID    | Neither                                                    |
 | `ai-sdk`        | AI SDK streaming with application tools      | An OpenAI API key          | No            | Neither                                                    |
+| `local`         | AI SDK chat completions on a loopback server | None                       | No            | Neither                                                    |
 
 Each adapter is limited to application tools. Codex runs with shell, edit and search disabled, a read-only sandbox, and every command or file approval declined. Its protocol version is pinned, because dynamic tools are still experimental. Claude sees only the application's MCP tools, with no built-in tools and no ambient settings. AI SDK rejects string model aliases, so an ambient gateway credential cannot be picked up. A product that adds shell or file tools defines its own authorization boundary.
 
 Native executables and provider home directories are absolute paths owned by the host. A provider process gets an allowlisted environment plus the credentials injected explicitly for it. It never inherits API keys, developer CLI configuration or the developer's `PATH`. The desktop build compiles the Claude SDK into the service, so no separate Node runtime is needed ([desktop](desktop.md)).
+
+## Local models
+
+The `local` harness runs an OpenAI-compatible server on the same host, such as llama.cpp's `llama-server`, Ollama or vLLM. The deployment configures the model ID the server lists at `/v1/models` and, optionally, the weights digest. Every run record keeps both, so work a local agent did names the model that did it. The digest is the configured value; the harness does not check it against the served weights.
+
+The harness has no address of its own. Its requests go through the network port's `local-inference` destination, which is declared with loopback scope. The site policy binds it, for example to `http://127.0.0.1:11434` for Ollama, and the egress guard refuses a binding or a resolved address that leaves the host. Isolated sites can bind it, because it is loopback. Without a binding, the harness reports itself unavailable.
+
+An agent definition's model requirement decides which harnesses may run it. `local` admits the local harness and harnesses with no model (the deterministic fixture and jobs). `remote` admits provider harnesses. `any` admits all. A harness that does not say where it sends prompts counts as remote, so a new adapter cannot run a `local` agent by omission. Triggers choose their agent's harness this way. The host's run panel does not offer the local harness yet.
 
 ## ChatGPT connection
 

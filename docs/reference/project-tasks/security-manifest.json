@@ -22,6 +22,11 @@
       "kind": "module"
     },
     {
+      "id": "local-inference",
+      "kind": "component",
+      "description": "OpenAI-compatible model server on this host (llama.cpp, Ollama, vLLM)."
+    },
+    {
       "id": "openai",
       "kind": "component",
       "description": "ChatGPT plan sign-in, model catalog, Codex app-server and AI SDK inference."
@@ -78,6 +83,21 @@
       "owner": "authority",
       "protocol": "http",
       "purpose": "Serve the frontend, API, events and attach connections.",
+      "scope": "loopback"
+    },
+    {
+      "availability": "optional",
+      "dataClasses": [
+        "prompt",
+        "application-context",
+        "tool-results"
+      ],
+      "direction": "egress",
+      "id": "local-inference",
+      "offline": "unavailable",
+      "owner": "local-inference",
+      "protocol": "http",
+      "purpose": "Inference for agents that require a local model. Prompts stay on this host.",
       "scope": "loopback"
     },
     {
@@ -150,7 +170,7 @@
   ],
   "flows": [],
   "summary": {
-    "egress": 5,
+    "egress": 6,
     "ingress": 1,
     "internet": [
       "anthropic-api",

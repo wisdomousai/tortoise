@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { defineTrigger } from '../contracts';
 import { resolveTriggers } from '../triggers';
-import { defaultJobs, inProcess, person } from './fixture';
+import type { Harness, HarnessTurn } from '@agent-native/agents/types';
+import { checkOnReceive, defaultJobs, inProcess, person } from './fixture';
 
 const ann = person('ann');
 const vic = person('vic');
@@ -163,5 +164,59 @@ describe('automation triggers', () => {
       expect(() => resolveTriggers([defineTrigger(trigger as never)], catalog, jobs)).toThrow(
         message,
       );
+  });
+
+  test('an agent trigger runs on a harness that keeps its model local, as the issuer', async () => {
+    const turns: HarnessTurn[] = [];
+    const harness = (id: string, inference: Harness['inference']): Harness => ({
+      id,
+      features: { questions: false, approvals: false, resume: false },
+      inference,
+      availability: async () => ({ available: true }),
+      async *run(turn) {
+        turns.push(turn);
+        const [resource] = (turn.context.uiContext as { selectedResources: string[] })
+          .selectedResources;
+        await turn.tools.execute(
+          'lot.get',
+          { input: { id: resource!.slice(4) } },
+          { runId: turn.runId, signal: turn.signal, idempotencyKey: 'c1' },
+        );
+        yield { type: 'text', text: 'checked' };
+      },
+    });
+    // The provider harness is listed first; the agent requires a local model, so it is skipped.
+    const env = inProcess({
+      triggers: [checkOnReceive],
+      agentHarnesses: [harness('provider', 'remote'), harness('on-host', 'local')],
+    });
+    await issue(env, 'check-on-receive');
+    const loop = env.loop();
+    await env.pass(loop);
+    await env.command('lot.receive', { id: 'l1' }, vic);
+    await env.pass(loop);
+    expect(await summary(env, 'check-on-receive')).toMatchObject({ lastOutcome: 'succeeded' });
+    expect(turns).toHaveLength(1);
+    expect(turns[0]!.tools.definitions?.map((tool) => tool.operation)).toEqual(['lot.get']);
+    expect(turns[0]!.prompt).toContain('lot:l1');
+  });
+
+  test('an agent trigger with no harness that meets its model requirement fails into a failure', async () => {
+    const remote: Harness = {
+      id: 'provider',
+      features: { questions: false, approvals: false, resume: false },
+      availability: async () => ({ available: true }),
+      async *run() {
+        throw new Error('must not run');
+      },
+    };
+    const env = inProcess({ triggers: [checkOnReceive], agentHarnesses: [remote] });
+    await issue(env, 'check-on-receive');
+    const loop = env.loop();
+    await env.pass(loop);
+    await env.command('lot.receive', { id: 'l1' }, vic);
+    await env.pass(loop);
+    const failures = (await env.query('automation.failure.list', { open: true })).items;
+    expect(failures).toMatchObject([{ trigger: 'check-on-receive', code: 'UNAVAILABLE' }]);
   });
 });

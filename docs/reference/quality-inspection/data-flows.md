@@ -7,6 +7,7 @@ flowchart LR
   app["quality-inspection (local authority)"]
   subgraph loopback["loopback"]
     authority_http["authority-http"]
+    local_inference["local-inference"]
   end
   subgraph site["site"]
     audit_collector["audit-collector"]
@@ -20,6 +21,7 @@ flowchart LR
   app -- "prompt, application-context, tool-results" --> anthropic_api
   app -- "audit-event" --> audit_collector
   authority_http -- "http" --> app
+  app -- "prompt, application-context, tool-results" --> local_inference
   app -- "prompt, application-context, tool-results" --> openai_api
   app -- "oauth-authorization, identity-token" --> openai_auth
   app -- "inspection-result, defect, usage-decision" --> quality_system_api
@@ -36,6 +38,7 @@ flowchart LR
 | `anthropic-api` | anthropic | egress | internet | https | api.anthropic.com | prompt, application-context, tool-results | optional | unavailable |
 | `audit-collector` | audit | egress | site | tcp | site policy | audit-event | optional | degrade |
 | `authority-http` | authority | ingress | loopback | http | site policy | — | required | — |
+| `local-inference` | local-inference | egress | loopback | http | site policy | prompt, application-context, tool-results | optional | unavailable |
 | `openai-api` | openai | egress | internet | https | api.openai.com | prompt, application-context, tool-results | optional | unavailable |
 | `openai-auth` | openai | egress | internet | https | auth.openai.com | oauth-authorization, identity-token | optional | unavailable |
 | `quality-system-api` | quality-inspection | egress | site | https | site policy | inspection-result, defect, usage-decision | required | queue |
@@ -43,6 +46,7 @@ flowchart LR
 - `anthropic-api`: Inference for Claude runs.
 - `audit-collector`: Forward audit events off the host (RFC 5424 syslog over TLS).
 - `authority-http`: Serve the frontend, API, events and attach connections.
+- `local-inference`: Inference for agents that require a local model. Prompts stay on this host.
 - `openai-api`: Model catalog and inference for Codex and AI SDK runs.
 - `openai-auth`: ChatGPT sign-in: token exchange, OIDC discovery, signing keys and revocation.
 - `quality-system-api`: Forward results, defects and usage decisions to the quality system and pull lots and characteristics from it.
