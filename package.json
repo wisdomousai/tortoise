@@ -63,6 +63,7 @@
     "@agent-native/bundle": "workspace:*",
     "@agent-native/client": "workspace:*",
     "@agent-native/compliance": "workspace:*",
+    "@agent-native/connector-driver": "workspace:*",
     "@agent-native/contracts": "workspace:*",
     "@agent-native/crm-capture": "workspace:*",
     "@agent-native/devices": "workspace:*",

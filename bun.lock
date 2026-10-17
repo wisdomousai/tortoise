@@ -12,6 +12,7 @@
         "@agent-native/bundle": "workspace:*",
         "@agent-native/client": "workspace:*",
         "@agent-native/compliance": "workspace:*",
+        "@agent-native/connector-driver": "workspace:*",
         "@agent-native/contracts": "workspace:*",
         "@agent-native/crm-capture": "workspace:*",
         "@agent-native/device-link": "workspace:*",
@@ -247,6 +248,10 @@
       "name": "@agent-native/compliance",
       "version": "0.1.0",
     },
+    "plugins/connector-driver": {
+      "name": "@agent-native/connector-driver",
+      "version": "0.1.0",
+    },
     "plugins/device-link": {
       "name": "@agent-native/device-link",
       "version": "0.1.0",
@@ -303,6 +308,8 @@
     "@agent-native/client": ["@agent-native/client@workspace:packages/client"],
 
     "@agent-native/compliance": ["@agent-native/compliance@workspace:plugins/compliance"],
+
+    "@agent-native/connector-driver": ["@agent-native/connector-driver@workspace:plugins/connector-driver"],
 
     "@agent-native/contracts": ["@agent-native/contracts@workspace:packages/contracts"],
 

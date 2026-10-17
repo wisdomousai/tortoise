@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/connector-driver",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Driver connector host plugin: hardware drivers in any language as supervised child processes speaking JSON-RPC over stdio, delivered to as outbox targets and observed as readings.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}
