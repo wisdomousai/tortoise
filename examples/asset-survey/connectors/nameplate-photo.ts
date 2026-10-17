@@ -1,8 +1,10 @@
 /**
- * Stand-in nameplate photos for demos and tests: a small grey PNG of a plate whose `tEXt` chunk
- * (keyword `nameplate`) carries the lines a camera would see, such as `manufacturer: ABB`. A
- * trailing ` ?` marks a line that is hard to read. The fake extractor reads that chunk instead of
- * the pixels, so the pipeline runs without a model and gives the same answer every time.
+ * Nameplate photos that carry their own text, for demos and tests. `nameplatePhoto` draws a small
+ * grey stand-in PNG whose `tEXt` chunk (keyword `nameplate`) carries the lines a camera would see,
+ * such as `manufacturer: ABB`. A trailing ` ?` marks a line that is hard to read. The fake
+ * extractor reads that text instead of the pixels, so the pipeline runs without a model and gives
+ * the same answer every time. `withNameplateText` adds the same text to a real JPEG photo as a
+ * comment segment, which is how the sample photos in `fixtures/nameplates` carry theirs.
  *
  * Pure JavaScript (stored deflate blocks, own CRC), so it runs in Bun and on a device alike.
  */
@@ -96,8 +98,60 @@ export function nameplatePhoto(lines: Readonly<Record<string, string>>): Uint8Ar
   ]);
 }
 
-/** The `nameplate` text of a PNG made by `nameplatePhoto`, or undefined for any other image. */
-export function nameplateText(png: Uint8Array): string | undefined {
+const lineText = (lines: Readonly<Record<string, string>>) =>
+  Object.entries(lines)
+    .map(([name, value]) => `${name}: ${value}`)
+    .join('\n');
+
+const commentPrefix = new TextEncoder().encode(`${KEYWORD}\u0000`);
+const startsWith = (data: Uint8Array, prefix: Uint8Array) =>
+  data.length >= prefix.length && prefix.every((byte, index) => data[index] === byte);
+
+/** A JPEG photo with `lines` added as a comment (COM) segment; the pixels are unchanged. */
+export function withNameplateText(
+  jpeg: Uint8Array,
+  lines: Readonly<Record<string, string>>,
+): Uint8Array {
+  if (jpeg[0] !== 0xff || jpeg[1] !== 0xd8) throw new Error('Not a JPEG');
+  const text = new TextEncoder().encode(lineText(lines));
+  const length = 2 + commentPrefix.length + text.length;
+  return new Uint8Array([
+    0xff,
+    0xd8,
+    0xff,
+    0xfe,
+    length >>> 8,
+    length & 255,
+    ...commentPrefix,
+    ...text,
+    ...jpeg.subarray(2),
+  ]);
+}
+
+/** The `nameplate` text of a JPEG comment segment before the image data. */
+function jpegText(jpeg: Uint8Array): string | undefined {
+  for (let at = 2; at + 4 <= jpeg.length && jpeg[at] === 0xff;) {
+    const marker = jpeg[at + 1]!;
+    if (marker === 0xda) break; // start of scan: no header segments follow
+    const length = (jpeg[at + 2]! << 8) | jpeg[at + 3]!;
+    const data = jpeg.subarray(at + 4, at + 2 + length);
+    if (marker === 0xfe && startsWith(data, commentPrefix))
+      return new TextDecoder().decode(data.subarray(commentPrefix.length));
+    at += 2 + length;
+  }
+  return undefined;
+}
+
+/**
+ * The `nameplate` text of a PNG made by `nameplatePhoto` or a JPEG made by `withNameplateText`,
+ * or undefined for any other image.
+ */
+export function nameplateText(photo: Uint8Array): string | undefined {
+  if (photo.length >= 4 && photo[0] === 0xff && photo[1] === 0xd8) return jpegText(photo);
+  return pngText(photo);
+}
+
+function pngText(png: Uint8Array): string | undefined {
   const view = new DataView(png.buffer, png.byteOffset, png.byteLength);
   if (png.length < 8 || view.getUint32(0) !== 0x89504e47) return undefined;
   for (let at = 8; at + 8 <= png.length;) {

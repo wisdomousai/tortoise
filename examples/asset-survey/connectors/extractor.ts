@@ -19,9 +19,10 @@ export interface Extractor {
 }
 
 /**
- * The demo extractor: reads the text a `nameplatePhoto` carries. Each `name: value` line becomes
- * a field read with confidence 0.96, or 0.55 when the line ends in ` ?`; the region is the line's
- * band on the plate. Any other image yields no fields, so a reviewer enters them by hand.
+ * The demo extractor: reads the text a `nameplatePhoto` or a sample photo carries. Each
+ * `name: value` line becomes a field read with confidence 0.96, or 0.55 when the line ends in
+ * ` ?`; on a stand-in, the region is the line's band on the plate. Any other image yields no
+ * fields, so a reviewer enters them by hand.
  */
 export const nameplateTextExtractor: Extractor = {
   model: 'nameplate-text (demo)',
@@ -38,7 +39,10 @@ export const nameplateTextExtractor: Extractor = {
           confidence: unsure ? 0.55 : 0.96,
           source: {
             digest: ref.digest,
-            region: { x: 0.1, y: (8 + index * 7) / 56, width: 0.8, height: 3 / 56 },
+            // Only the stand-in's geometry is known; a real photo's text has no position.
+            ...(ref.mediaType === 'image/png'
+              ? { region: { x: 0.1, y: (8 + index * 7) / 56, width: 0.8, height: 3 / 56 } }
+              : {}),
           },
         };
       });

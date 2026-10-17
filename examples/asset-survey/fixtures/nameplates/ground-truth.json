@@ -1,0 +1,56 @@
+{
+  "_note": "What each generated photo actually shows, checked by eye. ' ?' marks a line that is hard to read in the picture, as nameplatePhoto uses it. Fictional manufacturers; generated with Codex image generation on 2026-10-17.",
+  "motor": {
+    "manufacturer": "NORDHAVEN DRIVES",
+    "model": "NHM 132M-4",
+    "serial": "NH24-118733",
+    "ratedVoltage": "400 V",
+    "frequency": "50 Hz",
+    "ratedCurrent": "15.6 A",
+    "ratedPower": "7.5 kW",
+    "speed": "1460 rpm",
+    "protection": "IP55",
+    "insulationClass": "F"
+  },
+  "pump": {
+    "manufacturer": "AQUILON PUMPWORKS",
+    "model": "AP-80-200",
+    "serial": "AQ-7731-0458",
+    "flow": "120 m3/h",
+    "head": "48 m",
+    "speed": "2900 rpm",
+    "year": "2019"
+  },
+  "transformer": {
+    "manufacturer": "VELTRIX POWER",
+    "model": "Dry-type transformer",
+    "serial": "1VTX300101",
+    "ratedPower": "630 kVA",
+    "ratedVoltage": "10 kV / 0.4 kV",
+    "vectorGroup": "Dyn11",
+    "impedance": "6%"
+  },
+  "breaker": {
+    "manufacturer": "KESTREL SWITCHGEAR",
+    "model": "KX-ACB 63",
+    "serial": "KS-22-990417",
+    "ratedCurrent": "6300 A",
+    "ratedVoltage": "690 V",
+    "breakingCapacity": "100 kA"
+  },
+  "valve": {
+    "manufacturer": "BRANDT FLOW CONTROL",
+    "model": "Fig. 4410",
+    "serial": "BF-0093-221 ?",
+    "size": "DN 150",
+    "pressureClass": "PN 16",
+    "bodyMaterial": "1.4408"
+  },
+  "compressor": {
+    "manufacturer": "HALDEN AIR",
+    "model": "HA-37 ?",
+    "serial": "HA-1987-5520",
+    "pressure": "8 bar",
+    "ratedPower": "37 kW ?"
+  }
+}

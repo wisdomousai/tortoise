@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startService } from '../../../tests/e2e/service';
-import { nameplatePhoto } from '../connectors/nameplate-photo';
+import { samplePhoto } from '../fixtures/nameplates';
 
 type Host = Awaited<ReturnType<typeof startService>>;
 
@@ -34,12 +34,8 @@ async function pairPhone(host: Host) {
       body,
     });
   return {
-    async capture(id: string, assignmentId: string, nodeId: string, lines: Record<string, string>) {
-      const upload = await device(
-        '/api/v1/blobs',
-        nameplatePhoto(lines) as Uint8Array<ArrayBuffer>,
-        'image/png',
-      );
+    async capture(id: string, assignmentId: string, nodeId: string, jpeg: Uint8Array) {
+      const upload = await device('/api/v1/blobs', jpeg as Uint8Array<ArrayBuffer>, 'image/jpeg');
       const photo = await upload.json();
       const input = {
         id,
@@ -93,7 +89,7 @@ test('prepare, send to a phone, review what the model read and file it into the 
     await page.goto(host.launchUrl);
     await expect(page.getByRole('heading', { name: 'Structure' })).toBeVisible();
     await addNode(page, 'No parent (root)', '=G1', 'Generator 1');
-    await addNode(page, '=G1 Generator 1', '=G1-Q2', 'Station supply breaker');
+    await addNode(page, '=G1 Generator 1', '=G1-QM1', 'Cooling water valve');
     // The scheme's rules are checked by the hub and shown where the designation was typed.
     await page.getByLabel('Designation').fill('G1Q3');
     await page.getByLabel('Name').fill('Bad');
@@ -115,12 +111,9 @@ test('prepare, send to a phone, review what the model read and file it into the 
     await expect(page.getByText('Sent to device')).toBeVisible();
 
     const [assignment] = await phone.feed();
-    const q2 = assignment!.nodes.find((node) => node.designation === '=G1-Q2')!;
-    await phone.capture('cap-1', assignment!.id, q2.id, {
-      manufacturer: 'Siemens',
-      serial: 'SX-4471',
-      ratedCurrent: '1250 A ?',
-    });
+    const valve = assignment!.nodes.find((node) => node.designation === '=G1-QM1')!;
+    // The valve's plate is rusted across the serial, so the reading doubts it.
+    await phone.capture('cap-1', assignment!.id, valve.id, await samplePhoto('valve'));
     await expect(page.getByText('Captures arriving')).toBeVisible();
 
     await nav.getByRole('link', { name: 'Review' }).click();
@@ -131,19 +124,24 @@ test('prepare, send to a phone, review what the model read and file it into the 
     await expect(proposal.getByText('1 value to check against the photo.')).toBeVisible();
     const flagged = proposal.locator('input[aria-invalid="true"]');
     await expect(flagged).toHaveCount(1);
-    await expect(flagged).toHaveValue('1250 A');
-    await proposal.getByRole('textbox', { name: 'serial' }).fill('SX-4471-B');
+    await expect(flagged).toHaveValue('BF-0093-221');
+    await proposal.getByRole('textbox', { name: 'serial' }).fill('BF-0093-224');
     await proposal.getByRole('button', { name: 'Accept onto the node' }).click();
     await expect(page.getByText(/Accepted by/)).toBeVisible();
 
-    await page.getByRole('link', { name: 'Station supply breaker' }).click();
-    await expect(page.getByText('SX-4471-B')).toBeVisible();
+    await page.getByRole('link', { name: 'Cooling water valve' }).click();
+    await expect(page.getByText('BF-0093-224')).toBeVisible();
     await expect(page.getByText('corrected by reviewer')).toBeVisible();
     await page.getByRole('button', { name: 'Create an asset' }).click();
     await expect(
       page.getByRole('list', { name: 'Filings' }).getByText(/Filed as EAM-2001/),
     ).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText('EAM EAM-2001')).toBeVisible();
+    // No site binds the export process here, so the export waits.
+    await page.getByRole('button', { name: 'Export to the export directory' }).click();
+    await expect(
+      page.getByRole('list', { name: 'Filings' }).getByText('Waiting for the export'),
+    ).toBeVisible();
   } finally {
     await host.stop();
     await rm(workspace, { recursive: true, force: true });
