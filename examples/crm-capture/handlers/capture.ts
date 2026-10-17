@@ -49,7 +49,7 @@ export const captureHandlers = (): HandlerContribution<CrmState, CrmServices>[] 
   }),
   handler(operations.activityLog, (input, ctx) => {
     const accounts = accountRecords(ctx);
-    const account = accounts.require(input.accountId);
+    const account = accounts.getExisting(input.accountId);
     if (account.status !== 'adopted')
       throw new ApplicationError('CONFLICT', `Account is ${account.status}`, {
         status: account.status,

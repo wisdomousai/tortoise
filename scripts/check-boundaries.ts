@@ -8,6 +8,9 @@ import {
   forbiddenBrowserImport,
   hostSourcePath,
   kernelForbiddenImport,
+  nonPortableGlobal,
+  portableForbiddenImport,
+  portableSource,
   pluginBrowserEntry,
   pluginBrowserSource,
   serverSource,
@@ -27,6 +30,20 @@ async function files(directory: string): Promise<string[]> {
   return result;
 }
 const all = await files(root);
+// A plugin whose manifest lists Android or iOS runs its server part on Hermes, so all of its
+// source is portable, like the kernel's.
+const mobilePlugins: string[] = [];
+for (const file of all) {
+  const plugin = /^plugins\/([^/]+)\/src\/plugin-manifest\.ts$/.exec(relative(root, file));
+  if (plugin && /platforms:\s*\[[^\]]*'(?:android|ios)'/.test(await readFile(file, 'utf8')))
+    mobilePlugins.push(plugin[1]!);
+}
+const isPortable = (name: string) =>
+  portableSource.test(name) ||
+  mobilePlugins.some((plugin) => name.startsWith(`plugins/${plugin}/src/`));
+/** Comments mention APIs without calling them. */
+const withoutComments = (source: string) =>
+  source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
 const browserRoots = [
   'packages/contracts/',
   'packages/client/',
@@ -102,7 +119,7 @@ for (const file of all) {
     if (from === 'content' && to === 'shell')
       errors.push(`${name}: content imports shell ${dependency}`);
     if (
-      name.startsWith('packages/host/src/') &&
+      (name.startsWith('packages/host/src/') || name.startsWith('packages/kernel/src/')) &&
       kernelForbiddenImport.test(
         dependency.startsWith('.')
           ? relative(root, resolve(file, '..', dependency)).replaceAll('\\', '/')
@@ -121,7 +138,20 @@ for (const file of all) {
         (dependency.startsWith('.') && hostSourcePath.test(resolve(file, '..', dependency))))
     )
       errors.push(`${name}: browser imports host module ${dependency}`);
+    if (isPortable(name) && !portableImport(file, dependency))
+      errors.push(`${name}: portable source imports ${dependency}, which needs Node or Bun`);
   }
+  if (isPortable(name) && nonPortableGlobal.test(withoutComments(source)))
+    errors.push(`${name}: portable source uses a Node or Bun global`);
+}
+/** Whether portable source may import `dependency`: no built-in or Bun-only package, and a
+ * relative import must land in portable source too. */
+function portableImport(file: string, dependency: string) {
+  if (portableForbiddenImport.test(dependency)) return false;
+  // A stylesheet is compiled by the bundler (Uniwind on React Native), not run.
+  if (!dependency.startsWith('.') || dependency.endsWith('.css')) return true;
+  const target = relative(root, resolve(file, '..', dependency)).replaceAll('\\', '/');
+  return [target, `${target}.ts`, `${target}.tsx`].some(isPortable);
 }
 // Server code connects to other hosts only through the egress guard; see `egressExemptions`.
 const exemptionUsed = new Set<string>();
@@ -129,10 +159,7 @@ for (const file of all) {
   const name = relative(root, file).replaceAll('\\', '/');
   if (!serverSource.test(name) || browserSource.test(name) || pluginBrowserSource.test(name))
     continue;
-  // Comments mention APIs without calling them.
-  const source = (await readFile(file, 'utf8'))
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  const source = withoutComments(await readFile(file, 'utf8'));
   const found = directEgress.filter((rule) => rule.pattern.test(source)).map((rule) => rule.api);
   if (!found.length) continue;
   const exemption = Object.keys(egressExemptions).find((prefix) => name.startsWith(prefix));

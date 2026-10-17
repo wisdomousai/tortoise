@@ -30,6 +30,11 @@ test('source export is deterministic, independent and excludes private/runtime a
     await writeFile(join(source, 'apps/.env.local'), 'SECRET=PRIVATE');
     await mkdir(join(source, 'node_modules'), { recursive: true });
     await writeFile(join(source, 'node_modules/private.json'), '{}');
+    await mkdir(join(source, 'apps/mobile/android/app'), { recursive: true });
+    await writeFile(join(source, 'apps/mobile/android/app/build.json'), '{}');
+    await mkdir(join(source, 'apps/mobile/.expo'), { recursive: true });
+    await writeFile(join(source, 'apps/mobile/.expo/devices.json'), '{}');
+    await writeFile(join(source, 'apps/mobile/index.ts'), 'export {};');
     await symlink(join(source, 'package.json'), join(source, 'packages/linked.json'));
     const first = await scaffold({
       sourceRoot: source,
@@ -46,6 +51,7 @@ test('source export is deterministic, independent and excludes private/runtime a
     expect(first).toEqual(second);
     expect(first.files.map((file) => file.path)).toEqual([
       'app.config.json',
+      'apps/mobile/index.ts',
       'apps/web/index.html',
       'bun.lock',
       'package.json',

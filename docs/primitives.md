@@ -117,7 +117,7 @@ implemented · `packages/runtime`
 
 _A typed set of records a module keeps in its state slice, with generated reads._
 
-Every application holds keyed records: accounts, lots, tasks. `defineCollection` names the record type, its journal resource prefix (`<type>:<key>`), the visible record and, optionally, the field that names its container. `collectionGet` and `collectionList` turn it into ordinary catalog queries with literal IDs; `collectionGetHandler` and `collectionListHandler` serve them with the module's own visibility rule. Inside commands, `records(ctx, collection, store)` gives prototype-safe `get`, `require`, `insert`, `set`, `update` and `remove` that declare each changed record. It is not an ORM: records stay a plain keyed object in the module's slice and commit with the rest of the state.
+Every application holds keyed records: accounts, lots, tasks. `defineCollection` names the record type, its journal resource prefix (`<type>:<key>`), the visible record and, optionally, the field that names its container. `collectionGet` and `collectionList` turn it into ordinary catalog queries with literal IDs; `collectionGetHandler` and `collectionListHandler` serve them with the module's own visibility rule. Inside commands, `records(ctx, collection, store)` gives prototype-safe `get`, `getExisting`, `insert`, `set`, `update` and `remove` that declare each changed record. It is not an ORM: records stay a plain keyed object in the module's slice and commit with the rest of the state.
 
 Guarantees: a write through `records` always declares `<type>:<key>`, so revisions, `expectedRevisions` conflicts and the journal apply to it. Keys such as `__proto__` stay ordinary keys. A generated list applies the visibility rule to every row before equality filters, search, counting and paging, and a generated get answers `NOT_FOUND` for a record the caller may not see. Search runs only over the text the handler supplies, so hidden fields are never searchable unless the handler includes them.
 
@@ -165,13 +165,25 @@ implemented · `packages/contracts` `packages/runtime`
 
 _The port for the authority's transactional state._
 
-Storage holds feature state together with the framework's receipts, revisions, journal and outbox, which is what lets a command commit all of them at once. Memory and SQLite snapshot adapters ship; a production store implements the same port.
+Storage holds feature state together with the framework's receipts, revisions, journal and outbox, which is what lets a command commit all of them at once. Memory and SQLite snapshot adapters ship; the SQLite one runs over a small synchronous driver, so the desktop and the phone share it. A production store implements the same port.
 
 Guarantees: atomic `transact` and consistent `read` per workspace; rejected work commits nothing. A replacement passes the storage conformance suite.
 
 Gaps: the SQLite adapter rewrites one JSON snapshot per commit, and the journal is never pruned.
 
 implemented · `packages/runtime` `packages/adapters`
+
+### Blob store
+
+_Content-addressed bytes, such as photos and documents, that commands reference from resources._
+
+Photos and scanned pages are too large for a snapshot that is rewritten on every commit. A caller uploads the bytes first and gets back a reference (digest, size, media type). A command then attaches that reference to a resource it changes, in the same transaction as the change, and state, input and effect payloads carry only the reference. The workspace records which resources reference each blob. A caller may read a blob when it may read one of those resources, so a blob follows the policy of the records it belongs to. Commands declare the size and media types they accept, and an upload is refused unless an operation the caller may invoke would accept it. Connectors read the blobs attached to an effect's resource and upload them before delivering the record.
+
+Guarantees: an attachment commits with its command or not at all. Attaching needs the caller's own recent upload or read access to a resource that already references the blob, so learning a digest grants nothing; every refusal looks the same. Reads re-evaluate policy each time, so a revocation takes effect on the next read, and HTTP serves blobs sandboxed, unsniffed and uncached. Unreferenced blobs are removed after a grace period; a referenced blob is never removed. Uploads, reads and refusals are audited by digest.
+
+Gaps: bytes travel whole, not streamed. MCP and the CLI do not carry blobs. Staged uploads live in memory, so an upload must be attached before the authority restarts. A serving authority sweeps only when it opens. No mobile store exists yet.
+
+partial · `packages/contracts` `packages/runtime` `packages/adapters` `packages/client` `packages/kernel`
 
 ### Journal and live query
 
@@ -187,11 +199,11 @@ implemented · `packages/runtime` `packages/client` `packages/react`
 
 _One unit of content: the definition a host runs._
 
-An application is a package with three entrypoints. `manifest` is browser-safe: its id, title, composed modules and the components it brings (a screen bridge, device drivers), with their declared requirements. `application` is server code: state factory and upgrades, composed policy, handlers, services, selectable resources and `connect`, which wires systems of record (demo fakes included) and observers once per authority. `screens` is browser code: routes (each in the sidebar shell or, with `layout: 'full'`, full-window for a station), navigation with optional count badges, capability screens, and the shell's slots: title, context line, a sidebar section above the navigation, and status. Layouts are pathless routes, so screens read route params with `useParams({ strict: false })`. The starter names one application in its configuration and the host and frame resolve these entrypoints, so adding an application changes no framework or starter code. Each example in `examples/*` is one application. Each entrypoint also lists the application's [host plugins](#host-plugin), in the same order.
+An application is a package with three entrypoints. `manifest` is browser-safe: its id, title, composed modules and the components it brings (a screen bridge, device drivers), with their declared requirements. `application` is server code: state factory and upgrades, composed policy, handlers, services, selectable resources and `connect`, which wires systems of record (demo fakes included) and observers once per authority. `screens` is browser code: routes (each in the sidebar shell or, with `layout: 'full'`, full-window for a station), navigation with optional count badges, capability screens, and the shell's slots: title, context line, a sidebar section above the navigation, and status. Layouts are pathless routes, so screens read route params with `useParams({ strict: false })`. The starter names one application in its configuration and the host and frame resolve these entrypoints, so adding an application changes no framework or starter code. Each example in `examples/*` is one application. Each entrypoint also lists the application's [host plugins](#host-plugin), in the same order. The manifest may name its `targets` (desktop, web, mobile); each target maps to [host platforms](#host-platform) and every listed plugin must run on them.
 
 Guarantees: one catalog, generated reference set, web bundle and workspace per application. `defineApplication` fails when a selectable resource names an operation the manifest does not compose; `defineManifest` rejects an invalid id or a duplicate module, plugin modules included; `defineApplication` rejects a plugin list that differs from the manifest's; `defineScreens` rejects a navigation target with no route, after merging plugin screens. A definition is trusted code; only callers are untrusted.
 
-implemented · `packages/host` `packages/frame`
+implemented · `packages/kernel` `packages/host` `packages/frame`
 
 ### Host
 
@@ -199,21 +211,33 @@ _The domain-neutral authority process that runs one application definition._
 
 The host owns everything an application should not rewrite: workspace ownership, storage, launch and sessions, HTTP/SSE, embedded MCP, the CLI, run supervision and background delivery. It receives a definition and composes the runtime, integrations and observers from it; it names no domain and no security concept. It is a kernel: what crosses the process boundary (network, ingress, caller identity, the audit log) goes through [ports](#host-plugin) whose defaults refuse the network, bind loopback and keep no log, and the definition's plugins provide anything more.
 
-Guarantees: one authority per workspace, enforced by the same OS lock for a serving host and an embedded one. Embedded authorities never start observers. Observers start only after the host listens, and a failed start stops the ones already running. `loadApplication` and `loadManifest` resolve the configured application at runtime; compiled builds use a generated static entry because a binary cannot follow that import.
+Guarantees: one authority per workspace, enforced by the same OS lock for a serving host and an embedded one. Embedded authorities never start observers. Observers start only after the host listens, and a failed start stops the ones already running. `loadApplication` and `loadManifest` resolve the configured application at runtime; compiled builds use a generated static entry because a binary cannot follow that import. Opening an authority (plugins, identity, storage, runtime, `ready`, integrations) is portable and runs on any [host platform](#host-platform); the Bun host supplies one platform.
 
-implemented · `packages/host`
+implemented · `packages/kernel` `packages/host`
 
 ### Host plugin
 
 _A cross-cutting part an application composes: modules, a state slice, a policy, ports and lifecycle hooks._
 
-Some concerns belong to many applications but to no domain: a site policy, an audit trail, compliance evidence, a notifier. A plugin has the same three entrypoints as an application, and the application lists its plugins in each of them. Plugins can provide the kernel's ports, hand a service to later plugins, and use each other through the composed ports rather than through imports. A plugin runs code at fixed points: before storage opens, before the first request, once a serving host listens (as a delegated caller), and at shutdown in reverse order. `plugins/webhook` stands in for a third-party plugin.
+Some concerns belong to many applications but to no domain: a site policy, an audit trail, compliance evidence, a notifier. A plugin has the same three entrypoints as an application, and the application lists its plugins in each of them. Plugins can provide the kernel's ports, hand a service to later plugins, and use each other through the composed ports rather than through imports. A plugin declares the [host platforms](#host-platform) it runs on (absent means Bun only). A plugin can provide settings for other plugins before any of them opens, as `plugins/managed-config` does with the values device management pushes. A plugin that needs native code on a phone ships an Expo module and names it, and optionally an Expo config plugin, in its manifest; the mobile build links the module and runs the config plugin with the settings the composed plugins declare. A plugin runs code at fixed points: before storage opens, before the first request, once a serving host listens (as a delegated caller), and at shutdown in reverse order. `plugins/webhook` stands in for a third-party plugin.
 
-Guarantees: a plugin's state is its own slice, which the application's upgrade and other plugins cannot rewrite, and its policy decides only its own operations and resource types. The kernel's ports default closed: no network, a loopback listener and no event log. A refusal while opening stops startup before state is opened. Two providers of one port, a supplied setting no plugin claims, and a port a plugin's configuration needs that nobody provides all refuse startup. `check:boundaries` keeps the framework and the starter from importing plugins, and plugins from importing the starter or content.
+Guarantees: a plugin's state is its own slice, which the application's upgrade and other plugins cannot rewrite, and its policy decides only its own operations and resource types. The kernel's ports default closed: no network, the platform's own listener (loopback on Bun, none on a platform without ingress) and no event log. A plugin listed on a platform it does not declare refuses startup. A manifest that names native code without a mobile platform is refused, and a plugin whose native module the build lacks refuses startup with the command that rebuilds it. Provided settings override launcher settings unless the launcher is a development build; two providers of one key refuse startup. A refusal while opening stops startup before state is opened. Two providers of one port, a supplied setting no plugin claims, and a port a plugin's configuration needs that nobody provides all refuse startup. `check:boundaries` keeps the framework and the starter from importing plugins, and plugins from importing the starter or content.
 
-Gaps: plugins are trusted code with the host's privileges. Nothing sandboxes one plugin from another's services. Environment variables that no plugin claims are ignored rather than refused. The kernel fixes the set of port kinds, so a plugin cannot introduce a new one.
+Gaps: plugins are trusted code with the host's privileges. Nothing sandboxes one plugin from another's services. Environment variables that no plugin claims are ignored rather than refused. The kernel fixes the set of port kinds, so a plugin cannot introduce a new one. Native plugin code (Kotlin, Swift) is not compiled by `bun run check`; only the prebuild output and autolinking have been checked.
 
-implemented · `packages/host` `packages/frame`
+implemented · `packages/kernel` `packages/host` `packages/frame` `packages/mobile` `plugins/managed-config`
+
+### Host platform
+
+_What the kernel needs from the machine it runs on: workspace ownership, storage, the host's own components and its capabilities._
+
+The kernel opens an authority without any Node, Bun or React Native API. A platform supplies exclusive ownership of a workspace, the workspace's snapshot storage and [blob store](#blob-store), the requirements the host itself adds to every deployment (the Bun host's listener and agent providers), an optional default listener, and the set of capabilities it has: raw sockets, child processes and ingress. The Bun host is one platform; Android and iOS share the mobile platform, which has none of the three capabilities and owns its workspace with a lock database. Before plugins open, the kernel checks that the JavaScript host has the Web globals the runtime calls and installs the ones it can write in JavaScript.
+
+Guarantees: a deployment that declares a socket destination, an ingress destination or a child process refuses startup on a platform without the matching capability, naming the component that declared it. A missing global refuses startup before any state opens. The runtime, client, integration and kernel suites also run with the globals Hermes may lack removed and the kernel's replacements installed. `check:boundaries` keeps Node and Bun imports and globals out of the portable packages.
+
+Gaps: the mobile platform has run only in Bun tests with Bun's SQLite and files, not yet on a device. A platform is trusted code; nothing checks that its ownership is really exclusive beyond its own tests.
+
+partial · `packages/kernel` `packages/host` `packages/mobile`
 
 ### Web frame
 
@@ -225,6 +249,18 @@ Guarantees: the frame imports no application; the boundary check bundles every a
 
 implemented · `packages/frame`
 
+### Native frame
+
+_The domain-neutral React Native shell around one application's native screens._
+
+An application that targets mobile declares its screens once in a `screens-native` entrypoint, and the frame supplies navigation, the session context and live invalidation over the authority's direct transport. Tabs sit at the bottom on phones and become a rail on tablets; other screens are pushed above them. Screens and capability targets are named by path, as on the web, so a capability opens the same screen in both frames.
+
+Guarantees: the frame imports no application; definition fails on a dead target, a duplicate screen or a home that is not a tab, over the application's and its plugins' screens together. A new transport starts a new query cache. Signal colors come from the operator registry's manifest, so a state looks the same on a phone and at a station.
+
+Gaps: the frame and its components have been bundled by Metro and type-checked, not rendered on a device. There is no compact web variant for attached tablets yet.
+
+partial · `packages/frame-native` `apps/mobile`
+
 ### Starter
 
 _The thin application a team forks or generates and then owns._
@@ -232,6 +268,10 @@ _The thin application a team forks or generates and then owns._
 The starter wires framework to content: `app.config.json` names its identity and the application it hosts, `apps/service` serves it, `apps/web` frames its screens and `apps/desktop` wraps both. It holds no domain and no generic host code, so changing it never forks the framework; extending it is the owner's business. `AGENT_NATIVE_APPLICATION` overrides the configured application for one developer's launch. `bun run dev` opens that desktop window against the source service; a packaged build is the integrity-checked distribution of the same window.
 
 Guarantees: the starter imports no content statically; the boundary check fails a direct import from `examples/*`. A development desktop launch cannot skip packaged digest checks: the development flag is honored only when Electron reports the app is unpackaged (`apps/desktop/test/development-launch.test.ts`).
+
+`apps/mobile` hosts the application `targets.mobile` names (or the starter's) on Android and iOS: `bun run mobile:prepare` writes its static entry, and the app opens its authority on the device and renders its native screens.
+
+Gaps: the mobile app has not run on a device, and attached mode does not exist.
 
 implemented · `apps/service` `apps/web` `apps/desktop` `app.config.json`
 
@@ -339,21 +379,21 @@ implemented · `plugins/automation`
 
 _Device input normalized into events and routed to an intent without a model turn._
 
-Scanners are callers too. A wedge, serial, HID or camera scanner produces a normalized scan; a configured route turns it into the same command a button or tool call would submit.
+Scanners are callers too. A wedge, serial, HID or camera scanner, or a rugged Android device's scanner app broadcasting an intent, produces a normalized scan; a configured route turns it into the same command a button or tool call would submit.
 
 Guarantees: sources are registered explicitly. Decoding validates GS1 check digits and AIM symbologies and corrects keyboard-layout mismatch. Routes are site configuration.
 
 Each non-wedge source is declared as a device requirement, so the security manifest lists it.
 
-Gaps: no source has been checked on real hardware. Device access is declared but not mediated.
+Gaps: no source has been checked on real hardware. Device access is declared but not mediated. The intent receiver accepts broadcasts from any app unless the profile names a sender permission.
 
-implemented · `packages/devices`
+implemented · `packages/devices` `plugins/intent-scanner`
 
 ### UI registry
 
 _Reusable screen parts published as shadcn registries over stock shadcn primitives._
 
-Specialized interfaces are cheap only if their parts are shared. Apps pull registry items with `shadcn add` and own the copied source, while trust-relevant behavior stays in versioned bindings. A plugin that brings a screen ships it as its own registry, as the compliance plugin does with `compliance-screen`.
+Specialized interfaces are cheap only if their parts are shared. Apps pull registry items with `shadcn add` and own the copied source, while trust-relevant behavior stays in versioned bindings. A plugin that brings a screen ships it as its own registry, as the compliance plugin does with `compliance-screen`. The native registry carries the same point-of-work rules to React Native on Uniwind: `hold-button`, `status-pill` and `list-row`.
 
 Guarantees: no shadcn primitive is forked; sizing comes from tokens and `cva` variants. The registry manifest is generated and drift-checked. Operator items follow the point-of-work rules: glove-sized targets, hold-to-confirm for consequential actions, state as icon plus text. The app shell exports `NavigationCount`, `SidebarSection` and `SidebarLink` for the slots; `status-strip` adds `SignalBanner`, the one signal readable from the machine; `operator-station` lays out a full-window station (dark header with seat control, machine banner, task panel beside attention, history footer) with `OperatorPanel` for the task.
 
@@ -361,7 +401,7 @@ Guarantees: no shadcn primitive is forked; sizing comes from tokens and `cva` va
 
 Gaps: no scratch-app `shadcn add` acceptance test.
 
-implemented · `packages/operator-ui` `packages/frame` `plugins/compliance`
+implemented · `packages/operator-ui` `packages/frame` `packages/frame-native` `plugins/compliance`
 
 ## Integrations: systems that keep their own records
 
@@ -607,7 +647,7 @@ _The evidence an auditor checks, generated from the catalog and site policy and 
 
 Guarantees: the security manifest, data flows, control mapping (ISO/IEC 27001 Annex A, NIST SP 800-53 and CSF, IEC 62443-4-2) and CycloneDX SBOM are deterministic and drift-checked. Every control names tests, artifacts and event kinds that exist. A posture monitor re-verifies the log and records `posture.checked`. Through the `compliance` [host plugin](#host-plugin), listed auditors read posture and the log with ordinary authorized queries and a screen, and an offline report works against a copied log.
 
-Gaps: control mappings are indicative, not a certification.
+Gaps: control mappings are indicative, not a certification. The SBOM covers the whole lockfile, so every application's bill lists the desktop, web and mobile toolchains (Electron, Vite, Expo, React Native) as `required`, not only what that application ships on one target.
 
 implemented · `plugins/compliance` `packages/host`
 

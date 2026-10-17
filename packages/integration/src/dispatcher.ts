@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import type {
   AttemptRecord,
   ClaimResult,
@@ -95,7 +94,7 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
   const backoff =
     options.backoff ?? ((attempts: number) => Math.min(60_000, 1_000 * 2 ** (attempts - 1)));
   const dispatch = createDelivery(options, description, {
-    worker: options.worker ?? randomUUID(),
+    worker: options.worker ?? crypto.randomUUID(),
     leaseMs: options.leaseMs ?? 120_000,
   });
   const pending = (limit?: number) =>

@@ -1,6 +1,7 @@
 import type { Sessions } from '@agent-native/adapters/http';
 import { DeterministicHarness } from '@agent-native/agents/deterministic';
 import { createRunSupervisor } from '@agent-native/agents/supervisor';
+import { childEnvironment } from '../plugin';
 import { createProviderAccess } from '../providers';
 import { createAgentTools } from './agent-tools';
 import type { Authority } from './authority';
@@ -24,7 +25,7 @@ export async function startAgents(
     // that confines them to the destinations their process declaration lists. Both go through
     // the network port, so without a plugin that provides it neither reaches anything.
     fetch: ports.network.routedFetch(['openai-auth', 'openai-api']),
-    childEnvironment: (processId) => ports.network.childEnvironment(processId),
+    childEnvironment: (processId) => childEnvironment(ports.network, processId),
   });
   cleanup.push(() => providers.close());
   const supervisor: ReturnType<typeof createRunSupervisor> = createRunSupervisor({

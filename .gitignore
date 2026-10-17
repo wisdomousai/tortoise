@@ -10,3 +10,9 @@ playwright-report/
 .env.*
 !.env.example
 .DS_Store
+
+# Expo continuous native generation: native projects and caches are regenerated, never committed.
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/.expo/
+apps/mobile/generated/

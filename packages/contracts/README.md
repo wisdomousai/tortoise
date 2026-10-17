@@ -18,20 +18,21 @@ Layer: framework (`packages/*`). Domain-neutral; a domain defines its capabiliti
 - [Target](../../docs/primitives.md#target): `defineTarget`, `Target`, `TargetSpec`, `SyncBatch`, `effectOutcomeSchema`, `EffectOutcomeInput`, `deliveryStatusSchema`, `rejectionSchema`, `deliveryShape`.
 - [Proposal](../../docs/primitives.md#proposal): `proposalOperations` under fixed `proposal.*` IDs, `proposalSchema` (`Proposal`), `proposalStatusSchema` (`ProposalStatus`) and the `proposals` collection.
 - [Collection](../../docs/primitives.md#collection): `defineCollection`, `Collection`, `collectionGet`, `collectionList`, `listFilters`, `listSearches`, `recordKeySchema`, `MAX_PAGE`, and the `CollectionPage` output shape.
+- [Blob store](../../docs/primitives.md#blob-store): `BlobRef`, `blobRefSchema`, `isBlobRef`, `BlobLimits` (a command's `blobs`), `blobFits`, `assertBlobLimits`, `maxBlobBytes`, `blobDigestPattern`, `mediaTypePattern`.
 - [Event log](../../docs/primitives.md#event-log): the audit envelope and port (`EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`).
 
 The worked example is [`examples/project-tasks/contracts.ts`](../../examples/project-tasks/contracts.ts). [Capability authoring](../../docs/capability-authoring.md) walks through adding an operation.
 
 ## Entrypoints
 
-| Import                      | Runs in            | Contents                                                                                                                                                |
-| --------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@agent-native/contracts`   | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers.                                                    |
-| `@agent-native/contracts/*` | browser and server | One source file: `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit`, `data-provider`, `collection`, `membership` or `target`. |
+| Import                      | Runs in            | Contents                                                                                                                                                        |
+| --------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/contracts`   | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers.                                                            |
+| `@agent-native/contracts/*` | browser and server | One source file: `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit`, `data-provider`, `collection`, `membership`, `target` or `blob`. |
 
 ## Trust boundary
 
-Contracts are trusted code but describe untrusted input. `jsonSchema` validation rejects input it would have to strip or transform, and wire values must be JSON. `buildCatalog` fails before startup on duplicate IDs, missing or cyclic dependencies, missing UI declarations, unresolved workflow references, colliding MCP names and requirement errors (an outbox target without a queuing destination, a process naming an undeclared destination, a remote query whose target no destination `reads`). A declaration grants nothing by itself: a site policy binds it and the egress guard enforces it.
+Contracts are trusted code but describe untrusted input. `jsonSchema` validation rejects input it would have to strip or transform, and wire values must be JSON. `buildCatalog` fails before startup on duplicate IDs, missing or cyclic dependencies, missing UI declarations, unresolved workflow references, colliding MCP names, blob limits on a query or outside 1 byte to 256 MiB, and requirement errors (an outbox target without a queuing destination, a process naming an undeclared destination, a remote query whose target no destination `reads`). A declaration grants nothing by itself: a site policy binds it and the egress guard enforces it.
 
 Audit events carry references and digests. Input values appear only for the fields a capability lists in `audit.fields`.
 

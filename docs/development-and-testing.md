@@ -14,41 +14,50 @@ bun run check:boundaries
 bun run check:readmes
 bun run check:size
 bun test
+bun run test:portable
 bun run test:sandbox
 bun run build
 ```
 
-| Check              | What it catches                                                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `check:generated`  | Drift between the catalog and the generated references, security artifacts and SBOM, or a leftover reference directory.          |
-| `check:boundaries` | Imports across layers, server code reaching browser bundles, and direct network or process APIs outside the egress guard.        |
-| `check:readmes`    | A workspace without a README, or a README that misses an export or primitive entry, or has a dead link.                          |
-| `check:size`       | Oversized files and functions and code in barrels, as a tripwire for modules that hold more than one responsibility.             |
-| `test:sandbox`     | A standalone binary that does not resolve. It compiles the CLI and runs it in an empty environment, then verifies its audit log. |
-| `build`            | A web build or registry build that breaks for the configured application.                                                        |
+| Check              | What it catches                                                                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `check:generated`  | Drift between the catalog and the generated references, security artifacts and SBOM, or a leftover reference directory.                                                                                             |
+| `check:boundaries` | Imports across layers, server code reaching browser bundles, and direct network or process APIs outside the egress guard. Portable packages may not import `node:` or `bun:` modules or use Node or Bun globals.    |
+| `check:readmes`    | A workspace without a README, or a README that misses an export or primitive entry, or has a dead link.                                                                                                             |
+| `check:size`       | Oversized files and functions and code in barrels, as a tripwire for modules that hold more than one responsibility.                                                                                                |
+| `test:portable`    | Kernel, runtime, client, integration and mobile platform code that only works because Bun supplies a Web global Hermes may lack. The suites run with those globals removed and the kernel's replacements installed. |
+| `test:sandbox`     | A standalone binary that does not resolve. It compiles the CLI and runs it in an empty environment, then verifies its audit log.                                                                                    |
+| `build`            | A web build or registry build that breaks for the configured application.                                                                                                                                           |
 
 When `check:size` fails, split by responsibility, not by line count. An inner function of a factory becomes a module-level function that receives what it closed over, and shared state goes in a small typed object passed explicitly. The file being split stays where it is as the entry module, with its internals in a folder of the same name, so public import paths do not change. A split keeps errors, ordering and laziness identical; if it needs a test change, it changed behavior. React state stays with the component that owns its lifetime. Declarative tables may be listed in `scripts/size-rules.ts` with a reason.
 
 A successful build is not a browser interaction or a packaged desktop launch, and each of those is checked separately.
 
+`typecheck` runs two TypeScript projects. `tsconfig.json` covers everything with Bun and Node types. `tsconfig.native.json` covers the React Native sources without them, because React Native declares globals that conflict with Node's, and so the root project excludes those sources.
+
 ## Focused scripts
 
-| Command                                       | Scope                                                                                     |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `bun run test:unit`                           | Contracts, runtime, client ordering and UI context.                                       |
-| `bun run test:conformance`                    | Policy, repositories, adapters and example-domain scenarios.                              |
-| `bun run test:service`                        | The host and each example's HTTP boundary and authority behavior.                         |
-| `bun run test:harness`                        | Harness and supervision fixtures that need no provider.                                   |
-| `bun run test:integration`                    | Outbox dispatch and inbound sync against fake systems of record.                          |
-| `bun run test:isolated`                       | The whole suite, failing on any non-loopback connection from the test process.            |
-| `bun run test:e2e`                            | Browser acceptance with Playwright.                                                       |
-| `bun run test:package`                        | Desktop packaging checks available on this platform.                                      |
-| `bun run test:scaffold`                       | Deterministic export and its overwrite and privacy safeguards.                            |
-| `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` | A fresh export that installs, typechecks, builds, tests and adds a capability on its own. |
-| `bun run dev` / `dev:web`                     | Open the configured application in the desktop window, or in a browser.                   |
-| `cd examples/<name> && bun run dev`           | One example on its own port and workspace.                                                |
-| `bun run build:cli`                           | Compile the configured application's CLI.                                                 |
-| `bun run build:registry:operator`             | Build the operator shadcn registry.                                                       |
+| Command                                       | Scope                                                                                                                                  |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run test:unit`                           | Contracts, runtime, client ordering and UI context.                                                                                    |
+| `bun run test:conformance`                    | Policy, repositories, adapters and example-domain scenarios.                                                                           |
+| `bun run test:service`                        | The host and each example's HTTP boundary and authority behavior.                                                                      |
+| `bun run test:harness`                        | Harness and supervision fixtures that need no provider.                                                                                |
+| `bun run test:integration`                    | Outbox dispatch and inbound sync against fake systems of record.                                                                       |
+| `bun run test:isolated`                       | The whole suite, failing on any non-loopback connection from the test process.                                                         |
+| `bun run test:e2e`                            | Browser acceptance with Playwright.                                                                                                    |
+| `bun run test:package`                        | Desktop packaging checks available on this platform.                                                                                   |
+| `bun run test:scaffold`                       | Deterministic export and its overwrite and privacy safeguards.                                                                         |
+| `SCAFFOLD_ACCEPTANCE=1 bun run test:scaffold` | A fresh export that installs, typechecks, builds, tests and adds a capability on its own.                                              |
+| `bun run dev` / `dev:web`                     | Open the configured application in the desktop window, or in a browser.                                                                |
+| `cd examples/<name> && bun run dev`           | One example on its own port and workspace.                                                                                             |
+| `bun run build:cli`                           | Compile the configured application's CLI.                                                                                              |
+| `bun run build:registry:operator`             | Build the operator shadcn registry.                                                                                                    |
+| `bun run mobile:prepare`                      | Write the mobile app's entry for the application `app.config.json` names for mobile.                                                   |
+| `bun run dev:mobile`                          | Prepare, then start Metro for a development build on a device or emulator.                                                             |
+| `bun run mobile:prebuild`                     | Prepare, then generate `apps/mobile/ios` and `apps/mobile/android` with `expo prebuild`, including the native plugins' config plugins. |
+| `bun run build:registry:native`               | Build the native shadcn registry.                                                                                                      |
+| `bun run check:mobile-bundle`                 | Prepare the starter's fixture application and bundle `apps/mobile` for Android with Metro.                                             |
 
 Firewall exports are compared with golden files in the network plugin. Regenerate them with `UPDATE_GOLDEN=1 bun test plugins/network` and review the diff. The mTLS test issues throwaway certificates with `openssl` and is skipped where `openssl` is missing.
 

@@ -1,5 +1,6 @@
 import { ApplicationError } from '@agent-native/contracts';
 import type { CommandReceipt, Invocation, StoredReceipt, WorkspaceSnapshot } from '../types.js';
+import { applyBlobChanges } from './blob-references.js';
 import { checkPreconditions, runHandler } from './command-steps.js';
 import { prepareCommand, type Command } from './command-request.js';
 import { authorize, project, type Kernel } from './kernel.js';
@@ -26,6 +27,7 @@ export async function runContinuation<State, Services>(
   await checkPreconditions(kernel, command, snapshot);
   const run = await runHandler(kernel, command, snapshot, true);
   const result = await project(kernel, capability, input, context, snapshot, run.output);
+  await applyBlobChanges(kernel, context, snapshot, run.blobs);
   await authorize(kernel, capability, input, context, snapshot, 'commit', run.previousState);
   kernel.guard.active(context, capability.id);
   return { command, run, result };

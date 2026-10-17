@@ -1,3 +1,4 @@
+import { assertBlobLimits, type BlobLimits } from './blob';
 import type {
   AnyCapability,
   CapabilityModule,
@@ -32,6 +33,7 @@ export interface CatalogOperation {
   /** Network destinations the operation reaches, derived from its outbox or remote-read target. */
   readonly destinations?: readonly string[];
   readonly audit?: { readonly fields?: readonly string[] };
+  readonly blobs?: BlobLimits;
 }
 export interface Catalog {
   readonly formatVersion: 1;
@@ -157,6 +159,13 @@ function checkAuditFields(capability: AnyCapability): void {
       throw new Error(`Audit field ${field} is not a top-level input field: ${capability.id}`);
 }
 
+function checkBlobLimits(capability: AnyCapability): void {
+  if (!capability.blobs) return;
+  if (capability.kind !== 'command')
+    throw new Error(`Only commands attach blobs: ${capability.id}`);
+  assertBlobLimits(capability.blobs, capability.id);
+}
+
 function catalogOperation(
   capability: AnyCapability,
   module: string,
@@ -180,6 +189,7 @@ function catalogOperation(
     ...(capability.remote ? { remote: capability.remote } : {}),
     ...(destinations.length ? { destinations } : {}),
     ...(capability.audit ? { audit: capability.audit } : {}),
+    ...(capability.blobs ? { blobs: capability.blobs } : {}),
   };
 }
 
@@ -217,6 +227,7 @@ export function buildCatalog(
         ...remoteDestinations(capability, requirements),
       ];
       checkAuditFields(capability);
+      checkBlobLimits(capability);
       operations.push(catalogOperation(capability, module.id, mcpName, destinations));
     }
   }

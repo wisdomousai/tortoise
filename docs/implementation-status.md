@@ -34,6 +34,7 @@ On macOS arm64 with Bun 1.4.0.
 - Receipts, journal and outbox effects that commit atomically, and replay.
 - Memory and SQLite agree in conformance tests, including process death before and after commit, and a crash releasing the OS lock.
 - State that shares memory and JSON with sparse arrays are refused.
+- Blob references commit with their command; a rejected command leaves only the upload, which is swept after the grace period. Reads follow the referencing resource's policy, including grant scope and revocation. Attaching a known digest without an own upload or read access is refused. HTTP and direct transports upload and read blobs; HTTP responses are sandboxed. The file store writes atomically under the workspace; SQLite loads older documents without blob references.
 
 - Collections: generated `get` and `list` scope rows before filters, search, counts and paging, and `records` writes declare their resource. crm-capture's account list and quality-inspection's lot list are generated, and all four examples use the runtime's prototype-safe `own` and `put`.
 
@@ -170,6 +171,20 @@ Control mappings are indicative, not a certification.
 - Windows x64, Linux x64 and macOS x64, which are configured in CI but have not run;
 - credential-vault set, get and delete on any platform;
 - signing, notarization, installers and updates.
+
+### Mobile
+
+**Shown, deterministic.** `apps/mobile` typechecks under `tsconfig.native.json` without Bun or Node types. `bun run check:mobile-bundle` bundles it for Android with Expo SDK 58 and resolves workspace packages through their `exports` maps. Expo autolinking finds an Expo module in a workspace plugin through the root `node_modules`, checked with `expo-modules-autolinking resolve` against a temporary probe module.
+
+The host platform is shown on a fake platform: `packages/kernel/test/kernel.test.ts` opens, closes and reopens an authority on an in-memory platform with no Node or Bun API, and checks the platform, capability, settings-provider and target refusals. The Bun host opens its embedded and serving authorities through the same kernel path, and the host and example suites pass unchanged. `bun run test:portable` runs the kernel, runtime, client and integration suites with `structuredClone`, `AbortSignal.any`, `AbortSignal.timeout` and `crypto.randomUUID` removed and the kernel's replacements installed. The audit and event-log hash chains use a pure JavaScript SHA-256 that produces the same digests as before.
+
+The mobile platform opens the same authority in Bun tests with Bun's SQLite and files in place of Expo's: a capture with a photo persists across close and reopen, a second open is refused, and a deployment with an ingress destination is refused. The snapshot storage runs over one driver interface for `bun:sqlite` and `expo-sqlite`, and the storage conformance suite passes on the Bun driver.
+
+The starter hosts a mobile application: `bun run mobile:prepare` writes the static entry for the application `app.config.json` names for mobile and refuses one whose manifest does not target mobile (`apps/mobile/test/entry.test.ts`). `check:mobile-bundle` prepares the starter's fixture application and bundles it for Android: the kernel, runtime, mobile platform, native frame and Uniwind-styled components compile to Hermes bytecode. Native screen definitions are checked in Bun (`packages/frame-native/test/screens.test.ts`).
+
+Plugins can ship native code. Manifests that name native code without a mobile platform are refused (`packages/kernel/test/kernel.test.ts`), and a plugin whose native module the build lacks refuses startup (`packages/mobile/test/native-module.test.ts`). `plugins/managed-config` runs end to end on the mobile platform in Bun with a fake reader: managed values become another plugin's settings, win over launcher settings, and an undeclared key or a non-text value refuses startup. `plugins/intent-scanner` decodes broadcasts from a fake receiver through the scanner pipeline. `apps/mobile/test/entry.test.ts` checks that `mobile:prepare` hands each config plugin the application and every declared setting. `expo prebuild --platform android`, run once by hand on the fixture with managed-config composed temporarily, wrote `res/xml/app_restrictions.xml` and the `APP_RESTRICTIONS` meta-data, and `expo-modules-autolinking resolve` found both plugins' Kotlin modules.
+
+**Not shown.** The mobile platform has not run on a device: the Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes. The native frame and components have not rendered. The plugins' Kotlin and Swift modules have not been compiled: no Android or iOS build has been produced, and nothing has run on an emulator, simulator or device. Test DPC restrictions, `simctl` managed configuration and `adb` scan broadcasts are the planned on-demand checks.
 
 ### Layers and scaffold
 

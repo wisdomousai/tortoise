@@ -2,7 +2,7 @@
 
 An append-only, hash-chained audit log of every command, query, denial, outbox transition, sync pass, connection and run. The journal tells views what changed; the event log tells an auditor who did what, through which surface, and what was refused. Inject an `EventLogPort` into the runtime, egress guard, dispatcher and host; nothing in the framework writes audit events any other way.
 
-Layer: framework (`packages/*`). Server only. The event envelope and port types live in [`@agent-native/contracts`](../contracts/README.md) so screens can render events without loading this package.
+Layer: framework (`packages/*`). Server only as a whole; the `chain`, `memory` and `forward` modules use no Node or Bun API and run on any JavaScript host. The event envelope and port types live in [`@agent-native/contracts`](../contracts/README.md) so screens can render events without loading this package.
 
 ## Primitives
 
@@ -12,10 +12,10 @@ Layer: framework (`packages/*`). Server only. The event envelope and port types 
 
 ## Entrypoints
 
-| Import                      | Runs in     | Contents                                                            |
-| --------------------------- | ----------- | ------------------------------------------------------------------- |
-| `@agent-native/event-log`   | server only | Chain helpers, memory and JSONL logs, verification and forwarding.  |
-| `@agent-native/event-log/*` | server only | One source file: `chain`, `memory`, `jsonl`, `verify` or `forward`. |
+| Import                      | Runs in     | Contents                                                                                             |
+| --------------------------- | ----------- | ---------------------------------------------------------------------------------------------------- |
+| `@agent-native/event-log`   | server only | Chain helpers, memory and JSONL logs, verification and forwarding.                                   |
+| `@agent-native/event-log/*` | per file    | One source file: `chain`, `memory` and `forward` run anywhere; `jsonl` and `verify` are server only. |
 
 ## Trust boundary
 
@@ -27,7 +27,7 @@ Gaps: removing the newest events is detectable only against an anchor or a forwa
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`. Node: `node:crypto` and the filesystem.
+Framework: `@agent-native/contracts`. External: `@noble/hashes` for SHA-256. Node and Bun: the filesystem and `bun:sqlite`, in `jsonl` and `verify` only.
 
 ## Tests
 

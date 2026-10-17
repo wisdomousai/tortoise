@@ -1,4 +1,10 @@
-import { ApplicationError, type JsonValue } from '@agent-native/contracts';
+import {
+  ApplicationError,
+  blobFits,
+  isBlobRef,
+  type BlobRef,
+  type JsonValue,
+} from '@agent-native/contracts';
 import type {
   Effect,
   EffectOutcome,
@@ -8,6 +14,7 @@ import type {
   Invocation,
   WorkspaceSnapshot,
 } from '../types.js';
+import type { BlobChange } from './blob-references.js';
 import { grantCoversResource } from './delegation.js';
 import {
   assertEffectRequest,
@@ -41,6 +48,8 @@ export interface HandlerScope<State> {
   continuation?: Invocation;
   /** True inside a continued command, which may not continue again. */
   readonly continued?: boolean;
+  /** Blob references the handler attached or detached, in order. */
+  readonly blobs: BlobChange[];
 }
 
 function writable(scope: HandlerScope<unknown>, refusal: string): void {
@@ -100,6 +109,26 @@ function outboxMethods<State, Services>(
   };
 }
 
+/** Reference changes are recorded here and checked against the store when the command commits. */
+function blobMethods<State, Services>(kernel: Kernel<State, Services>, scope: HandlerScope<State>) {
+  return {
+    attach(resource: string, ref: BlobRef) {
+      writable(scope, 'Queries cannot attach blobs');
+      const limits = kernel.capabilities.get(scope.operation)?.blobs;
+      if (!limits) throw new ApplicationError('INTERNAL', 'Operation declares no blob limits');
+      if (!isBlobRef(ref)) throw new ApplicationError('INVALID_INPUT', 'Blob reference is invalid');
+      if (!blobFits(limits, ref.size, ref.mediaType))
+        throw new ApplicationError('INVALID_INPUT', 'Blob exceeds the operation limits');
+      const { digest, size, mediaType } = ref;
+      scope.blobs.push({ kind: 'attach', resource, ref: { digest, size, mediaType } });
+    },
+    detach(resource: string, digest: string) {
+      writable(scope, 'Queries cannot detach blobs');
+      scope.blobs.push({ kind: 'detach', resource, digest });
+    },
+  };
+}
+
 function readEffects<State>(
   snapshot: WorkspaceSnapshot<State>,
   filter: Parameters<HandlerContext<State, unknown>['effects']>[0] = {},
@@ -149,6 +178,7 @@ export function createHandlerContext<State, Services>(
       };
     },
     ...outboxMethods(kernel, scope),
+    ...blobMethods(kernel, scope),
     effects: (filter) => readEffects(snapshot, filter),
   };
 }

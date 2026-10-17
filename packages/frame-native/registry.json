@@ -1,0 +1,47 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "agent-native-native",
+  "homepage": "https://registry.example.invalid/agent-native/native",
+  "items": [
+    {
+      "name": "native-theme",
+      "type": "registry:file",
+      "title": "Native operator theme",
+      "description": "Station signal colors for light and dark appearance and glove-sized targets and text, in Uniwind's theme format. Import it from the app's global.css after tailwindcss and uniwind.",
+      "files": [
+        {
+          "path": "src/styles/theme.css",
+          "type": "registry:file",
+          "target": "styles/native-theme.css"
+        }
+      ]
+    },
+    {
+      "name": "hold-button",
+      "type": "registry:component",
+      "title": "Hold button",
+      "description": "Full-width glove-sized button that confirms after a hold, with a fill bar; lifting or sliding off aborts. Exports useHold for custom controls.",
+      "dependencies": ["uniwind"],
+      "registryDependencies": ["@agent-native-native/native-theme"],
+      "files": [{ "path": "src/components/hold-button.tsx", "type": "registry:component" }]
+    },
+    {
+      "name": "status-pill",
+      "type": "registry:component",
+      "title": "Status pill",
+      "description": "A station signal (ok, pending, attention, fault, idle) as icon plus word.",
+      "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
+      "registryDependencies": ["@agent-native-native/native-theme"],
+      "files": [{ "path": "src/components/status-pill.tsx", "type": "registry:component" }]
+    },
+    {
+      "name": "list-row",
+      "type": "registry:component",
+      "title": "List row",
+      "description": "A glove-sized pressable list row with a wrapping title, a detail line and a trailing slot.",
+      "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
+      "registryDependencies": ["@agent-native-native/native-theme"],
+      "files": [{ "path": "src/components/list-row.tsx", "type": "registry:component" }]
+    }
+  ]
+}

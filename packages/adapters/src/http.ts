@@ -6,39 +6,16 @@ import type {
   QueryResult,
   EventBatch,
 } from '@agent-native/runtime';
+import { withSignal, type ApplicationPort } from './application-port';
 import { Cursors } from './http/cursors';
 import { jsonResponse, statusCodes } from './http/response';
 import { exchangeLaunch, routeAuthenticated } from './http/routes';
 import type { HostSession, Sessions } from './http/sessions';
 
+export { withSignal, type ApplicationPort } from './application-port';
 export { readJsonBody } from './http/body';
 export { jsonResponse } from './http/response';
 export { Sessions, type HostSession } from './http/sessions';
-
-/** Minimal execution surface shared by all host adapters. No handler implementation lives here. */
-export interface ApplicationPort {
-  invokeRaw(request: Invocation, context: ExecutionContext): Promise<CommandReceipt>;
-  queryRaw(request: Invocation, context: ExecutionContext): Promise<QueryResult>;
-  events(after: number, context: ExecutionContext): Promise<EventBatch>;
-  deliverEvents(
-    after: number,
-    context: ExecutionContext,
-    deliver: (batch: EventBatch) => void,
-  ): Promise<void>;
-  discover(context: ExecutionContext): Catalog;
-}
-/**
- * Attach a per-request cancellation signal to a trusted context. A signal the launcher or host
- * already put on the context still applies: the result aborts when either does, so a request can
- * only narrow cancellation, never lift it.
- */
-export function withSignal(context: ExecutionContext, signal?: AbortSignal): ExecutionContext {
-  if (!signal) return context;
-  return {
-    ...context,
-    signal: context.signal ? AbortSignal.any([context.signal, signal]) : signal,
-  };
-}
 
 export interface HttpHandlerOptions {
   application: ApplicationPort;

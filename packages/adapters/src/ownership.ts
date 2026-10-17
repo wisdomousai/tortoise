@@ -2,13 +2,9 @@ import { Database } from 'bun:sqlite';
 import { mkdir, realpath, writeFile, rename, readFile, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { WorkspaceOwnedError } from './exclusive-lock';
 
-export class WorkspaceOwnedError extends Error {
-  constructor(readonly canonicalPath: string) {
-    super('Workspace already has a live authority');
-    this.name = 'WorkspaceOwnedError';
-  }
-}
+export { WorkspaceOwnedError };
 export type AuthorityMetadata = { instance: string; endpoint: string; workspacePath: string };
 
 /** A live SQLite EXCLUSIVE transaction is an OS-held lock; PID files never grant ownership. */

@@ -59,12 +59,15 @@ export async function runHandler<State, Services>(
     query: false,
     changes: new Map(),
     touched: [],
+    blobs: [],
     continued,
   };
   const output = await command.handler.handle(command.input, createHandlerContext(kernel, scope));
   // Outbox writes ride on a declared business change so subscribers observe the same commit.
   if (scope.touched.some((effect) => !scope.changes.has(effect.resource)))
     throw new ApplicationError('INTERNAL', 'Effects require a declared changed resource');
+  if (scope.blobs.some((change) => !scope.changes.has(change.resource)))
+    throw new ApplicationError('INTERNAL', 'Blob references require a declared changed resource');
   if (
     scope.changes.size === 0 &&
     snapshot.authorizationRevision === previousAuthorizationRevision &&
@@ -72,5 +75,12 @@ export async function runHandler<State, Services>(
   )
     throw new ApplicationError('INTERNAL', 'State changes require a change-journal declaration');
   const continuation: Invocation | undefined = scope.continuation;
-  return { output, previousState, changes: scope.changes, touched: scope.touched, continuation };
+  return {
+    output,
+    previousState,
+    changes: scope.changes,
+    touched: scope.touched,
+    blobs: scope.blobs,
+    continuation,
+  };
 }

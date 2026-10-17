@@ -12,6 +12,8 @@ Layer: framework (`packages/*`). Scanner logic and the capability module are bro
 
 [Point-of-work input](../../docs/point-of-work-input.md) explains wedge layouts, GS1 and calibration. The setup screen and scanner hook ship in [`@agent-native/operator-ui`](../operator-ui/README.md).
 
+A profile's `transport` may be `intent`, with `intent: { action, dataExtra, senderPermission? }`: a rugged Android device's scanner app broadcasts each scan. This package only describes it; the receiver and its source ship in [`@agent-native/intent-scanner`](../../plugins/intent-scanner/README.md). `scanner/decode`, `scanner/profile`, `scanner/source`, `scanner/gs1`, `scanner/symbology` and `scanner/layouts` are portable: they run in React Native as well, and `check:boundaries` keeps Node and Bun out of them.
+
 ## Entrypoints
 
 | Import                               | Runs in            | Contents                                                                                                                              |
@@ -28,7 +30,7 @@ A scan is input data, never authority. Sources are registered explicitly; nothin
 
 The configuration module is domain-neutral: the composing application decides who reads or administers a station by passing an access view to the device policy. Routes are compiled before they are stored, and stale writers conflict on the expected revision. Profiles are configuration, not secrets.
 
-Each non-wedge source is declared as a device requirement, so the security manifest lists it. Gaps: no source has been checked on real hardware, and device access is declared but not mediated.
+Each non-wedge source is declared as a device requirement, so the security manifest lists it. Gaps: no source has been checked on real hardware, and device access is declared but not mediated. The intent transport is not declared as a device requirement: on Android the scanner app is another app, not a device the host opens.
 
 ## Dependencies
 

@@ -182,7 +182,7 @@ describe('network plugin', () => {
       expect.objectContaining({ kind: 'egress.denied', data: { destination: 'mes-api' } }),
     );
     // Not serving: no proxy, so declared children are refused rather than left unconfined.
-    expect(() => opened.ports.network.childEnvironment('agent-cli')).toThrow('serving host');
+    expect(() => opened.ports.network.childEnvironment!('agent-cli')).toThrow('serving host');
     expect(opened.describe()).toMatchObject({ network: { mode: 'isolated', ingress: 'loopback' } });
     await opened.close();
   });

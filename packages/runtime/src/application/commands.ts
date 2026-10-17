@@ -8,6 +8,7 @@ import type {
   WorkspaceSnapshot,
 } from '../types.js';
 import { actorOf, effectRecords, failureRecord } from './audit.js';
+import { applyBlobChanges } from './blob-references.js';
 import { auditAccepted, journalChanges, receiptOf, storeReceipt } from './command-commit.js';
 import { prepareCommand, type Command } from './command-request.js';
 import { checkPreconditions, runHandler } from './command-steps.js';
@@ -45,6 +46,11 @@ async function replay<State, Services>(
  * the handler continued with through the same steps, then journal, receipt and audit for both.
  * The parent's journal entries come first, so its audit `fromCursor` covers both commands.
  */
+/**
+ * The transaction body of a first execution: authorize, check, run, apply blob references,
+ * recheck, journal, audit. The commit-phase authorization comes after the blob checks, so the
+ * context is rechecked after their awaits.
+ */
 async function execute<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,
@@ -56,6 +62,7 @@ async function execute<State, Services>(
   await checkPreconditions(kernel, command, snapshot);
   const run = await runHandler(kernel, command, snapshot);
   const result = await project(kernel, capability, input, context, snapshot, run.output);
+  await applyBlobChanges(kernel, context, snapshot, run.blobs);
   await authorize(kernel, capability, input, context, snapshot, 'commit', run.previousState);
   kernel.guard.active(context, capability.id);
   const next = run.continuation

@@ -1,11 +1,15 @@
 import type {
   AnyCapability,
   AuditChannel,
+  BlobRef,
   InputOf,
   OutputOf,
   JsonValue,
   RemoteReadDeclaration,
 } from '@agent-native/contracts';
+import type { Effect, EffectOutcome, EffectRequest } from './types/effects.js';
+
+export type * from './types/effects.js';
 
 export interface DelegationGrant {
   readonly operations: readonly string[];
@@ -43,74 +47,6 @@ export interface CommandReceipt<T = unknown> {
   /** The command this one continued with (`continueWith`) and its result, projected for the caller. */
   readonly continuation?: { readonly operation: string; readonly result: unknown };
 }
-/**
- * A post-commit request to an external system of record. It is committed atomically with the
- * command that enqueues it, so a rejected command never produces an effect and a committed one
- * cannot lose it. Delivery happens later, outside any transaction, at least once.
- */
-export interface EffectRequest {
-  readonly target: string;
-  readonly type: string;
-  readonly payload: JsonValue;
-  /** A changed business resource the effect reports on. Its read policy governs delivery events. */
-  readonly resource: string;
-}
-/** The system of record's answer. A rejection is business data, not a transport failure. */
-export type EffectOutcome =
-  | { readonly status: 'accepted'; readonly externalRef?: string }
-  | { readonly status: 'rejected'; readonly code: string; readonly message: string };
-export interface Effect extends EffectRequest {
-  /** Stable for the life of the effect; dispatchers use it as the target's idempotency key. */
-  readonly id: string;
-  readonly operation: string;
-  readonly principalId: string;
-  readonly createdAt: number;
-  /** `cancelled`: a command withdrew it before any worker claimed it; it was never sent. */
-  readonly status: 'pending' | EffectOutcome['status'] | 'cancelled';
-  readonly attempts: number;
-  readonly lastAttemptAt?: number;
-  /** Caller-safe, bounded transient failure text from the most recent delivery attempt. */
-  readonly lastFailure?: string;
-  readonly settledAt?: number;
-  readonly outcome?: EffectOutcome;
-  /**
-   * Set while a pending effect awaits reconciliation: the target may or may not have applied it
-   * (for example a screen procedure was interrupted), so redelivery could act twice. Dispatchers
-   * skip held effects. A domain command resolves it with `settleEffect` (it was applied, or it was
-   * refused) or `releaseEffect` (it was not applied; deliver again).
-   */
-  readonly heldAt?: number;
-  /** Caller-safe, bounded reason for the hold. */
-  readonly holdReason?: string;
-  /** The worker that may deliver it now; see `EffectClaim`. */
-  readonly claim?: EffectClaim;
-  /** The last fencing token issued; a newer claim always gets a larger one. */
-  readonly fence?: number;
-  /**
-   * Set once the target acknowledged the effect but has not decided it yet (`upstream-pending`).
-   * Dispatchers then poll the target's lookup instead of delivering again.
-   */
-  readonly upstreamAt?: number;
-  /** The target's reference for the acknowledged effect, when it gave one. */
-  readonly upstreamRef?: string;
-  /** Caller-safe, bounded reason a command gave for cancelling it. */
-  readonly cancelReason?: string;
-  /**
-   * The enqueuing command's input, for the dispatch-time recheck. Kernel-only: every effect the
-   * runtime hands out (to dispatchers, ports, handlers) leaves it out.
-   */
-  readonly input?: JsonValue;
-}
-/**
- * A worker's claim to deliver one effect. The fencing token grows with every claim, and an
- * attempt or settlement that carries an older token than the effect's current claim is refused,
- * so a worker that paused past its lease cannot overwrite the outcome of the worker after it.
- */
-export interface EffectClaim {
-  readonly worker: string;
-  readonly fence: number;
-  readonly expiresAt: number;
-}
 export interface StoredReceipt {
   readonly fingerprint: string;
   readonly receipt: CommandReceipt;
@@ -118,6 +54,16 @@ export interface StoredReceipt {
   readonly input: JsonValue;
   /** The command this one continued with, and its input. */
   readonly continuation?: { readonly operation: string; readonly input: JsonValue };
+}
+/**
+ * A blob the workspace holds and the resources that reference it. A blob is readable by a caller
+ * who may read one of these resources, and it is kept while any resource references it.
+ */
+export interface BlobRecord {
+  readonly size: number;
+  readonly mediaType: string;
+  /** Sorted, without duplicates; never empty (the record is removed with its last reference). */
+  readonly resources: readonly string[];
 }
 /** Feature state is opaque to the kernel; repositories may wrap it without a universal record model. */
 export interface WorkspaceSnapshot<State> {
@@ -129,6 +75,8 @@ export interface WorkspaceSnapshot<State> {
   journal: ChangeEvent[];
   /** Transactional outbox. Storage adapters load documents without it as an empty record. */
   effects: Record<string, Effect>;
+  /** Blob references by digest. Storage adapters load documents without it as an empty record. */
+  blobs: Record<string, BlobRecord>;
 }
 /** A successful callback atomically commits all fields. Rejected callbacks commit nothing. */
 export interface Storage<State> {
@@ -169,6 +117,33 @@ export interface AuthorizationPort<State> {
     readonly context: ExecutionContext;
     readonly state: State;
   }): boolean | Promise<boolean>;
+  /**
+   * Whether the context may read a resource as it is now; it decides who may read the blobs
+   * attached to it. Defaults to `canReadEvent` with an event for the resource's current revision.
+   */
+  canReadResource?(request: {
+    readonly resource: string;
+    readonly context: ExecutionContext;
+    readonly state: State;
+  }): boolean | Promise<boolean>;
+}
+/** A stored blob's size and when it was stored or last stored again. */
+export interface StoredBlob {
+  readonly size: number;
+  readonly storedAt: number;
+}
+/**
+ * Content-addressed bytes for one workspace, kept outside the snapshot. The runtime computes each
+ * digest and decides what is referenced; a store only keeps bytes. `put` is atomic: a reader never
+ * sees a partial blob. Storing bytes that are already present refreshes `storedAt`, so a fresh
+ * upload is never swept. Trusted platform code; never reachable by callers directly.
+ */
+export interface BlobStore {
+  put(digest: string, data: Uint8Array): Promise<void>;
+  stat(digest: string): Promise<StoredBlob | undefined>;
+  get(digest: string): Promise<Uint8Array | undefined>;
+  remove(digest: string): Promise<void>;
+  list(): Promise<readonly string[]>;
 }
 export interface HandlerContext<State, Services> {
   readonly state: State;
@@ -216,6 +191,16 @@ export interface HandlerContext<State, Services> {
     expectedRevisions?: Readonly<Record<string, number>>,
   ): void;
   /** Read outbox state, for example to summarize synchronization in a query. */
+  /**
+   * Reference a blob from a changed resource, in this command's transaction. The command must
+   * declare `blobs` limits the reference fits, and the resource must also be declared through
+   * `change`. At commit the blob must be in the store with this size, and the caller must have
+   * uploaded it recently or already be able to read a resource that references it; otherwise the
+   * command fails with INVALID_INPUT and nothing commits.
+   */
+  attach(resource: string, ref: BlobRef): void;
+  /** Drop a resource's reference to a blob; an unreferenced blob is later swept from the store. */
+  detach(resource: string, digest: string): void;
   effects(filter?: {
     readonly status?: Effect['status'];
     readonly target?: string;

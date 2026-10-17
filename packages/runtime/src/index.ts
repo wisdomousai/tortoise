@@ -15,3 +15,4 @@ export * from './proposal.js';
 export * from './effect-phase.js';
 export type { ClaimResult } from './application/effect-claims.js';
 export type { AttemptRecord } from './application/outbox.js';
+export { createMemoryBlobStore } from './memory-blob-store.js';

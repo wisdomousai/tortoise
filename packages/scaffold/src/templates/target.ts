@@ -60,7 +60,7 @@ type Item = { id: string; title: string };
 export function ${t.camel}Handlers(): HandlerContribution<AppState, Services>[] {
   return [
     handler(operations.${t.camel}Send, (input, ctx) => {
-      const record = records(ctx, ${many.camel}, ctx.state.${many.camel}).require(input.id);
+      const record = records(ctx, ${many.camel}, ctx.state.${many.camel}).getExisting(input.id);
       // One delivery at a time per record, so a late outcome never lands on a newer send.
       if (own(ctx.state.${t.camel}Deliveries, record.id)?.sync === 'pending')
         throw new ApplicationError('CONFLICT', 'Already waiting for ${t.words}');

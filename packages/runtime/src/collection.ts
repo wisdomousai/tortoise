@@ -28,7 +28,7 @@ export function put<T>(records: Record<string, T>, id: string, value: T): void {
 export interface Records<T> {
   get(id: string): T | undefined;
   /** The record, or `NOT_FOUND` with `message`. */
-  require(id: string, message?: string): T;
+  getExisting(id: string, message?: string): T;
   has(id: string): boolean;
   values(): T[];
   /** Add a new record; `CONFLICT` when the key exists. */
@@ -57,14 +57,14 @@ export function records<T, State, Services>(
   const missing = (message?: string) =>
     new ApplicationError('NOT_FOUND', message ?? `${collection.label.one} unavailable`);
   const touch = (id: string, eventType?: string) => context.change(resource(id), eventType);
-  const require = (id: string, message?: string) => {
+  const existing = (id: string, message?: string) => {
     const record = own(store, id);
     if (record === undefined) throw missing(message);
     return record;
   };
   return {
     get: (id) => own(store, id),
-    require,
+    getExisting: existing,
     has: (id) => Object.hasOwn(store, id),
     values: () => Object.values(store),
     insert(id, value, eventType) {
@@ -80,14 +80,14 @@ export function records<T, State, Services>(
       return value;
     },
     update(id, change, eventType) {
-      const record = require(id);
+      const record = existing(id);
       if (typeof change === 'function') change(record);
       else Object.assign(record as object, change);
       touch(id, eventType);
       return record;
     },
     remove(id, eventType) {
-      const record = require(id);
+      const record = existing(id);
       delete store[id];
       touch(id, eventType);
       return record;

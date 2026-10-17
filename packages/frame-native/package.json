@@ -1,0 +1,15 @@
+{
+  "name": "@agent-native/frame-native",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Native frame for one application on Android and iOS (navigation, session, live invalidation) and glove-sized components, distributed as a shadcn registry.",
+  "exports": {
+    "./screens": "./src/screens.ts",
+    "./plugin-screens": "./src/plugin-screens.ts",
+    "./frame": "./src/frame.tsx",
+    "./session": "./src/session.tsx",
+    "./components/*": "./src/components/*.tsx",
+    "./theme.css": "./src/styles/theme.css"
+  }
+}

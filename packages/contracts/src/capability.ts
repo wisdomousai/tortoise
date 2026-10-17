@@ -1,4 +1,5 @@
 import type { AgentDefinition } from './agent';
+import type { BlobLimits } from './blob';
 import type { Schema } from './schema';
 import type { Requirements } from './requirements';
 
@@ -54,6 +55,11 @@ export interface Capability<
    * else is logged only as a digest; never list credentials, personal data or free text here.
    */
   readonly audit?: { readonly fields?: readonly string[] };
+  /**
+   * Commands only: the blobs this command may attach to the resources it changes. A command
+   * without it cannot attach blobs. See `BlobLimits`.
+   */
+  readonly blobs?: BlobLimits;
 }
 export type AnyCapability = Capability<string, 'command' | 'query', unknown, unknown>;
 export type InputOf<C> =

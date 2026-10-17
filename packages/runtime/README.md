@@ -22,16 +22,17 @@ Layer: framework (`packages/*`). Feature state is opaque to the runtime; domains
 - [Outbox effect](../../docs/primitives.md#outbox-effect): `Effect`, `EffectRequest`, `EffectOutcome`, and `enqueue`, `settleEffect` (with a fencing token) and `cancelEffect` on `HandlerContext`.
 - [Worker claims](../../docs/primitives.md#worker-claims): `EffectClaim`, the host-only `claimEffect` (`ClaimResult`) and `recordAttempt` (`AttemptRecord`, with `fence` and `upstream`), and the `dispatch` authorization phase checked before the first claim.
 - [Reconciliation](../../docs/primitives.md#reconciliation): `effectPhase` and `EffectPhase`, the states an effect passes through and the transitions the outbox allows.
+- [Blob store](../../docs/primitives.md#blob-store): the `BlobStore` port (`StoredBlob`), `BlobRecord`, `createMemoryBlobStore`, `attach` and `detach` on `HandlerContext`, `canReadResource` on the `AuthorizationPort`, the `blobStore` and `blobGraceMs` options, and `putBlob`, `readBlob`, `readEffectBlob` and `sweepBlobs` on the application.
 - [Event log](../../docs/primitives.md#event-log): the runtime appends `command.accepted` inside the transaction and resolves commands a crash left open.
 
 Read [architecture](../../docs/architecture.md), [authorization](../../docs/authorization.md) and [state and reactivity](../../docs/state-and-reactivity.md) for the mechanism.
 
 ## Entrypoints
 
-| Import                    | Runs in     | Contents                                                                                                                        |
-| ------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `@agent-native/runtime`   | server only | `createApplication`, handler factory, memory storage, composition and all types.                                                |
-| `@agent-native/runtime/*` | server only | One source file: `types`, `compose`, `state-equality`, `application`, `memory-storage`, `collection`, `policy` or `membership`. |
+| Import                    | Runs in     | Contents                                                                                                                                             |
+| ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/runtime`   | server only | `createApplication`, handler factory, memory storage, composition and all types.                                                                     |
+| `@agent-native/runtime/*` | server only | One source file: `types`, `compose`, `state-equality`, `application`, `memory-storage`, `memory-blob-store`, `collection`, `policy` or `membership`. |
 
 `src/application/` holds the parts `createApplication` wires together; import them only from inside the package. Each takes the shared `Kernel` (registry, ports, clocks, audit trail, context guard) instead of closing over it:
 
@@ -39,6 +40,7 @@ Read [architecture](../../docs/architecture.md), [authorization](../../docs/auth
 - `commands.ts`, `command-request.ts`, `command-commit.ts`: the command transaction, its request validation and fingerprint, and its journal, receipt and `command.accepted` steps.
 - `remote-queries.ts`: the remote query's three steps around the source call, and the purity check on its handler steps.
 - `queries.ts`, `events.ts`, `outbox.ts`, `recovery.ts`: reads, journal delivery, the host-only outbox and crash recovery of the audit log.
+- `blobs.ts`, `blob-references.ts`, `uploads.ts`: uploads, reads, connector reads and sweeping; the reference changes a command applies at commit; and the in-memory record of recent uploads, with the lock that keeps a store write and a sweep apart.
 - `handler-context.ts`, `effects.ts`, `delegation.ts`, `audit.ts`, `records.ts`: what a handler sees, outbox transitions, grant checks, audit records and prototype-safe record writes.
 - `effect-claims.ts`: worker claims and the recheck of the original actor before the first claim.
 
@@ -50,9 +52,11 @@ A remote query calls `sources[target]` only between two read snapshots, never in
 
 The host supplies the `ExecutionContext`. Operation input can never set or widen it, and no transport may construct it from tool arguments. Authorization, grants and cancellation are checked on entry and again before commit, after every awaited step. Rows are scoped before filtering, pagination and counts, and output is projected to readable fields before validation. A command that changes state without declaring the changed resource fails, a reused idempotency key with other input conflicts, and `expectedRevisions` makes stale writes conflict. Queries that mutate state fail. No network or model call may run while a transaction is held: handlers queue effects instead.
 
+Blob references change only inside a command, after its handler and before the commit-phase authorization, which rechecks the context after the store lookups. An attach needs the uploader's own staged upload or read access to a resource that already references the blob; every refusal is the same `INVALID_INPUT`, so a caller cannot probe which digests exist. A read needs read access to a referencing resource within the grant's resource scope; otherwise it is `NOT_FOUND`. The store is trusted platform code and is never handed to a handler.
+
 ## Dependencies
 
-Framework: `@agent-native/contracts`. Node: `node:crypto`. Storage and policy adapters live in [`@agent-native/adapters`](../adapters/README.md); this package names no database or rules engine.
+Framework: `@agent-native/contracts`. External: `@noble/hashes` for input and blob digests. No Node or Bun API. Storage and policy adapters live in [`@agent-native/adapters`](../adapters/README.md); this package names no database or rules engine.
 
 ## Tests
 
@@ -69,5 +73,6 @@ bun test packages/runtime
 - `test/proposal.test.ts`: accepting runs the command once as the accepter and replays its continuation; an agent grant, a viewer and a demoted accepter are refused and a changed record conflicts, each leaving the proposal open; invalid submissions, expiry and nested proposals are refused.
 - `test/collection.test.ts`: generated lists scope before filters, counts and pages; a hidden record reads as missing; writes declare their resource and conflict on a stale revision.
 - `test/audit.test.ts`: a failed required append rolls the commit back; crash recovery.
+- `test/blobs.test.ts`: references commit with the command and only they enter the snapshot; reads follow the referencing resource, grant scope and revocation; attaching needs an own recent upload or read access; limits and declarations; a rejected command's upload is swept after the grace period while referenced and freshly stored blobs stay; connectors read an effect's blobs; audit by digest.
 
 The storage conformance suite that every `Storage` adapter must pass is `examples/project-tasks/test/storage-conformance.test.ts`.

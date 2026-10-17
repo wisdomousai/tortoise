@@ -6,7 +6,7 @@
  */
 
 /** Sizes per density. Glove: ≥ 15 mm targets on a typical 15" industrial panel. */
-const densities = {
+export const densities = {
   glove: {
     target: '5rem',
     targetLg: '6.5rem',

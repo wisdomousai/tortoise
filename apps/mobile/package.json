@@ -1,0 +1,19 @@
+{
+  "name": "@agent-native/mobile-shell",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "expo": {
+    "autolinking": {
+      "searchPaths": [
+        "../../node_modules"
+      ]
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "expo": "58.0.14",
+    "react": "19.3.0",
+    "react-native": "0.88.0"
+  }
+}

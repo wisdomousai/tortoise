@@ -49,13 +49,13 @@ An application has three entrypoints:
 
 All surfaces call the same runtime, and principal, workspace and grant always come from the host session, never from operation input:
 
-| Surface      | Entry                                                         | Identity                                                                 |
-| ------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| HTTP         | `/api/v1/commands/<id>`, `/api/v1/queries/<id>`               | Browser: one-time launch exchange, then a cookie. Process: bearer token. |
-| Live updates | `/api/v1/events` (SSE)                                        | The same session, filtered by current read access                        |
-| MCP          | stdio, one tool per operation (`task.create` → `task_create`) | Connection file, or a grant file when embedded                           |
-| CLI          | Generated subcommands                                         | Connection file, or a grant file when embedded                           |
-| React        | Typed client and bindings                                     | Browser session                                                          |
+| Surface      | Entry                                                            | Identity                                                                 |
+| ------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| HTTP         | `/api/v1/commands/<id>`, `/api/v1/queries/<id>`, `/api/v1/blobs` | Browser: one-time launch exchange, then a cookie. Process: bearer token. |
+| Live updates | `/api/v1/events` (SSE)                                           | The same session, filtered by current read access                        |
+| MCP          | stdio, one tool per operation (`task.create` → `task_create`)    | Connection file, or a grant file when embedded                           |
+| CLI          | Generated subcommands                                            | Connection file, or a grant file when embedded                           |
+| React        | Typed client and bindings                                        | Browser session                                                          |
 
 ## Stack
 

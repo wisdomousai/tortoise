@@ -1,0 +1,14 @@
+{
+  "name": "@agent-native/intent-scanner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Intent scanner host plugin: barcode scans that a rugged Android device's scanner app broadcasts as intents, through a native receiver.",
+  "exports": {
+    "./plugin-manifest": "./src/plugin-manifest.ts",
+    "./plugin": "./src/expo/plugin.ts",
+    "./source": "./src/source.ts",
+    "./expo": "./src/expo/source.ts",
+    "./plugin-screens-native": "./src/expo/screens.tsx"
+  }
+}
