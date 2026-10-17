@@ -118,3 +118,7 @@ bun test plugins/connector-driver
 - `test/events.test.ts` covers the event ingest: one command per wanted event, keyed by session and sequence, with the reporting unit; a failed ingest reported without stopping later events.
 - `test/check.test.ts` runs `checkDriver` against the fake driver, and `driver check` against `test/fixtures/chamber-driver.ts` as a real child process over stdio.
 Each SDK's own tests run its simulated chamber against this base; see the SDK READMEs.
+
+## Skills
+
+- [write-hardware-driver](skills/write-hardware-driver/SKILL.md): writing a driver contract, wiring it into an application, and writing, checking and binding the driver.

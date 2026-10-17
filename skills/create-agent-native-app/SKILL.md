@@ -1,16 +1,44 @@
 ---
 name: create-agent-native-app
-description: Create a local agent-native application from this framework, or add a business capability to an existing application using its shared catalog, authorized runtime and reactive UI.
+description: Create a new agent-native application from this framework with `bun run scaffold new`, export a reference example, or decide which skill fits a change to an existing application. Use when starting an application, choosing between the examples, or shaping a generated application into the user's business domain.
 ---
 
-# Create or extend an agent-native application
+# Create an agent-native application
 
-Preserve the user's actual business domain. `scaffold new` exports the framework and a thin starter with a generated application as the only content, and `scaffold add` extends it with collections, capabilities and targets; shaping those generated parts into the requested domain is authored implementation work. `scaffold --example <name>` exports one reference example instead.
+Preserve the user's actual business domain. `scaffold new` exports the framework and a thin starter with a generated application as the only content, and `scaffold add` extends it with collections, capabilities and targets. Shaping those generated parts into the requested domain is authored work. `scaffold --example <name>` exports one reference example instead. Read [the setup reference](references/new-application.md) for the commands and what the export contains.
 
-For a bounded task or workflow over existing systems of record, establish the real-world trigger, record ownership, capture/acceptance distinction and exception path before shaping the UI. The [system-of-record reference](../../docs/system-of-record-pattern.md) shows what exists: outbox delivery and inbound sync (`packages/integration`), the quality-inspection example, the TanStack + shadcn capture kit and the sandbox CLI/MCP binary. The [implementation status](../../docs/implementation-status.md) lists what does not, such as a sandbox isolation backend or broker, an installer for site bundles, and upgrade and rollback. When station software can only be read and driven through its screen, read [the station bridge reference](references/station-bridge.md).
+## Before writing
 
-For a new application, read [the setup reference](references/new-application.md), create it in an absent target with `bun run scaffold new`, add parts with `bun run scaffold add`, then shape the domain and product flow. Ask only for choices that materially change implementation; use explicit ports for storage, identity, authorization and provider integration.
+For a bounded task or workflow over existing systems of record, establish the real-world trigger, record ownership, the difference between capture and acceptance, and the exception path before shaping the UI. Ask only for choices that materially change the implementation. Use explicit ports for storage, identity, authorization and provider integration.
 
-For an existing application or a new capability, read [the extension reference](references/add-capability.md) and the application's `docs/capability-authoring.md`. Reuse primitives from `docs/primitives.md` and follow the design rules in `docs/architecture.md` before writing new framework code; update the catalog when public building blocks change. Keep browser-safe contracts, server handlers and UI contributions separate. Every business write goes through the existing runtime; derive agent/API/CLI/schema/documentation surfaces from its catalog.
+Pick the closest example as the pattern to read:
 
-Run the documented focused checks and report what actually passed. Generated source and deterministic harness tests do not establish provider login, live inference, native packaging or release. Do not reuse discovered credentials, publish a release or install global agent configuration as part of scaffolding.
+| Example | Shows |
+| --- | --- |
+| `examples/project-tasks` | the smallest whole application: capabilities, policy, OS handlers, agent definitions, a background job |
+| `examples/quality-inspection` | capture against a system of record through the outbox, and a measuring instrument through a Python driver |
+| `examples/crm-capture` | live search of a remote system and adoption of its records |
+| `examples/line-station` | an operator workstation over station software reached through its screen or a .NET driver |
+| `examples/asset-survey` and `examples/asset-survey-field` | a hub with blob evidence and a paired mobile field app |
+
+## Which skill next
+
+| Task | Skill |
+| --- | --- |
+| A command or query, a record shape, a trigger | `skills/add-capability/SKILL.md` |
+| Writes another system must accept, sync, live reads | `packages/integration/skills/connect-system-of-record/SKILL.md` |
+| Screens and registry components | `packages/frame/skills/build-screens/SKILL.md` |
+| A cross-cutting concern several applications compose | `skills/write-host-plugin/SKILL.md` |
+| Instruments and machines through a driver process | `plugins/connector-driver/skills/write-hardware-driver/SKILL.md` |
+| Station software with no API, through its screen | `packages/station/skills/bridge-station-screen/SKILL.md` |
+| Barcode scanners and point-of-work input | `packages/devices/skills/add-scanner-input/SKILL.md` |
+| Share targets, shortcuts, intents, notifications | `packages/shell/skills/add-os-integration/SKILL.md` |
+| The phone or tablet host, native plugins, pairing | `packages/mobile/skills/extend-mobile-host/SKILL.md` |
+| Site policy, signed bundles, install on a machine | `plugins/site/skills/deploy-to-site/SKILL.md` |
+| Which checks to run and how to report them | `skills/check-a-change/SKILL.md` |
+
+AGENTS.md lists the same skills; `bun run skills:link` makes them discoverable to Claude Code and Codex in a checkout.
+
+## Reporting
+
+Run the checks the `check-a-change` skill names and report what actually passed. Generated source and deterministic tests do not establish provider login, live inference, native packaging, real hardware or a release. The [implementation status](../../docs/implementation-status.md) lists what has not been shown; report those gaps separately from scaffolding success. Do not reuse discovered credentials, publish a release or install global agent configuration as part of scaffolding.

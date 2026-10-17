@@ -53,3 +53,7 @@ bun run test:integration
 - `test/held.test.ts`: uncertain outcomes are held, not resent, including on shutdown; only held effects can be released; drain deadlines and cross-target accounting.
 - `test/convergent.test.ts`: acceptance without acting, the not-ready, precondition and act paths, consecutive reads, interruption and the lookup rules, against a fake instrument.
 - `test/reliability.test.ts`: a paused worker against the one after its lease, a kill after the target accepted, an acknowledged effect polled and drained, cancel before a claim, the actor recheck before the first claim and after revocation, and out-of-order upstream versions.
+
+## Skills
+
+- [connect-system-of-record](skills/connect-system-of-record/SKILL.md): Connect a target system: outbox delivery and settlement, held effects, inbound sync, live search or a new SystemOfRecordPort.

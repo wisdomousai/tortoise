@@ -7,38 +7,9 @@
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { brokenLinks } from './markdown-links';
 
 const root = resolve(import.meta.dir, '..');
-
-/** GitHub's heading anchor: lowercase, punctuation dropped, spaces to hyphens. */
-export function slug(heading: string): string {
-  return heading
-    .trim()
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
-    .replace(/\s/g, '-');
-}
-
-const headingCache = new Map<string, Set<string>>();
-function anchorsOf(file: string): Set<string> {
-  let anchors = headingCache.get(file);
-  if (!anchors) {
-    anchors = new Set();
-    const seen = new Map<string, number>();
-    let fenced = false;
-    for (const line of readFileSync(file, 'utf8').split('\n')) {
-      if (line.startsWith('```')) fenced = !fenced;
-      const match = !fenced && /^#{1,6}\s+(.+?)\s*#*$/.exec(line);
-      if (!match) continue;
-      const base = slug(match[1]!);
-      const count = seen.get(base) ?? 0;
-      seen.set(base, count + 1);
-      anchors.add(count ? `${base}-${count}` : base);
-    }
-    headingCache.set(file, anchors);
-  }
-  return anchors;
-}
 
 interface Manifest {
   readonly name?: string;
@@ -67,17 +38,7 @@ for (const workspace of workspaces) {
 
   if (readme.split('\n', 1)[0] !== `# ${name}`) report(`first line must be "# ${name}"`);
 
-  for (const [, target] of readme.matchAll(/\]\(([^)\s]+)\)/g)) {
-    if (/^[a-z][a-z+.-]*:/i.test(target!)) continue;
-    const [path, anchor] = target!.split('#') as [string, string | undefined];
-    const file = path ? resolve(directory, path) : readmePath;
-    if (!existsSync(file)) {
-      report(`link to missing file ${target}`);
-      continue;
-    }
-    if (anchor && file.endsWith('.md') && !anchorsOf(file).has(anchor))
-      report(`link to missing heading ${target}`);
-  }
+  for (const problem of brokenLinks(readmePath, readme)) report(problem);
 }
 
 if (errors.length) {

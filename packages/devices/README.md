@@ -44,3 +44,7 @@ bun test packages/devices
 
 - `test/scanner.test.ts`: layout repair (US scanner on QWERTZ or Swiss hosts, dead keys), GS1 check digits and fields, AIM identifiers, calibration inference, routing, serial line assembly, HID POS reports, camera repeat suppression, wedge bursts and the host bridge.
 - `test/config.test.ts`: administrators configure, operators read, strangers see nothing; stale route writers conflict.
+
+## Skills
+
+- [add-scanner-input](skills/add-scanner-input/SKILL.md): Add a scanner source, profile, route or rugged Android vendor profile.

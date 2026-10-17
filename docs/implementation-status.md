@@ -25,7 +25,7 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **By hand.** `bun run bundle create` built a 69 MB project-tasks bundle (46 files) on macOS arm64, which `verify` accepted and `admit` refused until approved. Rerun on 17 October 2026 after the bundle began writing its contract, security manifest and SBOM from the catalog: the signature verified and `admit` listed the requirements to approve.
 
-**Not shown.** No installer consumes a bundle yet, and nothing verifies one at launch. Bundles are directories, not archives. Approvals are unsigned site data. No cross-platform build has been verified on its target.
+**Not shown.** `site install` consumes a bundle (see [Site install](#site-install)), but nothing verifies one again at launch. Bundles are directories, not archives. Approvals are unsigned site data. No cross-platform build has been verified on its target.
 
 ### Site install
 

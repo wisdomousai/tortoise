@@ -51,3 +51,7 @@ cd examples/line-station && bun run station:golden
 - `test/observer.test.ts`: only stable readings become current; unsure readings stay uncertain.
 - `test/perception.test.ts`: vision endpoints are loopback or allowlisted; also worker restart, redirects and golden gating.
 - `test/profile.test.ts`: procedures cannot target forbidden regions or unknown fields.
+
+## Skills
+
+- [bridge-station-screen](skills/bridge-station-screen/SKILL.md): Bridge station software through its screen, or choose its automation route instead.

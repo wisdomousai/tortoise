@@ -100,3 +100,7 @@ The plugin is exercised through applications that compose it, because a policy o
 `test/workforce.test.ts` signs in against a fake provider answered by the injected destination fetch: the redirect parameters and PKCE pair, a one-use state, sign-out, session expiry, and refusals for another audience, an unverified email and a discovery document naming another issuer. It also covers which callers `external` admits.
 
 With `SITE_INSTALL_NATIVE=1` (the `site-install` CI job on Ubuntu), it also runs `systemd-analyze verify` on the unit and `nft -c -f` on the rules.
+
+## Skills
+
+- [deploy-to-site](skills/deploy-to-site/SKILL.md): writing and checking a site policy, building and installing a signed bundle, and exporting firewall rules.

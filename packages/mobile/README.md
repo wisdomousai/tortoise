@@ -70,3 +70,7 @@ bun run test:portable
 ```
 
 `test/mobile.test.ts` opens the platform with Bun's SQLite and file blob store in place of Expo's. It covers a capture with a photo committed, closed and found again after reopen; a second open refused while the first holds the workspace; a deployment with an ingress destination refused on iOS; a workspace name that tries to leave the sandbox; the foreground, background and background-pass calls; and plugin and application observers started on each foreground and stopped on background and close, but not by a background pass. `test/native-module.test.ts` covers a plugin's native module found by its manifest name and the refusal when the build lacks it. `test/shortcuts-plugin.test.ts` covers the shortcut XML and its escaping, literal string resources and the activity entry written once. `test/intent-filters.test.ts` covers the intent filter config plugin writing the declared names with `DEFAULT` and replacing its earlier filters. `test:portable` runs the same suite with the Hermes gaps removed. The Expo bindings are only exercised on a device or emulator.
+
+## Skills
+
+- [extend-mobile-host](skills/extend-mobile-host/SKILL.md): targeting Android and iOS, writing native plugins and screens, and pairing devices with a hub.

@@ -33,6 +33,33 @@ Design on engineering merits. The rest of this section is advice; depart from it
 - Each workspace has a README saying what it is for, what it trusts, and how to run its tests. Comment the non-obvious: transaction and authorization ordering, trust boundaries, failure behavior.
 - When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and the known gaps; don't restate what tests prove.
 
+## Skills
+
+Skills are task guides for coding agents. A repo-wide skill lives in `skills/<name>/`; a workspace keeps the skills for its own extension points in `<workspace>/skills/<name>/`. Run `bun run skills:link` once per checkout so Claude Code (`.claude/skills/`) and Codex (`.agents/skills/`) discover them; the links are not committed.
+
+| Task | Skill |
+| --- | --- |
+| Start an application, export an example, pick the next skill | `skills/create-agent-native-app/SKILL.md` |
+| Add or change a command or query, a record shape or a trigger | `skills/add-capability/SKILL.md` |
+| Write a host plugin for a cross-cutting concern | `skills/write-host-plugin/SKILL.md` |
+| Choose the checks and report the evidence | `skills/check-a-change/SKILL.md` |
+| Connect a system of record: outbox, settle, sync, live reads | `packages/integration/skills/connect-system-of-record/SKILL.md` |
+| Build screens and registry components | `packages/frame/skills/build-screens/SKILL.md` |
+| Bridge station software through its screen | `packages/station/skills/bridge-station-screen/SKILL.md` |
+| Add scanner and point-of-work input | `packages/devices/skills/add-scanner-input/SKILL.md` |
+| Add OS handlers, actions and native registrations | `packages/shell/skills/add-os-integration/SKILL.md` |
+| Extend the mobile host: native plugins, pairing | `packages/mobile/skills/extend-mobile-host/SKILL.md` |
+| Write a hardware driver | `plugins/connector-driver/skills/write-hardware-driver/SKILL.md` |
+| Deploy to a site: policy, signed bundles, install | `plugins/site/skills/deploy-to-site/SKILL.md` |
+
+How skills grow with the code (`bun run check:skills` enforces the first and last points):
+
+- A skill is named for a task, not a package, and names are unique across the repo. The owning workspace's README links it, and this table lists it.
+- A change that adds or changes an extension point, a command or a check updates that workspace's skill in the same commit.
+- When a workspace gains an extension point that other code uses and no skill covers it, add a skill there.
+- When two skills repeat the same steps, move those steps into a repo-wide skill and link to it.
+- A skill links to docs and READMEs for detail instead of copying it. Paths it names must exist.
+
 ## Working practice
 
 - Use `npx ctx7@latest library <name> '<question>'`, then `npx ctx7@latest docs <id> '<question>'` for current library APIs. Run network documentation requests outside the sandbox.

@@ -40,6 +40,21 @@ test('source export is deterministic, independent and excludes private/runtime a
     await writeFile(join(source, 'apps/mobile/.expo/devices.json'), '{}');
     await writeFile(join(source, 'apps/mobile/index.ts'), 'export {};');
     await symlink(join(source, 'package.json'), join(source, 'packages/linked.json'));
+    // Skill sources travel with the export; the agents' link directories and SDK build output do not.
+    await mkdir(join(source, 'skills/start-here'), { recursive: true });
+    await writeFile(join(source, 'skills/start-here/SKILL.md'), '# Start here');
+    await mkdir(join(source, 'packages/core/skills/extend-core'), { recursive: true });
+    await writeFile(join(source, 'packages/core/skills/extend-core/SKILL.md'), '# Extend core');
+    await mkdir(join(source, '.agents/skills/start-here'), { recursive: true });
+    await writeFile(join(source, '.agents/skills/start-here/SKILL.md'), '# Copy');
+    await mkdir(join(source, '.claude/skills'), { recursive: true });
+    await symlink('../../skills/start-here', join(source, '.claude/skills/start-here'));
+    await mkdir(join(source, 'sdks/driver/src/__pycache__'), { recursive: true });
+    await mkdir(join(source, 'sdks/driver/bin/Release'), { recursive: true });
+    await writeFile(join(source, 'sdks/driver/src/Driver.cs'), 'class Driver {}');
+    await writeFile(join(source, 'sdks/driver/src/driver.py'), 'pass');
+    await writeFile(join(source, 'sdks/driver/src/__pycache__/driver.py'), 'pass');
+    await writeFile(join(source, 'sdks/driver/bin/Release/Generated.cs'), 'class Generated {}');
     const first = await scaffold({
       sourceRoot: source,
       target: join(directory, 'first'),
@@ -59,8 +74,12 @@ test('source export is deterministic, independent and excludes private/runtime a
       'apps/web/index.html',
       'bun.lock',
       'package.json',
+      'packages/core/skills/extend-core/SKILL.md',
       'packages/core/src/index.ts',
       'packages/core/src/plate.jpg',
+      'sdks/driver/src/Driver.cs',
+      'sdks/driver/src/driver.py',
+      'skills/start-here/SKILL.md',
     ]);
     expect(
       new Uint8Array(await readFile(join(directory, 'first/packages/core/src/plate.jpg'))),
