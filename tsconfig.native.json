@@ -27,6 +27,7 @@
     "packages/adapters/src/exclusive-lock.ts",
     "packages/mobile/src",
     "packages/frame-native/src",
+    "packages/shell/src",
     "packages/react/src/query.ts",
     "packages/react/src/query",
     "packages/event-log/src/chain.ts",
