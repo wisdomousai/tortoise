@@ -58,11 +58,18 @@ const processBindingSchema = z.union([
   }),
 ]);
 export type ProcessBinding = z.output<typeof processBindingSchema>;
+/** The directory a declared exchange folder means on this site; an absolute path. */
+const folderBindingSchema = z.union([
+  z.strictObject({ disabled: z.literal(true), reason: z.string().max(500).optional() }),
+  z.strictObject({ path: z.string().min(1).max(4096) }),
+]);
 export const sitePolicySchema = z.strictObject({
   profile: z.enum(hardeningProfiles).default('desktop-local'),
   mode: z.enum(['isolated', 'connected']).default('isolated'),
   destinations: z.record(z.string(), bindingSchema).default({}),
   processes: z.record(z.string(), processBindingSchema).default({}),
+  // Optional with no default, so a policy without folders keeps the digest it had before folders existed.
+  folders: z.record(z.string(), folderBindingSchema).optional(),
   audit: z
     .strictObject({
       mode: z.enum(['fail-closed', 'best-effort']).default('fail-closed'),

@@ -11,6 +11,7 @@ import type { StateMigrations } from './migrations';
 import type { HostPlatform, SecretStore } from './platform';
 import type { PluginManifest } from './plugin-manifest';
 import type { PluginSettings } from './plugins/settings';
+import type { FolderPort } from './folders';
 import type { ProcessPort } from './processes';
 import type { ShellPort } from './shell';
 
@@ -21,6 +22,7 @@ export {
   type ProcessSpawnOptions,
 } from './processes';
 export { noShell, type ShellAdapter, type ShellPort } from './shell';
+export { noFolders, type BoundFolder, type FolderPort } from './folders';
 
 /**
  * The only way host code reaches the network. Without a plugin that provides it, every call
@@ -71,8 +73,8 @@ export interface IdentityPort {
 
 /**
  * The kernel's ports. Each has at most one provider plugin and a safe default otherwise: no
- * network, no audit log, a loopback listener, the local owner admitted, no OS integration and no
- * child processes.
+ * network, no audit log, a loopback listener, the local owner admitted, no OS integration, no
+ * child processes and no folders.
  */
 export interface HostPorts {
   readonly eventLog?: EventLogPort;
@@ -81,6 +83,7 @@ export interface HostPorts {
   readonly identity: IdentityPort;
   readonly shell: ShellPort;
   readonly processes: ProcessPort;
+  readonly folders: FolderPort;
 }
 
 /** Where a request carried a credential: the Authorization header or the session cookie. */

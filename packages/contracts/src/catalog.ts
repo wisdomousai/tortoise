@@ -13,6 +13,7 @@ import {
   collectRequirements,
   destinationsForRead,
   destinationsForTarget,
+  foldersForTarget,
   processesForTarget,
   type CatalogRequirements,
   type HostComponent,
@@ -36,6 +37,8 @@ export interface CatalogOperation {
   readonly destinations?: readonly string[];
   /** Child processes that carry the operation's outbox target, such as a hardware driver. */
   readonly processes?: readonly string[];
+  /** Folders the operation's outbox target is delivered into as files. */
+  readonly folders?: readonly string[];
   readonly audit?: { readonly fields?: readonly string[] };
   readonly blobs?: BlobLimits;
 }
@@ -128,16 +131,17 @@ function integrationDestinations(
   const destinations = capability.integration
     ? destinationsForTarget(requirements, capability.integration.target)
     : [];
-  // A target may instead be carried by a queueing OS action, such as a local notification, or
-  // by a declared child process, such as a hardware driver.
+  // A target may instead be carried by a queueing OS action, such as a local notification, by
+  // a declared child process, such as a hardware driver, or by files dropped into a folder.
   if (
     capability.integration &&
     destinations.length === 0 &&
     !osTargets.has(capability.integration.target) &&
-    processesForTarget(requirements, capability.integration.target).length === 0
+    processesForTarget(requirements, capability.integration.target).length === 0 &&
+    foldersForTarget(requirements, capability.integration.target).length === 0
   )
     throw new Error(
-      `Outbox target ${capability.integration.target} has no declared network destination or process: ${capability.id}`,
+      `Outbox target ${capability.integration.target} has no declared network destination, folder or process: ${capability.id}`,
     );
   return destinations;
 }
@@ -186,6 +190,7 @@ function catalogOperation(
   mcpName: string,
   destinations: readonly string[],
   processes: readonly string[],
+  folders: readonly string[],
 ): CatalogOperation {
   return {
     id: capability.id,
@@ -204,6 +209,7 @@ function catalogOperation(
     ...(capability.remote ? { remote: capability.remote } : {}),
     ...(destinations.length ? { destinations } : {}),
     ...(processes.length ? { processes } : {}),
+    ...(folders.length ? { folders } : {}),
     ...(capability.audit ? { audit: capability.audit } : {}),
     ...(capability.blobs ? { blobs: capability.blobs } : {}),
   };
@@ -243,12 +249,14 @@ export function buildCatalog(
         ...integrationDestinations(capability, requirements, osActionTargets(os)),
         ...remoteDestinations(capability, requirements),
       ];
-      const processes = capability.integration
-        ? processesForTarget(requirements, capability.integration.target)
-        : [];
+      const target = capability.integration?.target;
+      const processes = target ? processesForTarget(requirements, target) : [];
+      const folders = target ? foldersForTarget(requirements, target) : [];
       checkAuditFields(capability);
       checkBlobLimits(capability);
-      operations.push(catalogOperation(capability, module.id, mcpName, destinations, processes));
+      operations.push(
+        catalogOperation(capability, module.id, mcpName, destinations, processes, folders),
+      );
     }
   }
   const catalog: Catalog = {

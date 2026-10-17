@@ -15,10 +15,10 @@ The application owns its capture working set and pending effects; the other syst
 
 ## Steps
 
-1. **Declare the target** once with `defineTarget` in the browser-safe contracts (`examples/quality-inspection/contracts/target.ts`). It produces the settle, sync and status operations, the integration principal's grant and its policy lane. Declare a network destination that reads the target and queues while offline.
+1. **Declare the target** once with `defineTarget` in the browser-safe contracts (`examples/quality-inspection/contracts/target.ts`). It produces the settle, sync and status operations, the integration principal's grant and its policy lane. Declare a network destination that reads the target and queues while offline, or, for a system reached through shared folders, the exchange folders with `fileExchange` from `@agent-native/connector-files/component`.
 2. **Enqueue in commands.** A command that forwards a record calls `ctx.enqueue` on a changed resource and declares `integration` on the capability. The record keeps its effect ID and delivery state. Never call the target inside a handler.
 3. **Implement the settle and sync handlers** with `targetHandlers`: how an outcome changes the forwarded record, how a feed item changes local state, and which records a caller may count. Pass `versions` when the feed can deliver an older version after a newer one.
-4. **Implement the port** (`SystemOfRecordPort`) as the only code that talks to the target, reaching it through the network port. Return a business rejection as data, `DeliveryUncertain` when the outcome cannot be established, and `pending` when the target acknowledged but has not decided.
+4. **Implement the port** (`SystemOfRecordPort`) as the only code that talks to the target, reaching it through the network port or the folder port. Start from a ready-made port when one fits: `httpTargetPort` (`plugins/connector-http`) for a REST system, with requests and rejection rules as data, or `fileTargetPort` (`plugins/connector-files`) for a file drop with receipts or an archive and an inbox of result exports. Return a business rejection as data, `DeliveryUncertain` when the outcome cannot be established, and `pending` when the target acknowledged but has not decided.
 5. **Connect it** in `application.ts` with `connectTarget` (`examples/quality-inspection/application.ts`). A target without a feed only delivers.
 6. **Reconcile held effects.** The dispatcher holds uncertain, lost-acknowledgement and recheck-denied effects and polls `upstream` ones. Only a domain command moves an effect out of `held`: settle it when the target applied or refused it, release it when it did not. Make held work queryable and visible on a screen (`examples/line-station/handlers/attention.ts`).
 7. **Live search**: declare search and lookup queries with `defineDataProvider` (`examples/crm-capture/contracts/providers.ts`), implement them with `implementDataProvider`, and back them with `createRemoteSource`, which resolves the caller's own credential first. Adopting a result is a domain command that enqueues a follow effect.
@@ -28,7 +28,7 @@ Never give the integration principal more than settle, sync and status, and neve
 
 ## Checks
 
-- Run `connectorConformance` from `@agent-native/testing/connectors` against the port (`plugins/connector-driver/test/conformance.test.ts` shows a caller). It covers idempotent delivery or lookup, rejection, lost replies and pull.
+- Run `connectorConformance` from `@agent-native/testing/connectors` against the port (`plugins/connector-driver/test/conformance.test.ts`, `plugins/connector-http/test/connector-http.test.ts` and `plugins/connector-files/test/connector-files.test.ts` show callers). It covers idempotent delivery or lookup, rejection, lost replies and pull.
 - Test a lost reply, a rejection, a held effect released and settled, and a stale sync range in the application's tests (`examples/quality-inspection/test/application.test.ts`).
 
 ```sh

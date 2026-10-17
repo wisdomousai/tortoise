@@ -11,7 +11,7 @@ export { platformIds, type PlatformId } from './plugin-manifest';
  * What a platform can do beyond running JavaScript. `sockets`: raw TCP or UDP connections.
  * `child-process`: spawning executables. `ingress`: listening for connections, even on loopback.
  */
-export type PlatformCapability = 'sockets' | 'child-process' | 'ingress';
+export type PlatformCapability = 'sockets' | 'child-process' | 'ingress' | 'folders';
 
 /** Exclusive ownership of one workspace; released once, by its holder. */
 export interface PlatformOwnership {
@@ -112,6 +112,7 @@ export function assertPlatformSupports(
   }
   for (const child of requirements.processes)
     need('child-process', `${child.owner} process ${child.id}`);
+  for (const folder of requirements.folders) need('folders', `${folder.owner} folder ${folder.id}`);
   if (missing.length)
     throw new Error(`Platform "${platform.id}" cannot run this deployment: ${missing.join('; ')}`);
 }

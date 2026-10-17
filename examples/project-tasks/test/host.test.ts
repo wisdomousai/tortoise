@@ -65,7 +65,7 @@ function fixture() {
         operations: [],
         workflows: [],
         agents: [],
-        requirements: { network: [], devices: [], processes: [] },
+        requirements: { network: [], folders: [], devices: [], processes: [] },
       };
     },
   };

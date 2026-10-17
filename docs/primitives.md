@@ -259,7 +259,7 @@ implemented · `packages/runtime`
 
 _The port that delivers effects to one target and looks up their outcome._
 
-implemented · `packages/integration` `packages/station` `packages/testing` `plugins/connector-driver` `plugins/notifications`
+implemented · `packages/integration` `packages/station` `packages/testing` `plugins/connector-driver` `plugins/connector-files` `plugins/connector-http` `plugins/notifications`
 
 ### Dispatcher
 
@@ -295,7 +295,7 @@ partial · `packages/contracts` `packages/integration` `examples/crm-capture`
 
 _A reading from a source that cannot be queried, submitted through an ingest command._
 
-implemented · `packages/observation` `packages/station` `plugins/connector-driver`
+implemented · `packages/observation` `packages/station` `plugins/connector-driver` `plugins/connector-mqtt` `plugins/connector-opcua`
 
 ### Gated actuator
 
@@ -349,13 +349,13 @@ partial · `plugins/device-link` `plugins/hub-link`
 
 ### Requirement declaration
 
-_What a module or host component needs outside the process, as data: network destinations, devices and child processes, with the outbox targets each carries._
+_What a module or host component needs outside the process, as data: network destinations, exchange folders, devices and child processes, with the outbox targets each carries._
 
-implemented · `packages/contracts`
+implemented · `packages/contracts` `packages/kernel`
 
 ### Site policy
 
-_Deployment data that binds declared destinations to addresses and sets a hardening floor._
+_Deployment data that binds declared destinations to addresses and exchange folders to directories, and sets a hardening floor._
 
 implemented · `plugins/site`
 

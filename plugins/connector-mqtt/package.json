@@ -1,0 +1,29 @@
+{
+  "name": "@agent-native/connector-mqtt",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "MQTT connector: read-only observation of MQTT topics and Sparkplug B edge nodes through the network port, submitted as readings through an ingest command.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/connector-mqtt"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/observation": "workspace:*",
+    "@agent-native/runtime": "workspace:*"
+  }
+}

@@ -58,6 +58,16 @@ A command can withdraw an effect with `ctx.cancelEffect` only while no worker ev
 
 A feed that can deliver an older version of a record after a newer one passes `versions` to `targetHandlers`; items not newer than the last applied version are dropped before the application applies the batch.
 
+## Connector ports
+
+A target's port implements `SystemOfRecordPort`. Besides the driver connector and the screen bridge, ready-made ports cover the common routes:
+
+- [`connector-http`](../plugins/connector-http/README.md): a REST system through the network port. Requests, rejection rules and lookup are data, and the port needs an idempotency header or a lookup.
+- [`connector-files`](../plugins/connector-files/README.md): a system reached through shared folders. Effects are dropped as files and settled from receipts or the archive; result exports feed inbound sync. The folders are declared requirements the site policy binds.
+- [`connector-mqtt`](../plugins/connector-mqtt/README.md) and [`connector-opcua`](../plugins/connector-opcua/README.md): read-only observation of a broker or a controller gateway. They submit readings through an ingest command and never write.
+
+Each passes the shared conformance suite in `@agent-native/testing/connectors` (idempotent delivery or lookup before resend, rejection as data, uncertain outcomes held), and each ships a fake for tests.
+
 ## Live search and adoption
 
 The outbox and inbound sync keep a working set current, but neither answers a question at the moment someone asks. A **remote query** does. Mirroring the whole system of record through inbound sync would answer searches locally, but it would copy records the caller may not see under that system's own sharing rules, and it is stale between pulls. Calling the source from a handler would put the call inside the transaction, where it cannot be re-authorized. Page numbers shift as the source changes and cannot be bound to the caller, so paging uses the source's opaque cursors.

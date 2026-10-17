@@ -1,7 +1,7 @@
 import type { OsDeclarations } from './os';
 /**
  * Declared environment requirements: what a module or host component needs from the network,
- * attached devices and child processes. Declarations are browser-safe data. They grant nothing by
+ * shared folders, attached devices and child processes. Declarations are browser-safe data. They grant nothing by
  * themselves. A deployment binds network destinations in a site policy, the egress guard enforces
  * only bound declarations, and firewall/hardening exports are generated from the same data, so the
  * reviewed manifest, the in-process guard and the OS rules cannot drift apart.
@@ -75,8 +75,26 @@ export interface ProcessRequirement {
   readonly targets?: readonly string[];
 }
 
+/**
+ * A directory the application exchanges files through, such as a share another system drops
+ * result exports into or picks import files up from. Code names the folder, never its path,
+ * which only the site policy knows.
+ */
+export interface FolderRequirement {
+  readonly id: string;
+  readonly purpose: string;
+  /** `read`: files other systems write. `write`: files the application writes for others. */
+  readonly access: 'read' | 'write' | 'read-write';
+  /** Outbox targets whose effects are delivered as files into this folder. */
+  readonly targets?: readonly string[];
+  /** Classes of data written to or read from this folder, for the data-flow inventory. */
+  readonly dataClasses: readonly string[];
+  readonly availability: Availability;
+}
+
 export interface Requirements {
   readonly network?: readonly NetworkDestination[];
+  readonly folders?: readonly FolderRequirement[];
   readonly devices?: readonly DeviceRequirement[];
   readonly processes?: readonly ProcessRequirement[];
 }
@@ -101,6 +119,7 @@ type Owned<T> = T & { readonly owner: string };
 /** Requirements of every composed module and host component, sorted by ID, with their owner. */
 export interface CatalogRequirements {
   readonly network: readonly Owned<NetworkDestination>[];
+  readonly folders: readonly Owned<FolderRequirement>[];
   readonly devices: readonly Owned<DeviceRequirement>[];
   readonly processes: readonly Owned<ProcessRequirement>[];
 }
@@ -119,10 +138,12 @@ export function collectRequirements(
   owners: readonly { readonly id: string; readonly requirements?: Requirements }[],
 ): CatalogRequirements {
   const network: Owned<NetworkDestination>[] = [];
+  const folders: Owned<FolderRequirement>[] = [];
   const devices: Owned<DeviceRequirement>[] = [];
   const processes: Owned<ProcessRequirement>[] = [];
   const seen = {
     network: new Set<string>(),
+    folders: new Set<string>(),
     devices: new Set<string>(),
     processes: new Set<string>(),
   };
@@ -163,6 +184,15 @@ export function collectRequirements(
         throw new Error(`Remote reads require an egress destination: ${where}`);
       network.push({ ...destination, owner });
     }
+    for (const folder of requirements?.folders ?? []) {
+      claim('folders', owner, folder.id);
+      const where = `folder ${folder.id} (${owner})`;
+      if (!folder.purpose) throw new Error(`Missing purpose for ${where}`);
+      if (folder.dataClasses.length === 0) throw new Error(`Missing data classes for ${where}`);
+      if (folder.targets?.length && folder.access === 'read')
+        throw new Error(`Outbox targets require a writable folder: ${where}`);
+      folders.push({ ...folder, owner });
+    }
     for (const device of requirements?.devices ?? []) {
       claim('devices', owner, device.id);
       devices.push({ ...device, owner });
@@ -182,6 +212,7 @@ export function collectRequirements(
         throw new Error(`Process ${child.id} references undeclared destination ${destination}`);
   return {
     network: network.sort(byId),
+    folders: folders.sort(byId),
     devices: devices.sort(byId),
     processes: processes.sort(byId),
   };
@@ -195,6 +226,16 @@ export function processesForTarget(
   return requirements.processes
     .filter((child) => child.targets?.includes(target))
     .map((child) => child.id);
+}
+
+/** Folders that effects for `target` are delivered into as files. */
+export function foldersForTarget(
+  requirements: CatalogRequirements,
+  target: string,
+): readonly string[] {
+  return requirements.folders
+    .filter((folder) => folder.targets?.includes(target))
+    .map((folder) => folder.id);
 }
 
 /** Destinations that carry effects for `target`. */

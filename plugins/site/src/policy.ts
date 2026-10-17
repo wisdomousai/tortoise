@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { constants } from 'node:fs';
-import { access, readFile } from 'node:fs/promises';
+import { access, readFile, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import {
   canonicalJson,
@@ -17,6 +17,7 @@ import {
 } from './policy/certificates';
 import { createFindings } from './policy/findings';
 import { checkFloors, offlineConsequences } from './policy/floors';
+import { resolveFolders, type ResolvedFolder } from './policy/folders';
 import { resolveProcesses, type ResolvedProcess } from './policy/processes';
 import { sitePolicySchema, type HardeningProfile, type SitePolicy } from './policy/schema';
 
@@ -36,6 +37,7 @@ export {
   type CertificateValidity,
 } from './policy/certificates';
 export type { DeclaredProcess, ResolvedProcess } from './policy/processes';
+export type { DeclaredFolder, ResolvedFolder } from './policy/folders';
 export type { ProcessBinding } from './policy/schema';
 
 export interface PolicyFinding {
@@ -77,6 +79,10 @@ export interface ResolvedPolicy {
   readonly processes: ReadonlyMap<string, ResolvedProcess>;
   /** Declared child processes this site explicitly disables. */
   readonly disabledProcesses: ReadonlySet<string>;
+  /** Declared exchange folders this site binds to a directory, by folder ID. */
+  readonly folders: ReadonlyMap<string, ResolvedFolder>;
+  /** Declared exchange folders this site explicitly disables. */
+  readonly disabledFolders: ReadonlySet<string>;
   /** SHA-256 of the canonical policy, for attestation events and reports. */
   readonly digest: string;
   /**
@@ -183,6 +189,8 @@ export function resolveSitePolicy(
     readonly pem?: { readonly ingressCert?: string; readonly clientCa?: string };
     /** When certificate validity is judged; defaults to the current time. */
     readonly now?: number;
+    /** Bound folders whose directory `loadSitePolicy` did not find. */
+    readonly missingFolders?: readonly string[];
   } = {},
 ): ResolvedPolicy {
   const policy = sitePolicySchema.parse(input ?? {});
@@ -191,6 +199,9 @@ export function resolveSitePolicy(
   const { bindings, disabled } = resolveBindings(policy, declared, files.ca, report);
   const consequences = offlineConsequences(policy, requirements, bindings, disabled, report);
   const { processes, disabledProcesses } = resolveProcesses(policy, requirements, report);
+  const { folders, disabledFolders } = resolveFolders(policy, requirements, report);
+  for (const id of files.missingFolders ?? [])
+    report.warn('FOLDER_MISSING', `Folder ${id} is bound to a directory that does not exist`, id);
   checkFloors(policy, bindings, files.ingress, report);
   const certificates = certificatesOf(bindings, files.pem, report);
   checkCertificates(certificates, files.now ?? Date.now(), report);
@@ -205,6 +216,8 @@ export function resolveSitePolicy(
     consequences,
     processes,
     disabledProcesses,
+    folders,
+    disabledFolders,
     digest: createHash('sha256')
       .update(canonicalJson(JSON.parse(JSON.stringify(policy))))
       .digest('hex'),
@@ -253,6 +266,18 @@ export async function loadSitePolicy(
     read(ingress?.clientCa),
   ]);
   const listening = ingress && ingress.listen !== 'loopback';
+  // A share may be mounted after startup, so a missing folder is a warning, not a refusal.
+  const missingFolders: string[] = [];
+  if (parsed.success)
+    for (const [id, binding] of Object.entries(parsed.data.folders ?? {}))
+      if (
+        'path' in binding &&
+        !(await stat(binding.path).then(
+          (s) => s.isDirectory(),
+          () => false,
+        ))
+      )
+        missingFolders.push(id);
   const contents = (file: string | undefined) =>
     file ? readFile(file, 'utf8').catch(() => undefined) : undefined;
   const [ingressCert, clientCaPem] = listening
@@ -270,6 +295,7 @@ export async function loadSitePolicy(
         }
       : {}),
     ...(options.now !== undefined ? { now: options.now } : {}),
+    ...(missingFolders.length ? { missingFolders } : {}),
   });
 }
 

@@ -29,5 +29,6 @@ bun test packages/observation packages/station
 
 ## Skills
 
+- [observe-plant-signals](skills/observe-plant-signals/SKILL.md): MQTT, Sparkplug B and OPC UA sources as readings.
 - [bridge-station-screen](../station/skills/bridge-station-screen/SKILL.md): station software reached through its screen.
 - [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.

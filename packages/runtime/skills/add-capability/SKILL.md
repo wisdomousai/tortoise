@@ -20,7 +20,7 @@ A capability is one domain behavior in the catalog. People, agents, the CLI, MCP
 3. **Handler** in the server entrypoint with `createHandlerFactory`. Declare every changed resource with `ctx.change`. No network call inside the transaction: enqueue an outbox effect with `ctx.enqueue` and declare `integration` on the capability instead.
 4. **Policy** for operation, object, current and proposed fields, and grant scope. Filter rows before paging or counting. See [authorization](../../../../docs/authorization.md).
 5. **Compose** through the application's `manifest.ts` and `application.ts`, never in `apps/*`.
-6. **Declare what it reaches**: network destinations, devices, child processes, and the input fields safe to log in plain text.
+6. **Declare what it reaches**: network destinations, exchange folders, devices, child processes, and the input fields safe to log in plain text.
 7. **Bind it to a screen** (the `build-screens` skill, `packages/frame/skills/build-screens/SKILL.md`), keeping `useCapabilityForm` so a retry reuses one idempotency key.
 8. **Prove it** with a behavioral scenario: permitted and denied access, a stale revision, a repeated idempotency key, and the change visible to another process. Use `packages/testing` for cross-surface scenarios.
 

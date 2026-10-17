@@ -16,10 +16,10 @@ A host plugin adds modules, a state slice, a policy, settings, lifecycle hooks a
 ## Steps
 
 1. Create `plugins/<name>` with a `package.json` named `@agent-native/<name>` and a README whose first line is that name (`bun run check:readmes` enforces it).
-2. **`plugin-manifest`** (browser-safe): `definePluginManifest` with its modules, requirement components (network destinations, devices, processes) and the settings it claims. A setting no composed plugin claims refuses startup.
+2. **`plugin-manifest`** (browser-safe): `definePluginManifest` with its modules, requirement components (network destinations, exchange folders, devices, processes) and the settings it claims. A setting no composed plugin claims refuses startup.
 3. **`plugin`** (server): `defineHostPlugin` with `state.create` for its own slice, handlers, and an authorization port over its own resource types only. List the plugins it needs in `requires`.
    - `open` runs before storage and may refuse startup. `ready` runs before the first request. `start` runs once the host listens, with a delegated grant. `close` runs in reverse order.
-   - Reach the network, ingress, identity, processes and the audit log only through `HostPorts`, never through another plugin's imports.
+   - Reach the network, ingress, identity, processes, exchange folders and the audit log only through `HostPorts`, never through another plugin's imports.
    - A loop or job writes only through the plugin's own commands, as a delegated caller, never into application state.
    - CLI verbs are `PluginCommand` entries in `commands`, run before any workspace opens.
    - A changed slice shape gets a step in `state.migrations`.

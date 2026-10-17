@@ -79,6 +79,20 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Not shown.** Delivery, sync and remote queries run only against in-memory fakes: in quality-inspection, crm-capture and asset-survey (the demo EAM, and an extractor that reads text embedded in generated nameplate images). [Remote queries](primitives.md#remote-query) and [data providers](primitives.md#data-provider) are used by crm-capture and asset-survey. There is no real system of record, CRM or EAM, and no extraction has run against a model provider: asset-survey's model extractor has run only against a mock model and a fake network port, and its live comparison over the six sample plates (`examples/asset-survey/test/live-extraction.test.ts`) has not run. The asset-survey export directory is written by a real child process in its test, not by a deployed site. Two dispatcher processes racing for one workspace (rather than two dispatchers in one process) and a reconciliation query across targets are not shown. Capture timings come from synthetic runs.
 
+### Connector plugins
+
+**By hand.** 17 October 2026, on macOS, against independent implementations started from the uv cache:
+
+- `connector-opcua`'s client against an asyncua 2.1.0 server on loopback: an anonymous session with security policy None read a Double, a String, an Int32, a UInt64 above 2^53, an array (reported unsupported), the server's current time (`i=2258`) and an unknown node (bad status), then closed the session and channel.
+- `connector-mqtt`'s observer against an amqtt 0.12.1 broker, with a paho-mqtt 2.1.0 publisher encoding Sparkplug B with protobuf 7.36.2 from the Eclipse Tahu schema: a node birth, then data by alias, became the readings `temp` 72.25 and `count` -7, both `observed`.
+
+**Not shown.**
+
+- **Equipment:** no real PLC, OPC UA gateway, Sparkplug edge node or plant broker, and no broker over TLS or with credentials.
+- **OPC UA security:** signed and encrypted channels and user sign-in are not implemented, so a server that requires them is refused.
+- **Files:** no real network share, SMB or NFS mount, or other system writing receipts; the exchange has run only against temporary directories and the fake consumer.
+- **HTTP:** no real REST system of record; only the loopback fake.
+
 ### Operator workstation bridge
 
 **Shown, browser.** In `line-station`, against the real service and a separate fake HMI process:

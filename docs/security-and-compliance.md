@@ -52,6 +52,7 @@ defineHostComponent({
 - **Fixed hosts.** A declaration names a host only for fixed vendor endpoints. The site policy names site systems.
 - **Outbox targets.** An outbox target needs a declared destination that queues while offline.
 - **Child processes.** A child process lists the only destinations it may reach.
+- **Exchange folders.** A folder another system reads or writes (a file drop, receipts, result exports) is declared by ID with its access (`read`, `write` or `read-write`), data classes and the outbox targets it carries. Code reaches it only through the folder port, so a module never names a path.
 - **Audit fields.** A capability lists the input fields that are safe to record in plain text. All other input is recorded as a digest.
 
 The composed declarations appear in each application's generated contract and security manifest.
@@ -77,6 +78,7 @@ A site policy is deployment data, validated against the composed declarations. C
 - **Bindings** name declared destinations and match their protocol, host and port.
 - **`addresses`** (CIDRs) let the guard check DNS answers, which defeats DNS rebinding, and the firewall exports need them. A binding without addresses gets a warning, and its scope is never widened.
 - **`ca`** replaces the trust store for a destination, and **`certificatePins`** pin server certificates.
+- **`folders`** binds each declared folder ID to an absolute directory (POSIX, a Windows drive path or a UNC share), or disables it with a reason. Two folders cannot share a directory, an undeclared or unbound required folder is an error, and a bound directory that does not exist is a warning, since a share may be mounted later. A disabled or unbound folder is unavailable through the folder port.
 - **Connected mode** requires every required destination to be bound or explicitly disabled. Each closed destination is listed with its offline consequence.
 
 The `quality-inspection` example ships a complete sandbox policy. The desktop build ships one that binds only provider endpoints.

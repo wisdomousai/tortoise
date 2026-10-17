@@ -1,6 +1,7 @@
 import type {
   Catalog,
   DeviceRequirement,
+  FolderRequirement,
   HostComponent,
   NetworkDestination,
   ProcessRequirement,
@@ -18,6 +19,8 @@ export interface DataFlow {
   readonly destinations: readonly string[];
   /** Child processes that carry the effects instead, such as a hardware driver over its stdio. */
   readonly processes?: readonly string[];
+  /** Exchange folders the effects are written into as files. */
+  readonly folders?: readonly string[];
   readonly dataClasses: readonly string[];
   /** Input fields recorded in plain text in the audit log; all others only as a digest. */
   readonly auditFields: readonly string[];
@@ -34,6 +37,7 @@ export interface SecurityManifest {
   readonly network: readonly (NetworkDestination & { readonly owner: string })[];
   readonly devices: readonly (DeviceRequirement & { readonly owner: string })[];
   readonly processes: readonly (ProcessRequirement & { readonly owner: string })[];
+  readonly folders: readonly (FolderRequirement & { readonly owner: string })[];
   readonly flows: readonly DataFlow[];
   /** OS handlers (local ingress) and OS actions (local egress). See `OsManifest`. */
   readonly os: OsManifest;
@@ -42,7 +46,7 @@ export interface SecurityManifest {
     readonly ingress: number;
     readonly internet: readonly string[];
     /**
-     * Site-scoped destinations and devices: what only a host on the site network can reach. An
+     * Site-scoped destinations, folders and devices: what only a host on the site can reach. An
      * empty list means nothing declared pins the application to the site.
      */
     readonly site: readonly string[];
@@ -55,7 +59,7 @@ const sorted = (values: Iterable<string>) => [...new Set(values)].sort();
 
 /**
  * The reviewable statement of everything the composed deployment may touch: every declared
- * network destination, device and child process with its owner, and every operation whose
+ * network destination, exchange folder, device and child process with its owner, and every operation whose
  * effects leave the host. Pure and deterministic, so `bun run generate` can drift-check it.
  * It describes declarations, not a site's bindings; `network export` applies a site policy.
  */
@@ -66,13 +70,17 @@ export function securityManifest(options: {
 }): SecurityManifest {
   const { catalog } = options;
   const { network, devices, processes } = catalog.requirements;
+  // Catalogs recorded before folders were declarable have none.
+  const folders = catalog.requirements.folders ?? [];
   const byId = new Map(network.map((destination) => [destination.id, destination]));
+  const folderById = new Map(folders.map((folder) => [folder.id, folder]));
   const components = new Map((options.components ?? []).map((item) => [item.id, item]));
   const owners = sorted([
     ...catalog.operations.map((operation) => operation.module),
     ...network.map((item) => item.owner),
     ...devices.map((item) => item.owner),
     ...processes.map((item) => item.owner),
+    ...folders.map((item) => item.owner),
     ...components.keys(),
   ]).map((id) =>
     components.has(id)
@@ -84,7 +92,9 @@ export function securityManifest(options: {
     .filter(
       (operation) =>
         (operation.integration || operation.remote) &&
-        (operation.destinations?.length || operation.processes?.length),
+        (operation.destinations?.length ||
+          operation.processes?.length ||
+          operation.folders?.length),
     )
     .map((operation) => ({
       operation: operation.id,
@@ -94,9 +104,11 @@ export function securityManifest(options: {
       path: operation.integration ? ('outbox' as const) : ('remote-read' as const),
       destinations: [...(operation.destinations ?? [])],
       ...(operation.processes?.length ? { processes: [...operation.processes] } : {}),
-      dataClasses: sorted(
-        (operation.destinations ?? []).flatMap((id) => byId.get(id)?.dataClasses ?? []),
-      ),
+      ...(operation.folders?.length ? { folders: [...operation.folders] } : {}),
+      dataClasses: sorted([
+        ...(operation.destinations ?? []).flatMap((id) => byId.get(id)?.dataClasses ?? []),
+        ...(operation.folders ?? []).flatMap((id) => folderById.get(id)?.dataClasses ?? []),
+      ]),
       auditFields: [...(operation.audit?.fields ?? [])],
     }));
   return {
@@ -106,6 +118,7 @@ export function securityManifest(options: {
     network: [...network],
     devices: [...devices],
     processes: [...processes],
+    folders: [...folders],
     flows,
     os,
     summary: {
@@ -114,13 +127,17 @@ export function securityManifest(options: {
       internet: sorted(network.filter((item) => item.scope === 'internet').map((item) => item.id)),
       site: sorted([
         ...network.filter((item) => item.scope === 'site').map((item) => item.id),
+        ...folders.map((item) => item.id),
         ...devices.map((item) => item.id),
       ]),
       required: sorted(
-        network.filter((item) => item.availability === 'required').map((item) => item.id),
+        [...network, ...folders]
+          .filter((item) => item.availability === 'required')
+          .map((item) => item.id),
       ),
       dataClasses: sorted([
         ...network.flatMap((item) => item.dataClasses),
+        ...folders.flatMap((item) => item.dataClasses),
         ...os.actions.flatMap((item) => item.dataClasses),
       ]),
     },
@@ -152,6 +169,12 @@ function flowDiagram(manifest: SecurityManifest): string[] {
         ? `  app -- "${label}" --> ${node(item.id)}`
         : `  ${node(item.id)} -- "${label}" --> app`,
     );
+  }
+  for (const folder of manifest.folders) {
+    const label = folder.dataClasses.join(', ');
+    const id = `folder_${node(folder.id)}[("${folder.id}")]`;
+    if (folder.access !== 'read') lines.push(`  app -- "${label}" --> ${id}`);
+    if (folder.access !== 'write') lines.push(`  ${id} -- "${label}" --> app`);
   }
   for (const process of manifest.processes) {
     lines.push(`  app -. spawns .-> proc_${node(process.id)}(["${process.id}"])`);
@@ -186,6 +209,7 @@ function destinationTables(manifest: SecurityManifest): string[] {
         `| \`${flow.operation}\` | ${flow.target} | ${flow.path} | ${[
           ...flow.destinations.map((id) => `\`${id}\``),
           ...(flow.processes ?? []).map((id) => `process \`${id}\``),
+          ...(flow.folders ?? []).map((id) => `folder \`${id}\``),
         ].join(
           ', ',
         )} | ${cell(flow.dataClasses.join(', '))} | ${flow.auditFields.join(', ') || 'digest only'} |`,
@@ -196,6 +220,20 @@ function destinationTables(manifest: SecurityManifest): string[] {
 
 function deviceAndProcessTables(manifest: SecurityManifest): string[] {
   const lines: string[] = [];
+  if (manifest.folders.length)
+    lines.push(
+      '## Exchange folders',
+      '',
+      'The site policy binds each folder to a directory; code reaches only bound folders, through the folder port.',
+      '',
+      '| ID | Owner | Access | Data classes | Availability | Purpose |',
+      '| --- | --- | --- | --- | --- | --- |',
+      ...manifest.folders.map(
+        (item) =>
+          `| \`${item.id}\` | ${item.owner} | ${item.access} | ${cell(item.dataClasses.join(', '))} | ${item.availability} | ${cell(item.purpose)} |`,
+      ),
+      '',
+    );
   if (manifest.devices.length)
     lines.push(
       '## Devices',
@@ -227,7 +265,7 @@ function deviceAndProcessTables(manifest: SecurityManifest): string[] {
 
 /**
  * Data-flow document for reviewers: a Mermaid diagram grouped by network scope, then tables of
- * destinations, operations that leave the host, devices and child processes.
+ * destinations, operations that leave the host, exchange folders, devices and child processes.
  */
 export function dataFlowsMarkdown(manifest: SecurityManifest): string {
   return [

@@ -63,6 +63,7 @@ export {
 } from './authority';
 export { assertGlobals, installGlobals, missingGlobals, type RequiredGlobal } from './globals';
 export { noShell, type ShellAdapter, type ShellPort } from './shell';
+export { noFolders, type BoundFolder, type FolderPort } from './folders';
 export {
   noProcesses,
   type ProcessAvailability,

@@ -1,5 +1,6 @@
 import { ApplicationError } from '@agent-native/contracts';
 import type { HostPorts, IngressPort, NetworkPort, PluginInstance } from '../plugin';
+import { noFolders } from '../folders';
 import { noProcesses } from '../processes';
 import { noShell } from '../shell';
 
@@ -41,7 +42,8 @@ export const noIngress: IngressPort = Object.freeze({
 
 /**
  * The kernel's ports when no plugin provides them: no network, no audit log, the platform's
- * listener if it has one, the local owner admitted, no OS integration and no child processes.
+ * listener if it has one, the local owner admitted, no OS integration, no child processes and no
+ * folders.
  */
 export function defaultPorts(ingress: IngressPort = noIngress): HostPorts {
   return Object.freeze({
@@ -50,6 +52,7 @@ export function defaultPorts(ingress: IngressPort = noIngress): HostPorts {
     identity: Object.freeze({ admit: () => undefined, localOwnerSessions: true }),
     shell: noShell,
     processes: noProcesses,
+    folders: noFolders,
   });
 }
 
@@ -120,6 +123,9 @@ export function latePorts() {
     },
     get processes() {
       return resolved().processes;
+    },
+    get folders() {
+      return resolved().folders;
     },
   };
   return {

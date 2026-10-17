@@ -11,7 +11,7 @@ import type { CapabilityModule, EventLogPort, HostComponent } from '@agent-nativ
 import type { TargetIntegration } from '@agent-native/integration';
 import type { ApplicationManifest } from './manifest';
 import { deploymentComponents } from './components';
-import type { AnyHostPlugin, NetworkPort, ProcessPort } from './plugin';
+import type { AnyHostPlugin, FolderPort, NetworkPort, ProcessPort } from './plugin';
 import { checkMigrations, type StateMigrations } from './migrations';
 import {
   checkPlugins,
@@ -82,6 +82,8 @@ export interface ConnectContext {
   readonly network: NetworkPort;
   /** The deployment's process port: perception workers and drivers start through it. */
   readonly processes: ProcessPort;
+  /** The deployment's folder port: file connectors reach their declared folders through it. */
+  readonly folders: FolderPort;
   /**
    * Services of the composed plugins, keyed by plugin id, as handlers see them. A plugin that
    * owns long-lived resources (driver supervisors) exposes them here, so the application wires

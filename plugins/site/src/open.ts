@@ -1,4 +1,4 @@
-import type { CatalogRequirements } from '@agent-native/contracts';
+import { ApplicationError, type CatalogRequirements } from '@agent-native/contracts';
 import { assertPolicyUsable, isolatedPolicy, loadSitePolicy, type ResolvedPolicy } from './policy';
 import type { PluginInstance, PluginOpenContext } from '@agent-native/host/plugin';
 import { assertIdentity } from './identity';
@@ -22,6 +22,7 @@ export interface SiteService {
  *    without one, and refuse on any error finding, profile floors included.
  * 2. Provide the identity port from the policy's identity floor and, for `identity: external`
  *    on a serving host, the workforce sign-in routes and the session cookies they set.
+ *    Provide the folder port from the policy's folder bindings.
  * 3. Declare the ports the policy needs (`portsNeeded`), so the host refuses a composition in
  *    which the policy binds destinations or requires an audit trail that nothing enforces.
  *
@@ -48,6 +49,19 @@ export async function openSite(context: PluginOpenContext): Promise<PluginInstan
       identity: {
         admit: (caller) => assertIdentity(policy, caller, context.serving),
         localOwnerSessions: policy.policy.identity === 'local-owner',
+      },
+      folders: {
+        folder(folderId) {
+          const bound = policy.folders.get(folderId);
+          if (!bound)
+            throw new ApplicationError(
+              'UNAVAILABLE',
+              policy.disabledFolders.has(folderId)
+                ? `Folder ${folderId} is disabled by the site policy`
+                : `Folder ${folderId} is not bound by the site policy`,
+            );
+          return { id: folderId, path: bound.path, access: bound.folder.access };
+        },
       },
     },
     ...(signIn

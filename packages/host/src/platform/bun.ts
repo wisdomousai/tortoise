@@ -42,7 +42,7 @@ export function workspaceDatabase(definition: AnyApplicationDefinition, file: st
  */
 export const bunPlatform: HostPlatform = Object.freeze({
   id: 'bun',
-  capabilities: new Set(['sockets', 'child-process', 'ingress'] as const),
+  capabilities: new Set(['sockets', 'child-process', 'ingress', 'folders'] as const),
   components: hostComponents,
   ingress: loopbackIngress,
   acquireOwnership: (workspacePath: string) => acquireWorkspaceOwnership(workspacePath),

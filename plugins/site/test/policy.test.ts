@@ -37,6 +37,23 @@ const requirements = collectRequirements([
         site('loopback-tcp', { scope: 'loopback', protocol: 'tcp', dataClasses: [] }),
         site('workforce-idp', { scope: 'internet', dataClasses: ['identity'] }),
       ],
+      folders: [
+        {
+          id: 'erp-drop',
+          purpose: 'test',
+          access: 'write',
+          targets: ['erp'],
+          dataClasses: ['order'],
+          availability: 'optional',
+        },
+        {
+          id: 'erp-results',
+          purpose: 'test',
+          access: 'read',
+          dataClasses: ['order'],
+          availability: 'optional',
+        },
+      ],
       processes: [
         {
           id: 'agent-cli',
@@ -365,5 +382,66 @@ describe('certificates', () => {
         at,
       ),
     ).toEqual([]);
+  });
+});
+
+describe('folders', () => {
+  test('a required folder must be bound, to an absolute path no other folder shares', () => {
+    const required = collectRequirements([
+      {
+        id: 'app',
+        requirements: {
+          folders: [
+            {
+              id: 'drop',
+              purpose: 'test',
+              access: 'write',
+              dataClasses: ['order'],
+              availability: 'required',
+            },
+          ],
+        },
+      },
+    ]);
+    const errors = (input: SitePolicyInput) =>
+      resolveSitePolicy(input, required).findings.map((finding) => finding.code);
+    expect(errors({})).toEqual(['REQUIRED_FOLDER_UNBOUND']);
+    expect(errors({ folders: { drop: { disabled: true } } })).toEqual([]);
+    expect(codes({ folders: { 'erp-drop': { path: 'relative/drop' } } })).toContain('FOLDER_PATH');
+    expect(
+      codes({
+        folders: { 'erp-drop': { path: '/srv/erp/' }, 'erp-results': { path: '/srv/erp' } },
+      }),
+    ).toContain('FOLDER_SHARED');
+    expect(codes({ folders: { unknown: { path: '/srv/x' } } })).toContain('UNDECLARED_FOLDER');
+    expect(codes({ folders: { 'erp-drop': { path: 'C:\\exchange\\drop' } } })).toEqual([]);
+  });
+
+  test('a bound folder whose directory is missing is a warning, so a later mount still works', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'site-folders-'));
+    try {
+      const file = join(directory, 'site-policy.json');
+      await writeFile(
+        file,
+        JSON.stringify({
+          folders: {
+            'erp-drop': { path: directory },
+            'erp-results': { path: join(directory, 'gone') },
+          },
+        }),
+      );
+      const resolved = await loadSitePolicy(file, requirements);
+      expect(resolved.folders.get('erp-drop')?.path).toBe(directory);
+      expect(resolved.findings.filter((finding) => finding.code === 'FOLDER_MISSING')).toEqual([
+        {
+          level: 'warning',
+          code: 'FOLDER_MISSING',
+          message: 'Folder erp-results is bound to a directory that does not exist',
+          destination: 'erp-results',
+        },
+      ]);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 });
