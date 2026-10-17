@@ -12,7 +12,7 @@ Layer: framework (`packages/*`). Server only, except `requirements`. Domain-neut
 - [Profile](../../docs/primitives.md#profile): `StationProfile`, `stationProfileSchema`, `validateProfile`, `parseProfile`.
 - [Golden check](../../docs/primitives.md#golden-check): `runGolden`, `GoldenReport`.
 
-The [operator workstation pattern](../../docs/operator-workstation-pattern.md) and [ADR 004](../../docs/decisions/004-screen-mediated-authority.md) explain the design.
+The [operator workstation pattern](../../docs/operator-workstation-pattern.md) explains the design.
 
 ## Entrypoints
 
@@ -47,7 +47,7 @@ bun test packages/station
 cd examples/line-station && bun run station:golden
 ```
 
-- `test/controller.test.ts` enforces [P7](../../docs/principles.md#p7--other-systems-change-only-through-durable-intents): per-action screen gate, stable readback, popups and local input stop procedures, uncertain procedures held.
-- `test/observer.test.ts` enforces [P6](../../docs/principles.md#p6--status-says-what-is-known): only stable readings become current; unsure readings stay uncertain.
-- `test/perception.test.ts` enforces [P12](../../docs/principles.md#p12--applications-run-beside-the-work): vision endpoints are loopback or allowlisted; also worker restart, redirects and golden gating.
-- `test/profile.test.ts` enforces [P8](../../docs/principles.md#p8--specialize-by-composition-and-configuration): procedures cannot target forbidden regions or unknown fields.
+- `test/controller.test.ts`: per-action screen gate, stable readback, popups and local input stop procedures, uncertain procedures held.
+- `test/observer.test.ts`: only stable readings become current; unsure readings stay uncertain.
+- `test/perception.test.ts`: vision endpoints are loopback or allowlisted; also worker restart, redirects and golden gating.
+- `test/profile.test.ts`: procedures cannot target forbidden regions or unknown fields.

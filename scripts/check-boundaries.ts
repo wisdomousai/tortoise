@@ -40,7 +40,7 @@ const browserRoots = [
 // Content's browser entrypoints: contracts, the manifest, screens and their components.
 const browserContent =
   /^examples\/[^/]+\/(?:contracts\.ts|contracts\/|manifest\.ts|screens\.tsx|ui\/)/;
-// Layers by directory (P11): framework `packages/*`, plugins `plugins/*`, shell `apps/*`,
+// Layers by directory: framework `packages/*`, plugins `plugins/*`, shell `apps/*`,
 // content `examples/*`.
 // Imports resolve through relative paths and workspace package names alike, so an alias such as
 // `@agent-native/line-station` cannot bypass a rule that a relative path would break.

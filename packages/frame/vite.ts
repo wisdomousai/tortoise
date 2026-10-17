@@ -12,7 +12,7 @@ const escapeHtml = (value: string) =>
   );
 
 /**
- * Build-time wiring of the web frame for the starter's configured application (P11):
+ * Build-time wiring of the web frame for the starter's configured application:
  *
  * - `virtual:agent-native/screens` resolves to that application's `screens` entrypoint, so the
  *   starter's source never names content;

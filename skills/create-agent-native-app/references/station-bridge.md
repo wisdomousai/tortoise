@@ -1,6 +1,6 @@
 # Bridge a screen-only station
 
-Use this when station software (vendor HMI, test bench, homebrew MES client) has no API and must stay unmodified. Read `docs/operator-workstation-pattern.md`, ADR 004 and `docs/point-of-work-input.md` in the target checkout; `examples/line-station` is the worked example.
+Use this when station software (vendor HMI, test bench, homebrew MES client) has no API and must stay unmodified. Read `docs/operator-workstation-pattern.md` and `docs/point-of-work-input.md` in the target checkout; `examples/line-station` is the worked example.
 
 - Model the station software as a system of record reached through its screen. Commands record desired state and enqueue an effect on target `legacy-hmi:<station>`; the screen connector (`createStationConnector`) is the outbox port. Readback of the desired value is acceptance. Never give the computer-use agent catalog write tools beyond ingest and settle under its own integration principal.
 - Report what the screen shows through an observer (`createStationObserver`) that submits an ingest command under `station-bridge:<station>`. Keep provenance (extractor, model, confidence, frame digest); uncertain readings become attention items for a person, never silent values.

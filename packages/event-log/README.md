@@ -35,4 +35,4 @@ Framework: `@agent-native/contracts`. Node: `node:crypto` and the filesystem.
 bun test packages/event-log
 ```
 
-`test/event-log.test.ts` enforces [P13](../../docs/principles.md#p13--declared-reach-recorded-actions): chaining and canonical form, concurrent appends, durable reopen, rotation, tamper detection, torn-line recovery, rejected batches, verification up to the writer head, the single-writer lock and RFC 5424 forwarding. The rollback of a command whose required append fails is tested in `packages/runtime/test/audit.test.ts`.
+`test/event-log.test.ts`: chaining and canonical form, concurrent appends, durable reopen, rotation, tamper detection, torn-line recovery, rejected batches, verification up to the writer head, the single-writer lock and RFC 5424 forwarding. The rollback of a command whose required append fails is tested in `packages/runtime/test/audit.test.ts`.

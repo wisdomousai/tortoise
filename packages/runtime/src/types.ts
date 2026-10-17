@@ -178,7 +178,7 @@ export type RemoteItemOf<C> =
   OutputOf<C> extends { readonly items: readonly (infer I)[] } ? I : never;
 /**
  * The pure parts of a remote query. Both run inside a read snapshot and must not perform I/O or
- * mutate state; the runtime calls the source between them, outside any transaction (P7).
+ * mutate state; the runtime calls the source between them, outside any transaction.
  */
 export interface RemoteHandler<State, Services, C extends AnyCapability = AnyCapability> {
   /** Build the query sent to the source from validated input and local state. */

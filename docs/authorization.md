@@ -1,6 +1,6 @@
 # Authorization
 
-Every command and query enters the runtime with an execution context derived by the host. HTTP, MCP, the CLI, UI bindings and agent tools all reach the same handlers and policy, and domain input cannot choose the principal, workspace, roles or grant ([P3](principles.md#p3--authority-comes-from-trusted-context)). The local reference host starts as the principal `owner`, and test hosts can mint isolated sessions.
+Every command and query enters the runtime with an execution context derived by the host. HTTP, MCP, the CLI, UI bindings and agent tools all reach the same handlers and policy, and domain input cannot choose the principal, workspace, roles or grant. The local reference host starts as the principal `owner`, and test hosts can mint isolated sessions.
 
 Authentication, authorization, provider funding and approval are separate concerns. A provider account grants no workspace access, and an approval never permits an action that is otherwise denied.
 

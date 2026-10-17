@@ -26,7 +26,6 @@ Because each operation is declared once in a catalog, handing part of a workflow
 | --------------------------------------------------- | ---------------------------------------------------------------- |
 | Layers, packages and the reference host             | [Architecture](architecture.md)                                  |
 | The building blocks, with guarantees and gaps       | [Primitives](primitives.md)                                      |
-| Design commitments                                  | [Principles](principles.md)                                      |
 | Writing a capability                                | [Capability authoring](capability-authoring.md)                  |
 | Schemas, results, errors, idempotency               | [Interaction contract](interaction-contract.md)                  |
 | Who may do what                                     | [Authorization](authorization.md)                                |
@@ -39,7 +38,6 @@ Because each operation is declared once in a catalog, handing part of a workflow
 | What the application may reach, and the audit trail | [Security and compliance](security-and-compliance.md)            |
 | Desktop packaging                                   | [Desktop](desktop.md)                                            |
 | Running the checks                                  | [Development and testing](development-and-testing.md)            |
-| Why things are the way they are                     | [Decisions](decisions/)                                          |
 
 An application has three entrypoints:
 
@@ -65,12 +63,12 @@ Bun, TypeScript, Zod for schemas, SQLite for local storage, CASL for policy, Rea
 
 ## Examples
 
-| Example                                                | Exercises                                                                                                                                                                                                          |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`project-tasks`](../examples/project-tasks)           | The runtime alone: roles, field projection, revisions, live updates and a deterministic agent. Also the fixture for transport, storage and security conformance.                                                   |
-| [`quality-inspection`](../examples/quality-inspection) | Outbox delivery and inbound sync against a mock quality system, keyboard capture, and a sandboxed CLI and MCP binary ([pattern](system-of-record-pattern.md)).                                                     |
-| [`line-station`](../examples/line-station)             | Control software driven through its screen as an outbox connector, MES sync, scanner routing and held effects ([pattern](operator-workstation-pattern.md), [ADR 004](decisions/004-screen-mediated-authority.md)). |
-| [`crm-capture`](../examples/crm-capture)               | Live search of a fake CRM with each caller's own access, adoption through outbox and feed, and an unreachable CRM shown as a status ([ADR 009](decisions/009-remote-queries-and-adoption.md)).                     |
+| Example                                                | Exercises                                                                                                                                                                                              |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`project-tasks`](../examples/project-tasks)           | The runtime alone: roles, field projection, revisions, live updates and a deterministic agent. Also the fixture for transport, storage and security conformance.                                       |
+| [`quality-inspection`](../examples/quality-inspection) | Outbox delivery and inbound sync against a mock quality system, keyboard capture, and a sandboxed CLI and MCP binary ([pattern](system-of-record-pattern.md)).                                         |
+| [`line-station`](../examples/line-station)             | Control software driven through its screen as an outbox connector, MES sync, scanner routing and held effects ([pattern](operator-workstation-pattern.md)).                                            |
+| [`crm-capture`](../examples/crm-capture)               | Live search of a fake CRM with each caller's own access, adoption through outbox and feed, and an unreachable CRM shown as a status ([pattern](system-of-record-pattern.md#live-search-and-adoption)). |
 
 Run one with `cd examples/<name> && bun run dev`. Each has its own port, workspace and desktop window, and `dev:web` serves the browser instead.
 

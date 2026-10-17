@@ -112,6 +112,7 @@ describe('generated compliance artifacts', () => {
       egress: 5,
       ingress: 1,
       internet: ['vendor-api'],
+      site: ['audit-collector', 'mes-api', 'scanner', 'station-screen'],
       required: ['authority-http', 'mes-api'],
       dataClasses: ['audit-event', 'record', 'screen-frame'],
     });

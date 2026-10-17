@@ -1,6 +1,6 @@
 # Interaction contract
 
-The contract is a browser-safe description of the application. Modules own their domain schemas and stable operation IDs, and the framework owns the shared protocol types. Building the catalog loads no handlers, storage or providers, so the result is deterministic and serializable ([P2](principles.md#p2--the-catalog-describes-the-application)).
+The contract is a browser-safe description of the application. Modules own their domain schemas and stable operation IDs, and the framework owns the shared protocol types. Building the catalog loads no handlers, storage or providers, so the result is deterministic and serializable.
 
 ## Schemas
 

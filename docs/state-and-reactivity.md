@@ -32,4 +32,4 @@ Keep drafts in separate component state. A live update refreshes the record unde
 
 ## Cancellation
 
-Cancellation stops future work and is checked before commit. It does not undo committed commands. Revoking a run revokes its authority for tool calls still in flight. After a restart, unsettled runs are marked interrupted rather than replayed. A finished stream, a finished run and a committed change are three different facts ([P6](principles.md#p6--status-says-what-is-known)).
+Cancellation stops future work and is checked before commit. It does not undo committed commands. Revoking a run revokes its authority for tool calls still in flight. After a restart, unsettled runs are marked interrupted rather than replayed. A finished stream, a finished run and a committed change are three different facts.

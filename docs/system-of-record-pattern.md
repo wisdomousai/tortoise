@@ -44,7 +44,7 @@ Delivery is pending (with attempts and safe failure text), accepted (with the ex
 
 ## Live search and adoption
 
-The outbox and inbound sync keep a working set current, but neither answers a question at the moment someone asks. A **remote query** does ([ADR 009](decisions/009-remote-queries-and-adoption.md)).
+The outbox and inbound sync keep a working set current, but neither answers a question at the moment someone asks. A **remote query** does. Mirroring the whole system of record through inbound sync would answer searches locally, but it would copy records the caller may not see under that system's own sharing rules, and it is stale between pulls. Calling the source from a handler would put the call inside the transaction, where it cannot be re-authorized. Page numbers shift as the source changes and cannot be bound to the caller, so paging uses the source's opaque cursors.
 
 ```mermaid
 sequenceDiagram
@@ -65,7 +65,7 @@ sequenceDiagram
 - **Declare once, call from anywhere.** A data provider declares search and lookup queries over one target. They are ordinary catalog queries, so the screen, MCP, the CLI and HTTP return the same result. Composition fails unless a declared destination reads that target.
 - **The runtime calls the source.** The provider supplies one item mapper, which may consult local state. For example, it scopes rows to the caller's regions and marks local status. The source uses the caller's own credential first (a delegated agent counts as its delegator), and the service account only where the provider declares that fallback. Otherwise it refuses and asks the caller to connect their account. The CRM applies its own sharing, and local policy projects the result.
 - **Results come in pages.** Each result carries the CRM's opaque cursor while there is more, and the next screen request or tool call sends it back. The CRM binds a cursor to the search and the credential that produced it, so it cannot be continued under another identity or another query. Local scoping can shorten or empty a page, so only a missing cursor ends the list.
-- **Failure is a status.** A missing, slow or failing source returns an unavailable status with a safe message. Adopted records stay usable ([P12](principles.md#p12--applications-run-beside-the-work)).
+- **Failure is a status.** A missing, slow or failing source returns an unavailable status with a safe message. Adopted records stay usable.
 - **Nothing is stored until adopted.** Results are point-in-time and carry their fetch time. Adopting one is a domain command: it records the account as followed and enqueues a follow effect. The CRM checks the requester's access on delivery, and the feed then brings the record in through inbound sync. Content therefore always comes from the integration principal, never from caller input. From then on it is an ordinary local record.
 
 ## Capture interface

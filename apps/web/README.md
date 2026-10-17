@@ -31,7 +31,7 @@ The page is served by the local authority from a flat directory under a strict C
 
 ## Dependencies
 
-Framework: `@agent-native/frame`. External: `react`, `react-dom`, `radix-ui`, `cmdk`, `class-variance-authority`, `cn`, `lucide-react`, and at build time `vite`, `@vitejs/plugin-react`, `@tailwindcss/vite`. It must never import `examples/*` ([P11](../../docs/principles.md#p11--layers-depend-inward-and-an-authority-runs-one-application)).
+Framework: `@agent-native/frame`. External: `react`, `react-dom`, `radix-ui`, `cmdk`, `class-variance-authority`, `cn`, `lucide-react`, and at build time `vite`, `@vitejs/plugin-react`, `@tailwindcss/vite`. It must never import `examples/*`.
 
 ## Tests
 

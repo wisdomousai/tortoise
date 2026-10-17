@@ -18,7 +18,7 @@ export interface ApplicationManifest<
   /**
    * Non-module parts this application brings, such as a screen bridge or device drivers, with
    * the network destinations, devices and processes they need. The host adds its own; the
-   * composed requirements are what a site policy binds (P13). Pure data. Includes the plugins'.
+   * composed requirements are what a site policy binds. Pure data. Includes the plugins'.
    */
   readonly components?: readonly HostComponent[];
   /** Plugins composed into this application, in the order the host opens them. */

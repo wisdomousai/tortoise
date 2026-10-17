@@ -1,6 +1,6 @@
 # Adapter boundaries
 
-Feature contracts never mention how the application is hosted or stored. Each external dependency enters through a port with stated guarantees ([P9](principles.md#p9--external-dependencies-sit-behind-ports)), and the reference adapters are local: Bun, SQLite, loopback HTTP and stdio.
+Feature contracts never mention how the application is hosted or stored. Each external dependency enters through a port with stated guarantees, and the reference adapters are local: Bun, SQLite, loopback HTTP and stdio.
 
 | Port                 | Reference adapters                                       | What an adapter has to keep                                                                                                             |
 | -------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |

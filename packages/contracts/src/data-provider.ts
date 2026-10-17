@@ -3,7 +3,7 @@ import { defineCapability, type RemoteReadDeclaration } from './capability';
 import { jsonSchema } from './schema';
 
 /**
- * Where a remote result came from and how fresh it is (P6). `unavailable` carries a caller-safe
+ * Where a remote result came from and how fresh it is. `unavailable` carries a caller-safe
  * message and no items; it is a status, not an error, so screens keep showing local data.
  */
 export const remoteSourceStatusSchema = z.strictObject({
@@ -40,7 +40,7 @@ export interface RemoteResult<Item> {
   readonly source: RemoteSourceStatus;
 }
 
-/** A UI binding, or the reason an operation has none (P1). Defaults to binding the operation. */
+/** A UI binding, or the reason an operation has none. Defaults to binding the operation. */
 type UiDeclaration = { readonly binding?: string; readonly exception?: string };
 
 export interface DataProviderSpec<

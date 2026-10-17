@@ -13,7 +13,7 @@ export interface ApplicationIdentity {
  * The starter's configuration (`app.config.json`): its platform identity and the one application
  * it hosts. `application` is a module specifier for content: a package name such as
  * `@agent-native/project-tasks`, or a path relative to the config file. It names a directory
- * whose `manifest`, `application` and `screens` entrypoints the starter resolves (P11).
+ * whose `manifest`, `application` and `screens` entrypoints the starter resolves.
  */
 export interface StarterConfig extends ApplicationIdentity {
   application: string;

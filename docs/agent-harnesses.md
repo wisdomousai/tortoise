@@ -14,7 +14,7 @@ Run snapshots live in their own database. At startup, unsettled runs become inte
 
 Tools are derived from the catalog. A tool call carries domain input and optional expected revisions. The host turns the provider's call identifier into an idempotency key scoped to the run. Principal, workspace and grant are captured when the run is created, and tool arguments cannot replace them.
 
-Every tool call goes through the runtime like any other caller ([P1](principles.md#p1--every-operation-is-reachable-from-every-surface)). It validates input, rechecks current authorization and cancellation, and commits. The initiating grant stays the upper bound even when the principal could do more, and runs cannot delegate further. When authorization changes, earlier free-form output is hidden, because it cannot be field-projected. When an action refers to a selection, the run captures the resource IDs and revisions from the UI session instead of following later selection changes.
+Every tool call goes through the runtime like any other caller. It validates input, rechecks current authorization and cancellation, and commits. The initiating grant stays the upper bound even when the principal could do more, and runs cannot delegate further. When authorization changes, earlier free-form output is hidden, because it cannot be field-projected. When an action refers to a selection, the run captures the resource IDs and revisions from the UI session instead of following later selection changes.
 
 Cancellation aborts the active work and is checked before commit. Commands that already committed stay committed. An answer to a question or approval resolves only the matching request, and approval never adds authorization.
 

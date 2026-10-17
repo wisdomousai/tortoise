@@ -101,7 +101,7 @@ async function callSource<State, Services>(
 }
 
 /**
- * Execute a remote query (P7). Order matters:
+ * Execute a remote query. Order matters:
  *
  * 1. In a read snapshot: authorize, then build the source query. No I/O, no mutation.
  * 2. Outside any transaction: call the source with the caller's context.

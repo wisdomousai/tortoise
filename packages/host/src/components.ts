@@ -8,7 +8,7 @@ import type { ApplicationManifest } from './manifest';
 
 /**
  * The generic host's own requirement: its listener. Pure data; every application the host runs
- * inherits it (P13). Plugins declare their own in their manifests.
+ * inherits it. Plugins declare their own in their manifests.
  */
 export const authorityComponent = defineHostComponent({
   id: 'authority',

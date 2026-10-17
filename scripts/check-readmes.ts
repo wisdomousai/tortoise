@@ -1,5 +1,5 @@
 /**
- * Keeps workspace READMEs, package manifests and docs/primitives.md in step (P10). For every
+ * Keeps workspace READMEs, package manifests and docs/primitives.md in step. For every
  * workspace in `packages/*`, `plugins/*`, `apps/*` and `examples/*` it fails when:
  *
  * - `README.md` is missing, or its title is not the package name;
@@ -62,7 +62,8 @@ function primitiveLocations(): Map<string, Set<string>> {
   for (const line of readFileSync(primitivesPath, 'utf8').split('\n')) {
     const title = /^###\s+(.+)$/.exec(line);
     if (title) heading = slug(title[1]!);
-    if (!heading || !line.startsWith('Serves ')) continue;
+    // An entry's code line starts with its status: `implemented · `packages/host` · …`.
+    if (!heading || !/^(?:implemented|partial|proposed)\b/.test(line)) continue;
     for (const [, location] of line.matchAll(/`((?:packages|plugins|apps|examples)\/[\w-]+)`/g)) {
       const anchors = locations.get(location!) ?? new Set();
       anchors.add(heading);

@@ -20,7 +20,7 @@ import {
 } from './plugins/compose';
 
 /**
- * Everything the host needs to run one application, supplied by content (P11). The host never
+ * Everything the host needs to run one application, supplied by content. The host never
  * names a domain: it receives this value from the starter's configuration and composes runtime,
  * storage, integrations and observers from it.
  *

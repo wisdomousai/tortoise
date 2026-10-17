@@ -34,4 +34,4 @@ Framework: `@agent-native/contracts`, `@agent-native/runtime` (types). Framework
 bun run test:conformance
 ```
 
-This package has no suite of its own; it is exercised by the conformance and UI-binding tests of every example. Together they enforce [P1](../../docs/principles.md#p1--every-operation-is-reachable-from-every-surface) and [P10](../../docs/principles.md#p10--claims-follow-evidence).
+This package has no suite of its own; it is exercised by the conformance and UI-binding tests of every example. Together they check that every operation behaves the same on every surface and that every operation claiming a UI binding is referenced by a screen.

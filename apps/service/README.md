@@ -26,7 +26,7 @@ The starter trusts the application it is configured with; it runs with the host'
 
 ## Dependencies
 
-Framework: `@agent-native/host` only. It must never import `examples/*`; `bun run check:boundaries` fails a static import from content by path or package name ([P11](../../docs/principles.md#p11--layers-depend-inward-and-an-authority-runs-one-application)).
+Framework: `@agent-native/host` only. It must never import `examples/*`; `bun run check:boundaries` fails a static import from content by path or package name.
 
 ## Tests
 

@@ -43,5 +43,5 @@ Framework: `@agent-native/contracts`, `@agent-native/client`, `@agent-native/dev
 bun test packages/react
 ```
 
-- `src/bindings.test.ts` enforces [P5](../../docs/principles.md#p5--committed-changes-reach-every-authorized-view): dependency-indexed refetch, permission changes clear the cache (also behind a hung refetch and for data cached before the stream's first batch), a remote query ignores local changes, keeps its abort signal and resets on a permission change; a paged remote query sends each page's `next` back and stops without one; and scanner bursts are told apart from typing.
+- `src/bindings.test.ts`: dependency-indexed refetch, permission changes clear the cache (also behind a hung refetch and for data cached before the stream's first batch), a remote query ignores local changes, keeps its abort signal and resets on a permission change; a paged remote query sends each page's `next` back and stops without one; and scanner bursts are told apart from typing.
 - `src/context.test.ts`: captured targets stay fixed after selection changes; session routing, acknowledgement and stale registrations.

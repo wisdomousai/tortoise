@@ -40,6 +40,6 @@ External: `zod`. No framework packages. This package must stay importable by a b
 bun test packages/contracts
 ```
 
-`test/data-provider.test.ts` covers data providers: literal IDs and types survive, both queries declare `remote`, search pages with a cursor the provider cannot redefine, and a provider without a destination that reads its target fails composition ([P7](../../docs/principles.md#p7--other-systems-change-only-through-durable-intents), [P13](../../docs/principles.md#p13--declared-reach-recorded-actions)).
+`test/data-provider.test.ts` covers data providers: literal IDs and types survive, both queries declare `remote`, search pages with a cursor the provider cannot redefine, and a provider without a destination that reads its target fails composition.
 
-`test/contracts.test.ts` enforces [P1](../../docs/principles.md#p1--every-operation-is-reachable-from-every-surface) (an operation without a UI binding or declared exception is rejected), [P2](../../docs/principles.md#p2--the-catalog-describes-the-application) (duplicates, cycles, unresolved workflows, colliding MCP names) and [P13](../../docs/principles.md#p13--declared-reach-recorded-actions) (requirement validation).
+`test/contracts.test.ts` rejects an operation without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.

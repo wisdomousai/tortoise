@@ -109,11 +109,11 @@ async function startBackground(authority: Authority, options: StartHostOptions) 
 }
 
 /**
- * One local authority owns the workspace and hosts exactly one application (P11). Browser,
+ * One local authority owns the workspace and hosts exactly one application. Browser,
  * native and process clients attach via authenticated HTTP. The application's integrations and
  * observers come from its own `connect`; the host names no system of record and no station.
  *
- * The application's plugins provide the ports (P13). The listener is loopback unless a plugin
+ * The application's plugins provide the ports. The listener is loopback unless a plugin
  * provides the ingress port, and every API call still needs a session. The identity port decides
  * who the first session belongs to: the OS account that started the host when it admits the
  * local owner, otherwise only the launcher's delegated grant, with no owner credential file.

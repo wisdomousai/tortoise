@@ -157,6 +157,10 @@
       "openai-api",
       "openai-auth"
     ],
+    "site": [
+      "audit-collector",
+      "webhook-target"
+    ],
     "required": [
       "authority-http"
     ],

@@ -307,6 +307,16 @@
       "openai-api",
       "openai-auth"
     ],
+    "site": [
+      "audit-collector",
+      "mes-api",
+      "scanner-camera",
+      "scanner-hid-pos",
+      "scanner-serial",
+      "scanner-vendor-sdk",
+      "station-screen",
+      "station-vision-site"
+    ],
     "required": [
       "authority-http",
       "mes-api"

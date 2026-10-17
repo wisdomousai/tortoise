@@ -31,7 +31,7 @@ Gaps: no signing of payloads and no per-destination retry backoff. The interval 
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime` (types), `@agent-native/host/plugin` and `@agent-native/host/plugin-manifest`, `@agent-native/frame/plugin-screens`, and `@agent-native/testing`, `@agent-native/site` and `@agent-native/network` (tests). External: `zod`, `react`, `@tanstack/react-query`, `lucide-react`; the status screen uses the starter's `@/components/ui` primitives and `@/lib/session`. A plugin never imports `apps/*` or `examples/*`; its tests use a fixture notes application ([P11](../../docs/principles.md#p11--layers-depend-inward-and-an-authority-runs-one-application)).
+Framework: `@agent-native/contracts`, `@agent-native/runtime` (types), `@agent-native/host/plugin` and `@agent-native/host/plugin-manifest`, `@agent-native/frame/plugin-screens`, and `@agent-native/testing`, `@agent-native/site` and `@agent-native/network` (tests). External: `zod`, `react`, `@tanstack/react-query`, `lucide-react`; the status screen uses the starter's `@/components/ui` primitives and `@/lib/session`. A plugin never imports `apps/*` or `examples/*`; its tests use a fixture notes application.
 
 ## Tests
 
@@ -39,7 +39,7 @@ Framework: `@agent-native/contracts`, `@agent-native/runtime` (types), `@agent-n
 bun test plugins/webhook
 ```
 
-`test/webhook.test.ts` covers [P13](../../docs/principles.md#p13--declared-reach-recorded-actions) and [P11](../../docs/principles.md#p11--layers-depend-inward-and-an-authority-runs-one-application):
+`test/webhook.test.ts`:
 
 - delivery through a fixture network-port plugin, with only observed operations posted, and the cursor surviving a restart;
 - one recorded refusal when no plugin provides the network;

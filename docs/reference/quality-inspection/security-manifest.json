@@ -234,6 +234,10 @@
       "openai-api",
       "openai-auth"
     ],
+    "site": [
+      "audit-collector",
+      "quality-system-api"
+    ],
     "required": [
       "authority-http",
       "quality-system-api"

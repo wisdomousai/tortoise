@@ -6,7 +6,7 @@
  *   bun scripts/dev-desktop.ts examples/quality-inspection --port 4322
  *
  * From an example directory (or an example path), that package becomes the starter's
- * application through `AGENT_NATIVE_APPLICATION` for the web build and the service (P11).
+ * application through `AGENT_NATIVE_APPLICATION` for the web build and the service.
  * From the repository root, `app.config.json` names the application. The workspace is
  * `<example>/.workspace` or the repository `.workspace` (both ignored by git). Each
  * example's `dev` script passes its own port. An optional `<example>/dev.ts` runs first

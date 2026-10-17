@@ -35,7 +35,7 @@ Plant roles come from state, and handlers scope lots and results to the caller's
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/frame`, `@agent-native/react`, `@agent-native/site`, `@agent-native/network`, `@agent-native/audit`, `@agent-native/compliance`, and `@agent-native/testing` (tests). External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`. Content must never import `apps/*` ([P11](../../docs/principles.md#p11--layers-depend-inward-and-an-authority-runs-one-application)).
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/frame`, `@agent-native/react`, `@agent-native/site`, `@agent-native/network`, `@agent-native/audit`, `@agent-native/compliance`, and `@agent-native/testing` (tests). External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`. Content must never import `apps/*`.
 
 ## Tests
 
@@ -45,13 +45,13 @@ bun run test:sandbox
 bunx playwright test examples/quality-inspection/e2e
 ```
 
-| Test                       | Proves                                                                                                                                                                                                                                                               |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `domain.test.ts`           | Watermarked inbound sync, plant-scoped lists and events, one datapoint per idempotency key, all-or-nothing batches, role rules, SoR outcomes and corrections, outage behavior, metrics.                                                                              |
-| `test/conformance.test.ts` | A datapoint captured over any transport commits once, is forwarded once and settles live ([P1](../../docs/principles.md#p1--every-operation-is-reachable-from-every-surface), [P7](../../docs/principles.md#p7--other-systems-change-only-through-durable-intents)). |
-| `test/application.test.ts` | The embedded authority syncs and drains the target it declares ([P6](../../docs/principles.md#p6--status-says-what-is-known)).                                                                                                                                       |
-| `test/sandbox.test.ts`     | The compiled binary with an empty environment: embedded MCP capture under a grant, drain exit codes, grant-bound `serve` ([P12](../../docs/principles.md#p12--applications-run-beside-the-work)).                                                                    |
-| `test/security.test.ts`    | Auditors read posture over HTTP; the CLI verifies, reports and detects tampering.                                                                                                                                                                                    |
-| `test/ui-bindings.test.ts` | Every operation that claims a UI binding is referenced by a screen.                                                                                                                                                                                                  |
-| `e2e/inspection.pw.ts`     | Chromium: keyboard-only capture, wedge bursts and double Enter record once, live SoR outcomes, drafts keep their sample.                                                                                                                                             |
-| `e2e/compliance.pw.ts`     | The Compliance screen shows a new denial without reload.                                                                                                                                                                                                             |
+| Test                       | Proves                                                                                                                                                                                  |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `domain.test.ts`           | Watermarked inbound sync, plant-scoped lists and events, one datapoint per idempotency key, all-or-nothing batches, role rules, SoR outcomes and corrections, outage behavior, metrics. |
+| `test/conformance.test.ts` | A datapoint captured over any transport commits once, is forwarded once and settles live.                                                                                               |
+| `test/application.test.ts` | The embedded authority syncs and drains the target it declares.                                                                                                                         |
+| `test/sandbox.test.ts`     | The compiled binary with an empty environment: embedded MCP capture under a grant, drain exit codes, grant-bound `serve`.                                                               |
+| `test/security.test.ts`    | Auditors read posture over HTTP; the CLI verifies, reports and detects tampering.                                                                                                       |
+| `test/ui-bindings.test.ts` | Every operation that claims a UI binding is referenced by a screen.                                                                                                                     |
+| `e2e/inspection.pw.ts`     | Chromium: keyboard-only capture, wedge bursts and double Enter record once, live SoR outcomes, drafts keep their sample.                                                                |
+| `e2e/compliance.pw.ts`     | The Compliance screen shows a new denial without reload.                                                                                                                                |

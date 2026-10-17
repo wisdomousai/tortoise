@@ -54,8 +54,8 @@ Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/cl
 bun test packages/adapters
 ```
 
-- `src/casl.test.ts`: CASL, memory and SQL scopes agree; rules fail closed ([P3](../../docs/principles.md#p3--authority-comes-from-trusted-context)).
-- `src/sqlite.test.ts`: a rolled-back transaction leaves the initial state untouched ([P4](../../docs/principles.md#p4--each-workspace-has-one-writer)).
+- `src/casl.test.ts`: CASL, memory and SQL scopes agree; rules fail closed.
+- `src/sqlite.test.ts`: a rolled-back transaction leaves the initial state untouched.
 - `src/ownership.test.ts`: one owner per workspace across processes, path aliases and a killed owner.
 - `src/cli.test.ts`: catalog-derived words and typed flags, `--json` input, dry-run, generated help and exit codes mapped from error codes.
 

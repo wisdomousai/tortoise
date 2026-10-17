@@ -34,7 +34,7 @@ The application never talks to the PLC or the hardware. Safety functions remain 
 
 ## Pixels are a transport, not a harness
 
-The central decision ([ADR 004](decisions/004-screen-mediated-authority.md)) is where the computer-use agent lives. It is **not** an application harness with catalog tools in front of the authority. It is a connector behind the outbox, on the same footing as an ERP API client:
+The central decision is where the computer-use agent lives. It is **not** an application harness with catalog tools in front of the authority. It is a connector behind the outbox, on the same footing as an ERP API client:
 
 - A person or agent issues a catalog command, such as starting an order. The handler validates the command, records the _desired_ state and enqueues an effect for target `legacy-hmi`, all in one transaction.
 - The station connector, another system-of-record connector, claims the effect outside any transaction. It runs the declared procedure on the station screen and reports an outcome through the domain's settle command.

@@ -1,6 +1,8 @@
 # Security and compliance
 
-This guide is for teams admitting the application into a restricted network. It covers what the application may reach, how that is enforced, how its actions are recorded, and how an auditor checks all of it, both before deployment and while it runs. The reasoning is in [ADR 007](decisions/007-declared-egress-and-audit-log.md) and [ADR 010](decisions/010-host-plugins.md).
+This guide is for teams admitting the application into a restricted network. It covers what the application may reach, how that is enforced, how its actions are recorded, and how an auditor checks all of it, both before deployment and while it runs. Each control is a host plugin; [architecture](architecture.md#plugins-and-a-closed-kernel) explains how plugins compose.
+
+Three choices shape the design. Reach is declared in the catalog rather than left to an OS sandbox alone, because a sandbox is not portable, is invisible to reviewers and gives the application nothing to check. The audit record of a command is written inside its transaction, because a log written afterwards allows commits that were never recorded. Firewall and service rules are generated from the same declarations, because hand-written rules drift from the code.
 
 The model has four parts:
 
@@ -140,12 +142,12 @@ The file log chains events with SHA-256 across rotated segments and writes check
 
 `bun run generate` writes these files for each application to `docs/reference/<id>/`, and the shared control catalog to `docs/reference/`. The build fails if they drift.
 
-| File                           | Contents                                                                                                                                                |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `security-manifest.json`       | Every declared destination, device and process with its owner, and every operation whose effects leave the host.                                        |
-| `data-flows.md`                | A diagram and tables of the same, with the data classes that go where.                                                                                  |
-| `controls.json`, `controls.md` | Controls mapped to ISO/IEC 27001:2022 Annex A, NIST SP 800-53 r5, NIST CSF 2.0 and IEC 62443-4-2, each with evidence: tests, artifacts and event kinds. |
-| `sbom.cdx.json`                | CycloneDX 1.6 from the lockfile, with declared destinations as services with trust zones and data flows. Deterministic.                                 |
+| File                           | Contents                                                                                                                                                                  |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `security-manifest.json`       | Every declared destination, device and process with its owner, every operation whose effects leave the host, and in `summary.site` what pins the application to the site. |
+| `data-flows.md`                | A diagram and tables of the same, with the data classes that go where.                                                                                                    |
+| `controls.json`, `controls.md` | Controls mapped to ISO/IEC 27001:2022 Annex A, NIST SP 800-53 r5, NIST CSF 2.0 and IEC 62443-4-2, each with evidence: tests, artifacts and event kinds.                   |
+| `sbom.cdx.json`                | CycloneDX 1.6 from the lockfile, with declared destinations as services with trust zones and data flows. Deterministic.                                                   |
 
 The control mappings are indicative. Certification still needs the organization's own scope and the licensed standard text.
 

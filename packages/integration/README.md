@@ -41,6 +41,6 @@ Framework: `@agent-native/contracts`, `@agent-native/runtime`. No network code: 
 bun run test:integration
 ```
 
-- `test/remote-source.test.ts` enforces [P7](../../docs/principles.md#p7--other-systems-change-only-through-durable-intents) for remote reads: the caller's credential first, a declared service fallback, refusal otherwise, a port without `search` as unavailable, safe failure messages, and the page cursor passing through in both directions.
-- `test/dispatcher.test.ts` enforces [P7](../../docs/principles.md#p7--other-systems-change-only-through-durable-intents) and [P12](../../docs/principles.md#p12--applications-run-beside-the-work): delivery outside the transaction, backoff, rejection as data, lookup before resend, integration-grant limits, watermark-bound sync, and `drain` while the target stays down.
-- `test/held.test.ts` enforces [P6](../../docs/principles.md#p6--status-says-what-is-known): uncertain outcomes are held, not resent, including on shutdown; only held effects can be released; drain deadlines and cross-target accounting.
+- `test/remote-source.test.ts` covers remote reads: the caller's credential first, a declared service fallback, refusal otherwise, a port without `search` as unavailable, safe failure messages, and the page cursor passing through in both directions.
+- `test/dispatcher.test.ts`: delivery outside the transaction, backoff, rejection as data, lookup before resend, integration-grant limits, watermark-bound sync, and `drain` while the target stays down.
+- `test/held.test.ts`: uncertain outcomes are held, not resent, including on shutdown; only held effects can be released; drain deadlines and cross-target accounting.

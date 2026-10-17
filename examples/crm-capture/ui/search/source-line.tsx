@@ -5,7 +5,7 @@ const time = (at: number) =>
   new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
 /**
- * Where the results came from and when (P6): live CRM results are a snapshot, not a stored
+ * Where the results came from and when: live CRM results are a snapshot, not a stored
  * copy, and a service-account search is filtered to the member's regions.
  */
 export function SourceLine({

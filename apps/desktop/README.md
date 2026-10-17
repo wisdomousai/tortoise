@@ -32,7 +32,7 @@ The shell owns only the exact child it launched and stops only that child; closi
 
 ## Dependencies
 
-Framework: `@agent-native/host` (`config` and `runtime-manifest`). External: `electron`, and `electron-builder` for packaging. It must never import `examples/*` ([P11](../../docs/principles.md#p11--layers-depend-inward-and-an-authority-runs-one-application)).
+Framework: `@agent-native/host` (`config` and `runtime-manifest`). External: `electron`, and `electron-builder` for packaging. It must never import `examples/*`.
 
 ## Tests
 

@@ -1,8 +1,8 @@
 # Architecture
 
-The [principles](principles.md) state what this architecture is for, and the [primitives](primitives.md) describe its building blocks and where they live.
+The [primitives](primitives.md) describe the building blocks and where they live. The checks in `bun run check` are the rules; the [design rules](#design-rules) below say what each one protects.
 
-The product unit is a bounded task or workflow application over existing systems of record. It runs at the edge beside the work, and people and local agents operate it together ([edge applications](edge-applications.md)). This page describes the local kernel. The patterns build on it:
+The product unit is a bounded task or workflow application over existing systems of record, operated by people and agents together. Where it runs is a deployment choice: on site beside the work ([edge applications](edge-applications.md)) or on a server. This page describes the kernel. The patterns build on it:
 
 - [task/workflow](task-workflow-pattern.md): ownership, capture at the point of work, and execution boundaries;
 - [system of record](system-of-record-pattern.md): outbox, inbound sync, live search and the sandboxed CLI;
@@ -18,7 +18,7 @@ The product unit is a bounded task or workflow application over existing systems
 | Starter   | `apps/*`                         | Thin wiring its owner forks and extends: configuration, entrypoints, web root, stock UI primitives, desktop wrapper. |
 | Content   | `examples/*` or the owner's code | Applications: a browser-safe manifest, a server definition and screens, with their tests and demo scripts.           |
 
-Each layer depends only on the layers beneath it ([P11](principles.md#p11--layers-depend-inward-and-an-authority-runs-one-application), [ADR 005](decisions/005-framework-shell-content.md)). Configuration names the hosted application. The service and CLI load its server definition into the host, and the frame binds its screens. Compiled builds generate a static entry for the same application. A running authority hosts one application, with its own catalog, generated reference, web build and workspace. Frame files are registry sources that a starter file at the same path can shadow.
+Each layer depends only on the layers beneath it. If the starter knew its examples, every new application would edit it, and a team that forked it would stop receiving framework changes; so the starter stays thin, generic behavior goes into framework packages, and the starter learns its application from configuration. Configuration names the hosted application. The service and CLI load its server definition into the host, and the frame binds its screens. Compiled builds generate a static entry for the same application. A running authority hosts one application, with its own catalog, generated reference, web build and workspace. Frame files are registry sources that a starter file at the same path can shadow.
 
 ## One runtime for every caller
 
@@ -60,7 +60,7 @@ The host is a Bun loopback service that owns its workspace exclusively. It store
 
 ## Plugins and a closed kernel
 
-Network access, devices and child processes are declared by modules, components and plugins, never discovered at runtime. The host is a kernel with ports for the network, inbound connections, identity and an audit log. By default those ports refuse every destination, bind loopback, admit the trusted local owner and keep no log. Host plugins provide the ports and add modules, state, policy and lifecycle hooks ([ADR 010](decisions/010-host-plugins.md)).
+Network access, devices and child processes are declared by modules, components and plugins, never discovered at runtime. The host is a kernel with ports for the network, inbound connections, identity and an audit log. By default those ports refuse every destination, bind loopback, admit the trusted local owner and keep no log. Host plugins provide the ports and add modules, state, policy and lifecycle hooks. A plugin has the same three entrypoints as an application, and the application lists its plugins in each of them, so generated artifacts follow from the application alone. A plugin's state is its own slice, and its policy decides only its own operations and resource types. `open` runs before storage and may refuse startup, `ready` runs before the first request, `start` runs once a serving host listens, with a delegated grant, and `close` runs in reverse order. A setting that no composed plugin claims, or a port that configuration needs and no plugin provides, refuses startup, so configuration never looks enforced while it is ignored.
 
 The examples compose four framework plugins:
 
@@ -69,7 +69,7 @@ The examples compose four framework plugins:
 - **audit** keeps the tamper-evident log;
 - **compliance** adds auditor queries, the posture monitor and the Compliance screen.
 
-Plugins reach each other through the composed ports, never through imports. `project-tasks` also composes an example third-party webhook plugin. See [security and compliance](security-and-compliance.md).
+Plugins reach each other through the composed ports, never through imports. The port view resolves once every plugin has opened, so two concerns can use each other without a construction cycle: the network guard records into the audit log, and the log forwarder sends through the guard. Middleware around every call was not enough, because it cannot write an audit record inside the transaction, bind outbound connections or refuse startup. `project-tasks` also composes an example third-party webhook plugin. See [security and compliance](security-and-compliance.md).
 
 ## Storage
 
@@ -77,7 +77,7 @@ Storage is generic, with atomic transaction and read callbacks. There is no univ
 
 ## Systems of record
 
-A remote system of record is its own authority, connected through an integration port, never disguised as local storage. A command commits an outbox effect with its receipt. The dispatcher delivers the effect outside the transaction, at least once, relying on the target's idempotency or a lookup, and a settle command records the outcome. Inbound sync pulls changes in through commands. There are no cross-system transactions ([P7](principles.md#p7--other-systems-change-only-through-durable-intents)).
+A remote system of record is its own authority, connected through an integration port, never disguised as local storage. A command commits an outbox effect with its receipt. The dispatcher delivers the effect outside the transaction, at least once, relying on the target's idempotency or a lookup, and a settle command records the outcome. Inbound sync pulls changes in through commands. There are no cross-system transactions.
 
 ## Authorization and reactivity
 
@@ -88,6 +88,26 @@ Authorization is injected; see [authorization](authorization.md). The reactive c
 Harness output and application commits are separate streams. The supervisor captures the initiating context, limits tools to catalog operations and cancels through run state; see [agent harnesses](agent-harnesses.md). Fixture and protocol tests are one kind of evidence. Live credentials, plan eligibility and real inference need separate configured checks.
 
 Cloud hosting, multi-device sync, package publication and signed distribution are outside the current reference.
+
+## Design rules
+
+Each rule names what enforces it. When a rule gets in the way of a better design, change the rule and its check in the same change.
+
+| Rule                                                                                                                                                                                                                          | Enforced by                                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Every operation is one handler that the UI, HTTP, MCP and the CLI reach with the same validation, authorization, results and errors. An operation without a UI binding declares why.                                          | Catalog validation; each example's transport conformance and UI-binding tests      |
+| Surfaces, schemas, API descriptions and agent skills are generated from the catalog. Contracts are data and import no handlers, drivers or provider SDKs.                                                                     | `check:generated`, `check:boundaries`                                              |
+| The host derives principal, workspace and grant; input cannot choose or widen them. Authorization is rechecked inside the transaction and on replay and event delivery, and rows are scoped before they are counted or paged. | The security conformance and role-matrix suites, runtime and policy-adapter suites |
+| One authority writes each workspace. A command commits state, revisions, receipt, journal and outbox effects together, or nothing.                                                                                            | Runtime and storage conformance suites                                             |
+| Handlers make no network or model calls. Other systems are changed through outbox effects delivered outside the transaction, and read through declared remote queries that store nothing.                                     | Outbox, dispatcher and remote-query suites                                         |
+| A receipt is not upstream acceptance. Uncertain outcomes are held for a person, never guessed or blindly retried.                                                                                                             | Outbox, held-delivery, observer and run-supervision suites                         |
+| Committed changes reach every view that may see them, without a refresh; a permission change clears protected data at once.                                                                                                   | Client and React binding suites, browser specs                                     |
+| Server code reaches the network and child processes only through the network port, to destinations the catalog declares.                                                                                                      | `check:boundaries`, egress and host-plugin suites, `test:isolated`                 |
+| A command that cannot be recorded in the audit log does not commit unless the site chose otherwise.                                                                                                                           | Audit and event-log suites                                                         |
+| Framework packages and the starter import no example or plugin, and content imports no starter.                                                                                                                               | `check:boundaries`                                                                 |
+| Framework packages name no domain; a concept moves into the framework once a second application needs it.                                                                                                                     | Review                                                                             |
+| A module has one job; barrels only re-export.                                                                                                                                                                                 | `check:size`                                                                       |
+| A capability is called supported only once it ran where the claim applies.                                                                                                                                                    | The [implementation status](implementation-status.md) ledger, `test:sandbox`       |
 
 ## Lineage
 

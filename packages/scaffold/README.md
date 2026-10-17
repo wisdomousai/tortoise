@@ -40,4 +40,4 @@ bun run test:scaffold
 bun run test:scaffold:full   # fresh export, frozen install, typecheck, build, tests and an added capability
 ```
 
-`src/scaffold.test.ts` covers deterministic export, private and runtime artifacts left out, single-example selection and rejection of checkout-specific paths ([P11](../../docs/principles.md#p11--layers-depend-inward-and-an-authority-runs-one-application)). The full acceptance run is opt-in (`SCAFFOLD_ACCEPTANCE=1`) so an exported test cannot export itself recursively.
+`src/scaffold.test.ts` covers deterministic export, private and runtime artifacts left out, single-example selection and rejection of checkout-specific paths. The full acceptance run is opt-in (`SCAFFOLD_ACCEPTANCE=1`) so an exported test cannot export itself recursively.

@@ -10,7 +10,7 @@ Layer: framework (`packages/*`). Server only. The host constructs harnesses with
 - [UI session context](../../docs/primitives.md#ui-session-context): `modelPrompt` shows the model the captured selection and the revisions the person saw, nothing else.
 - [Credential vault](../../docs/primitives.md#credential-vault): `CredentialVault`, `OsCredentialVault`, `MemoryCredentialVault`; `OidcAccountConnection` and `ChatGptAccountConnection`.
 
-Read the [harness guide](../../docs/agent-harnesses.md), [providers](../../docs/providers.md) and [ADR 003](../../docs/decisions/003-authority-and-credentials.md).
+Read the [harness guide](../../docs/agent-harnesses.md), [providers](../../docs/providers.md) and [authorization](../../docs/authorization.md). Provider credentials fund inference and never grant workspace access.
 
 ## Entrypoints
 
@@ -57,8 +57,8 @@ bun run test:harness
 
 Deterministic fixtures only; they prove adapter and protocol behavior, not provider login or inference access.
 
-- `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions, interrupted-run recovery ([P6](../../docs/principles.md#p6--status-says-what-is-known)).
-- `test/adapters.test.ts`: each harness against shared fixtures; every model sees the captured selection and never the run's identity or grant ([P3](../../docs/principles.md#p3--authority-comes-from-trusted-context), [P9](../../docs/principles.md#p9--external-dependencies-sit-behind-ports)).
+- `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions, interrupted-run recovery.
+- `test/adapters.test.ts`: each harness against shared fixtures; every model sees the captured selection and never the run's identity or grant.
 - `test/chatgpt.test.ts`: PKCE, OIDC validation, locked-vault abort, serialized refresh and logout.
 - `test/process.test.ts`: explicit environments, JSON-RPC failure propagation, subprocess-tree cancellation.
 

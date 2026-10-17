@@ -1,24 +1,23 @@
 # Edge applications
 
-An edge application runs on or next to the machine where work happens. People and AI agents on that machine operate it together. It runs scripts and procedures locally against the software that controls the equipment, interprets the results locally, and reports them to the systems of record that own enterprise data. This repository is a reference architecture for that class of application.
+This guide covers running an application on site: on or next to the machine where work happens. People and agents on that machine operate it together. It runs procedures locally against the software that controls the equipment, interprets the results, and reports them to the systems of record that own enterprise data. An application with no site requirements can run on a server instead, with the same contracts, handlers and screens.
 
-This document explains the concept: why these applications run at the edge, the loop they implement, how they reach local control software, how agents take part, and how they are deployed. The [overview](overview.md) describes the code. The [operator workstation pattern](operator-workstation-pattern.md) and the [system-of-record reference](system-of-record-pattern.md) describe the two implemented integrations in detail.
+The [overview](overview.md) describes the code. The [operator workstation pattern](operator-workstation-pattern.md) and the [system-of-record reference](system-of-record-pattern.md) describe the two implemented integrations in detail.
 
-## Why at the edge
+## When to run on site
 
-For years the direction was to move business software to the web. For this class of application, three things point the other way.
+Run on site when the application needs something only the site can reach:
 
-**Agent harnesses run locally and work through CLIs.** Codex, Claude Code and similar harnesses run on a workstation or server and act through shell commands, local CLIs and MCP servers over stdio. The CLI is a primary interface again. An application that ships a CLI and an MCP server next to its UI can be operated by a harness on the same machine, under a grant narrowed from the person who started it.
+- **Control software.** The vendor HMI, test bench, measurement program or line client that runs a machine often has no usable API. It can be reached through an automation interface, local RPC, its files and database, a decoded network protocol or its screen, and each of these needs code on the machine or its network segment.
+- **Devices.** Scanners, cameras, serial and HID devices attach to the station.
+- **The plant network.** Plant networks are segmented and often have no internet access. A destination with `scope: 'site'` is reachable only from inside.
+- **Work that continues offline.** The link to enterprise systems can be slow or down. Commands commit locally either way and the outbox delivers later, but a person at the station can only keep working if the authority is reachable without that link.
 
-**The software that stayed on the desktop is close to hardware.** Business applications moved to the browser. Control software did not: the vendor HMI, test bench, measurement program or line client that runs a machine costing millions and stays in service for 20 years. It is often validated or under warranty, may run on an old operating system, and rarely has a usable API. These applications are where most of the manual, error-prone work around production still happens.
-
-**Reaching that software requires presence.** Control software can often be instrumented: through COM or another automation interface, local RPC, its files and database, a decoded network protocol, or its screen. Each of these routes needs code running on that machine or on its network segment. Plant networks are segmented, often without internet access, and the connection to enterprise systems can be slow or interrupted. A cloud service cannot do this work directly.
-
-The result is an application that runs at the edge with its connectors, next to the agents that call it, and talks to central systems only through a durable outbox and inbound sync.
+The generated security manifest lists the site-scoped destinations and devices of each application in `summary.site`. An empty list means nothing in the catalog pins the application to the site. Agent harnesses such as Codex and Claude Code also run well beside the application, because they act through local CLIs and MCP over stdio.
 
 ## The loop: execute, interpret, report
 
-Every edge application implements the same loop.
+An on-site application implements this loop.
 
 ```mermaid
 flowchart LR
@@ -41,22 +40,22 @@ flowchart LR
 
 **Report.** The interpreted fact is committed locally as a command: authorized, attributed to a person or agent, journaled and visible on every open screen. The command enqueues delivery to the system of record in the same transaction. The dispatcher delivers it when the connection allows, and the outcome (accepted, rejected or uncertain) is recorded as a further command. Reporting keeps working while the connection is down: the local commit succeeds, the effect stays visibly pending, and inbound sync resumes from its watermark.
 
-The loop keeps two things separate that ad hoc scripts usually merge: what was observed or done locally, and what the system of record has accepted. A receipt is not acceptance, and an exit code is not a delivery outcome ([P6](principles.md#p6--status-says-what-is-known)).
+The loop keeps two things separate that ad hoc scripts usually merge: what was observed or done locally, and what the system of record has accepted. A receipt is not acceptance, and an exit code is not a delivery outcome.
 
 ## Reaching control software
 
 Choose the most structured route the software supports. Prefer reading to writing, and vendor-supported interfaces to reverse-engineered ones. A station can combine routes: read counters from a log file, read state from the accessibility tree, and write through a COM call.
 
-| Route                    | Examples                                                                           | Reads        | Writes                         | Needs                                             | In this repository                                                                                                                |
-| ------------------------ | ---------------------------------------------------------------------------------- | ------------ | ------------------------------ | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Automation interface     | COM/DCOM, ActiveX, .NET assemblies, vendor SDK, an OPC server the software exposes | Yes          | Yes, if the vendor supports it | On-machine process, or DCOM/network configuration | Not implemented                                                                                                                   |
-| Local RPC or IPC         | Localhost TCP or HTTP service, named pipes, WCF, gRPC                              | Yes          | Sometimes                      | On-machine or same segment                        | Not implemented                                                                                                                   |
-| Files and local database | Result exports, CSV/XML, logs, recipe files, an embedded SQL database              | Yes          | Rarely; file drops             | File share or local access                        | Not implemented as an adapter; the inbound sync and extractor ports are the slots                                                 |
-| Network protocol         | Traffic between station and controller or MES, captured and decoded                | Yes, passive | Not recommended                | Mirror port or tap on the segment                 | Not implemented                                                                                                                   |
-| Accessibility tree       | Windows UI Automation on Win32 or WPF applications                                 | Yes          | Through UI actions             | On-machine agent                                  | A screen transport adapter slot; not implemented                                                                                  |
-| Screen                   | Frame capture with OCR or vision; mouse and keyboard injection                     | Yes          | Through UI actions             | On-machine, VNC/RDP, or KVM-over-IP               | Implemented with a Playwright transport against a fake HMI; no live model ([ADR 004](decisions/004-screen-mediated-authority.md)) |
+| Route                    | Examples                                                                           | Reads        | Writes                         | Needs                                             | In this repository                                                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------- | ------------ | ------------------------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Automation interface     | COM/DCOM, ActiveX, .NET assemblies, vendor SDK, an OPC server the software exposes | Yes          | Yes, if the vendor supports it | On-machine process, or DCOM/network configuration | Not implemented                                                                                                        |
+| Local RPC or IPC         | Localhost TCP or HTTP service, named pipes, WCF, gRPC                              | Yes          | Sometimes                      | On-machine or same segment                        | Not implemented                                                                                                        |
+| Files and local database | Result exports, CSV/XML, logs, recipe files, an embedded SQL database              | Yes          | Rarely; file drops             | File share or local access                        | Not implemented as an adapter; the inbound sync and extractor ports are the slots                                      |
+| Network protocol         | Traffic between station and controller or MES, captured and decoded                | Yes, passive | Not recommended                | Mirror port or tap on the segment                 | Not implemented                                                                                                        |
+| Accessibility tree       | Windows UI Automation on Win32 or WPF applications                                 | Yes          | Through UI actions             | On-machine agent                                  | A screen transport adapter slot; not implemented                                                                       |
+| Screen                   | Frame capture with OCR or vision; mouse and keyboard injection                     | Yes          | Through UI actions             | On-machine, VNC/RDP, or KVM-over-IP               | Implemented with a Playwright transport against a fake HMI; no live model ([pattern](operator-workstation-pattern.md)) |
 
-Every route maps onto the same ports, so replacing one route with another changes an adapter and leaves contracts, handlers and screens unchanged ([P9](principles.md#p9--external-dependencies-sit-behind-ports)):
+Every route maps onto the same ports, so replacing one route with another changes an adapter and leaves contracts, handlers and screens unchanged:
 
 - **Observation** (reads that track live state) runs through extractors and enters the application through an ingest command.
 - **Inbound sync** (reads of records owned elsewhere) pulls through the system-of-record port.
@@ -68,7 +67,7 @@ Writes to control software follow the rules of the [operator workstation pattern
 
 An agent harness runs on the edge host beside the application and is one of its callers. It reaches the running application through the CLI or MCP with a connection file bound to a delegated grant. The host issues that file, so the harness can run as another OS user without reading the owner's credential.
 
-The grant names the operations, resources, expiry and run it covers, and can only narrow the permissions of the person who started the run ([P3](principles.md#p3--authority-comes-from-trusted-context)). The agent sees the same catalog as the UI. It gets no private tools and no upstream credentials; the connector holds those.
+The grant names the operations, resources, expiry and run it covers, and can only narrow the permissions of the person who started the run. The agent sees the same catalog as the UI. It gets no private tools and no upstream credentials; the connector holds those.
 
 An agent at the edge typically:
 
@@ -96,7 +95,7 @@ Constraints that shape these choices:
 - **Operating system.** The desktop build targets current macOS, Windows x64 and Linux x64. An old station PC often cannot run it, which is the usual reason for an edge box.
 - **Network.** Plant networks are segmented. The edge host needs a path to the control software on one side and a permitted path to the system of record on the other. Model endpoints must be loopback or explicitly allowlisted.
 - **Connectivity.** Local commits never wait for the system of record. Pending effects are visible, and `drain` reports undelivered work.
-- **Variation.** Stations of the same type differ in software version, screen layout, scanners and procedures. These differences live in versioned, validated station and scanner profiles, checked by a golden replay before activation ([P8](principles.md#p8--specialize-by-composition-and-configuration)).
+- **Variation.** Stations of the same type differ in software version, screen layout, scanners and procedures. These differences live in versioned, validated station and scanner profiles, checked by a golden replay before activation.
 - **Operators.** Stations are shared, operators wear gloves and may have no personal account. Input design is covered in [point-of-work input](point-of-work-input.md); per-operator identity at a shared station is open work.
 
 ## Status

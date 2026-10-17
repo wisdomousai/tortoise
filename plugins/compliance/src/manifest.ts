@@ -36,6 +36,11 @@ export interface SecurityManifest {
     readonly egress: number;
     readonly ingress: number;
     readonly internet: readonly string[];
+    /**
+     * Site-scoped destinations and devices: what only a host on the site network can reach. An
+     * empty list means nothing declared pins the application to the site.
+     */
+    readonly site: readonly string[];
     readonly required: readonly string[];
     readonly dataClasses: readonly string[];
   };
@@ -95,6 +100,10 @@ export function securityManifest(options: {
       egress: network.filter((item) => item.direction === 'egress').length,
       ingress: network.filter((item) => item.direction === 'ingress').length,
       internet: sorted(network.filter((item) => item.scope === 'internet').map((item) => item.id)),
+      site: sorted([
+        ...network.filter((item) => item.scope === 'site').map((item) => item.id),
+        ...devices.map((item) => item.id),
+      ]),
       required: sorted(
         network.filter((item) => item.availability === 'required').map((item) => item.id),
       ),

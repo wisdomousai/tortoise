@@ -16,7 +16,7 @@ export interface IntegrationDeclaration {
   readonly delivery: 'outbox';
 }
 /**
- * Declares that a query reads another system at call time instead of local state (P7). The
+ * Declares that a query reads another system at call time instead of local state. The
  * runtime calls the target's source outside any transaction, after authorizing the caller, and
  * returns the items with the source's status and fetch time; nothing is stored. A source that
  * cannot be reached yields `unavailable`, never an error that hides local data.

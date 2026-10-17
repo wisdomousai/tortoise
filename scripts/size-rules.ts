@@ -1,5 +1,5 @@
 /**
- * Limits for `check:size` (P14). A file over `maxFileLines` or a function over `maxFunctionLines`
+ * Limits for `check:size`. A file over `maxFileLines` or a function over `maxFunctionLines`
  * usually holds more than one responsibility; the limit is a tripwire, the split must still follow
  * responsibility. Functions are measured on their own node, so a factory counts the inner
  * functions it closes over: moving lines around inside a closure does not pass.

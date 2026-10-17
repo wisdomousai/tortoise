@@ -60,7 +60,7 @@ export async function referencedCapabilities(
 
 /**
  * Operations of `modules` that claim a UI binding but that no screen under `source` references
- * (P1). An application's UI-binding test expects this to be empty.
+ *. An application's UI-binding test expects this to be empty.
  */
 export async function unboundOperations(
   modules: readonly CapabilityModule[],

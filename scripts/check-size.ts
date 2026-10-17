@@ -1,5 +1,5 @@
 /**
- * Keeps modules small enough to hold one responsibility (P14). For every non-test source file in
+ * Keeps modules small enough to hold one responsibility. For every non-test source file in
  * `packages/*`, `plugins/*`, `apps/*` and `examples/*` it fails when:
  *
  * - the file is longer than `maxFileLines`;
@@ -116,7 +116,9 @@ for (const entry of sizeExemptions)
 
 if (errors.length) {
   console.error(errors.join('\n'));
-  console.error(`\n${errors.length} size violations (see docs/principles.md P14)`);
+  console.error(
+    `\n${errors.length} size violations (split by responsibility; see docs/development-and-testing.md#the-checks)`,
+  );
   process.exit(1);
 }
 console.log(`Checked ${files.length} source files in ${relative(process.cwd(), root) || '.'}`);

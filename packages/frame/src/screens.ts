@@ -27,7 +27,7 @@ export interface NavigationItem {
 }
 
 /**
- * What an application contributes to the web frame (P11): its screens, navigation, the screen
+ * What an application contributes to the web frame: its screens, navigation, the screen
  * each capability family opens from the palette, and optional sidebar slots. The frame owns
  * routing, session, palette and run panel; it renders whatever this declares.
  */

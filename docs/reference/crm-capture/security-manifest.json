@@ -254,6 +254,9 @@
       "openai-api",
       "openai-auth"
     ],
+    "site": [
+      "audit-collector"
+    ],
     "required": [
       "authority-http"
     ],
