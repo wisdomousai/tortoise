@@ -8,16 +8,16 @@ Layer: framework (`packages/*`). Pure functions with no Node, Bun or browser API
 
 - [OS handler](../../docs/primitives.md#os-handler): `parseRawOsRequest`, `OsRequestError`, `matchOsRequest`, `MatchOptions`, `OsMatch`, `OsRequestValues`, `resolveTarget`, `fillTemplate`.
 - [OS action](../../docs/primitives.md#os-action): `buildInstruction`, `openUrl`, `openActionFor`, `OsActionError`.
-- [Shell port](../../docs/primitives.md#shell-port): `createDesktopShell`, `DesktopShell`, `DesktopShellClient`, `DesktopShellDependencies`, `desktopArguments`, `receivedArguments`, `pathName`, `DesktopArguments`.
+- [Shell port](../../docs/primitives.md#shell-port): `createDesktopShell`, `DesktopShell`, `DesktopShellClient`, `DesktopShellDependencies`, `desktopArguments`, `receivedArguments`, `pathName`, `DesktopArguments`; for the browser adapter in the frame and the desktop alike, `landingRequest`, `textFileHandler` and `strictText`.
 - [Generator](../../docs/primitives.md#generator): `nativeOsConfig`, `desktopOsConfig`, `webManifestOs`, `webScheme`, `OsIdentity`, `OsRegistrationOptions`, `ExpoIntentFilter`.
 
 ## Entrypoints
 
-| Import                              | Runs in  | Contents                                                                                                    |
-| ----------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `@agent-native/shell`               | any host | Everything listed under Primitives.                                                                         |
-| `@agent-native/shell/*`             | any host | One source file: `parse`, `match`, `targets`, `actions`, `registrations`, `desktop` or `desktop-arguments`. |
-| `@agent-native/shell/registrations` | any host | The generators alone, for `mobile:prepare`, desktop packaging and the frame's Vite plugin.                  |
+| Import                              | Runs in  | Contents                                                                                                                   |
+| ----------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/shell`               | any host | Everything listed under Primitives.                                                                                        |
+| `@agent-native/shell/*`             | any host | One source file: `parse`, `match`, `targets`, `actions`, `registrations`, `desktop`, `desktop-arguments` or `local-files`. |
+| `@agent-native/shell/registrations` | any host | The generators alone, for `mobile:prepare`, desktop packaging and the frame's Vite plugin.                                 |
 
 ## Trust boundary
 
@@ -27,7 +27,7 @@ A raw request comes from an unauthenticated sender on the device. `parseRawOsReq
 
 The generators produce verified link registrations only for hosts the deployment configures, never from content.
 
-The desktop adapter reads a command line only after `--` when one is present, so a link that breaks out of its quotes cannot add an argument that is read; without `--` it ignores every switch. It accepts links in the application's scheme and absolute local paths, and refuses UNC paths, which would make Windows authenticate to a remote server. Data a second instance hands over is parsed again. It reads only files whose extension a declared text file handler lists, within that handler's `maxBytes`, so other files the OS passes are never read. A relayed open is checked against the declarations again before it runs. `openActionFor` matches a URL a page asked to open to a declared open action: same origin and path shape, no credentials, fragment or repeated parameter, and every value within the JSON form of the action's schema (text with `const`, `enum`, `pattern` and `maxLength`). It needs only that JSON form, so it works on declarations read over HTTP; a value it cannot check fails.
+The desktop adapter reads a command line only after `--` when one is present, so a link that breaks out of its quotes cannot add an argument that is read; without `--` it ignores every switch. It accepts links in the application's scheme and absolute local paths, and refuses UNC paths, which would make Windows authenticate to a remote server. Data a second instance hands over is parsed again. It reads only files whose extension a declared text file handler lists, within that handler's `maxBytes`, so other files the OS passes are never read. A relayed open is checked against the declarations again before it runs. `openActionFor` matches a URL a page asked to open to a declared open action: same origin and path shape, no credentials, fragment or repeated parameter, and every value within the JSON form of the action's schema (text with `const`, `enum`, `pattern` and `maxLength`). It needs only that JSON form, so it works on declarations read over HTTP; a value it cannot check fails. `landingRequest` accepts a browser landing only with exactly one `os` (a link of at most 2048 characters) or `os-shortcut` parameter.
 
 ## Dependencies
 
