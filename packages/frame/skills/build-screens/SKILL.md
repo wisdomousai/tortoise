@@ -21,7 +21,8 @@ Screens are the browser half of an application. They read through live queries a
 4. **Read data** with `useLiveQuery`. It refetches only queries whose dependencies changed. Never filter or page client-side over a partial set.
 5. **Capture input** with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@agent-native/react/capture`, so capture time is measured.
 6. **Change a registry item** in its source. For the operator registry, edit `packages/operator-ui/registry.manifest.ts` and run `bun run build:registry:operator`; never hand-edit the generated `registry.json` or `src/styles/operator.css`. Rebuild the frame registry with `bun run build:registry`.
-7. **Change the starter's look** in `apps/web`: a file at the same `src/` path as a frame file replaces it, and stock primitives are added with `shadcn add`. Keep domain screens in the application, never in the starter.
+7. **Framework operations have registry screens**: `proposal-review` for `proposalOperations` and `reconciliation-review` for `reconciliationOperations`. Wrap one in an application screen that passes the operations and a `describe` label (`examples/receiving/ui/reconcile.tsx`).
+8. **Change the starter's look** in `apps/web`: a file at the same `src/` path as a frame file replaces it, and stock primitives are added with `shadcn add`. Keep domain screens in the application, never in the starter.
 
 The authority's CSP rejects inline scripts and injected styles, so use components that render native elements (`ui/native-dialog`) instead of ones that inject styles at runtime. Browser files must not import server modules.
 

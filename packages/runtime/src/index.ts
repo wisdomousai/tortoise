@@ -12,6 +12,7 @@ export * from './policy.js';
 export * from './membership.js';
 export * from './agent-grant.js';
 export * from './proposal.js';
+export * from './reconciliation.js';
 export * from './effect-phase.js';
 export type { ClaimResult } from './application/effect-claims.js';
 export type { AttemptRecord } from './application/outbox.js';

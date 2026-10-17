@@ -22,7 +22,7 @@ Layer: framework (`packages/*`). Feature state is opaque to the runtime; domains
 - [Journal and live query](../../docs/primitives.md#journal-and-live-query): `ChangeEvent`, `EventBatch`.
 - [Outbox effect](../../docs/primitives.md#outbox-effect): `Effect`, `EffectRequest`, `EffectOutcome`, and `enqueue`, `settleEffect` (with a fencing token) and `cancelEffect` on `HandlerContext`.
 - [Worker claims](../../docs/primitives.md#worker-claims): `EffectClaim`, the host-only `claimEffect` (`ClaimResult`) and `recordAttempt` (`AttemptRecord`, with `fence` and `upstream`), and the `dispatch` authorization phase checked before the first claim.
-- [Reconciliation](../../docs/primitives.md#reconciliation): `effectPhase` and `EffectPhase`, the states an effect passes through and the transitions the outbox allows.
+- [Reconciliation](../../docs/primitives.md#reconciliation): `effectPhase` and `EffectPhase`, the states an effect passes through and the transitions the outbox allows; `reconciliationHandlers` (`ReconciliationOptions`) serve the reconciliation operations: the held effects of every target a caller may see, and a person's decision, which settles or releases the effect and calls the domain's `onResolved` in the same transaction.
 - [Blob store](../../docs/primitives.md#blob-store): the `BlobStore` port (`StoredBlob`), `BlobRecord`, `createMemoryBlobStore`, `attach` and `detach` on `HandlerContext`, `canReadResource` on the `AuthorizationPort`, the `blobStore` and `blobGraceMs` options, and `putBlob`, `readBlob`, `readEffectBlob` and `sweepBlobs` on the application.
 - [Event log](../../docs/primitives.md#event-log): the runtime appends `command.accepted` inside the transaction and resolves commands a crash left open.
 
@@ -33,7 +33,7 @@ Read [architecture](../../docs/architecture.md), [authorization](../../docs/auth
 | Import                    | Runs in     | Contents                                                                                                                                             |
 | ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@agent-native/runtime`   | server only | `createApplication`, handler factory, memory storage, composition and all types.                                                                     |
-| `@agent-native/runtime/*` | server only | One source file: `types`, `compose`, `state-equality`, `application`, `memory-storage`, `memory-blob-store`, `collection`, `policy`, `membership`, `proposal` or `proposal-dataset`. |
+| `@agent-native/runtime/*` | server only | One source file: `types`, `compose`, `state-equality`, `application`, `memory-storage`, `memory-blob-store`, `collection`, `policy`, `membership`, `proposal`, `proposal-dataset` or `reconciliation`. |
 
 `src/application/` holds the parts `createApplication` wires together; import them only from inside the package. Each takes the shared `Kernel` (registry, ports, clocks, audit trail, context guard) instead of closing over it:
 

@@ -199,6 +199,37 @@ describe('receiving through the ERP exchange folders', () => {
     expect((await host.line('ASN-1001-1')).posting).toMatchObject({ sync: 'accepted' });
   });
 
+  test('an unreadable receipt holds the posting until an editor says whether the ERP booked it', async () => {
+    const share = await site();
+    const host = await share.open();
+    await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
+    await host.integrations.sync();
+    await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
+    await host.command('erp.send', { id: 'ASN-1001-1' });
+    await host.deliver();
+    const effectId = (await host.line('ASN-1001-1')).posting.effectId as string;
+    // The ERP picked the file up and wrote a receipt nobody can read: it may have booked it.
+    await rm(join(share.path('drop'), `${effectId}.csv`));
+    await writeFile(join(share.path('receipts'), `${effectId}.json`), '{ not json');
+    expect(await host.deliver()).toMatchObject({ held: 1 });
+    const held = async () =>
+      ((await host.query('reconciliation.list', {})).data as { items: { id: string }[] }).items;
+    expect((await held()).map((item) => item.id)).toEqual([effectId]);
+    expect((await host.line('ASN-1001-1')).posting).toMatchObject({ sync: 'pending' });
+
+    // A viewer may see it but not decide; an editor who found the booking settles it.
+    const decision = { effectId, decision: 'applied', externalRef: 'DOC-77' };
+    await expect(host.command('reconciliation.resolve', decision, viewer)).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    });
+    await host.command('reconciliation.resolve', decision);
+    expect(await held()).toEqual([]);
+    expect((await host.line('ASN-1001-1')).posting).toMatchObject({
+      sync: 'accepted',
+      sorRef: 'DOC-77',
+    });
+  });
+
   test('a rejected receipt reopens the line, which can be recounted and posted again', async () => {
     const share = await site();
     const host = await share.open();

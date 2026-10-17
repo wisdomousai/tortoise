@@ -12,6 +12,7 @@ This is one [Application](../../docs/primitives.md#application). It uses:
 - a [Policy](../../docs/primitives.md#policy) built with `definePolicy`;
 - the ERP as a [Target](../../docs/primitives.md#target) whose [Connector](../../docs/primitives.md#connector) is `fileTargetPort` from [`connector-files`](../../plugins/connector-files/README.md), over three exchange folders declared as [requirements](../../docs/primitives.md#requirement-declaration) and bound by the [Site policy](../../docs/primitives.md#site-policy);
 - an [Agent definition](../../docs/primitives.md#agent-definition), `receiving.discrepancy`, whose [proposals](../../docs/primitives.md#proposal) a person accepts or rejects.
+- [Reconciliation](../../docs/primitives.md#reconciliation) of goods receipts the ERP left unclear, through `reconciliationOperations` and the Held receipts screen.
 
 The `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primitives.md#host-plugin) are listed in each entrypoint.
 
@@ -21,7 +22,7 @@ The `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primit
 | --- | --- | --- |
 | `@agent-native/receiving/manifest` | browser and server | Default export: `defineManifest` with id `receiving`, its module and the ERP exchange folders. |
 | `@agent-native/receiving/application` | server only | Default export: the application. `createReceivingApplication` takes services, members, an ERP port and the notice quiet period. |
-| `@agent-native/receiving/screens` | browser | Default export: `defineScreens` with the delivery list, the line screen, proposals and the ERP status. |
+| `@agent-native/receiving/screens` | browser | Default export: `defineScreens` with the delivery list, the line screen, proposals, held receipts and the ERP status. |
 | `@agent-native/receiving/*` | see file | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `erp-port`. |
 
 Lines marked `// scaffold:<list>` are where `scaffold add` inserts operations, handlers, rules and routes.
@@ -70,11 +71,12 @@ bunx playwright test examples/receiving
   - the agent's grant refusing a direct classification and a viewer's acceptance being refused;
   - posting with a pending upstream and settling from the receipt;
   - an unbound drop folder holding the receipt until a restarted host binds it;
+  - an unreadable receipt held until an editor says the ERP booked it (a viewer is refused);
   - a rejected receipt reopening the line;
   - corrected notices and a malformed export.
 - `test/conformance.test.ts` imports a notice through a served host, counts over HTTP, and reads one list through the authority, HTTP, the CLI and MCP.
 - `test/ui-bindings.test.ts` checks that every bound operation is referenced by a screen.
-- `e2e/receiving.pw.ts` starts the real service with a site policy, waits for the notice import, then counts, classifies and posts a line in the browser. The test answers as the ERP, and the ERP screen then shows the receipt accepted.
+- `e2e/receiving.pw.ts` starts the real service with a site policy, waits for the notice import, then counts, classifies and posts a line in the browser. The test answers as the ERP, and the ERP screen then shows the receipt accepted. A second test leaves the receipt unreadable and records on the Held receipts screen that the ERP booked it.
 
 ## Skills
 

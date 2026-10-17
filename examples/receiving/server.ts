@@ -4,6 +4,7 @@ import type { Services } from './handlers/context';
 import { deliveryHandlers } from './handlers/delivery';
 import { erpHandlers } from './handlers/erp-target';
 import { proposalHandlers } from './handlers/proposals';
+import { reconciliationHandlers } from './handlers/reconciliation';
 // scaffold:imports
 
 export type { Services } from './handlers/context';
@@ -15,6 +16,7 @@ export function createHandlers(): HandlerContribution<AppState, Services>[] {
     ...deliveryHandlers(),
     ...erpHandlers(),
     ...(proposalHandlers() as HandlerContribution<AppState, Services>[]),
+    ...reconciliationHandlers(),
     // scaffold:handlers
   ];
 }

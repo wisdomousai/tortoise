@@ -343,7 +343,7 @@ partial · `sdks/driver-python` `sdks/driver-dotnet`
 
 _A tracked state and procedure for outcomes no one can establish automatically._
 
-partial · `packages/runtime` `packages/integration`
+implemented · `packages/contracts` `packages/runtime` `packages/integration` `packages/frame` `examples/receiving` `examples/line-station`
 
 ### Worker claims
 

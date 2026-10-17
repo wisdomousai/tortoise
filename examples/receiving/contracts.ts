@@ -1,4 +1,9 @@
-import { defineAgent, defineModule, proposalOperations } from '@agent-native/contracts';
+import {
+  defineAgent,
+  defineModule,
+  proposalOperations,
+  reconciliationOperations,
+} from '@agent-native/contracts';
 import { deliveryOperations } from './contracts/delivery';
 import { erpSend, erpTarget } from './contracts/erp-target';
 // scaffold:imports
@@ -11,6 +16,7 @@ export const operations = {
   erpStatus: erpTarget.status,
   erpSend,
   ...proposalOperations,
+  ...reconciliationOperations,
   // scaffold:operations
 } as const;
 

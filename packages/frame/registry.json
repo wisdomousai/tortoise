@@ -126,6 +126,20 @@
       ]
     },
     {
+      "name": "reconciliation-review",
+      "type": "registry:component",
+      "title": "Reconciliation review",
+      "description": "Held deliveries, live, with what was sent and why it is held; the person says whether the target applied it, which settles it, sends it again or settles it as refused.",
+      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "registryDependencies": ["badge", "button", "input", "@agent-native/session"],
+      "files": [
+        {
+          "path": "src/components/reconciliation-review.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "run-panel",
       "type": "registry:component",
       "title": "Agent run panel",

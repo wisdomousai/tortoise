@@ -17,7 +17,8 @@ const editor: OperationRule<AppState, Role> = {
  *
  * Any member may propose; the agent proposes under the delegated grant of the member who started
  * it. Accepting runs the proposed command under the accepter, so its own editor rule applies
- * again. Deciding a proposal needs a person.
+ * again. Deciding a proposal needs a person, and so does saying whether the ERP applied a held
+ * receipt.
  */
 export const appPolicy = definePolicy<AppState, Role>({
   integrations: [
@@ -38,6 +39,8 @@ export const appPolicy = definePolicy<AppState, Role>({
     [operations.proposalExpire.id]: {},
     [operations.proposalList.id]: 'open',
     [operations.proposalGet.id]: 'open',
+    [operations.reconciliationList.id]: 'open',
+    [operations.reconciliationResolve.id]: { ...editor, person: true },
     // scaffold:rules
   },
   events: {
