@@ -16,6 +16,8 @@ import { deviceLinkPluginManifest } from '@agent-native/device-link/plugin-manif
 import { defineApplication } from '@agent-native/kernel/application';
 import { LOCAL_OWNER } from '@agent-native/kernel/authority';
 import { defineManifest } from '@agent-native/kernel/manifest';
+import type { HostPlugin } from '@agent-native/kernel/plugin';
+import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';
 import { createHandlerFactory } from '@agent-native/runtime';
 import { sitePlugin } from '@agent-native/site/plugin';
 import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
@@ -31,7 +33,6 @@ import {
 } from '../src/contracts';
 import { createFleetAgentPlugin } from '../src/plugin';
 import { fleetAgentPluginManifest } from '../src/plugin-manifest';
-import type { fleetNetworkFixture } from '../src/testing';
 
 // The fleet: one channel, sites enrolled with device-link, each site seeing only its own record.
 interface FleetSite {
@@ -199,10 +200,23 @@ const erp = defineHostComponent({
   },
 });
 
-const siteBind = createHandlerFactory<{ notes: { count: number } }, unknown>();
+type Notes = { notes: Record<string, number> };
+const siteBind = createHandlerFactory<Notes, unknown>();
 
-export function siteApplication(network: ReturnType<typeof fleetNetworkFixture>) {
-  return defineApplication<{ notes: { count: number } }>({
+/** The site's network plugin: `fleetNetworkFixture` in process, the real one in a release. */
+export interface SiteNetwork {
+  readonly manifest: PluginManifest;
+  readonly plugin: HostPlugin;
+}
+
+/**
+ * The site application at `version`. Version 1 keeps `notes.count`; version 2 renames it to
+ * `notes.total` through a migration, so an upgrade has state to migrate. Its contract version
+ * follows, so each queued effect records the release that queued it.
+ */
+export function siteApplication(network: SiteNetwork, version: 1 | 2 = 1) {
+  const field = version === 1 ? 'count' : 'total';
+  return defineApplication<Notes>({
     manifest: defineManifest({
       id: 'plant',
       title: 'Plant',
@@ -215,20 +229,38 @@ export function siteApplication(network: ReturnType<typeof fleetNetworkFixture>)
         fleetAgentPluginManifest,
       ],
     }),
-    createState: () => ({ notes: { count: 0 } }),
+    createState: () => ({ notes: { [field]: 0 } }),
+    contractVersion: String(version),
+    ...(version === 2
+      ? {
+          migrations: {
+            version: 2,
+            steps: [
+              {
+                from: 1,
+                to: 2,
+                up: (state: unknown) => ({
+                  notes: { total: (state as { notes: { count: number } }).notes.count },
+                }),
+              },
+            ],
+          },
+        }
+      : {}),
     handlers: [
       siteBind(noteAdd, async (input, ctx) => {
-        ctx.state.notes.count++;
-        ctx.change(`note:${ctx.state.notes.count}`);
+        const count = (ctx.state.notes[field] ?? 0) + 1;
+        ctx.state.notes[field] = count;
+        ctx.change(`note:${count}`);
         ctx.enqueue({
           target: 'erp',
           type: 'note.created',
-          resource: `note:${ctx.state.notes.count}`,
+          resource: `note:${count}`,
           payload: { text: input.text },
         });
-        return { count: ctx.state.notes.count };
+        return { count };
       }),
-      siteBind(noteCount, async (_input, ctx) => ({ count: ctx.state.notes.count })),
+      siteBind(noteCount, async (_input, ctx) => ({ count: ctx.state.notes[field] ?? 0 })),
     ],
     authorization: {
       authorize: ({ context }) => ({

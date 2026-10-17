@@ -1,8 +1,15 @@
 import { afterEach, expect, test } from 'bun:test';
-import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createBundle, generateSigningKey, type BundleManifest } from '@agent-native/bundle';
+import { SQLiteStorage } from '@agent-native/adapters/sqlite';
+import {
+  createBundle,
+  generateSigningKey,
+  requirementsDigest,
+  type BundleManifest,
+  type SigningKey,
+} from '@agent-native/bundle';
 import type { BlobRef } from '@agent-native/contracts';
 import { startHost } from '@agent-native/host/host';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
@@ -64,11 +71,11 @@ async function startFleet() {
 /**
  * A site whose `fleet` destination reaches `fleetUrl` unless `link.offline` is set, as an
  * unplugged uplink would. With `link.corrupt`, blob downloads arrive with one byte changed;
- * `link.drop` loses the fleet's answer to the next request to that path, after the fleet handled it. `trust` and `relay` are the agent's settings.
+ * `link.drop` loses the fleet's answer to the next request to that path, after the fleet handled it. `trust` and `relay` are the agent's settings; `workspace` puts the workspace where an install keeps it.
  */
 async function startSite(
   fleetUrl: string,
-  settings: { code?: string; trust?: string; relay?: boolean } = {},
+  settings: { code?: string; trust?: string; relay?: boolean; workspace?: string } = {},
 ) {
   const directory = await temporary('site-');
   const releases = join(directory, 'releases');
@@ -96,7 +103,7 @@ async function startSite(
     return new Response(bytes, { status: response.status, headers: response.headers });
   });
   const site = await startHost(siteApplication(network), {
-    workspacePath: join(directory, 'workspace'),
+    workspacePath: settings.workspace ?? join(directory, 'workspace'),
     integration: false,
     settings: {
       'site-policy': join(directory, 'site-policy.json'),
@@ -112,7 +119,7 @@ async function startSite(
       { operation: 'notes.add', input: { text }, idempotencyKey: crypto.randomUUID() },
       owner,
     );
-  return { site, agent, link, releases, addNote };
+  return { site, agent, link, releases, addNote, policy: join(directory, 'site-policy.json') };
 }
 
 const onlySite = (view: FleetView) => {
@@ -203,14 +210,7 @@ test('while the fleet is unreachable the site commits, and the next report shows
   expect(onlySite(await view()).report!.outbox).toMatchObject({ pending: 3, held: 0 });
 });
 
-async function publishRelease(
-  command: (operation: string, input: unknown) => Promise<unknown>,
-  fleetApp: {
-    putBlob(data: Uint8Array, mediaType: string, context: typeof owner): Promise<BlobRef>;
-  },
-  directory: string,
-  options: { tamper?: boolean } = {},
-) {
+async function placeholderBundle(directory: string) {
   const key = await generateSigningKey();
   const payload = join(directory, 'payload');
   await mkdir(join(payload, 'web'), { recursive: true });
@@ -230,6 +230,22 @@ async function publishRelease(
     },
     key,
   );
+  return { out, manifest, key };
+}
+
+async function publishRelease(
+  command: (operation: string, input: unknown) => Promise<unknown>,
+  fleetApp: {
+    putBlob(data: Uint8Array, mediaType: string, context: typeof owner): Promise<BlobRef>;
+  },
+  directory: string,
+  options: {
+    tamper?: boolean;
+    /** A bundle already built, published instead of a placeholder one. */
+    bundle?: { out: string; manifest: BundleManifest; key: SigningKey };
+  } = {},
+) {
+  const { out, manifest, key } = options.bundle ?? (await placeholderBundle(directory));
   const files: BlobRef[] = [];
   const listed = [];
   for (const file of manifest.files) {
@@ -242,8 +258,8 @@ async function publishRelease(
   }
   const signature = JSON.parse(await Bun.file(join(out, 'bundle.sig')).text());
   const release: FleetRelease = {
-    id: 'plant-2.0.0',
-    version: '2.0.0',
+    id: `${manifest.application}-${manifest.version}`,
+    version: manifest.version,
     manifest: JSON.parse(JSON.stringify({ ...manifest, files: listed })),
     signature,
   };
@@ -332,4 +348,149 @@ test('the relay reaches an operation only with a session the site issued', async
   });
   expect(Object.keys(answer.headers)).not.toContain('set-cookie');
   expect(await agent.relay()).toBe(false);
+});
+
+test('the fleet stages an upgrade that the site installs, migrating its state while effects are pending', async () => {
+  const directory = await temporary('upgrade-');
+  const prefix = join(directory, 'root');
+  const key = await generateSigningKey();
+  const requirements = { network: [], devices: [], processes: [] };
+  // A release's binary is a script running the site CLI at its version.
+  const build = async (version: 1 | 2) => {
+    const payload = join(directory, `payload-${version}`);
+    await mkdir(join(payload, 'bin'), { recursive: true });
+    const bin = join(payload, 'bin', 'plant');
+    const cli = join(import.meta.dir, 'site-cli.ts');
+    await writeFile(
+      bin,
+      `#!/bin/sh\nFIXTURE_STATE=${version} exec "${process.execPath}" "${cli}" "$@"\n`,
+    );
+    await chmod(bin, 0o755);
+    const out = join(directory, `bundle-${version}`);
+    const manifest = await createBundle(
+      payload,
+      out,
+      {
+        application: 'plant',
+        version: `${version}.0.0`,
+        platform: `${process.platform}-${process.arch}`,
+        storageSchema: 2,
+        catalogDigest: 'a'.repeat(64),
+        requirements,
+      },
+      key,
+    );
+    return { out, manifest, key };
+  };
+  const trust = join(directory, 'install-key.pub.json');
+  await writeFile(trust, JSON.stringify({ keyId: key.keyId, publicKey: key.publicKey }));
+  const policy = join(directory, 'install-policy.json');
+  await writeFile(
+    policy,
+    JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' } }),
+  );
+  const install = async (binary: string[], bundle: string, extra: string[] = []) => {
+    const child = Bun.spawn(
+      [
+        ...binary,
+        'site',
+        'install',
+        bundle,
+        '--trust',
+        trust,
+        '--site-policy',
+        policy,
+        '--service',
+        'systemd',
+        '--prefix',
+        prefix,
+        ...extra,
+      ],
+      { stdout: 'pipe', stderr: 'pipe' },
+    );
+    const [code, stdout, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+    ]);
+    return { code, stderr, result: JSON.parse(stdout.trim().split('\n').at(-1) || '{}') };
+  };
+
+  // Version 1 is installed by hand, with the site's approval of its requirements.
+  const v1 = await build(1);
+  const approval = join(directory, 'approval.json');
+  await writeFile(
+    approval,
+    JSON.stringify({ application: 'plant', requirementsDigest: requirementsDigest(requirements) }),
+  );
+  const first = await install([join(v1.out, 'files/bin/plant')], v1.out, ['--approval', approval]);
+  expect(first).toMatchObject({ code: 0, result: { version: '1.0.0' } });
+  const workspace = join(prefix, 'var/lib/agent-native/plant/workspace');
+
+  // Version 1 runs and queues two effects for an ERP it cannot reach; the fleet assigns 2.0.0.
+  const { fleet, command, code } = await startFleet();
+  const { trust: fleetTrust } = await publishRelease(command, fleet.application, directory, {
+    bundle: await build(2),
+  });
+  const running = await startSite(fleet.url, { code: await code(), trust: fleetTrust, workspace });
+  await running.addNote('first');
+  await running.addNote('second');
+  await running.agent.sync();
+  expect(running.agent.status().staged).toMatchObject({ release: 'plant-2.0.0' });
+  await running.site.close();
+
+  // The installed release installs the staged one: the new binary migrates, then current switches.
+  const current = join(prefix, 'opt/agent-native/plant/current/files/bin/plant');
+  const upgrade = await install([current], join(running.releases, 'plant-2.0.0'));
+  expect(upgrade).toMatchObject({ code: 0, result: { version: '2.0.0', previous: '1.0.0' } });
+
+  const stored = async () => {
+    const storage = new SQLiteStorage<Record<string, unknown>>(
+      join(workspace, 'workspace.sqlite'),
+      () => ({}),
+    );
+    try {
+      return await storage.read(LOCAL_WORKSPACE, async (snapshot) => structuredClone(snapshot));
+    } finally {
+      await storage.close();
+    }
+  };
+  const migrated = await stored();
+  expect(migrated.state.notes).toEqual({ total: 2 });
+  expect(migrated.stateVersions?.application?.version).toBe(2);
+  // The queued effects wait as version 1 recorded them.
+  const effects = (snapshot: typeof migrated) =>
+    Object.values(snapshot.effects).map((effect) => [
+      effect.status,
+      effect.contractVersion,
+      effect.payload,
+    ]);
+  expect(effects(migrated)).toEqual([
+    ['pending', '1', { text: 'first' }],
+    ['pending', '1', { text: 'second' }],
+  ]);
+
+  // Version 2 serves the migrated workspace and records its own contract version.
+  const network = fleetNetworkFixture(async () => {
+    throw new TypeError('Network is unreachable');
+  });
+  const upgraded = await startHost(siteApplication(network, 2), {
+    workspacePath: workspace,
+    integration: false,
+    settings: { 'site-policy': running.policy },
+  });
+  try {
+    const added = await upgraded.application.invokeRaw(
+      { operation: 'notes.add', input: { text: 'third' }, idempotencyKey: 'third' },
+      owner,
+    );
+    expect(added.result).toEqual({ count: 3 });
+  } finally {
+    await upgraded.close();
+  }
+  expect(effects(await stored())).toEqual([
+    ['pending', '1', { text: 'first' }],
+    ['pending', '1', { text: 'second' }],
+    ['pending', '2', { text: 'third' }],
+  ]);
 });

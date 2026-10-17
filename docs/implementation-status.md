@@ -17,7 +17,7 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Measured.** On an M-series laptop, 20 one-record commits on 20,000 records (about 5 MB): row storage 26–30 ms per commit, one document 46–52 ms.
 
-**Not shown.** No host route starts an agent run from a definition. No agent trigger has run against a model, and no real local model server has been run. The line-station proposal tile and the frame's proposal review have no browser test.
+**Not shown.** No host route starts an agent run from a definition. No agent trigger has run against a real model: the automation test that has a triggered agent propose and a person accept answers from a loopback fixture server, and no real local model server has been run. The line-station proposal tile and the frame's proposal review have no browser test.
 
 **Limits.** Row storage still serializes every row to find the change, so commit CPU grows with state. Receipts are kept by default. The phone's snapshot storage has neither rows nor retention. No encryption at rest.
 
@@ -50,7 +50,7 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 **Not shown.**
 
 - No site has reported to a fleet across a real network, behind a firewall that allows only outbound https.
-- No staged release has been activated by `site install` from the `fleet-releases` folder on a real machine.
+- No staged release has been activated by `site install` from the `fleet-releases` folder on a real machine with a loaded service; the fleet-agent test does it on a staged prefix without `--apply`.
 
 **Limits.**
 
@@ -107,7 +107,7 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 ### State migrations
 
-**Not shown.** `migrate` is not yet run by a bundle install; that comes with `site install`. The examples declare no migrations yet, and keep their unversioned `upgradeState`. A target port that maps effects by `contractVersion` has not been written. The phone's storage stamps versions, but has no staged `migrate`.
+**Not shown.** The examples declare no migrations yet, and keep their unversioned `upgradeState`. A target port that maps effects by `contractVersion` has not been written. The phone's storage stamps versions, but has no staged `migrate`.
 
 ### Authorization and live views
 
