@@ -13,6 +13,7 @@ export interface AuthenticatedRoutes {
   readonly sessions: Sessions;
   readonly cursors: Cursors;
   readonly pollMs?: number;
+  readonly authenticateToken?: (token: string) => Promise<HostSession | undefined>;
 }
 
 /** POST /api/v1/session: exchange a one-use launch key for the session cookie. */

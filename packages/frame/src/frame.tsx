@@ -10,13 +10,23 @@ import {
   redirect,
   RouterProvider,
 } from '@tanstack/react-router';
-import type { ApplicationScreens } from '@agent-native/frame/screens';
+import type { ApplicationScreens, ScreenRoute } from '@agent-native/frame/screens';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AppShell } from '@/components/app-shell';
 import { ScreensProvider } from '@/screens-context';
+import { useCompact } from '@/lib/compact';
 import { useBrowserOsInput } from '@/lib/os-browser';
 import { useOsDeliveries } from '@/lib/os-deliveries';
 import { live, queryClient } from '@/lib/session';
+
+/** A screen's component, or its compact variant on a narrow viewport. */
+const routeComponent = (screen: ScreenRoute) => {
+  const { component: Wide, compact: Compact } = screen;
+  if (!Compact) return Wide;
+  return function Responsive() {
+    return useCompact() ? <Compact /> : <Wide />;
+  };
+};
 
 /**
  * Code-based routes from the application's screens keep the registry explicit: each route names
@@ -59,7 +69,7 @@ function createFrameRouter(screens: ApplicationScreens) {
         createRoute({
           getParentRoute: () => parent,
           path: screen.path.replace(/^\//, ''),
-          component: screen.component,
+          component: routeComponent(screen),
         }),
       );
   return createRouter({

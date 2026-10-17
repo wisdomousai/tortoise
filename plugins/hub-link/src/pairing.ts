@@ -2,6 +2,7 @@ import { ApplicationError } from '@agent-native/contracts';
 import type { HostedApplication } from '@agent-native/kernel/application';
 import type { SecretStore } from '@agent-native/kernel/platform';
 import type { ExecutionContext } from '@agent-native/runtime';
+import { requestLaunch, type HubLaunch } from './attached';
 import { enrollPath, hubLinkOperations as ops } from './contracts';
 import type { Pairing } from './handlers';
 import { hubOrigin, type Link } from './network';
@@ -20,6 +21,11 @@ export interface HubLinkService {
   pair(request: { readonly origin: string; readonly code: string }): Promise<Pairing>;
   /** Delete the credential and forget the hub. The hub keeps the device until it is revoked. */
   unpair(): Promise<void>;
+  /**
+   * A one-use address of the hub's own screens for this device, for a web view. The hub decides
+   * what the session may do: an attached tablet acts as the person who enrolled it.
+   */
+  launch(): Promise<HubLaunch>;
 }
 
 const message = (error: unknown) =>
@@ -93,6 +99,10 @@ export function createPairing(dependencies: PairingDependencies) {
         { operation: ops.pairingClear.id, input: {}, idempotencyKey: crypto.randomUUID() },
         runtime.context,
       );
+    },
+    async launch() {
+      if (!link) throw new ApplicationError('UNAVAILABLE', 'This device is not paired with a hub');
+      return requestLaunch(dependencies.fetch, link);
     },
   };
 

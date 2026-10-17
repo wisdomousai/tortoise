@@ -39,7 +39,7 @@ const pluginCredential =
   (authority: Authority) =>
   async (token: string): Promise<HostSession | undefined> => {
     const context = await authority.plugins.authenticate(token);
-    return context && { token, context, expiresAt: Number.POSITIVE_INFINITY };
+    return context && { token, context, expiresAt: Number.POSITIVE_INFINITY, credential: token };
   };
 
 /** Stop once: cancel live runs, stop serving and syncing, then close state, log and ownership. */
