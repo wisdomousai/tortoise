@@ -5,7 +5,7 @@ import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { createDeviceLinkPlugin } from '@agent-native/device-link/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
 import { processPlugin } from '@agent-native/process/plugin';
-import { bunProcesses } from '@agent-native/host/plugin';
+import { bunProcesses, type NetworkPort } from '@agent-native/host/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
 import { eamTarget, exportTarget, modelTarget, operations } from './contracts';
@@ -16,6 +16,7 @@ import {
   type Proposal,
 } from './connectors/extractor';
 import { FakeEam, type AssetChange, type EvidenceReader } from './connectors/fake-eam';
+import { modelExtractorFromEnv } from './connectors/model-extractor';
 import { createExportPort } from './export/connector';
 import { createSurveyState, type Role, type SurveyState } from './domain';
 import { createSurveyHandlers, surveyPolicy, type SurveyServices } from './server';
@@ -39,7 +40,8 @@ export const FIELD_SYNC_OPERATIONS = [
  */
 export function createAssetSurveyApplication(
   options: {
-    extractor?: Extractor;
+    /** An extractor, or one built from the network port when it calls a declared destination. */
+    extractor?: Extractor | ((network: NetworkPort) => Extractor);
     eam?: (readBlob: EvidenceReader) => FakeEam;
     services?: SurveyServices;
     members?: Record<string, Role>;
@@ -77,12 +79,13 @@ export function createAssetSurveyApplication(
     sources: {
       eam: createRemoteSource({ target: 'eam', port: eam, credentials: eam.credentials }),
     },
-    connect: ({ application, workspaceId, processes }) => {
+    connect: ({ application, workspaceId, network, processes }) => {
       const readBlob = (effect: { id: string }, digest: string) =>
         application.readEffectBlob(workspaceId, effect.id, digest);
       readEvidence = readBlob;
+      const extractor = options.extractor ?? nameplateTextExtractor;
       const model = createExtractorPort({
-        extractor: options.extractor ?? nameplateTextExtractor,
+        extractor: typeof extractor === 'function' ? extractor(network) : extractor,
         readBlob,
       });
       options.onConnect?.({ eam, model });
@@ -106,4 +109,6 @@ export function createAssetSurveyApplication(
   });
 }
 
-export default createAssetSurveyApplication();
+/** The demo hub; `ASSET_SURVEY_MODEL` opts into live extraction (see `modelExtractorFromEnv`). */
+const live = modelExtractorFromEnv();
+export default createAssetSurveyApplication(live ? { extractor: live } : {});
