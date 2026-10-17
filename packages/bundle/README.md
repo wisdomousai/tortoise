@@ -1,6 +1,6 @@
 # @agent-native/bundle
 
-One signed, versioned artifact per application and platform, checked before a site installs it. A bundle is a directory: `files/` holds the payload (the compiled binary, the web build, the generated security manifest, SBOM and contract), `bundle.json` lists every file with its SHA-256 and size together with the application, version, platform, storage schema, catalog digest and declared requirements, and `bundle.sig` is an Ed25519 signature over the canonical manifest.
+One signed, versioned artifact per application and platform, checked before a site installs it. A bundle is a directory: `files/` holds the payload (the compiled binary, the web build, the generated security manifest and contract, and an SBOM written from the lockfile when the bundle is created), `bundle.json` lists every file with its SHA-256 and size together with the application, version, platform, storage schema, catalog digest and declared requirements, and `bundle.sig` is an Ed25519 signature over the canonical manifest.
 
 Layer: framework (`packages/*`). Server only.
 

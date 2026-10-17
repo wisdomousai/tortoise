@@ -149,7 +149,8 @@ The file log chains events with SHA-256 across rotated segments and writes check
 | `security-manifest.json`       | Every declared destination, device and process with its owner, every operation whose effects leave the host, and in `summary.site` what pins the application to the site. |
 | `data-flows.md`                | A diagram and tables of the same, with the data classes that go where.                                                                                                    |
 | `controls.json`, `controls.md` | Controls mapped to ISO/IEC 27001:2022 Annex A, NIST SP 800-53 r5, NIST CSF 2.0 and IEC 62443-4-2, each with evidence: tests, artifacts and event kinds.                   |
-| `sbom.cdx.json`                | CycloneDX 1.6 from the lockfile, with declared destinations as services with trust zones and data flows. Deterministic.                                                   |
+
+The SBOM is not committed. `bun run bundle create` writes `sbom.cdx.json` into each signed site bundle: CycloneDX 1.6 from the lockfile at build time, with declared destinations as services with trust zones and data flows.
 
 The control mappings are indicative. Certification still needs the organization's own scope and the licensed standard text.
 

@@ -15,6 +15,7 @@ import {
   type SiteApproval,
   type TrustedKey,
 } from '@agent-native/bundle';
+import { cycloneDx, type SecurityManifest } from '@agent-native/compliance';
 import { loadManifest, readStarterConfig } from '@agent-native/host';
 import { compileCli } from './build-cli';
 
@@ -52,7 +53,9 @@ const platformOf = (target?: string) =>
 
 /**
  * `create`: compile the configured application's CLI, copy the web build and the generated
- * security manifest, SBOM and contract, and sign. The key comes only from `--key`.
+ * security manifest and contract, write an SBOM from the current lockfile, and sign. The SBOM is
+ * made here rather than committed, so it describes the dependencies this bundle was built with.
+ * The key comes only from `--key`.
  */
 async function create(args: string[]) {
   const key = await readJson<SigningKey>(flag(args, 'key', true)!);
@@ -70,17 +73,27 @@ async function create(args: string[]) {
     const windows = (target ?? process.platform).includes('win');
     await compileCli(join(payload, 'bin', windows ? `${config.name}.exe` : config.name), target);
     await cp(web, join(payload, 'web'), { recursive: true });
-    for (const file of ['security-manifest.json', 'sbom.cdx.json', 'contract.json'])
+    for (const file of ['security-manifest.json', 'contract.json'])
       await cp(join(reference, file), join(payload, file));
-    const security = await readJson<BundleRequirements>(join(reference, 'security-manifest.json'));
+    const security = await readJson<BundleRequirements & SecurityManifest>(
+      join(reference, 'security-manifest.json'),
+    );
     const contract = await readFile(join(reference, 'contract.json'));
+    const version =
+      flag(args, 'version') ?? (await readJson<{ version: string }>('package.json')).version;
+    const sbom = cycloneDx({
+      application: manifest.id,
+      version,
+      lock: await readFile(join(root, 'bun.lock'), 'utf8'),
+      manifest: security,
+    });
+    await writeFile(join(payload, 'sbom.cdx.json'), `${JSON.stringify(sbom, null, 2)}\n`);
     const bundle = await createBundle(
       payload,
       out,
       {
         application: manifest.id,
-        version:
-          flag(args, 'version') ?? (await readJson<{ version: string }>('package.json')).version,
+        version,
         platform: platformOf(target),
         storageSchema: ROW_SCHEMA_VERSION,
         catalogDigest: createHash('sha256').update(contract).digest('hex'),

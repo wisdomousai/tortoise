@@ -5,11 +5,9 @@ import { deploymentCatalog, deploymentComponents } from '@agent-native/host/comp
 import {
   controls,
   controlsMarkdown,
-  cycloneDx,
   dataFlowsMarkdown,
   securityManifest,
 } from '@agent-native/compliance';
-import rootPackage from '../package.json';
 import { agentSkillSection, agentsMarkdown, agentsOf } from './agent-reference';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
@@ -45,7 +43,6 @@ async function applications(): Promise<ApplicationManifest[]> {
 }
 
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
-const lock = await readFile(join(root, 'bun.lock'), 'utf8');
 
 function artifacts(manifest: ApplicationManifest) {
   // The deployment catalog: modules plus the host's and the application's components, so the
@@ -154,17 +151,6 @@ function artifacts(manifest: ApplicationManifest) {
     ['agents.md', agentsMarkdown(catalog)],
     ['security-manifest.json', json(security)],
     ['data-flows.md', dataFlowsMarkdown(security)],
-    [
-      'sbom.cdx.json',
-      json(
-        cycloneDx({
-          application: manifest.id,
-          version: rootPackage.version,
-          lock,
-          manifest: security,
-        }),
-      ),
-    ],
     [
       'application-skill/SKILL.md',
       '---\nname: use-application\ndescription: Operate this application through its registered MCP capabilities, inspect scoped data, and apply authorized business commands. Use when asked to work in the connected application.\n---\n\n# Use the application\n\nRead the `app://contract` MCP resource and discover current tools before acting. Identity and delegation come from the host; never supply roles or principals in tool arguments. Query the current object and revision before changing it.\n\nQuery tools take `{ "input": ... }`. Commands take `{ "input": ..., "idempotencyKey": "unique-request-id", "expectedRevisions": { "type:id": 1 } }`. Keep the same key and exact request when retrying after a lost response. A conflict requires a new query and deliberate reconciliation. A successful command receipt proves committed work; streamed agent text does not.\n\n' +

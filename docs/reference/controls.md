@@ -204,12 +204,12 @@ The site policy is schema-validated against the composed declarations before any
 
 **Software bill of materials** (implemented)
 
-A CycloneDX 1.6 SBOM is generated from the lockfile with hashes, runtime/development scope and the dependency graph, and lists declared network destinations as services with their data flows.
+A CycloneDX 1.6 SBOM is generated from the lockfile when a site bundle is built, with hashes, runtime/development scope and the dependency graph, and lists declared network destinations as services with their data flows. It is signed with the bundle it describes.
 
 Limits: Licenses are not recorded in the lockfile and are omitted; vulnerability matching is a separate process.
 
 - Tests: `plugins/compliance/test/compliance.test.ts`
-- Artifacts: `docs/reference/quality-inspection/sbom.cdx.json`
+- Artifacts: `sbom.cdx.json in each signed site bundle (scripts/bundle.ts)`
 - Runtime events: —
 
 ## AN-SUP-02

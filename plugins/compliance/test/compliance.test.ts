@@ -224,10 +224,12 @@ describe('generated compliance artifacts', () => {
     });
   });
 
-  test('the published SBOM covers the repository lock', async () => {
-    const bom = JSON.parse(
-      await readFile(join(root, 'docs/reference/quality-inspection/sbom.cdx.json'), 'utf8'),
-    );
+  test('an SBOM of the repository lock covers every package', async () => {
+    const bom = cycloneDx({
+      application: 'quality-inspection',
+      version: '0.0.0',
+      lock: await readFile(join(root, 'bun.lock'), 'utf8'),
+    }) as any;
     expect(bom.components.length).toBeGreaterThan(100);
     expect(
       bom.components.every((item: any) => item.purl || item['bom-ref'].startsWith('workspace:')),

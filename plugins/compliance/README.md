@@ -47,7 +47,7 @@ Framework:
 - `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`, `components`) and `@agent-native/frame/plugin-screens`;
 - `@agent-native/site` (the policy) and `@agent-native/audit` (the log and exit code).
 
-The screen uses the starter's `@/components/ui` primitives and the frame's `@/lib/session`. External: `zod`, `lucide-react`, `react`, `@tanstack/react-query`. Reads `bun.lock` for the SBOM.
+The screen uses the starter's `@/components/ui` primitives and the frame's `@/lib/session`. External: `zod`, `lucide-react`, `react`, `@tanstack/react-query`. `scripts/bundle.ts` passes `bun.lock` to `cycloneDx` when it builds a site bundle; nothing commits an SBOM.
 
 ## Tests
 
