@@ -32,8 +32,6 @@ const descriptions: Readonly<Record<string, string>> = {
     'Set what the station bridge may do as supervisor: monitor-only (observe), assist (hazard-free procedures) or actuate (all declared procedures).',
   'line.seat.request':
     'Take over the station screen from the bridge (seat=operator) or hand it back (seat=agent) as operator or supervisor. Taking over stops any running screen procedure before its next action.',
-  'line.station.set-member':
-    'Grant or remove a station role (operator, supervisor, viewer) as supervisor of that station. A null role removes access. You cannot change your own role or give integration principals a role.',
   'line.observation.ingest':
     'Station bridge only: submit what the station screen currently shows. Stable confident readings become observed values, unsure ones become attention items, and machine state changes open and close stops.',
   'line.mes.sync':

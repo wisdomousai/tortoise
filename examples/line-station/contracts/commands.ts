@@ -1,10 +1,10 @@
 import { z } from 'zod';
+import { stationMembership } from './membership';
 import { operation } from './operation';
 import {
   id,
   revision,
   station,
-  stationRoleSchema,
   bridgeModeSchema,
   seatSchema,
   syncSchema,
@@ -77,14 +77,7 @@ export const commandOperations = {
     operate,
     { dependencies: ['station'] },
   ),
-  stationSetMember: operation(
-    'line.station.set-member',
-    'command',
-    z.strictObject({ station: id, principalId: id, role: stationRoleSchema.nullable() }),
-    z.strictObject({ station: id, members: z.record(z.string(), stationRoleSchema) }),
-    { action: 'administer', resourceType: 'Station' },
-    { dependencies: ['station'], binding: 'line.station.bridge' },
-  ),
+  stationSetMember: stationMembership.setMember,
   observationIngest: operation(
     'line.observation.ingest',
     'command',

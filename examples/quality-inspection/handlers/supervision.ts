@@ -1,7 +1,8 @@
 import { ApplicationError, type JsonValue } from '@agent-native/contracts';
-import { type HandlerContribution } from '@agent-native/runtime';
+import { membershipHandler, type HandlerContribution } from '@agent-native/runtime';
 import { operations } from '../contracts';
-import { own, progress, put, type QualityState, type UsageDecision } from '../domain';
+import { plantMembership } from '../contracts/membership';
+import { own, progress, type QualityState, type UsageDecision } from '../domain';
 import {
   TARGET,
   compact,
@@ -43,16 +44,8 @@ export const supervisionHandlers = (): HandlerContribution<QualityState, Quality
       decision: withoutEffect(decision),
     };
   }),
-  handler(operations.plantSetMember, (input, ctx) => {
-    const plant = own(ctx.state.plants, input.plant);
-    if (!plant) throw new ApplicationError('NOT_FOUND', 'Plant unavailable');
-    if (input.principalId === ctx.context.principalId)
-      throw new ApplicationError('FORBIDDEN', 'You cannot change your own plant role');
-    if (input.principalId === ctx.state.integrationPrincipalId)
-      throw new ApplicationError('FORBIDDEN', 'The integration principal has no plant role');
-    if (input.role === null) delete plant.members[input.principalId];
-    else put(plant.members, input.principalId, input.role);
-    ctx.change(`plant:${input.plant}`, 'authorization.changed');
-    return { plant: input.plant, members: { ...plant.members } };
+  membershipHandler<QualityState, QualityServices, typeof plantMembership>(plantMembership, {
+    members: (state, plant) => own(state.plants, plant)?.members,
+    reserved: (state, principalId) => principalId === state.integrationPrincipalId,
   }),
 ];

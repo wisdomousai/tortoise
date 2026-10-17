@@ -8,3 +8,5 @@ export {
   type ApplicationOptions,
 } from './application.js';
 export * from './collection.js';
+export * from './policy.js';
+export * from './membership.js';

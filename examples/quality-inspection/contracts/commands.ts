@@ -1,11 +1,11 @@
 import { z } from 'zod';
+import { plantMembership } from './membership';
 import { operation } from './operation';
 import {
   id,
   revision,
   timestamp,
   syncStatus,
-  plantRoleSchema,
   resultSchema,
   defectSchema,
   decisionSchema,
@@ -83,14 +83,7 @@ export const commandOperations = {
     { action: 'decide', resourceType: 'InspectionLot' },
     { dependencies: ['lot'], integration: true },
   ),
-  plantSetMember: operation(
-    'inspection.plant.set-member',
-    'command',
-    z.strictObject({ plant: id, principalId: id, role: plantRoleSchema.nullable() }),
-    z.strictObject({ plant: id, members: z.record(z.string(), plantRoleSchema) }),
-    { action: 'administer', resourceType: 'Plant' },
-    { dependencies: ['plant'] },
-  ),
+  plantSetMember: plantMembership.setMember,
   lotSync: operation(
     'inspection.lot.sync',
     'command',

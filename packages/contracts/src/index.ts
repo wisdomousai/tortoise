@@ -7,3 +7,4 @@ export * from './catalog';
 export * from './errors';
 export * from './data-provider';
 export * from './collection';
+export * from './membership';

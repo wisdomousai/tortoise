@@ -1,25 +1,7 @@
-import type { AuthorizationPort } from '@agent-native/runtime';
+import { definePolicy, membershipRule, own, type OperationRule } from '@agent-native/runtime';
 import { operations } from './contracts';
-import { own, plantRole, type QualityState } from './domain';
-
-const knownOperations = new Set<string>(Object.values(operations).map((operation) => operation.id));
-const integrationOnly = new Set<string>([operations.lotSync.id, operations.effectSettle.id]);
-/** Handlers scope these to the caller's plants before filtering, counting and pagination. */
-const scopedInHandler = new Set<string>([
-  operations.lotList.id,
-  operations.codeList.id,
-  operations.plantList.id,
-  operations.syncStatus.id,
-  operations.metricsSummary.id,
-]);
-
-/** Resolve the lot an operation acts on from authoritative state, never from caller claims. */
-function lotIdOf(state: QualityState, operation: string, args: Record<string, unknown>) {
-  if (operation === operations.lotGet.id) return String(args.id);
-  if (operation === operations.resultCorrect.id)
-    return own(state.results, String(args.resultId))?.lotId;
-  return typeof args.lotId === 'string' ? args.lotId : undefined;
-}
+import { plantMembership } from './contracts/membership';
+import { plantRole, type PlantRole, type QualityState } from './domain';
 
 /**
  * Resolve the lot that owns a journal or outbox resource (`lot:`, `result:`, `defect:`), or
@@ -49,68 +31,78 @@ export function plantOfResource(state: QualityState, resource: string): string |
   return lotId === undefined ? undefined : own(state.lots, lotId)?.plant;
 }
 
+type Rule = OperationRule<QualityState, PlantRole>;
+const plantOfLot = (state: QualityState, lotId: unknown) =>
+  typeof lotId === 'string' ? own(state.lots, lotId)?.plant : undefined;
+/** An operation on one lot: the lot's plant role decides, and a resource grant must name the lot. */
+const onLot = (
+  lotId: (input: Record<string, unknown>, state: QualityState) => unknown,
+  roles?: PlantRole[],
+): Rule => ({
+  container: (input, state) => plantOfLot(state, lotId(input, state)),
+  grant: (input, state) => {
+    const id = lotId(input, state);
+    return typeof id === 'string' ? `lot:${id}` : undefined;
+  },
+  ...(roles ? { roles } : {}),
+});
+const byLotId = (input: Record<string, unknown>) => input.lotId;
+const byResult = (input: Record<string, unknown>, state: QualityState) =>
+  own(state.results, String(input.resultId))?.lotId;
+const capture: PlantRole[] = ['inspector', 'supervisor'];
+/** Events of `<type>:<id>` follow the plant that owns the resource. */
+const lotEvent = (type: string) => ({
+  container: (id: string, state: QualityState) => plantOfResource(state, `${type}:${id}`),
+});
+
 /**
  * Plant-scoped policy. Plant roles come from authoritative state; the integration principal may
- * only sync master data and settle outbox outcomes, and nobody else may do either. Commands are
- * evaluated against both the current and the proposed state at commit time.
+ * only sync master data, settle outbox outcomes and read its watermark, and nobody else may do
+ * the first two. Reads that list records are open to every caller and scoped to their plants in
+ * the handler, before anything is counted. Commands are evaluated against the current and the
+ * proposed state at commit time.
  */
-export const qualityPolicy: AuthorizationPort<QualityState> = {
-  authorize({ capability, input, context, state, previousState, phase }) {
-    const operation = capability.id;
-    if (!knownOperations.has(operation)) return { allowed: false, reason: 'NO_POLICY' };
-    const integration = context.principalId === state.integrationPrincipalId;
-    if (integrationOnly.has(operation)) return { allowed: integration, reason: 'INTEGRATION_ONLY' };
-    // Inbound sync reads its watermark here; plant-scoped counts are empty for this principal.
-    if (integration && operation === operations.syncStatus.id) return { allowed: true };
-    if (integration) return { allowed: false, reason: 'INTEGRATION_SCOPE' };
-    if (scopedInHandler.has(operation)) return { allowed: true };
-    const args = input as Record<string, unknown>;
-    const evaluate = (snapshot: QualityState): boolean => {
-      let plant: string | undefined;
-      if (operation === operations.plantSetMember.id) plant = String(args.plant);
-      else {
-        const lotId = lotIdOf(snapshot, operation, args);
-        if (lotId === undefined) return false;
-        // A resource-limited delegation names lots; it cannot reach other lots' records.
-        if (context.grant?.resources && !context.grant.resources.includes(`lot:${lotId}`))
-          return false;
-        plant = own(snapshot.lots, lotId)?.plant;
-      }
-      const role =
-        plant === undefined ? undefined : plantRole(snapshot, context.principalId, plant);
-      if (!role) return false;
-      if (capability.kind === 'query' || phase === 'replay') return true;
-      switch (operation) {
-        case operations.resultRecord.id:
-        case operations.resultRecordBatch.id:
-        case operations.defectRecord.id:
-          return role !== 'viewer';
-        case operations.resultCorrect.id:
-          return (
-            role === 'supervisor' ||
-            (role === 'inspector' &&
-              own(snapshot.results, String(args.resultId))?.recordedBy === context.principalId)
-          );
-        case operations.decisionSet.id:
-        case operations.plantSetMember.id:
-          return role === 'supervisor';
-        default:
-          return false;
-      }
-    };
-    return {
-      allowed: evaluate(state) && (!previousState || evaluate(previousState)),
-      reason: 'RESOURCE_DENIED',
-    };
+export const qualityPolicy = definePolicy<QualityState, PlantRole>({
+  roleOf: plantRole,
+  integrations: [
+    {
+      is: (state, principalId) => principalId === state.integrationPrincipalId,
+      operations: [operations.lotSync.id, operations.effectSettle.id, operations.syncStatus.id],
+    },
+  ],
+  operations: {
+    [operations.lotSync.id]: 'integration',
+    [operations.effectSettle.id]: 'integration',
+    [operations.lotList.id]: 'open',
+    [operations.codeList.id]: 'open',
+    [operations.plantList.id]: 'open',
+    [operations.syncStatus.id]: 'open',
+    [operations.metricsSummary.id]: 'open',
+    [operations.lotGet.id]: onLot((input) => input.id),
+    [operations.worklist.id]: onLot(byLotId),
+    [operations.resultRecord.id]: onLot(byLotId, capture),
+    [operations.resultRecordBatch.id]: onLot(byLotId, capture),
+    [operations.defectRecord.id]: onLot(byLotId, capture),
+    [operations.decisionSet.id]: onLot(byLotId, ['supervisor']),
+    // Supervisors correct any result at their plant; inspectors only their own.
+    [operations.resultCorrect.id]: {
+      ...onLot(byResult, ['inspector', 'supervisor']),
+      allow: ({ role, state, input, context, kind, phase }) =>
+        kind === 'query' ||
+        phase === 'replay' ||
+        role === 'supervisor' ||
+        own(state.results, String(input.resultId))?.recordedBy === context.principalId,
+    },
+    [operations.plantSetMember.id]: membershipRule(plantMembership),
   },
-  canReadEvent({ state, context, event }) {
-    if (context.principalId === state.integrationPrincipalId) return true;
+  events: {
+    lot: lotEvent('lot'),
+    result: lotEvent('result'),
+    defect: lotEvent('defect'),
+    plant: lotEvent('plant'),
     // Master-data sync changes are visible to anyone who works at some plant.
-    if (event.resource === 'sync:quality')
-      return Object.keys(state.plants).some((plant) =>
-        plantRole(state, context.principalId, plant),
-      );
-    const plant = plantOfResource(state, event.resource);
-    return plant !== undefined && plantRole(state, context.principalId, plant) !== undefined;
+    sync: (id, state, context) =>
+      id === 'quality' &&
+      Object.keys(state.plants).some((plant) => plantRole(state, context.principalId, plant)),
   },
-};
+});

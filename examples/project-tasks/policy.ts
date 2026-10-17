@@ -1,9 +1,13 @@
-import type { AuthorizationPort, ExecutionContext } from '@agent-native/runtime';
-import type { Project, ProjectTaskState, Role, Task } from './domain';
-import { createScopedAbility, matchesScope } from '../../packages/adapters/src/casl';
+import {
+  definePolicy,
+  own,
+  type Access,
+  type ExecutionContext,
+  type OperationRule,
+} from '@agent-native/runtime';
+import type { ProjectTaskState, Role, Task } from './domain';
+import { createScopedAbility, matchesScope } from '@agent-native/adapters/casl';
 import { operations } from './contracts';
-
-const knownOperations = new Set<string>(Object.values(operations).map((operation) => operation.id));
 
 export function projectRole(
   state: ProjectTaskState,
@@ -78,65 +82,76 @@ function projectOutput(
   }
   return object;
 }
-export const projectTaskPolicy: AuthorizationPort<ProjectTaskState> = {
-  authorize({ capability, input, context, state, previousState, phase }) {
-    const operation = capability.id;
-    const args = input as Record<string, unknown>;
-    if (!knownOperations.has(operation)) return { allowed: false, reason: 'NO_POLICY' };
-    if (operation === 'project.create')
-      return { allowed: state.workspaceOwnerId === context.principalId };
-    if (operation === 'project.list' || operation === 'task.list') return { allowed: true };
-    const evaluate = (snapshot: ProjectTaskState): boolean => {
-      let projectId: string | undefined;
-      if (operation.startsWith('project.')) projectId = String(args.id);
-      else if (operation === 'task.create') projectId = String(args.projectId);
-      else {
-        const id = String(args.id);
-        projectId =
-          (Object.hasOwn(snapshot.tasks, id) ? snapshot.tasks[id]?.projectId : undefined) ??
-          (phase === 'replay' && Object.hasOwn(snapshot.deletedTasks, id)
-            ? snapshot.deletedTasks[id]
-            : undefined);
-      }
-      if (!projectId) return false;
-      if (
-        context.grant?.resources &&
-        !context.grant.resources.includes(
-          `${operation.startsWith('project.') ? 'project' : 'task'}:${String(args.id)}`,
-        )
-      )
-        return false;
-      const { ability } = domainAbility(snapshot, context.principalId);
-      const subject = operation.startsWith('project.')
-        ? { __type: 'Project', id: projectId }
-        : { __type: 'Task', projectId };
-      if (phase === 'replay' || capability.kind === 'query') return ability.can('read', subject);
-      if (operation.startsWith('project.')) return ability.can('administer', subject);
-      if (!ability.can('edit', subject)) return false;
-      return Object.keys(args)
-        .filter((field) => field !== 'id' && field !== 'projectId')
-        .every((field) => ability.can('edit', subject, field));
-    };
-    // Deletes have no proposed object; authorize their original project and retained tombstone.
-    if (operation === 'task.delete' && phase === 'commit')
-      return { allowed: !!previousState && evaluate(previousState) };
-    return {
-      allowed: evaluate(state) && (!previousState || evaluate(previousState)),
-      reason: 'RESOURCE_OR_FIELD_DENIED',
-    };
-  },
-  projectOutput({ state, context, output }) {
-    return projectOutput(state, context, output);
-  },
-  canReadEvent({ state, context, event }) {
-    const separator = event.resource.indexOf(':');
-    const type = event.resource.slice(0, separator);
-    const id = event.resource.slice(separator + 1);
-    const projectId =
-      type === 'project'
-        ? id
-        : ((Object.hasOwn(state.tasks, id) ? state.tasks[id]?.projectId : undefined) ??
-          (Object.hasOwn(state.deletedTasks, id) ? state.deletedTasks[id] : undefined));
-    return !!projectId && !!projectRole(state, context.principalId, projectId);
-  },
+type Rule = OperationRule<ProjectTaskState, Role>;
+const projectOf: Rule['container'] = (input) => String(input.id);
+/** A task's project from authoritative state; a replay may also read the retained tombstone. */
+const taskProject: Rule['container'] = (input, state, phase) => {
+  const id = String(input.id);
+  return (
+    own(state.tasks, id)?.projectId ??
+    (phase === 'replay' ? own(state.deletedTasks, id) : undefined)
+  );
 };
+const reads = (access: Access<ProjectTaskState, Role>) =>
+  access.kind === 'query' || access.phase === 'replay';
+/** Project operations: any role reads; only project owners administer. */
+const onProject: Rule = {
+  container: projectOf,
+  grant: (input) => `project:${String(input.id)}`,
+  allow: (access) =>
+    reads(access) ||
+    domainAbility(access.state, access.context.principalId).ability.can('administer', {
+      __type: 'Project',
+      id: access.container!,
+    }),
+  reason: 'RESOURCE_OR_FIELD_DENIED',
+};
+/** Task edits need `edit` on the project and on every field the input names. */
+const editsTask = (access: Access<ProjectTaskState, Role>) => {
+  const { ability } = domainAbility(access.state, access.context.principalId);
+  const subject = { __type: 'Task', projectId: access.container! };
+  if (reads(access)) return true;
+  if (!ability.can('edit', subject)) return false;
+  return Object.keys(access.input)
+    .filter((field) => field !== 'id' && field !== 'projectId')
+    .every((field) => ability.can('edit', subject, field));
+};
+const onTask = (container: Rule['container']): Rule => ({
+  container,
+  grant: (input) => `task:${String(input.id)}`,
+  allow: editsTask,
+  reason: 'RESOURCE_OR_FIELD_DENIED',
+});
+const projectEvent = { container: (id: string) => id };
+
+/**
+ * Project roles through CASL: owners administer and see private notes, editors edit tasks in
+ * active projects, viewers read. Lists are scoped in their handlers before paging and counting.
+ */
+export const projectTaskPolicy = definePolicy<ProjectTaskState, Role>({
+  roleOf: projectRole,
+  operations: {
+    [operations.projectCreate.id]: {
+      allow: ({ state, context }) => state.workspaceOwnerId === context.principalId,
+    },
+    [operations.projectList.id]: 'open',
+    [operations.taskList.id]: 'open',
+    [operations.projectGet.id]: onProject,
+    [operations.projectArchive.id]: onProject,
+    [operations.projectRestore.id]: onProject,
+    [operations.projectSetMember.id]: onProject,
+    [operations.taskCreate.id]: onTask((input) => String(input.projectId)),
+    [operations.taskGet.id]: onTask(taskProject),
+    [operations.taskUpdate.id]: onTask(taskProject),
+    [operations.taskSetStatus.id]: onTask(taskProject),
+    // Deletes have no proposed object; authorize their original project and retained tombstone.
+    [operations.taskDelete.id]: { ...onTask(taskProject), commit: 'previous' },
+  },
+  events: {
+    project: projectEvent,
+    task: {
+      container: (id, state) => own(state.tasks, id)?.projectId ?? own(state.deletedTasks, id),
+    },
+  },
+  projectOutput: ({ state, context, output }) => projectOutput(state, context, output),
+});

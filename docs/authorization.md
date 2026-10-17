@@ -15,6 +15,10 @@ Any failure rolls the whole command back. An operation without a policy is denie
 
 In the `project-tasks` example, workspace owners administer projects, project owners administer theirs, editors edit ordinary tasks and viewers read. An archived project rejects task edits, and only owners see private notes and membership. Response schemas make protected fields optional, so a projected response still validates.
 
+## Declarative policies
+
+`definePolicy` builds the policy port from data. Each example lists every operation it serves: `open` (the handler scopes rows), `integration` (only an integration lane may call it), or a rule that resolves the container from authoritative state and names the roles, the resource a limited grant must name, and whether a delegated run is refused. The builder decides in a fixed order and evaluates commands on both the current and the proposed state, so a rule cannot forget the commit-time check. Roles held in a container come from a [membership](primitives.md#membership), whose `set-member` command refuses changes to your own role.
+
 ## Lists
 
 A list is scoped to what the caller may see before it is filtered, sorted, paged or counted. Protected fields cannot be used to filter or sort, because the query schema does not accept them. A delegated grant narrows lists and single-record reads further. Dictionary lookups check own properties, so a name like `constructor` never matches by accident.

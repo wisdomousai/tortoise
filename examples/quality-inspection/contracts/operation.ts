@@ -24,8 +24,6 @@ const descriptions: Readonly<Record<string, string>> = {
     'Record a defect with a catalog code and quantity for an open lot as inspector or supervisor.',
   'inspection.decision.set':
     'Set the usage decision for a fully inspected open lot as supervisor. Supply lot:<id> in expectedRevisions so results recorded after you reviewed the lot cause a conflict instead of being ignored.',
-  'inspection.plant.set-member':
-    'Grant or remove a plant role as supervisor of that plant. A null role removes access. You cannot change your own role. Permission changes invalidate affected views.',
   'inspection.lot.sync':
     'Integration principal only: apply a batch of lots and code groups from the quality system and advance the watermark. A stale from watermark conflicts.',
   'inspection.effect.settle':

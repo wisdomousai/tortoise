@@ -137,11 +137,25 @@ implemented · `packages/runtime` `packages/adapters`
 
 _The port that decides operation, object, row and field access._
 
-Policy is injected so an application can bring its own rules engine. The reference adapter uses a bounded CASL profile whose row scopes translate to both memory predicates and SQL.
+Policy is injected so an application can bring its own rules engine. `definePolicy` compiles a declarative description into the port: integration lanes, a caller gate, one rule per operation (`open`, `integration`, or a rule naming the container, grant resource, roles, person-only flag and a further check) and journal visibility by resource type. The reference adapter uses a bounded CASL profile whose row scopes translate to both memory predicates and SQL; a rule's check can use it, as `project-tasks` does for field-level edits.
 
-Guarantees: decisions use authoritative state, never caller-supplied attributes. Scope translations are tested for agreement. Unknown operations and unsupported conditions fail closed.
+Guarantees: decisions use authoritative state, never caller-supplied attributes. Scope translations are tested for agreement. Unknown operations and unsupported conditions fail closed. Under `definePolicy` the order is fixed: an unlisted operation is denied, an integration principal may call only its lane, a lane's operations are closed to everyone else, then the caller gate, the person-only check, the grant's resources, the container role and the rule's check, on the current and, at commit, the proposed state. An unlisted event type is never readable. A lane naming an operation the policy does not list fails at definition.
+
+Gaps: row scopes are still written in handlers (`visible` on a collection list); `definePolicy` does not compile rules to CASL scopes or SQL.
 
 implemented · `packages/runtime` `packages/adapters`
+
+### Membership
+
+_Roles that people hold in a container: a project, plant or station._
+
+`defineMembership` declares the container (its input field, journal resource type and permission subject), the roles and the role that manages them, and generates the `<id>.set-member` command. `membershipHandler` implements it over the application's own role map, and `membershipRule` is its policy rule; `roleIn` reads a role. quality-inspection (plants) and line-station (stations) use it.
+
+Guarantees: only the manager role in that container may change roles. Nobody changes their own role, and principals the application reserves (integration principals) never get one. A change is the container's `authorization.changed` event, so open views drop protected data in the same commit. Inherited keys are never roles.
+
+Gaps: there is no generated membership list; each application still reads roles in its own queries. Workspace-wide roles, as in crm-capture, and project-tasks' fixed owner are not expressed with it.
+
+implemented · `packages/contracts` `packages/runtime`
 
 ### Storage
 
