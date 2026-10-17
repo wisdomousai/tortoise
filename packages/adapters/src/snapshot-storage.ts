@@ -1,5 +1,5 @@
 import { assertJson } from '@agent-native/contracts';
-import type { Storage, WorkspaceSnapshot } from '@agent-native/runtime';
+import type { StateUpgrade, Storage, WorkspaceSnapshot } from '@agent-native/runtime';
 import type { SqlDriver } from './sql-driver';
 
 /** A workspace that has never committed: no history, the initial state and empty records. */
@@ -26,13 +26,14 @@ export class SnapshotStorage<State> implements Storage<State> {
   private tail: Promise<unknown> = Promise.resolve();
   /**
    * `upgrade` maps a persisted feature state written by an earlier application version to the
-   * current shape. It runs inside the same read/transaction boundary on load; the upgraded state
-   * is persisted by the next commit. It must be deterministic and must not drop data silently.
+   * current shape and stamps a new workspace (see `StateUpgrade`). It runs inside the same
+   * read/transaction boundary on load; the upgraded state is persisted by the next commit. It
+   * must be deterministic and must not drop data silently.
    */
   constructor(
     private readonly driver: SqlDriver,
     private readonly initialState: () => State,
-    private readonly options: { readonly upgrade?: (state: unknown) => State } = {},
+    private readonly options: { readonly upgrade?: StateUpgrade<State> } = {},
   ) {
     driver.exec('BEGIN IMMEDIATE');
     try {
@@ -71,7 +72,12 @@ export class SnapshotStorage<State> implements Storage<State> {
     // empty ones. The next commit persists the fields; the schema version stays compatible.
     if (!Object.hasOwn(snapshot, 'effects')) snapshot.effects = {};
     if (!Object.hasOwn(snapshot, 'blobs')) snapshot.blobs = {};
-    if (row && this.options.upgrade) snapshot.state = this.options.upgrade(snapshot.state);
+    const { upgrade } = this.options;
+    if (row && upgrade) {
+      const upgraded = upgrade.upgrade(snapshot.state, snapshot.stateVersions);
+      snapshot.state = upgraded.state;
+      snapshot.stateVersions = upgraded.versions;
+    } else if (upgrade) snapshot.stateVersions = upgrade.versions;
     assertJson(snapshot);
     return snapshot;
   }

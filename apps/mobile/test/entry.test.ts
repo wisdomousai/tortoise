@@ -63,7 +63,12 @@ test('the entry imports the application and its native screens by relative path'
   expect(source).toContain('from "../../fixture/application";');
   expect(source).toContain('from "../../fixture/screens-native";');
   expect(source).not.toContain(root);
-  expect(JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'))).toEqual({ plugins: [] });
+  // The fixture composes no plugin, so no setting is passed and no OS handler is registered.
+  expect(source).toContain('const settings = {};');
+  expect(JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'))).toMatchObject({
+    plugins: [],
+    os: { scheme: 'dev.agentnative.workspace', android: { intentFilters: [] } },
+  });
 });
 
 test('native.json lists config plugins with the application and every declared setting', async () => {
@@ -84,7 +89,7 @@ test('native.json lists config plugins with the application and every declared s
   const directory = scratch();
   await writeMobileEntry({ directory, env: { AGENT_NATIVE_MOBILE_APPLICATION: field } });
   // Only plugins that name a config plugin are listed; a module alone is autolinked.
-  expect(JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'))).toEqual({
+  expect(JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'))).toMatchObject({
     plugins: [
       [
         '@example/mdm/app.plugin',
@@ -95,6 +100,53 @@ test('native.json lists config plugins with the application and every declared s
       ],
     ],
   });
+});
+
+test('OS handlers become native registrations, and the scheme reaches the OS setting', async () => {
+  // Inside the repository, so the manifest resolves the kernel; git ignores `generated/`.
+  const notes = scratch(join(root, 'apps/mobile/generated'));
+  writeFileSync(
+    join(notes, 'manifest.ts'),
+    [
+      "import { z } from 'zod';",
+      "import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';",
+      "import { defineManifest } from '@agent-native/kernel/manifest';",
+      "import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';",
+      "const os = definePluginManifest({ id: 'os', title: 'OS', platforms: ['android', 'ios'], settings: [{ key: 'os-scheme', env: 'AGENT_NATIVE_OS_SCHEME', kind: 'string', description: 'Scheme' }] });",
+      "const add = defineCapability({ id: 'note.add', kind: 'command', input: jsonSchema(z.strictObject({ text: z.string() })), output: jsonSchema(z.strictObject({})), permission: { action: 'create', resourceType: 'note' }, ui: { binding: 'note.add' } });",
+      "const fromText = { id: 'note.from-text', kind: 'file', description: 'A note from text.', types: [{ extensions: ['txt'], mediaTypes: ['text/plain'], description: 'Text' }], role: 'viewer', payload: 'text', maxBytes: 500, target: { prepare: 'note.add', input: { text: '{file.text}' } } } as const;",
+      "const link = { id: 'note.open', kind: 'link', description: 'Open a note.', path: '/notes/:id', params: jsonSchema(z.strictObject({ id: z.string() })), verified: true, target: { screen: '/notes', search: { id: '{id}' } } } as const;",
+      "export default defineManifest({ id: 'notes', title: 'Notes', modules: [defineModule({ id: 'notes', capabilities: [add], os: { handlers: [link, fromText] } })], plugins: [os], targets: ['mobile'] });",
+      '',
+    ].join('\n'),
+  );
+  const directory = scratch();
+  const { entry } = await writeMobileEntry({
+    configPath: config({}),
+    directory,
+    env: {
+      AGENT_NATIVE_MOBILE_APPLICATION: notes,
+      AGENT_NATIVE_OS_LINK_HOSTS: 'notes.example.com',
+    },
+  });
+  expect(readFileSync(entry, 'utf8')).toContain(
+    'const settings = {"os-scheme":"dev.example.starter"};',
+  );
+  const { os } = JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'));
+  expect(os.scheme).toBe('dev.example.starter');
+  expect(os.android.intentFilters).toEqual([
+    {
+      action: 'VIEW',
+      autoVerify: true,
+      category: ['BROWSABLE', 'DEFAULT'],
+      data: [{ scheme: 'https', host: 'notes.example.com', pathPattern: '/notes/.*' }],
+    },
+    { action: 'VIEW', category: ['DEFAULT'], data: [{ mimeType: 'text/plain' }] },
+  ]);
+  expect(os.ios.associatedDomains).toEqual(['applinks:notes.example.com']);
+  expect(os.ios.infoPlist.CFBundleDocumentTypes[0].LSItemContentTypes).toEqual([
+    'public.plain-text',
+  ]);
 });
 
 test('an application that does not target mobile is refused', async () => {

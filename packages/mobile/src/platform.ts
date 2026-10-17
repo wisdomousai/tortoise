@@ -4,6 +4,7 @@ import type { SqlDriver } from '@agent-native/adapters/sql-driver';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
 import { LOCAL_OWNER } from '@agent-native/kernel/authority';
 import type { HostPlatform, SecretStore } from '@agent-native/kernel/platform';
+import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
 import type { BlobStore } from '@agent-native/runtime';
 
 /**
@@ -56,13 +57,9 @@ export function createMobilePlatform(bindings: MobileBindings): HostPlatform {
       driver.exec(
         'PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL; PRAGMA busy_timeout = 5000;',
       );
-      return new SnapshotStorage<unknown>(
-        driver,
-        () => definition.createState(LOCAL_OWNER),
-        definition.upgradeState
-          ? { upgrade: (state) => definition.upgradeState!(state, LOCAL_OWNER) }
-          : undefined,
-      );
+      return new SnapshotStorage<unknown>(driver, () => definition.createState(LOCAL_OWNER), {
+        upgrade: stateUpgrade(definition, LOCAL_OWNER),
+      });
     },
     openBlobs: (ownership: { canonicalPath: string }) =>
       bindings.openBlobs(ownership.canonicalPath),

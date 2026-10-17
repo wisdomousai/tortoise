@@ -55,6 +55,21 @@ On macOS arm64 with Bun 1.4.0.
 
 **Not shown.** No installer consumes a bundle yet, and nothing verifies one at launch. Bundles are directories, not archives. Approvals are unsigned site data. No cross-platform build has been verified on its target.
 
+### State migrations
+
+**Shown, deterministic.** `packages/host/test/migrations.test.ts`:
+
+- `migrate --dry-run` migrates and checks a copy, then leaves the database unchanged.
+- `migrate` switches to the migrated copy and keeps the previous database beside it.
+- A pending effect keeps the payload and contract version it was recorded with.
+- Clients reset their cached reads after the switch.
+- Storage refuses the version 1 code on version 2 state.
+- A migration step that throws leaves the workspace at its old version, still serving.
+- After a compatible step, the previous version still runs on the migrated state.
+- A step chain with a gap or the wrong end is refused at definition time.
+
+**Not shown.** `migrate` is not yet run by a bundle install; that comes with `site install`. The examples declare no migrations yet, and keep their unversioned `upgradeState`. A target port that maps effects by `contractVersion` has not been written. The phone's storage stamps versions, but has no staged `migrate`.
+
 ### Authorization and live views
 
 **Shown, deterministic.**
@@ -115,9 +130,10 @@ These run over in-memory fakes in `quality-inspection` and `crm-capture`. [Remot
 **Shown, deterministic.**
 
 - **Controller:** checks the expected screen before every click, type and key; requires the declared stable reads for preconditions, readback and lookup; holds the effect when a popup or takeover interrupts a procedure.
-- **Observer:** submits once per heartbeat window and keys each submission by its exact payload.
+- **Observer:** submits once per heartbeat window and keys each submission by its exact payload. The stability gate, readings and observer loop live in `packages/observation`, which carries driver device identity as provenance (`packages/observation/test/observation.test.ts`). The station suites pass unchanged on it.
+- **Convergent delivery:** acceptance without acting, the not-ready, precondition and act paths, the interruption rule and lookup, against a fake instrument (`packages/integration/test/convergent.test.ts`). The station controller passes its suites unchanged on it.
 - **Perception:**
-  - a perception worker becomes ready again after a restart;
+  - a perception worker becomes ready again after a restart. In line-station it is started through the process port from a site-policy binding;
   - vision requests never follow a redirect;
   - the golden gate passes on recorded expectations.
 - **Scanner kit:** decoding, check digits, layout repair, calibration, routing, and serial and HID assembly, including CR-only scanners and bracketed GS1.
@@ -155,6 +171,7 @@ The kit's interaction tests also pass.
   - identity floors are enforced at startup;
   - mTLS rejects a missing certificate and a foreign CA, using a throwaway PKI.
   - A `site-hub` policy serves over TLS without client certificates; `desktop-local` refuses any network listener, `zero-trust` refuses TLS without client certificates, and a client CA on a TLS listener is refused (`packages/egress/test/egress.test.ts`). With a throwaway site CA, a client without the CA fails the handshake and a phone that trusts it pairs and delivers (`plugins/device-link/test/tls.test.ts`).
+- **Process port:** a policy refuses relative paths, undeclared bindings, unbound required processes and variables the plugin owns. A child gets only the platform basics, its configured variables and its secrets, with nothing from the host. A pin mismatch is refused before start. Starts, exits and refusals are audited, and abort and close stop the process tree (`plugins/process/test/process.test.ts`, `packages/kernel/test/processes.test.ts`). Not shown: the agent harness launches still spawn directly; the Bun platform has no secret store, so processes that declare secrets are unavailable there; no Windows run of tree termination.
 - **Exports:** the seven rule formats match golden files.
 - **Sandbox binary:** its audit chain verifies with no egress.
 
@@ -220,8 +237,11 @@ The web frame on a tablet-sized viewport (`tests/e2e/compact-shell.pw.ts`, Chrom
 
 - Browser landing: a landing URL with exactly one `os` or `os-shortcut` parameter becomes a request (`packages/shell/test/desktop.test.ts`), and the host serves that one cross-site navigation as a page while it refuses other cross-site requests, other paths, extra parameters, frames and fetches (`plugins/os/test/os.test.ts`).
 - Browser, Chromium (`examples/project-tasks/e2e/os.pw.ts`): the served web manifest carries the protocol and file handlers; a `?os=` landing with a task link opens that task's project, shows where it came from and clears the address; a submitted Markdown file shows the prefilled task with its provenance, and adding it creates the task; an uploaded image shows its attachment in the prefill, and the added task links to bytes the page can download.
+- Mobile, with Bun bindings for the device (`plugins/os/test/mobile.test.ts`): a fixture application on the mobile authority with the OS plugin holds a launch link until the frame subscribes, then delivers later links and files. A `content:` text file without an extension matches by its media type and is read once. An undeclared type is never read, and another app's scheme and an unreadable note show nothing. A PDF is staged in the blob store and prefills the form with its reference, and one over the limit is not read. A declared open action runs through the device. Without the OS plugin nothing attaches.
+- Native frame (`packages/frame-native/test/os-deliveries.test.ts`): a delivery opens the declared screen, the screen the resource resolver names, or the form that binds the prepared command, and a target no screen declares opens nothing.
+- Native registrations (`apps/mobile/test/entry.test.ts`): `mobile:prepare` writes the scheme, intent filters, associated domains and document types from the OS declarations and the configured link hosts into `native.json`, and passes the OS plugin settings in the entry. Association files for verified links come from `scripts/os-associations.ts`, which refuses a malformed team id or certificate fingerprint and an application without verified links (`packages/shell/test/associations.test.ts`).
 
-**Not shown.** Nothing has been registered with, received from or performed through a real OS: the Electron wiring (`apps/desktop/src/os-shell.ts`) has no native run, and a macOS link or file reaches it only from a packaged bundle. No installed web app has registered the protocol or file handlers, the launch queue path has not run in a browser, and whether a Chromium version accepts the SVG icon for installation is not checked. `runOsAction` has no caller yet. No mobile adapter exists.
+**Not shown.** Nothing has been registered with, received from or performed through a real OS: the Electron wiring (`apps/desktop/src/os-shell.ts`) has no native run, and a macOS link or file reaches it only from a packaged bundle. No installed web app has registered the protocol or file handlers, the launch queue path has not run in a browser, and whether a Chromium version accepts the SVG icon for installation is not checked. `runOsAction` has no caller yet. The Expo bindings (`packages/mobile/src/expo/os-shell.ts`) have not run on a device or simulator, so no Android intent filter, iOS associated domain or document type has been registered, and no exported association file has been served from a real domain. On Android a `content:` name is often opaque, so such a file matches only by its media type. Staged uploads are lost on restart. No example targets mobile with the OS plugin.
 
 ### Layers and scaffold
 

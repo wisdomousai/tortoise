@@ -1,4 +1,5 @@
-import type { Extractor, ExtractionField, FieldValue, Frame, ModelIdentity } from './ports';
+import { clampConfidence, type FieldValue, type Reading } from '@agent-native/observation';
+import type { Extractor, ExtractionField, Frame } from './ports';
 import {
   findNode,
   type Condition,
@@ -7,16 +8,7 @@ import {
   resolveBinding,
 } from './profile';
 
-/** A field value with the provenance every consumer needs to judge it. */
-export interface Reading {
-  readonly field: string;
-  readonly value: FieldValue;
-  readonly confidence: number;
-  readonly extractor: string;
-  readonly model?: ModelIdentity;
-  readonly observedAt: number;
-  readonly frameDigest: string;
-}
+export type { Reading } from '@agent-native/observation';
 export interface View {
   readonly frame: Frame;
   /** Identified screen, or undefined when no screen of the profile matches (popup, vendor dialog). */
@@ -82,9 +74,10 @@ export function createPerception(profile: StationProfile, extractors: readonly E
         readings.set(raw.field, {
           field: raw.field,
           value: raw.value,
-          confidence: Math.min(1, Math.max(0, raw.confidence)),
+          confidence: clampConfidence(raw.confidence),
           extractor: extractor.id,
           ...(extractor.model ? { model: extractor.model } : {}),
+          ...(extractor.device ? { device: extractor.device } : {}),
           observedAt: frame.capturedAt,
           frameDigest: frame.digest,
         });
@@ -141,21 +134,4 @@ export function evaluate(
   return { met: unmet.length === 0 && unknown.length === 0, unmet, unknown };
 }
 
-/**
- * Counts agreeing consecutive reads per field. A value is stable once `required` reads in a row
- * agree; a different value restarts the count. Pure, so observer behavior is testable.
- */
-export class StabilityGate {
-  private readonly runs = new Map<string, { key: string; count: number }>();
-  push(field: string, value: FieldValue, required: number): boolean {
-    const key = JSON.stringify(value);
-    const run = this.runs.get(field);
-    const count = run && run.key === key ? run.count + 1 : 1;
-    this.runs.set(field, { key, count });
-    return count >= required;
-  }
-  /** Forget fields that are no longer visible, so a screen change restarts their count. */
-  retain(visible: ReadonlySet<string>): void {
-    for (const field of this.runs.keys()) if (!visible.has(field)) this.runs.delete(field);
-  }
-}
+export { StabilityGate } from '@agent-native/observation';

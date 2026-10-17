@@ -9,7 +9,10 @@ import type {
 } from '@agent-native/contracts';
 import type { Effect, EffectOutcome, EffectRequest } from './types/effects.js';
 
+import type { StateVersions } from './types/state-versions.js';
+
 export type * from './types/effects.js';
+export type * from './types/state-versions.js';
 
 export interface DelegationGrant {
   readonly operations: readonly string[];
@@ -82,6 +85,8 @@ export interface WorkspaceSnapshot<State> {
    * gone. A subscriber whose cursor is older gets a reset instead of a partial history.
    */
   journalFloor?: number;
+  /** The version of each state slice; see `StateUpgrade`. Absent for state never versioned. */
+  stateVersions?: StateVersions;
 }
 /** A successful callback atomically commits all fields. Rejected callbacks commit nothing. */
 export interface Storage<State> {

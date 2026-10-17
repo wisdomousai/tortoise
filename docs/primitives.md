@@ -101,6 +101,12 @@ _The port for the authority's transactional state._
 
 implemented · `packages/runtime` `packages/adapters`
 
+### State migration
+
+_Numbered versions of an application's and each plugin's state, with the steps between them, stamped per workspace and applied to a checked copy before it replaces the database._
+
+implemented · `packages/kernel/src/migrations.ts` `packages/kernel/src/state-upgrade.ts` `packages/host/src/cli/migrate-command.ts`
+
 ### Blob store
 
 _Content-addressed bytes, such as photos and documents, that commands reference from resources._
@@ -215,19 +221,25 @@ implemented · `packages/devices` `plugins/intent-scanner`
 
 _A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or reply, and where its requests go._
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `plugins/compliance` `apps/desktop` `examples/project-tasks`
+partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `packages/frame-native` `packages/mobile` `plugins/compliance` `apps/desktop` `apps/mobile` `examples/project-tasks`
 
 ### OS action
 
 _A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it carries._
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance` `packages/agents` `apps/desktop` `packages/frame`
+partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance` `packages/agents` `apps/desktop` `packages/frame` `packages/mobile`
 
 ### Shell port
 
 _The kernel port that receives OS requests and performs OS actions; its default refuses both._
 
-partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell` `plugins/os` `apps/desktop`
+partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell` `packages/mobile` `plugins/os` `apps/desktop` `apps/mobile`
+
+### Process port
+
+_The kernel port that starts declared child processes from the site policy's bindings; its default refuses._
+
+partial · `packages/kernel` `packages/egress` `packages/host` `plugins/process`
 
 ### UI registry
 
@@ -283,13 +295,13 @@ partial · `packages/contracts` `packages/integration` `examples/crm-capture`
 
 _A reading from a source that cannot be queried, submitted through an ingest command._
 
-implemented · `packages/station`
+implemented · `packages/observation` `packages/station`
 
 ### Gated actuator
 
 _Lets a model propose screen actions while deterministic code executes and verifies them._
 
-implemented · `packages/station`
+implemented · `packages/station` `packages/integration`
 
 ### Reconciliation
 

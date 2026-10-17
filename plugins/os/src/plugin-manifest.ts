@@ -1,4 +1,4 @@
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
+import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
 
 /**
  * The browser-safe part of the OS plugin: its launcher settings. It adds no module; the handlers
@@ -7,6 +7,8 @@ import { definePluginManifest } from '@agent-native/host/plugin-manifest';
 export const osPluginManifest = definePluginManifest({
   id: 'os',
   title: 'OS integration',
+  // Portable: the desktop and web adapters reach it over HTTP, the mobile one in-process.
+  platforms: ['bun', 'android', 'ios'],
   settings: [
     {
       key: 'os-scheme',

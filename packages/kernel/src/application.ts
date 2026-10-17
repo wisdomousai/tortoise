@@ -12,6 +12,7 @@ import type { TargetIntegration } from '@agent-native/integration';
 import type { ApplicationManifest } from './manifest';
 import { deploymentComponents } from './components';
 import type { AnyHostPlugin, NetworkPort, ProcessPort } from './plugin';
+import { checkMigrations, type StateMigrations } from './migrations';
 import {
   checkPlugins,
   composeAuthorization,
@@ -32,8 +33,22 @@ export interface ApplicationDefinition<State, Services = unknown> {
   readonly manifest: ApplicationManifest;
   /** Fresh workspace state; `ownerId` is the local owner principal. */
   readonly createState: (ownerId: string) => State;
-  /** Upgrade persisted state from earlier versions. Defaults to keeping the stored value. */
+  /**
+   * Versions of the application's own state and the steps between them. Storage stamps each
+   * workspace with the version it holds; see `stateUpgrade` and the `migrate` command.
+   */
+  readonly migrations?: StateMigrations;
+  /**
+   * Unversioned normalization of persisted state, run on every load after the migrations, such
+   * as filling a field older workspaces lack. Defaults to keeping the stored value.
+   */
   readonly upgradeState?: (state: unknown, ownerId: string) => State;
+  /**
+   * The version of the effect payloads its handlers enqueue. Each effect records it, so a pending
+   * effect keeps the version it was recorded under across an upgrade and its target can map it.
+   * It also enters every idempotency fingerprint, so a retry across a change is not a replay.
+   */
+  readonly contractVersion?: string;
   readonly handlers: readonly HandlerContribution<State, Services>[];
   /** Composed policy; every operation, row and event is authorized through it. */
   readonly authorization: AuthorizationPort<State>;
@@ -101,6 +116,10 @@ export function defineApplication<State, Services = unknown>(
 ): ApplicationDefinition<State, Services> {
   const plugins = definition.plugins ?? [];
   checkPlugins(definition.manifest.plugins ?? [], plugins);
+  if (definition.migrations) checkMigrations('Application', definition.migrations);
+  for (const plugin of plugins)
+    if (plugin.state?.migrations)
+      checkMigrations(`Plugin ${plugin.manifest.id}`, plugin.state.migrations);
   const operations = new Set(
     definition.manifest.modules.flatMap((module: CapabilityModule) =>
       module.capabilities.map((capability) => capability.id),
@@ -156,6 +175,7 @@ export function createApplicationRuntime(
     services: options.services ?? definition.services ?? {},
     ...(definition.sources ? { sources: definition.sources } : {}),
     ...(options.now ? { now: options.now } : {}),
+    ...(definition.contractVersion ? { contractVersion: definition.contractVersion } : {}),
     ...(options.newEffectId ? { newEffectId: options.newEffectId } : {}),
     ...(options.eventLog ? { eventLog: options.eventLog } : {}),
     ...(options.blobStore ? { blobStore: options.blobStore } : {}),

@@ -1,5 +1,10 @@
 import { assertJson } from '@agent-native/contracts';
-import type { ChangeEvent, WorkspaceSnapshot } from '@agent-native/runtime';
+import type {
+  ChangeEvent,
+  StateUpgrade,
+  StateVersions,
+  WorkspaceSnapshot,
+} from '@agent-native/runtime';
 import { recordFrom, rowKinds, stateFrom, type Rows } from './rows';
 import type { SqlRowsDriver } from './schema';
 
@@ -35,7 +40,7 @@ export function loadRows<State>(
   workspaceId: string,
   meta: Meta | null,
   initialState: () => State,
-  upgrade?: (state: unknown) => State,
+  upgrade?: StateUpgrade<State>,
 ): Loaded<State> {
   const rows = emptyRows();
   for (const row of driver.all<{ kind: string; key: string; value: string }>(
@@ -49,9 +54,17 @@ export function loadRows<State>(
       workspaceId,
     )
     .map((row) => JSON.parse(row.value) as ChangeEvent);
-  const state = meta ? (stateFrom(rows.get('state')!) as State) : structuredClone(initialState());
+  const stored = meta ? (stateFrom(rows.get('state')!) as State) : structuredClone(initialState());
+  const versions = rows.get('version')!.size
+    ? (recordFrom(rows.get('version')) as StateVersions)
+    : undefined;
+  const upgraded = !upgrade
+    ? { state: stored, versions }
+    : meta
+      ? upgrade.upgrade(stored, versions)
+      : { state: stored, versions: upgrade.versions };
   const snapshot: WorkspaceSnapshot<State> = {
-    state: meta && upgrade ? upgrade(state) : state,
+    state: upgraded.state,
     cursor: meta?.cursor ?? 0,
     authorizationRevision: meta?.authorization_revision ?? 0,
     resourceRevisions: recordFrom(rows.get('revision')),
@@ -60,6 +73,7 @@ export function loadRows<State>(
     effects: recordFrom(rows.get('effect')),
     blobs: recordFrom(rows.get('blob')),
     ...(meta?.journal_floor ? { journalFloor: meta.journal_floor } : {}),
+    ...(upgraded.versions ? { stateVersions: upgraded.versions } : {}),
   };
   assertJson(snapshot);
   return { snapshot, rows, generation: meta?.generation ?? 0 };

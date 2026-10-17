@@ -1,11 +1,18 @@
 import type { WorkspaceSnapshot } from '@agent-native/runtime';
 
 /** The row kinds one workspace is stored as; the journal has its own table. */
-export type RowKind = 'state' | 'revision' | 'receipt' | 'effect' | 'blob';
+export type RowKind = 'state' | 'revision' | 'receipt' | 'effect' | 'blob' | 'version';
 /** Serialized rows by kind, then by key; values are JSON text. */
 export type Rows = Map<RowKind, Map<string, string>>;
 
-export const rowKinds: readonly RowKind[] = ['state', 'revision', 'receipt', 'effect', 'blob'];
+export const rowKinds: readonly RowKind[] = [
+  'state',
+  'revision',
+  'receipt',
+  'effect',
+  'blob',
+  'version',
+];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -36,6 +43,7 @@ export function rowsOf<State>(snapshot: WorkspaceSnapshot<State>, depth: number)
   keyed('receipt', snapshot.receipts);
   keyed('effect', snapshot.effects);
   keyed('blob', snapshot.blobs);
+  keyed('version', snapshot.stateVersions);
   return rows;
 }
 

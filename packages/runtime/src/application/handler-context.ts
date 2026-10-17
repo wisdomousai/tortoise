@@ -80,6 +80,9 @@ function outboxMethods<State, Services>(
           operation,
           principalId: context.principalId,
           createdAt: kernel.now(),
+          ...(kernel.options.contractVersion === undefined
+            ? {}
+            : { contractVersion: kernel.options.contractVersion }),
           ...(scope.input === undefined ? {} : { input: scope.input as JsonValue }),
         }),
       );

@@ -8,6 +8,7 @@ Layer: framework (`packages/*`). The mobile starter in `apps/mobile` renders `Na
 
 - [Native frame](../../docs/primitives.md#native-frame): `NativeFrame`, `useNativeScreens`, `useFrameNavigation`, `SessionProvider`, `useSession`, `NativeSession`, `RAIL_WIDTH`.
 - [Application](../../docs/primitives.md#application): `defineNativeScreens`, `nativeScreenForCapability` and the `NativeApplicationScreens`, `NativeScreenRoute` and `NativeNavigationItem` types, the native screens entrypoint of an application that targets mobile.
+- [OS handler](../../docs/primitives.md#os-handler): `OsDeliveries`, `OsDeliverySource`, `applyOsDelivery`, `usePreparedInput`, `PreparedInput`, `useShownProvenance`, `OsProvenanceNotice`, `ShownProvenance`, and `NativeApplicationScreens.resources`, the screen that shows each selectable resource kind.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginNativeScreens`, `PluginNativeScreens`; `defineNativeScreens({ plugins })` merges a plugin's screens, tabs and capability screens before its checks.
 - [UI registry](../../docs/primitives.md#ui-registry): the `agent-native-native` registry in [`registry.json`](registry.json): `native-theme`, `hold-button` (with `useHold`), `status-pill` (`StatusPill`, `Signal`) and `list-row` (`ListRow`).
 
@@ -19,6 +20,8 @@ Layer: framework (`packages/*`). The mobile starter in `apps/mobile` renders `Na
 | `@agent-native/frame-native/plugin-screens` | any host     | `definePluginNativeScreens`, `PluginNativeScreens`.                                              |
 | `@agent-native/frame-native/frame`          | React Native | `NativeFrame`, `useNativeScreens`, `useFrameNavigation`, `RAIL_WIDTH`.                           |
 | `@agent-native/frame-native/session`        | React Native | `SessionProvider`, `useSession`, `NativeSession`.                                                |
+| `@agent-native/frame-native/os-deliveries`  | React Native | `OsDeliveries`, `applyOsDelivery`, `usePreparedInput`, `useShownProvenance`.                     |
+| `@agent-native/frame-native/os-provenance`  | React Native | `OsProvenanceNotice`, `ShownProvenance`.                                                         |
 | `@agent-native/frame-native/components/*`   | React Native | Registry components: `hold-button`, `status-pill`, `list-row`.                                   |
 | `@agent-native/frame-native/theme.css`      | build time   | The native theme: signal colors for light and dark appearance, glove target and text sizes.      |
 
@@ -36,11 +39,13 @@ Build the registry with `bun run build:registry:native` (output in `dist/registr
 
 The frame imports no application and no plugin; the starter passes the screens in from its generated entry. It does not open the authority, choose the principal or hold credentials: it renders whatever the transport it receives allows. The starter may also pass the authority's plugin services, which screens read from `useSession().services`; a plugin's screen uses only its own plugin's service, such as pairing, and that service still writes through commands. `defineNativeScreens` fails at definition time on a duplicate path, a tab declared twice, a home that is not a tab, or a navigation or capability target that no screen declares, checked over the application's and its plugins' screens together.
 
-`check:boundaries` treats `src/` as portable: no Node or Bun import or global. The React Native files are type-checked by `tsconfig.native.json` only; the root project checks `screens.ts` and `plugin-screens.ts`.
+With an `os` source, `NativeFrame` applies each OS delivery once navigation is ready: it opens the screen `screens.resources` names for a resource, a declared screen, or the screen bound to a prepared command with the prefill held for `usePreparedInput`. A target no screen declares opens nothing. The provenance notice shows where the delivery came from, as text, until the person dismisses it; nothing submits on its own, so a prefill is committed only when the person confirms the form.
+
+`check:boundaries` treats `src/` as portable: no Node or Bun import or global. The React Native files are type-checked by `tsconfig.native.json` only; the root project checks `screens.ts`, `plugin-screens.ts` and `os-deliveries.tsx`.
 
 ## Dependencies
 
-Framework: `@agent-native/client`, `@agent-native/react` (its `query` module). External: `react`, `react-native`, `react-native-safe-area-context`, `@react-navigation/native`, `@react-navigation/bottom-tabs`, `@react-navigation/native-stack`, `@tanstack/react-query`, `uniwind`, `lucide-react-native`.
+Framework: `@agent-native/client`, `@agent-native/react` (its `query` module), `@agent-native/contracts` (types), `@agent-native/shell` (`provenance`). External: `react`, `react-native`, `react-native-safe-area-context`, `@react-navigation/native`, `@react-navigation/bottom-tabs`, `@react-navigation/native-stack`, `@tanstack/react-query`, `uniwind`, `lucide-react-native`.
 
 ## Tests
 
@@ -50,4 +55,4 @@ bun run typecheck
 bun run check:mobile-bundle
 ```
 
-`test/screens.test.ts` covers plugin merging, the longest-prefix capability lookup and each definition-time refusal. The frame and the components have no render tests; `typecheck` checks them against React Native's and Uniwind's types, and `check:mobile-bundle` bundles them with the starter's fixture application through Metro and Uniwind. They have not run on a device.
+`test/os-deliveries.test.ts` covers a delivery opening a declared screen, a resource's screen or a prepared command's form, and the refusal of a target no screen declares. `test/screens.test.ts` covers plugin merging, the longest-prefix capability lookup and each definition-time refusal. The frame and the components have no render tests; `typecheck` checks them against React Native's and Uniwind's types, and `check:mobile-bundle` bundles them with the starter's fixture application through Metro and Uniwind. They have not run on a device.

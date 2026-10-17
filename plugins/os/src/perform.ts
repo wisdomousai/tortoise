@@ -4,7 +4,7 @@ import type {
   OsInstruction,
   OsRefusal,
 } from '@agent-native/contracts';
-import type { ShellAdapter } from '@agent-native/host/plugin';
+import type { ShellAdapter } from '@agent-native/kernel/plugin';
 import type { ExecutionContext } from '@agent-native/runtime';
 import { buildInstruction, OsActionError } from '@agent-native/shell';
 import type { OsAudit } from './audit';

@@ -1,5 +1,5 @@
 import { assertJson } from '@agent-native/contracts';
-import type { Storage, WorkspaceSnapshot } from '@agent-native/runtime';
+import type { StateUpgrade, Storage, WorkspaceSnapshot } from '@agent-native/runtime';
 import { emptyRows, loadRows, readMeta, type Loaded } from './row-storage/load';
 import { persistRows, type WriteStats } from './row-storage/persist';
 import { openSchema, type SqlRowsDriver } from './row-storage/schema';
@@ -22,7 +22,7 @@ export interface Retention {
 }
 export interface RowStorageOptions<State> {
   /** See `SnapshotStorage`: maps a state written by an earlier version on load. */
-  readonly upgrade?: (state: unknown) => State;
+  readonly upgrade?: StateUpgrade<State>;
   /** Object levels of feature state stored as separate rows; 3 is slice, collection, record. */
   readonly depth?: number;
   readonly retention?: Retention;
@@ -161,6 +161,14 @@ export class RowStorage<State> implements Storage<State> {
    */
   backup(path: string): Promise<void> {
     return this.serialize(async () => this.driver.run('VACUUM INTO ?', path));
+  }
+  /** Every workspace that has committed in this database, in identifier order. */
+  workspaces(): Promise<string[]> {
+    return this.serialize(async () =>
+      this.driver
+        .all<{ workspace_id: string }>('SELECT workspace_id FROM workspace_meta ORDER BY 1')
+        .map((row) => row.workspace_id),
+    );
   }
   /** Close after every queued read and transaction has settled. */
   async close(): Promise<void> {

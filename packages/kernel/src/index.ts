@@ -68,3 +68,11 @@ export {
   type ProcessPort,
   type ProcessSpawnOptions,
 } from './processes';
+export {
+  checkMigrations,
+  currentVersion,
+  migrateSlice,
+  type MigrationStep,
+  type StateMigrations,
+} from './migrations';
+export { stateUpgrade } from './state-upgrade';

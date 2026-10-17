@@ -20,6 +20,8 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 | `@agent-native/os/plugin`          | server only        | `osPlugin` and `createOsPlugin`.                                                 |
 | `@agent-native/os/*`               | server only        | One source file: `open`, `receive`, `perform`, `declarations` or `audit`.        |
 
+The plugin runs on the Bun host, Android and iOS. On a device the adapter attaches in-process through `connectMobileShell` in `@agent-native/mobile`, and the mobile starter passes `os-scheme` and `os-link-hosts` from its generated entry.
+
 The scheme comes from the application identity: the desktop shell and the starter service pass `appId`'s scheme (or `app.config.json`'s `scheme`) as `os-scheme`. Without it, no scheme link matches.
 
 ## Trust boundary
@@ -34,7 +36,7 @@ Reveal and open-file actions need a root directory setting, which no plugin decl
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/shell`, `@agent-native/host/plugin` and `/plugin-manifest`, and `@agent-native/runtime` types. External: `@noble/hashes` for the digest.
+Framework: `@agent-native/contracts`, `@agent-native/shell`, `@agent-native/kernel/plugin` and `/plugin-manifest`, and `@agent-native/runtime` types. Its tests also use `@agent-native/mobile` and `@agent-native/adapters`. External: `@noble/hashes` for the digest.
 
 ## Tests
 
@@ -42,4 +44,4 @@ Framework: `@agent-native/contracts`, `@agent-native/shell`, `@agent-native/host
 bun test plugins/os
 ```
 
-`test/os.test.ts` uses a fixture notes application served over HTTP. It covers the shell API answering 503 without the plugin; a link and a text file delivered to the submitting session only, with no content in the log; an unreadable resource refused when queued; refusal reasons for unknown, malformed, disabled and rate-limited requests; an open action returned to a page and relayed to an adapter that only its own session can answer; and startup refused for an unserved kind or an unknown disabled id.
+`test/os.test.ts` uses a fixture notes application served over HTTP. It covers the shell API answering 503 without the plugin; a link and a text file delivered to the submitting session only, with no content in the log; an unreadable resource refused when queued; refusal reasons for unknown, malformed, disabled and rate-limited requests; an open action returned to a page and relayed to an adapter that only its own session can answer; and startup refused for an unserved kind or an unknown disabled id. `test/mobile.test.ts` runs a fixture application on the mobile authority with Bun bindings for the device: a launch link held until the frame subscribes, a `content:` text file matched by media type, undeclared types never read, an unreadable resource not shown, a PDF staged in the blob store as a form's reference, an open action run through the device, and nothing attached without the plugin.

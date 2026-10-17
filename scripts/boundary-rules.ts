@@ -6,7 +6,7 @@
  * resolved-path rule in `hostSourcePath`, so no plugin is named here.
  */
 export const forbiddenBrowserImport =
-  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|egress)(?:\/|$)|@agent-native\/station(?!\/requirements$)(?:\/|$)|@agent-native\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
+  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|egress|observation)(?:\/|$)|@agent-native\/station(?!\/requirements$)(?:\/|$)|@agent-native\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
 /**
  * Every plugin in `plugins/*` follows one layout: `plugin-manifest`, `plugin-screens`,
  * `contracts` and the `ui/` and `components/` folders are browser code, at the package root or
@@ -18,7 +18,7 @@ export const pluginBrowserSource =
 export const pluginBrowserEntry = /^(?:plugin-manifest|plugin-screens|contracts)$/;
 /** Resolved source paths of server-only framework and plugin packages. */
 export const hostSourcePath =
-  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|egress)[\\/]src[\\/]|station[\\/]src[\\/](?!requirements\.ts$)|(?:host|kernel)[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?plugins[\\/][^\\/]+[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
+  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|egress|observation)[\\/]src[\\/]|station[\\/]src[\\/](?!requirements\.ts$)|(?:host|kernel)[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?plugins[\\/][^\\/]+[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
 
 /**
  * Framework libraries the kernel (`packages/kernel`) and the Bun host (`packages/host`) must not

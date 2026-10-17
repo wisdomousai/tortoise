@@ -127,6 +127,12 @@ describe('file request building', () => {
       name: 'a.txt',
       text: 'milk',
     });
+    expect(await fileRequest(noteHandler, '42', bytes('milk'), upload, 'text/plain')).toEqual({
+      kind: 'file',
+      name: '42',
+      text: 'milk',
+      mediaType: 'text/plain',
+    });
     expect(await fileRequest(noteHandler, 'a.txt', new Uint8Array([0xff]), upload)).toBeUndefined();
     expect(await fileRequest(noteHandler, 'a.txt', bytes('x'.repeat(65)), upload)).toBeUndefined();
     expect(uploads).toEqual([]);

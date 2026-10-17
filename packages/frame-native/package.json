@@ -9,6 +9,8 @@
     "./plugin-screens": "./src/plugin-screens.ts",
     "./frame": "./src/frame.tsx",
     "./session": "./src/session.tsx",
+    "./os-deliveries": "./src/os-deliveries.tsx",
+    "./os-provenance": "./src/os-provenance.tsx",
     "./components/*": "./src/components/*.tsx",
     "./theme.css": "./src/styles/theme.css"
   }

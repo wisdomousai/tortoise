@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/observation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Server-only observation of sources that cannot be queried: readings with provenance, a stability gate and an observer that submits through a domain ingest command.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

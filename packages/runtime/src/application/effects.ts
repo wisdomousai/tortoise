@@ -85,6 +85,7 @@ export function enqueuedEffect(
     operation: string;
     principalId: string;
     createdAt: number;
+    contractVersion?: string;
     input?: JsonValue;
   },
 ): Effect {
@@ -97,6 +98,7 @@ export function enqueuedEffect(
     operation: meta.operation,
     principalId: meta.principalId,
     createdAt: meta.createdAt,
+    ...(meta.contractVersion === undefined ? {} : { contractVersion: meta.contractVersion }),
     status: 'pending',
     attempts: 0,
     ...(meta.input === undefined ? {} : { input: structuredClone(meta.input) }),

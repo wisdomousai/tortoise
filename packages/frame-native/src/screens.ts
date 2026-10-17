@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { PluginNativeScreens } from './plugin-screens';
+import type { NativeSession } from './session';
 
 /**
  * One screen of the native frame. `path` names it the way the web frame names a route (`/captures`,
@@ -33,6 +34,22 @@ export interface NativeApplicationScreens {
   readonly navigation: readonly NativeNavigationItem[];
   /** Capability id prefixes and the screen that binds them; the longest matching prefix wins. */
   readonly capabilityScreens?: readonly { readonly prefix: string; readonly to: string }[];
+  /**
+   * The screen that shows each selectable resource kind, for an OS link that opens
+   * `kind:id`. A kind without an entry cannot be opened that way. It may read through the
+   * session, for example a task's project; the screen must be one this declares.
+   */
+  readonly resources?: Readonly<
+    Record<
+      string,
+      (
+        id: string,
+        session: NativeSession,
+      ) =>
+        | { readonly to: string; readonly params?: Record<string, unknown> }
+        | Promise<{ readonly to: string; readonly params?: Record<string, unknown> }>
+    >
+  >;
   /** Rendered above every screen, for example synchronization state. */
   readonly status?: ComponentType;
   /** Screens of the plugins the manifest lists. `defineNativeScreens` merges them into the above. */

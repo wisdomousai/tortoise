@@ -4,6 +4,7 @@
  * frame into readings, and a `ComputerUseDriver` may help find targets. None of them write
  * application state; observations and outcomes return through catalog commands.
  */
+import type { Extractor as ObservationExtractor } from '@agent-native/observation';
 
 /** Screen rectangle in transport pixels (CSS pixels for browser transports). */
 export interface Region {
@@ -61,21 +62,8 @@ export interface ScreenTransport {
   localInputSince?(since: number, signal: AbortSignal): Promise<boolean>;
 }
 
-export type FieldValue = string | number | boolean | null;
+export type { FieldValue, ModelIdentity, RawReading } from '@agent-native/observation';
 
-/** What one extractor read for one field in one frame, before stability gating. */
-export interface RawReading {
-  readonly field: string;
-  readonly value: FieldValue;
-  /** 0–1. Deterministic sources report 1; model confidence is calibrated against golden frames. */
-  readonly confidence: number;
-}
-/** The model behind an extractor, recorded with every reading it produces. */
-export interface ModelIdentity {
-  readonly id: string;
-  readonly version?: string;
-  readonly digest?: string;
-}
 export interface ExtractionField {
   readonly id: string;
   readonly type: 'number' | 'text' | 'enum' | 'boolean';
@@ -89,19 +77,14 @@ export interface ExtractionField {
 
 /**
  * Turns a frame into readings for the requested fields: accessibility lookup, OCR, a vision
- * model, a classifier or an audio model. Must not throw for a field it cannot read; it omits the
- * field or returns `null` with low confidence. Throws only when the extractor itself is unusable.
+ * model, a classifier or an audio model. The observation package's extractor, over screen
+ * captures and screen fields.
  */
-export interface Extractor {
-  readonly id: string;
-  readonly modality: 'accessibility' | 'ocr' | 'vision' | 'classifier' | 'audio' | 'fixture';
-  readonly model?: ModelIdentity;
-  extract(
-    frame: Frame,
-    fields: readonly ExtractionField[],
-    signal: AbortSignal,
-  ): Promise<readonly RawReading[]>;
-}
+export type Extractor = ObservationExtractor<
+  Frame,
+  ExtractionField,
+  'accessibility' | 'ocr' | 'vision' | 'classifier' | 'audio' | 'fixture'
+>;
 
 /** A target a procedure step names: an accessibility locator, a fixed region or a description. */
 export type StepTarget =

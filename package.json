@@ -80,6 +80,7 @@
     "@agent-native/managed-config": "workspace:*",
     "@agent-native/mobile": "workspace:*",
     "@agent-native/network": "workspace:*",
+    "@agent-native/observation": "workspace:*",
     "@agent-native/process": "workspace:*",
     "@agent-native/operator-ui": "workspace:*",
     "@agent-native/os": "workspace:*",
