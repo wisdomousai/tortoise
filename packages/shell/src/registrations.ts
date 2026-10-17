@@ -68,21 +68,35 @@ function androidIntentFilters(
         mimeType,
       })),
     });
-  for (const intent of of(os, 'intent'))
-    filters.push({
-      action: intent.action,
-      category: intent.categories?.length ? intent.categories : ['DEFAULT'],
-      ...(intent.data
-        ? {
-            data: [
-              Object.fromEntries(
-                Object.entries(intent.data).filter(([, value]) => value !== undefined),
-              ) as Record<string, string>,
-            ],
-          }
-        : {}),
-    });
   return filters;
+}
+
+/**
+ * The framework's intent filter config plugin for the intent handlers, which writes their
+ * actions and categories with the names declared. Expo's `android.intentFilters` cannot carry
+ * them: it prefixes every name with `android.intent.action.` or `android.intent.category.`.
+ */
+function intentFiltersPlugin(
+  os: CatalogOs | undefined,
+): [string, Record<string, unknown>] | undefined {
+  const intents = of(os, 'intent');
+  if (!intents.length) return undefined;
+  return [
+    '@agent-native/mobile/intent-filters',
+    {
+      filters: intents.map((intent) => ({
+        action: intent.action,
+        categories: intent.categories ?? [],
+        ...(intent.data
+          ? {
+              data: Object.fromEntries(
+                Object.entries(intent.data).filter(([, value]) => value !== undefined),
+              ),
+            }
+          : {}),
+      })),
+    },
+  ];
 }
 
 /** The type identifier for a file type: declared, the plain-text system type, or one under the app id. */
@@ -181,8 +195,8 @@ function notificationsPlugin(
 
 /**
  * Expo app configuration for the OS handlers: the scheme, Android intent filters for verified
- * links, opened files and custom intents, iOS associated domains and document types, and the
- * config plugins that register shares and notifications.
+ * links and opened files, iOS associated domains and document types, and the config plugins
+ * that register shares, notifications and the application's own intent actions.
  * `mobile:prepare` writes it into `apps/mobile/generated/native.json`.
  */
 export function nativeOsConfig(
@@ -200,7 +214,9 @@ export function nativeOsConfig(
         : [],
       infoPlist: iosDocumentTypes(os, identity.appId) as Record<string, unknown>,
     },
-    plugins: [sharePlugin(os), notificationsPlugin(os)].filter((plugin) => plugin !== undefined),
+    plugins: [sharePlugin(os), notificationsPlugin(os), intentFiltersPlugin(os)].filter(
+      (plugin) => plugin !== undefined,
+    ),
   };
 }
 

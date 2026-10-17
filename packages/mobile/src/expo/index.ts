@@ -30,3 +30,4 @@ export { expoSqlDriver } from './sql-driver';
 export { defineBackgroundDelivery, followAppState } from './lifecycle';
 export { pluginNativeModule } from './native-module';
 export { expoOsBindings } from './os-shell';
+export { expoIntentBindings, osIntentsModuleName, type OsIntentsNativeModule } from './os-intents';

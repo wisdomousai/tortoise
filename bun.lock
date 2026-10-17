@@ -7,6 +7,7 @@
       "dependencies": {
         "@agent-native/adapters": "workspace:*",
         "@agent-native/agents": "workspace:*",
+        "@agent-native/android-intents": "workspace:*",
         "@agent-native/audit": "workspace:*",
         "@agent-native/automation": "workspace:*",
         "@agent-native/bundle": "workspace:*",
@@ -241,6 +242,10 @@
       "name": "@agent-native/testing",
       "version": "0.1.0",
     },
+    "plugins/android-intents": {
+      "name": "@agent-native/android-intents",
+      "version": "0.1.0",
+    },
     "plugins/audit": {
       "name": "@agent-native/audit",
       "version": "0.1.0",
@@ -315,6 +320,8 @@
     "@agent-native/adapters": ["@agent-native/adapters@workspace:packages/adapters"],
 
     "@agent-native/agents": ["@agent-native/agents@workspace:packages/agents"],
+
+    "@agent-native/android-intents": ["@agent-native/android-intents@workspace:plugins/android-intents"],
 
     "@agent-native/audit": ["@agent-native/audit@workspace:plugins/audit"],
 

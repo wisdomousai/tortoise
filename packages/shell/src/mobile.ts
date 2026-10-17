@@ -7,6 +7,7 @@ import type {
   RawOsRequest,
 } from '@agent-native/contracts';
 import { openActionFor } from './actions';
+import { intentListening, intentRequest, intentToStart, type AndroidIntent } from './intents';
 import { fileHandlerFor, fileRequest, type BlobUpload } from './local-files';
 import { replyRequest, shellNotification, type ShellNotification } from './notifications';
 import { maxSharedItems, shareFileRequest, shareHandlerFor } from './shares';
@@ -54,6 +55,8 @@ export interface MobileShellDependencies {
    * actions are refused.
    */
   readonly notify?: (notification: ShellNotification) => Promise<void>;
+  /** Start an explicit activity intent on Android; absent, intent actions are refused. */
+  readonly startIntent?: (intent: AndroidIntent) => Promise<void>;
   readonly report?: (message: string) => void;
 }
 
@@ -81,7 +84,8 @@ export function mobileInput(
 /**
  * Run one instruction on the device. An open is checked against the declared open actions again
  * before the OS sees it, a share shows the system share sheet with what the declaration allowed,
- * and a notification is shown with its buttons.
+ * a notification is shown with its buttons, and an intent is checked against the declared intent
+ * actions again and started in the declared package only.
  */
 async function performOnDevice(
   dependencies: MobileShellDependencies,
@@ -98,6 +102,12 @@ async function performOnDevice(
   }
   if (instruction.kind === 'notify' && dependencies.notify) {
     await dependencies.notify(shellNotification(instruction));
+    return { ok: true };
+  }
+  if (instruction.kind === 'intent' && dependencies.startIntent) {
+    const intent = intentToStart(dependencies.declarations(), instruction);
+    if (!intent) return { ok: false, detail: 'not a declared intent action' };
+    await dependencies.startIntent(intent);
     return { ok: true };
   }
   if (instruction.kind !== 'open')
@@ -172,8 +182,19 @@ export function createMobileShell(dependencies: MobileShellDependencies) {
       }
     },
     /**
-     * Perform an instruction the shell port built: a share, a notification or a declared open;
-     * reveal and open-file have no meaning on a phone.
+     * An activity intent the OS delivered, as the device reports it. Only the actions of the
+     * declared intent handlers are submitted. Never rejects.
+     */
+    async intent(record: unknown) {
+      const request = intentRequest(record, intentListening(dependencies.declarations()));
+      if (!request) return report('The intent is not one the application declares');
+      await submit(request).catch(() => report('OS request failed'));
+    },
+    /** The intents the device should pass on: the declared intent handlers' actions and extras. */
+    intentListening: () => intentListening(dependencies.declarations()),
+    /**
+     * Perform an instruction the shell port built: a share, a notification, a declared open or
+     * an explicit intent; reveal and open-file have no meaning on a phone.
      */
     perform: (instruction: OsInstruction) => performOnDevice(dependencies, instruction),
     /**

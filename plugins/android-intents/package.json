@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/android-intents",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Android intents host plugin: serves intent handlers and intent actions for the OS plugin, with the native module that receives activity intents and starts explicit ones.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

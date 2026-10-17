@@ -169,6 +169,35 @@ describe('OS declarations', () => {
     expect(() => catalogOf([reply], [{ ...notify, offline: 'drop' } as OsAction])).toThrow('queue');
   });
 
+  test('intent actions name their package, and extras are flat values', () => {
+    const intent = {
+      id: 'task.print',
+      kind: 'intent',
+      description: 'Print a task.',
+      action: 'com.example.print.action.PRINT',
+      package: 'com.example.print',
+      extras: jsonSchema(z.strictObject({ copies: z.number().int() })),
+      dataClasses: ['task-title'],
+    } as OsAction;
+    expect(catalogOf([], [intent]).os?.actions[0]?.id).toBe('task.print');
+    expect(() => catalogOf([], [{ ...intent, package: '' } as OsAction])).toThrow(
+      'must name the package it starts',
+    );
+    const nested = jsonSchema(z.strictObject({ page: z.strictObject({ n: z.number() }) }));
+    expect(() => catalogOf([], [{ ...intent, extras: nested } as OsAction])).toThrow(
+      'extra page, which is not a string, number or boolean',
+    );
+    const handler: OsHandler = {
+      id: 'task.from-intent',
+      kind: 'intent',
+      description: 'A task another app asks for.',
+      action: 'dev.example.tasks.action.CREATE',
+      extras: nested,
+      target: { prepare: 'task.create', input: {} },
+    };
+    expect(() => catalogOf([handler])).toThrow('extra page');
+  });
+
   test('template and path syntax', () => {
     expect(templatePlaceholders('task:{taskId}')).toEqual(['taskId']);
     expect(() => templatePlaceholders('{a')).toThrow('Malformed');

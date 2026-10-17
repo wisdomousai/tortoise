@@ -5,6 +5,7 @@ import { Linking, Platform, Share } from 'react-native';
 import type { MobileShare } from '@agent-native/shell/mobile';
 import type { ShellNotification } from '@agent-native/shell/notifications';
 import type { MobileOsBindings } from '../os';
+import { expoIntentBindings } from './os-intents';
 
 /**
  * A file the OS handed the app. On Android a `content:` URI's name is its last path segment,
@@ -93,8 +94,9 @@ function replies(listener: (buttons: unknown, button: string) => void) {
 }
 
 /**
- * The device's link, file, share and notification calls through React Native's `Linking` and
- * `Share`, Expo's file system, `expo-sharing` and `expo-notifications`. It sets the process's
+ * The device's link, file, share, notification and intent calls through React Native's `Linking`
+ * and `Share`, Expo's file system, `expo-sharing`, `expo-notifications` and, on Android when the
+ * build has it, the intent module (`expoIntentBindings`). It sets the process's
  * notification handler so a notification also shows while the app is in the foreground.
  * Links come from the launching intent or URL and each later one; a file is read once, after its
  * size is checked, and checked again after reading. Opening a URL goes through `Linking`, so the
@@ -146,6 +148,7 @@ export function expoOsBindings(
     },
     notify,
     replies,
+    ...expoIntentBindings(),
     report,
   };
 }

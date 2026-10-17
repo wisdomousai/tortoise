@@ -34,6 +34,7 @@
     "plugins/hub-link/src",
     "plugins/os/src",
     "plugins/notifications/src",
+    "plugins/android-intents/src",
     "plugins/share-target/src",
     "plugins/intent-scanner/src",
     "plugins/managed-config/src",

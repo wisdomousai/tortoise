@@ -4,7 +4,9 @@ import {
   createMobileShell,
   type MobileFileInfo,
   type MobileShare,
+  type MobileShell,
 } from '@agent-native/shell/mobile';
+import type { AndroidIntent, IntentListening } from '@agent-native/shell/intents';
 import type { ShellNotification } from '@agent-native/shell/notifications';
 import type { MobileAuthority } from './authority';
 
@@ -31,6 +33,14 @@ export interface MobileOsBindings {
    * starting with the one that launched the app, until the returned function is called.
    */
   replies?(listener: (buttons: unknown, button: string) => void): () => void;
+  /**
+   * Each activity intent with an action in `listening` the OS hands the app, with only the
+   * extras listed for that action, starting with the one that launched it, until the returned
+   * function is called. Android only; absent, intent handlers receive nothing.
+   */
+  intents?(listening: IntentListening, listener: (record: unknown) => void): () => void;
+  /** Start an explicit activity intent; absent, intent actions are refused. */
+  startIntent?(intent: AndroidIntent): Promise<void>;
   report?(message: string): void;
 }
 
@@ -56,6 +66,22 @@ async function assertReadable(
     { operation, input: { id: rest.join(':') } },
     opened.context,
   );
+}
+
+/**
+ * Pass the device's intents to the shell. The device passes on only the declared intent actions
+ * and their extras; the shell port matches the rest. An Android build that declares intent
+ * handlers but lacks the native module says so.
+ */
+function listenForIntents(shell: MobileShell, bindings: MobileOsBindings) {
+  const listening = shell.intentListening();
+  if (!Object.keys(listening).length) return undefined;
+  if (!bindings.intents) {
+    if (bindings.platform === 'android')
+      bindings.report?.('This build cannot receive intents: it has no intent module');
+    return undefined;
+  }
+  return bindings.intents(listening, (record) => void shell.intent(record));
 }
 
 /**
@@ -107,6 +133,9 @@ export function connectMobileShell(
     ...(bindings.notify
       ? { notify: (notification: ShellNotification) => bindings.notify!(notification) }
       : {}),
+    ...(bindings.startIntent
+      ? { startIntent: (intent: AndroidIntent) => bindings.startIntent!(intent) }
+      : {}),
     ...(bindings.report ? { report: (message: string) => bindings.report!(message) } : {}),
   });
   let detach: (() => void) | undefined;
@@ -119,6 +148,7 @@ export function connectMobileShell(
   const unsubscribe = bindings.subscribe((uri) => void shell.receive(uri));
   // A reply is submitted as the device's owner; the notifications plugin checks its nonce.
   const unreplies = bindings.replies?.((buttons, button) => void shell.replied(buttons, button));
+  const unintents = listenForIntents(shell, bindings);
   void bindings
     .initialUri()
     .then((uri) => (uri ? shell.receive(uri) : undefined))
@@ -137,6 +167,7 @@ export function connectMobileShell(
     close() {
       unsubscribe();
       unreplies?.();
+      unintents?.();
       detach?.();
       listeners.clear();
     },

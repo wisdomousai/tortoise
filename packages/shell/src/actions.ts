@@ -130,7 +130,7 @@ export function buildInstruction(
         kind: 'intent',
         action: action.id,
         intent: action.action,
-        ...(action.package ? { package: action.package } : {}),
+        package: action.package,
         ...(action.extras
           ? { extras: parsed(action, action.extras, params) as JsonObject }
           : (parsed(action, undefined, params), {})),

@@ -40,6 +40,16 @@ export {
   type MobileShellDependencies,
 } from './mobile';
 export { maxSharedItems, shareFileRequest, shareHandlerFor } from './shares';
+export {
+  intentListening,
+  intentRequest,
+  intentToStart,
+  type AndroidExtra,
+  type AndroidExtraType,
+  type AndroidIntent,
+  type AndroidIntentRecord,
+  type IntentListening,
+} from './intents';
 export { replyRequest, shellNotification, type ShellNotification } from './notifications';
 export { describeProvenance } from './provenance';
 export { associationFiles, type AssociationIdentity } from './associations';

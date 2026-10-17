@@ -178,7 +178,7 @@ export type OsInstruction =
       readonly kind: 'intent';
       readonly action: string;
       readonly intent: string;
-      readonly package?: string;
+      readonly package: string;
       readonly extras?: JsonObject;
     };
 

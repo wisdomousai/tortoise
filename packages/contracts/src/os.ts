@@ -76,7 +76,7 @@ export interface OsIntentHandler extends OsHandlerBase {
   readonly action: string;
   readonly categories?: readonly string[];
   readonly data?: { readonly scheme?: string; readonly mimeType?: string };
-  /** Strict object of the extras the intent may carry. */
+  /** Strict object of the string, number and boolean extras the intent may carry. */
   readonly extras?: Schema;
   readonly target: OsTarget;
 }
@@ -145,10 +145,15 @@ export interface OsNotifyAction extends OsActionBase {
   readonly targets?: readonly string[];
   readonly offline: 'queue' | 'drop';
 }
+/**
+ * An explicit Android activity intent: the action and extras go only to the named package, so
+ * no other app that declares the same action can receive them.
+ */
 export interface OsIntentAction extends OsActionBase {
   readonly kind: 'intent';
   readonly action: string;
-  readonly package?: string;
+  readonly package: string;
+  /** Strict object of string, number and boolean extras the caller supplies. */
   readonly extras?: Schema;
 }
 export type OsAction =

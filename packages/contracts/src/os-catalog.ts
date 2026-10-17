@@ -35,6 +35,8 @@ const idPattern = /^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$/;
 const settingPattern = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const extensionPattern = /^[a-z0-9]{1,16}$/;
 const androidActionPattern = /^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$/;
+const androidPackagePattern = /^[a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
+const extraTypes = new Set(['string', 'number', 'integer', 'boolean']);
 const shareMediaPattern =
   /^(?:[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\/(?:\*|[a-z0-9][a-z0-9!#$&^_.+-]{0,126}))$/;
 const maxTextBytes = 1024 * 1024;
@@ -79,6 +81,14 @@ function checkTarget(
     if (!fields.includes(key))
       throw new Error(`${where} prefills ${key}, which is not an input field of ${target.prepare}`);
   checkTemplates(where, Object.values(target.input), names);
+}
+
+/** Android extras cross the bridge as flat values: each property a string, number or boolean. */
+function checkExtras(where: string, extras: Schema | undefined) {
+  const declared = (extras?.jsonSchema.properties as Record<string, JsonObject> | undefined) ?? {};
+  for (const [name, property] of Object.entries(declared))
+    if (typeof property.type !== 'string' || !extraTypes.has(property.type))
+      throw new Error(`${where} has extra ${name}, which is not a string, number or boolean`);
 }
 
 function checkMaxBytes(where: string, maxBytes: number, limit: number) {
@@ -134,6 +144,7 @@ function handlerFields(where: string, handler: OsHandler, claimed: Set<string>):
     case 'intent':
       if (!androidActionPattern.test(handler.action))
         throw new Error(`${where} has action ${handler.action}`);
+      checkExtras(where, handler.extras);
       claim(`intent action\0${handler.action}`);
       return [...properties(handler.extras), ...base];
     case 'shortcut':
@@ -198,7 +209,9 @@ function checkAction(
     case 'intent':
       if (!androidActionPattern.test(action.action))
         throw new Error(`${where} has action ${action.action}`);
-      return;
+      if (!androidPackagePattern.test(action.package))
+        throw new Error(`${where} must name the package it starts`);
+      return checkExtras(where, action.extras);
   }
 }
 
