@@ -6,7 +6,7 @@
  * `node_modules/@agent-native/<package>/skills/`. `check-skills` validates the skills in the checkout and
  * `skills-link` exposes all of them to Claude Code and Codex. Reads files only.
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 export const root = resolve(import.meta.dir, '..');
@@ -23,11 +23,11 @@ export interface Skill {
   readonly text: string;
 }
 
+// Follows symlinks: an installed package is often a link into the package manager's store.
 const subdirectories = (path: string) =>
   existsSync(path)
-    ? readdirSync(path, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => entry.name)
+    ? readdirSync(path)
+        .filter((name) => statSync(join(path, name), { throwIfNoEntry: false })?.isDirectory())
         .sort()
     : [];
 

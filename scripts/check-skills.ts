@@ -44,7 +44,7 @@ const packageScripts = (path: string) =>
   Object.keys((JSON.parse(readFileSync(path, 'utf8')) as { scripts?: object }).scripts ?? {});
 for (const script of packageScripts(join(root, 'package.json'))) scripts.add(script);
 for (const layer of layers)
-  for (const name of readdirSync(join(root, layer)))
+  for (const name of existsSync(join(root, layer)) ? readdirSync(join(root, layer)) : [])
     if (existsSync(join(root, layer, name, 'package.json')))
       for (const script of packageScripts(join(root, layer, name, 'package.json')))
         scripts.add(script);

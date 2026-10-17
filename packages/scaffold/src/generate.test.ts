@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'bun:test';
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { addWorkspace } from './content';
@@ -250,6 +250,13 @@ acceptance(
       await run(['bun', 'install', '--ignore-scripts']);
       await rm(join(target, 'node_modules'), { recursive: true, force: true });
       await run(['bun', 'install', '--frozen-lockfile', '--ignore-scripts']);
+      // The framework's skills arrive in the installed packages and link from there.
+      await run(['bun', 'run', 'skills:link']);
+      expect(
+        await realpath(join(target, '.claude/skills/build-screens')).then((path) =>
+          path.endsWith('node_modules/@agent-native/frame/skills/build-screens'),
+        ),
+      ).toBe(true);
       await run(['bun', 'run', 'scaffold', 'add', 'target', 'ledger', '--collection', 'note']);
       await run(['bun', 'run', 'format']);
       await run(['bun', 'run', 'check']);
