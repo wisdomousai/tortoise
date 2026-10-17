@@ -6,8 +6,8 @@ Layer: framework (`packages/*`). Server only, except `requirements`. Domain-neut
 
 ## Primitives
 
-- [Observation](../../docs/primitives.md#observation): `createStationObserver`, `StabilityGate`, `Reading`, `ModelIdentity`, `stationBridgeComponent`.
-- [Gated actuator](../../docs/primitives.md#gated-actuator): `ComputerUseDriver`, `ScreenTransport`, `BridgeControl`, `createScriptedDriver`, `createPlaywrightTransport`.
+- [Observation](../../docs/primitives.md#observation): `createStationObserver`, `stationBridgeComponent`. The readings, the stability gate and the observer loop come from `@agent-native/observation`; `StabilityGate`, `Reading`, `ModelIdentity` and the other reading types are re-exported, and `Extractor` is its extractor over screen captures.
+- [Gated actuator](../../docs/primitives.md#gated-actuator): `ComputerUseDriver`, `ScreenTransport`, `BridgeControl`, `createScriptedDriver`, `createPlaywrightTransport`. The controller's delivery order, stable confirmation, interruption rule and lookup come from the convergent delivery in `@agent-native/integration`; the screen gate (bridge mode, seat, expected screen, forbidden regions, step budget) stays here.
 - [Connector](../../docs/primitives.md#connector): `createStationConnector` implements the system-of-record port for a screen.
 - [Profile](../../docs/primitives.md#profile): `StationProfile`, `stationProfileSchema`, `validateProfile`, `parseProfile`.
 - [Golden check](../../docs/primitives.md#golden-check): `runGolden`, `GoldenReport`.
@@ -22,7 +22,7 @@ The [operator workstation pattern](../../docs/operator-workstation-pattern.md) e
 | `@agent-native/station/*`            | see below          | One source file, for example `@agent-native/station/perception/worker`.                                       |
 | `@agent-native/station/requirements` | browser and server | `stationBridgeComponent`: vision endpoints and the perception worker as declared requirements. Loads nothing. |
 
-`controller` and `profile` compose parts that are imported only from inside the package. `src/controller/` holds the shared kernel (perception, clock, stable confirmation and this process's attempt memory), the safety gate (bridge state and forbidden zones), payload and precondition checks before delivery, the step runner with its per-action guard, and lookup. `src/profile/` holds `$input` bindings, region geometry and profile validation; `profile` re-exports them, so existing imports are unchanged.
+`controller` and `profile` compose parts that are imported only from inside the package. `src/controller/` holds the shared kernel (perception, clock and this process's attempt memory, over the integration package's convergent reads), the safety gate (bridge state and forbidden zones), payload and precondition checks before delivery, the step runner with its per-action guard, and lookup. `src/profile/` holds `$input` bindings, region geometry and profile validation; `profile` re-exports them, so existing imports are unchanged.
 
 Extractors: `createAccessibilityExtractor` (accessibility tree), `createWorkerExtractor` (a JSON-lines worker process for OCR, classifiers or local models; it receives a `start` that returns a `WorkerProcess`, so the host's process port, not this package, starts it), `createOpenAiCompatibleVisionExtractor` (a local OpenAI-compatible vision endpoint) and `createFixtureExtractor` (replays recorded readings in CI). The Playwright transport is typed structurally, so this package does not depend on Playwright.
 

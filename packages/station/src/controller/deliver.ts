@@ -1,5 +1,5 @@
 import type { Effect, EffectOutcome } from '@agent-native/runtime';
-import { DeliveryFailure } from '@agent-native/integration';
+import { DeliveryFailure, deliverConvergent } from '@agent-native/integration';
 import { resolveBinding, type Procedure } from '../profile';
 import { accepted, confirm, observe, rejected, type ControllerKernel } from './kernel';
 import { runProcedure } from './procedure';
@@ -34,35 +34,24 @@ export async function deliver(
   const problem = payloadProblem(procedure, input);
   if (problem) return problem;
 
-  kernel.attempted.add(effect.id);
+  kernel.attempts.attempt(effect.id);
   const blocked = blockedBy(await kernel.options.control(signal), procedure);
   if (blocked) throw new DeliveryFailure(blocked);
 
-  const converged = await confirm(
-    kernel,
-    procedure.readback,
-    input,
-    await observe(kernel, signal),
+  return deliverConvergent(
+    {
+      title: procedure.title,
+      observe: (inner) => observe(kernel, inner),
+      converged: (first, inner) => confirm(kernel, procedure.readback, input, first, inner),
+      accepted,
+      notReady: (view) =>
+        view.screen === procedure.startScreen
+          ? undefined
+          : `Station shows ${view.screen ?? 'an unknown screen'}; ${procedure.title} starts on ${procedure.startScreen}`,
+      preconditions: (first, inner) =>
+        confirm(kernel, procedure.preconditions, input, first, inner),
+      act: (view, inner) => runProcedure(kernel, effect, procedure, view, inner),
+    },
     signal,
   );
-  if (converged.met) return accepted(converged.view);
-  if (converged.view.screen !== procedure.startScreen)
-    throw new DeliveryFailure(
-      `Station shows ${converged.view.screen ?? 'an unknown screen'}; ${procedure.title} starts on ${procedure.startScreen}`,
-    );
-  const preconditions = await confirm(
-    kernel,
-    procedure.preconditions,
-    input,
-    converged.view,
-    signal,
-  );
-  if (preconditions.unknown.length)
-    throw new DeliveryFailure(`Cannot read ${preconditions.unknown.join(', ')} with confidence`);
-  if (preconditions.unmet.length)
-    return rejected(
-      'PRECONDITION',
-      `${procedure.title} not possible: ${preconditions.unmet.join('; ')}`,
-    );
-  return runProcedure(kernel, effect, procedure, preconditions.view, signal);
 }

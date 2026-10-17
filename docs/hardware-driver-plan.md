@@ -6,7 +6,7 @@ Status: draft for review. Branch `hardware-drivers`, worktree `.claude/worktrees
 
 Let an application control and observe hardware through code written in the language that suits the device: Python, C#/.NET (including COM automation), C++ or anything else that can speak a small protocol over stdio or a socket. The driver code runs as its own process. The application reaches it through the ports that already exist (outbox effect, connector, observation, remote query, input source), so catalog operations, handlers, screens, agents and generated artifacts keep working unchanged.
 
-The [edge applications guide](edge-applications.md#reaching-control-software) lists the automation-interface and local-RPC routes as not implemented. This plan implements them.
+The [operator workstation pattern](operator-workstation-pattern.md) names the automation-interface and local-RPC routes but implements only the screen route. This plan implements the other two.
 
 ## Design summary
 
@@ -147,6 +147,12 @@ Hardware is the second kind of source, which is the promotion trigger both entri
 - **No edits to `dispatcher/delivery.ts` or `target.ts`.** The convergent kernel is called from connectors, so neither file needs to change. If one turns out to, the edge-app-framework-roadmap session is told first.
 - **Gate:** the station and line-station suites pass unchanged, with no behavior change. Primitive entries are updated: Observation and Gated actuator, with their locations and gaps.
 
+**Status, 2026-10-17.** Done:
+
+- `packages/observation`: readings with model and device provenance, `StabilityGate`, `gateReadings` and `createObserver`. Payloads are hashed with `node:crypto`, so the package is server only.
+- `packages/integration/src/convergent/`: `deliverConvergent`, `lookupConvergent`, `confirm`, `waitFor`, `interruption` and `AttemptMemory`.
+- The station observer and controller call both. Its readings keep the field names `extractor` and `frameDigest`, so the line-station ingest payload is unchanged. The station and line-station suites pass unchanged.
+
 ### A3. Shared connector conformance and `plugins/connector-driver`
 
 The driver connector is a plugin, in line with the `framework-roadmap` D2 connector plugins (`connector-files`, `connector-http`, `connector-opcua`, `connector-mqtt`). Each of those is a `plugins/<name>` package on `SystemOfRecordPort`, and they share one conformance suite.
@@ -251,14 +257,11 @@ Domain contracts, drivers, simulators and screens live in the examples. Two appl
 
 ### B3. Documentation
 
-- `docs/edge-applications.md`: the automation-interface and local-RPC rows of the routes table, and the status table.
-- `docs/operator-workstation-pattern.md`: one paragraph on the automation route next to the screen route.
+- `docs/operator-workstation-pattern.md`: the intro sentence that lists the routes, and one paragraph on the automation route next to the screen route.
 - A new topic guide, `docs/hardware-drivers.md`: protocol, contract, delivery modes, routines, rates, safety position, deployment and SDK usage. This plan's content moves there.
-- `docs/primitives.md`:
-  - new entries for Driver contract, Driver process and Process port;
-  - updated entries for Observation, Gated actuator, Connector, Requirement declaration and Site policy.
+- `docs/primitives.md` is an index: a heading, a one-line definition and `<status> · <locations>`. New entries for Driver contract and Driver process; the Process port entry and the Observation and Gated actuator locations are in since phase 2. Connector, Requirement declaration and Site policy get new locations where they change.
 - `docs/implementation-status.md`: one entry per evidence tier.
-- READMEs for `plugins/connector-driver`, `plugins/process` and `packages/observation`, with the five required sections. Updates to `packages/station`, `packages/integration`, `packages/kernel` and both examples.
+- READMEs for `plugins/connector-driver`, saying what it is for, what it trusts and how to run its tests. Updates to `packages/station`, `packages/integration`, `packages/kernel` and both examples.
 
 ## Phases
 
@@ -299,7 +302,7 @@ Existing files this plan edits, after the owning branch has merged:
 | `packages/agents/src/process.ts`, `claude.ts`                                             | framework-roadmap touched agents      | Take the spawn function from the host; announced before the edit                                |
 | `packages/testing` (new conformance file only)                                            | shared                                | Shared `SystemOfRecordPort` conformance suite                                                   |
 | `scripts/boundary-rules.ts`                                                               | shared                                | Remove the migrated exemptions                                                                  |
-| `docs/edge-applications.md`, `docs/operator-workstation-pattern.md`                       | this plan                             | Routes and status tables, automation route paragraph                                            |
+| `docs/operator-workstation-pattern.md`                                                    | this plan                             | Routes sentence and automation route paragraph                                                  |
 | `docs/primitives.md`, `docs/implementation-status.md`, `docs/system-of-record-pattern.md` | shared with framework-roadmap         | Only this plan's own entries                                                                    |
 | `package.json`, `bun.lock`                                                                | root                                  | New workspaces only; regenerated after rebase, never hand-merged                                |
 
@@ -337,7 +340,7 @@ Recommended options first. Settled through coordination: observation goes to `pa
   - Delivery reliability is done and no further dispatcher changes are planned.
   - It handed over D1 (observation into `packages/observation`) and the convergent extraction, and stays out of `packages/station`.
   - Its D2 connector plugins share one conformance suite; the driver connector joins them as a plugin.
-  - `docs/edge-applications.md` and `docs/operator-workstation-pattern.md` are free. In the shared docs, only this plan's own entries change.
+  - `docs/edge-applications.md` (since removed) and `docs/operator-workstation-pattern.md` are free. In the shared docs, only this plan's own entries change.
 - **os-handlers-and-shell-port** (`os-hooks`):
   - The shell port spawns no processes and needs nothing from the process port.
   - It is not changing `HostPorts` or the lifecycle.
@@ -371,3 +374,5 @@ Recommended options first. Settled through coordination: observation goes to `pa
   `796c9bf` is still not included.
 
 - `hardware-drivers` moved to `framework-roadmap` `535ce62`, which merges mobile-host phase 5 (`796c9bf`), with check and e2e reported green. Phases 1 and 2 have what they need.
+- Phase 1 committed as `07fe98a` and merged into `framework-roadmap` at `fc6bbb3`, which also brings the guidance cleanup (`42fac14`): the docs freeze is lifted, `primitives.md` is an index, and `check:readmes` and `check:size` are reduced. `hardware-drivers` is rebased on `fc6bbb3`. mobile-asset-survey-showcase reported no conflict with its phase 6.
+- Phase 2 adds `packages/observation` and `packages/integration/src/convergent/` as new files; `dispatcher/delivery.ts` and `target.ts` are unchanged.

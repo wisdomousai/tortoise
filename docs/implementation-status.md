@@ -115,9 +115,10 @@ These run over in-memory fakes in `quality-inspection` and `crm-capture`. [Remot
 **Shown, deterministic.**
 
 - **Controller:** checks the expected screen before every click, type and key; requires the declared stable reads for preconditions, readback and lookup; holds the effect when a popup or takeover interrupts a procedure.
-- **Observer:** submits once per heartbeat window and keys each submission by its exact payload.
+- **Observer:** submits once per heartbeat window and keys each submission by its exact payload. The stability gate, readings and observer loop live in `packages/observation`, which carries driver device identity as provenance (`packages/observation/test/observation.test.ts`). The station suites pass unchanged on it.
+- **Convergent delivery:** acceptance without acting, the not-ready, precondition and act paths, the interruption rule and lookup, against a fake instrument (`packages/integration/test/convergent.test.ts`). The station controller passes its suites unchanged on it.
 - **Perception:**
-  - a perception worker becomes ready again after a restart;
+  - a perception worker becomes ready again after a restart. In line-station it is started through the process port from a site-policy binding;
   - vision requests never follow a redirect;
   - the golden gate passes on recorded expectations.
 - **Scanner kit:** decoding, check digits, layout repair, calibration, routing, and serial and HID assembly, including CR-only scanners and bracketed GS1.
@@ -155,6 +156,7 @@ The kit's interaction tests also pass.
   - identity floors are enforced at startup;
   - mTLS rejects a missing certificate and a foreign CA, using a throwaway PKI.
   - A `site-hub` policy serves over TLS without client certificates; `desktop-local` refuses any network listener, `zero-trust` refuses TLS without client certificates, and a client CA on a TLS listener is refused (`packages/egress/test/egress.test.ts`). With a throwaway site CA, a client without the CA fails the handshake and a phone that trusts it pairs and delivers (`plugins/device-link/test/tls.test.ts`).
+- **Process port:** a policy refuses relative paths, undeclared bindings, unbound required processes and variables the plugin owns. A child gets only the platform basics, its configured variables and its secrets, with nothing from the host. A pin mismatch is refused before start. Starts, exits and refusals are audited, and abort and close stop the process tree (`plugins/process/test/process.test.ts`, `packages/kernel/test/processes.test.ts`). Not shown: the agent harness launches still spawn directly; the Bun platform has no secret store, so processes that declare secrets are unavailable there; no Windows run of tree termination.
 - **Exports:** the seven rule formats match golden files.
 - **Sandbox binary:** its audit chain verifies with no egress.
 
