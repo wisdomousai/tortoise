@@ -301,9 +301,9 @@ A request reaches the frame as a delivery for the session that submitted it. The
 
 Guarantees: composition refuses duplicate ids, two handlers on one path shape, file extension or media type, a template naming a field the request does not carry, a prefill whose command has no UI binding or whose keys are not input fields, and payload limits outside 1 byte to 1 MiB of text or 256 MiB of blob. Matching accepts only the application's own scheme and configured verified hosts, validates parameters with the handler's schema, and refuses credentials, dot segments and encoded slashes. An unsolicited request never commits: it only opens a resource the caller may read (checked when queued and again when taken), navigates or prefills. Deliveries go only to the submitting session and expire after two minutes. Requests are audited by digest and reason code, never content. The security manifest lists every handler as local ingress.
 
-Gaps: no platform adapter submits requests yet, so nothing has been received from a real OS. Blob payloads, share, intent, shortcut and reply handlers wait for their plugins.
+Gaps: the desktop adapter submits links and text files, but nothing has been received from a real OS yet: macOS reads the scheme and document types only from a packaged bundle, and the Linux and Windows `dir` builds register no file types. No browser or mobile adapter exists. Blob payloads, share, intent, shortcut and reply handlers wait for their plugins.
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `plugins/compliance`
+partial · `packages/contracts` `packages/shell` `plugins/os` `packages/frame` `plugins/compliance` `apps/desktop` `examples/project-tasks`
 
 ### OS action
 
@@ -313,9 +313,11 @@ The outbound counterpart of an OS handler. An application can only ask the OS fo
 
 Guarantees: an open action is `https:`, `mailto:` or `tel:` with a fixed host and no credentials, query or fragment, and its placeholders must be declared parameters; values are encoded into their own path segment and the result must keep the declared host. A file path stays below a configured root. A notify action's replies must name declared reply handlers, and one that carries an outbox target must queue while offline. An action runs through the adapter attached for the caller, or returns to a page to run while it has user activation. The security manifest lists each action with its data classes; the audit log records only the URL's origin.
 
-Gaps: no adapter performs actions on a real OS yet; the desktop still opens the provider authorization page through its own check. No plugin declares the root directory settings that reveal and open-file need, and notify waits for its plugin.
+The desktop window opens a URL only when a declared open action builds it; the provider sign-in is the `openai.authorize` action of the OpenAI host component, so its whole rule is that action's parameter schema.
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance`
+Gaps: no action has been performed on a real OS yet. Without the OS plugin, the desktop opens a declared URL itself and nothing is audited. No plugin declares the root directory settings that reveal and open-file need, and notify waits for its plugin.
+
+partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/compliance` `packages/agents` `apps/desktop`
 
 ### Shell port
 
@@ -325,9 +327,11 @@ The kernel has no OS integration of its own. The OS plugin provides the port; th
 
 Guarantees: without a provider every call is `UNAVAILABLE`, and two providers refuse startup. A request is attributed to the submitting session and never sets the principal, workspace or grant. A relayed instruction can be answered only by the session that took it, counts as not performed after 30 seconds, and the relay detaches when its session is revoked or stops polling. Startup refuses a declared kind that no composed plugin serves.
 
-Gaps: the embedded authority has no shell routes. Only HTTP adapters can attach on the Bun host.
+The desktop shell adapter (`createDesktopShell`) holds the platform-neutral part: buffering until the authority is reachable, reading only declared text files, the relay loop and the open check. Electron main supplies the OS calls and the loopback client.
 
-partial · `packages/kernel` `packages/host` `packages/adapters` `plugins/os`
+Gaps: the embedded authority has no shell routes. Only HTTP adapters can attach on the Bun host. No browser or Expo adapter exists yet.
+
+partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell` `plugins/os` `apps/desktop`
 
 ### UI registry
 

@@ -150,8 +150,40 @@
   ],
   "flows": [],
   "os": {
-    "handlers": [],
-    "actions": []
+    "handlers": [
+      {
+        "id": "project.open",
+        "owner": "project-tasks",
+        "kind": "link",
+        "registers": "scheme /projects/:projectId",
+        "target": "open project"
+      },
+      {
+        "id": "task.from-text",
+        "owner": "project-tasks",
+        "kind": "file",
+        "registers": ".txt .md .markdown",
+        "target": "prepare task.create"
+      },
+      {
+        "id": "task.open",
+        "owner": "project-tasks",
+        "kind": "link",
+        "registers": "scheme /tasks/:taskId",
+        "target": "open task"
+      }
+    ],
+    "actions": [
+      {
+        "id": "openai.authorize",
+        "owner": "openai",
+        "kind": "open",
+        "reaches": "https://auth.openai.com/api/accounts/authorize",
+        "dataClasses": [
+          "oauth-authorization"
+        ]
+      }
+    ]
   },
   "summary": {
     "egress": 5,

@@ -91,3 +91,14 @@ A child may reach only the destinations listed here. Children launched with prox
 | `codex-app-server` | openai | `codex` | `openai-api` | Codex app-server harness under a delegated grant. |
 | `perception-worker` | station-bridge | `configured` | nothing | JSON-lines perception worker for local OCR, classifier or audio models. |
 | `station-bridge-browser` | station-browser | `chromium (Playwright)` | `station-screen` | Browser that reaches a web-based station HMI for the screen bridge. |
+
+## OS handlers and actions
+
+Handlers accept requests from any application or web page on the device; an unsolicited request only opens a screen or prefills a form that a person confirms. Actions hand data to another application.
+
+| Handler | Owner | Kind | Registers | Target |
+| --- | --- | --- | --- | --- |
+
+| Action | Owner | Kind | Reaches | Data classes |
+| --- | --- | --- | --- | --- |
+| `openai.authorize` | openai | open | https://auth.openai.com/api/accounts/authorize | oauth-authorization |

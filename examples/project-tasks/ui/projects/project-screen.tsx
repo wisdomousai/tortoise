@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { client, live } from '@/lib/session';
 import { useUiSession } from '@/lib/ui-session';
 import { AgentPanel } from './agent-panel';
+import { PreparedTask } from './prepared-task';
 import { ProjectAccess } from './project-access';
-import { message, useProjectId, type Project } from './shared';
+import { message, projectPath, taskProjectPath, useProjectId, type Project } from './shared';
 import { TaskGroup } from './task-group';
 
 /** One action at a time for the screen: `busy` while it runs, its failure as `error`. */
@@ -40,14 +41,14 @@ function useProjectSession(project: Project | undefined) {
     project ? { id: `project:${project.id}`, revision: project.revision } : undefined,
     async (resource) => {
       const [type, id] = resource.split(':');
-      const target =
+      const to =
         type === 'project' && id
-          ? id
+          ? projectPath(id)
           : type === 'task' && id
-            ? (await client.query(operations.taskGet, { id })).data.projectId
+            ? await taskProjectPath(id)
             : undefined;
-      if (!target) throw new Error('Unknown resource');
-      await navigate({ to: '/projects/$projectId', params: { projectId: target } });
+      if (!to) throw new Error('Unknown resource');
+      await navigate({ to });
     },
   );
 }
@@ -191,6 +192,7 @@ export function ProjectScreen() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+        <PreparedTask project={active} busy={busy} action={action} />
         {!active.archived && (
           <NewTaskForm title={taskName} onTitle={setTaskName} busy={busy} onSubmit={addTask} />
         )}

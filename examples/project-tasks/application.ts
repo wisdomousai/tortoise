@@ -3,6 +3,7 @@ import { defineApplication } from '@agent-native/host/application';
 import { auditPlugin } from '@agent-native/audit/plugin';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
+import { osPlugin } from '@agent-native/os/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
 import { webhookPlugin } from '@agent-native/webhook/plugin';
 import manifest from './manifest';
@@ -55,7 +56,7 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
     ]),
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { project: operations.projectGet.id, task: operations.taskGet.id },
-    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin, webhookPlugin],
+    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin, osPlugin, webhookPlugin],
   });
 }
 

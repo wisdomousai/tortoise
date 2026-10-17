@@ -68,3 +68,14 @@ A child may reach only the destinations listed here. Children launched with prox
 | --- | --- | --- | --- | --- |
 | `claude-code` | anthropic | `claude` | `anthropic-api` | Claude Code process driven by the Agent SDK. |
 | `codex-app-server` | openai | `codex` | `openai-api` | Codex app-server harness under a delegated grant. |
+
+## OS handlers and actions
+
+Handlers accept requests from any application or web page on the device; an unsolicited request only opens a screen or prefills a form that a person confirms. Actions hand data to another application.
+
+| Handler | Owner | Kind | Registers | Target |
+| --- | --- | --- | --- | --- |
+
+| Action | Owner | Kind | Reaches | Data classes |
+| --- | --- | --- | --- | --- |
+| `openai.authorize` | openai | open | https://auth.openai.com/api/accounts/authorize | oauth-authorization |

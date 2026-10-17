@@ -301,7 +301,17 @@
   ],
   "os": {
     "handlers": [],
-    "actions": []
+    "actions": [
+      {
+        "id": "openai.authorize",
+        "owner": "openai",
+        "kind": "open",
+        "reaches": "https://auth.openai.com/api/accounts/authorize",
+        "dataClasses": [
+          "oauth-authorization"
+        ]
+      }
+    ]
   },
   "summary": {
     "egress": 8,

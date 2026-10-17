@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import { projectTasksOs } from './os';
 
 const id = z.string().min(1).max(128);
 const role = z.enum(['owner', 'editor', 'viewer']);
@@ -181,5 +182,6 @@ export const projectTasksModule = defineModule({
       text: 'Create a project from the brief, add concrete tasks, inspect the scoped task list, and update each task status as work progresses.',
     },
   ],
+  os: projectTasksOs,
 });
 export { byId };
