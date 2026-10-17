@@ -143,6 +143,18 @@ Gaps: the SQLite adapter rewrites one JSON snapshot per commit, and the journal 
 
 implemented · `packages/runtime` `packages/adapters`
 
+### Blob store
+
+_Content-addressed bytes, such as photos and documents, that commands reference from resources._
+
+Photos and scanned pages are too large for a snapshot that is rewritten on every commit. A caller uploads the bytes first and gets back a reference (digest, size, media type). A command then attaches that reference to a resource it changes, in the same transaction as the change, and state, input and effect payloads carry only the reference. The workspace records which resources reference each blob. A caller may read a blob when it may read one of those resources, so a blob follows the policy of the records it belongs to. Commands declare the size and media types they accept, and an upload is refused unless an operation the caller may invoke would accept it. Connectors read the blobs attached to an effect's resource and upload them before delivering the record.
+
+Guarantees: an attachment commits with its command or not at all. Attaching needs the caller's own recent upload or read access to a resource that already references the blob, so learning a digest grants nothing; every refusal looks the same. Reads re-evaluate policy each time, so a revocation takes effect on the next read, and HTTP serves blobs sandboxed, unsniffed and uncached. Unreferenced blobs are removed after a grace period; a referenced blob is never removed. Uploads, reads and refusals are audited by digest.
+
+Gaps: bytes travel whole, not streamed. MCP and the CLI do not carry blobs. Staged uploads live in memory, so an upload must be attached before the authority restarts. A serving authority sweeps only when it opens. No mobile store exists yet.
+
+partial · `packages/contracts` `packages/runtime` `packages/adapters` `packages/client` `packages/kernel`
+
 ### Journal and live query
 
 _The ordered record of committed changes, and the client machinery that follows it._
@@ -189,7 +201,7 @@ implemented · `packages/kernel` `packages/host` `packages/frame`
 
 _What the kernel needs from the machine it runs on: workspace ownership, storage, the host's own components and its capabilities._
 
-The kernel opens an authority without any Node, Bun or React Native API. A platform supplies exclusive ownership of a workspace, the workspace's snapshot storage, the requirements the host itself adds to every deployment (the Bun host's listener and agent providers), an optional default listener, and the set of capabilities it has: raw sockets, child processes and ingress. The Bun host is one platform; the mobile host is another. Before plugins open, the kernel checks that the JavaScript host has the Web globals the runtime calls and installs the ones it can write in JavaScript.
+The kernel opens an authority without any Node, Bun or React Native API. A platform supplies exclusive ownership of a workspace, the workspace's snapshot storage and [blob store](#blob-store), the requirements the host itself adds to every deployment (the Bun host's listener and agent providers), an optional default listener, and the set of capabilities it has: raw sockets, child processes and ingress. The Bun host is one platform; the mobile host is another. Before plugins open, the kernel checks that the JavaScript host has the Web globals the runtime calls and installs the ones it can write in JavaScript.
 
 Guarantees: a deployment that declares a socket destination, an ingress destination or a child process refuses startup on a platform without the matching capability, naming the component that declared it. A missing global refuses startup before any state opens. The runtime, client, integration and kernel suites also run with the globals Hermes may lack removed and the kernel's replacements installed. `check:boundaries` keeps Node and Bun imports and globals out of the portable packages.
 

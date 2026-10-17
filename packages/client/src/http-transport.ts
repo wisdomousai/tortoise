@@ -1,5 +1,13 @@
 import { ApplicationError, type Catalog, type ErrorEnvelope } from '@agent-native/contracts';
-import type { ChangeBatch, CommandOptions, Receipt, Snapshot, Transport } from './types.js';
+import type {
+  BlobReference,
+  BlobTransport,
+  ChangeBatch,
+  CommandOptions,
+  Receipt,
+  Snapshot,
+  Transport,
+} from './types.js';
 
 /** Server-sent event frames of change batches; a frame over 1 MiB aborts the stream. */
 async function* readEventStream(
@@ -33,6 +41,50 @@ async function* readEventStream(
   }
 }
 
+/** The error envelope of a failed response, as an `ApplicationError`. */
+async function failure(response: Response): Promise<ApplicationError> {
+  // `details` is caller-safe structured context (for example the offending input field);
+  // keep it so forms can attach server validation to the right control.
+  const payload = (await response.json().catch(() => ({}))) as { error?: ErrorEnvelope };
+  return new ApplicationError(
+    payload.error?.code ?? 'INTERNAL',
+    payload.error?.message ?? `HTTP ${response.status}`,
+    payload.error?.details,
+  );
+}
+
+/** Blob upload and download over the same credentials as the other requests. */
+function httpBlobs(
+  request: typeof fetch,
+  base: string,
+  authorization: () => Record<string, string>,
+): BlobTransport {
+  return {
+    async put(data, mediaType, signal) {
+      const response = await request(`${base}/api/v1/blobs`, {
+        method: 'POST',
+        headers: { 'Content-Type': mediaType, ...authorization() },
+        credentials: 'same-origin',
+        body: data as Uint8Array<ArrayBuffer>,
+        signal,
+      });
+      if (!response.ok) throw await failure(response);
+      return (await response.json()) as BlobReference;
+    },
+    async get(digest, signal) {
+      const response = await request(`${base}/api/v1/blobs/${encodeURIComponent(digest)}`, {
+        headers: authorization(),
+        credentials: 'same-origin',
+        signal,
+      });
+      if (!response.ok) throw await failure(response);
+      const data = new Uint8Array(await response.arrayBuffer());
+      const mediaType = response.headers.get('content-type') ?? 'application/octet-stream';
+      return { ref: { digest, size: data.byteLength, mediaType }, data };
+    },
+  };
+}
+
 /** HTTP credentials are injected by the trusted process; browser clients use an HttpOnly cookie. */
 export function createHttpTransport(options: {
   baseUrl: string;
@@ -41,10 +93,9 @@ export function createHttpTransport(options: {
 }): Transport & { catalog(): Promise<Catalog> } {
   const request = options.fetch ?? fetch;
   const base = options.baseUrl.replace(/\/$/, '');
-  const headers = () => ({
-    'Content-Type': 'application/json',
-    ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
-  });
+  const authorization = (): Record<string, string> =>
+    options.token ? { Authorization: `Bearer ${options.token}` } : {};
+  const headers = () => ({ 'Content-Type': 'application/json', ...authorization() });
   async function json<T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
     const response = await request(`${base}${path}`, {
       method: body === undefined ? 'GET' : 'POST',
@@ -53,18 +104,8 @@ export function createHttpTransport(options: {
       body: body === undefined ? undefined : JSON.stringify(body),
       signal,
     });
-    const payload = await response.json();
-    if (!response.ok) {
-      // `details` is caller-safe structured context (for example the offending input field);
-      // keep it so forms can attach server validation to the right control.
-      const error = payload as { error?: ErrorEnvelope };
-      throw new ApplicationError(
-        error.error?.code ?? 'INTERNAL',
-        error.error?.message ?? `HTTP ${response.status}`,
-        error.error?.details,
-      );
-    }
-    return payload as T;
+    if (!response.ok) throw await failure(response);
+    return (await response.json()) as T;
   }
   return {
     catalog: () => json<Catalog>('/api/v1/contract'),
@@ -82,7 +123,7 @@ export function createHttpTransport(options: {
       ),
     async *events(cursor, signal) {
       const response = await request(`${base}/api/v1/events?cursor=${encodeURIComponent(cursor)}`, {
-        headers: options.token ? { Authorization: `Bearer ${options.token}` } : {},
+        headers: authorization(),
         credentials: 'same-origin',
         signal,
       });
@@ -90,5 +131,6 @@ export function createHttpTransport(options: {
         throw new ApplicationError('FORBIDDEN', 'Event stream unavailable');
       yield* readEventStream(response.body, signal);
     },
+    blobs: httpBlobs(request, base, authorization),
   };
 }

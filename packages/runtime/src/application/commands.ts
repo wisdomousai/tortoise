@@ -9,6 +9,7 @@ import type {
 } from '../types.js';
 import { sameState } from '../state-equality.js';
 import { actorOf, effectRecords, failureRecord } from './audit.js';
+import { applyBlobChanges } from './blob-references.js';
 import { auditAccepted, journalChanges, receiptOf, storeReceipt } from './command-commit.js';
 import { prepareCommand, type Command } from './command-request.js';
 import { grantCoversResource } from './delegation.js';
@@ -84,21 +85,34 @@ async function runHandler<State, Services>(
     query: false,
     changes: new Map(),
     touched: [],
+    blobs: [],
   };
   const output = await command.handler.handle(command.input, createHandlerContext(kernel, scope));
   // Outbox writes ride on a declared business change so subscribers observe the same commit.
   if (scope.touched.some((effect) => !scope.changes.has(effect.resource)))
     throw new ApplicationError('INTERNAL', 'Effects require a declared changed resource');
+  if (scope.blobs.some((change) => !scope.changes.has(change.resource)))
+    throw new ApplicationError('INTERNAL', 'Blob references require a declared changed resource');
   if (
     scope.changes.size === 0 &&
     snapshot.authorizationRevision === previousAuthorizationRevision &&
     !sameState(previousState, snapshot.state)
   )
     throw new ApplicationError('INTERNAL', 'State changes require a change-journal declaration');
-  return { output, previousState, changes: scope.changes, touched: scope.touched };
+  return {
+    output,
+    previousState,
+    changes: scope.changes,
+    touched: scope.touched,
+    blobs: scope.blobs,
+  };
 }
 
-/** The transaction body of a first execution: authorize, check, run, recheck, journal, audit. */
+/**
+ * The transaction body of a first execution: authorize, check, run, apply blob references,
+ * recheck, journal, audit. The commit-phase authorization comes after the blob checks, so the
+ * context is rechecked after their awaits.
+ */
 async function execute<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,
@@ -110,6 +124,7 @@ async function execute<State, Services>(
   await checkPreconditions(kernel, command, snapshot);
   const run = await runHandler(kernel, command, snapshot);
   const result = await project(kernel, capability, input, context, snapshot, run.output);
+  await applyBlobChanges(kernel, context, snapshot, run.blobs);
   await authorize(kernel, capability, input, context, snapshot, 'commit', run.previousState);
   kernel.guard.active(context, capability.id);
   const revisions = journalChanges(snapshot, run.changes, capability.id);

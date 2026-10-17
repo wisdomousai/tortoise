@@ -1,6 +1,7 @@
 import type {
   AnyCapability,
   AuditChannel,
+  BlobRef,
   InputOf,
   OutputOf,
   JsonValue,
@@ -86,6 +87,16 @@ export interface StoredReceipt {
   readonly principalId: string;
   readonly input: JsonValue;
 }
+/**
+ * A blob the workspace holds and the resources that reference it. A blob is readable by a caller
+ * who may read one of these resources, and it is kept while any resource references it.
+ */
+export interface BlobRecord {
+  readonly size: number;
+  readonly mediaType: string;
+  /** Sorted, without duplicates; never empty (the record is removed with its last reference). */
+  readonly resources: readonly string[];
+}
 /** Feature state is opaque to the kernel; repositories may wrap it without a universal record model. */
 export interface WorkspaceSnapshot<State> {
   state: State;
@@ -96,6 +107,8 @@ export interface WorkspaceSnapshot<State> {
   journal: ChangeEvent[];
   /** Transactional outbox. Storage adapters load documents without it as an empty record. */
   effects: Record<string, Effect>;
+  /** Blob references by digest. Storage adapters load documents without it as an empty record. */
+  blobs: Record<string, BlobRecord>;
 }
 /** A successful callback atomically commits all fields. Rejected callbacks commit nothing. */
 export interface Storage<State> {
@@ -131,6 +144,33 @@ export interface AuthorizationPort<State> {
     readonly context: ExecutionContext;
     readonly state: State;
   }): boolean | Promise<boolean>;
+  /**
+   * Whether the context may read a resource as it is now; it decides who may read the blobs
+   * attached to it. Defaults to `canReadEvent` with an event for the resource's current revision.
+   */
+  canReadResource?(request: {
+    readonly resource: string;
+    readonly context: ExecutionContext;
+    readonly state: State;
+  }): boolean | Promise<boolean>;
+}
+/** A stored blob's size and when it was stored or last stored again. */
+export interface StoredBlob {
+  readonly size: number;
+  readonly storedAt: number;
+}
+/**
+ * Content-addressed bytes for one workspace, kept outside the snapshot. The runtime computes each
+ * digest and decides what is referenced; a store only keeps bytes. `put` is atomic: a reader never
+ * sees a partial blob. Storing bytes that are already present refreshes `storedAt`, so a fresh
+ * upload is never swept. Trusted platform code; never reachable by callers directly.
+ */
+export interface BlobStore {
+  put(digest: string, data: Uint8Array): Promise<void>;
+  stat(digest: string): Promise<StoredBlob | undefined>;
+  get(digest: string): Promise<Uint8Array | undefined>;
+  remove(digest: string): Promise<void>;
+  list(): Promise<readonly string[]>;
 }
 export interface HandlerContext<State, Services> {
   readonly state: State;
@@ -157,6 +197,16 @@ export interface HandlerContext<State, Services> {
    */
   releaseEffect(id: string): Effect;
   /** Read outbox state, for example to summarize synchronization in a query. */
+  /**
+   * Reference a blob from a changed resource, in this command's transaction. The command must
+   * declare `blobs` limits the reference fits, and the resource must also be declared through
+   * `change`. At commit the blob must be in the store with this size, and the caller must have
+   * uploaded it recently or already be able to read a resource that references it; otherwise the
+   * command fails with INVALID_INPUT and nothing commits.
+   */
+  attach(resource: string, ref: BlobRef): void;
+  /** Drop a resource's reference to a blob; an unreferenced blob is later swept from the store. */
+  detach(resource: string, digest: string): void;
   effects(filter?: {
     readonly status?: Effect['status'];
     readonly target?: string;

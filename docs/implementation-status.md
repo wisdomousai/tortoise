@@ -34,6 +34,7 @@ On macOS arm64 with Bun 1.4.0.
 - Receipts, journal and outbox effects that commit atomically, and replay.
 - Memory and SQLite agree in conformance tests, including process death before and after commit, and a crash releasing the OS lock.
 - State that shares memory and JSON with sparse arrays are refused.
+- Blob references commit with their command; a rejected command leaves only the upload, which is swept after the grace period. Reads follow the referencing resource's policy, including grant scope and revocation. Attaching a known digest without an own upload or read access is refused. HTTP and direct transports upload and read blobs; HTTP responses are sandboxed. The file store writes atomically under the workspace; SQLite loads older documents without blob references.
 
 **Limits.** SQLite stores whole JSON snapshots, which suits small local workspaces. Journal and receipts are never pruned.
 

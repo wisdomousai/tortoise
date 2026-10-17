@@ -124,6 +124,27 @@ test('process death before commit rolls back, and death after commit retains rec
   }
 });
 
+test('blob references persist, and a document written before them loads with none', async () => {
+  const path = await mkdtemp(join(tmpdir(), 'agent-storage-'));
+  const storage = new SQLiteStorage(join(path, 'workspace.sqlite'), () => ({ count: 0 }));
+  try {
+    const digest = `sha256:${'c'.repeat(64)}`;
+    await storage.transact('w', async (snapshot) => {
+      snapshot.blobs[digest] = { size: 3, mediaType: 'image/jpeg', resources: ['capture:1'] };
+    });
+    expect(await storage.read('w', async (snapshot) => snapshot.blobs[digest]?.resources)).toEqual([
+      'capture:1',
+    ]);
+    await storage.transact('old', async (snapshot) => {
+      delete (snapshot as { blobs?: unknown }).blobs;
+    });
+    expect(await storage.read('old', async (snapshot) => snapshot.blobs)).toEqual({});
+  } finally {
+    await storage.close();
+    await rm(path, { recursive: true, force: true });
+  }
+});
+
 test('SQLite never exposes the initial-state factory result to a transaction', async () => {
   const seed = { count: 1 };
   const storage = new SQLiteStorage(':memory:', () => seed);

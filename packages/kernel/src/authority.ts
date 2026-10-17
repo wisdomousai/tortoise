@@ -38,10 +38,13 @@ export interface OpenAuthorityOptions {
  *    platform it does not run on) stops startup before the workspace is opened.
  * 2. Identity, when `admit` is given: a port that admits only a delegated grant must refuse the
  *    local owner before any state exists.
- * 3. Storage, then the runtime with the event-log port and the plugins' services.
+ * 3. Storage and the blob store, then the runtime with the event-log port and the plugins'
+ *    services.
  * 4. Every plugin's `ready` hook (attestation, crash recovery), before any integration pass or
  *    request, so no new command reuses a cursor a recovery compares against.
  * 5. The application's integrations, built but not started; the caller starts them.
+ * 6. A serving authority sweeps unreferenced blobs once. A failed sweep leaves them for the next
+ *    start and never removes a referenced blob, so it does not stop startup.
  *
  * On failure everything opened here is closed again, newest first; the caller still holds and
  * releases `ownership`. `close` stops integrations, then storage, then the plugins, so nothing
@@ -68,9 +71,11 @@ export async function openAuthority(
   try {
     if (options.admit) ports.identity.admit(options.admit.context);
     storage = platform.openStorage(definition, ownership);
+    const blobs = platform.openBlobs(ownership);
     const application = createApplicationRuntime(definition, {
       storage,
       hostComponents: platform.components,
+      blobStore: (workspaceId) => (workspaceId === LOCAL_WORKSPACE ? blobs : undefined),
       ...(ports.eventLog ? { eventLog: ports.eventLog } : {}),
       services: { ...(definition.services as object), ...plugins.services },
     });
@@ -83,6 +88,7 @@ export async function openAuthority(
       workspaceId: LOCAL_WORKSPACE,
       connections,
     });
+    if (options.serving) await application.sweepBlobs(LOCAL_WORKSPACE).catch(() => undefined);
     const opened = storage;
     let closed = false;
     return {

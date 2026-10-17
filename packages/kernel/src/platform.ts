@@ -1,5 +1,5 @@
 import type { CatalogRequirements, HostComponent } from '@agent-native/contracts';
-import type { Storage } from '@agent-native/runtime';
+import type { BlobStore, Storage } from '@agent-native/runtime';
 import type { AnyApplicationDefinition } from './application';
 import type { IngressPort } from './plugin';
 import type { PlatformId } from './plugin-manifest';
@@ -47,6 +47,8 @@ export interface HostPlatform {
     definition: AnyApplicationDefinition,
     ownership: PlatformOwnership,
   ): Storage<unknown> & { close(): Promise<void> };
+  /** The workspace's blob store, such as photos its commands attach. One store per workspace. */
+  openBlobs(ownership: PlatformOwnership): BlobStore;
 }
 
 /**

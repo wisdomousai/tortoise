@@ -7,6 +7,7 @@ Layer: framework (`packages/*`). Browser-safe.
 ## Primitives
 
 - [Journal and live query](../../docs/primitives.md#journal-and-live-query): `createClient`, `createHttpTransport`, `LiveQuery`, `Snapshot`, `Receipt`, `ChangeBatch`.
+- [Blob store](../../docs/primitives.md#blob-store): `Transport.blobs` (`BlobTransport`, `BlobReference`), which the HTTP transport implements over `/api/v1/blobs`.
 
 [State and reactivity](../../docs/state-and-reactivity.md) describes the snapshot-then-subscribe protocol.
 

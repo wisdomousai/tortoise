@@ -1,16 +1,27 @@
-import { createMemoryStorage, type Storage } from '@agent-native/runtime';
+import {
+  createMemoryBlobStore,
+  createMemoryStorage,
+  type BlobStore,
+  type Storage,
+} from '@agent-native/runtime';
 import type { HostPlatform, PlatformCapability, PlatformId } from '../src/platform';
 
 /**
  * A platform made of memory only, standing in for a phone in tests: ownership is a set of held
  * paths, and each workspace keeps one memory store across close and reopen, so a test can show
  * persistence without a file system. Storage opens and closes are recorded in `events`.
+ * `blobClock` dates stored blobs, so a test can store one that is already past the grace period.
  */
 export function fakePlatform(
-  options: { id?: PlatformId; capabilities?: readonly PlatformCapability[] } = {},
+  options: {
+    id?: PlatformId;
+    capabilities?: readonly PlatformCapability[];
+    blobClock?: () => number;
+  } = {},
 ) {
   const held = new Set<string>();
   const stores = new Map<string, Storage<unknown>>();
+  const blobStores = new Map<string, BlobStore>();
   const events: string[] = [];
   let instances = 0;
   const platform: HostPlatform = {
@@ -47,6 +58,15 @@ export function fakePlatform(
           events.push(`close storage ${path}`);
         },
       };
+    },
+    openBlobs(ownership) {
+      const path = ownership.canonicalPath;
+      let store = blobStores.get(path);
+      if (!store) {
+        store = createMemoryBlobStore(options.blobClock);
+        blobStores.set(path, store);
+      }
+      return store;
     },
   };
   return { platform, held, events };

@@ -1,6 +1,7 @@
 import { ApplicationError } from '@agent-native/contracts';
 import type { ExecutionContext, Invocation } from '@agent-native/runtime';
 import type { ApplicationPort } from '../http';
+import { downloadBlob, uploadBlob } from './blobs';
 import { parseRevisions, readJsonBody } from './body';
 import type { Cursors } from './cursors';
 import { eventStreamResponse } from './event-stream';
@@ -69,6 +70,11 @@ export async function routeAuthenticated(
     return jsonResponse(routes.application.discover(context));
   if (pathname === '/api/v1/events' && request.method === 'GET')
     return eventStreamResponse(routes, request, session, context);
+  if (pathname === '/api/v1/blobs' && request.method === 'POST')
+    return uploadBlob(routes.application, request, context);
+  const blob = pathname.match(/^\/api\/v1\/blobs\/([^/]+)$/);
+  if (blob && request.method === 'GET')
+    return downloadBlob(routes.application, decodeURIComponent(blob[1]!), context);
   const match = pathname.match(/^\/api\/v1\/(commands|queries)\/([^/]+)$/);
   if (match && request.method === 'POST')
     return invoke(routes, request, session, context, match[1]!, decodeURIComponent(match[2]!));

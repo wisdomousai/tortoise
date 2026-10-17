@@ -11,6 +11,7 @@ export function createWorkspaceSnapshot<State>(state: State): WorkspaceSnapshot<
     receipts: {},
     journal: [],
     effects: {},
+    blobs: {},
   };
 }
 

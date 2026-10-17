@@ -1,6 +1,7 @@
 import {
   createApplication,
   type AuthorizationPort,
+  type BlobStore,
   type ExecutionContext,
   type HandlerContribution,
   type RemoteSource,
@@ -140,6 +141,8 @@ export function createApplicationRuntime(
     /** Audit sink; the host passes the event-log port a plugin provides, if any. */
     eventLog?: EventLogPort;
     hostComponents?: readonly HostComponent[];
+    /** The blob store of each workspace; see `ApplicationOptions.blobStore`. */
+    blobStore?: (workspaceId: string) => BlobStore | undefined;
   },
 ) {
   return createApplication({
@@ -153,6 +156,7 @@ export function createApplicationRuntime(
     ...(options.now ? { now: options.now } : {}),
     ...(options.newEffectId ? { newEffectId: options.newEffectId } : {}),
     ...(options.eventLog ? { eventLog: options.eventLog } : {}),
+    ...(options.blobStore ? { blobStore: options.blobStore } : {}),
   });
 }
 export type HostedApplication = ReturnType<typeof createApplicationRuntime>;

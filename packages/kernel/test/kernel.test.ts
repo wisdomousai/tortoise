@@ -158,6 +158,35 @@ test('an authority opens on a platform without Node or Bun and keeps state acros
   await second.ownership.release();
 });
 
+test('a serving authority sweeps blobs nothing references once it is open', async () => {
+  let stored = Date.now() - 2 * 3_600_000;
+  const fake = fakePlatform({ blobClock: () => stored });
+  const ownership = await fake.platform.acquireOwnership('/workspace');
+  const blobs = fake.platform.openBlobs(ownership);
+  const old = `sha256:${'a'.repeat(64)}`;
+  await blobs.put(old, new Uint8Array([1]));
+  stored = Date.now();
+  const fresh = `sha256:${'b'.repeat(64)}`;
+  await blobs.put(fresh, new Uint8Array([2]));
+  const embedded = await openAuthority(application(), {
+    platform: fake.platform,
+    ownership,
+    component: 'embedded',
+    serving: false,
+  });
+  await embedded.close();
+  expect(await blobs.list()).toEqual([old, fresh]);
+  const serving = await openAuthority(application(), {
+    platform: fake.platform,
+    ownership,
+    component: 'authority',
+    serving: true,
+  });
+  expect(await blobs.list()).toEqual([fresh]);
+  await serving.close();
+  await ownership.release();
+});
+
 test('a plugin is refused on a platform it does not list; no platforms means Bun only', async () => {
   const calls: string[] = [];
   const android = fakePlatform({ id: 'android' });

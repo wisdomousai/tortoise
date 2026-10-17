@@ -41,6 +41,7 @@ function pure<State, Services, T>(
     query: true,
     changes: new Map(),
     touched: [],
+    blobs: [],
   });
   const result = fn(handlerContext);
   if (!sameState(snapshot.state, before))

@@ -8,6 +8,7 @@ import {
 } from '@agent-native/contracts';
 import type {
   AuthorizationPort,
+  BlobStore,
   ExecutionContext,
   HandlerContribution,
   Invocation,
@@ -17,6 +18,7 @@ import type {
 } from '../types.js';
 import { createAuditTrail } from './audit.js';
 import { createContextGuard } from './delegation.js';
+import { createUploads } from './uploads.js';
 
 export interface ApplicationOptions<State, Services, Modules extends readonly CapabilityModule[]> {
   readonly modules: Modules;
@@ -42,6 +44,17 @@ export interface ApplicationOptions<State, Services, Modules extends readonly Ca
   readonly sources?: Readonly<Record<string, RemoteSource>>;
   /** Longest wait for a source before a remote query reports it unavailable. Defaults to 10 s. */
   readonly remoteDeadlineMs?: number;
+  /**
+   * The blob store of a workspace. Each workspace needs its own store, because sweeping removes
+   * whatever that workspace does not reference. Without one, uploads and attaching fail with
+   * UNAVAILABLE.
+   */
+  readonly blobStore?: (workspaceId: string) => BlobStore | undefined;
+  /**
+   * How long an upload stays attachable by its uploader and safe from sweeping. Defaults to one
+   * hour.
+   */
+  readonly blobGraceMs?: number;
 }
 
 /** Pair each capability with exactly one handler that references that same capability object. */
@@ -67,8 +80,8 @@ function registerHandlers<State, Services>(
 }
 
 /**
- * Everything the runtime's parts share: the registry, the ports and the clocks. Built once per
- * application; it holds no per-request state.
+ * Everything the runtime's parts share: the registry, the ports, the clocks and recent uploads.
+ * Built once per application; it holds no per-request state.
  */
 export function createKernel<State, Services>(
   options: ApplicationOptions<State, Services, readonly CapabilityModule[]>,
@@ -90,6 +103,7 @@ export function createKernel<State, Services>(
     newEffectId: options.newEffectId ?? (() => crypto.randomUUID()),
     audit: createAuditTrail(options.eventLog),
     guard: createContextGuard(now),
+    uploads: createUploads(now, options.blobGraceMs ?? 3_600_000),
   };
 }
 export type Kernel<State, Services> = ReturnType<typeof createKernel<State, Services>>;

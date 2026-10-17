@@ -1,4 +1,4 @@
-import type { Catalog } from '@agent-native/contracts';
+import type { BlobRef, Catalog } from '@agent-native/contracts';
 import type {
   CommandReceipt,
   EventBatch,
@@ -18,6 +18,13 @@ export interface ApplicationPort {
     deliver: (batch: EventBatch) => void,
   ): Promise<void>;
   discover(context: ExecutionContext): Catalog;
+  /** Store an upload for the caller; absent when the host keeps no blobs. */
+  putBlob?(data: Uint8Array, mediaType: string, context: ExecutionContext): Promise<BlobRef>;
+  /** A blob the caller may read; NOT_FOUND otherwise. */
+  readBlob?(
+    digest: string,
+    context: ExecutionContext,
+  ): Promise<{ readonly ref: BlobRef; readonly data: Uint8Array }>;
 }
 
 /**

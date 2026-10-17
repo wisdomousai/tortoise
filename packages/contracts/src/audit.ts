@@ -98,6 +98,9 @@ export const auditEventKinds = {
   'posture.checked': 'A periodic security posture check completed.',
   'log.opened': 'An event log segment was opened or resumed.',
   'log.checkpoint': 'A checkpoint recorded the chain head.',
+  'blob.stored': 'A caller uploaded a blob into the workspace staging area.',
+  'blob.read': 'A caller read a blob through a resource it may read.',
+  'blob.denied': 'A blob upload or read was refused.',
 } as const;
 export type FrameworkAuditKind = keyof typeof auditEventKinds;
 

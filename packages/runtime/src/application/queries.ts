@@ -52,6 +52,7 @@ async function readQuery<State, Services>(
         query: true,
         changes: new Map(),
         touched: [],
+        blobs: [],
       }),
     );
     if (!sameState(snapshot.state, before))

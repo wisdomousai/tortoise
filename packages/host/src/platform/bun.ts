@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { SQLiteStorage } from '@agent-native/adapters/sqlite';
 import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
+import { createFileBlobStore } from '@agent-native/adapters/blob-files';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
 import { LOCAL_OWNER } from '@agent-native/kernel/authority';
 import type { HostPlatform } from '@agent-native/kernel/platform';
@@ -23,7 +24,8 @@ export function workspaceStorage(definition: AnyApplicationDefinition, canonical
 
 /**
  * The desktop and server platform. Ownership is an OS-held SQLite lock in the workspace
- * directory, so a crash releases it; storage is one SQLite snapshot file next to it. The host's
+ * directory, so a crash releases it; storage is one SQLite snapshot file next to it, and blobs
+ * live in its `blobs` directory. The host's
  * own components (its HTTP listener and the agent providers) join every deployment, and the
  * default listener is loopback.
  */
@@ -35,4 +37,6 @@ export const bunPlatform: HostPlatform = Object.freeze({
   acquireOwnership: (workspacePath: string) => acquireWorkspaceOwnership(workspacePath),
   openStorage: (definition: AnyApplicationDefinition, ownership: { canonicalPath: string }) =>
     workspaceStorage(definition, ownership.canonicalPath),
+  openBlobs: (ownership: { canonicalPath: string }) =>
+    createFileBlobStore(join(ownership.canonicalPath, 'blobs')),
 });

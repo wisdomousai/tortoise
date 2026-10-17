@@ -7,3 +7,4 @@ export {
   createRemoteQueryFactory,
   type ApplicationOptions,
 } from './application.js';
+export { createMemoryBlobStore } from './memory-blob-store.js';

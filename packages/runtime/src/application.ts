@@ -7,6 +7,7 @@ import {
   type InputOf,
   type OutputOf,
 } from '@agent-native/contracts';
+import { createBlobs } from './application/blobs.js';
 import { createCommands } from './application/commands.js';
 import { grantPermits } from './application/delegation.js';
 import { createEvents } from './application/events.js';
@@ -94,6 +95,7 @@ export function createApplication<
   }
   const { events, deliverEvents } = createEvents(kernel);
   const { pendingEffects, recordAttempt } = createOutbox(kernel);
+  const { putBlob, readBlob, readEffectBlob, sweepBlobs } = createBlobs(kernel);
   return {
     catalog: kernel.catalog,
     invoke,
@@ -106,5 +108,9 @@ export function createApplication<
     pendingEffects,
     recordAttempt,
     recoverAudit: createRecovery(kernel),
+    putBlob,
+    readBlob,
+    readEffectBlob,
+    sweepBlobs,
   };
 }

@@ -58,10 +58,13 @@ export class SQLiteStorage<State> implements Storage<State> {
           receipts: {},
           journal: [],
           effects: {},
+          blobs: {},
         };
     // Documents written before the transactional outbox existed load with an empty outbox.
     // The next commit persists the field; the schema version stays compatible.
     if (!Object.hasOwn(snapshot, 'effects')) snapshot.effects = {};
+    // Likewise for blob references.
+    if (!Object.hasOwn(snapshot, 'blobs')) snapshot.blobs = {};
     if (row && this.options.upgrade) snapshot.state = this.options.upgrade(snapshot.state);
     assertJson(snapshot);
     return snapshot;

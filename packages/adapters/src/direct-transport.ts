@@ -1,4 +1,4 @@
-import type { ChangeBatch, Cursor, Transport } from '@agent-native/client';
+import type { BlobTransport, ChangeBatch, Cursor, Transport } from '@agent-native/client';
 import { ApplicationError, type Catalog } from '@agent-native/contracts';
 import type { ExecutionContext } from '@agent-native/runtime';
 import { withSignal, type ApplicationPort } from './application-port';
@@ -59,6 +59,20 @@ async function* directEvents(
   }
 }
 
+/** Blobs through the application, under the launcher's context; absent when it keeps none. */
+function directBlobs(
+  application: ApplicationPort,
+  context: ExecutionContext,
+): BlobTransport | undefined {
+  const { putBlob, readBlob } = application;
+  if (!putBlob || !readBlob) return undefined;
+  return {
+    put: (data, mediaType, signal) =>
+      putBlob.call(application, data, mediaType, withSignal(context, signal)),
+    get: (digest, signal) => readBlob.call(application, digest, withSignal(context, signal)),
+  };
+}
+
 /**
  * In-process transport for an embedded authority (stdio MCP or a one-shot CLI in a sandbox).
  * The launcher fixes `context` once; nothing a caller passes per request can change identity or
@@ -72,7 +86,9 @@ export function createDirectTransport(
   context: ExecutionContext,
   options: { pollMs?: number } = {},
 ): Transport & { catalog(): Promise<Catalog> } {
+  const blobs = directBlobs(application, context);
   return {
+    ...(blobs ? { blobs } : {}),
     async catalog() {
       return application.discover(context);
     },
