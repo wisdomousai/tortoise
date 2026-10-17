@@ -91,6 +91,18 @@ async function eventPass(loop: Loop, trigger: ResolvedTrigger, summary: Summary,
     return record(loop, grant, `start:${listedAt}`, { cursor: listedAt });
   const cursor = Math.max(persisted, loop.cursors.get(grant.id) ?? 0);
   const batch = await loop.context.application.events(cursor, asIssuer(loop, grant, on.operations));
+  // Storage retention removed entries this trigger never read: record the gap as an open
+  // failure (a person decides what to rerun) and continue from the current cursor.
+  if (batch.reset)
+    return record(loop, grant, `gap:${cursor}`, {
+      cursor: batch.cursor,
+      run: {
+        id: `${loopRunId(grant.id)}:gap:${cursor}`,
+        outcome: 'failed',
+        code: 'JOURNAL_GAP',
+        message: `Journal entries after ${cursor} were removed before this trigger read them`,
+      },
+    });
   for (const event of batch.events) {
     if (!matches(on, event)) continue;
     if (!(await stillActive(loop, trigger.id, grant))) return;

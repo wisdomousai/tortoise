@@ -38,7 +38,8 @@ async function* directEvents(
   const subscribed = withSignal(context, signal);
   while (!signal.aborted) {
     const batch = await application.events(after ?? 0, subscribed);
-    const reset = after === undefined || revision !== batch.authorizationRevision;
+    const reset =
+      after === undefined || revision !== batch.authorizationRevision || batch.reset === true;
     if (reset || batch.events.length)
       yield {
         cursor: cursorOf(batch.cursor, batch.authorizationRevision),

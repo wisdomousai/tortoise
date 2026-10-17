@@ -6,6 +6,7 @@ import { drainCommand, syncCommand } from './cli/integration-commands';
 import { mcpCommand } from './cli/mcp';
 import { operationCommand } from './cli/operation';
 import { serveCommand } from './cli/serve';
+import { backupCommand, restoreCommand } from './cli/workspace-commands';
 import type { ApplicationManifest } from './manifest';
 import { settingsUsage } from './plugins/settings';
 
@@ -21,6 +22,8 @@ const authorityUsage = (program: string, manifest: ApplicationManifest) => `Auth
   ${program} mcp [--connection file] | mcp --embedded --grant-file f [--workspace dir]
   ${program} sync [--workspace dir]               pull master data from the system of record once
   ${program} drain [--workspace dir] [--timeout ms]  deliver pending effects; exit ${PENDING_EXIT_CODE} if any remain
+  ${program} backup [--workspace dir] --out file  write a verified copy while the host runs
+  ${program} restore [--workspace dir] --from file  replace the workspace with a verified backup; the host must be stopped
 ${pluginSettingsUsage(manifest)}
 Operations run against a live authority (--connection or AGENT_NATIVE_CONNECTION), or in-process
 with --embedded [--workspace dir] [--grant-file f]. help, list, schema and workflows work offline.
@@ -46,6 +49,8 @@ export function createCli(definition: AnyApplicationDefinition, options: { progr
       if (verb === 'mcp') return await mcpCommand(definition, args.slice(1));
       if (verb === 'drain') return await drainCommand(definition, args.slice(1));
       if (verb === 'sync') return await syncCommand(definition, args.slice(1));
+      if (verb === 'backup') return await backupCommand(definition, args.slice(1));
+      if (verb === 'restore') return await restoreCommand(definition, args.slice(1));
       // Plugin verbs touch no workspace, for example policy checks or log audits.
       const commands = (definition.plugins ?? []).flatMap((plugin) => plugin.commands ?? []);
       for (const command of commands) {

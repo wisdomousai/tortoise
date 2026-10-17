@@ -165,11 +165,11 @@ implemented · `packages/contracts` `packages/runtime`
 
 _The port for the authority's transactional state._
 
-Storage holds feature state together with the framework's receipts, revisions, journal and outbox, which is what lets a command commit all of them at once. Memory and SQLite snapshot adapters ship; the SQLite one runs over a small synchronous driver, so the desktop and the phone share it. A production store implements the same port.
+Storage holds feature state together with the framework's receipts, revisions, journal and outbox, which is what lets a command commit all of them at once. Three adapters ship: memory; `SnapshotStorage`, one JSON document per workspace over a small synchronous driver, which the phone uses; and `RowStorage`, one row per record over the same driver plus a multi-row read, which the desktop and server host uses (`SQLiteStorage`). Row storage splits feature state to three object levels (module slice, collection, record) and stores each revision, receipt, effect, blob reference and journal entry as its own row. A commit writes only the rows that changed, and the last committed snapshot stays in memory while its stored generation is unchanged. A version 1 file is converted on open, and a version 1 reader refuses the converted file. Retention caps the journal (the host keeps 50,000 entries) and optionally the receipts; a subscriber behind the journal floor gets a reset. `backup` writes an online copy with `VACUUM INTO`, `verifyBackup` checks it, and `restoreBackup` replaces a stopped workspace's file; the host CLI exposes both as `backup` and `restore`. A production store implements the same port.
 
 Guarantees: atomic `transact` and consistent `read` per workspace; rejected work commits nothing. A replacement passes the storage conformance suite.
 
-Gaps: the SQLite adapter rewrites one JSON snapshot per commit, and the journal is never pruned.
+Gaps: the row diff still serializes every row, so commit CPU grows with state size, as the kernel's own state comparison does; bytes written follow the change. Receipts are kept unless a retention count is set, and a retry past it runs again. No encryption at rest. The phone's snapshot storage has no retention. Restore is offline only.
 
 implemented · `packages/runtime` `packages/adapters`
 
@@ -191,7 +191,7 @@ _The ordered record of committed changes, and the client machinery that follows 
 
 The journal closes the CQRS loop: whatever wrote the change, every view that may see it learns about it and re-reads through an authorized query. That is why a change made by an agent over MCP appears on an operator's screen without a refresh.
 
-Guarantees: events carry resource references and revisions, never record contents, and are filtered by current access. Clients subscribe from their query's cursor, so nothing falls between snapshot and stream. Invalidation follows the catalog's resource dependencies and is coalesced. An authorization change resets views without leaking identifiers. It clears cached data at once, even while a refetch is still pending, and it covers snapshots cached before the stream's first batch. Remote query results are excluded from change-driven refetches but not from that reset.
+Guarantees: events carry resource references and revisions, never record contents, and are filtered by current access. A cursor older than the storage's journal floor gets a reset, never a partial history; the automation and webhook loops record that gap instead of skipping it. Clients subscribe from their query's cursor, so nothing falls between snapshot and stream. Invalidation follows the catalog's resource dependencies and is coalesced. An authorization change resets views without leaking identifiers. It clears cached data at once, even while a refetch is still pending, and it covers snapshots cached before the stream's first batch. Remote query results are excluded from change-driven refetches but not from that reset.
 
 implemented · `packages/runtime` `packages/client` `packages/react`
 

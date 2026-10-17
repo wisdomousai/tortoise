@@ -23,6 +23,18 @@ interface Loop {
 async function deliverOnce(loop: Loop) {
   const { application, ports } = loop.context;
   const batch = await application.events(loop.cursor, loop.caller);
+  // Retention removed entries this loop never posted; posting the rest would hide the gap.
+  if (batch.reset) {
+    await application.invokeRaw(
+      {
+        operation: recordOperation,
+        input: { delivered: 0, error: 'Journal entries were removed before they were posted' },
+      },
+      loop.caller,
+    );
+    loop.cursor = batch.cursor;
+    return;
+  }
   const changes = batch.events.filter((event) => loop.observing.has(event.operation));
   if (!changes.length) {
     // Nothing to post; skip unobserved entries (including this loop's own records) in memory.

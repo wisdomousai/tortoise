@@ -3,7 +3,8 @@ import { Database } from 'bun:sqlite';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SQLiteStorage } from '@agent-native/adapters/sqlite';
+import { bunSqlDriver } from '@agent-native/adapters/sqlite';
+import { SnapshotStorage } from '@agent-native/adapters/snapshot-storage';
 import { createApplication } from '@agent-native/runtime';
 import { createApplicationRuntime, workspaceStorage } from '@agent-native/host';
 import projectTasks from '../application';
@@ -22,7 +23,8 @@ test('a workspace written before module composition keeps its projects after upg
   try {
     // Persist a pre-composition document with the original single-module runtime: project/task
     // state at the root and no outbox.
-    const seed = new SQLiteStorage(path, () => createProjectTaskState('owner'));
+    // The version 1 layout: one JSON document per workspace, converted to rows on the next open.
+    const seed = new SnapshotStorage(bunSqlDriver(path), () => createProjectTaskState('owner'));
     await createApplication({
       modules: [projectTasksModule],
       handlers: createProjectTaskHandlers(),

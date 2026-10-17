@@ -77,6 +77,11 @@ export interface WorkspaceSnapshot<State> {
   effects: Record<string, Effect>;
   /** Blob references by digest. Storage adapters load documents without it as an empty record. */
   blobs: Record<string, BlobRecord>;
+  /**
+   * The last journal cursor storage removed under its retention limit; entries up to it are
+   * gone. A subscriber whose cursor is older gets a reset instead of a partial history.
+   */
+  journalFloor?: number;
 }
 /** A successful callback atomically commits all fields. Rejected callbacks commit nothing. */
 export interface Storage<State> {
@@ -279,4 +284,6 @@ export interface EventBatch {
   readonly events: readonly ChangeEvent[];
   readonly cursor: number;
   readonly authorizationRevision: number;
+  /** The cursor is older than the retained journal: reload instead of applying `events`. */
+  readonly reset?: boolean;
 }

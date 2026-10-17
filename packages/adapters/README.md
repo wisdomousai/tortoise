@@ -11,7 +11,7 @@ Layer: framework (`packages/*`). The host composes these; applications rarely im
 - [Authority](../../docs/primitives.md#authority): `acquireWorkspaceOwnership`, `WorkspaceOwnedError`.
 - [Execution context](../../docs/primitives.md#execution-context): `readGrantFile`, `readConnection`.
 - [Policy](../../docs/primitives.md#policy): the CASL adapter, `createScopedAbility`, `scopeToSql`.
-- [Storage](../../docs/primitives.md#storage): `SQLiteStorage`, `SnapshotStorage`, `SqlDriver`, `SqlValue`, `bunSqlDriver`.
+- [Storage](../../docs/primitives.md#storage): `SQLiteStorage`, `RowStorage` (`RowStorageOptions`, `Retention`, `WriteStats`, `ROW_SCHEMA_VERSION`), `SnapshotStorage`, `SqlDriver`, `SqlRowsDriver`, `SqlValue`, `bunSqlDriver`, and `verifyBackup`, `restoreBackup` (`BackupSummary`).
 - [Authority](../../docs/primitives.md#authority): `acquireExclusiveLock`, the portable lock the mobile platform owns its workspace with.
 - [Blob store](../../docs/primitives.md#blob-store): `createFileBlobStore`, the HTTP routes `POST /api/v1/blobs` and `GET /api/v1/blobs/:digest`, and blobs on the direct transport.
 - [UI session context](../../docs/primitives.md#ui-session-context): `UiSessionStore`.
@@ -34,8 +34,10 @@ Import a subpath. The root export holds only `adapterContractVersion`.
 | `@agent-native/adapters/direct`           | server only | `createDirectTransport`, `readGrantFile` for in-process callers.                                                                                                                                |
 | `@agent-native/adapters/direct-transport` | any host    | `createDirectTransport` alone, with no Node or Bun API, for in-process callers on mobile.                                                                                                       |
 | `@agent-native/adapters/application-port` | any host    | `ApplicationPort`, the surface every adapter calls, and `withSignal`.                                                                                                                           |
-| `@agent-native/adapters/sqlite`           | server only | `SQLiteStorage` and `bunSqlDriver`: the snapshot storage on `bun:sqlite`.                                                                                                                       |
+| `@agent-native/adapters/sqlite`           | server only | `SQLiteStorage` and `bunSqlDriver`: row storage on `bun:sqlite`.                                                                                                                                |
 | `@agent-native/adapters/snapshot-storage` | any host    | `SnapshotStorage`: one JSON snapshot per workspace over any `SqlDriver`.                                                                                                                        |
+| `@agent-native/adapters/row-storage`      | any host    | `RowStorage`: one row per record over any `SqlRowsDriver`, with retention and online backup.                                                                                                    |
+| `@agent-native/adapters/workspace-backup` | server only | `verifyBackup` and `restoreBackup` for a workspace database file.                                                                                                                               |
 | `@agent-native/adapters/sql-driver`       | any host    | `SqlDriver`, the synchronous SQLite calls `bun:sqlite` and `expo-sqlite` both offer.                                                                                                            |
 | `@agent-native/adapters/exclusive-lock`   | any host    | `acquireExclusiveLock` and `WorkspaceOwnedError`.                                                                                                                                               |
 | `@agent-native/adapters/blob-files`       | server only | `createFileBlobStore`: blobs under a workspace directory, written to a temporary file and renamed.                                                                                              |
@@ -55,7 +57,7 @@ Transports derive identity from the host session, connection file or grant file,
 
 A blob upload is read only up to the largest size any operation declares, and its media type comes from `Content-Type`. A blob download carries `Content-Security-Policy: sandbox`, `nosniff` and `no-store`, so an uploaded document cannot run script on the authority's origin and a revoked reader gets nothing from a cache. The file store accepts only `sha256:` digests as names, so no reference becomes a path outside its directory.
 
-Ownership never trusts PID files: a live `EXCLUSIVE` SQLite transaction is the lock, and a crash releases it. CASL scopes accept scalar columns only, and unsupported conditions fail closed. A connection file is a local credential.
+Row storage keeps the last committed snapshot in memory only while the stored generation matches, so a second connection's commit is always reloaded. A restore removes the old write-ahead log before renaming the copy into place, so its pages never replay onto the restored file; the caller must own the workspace. Ownership never trusts PID files: a live `EXCLUSIVE` SQLite transaction is the lock, and a crash releases it. CASL scopes accept scalar columns only, and unsupported conditions fail closed. A connection file is a local credential.
 
 ## Dependencies
 
@@ -68,6 +70,7 @@ bun test packages/adapters
 ```
 
 - `src/casl.test.ts`: CASL, memory and SQL scopes agree; rules fail closed.
+- `src/row-storage.test.ts`: a commit writes only changed rows; the cached snapshot is dropped after a failure or another connection's commit; retention and the journal reset; version 1 conversion; backup, verification and restore; and a large-state benchmark against the document layout.
 - `src/sqlite.test.ts`: a rolled-back transaction leaves the initial state untouched; blob references persist and older documents load without them.
 - `src/blob-files.test.ts`: storing, listing, reading and removing by digest; a repeated store refreshes `storedAt`; invalid digests never become paths.
 - `src/http-blobs.test.ts`: upload, attach and read over HTTP with the client transport; sandboxed download headers; size and media-type refusals; blobs on the direct transport.

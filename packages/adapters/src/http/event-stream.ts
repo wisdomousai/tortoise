@@ -52,7 +52,8 @@ export function eventStreamResponse(
     const reset =
       (first && !decoded) ||
       generation !== batch.authorizationRevision ||
-      (batch.cursor > after && batch.events.length === 0);
+      (batch.cursor > after && batch.events.length === 0) ||
+      batch.reset === true;
     first = false;
     after = batch.cursor;
     generation = batch.authorizationRevision;

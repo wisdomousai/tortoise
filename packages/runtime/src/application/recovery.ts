@@ -13,7 +13,9 @@ function committedIn<State>(
   const data = (event.data ?? {}) as { fromCursor?: unknown; idempotencyKey?: unknown };
   const from = typeof data.fromCursor === 'number' ? data.fromCursor : undefined;
   const to = event.cursor;
-  if (from !== undefined && to !== undefined && to > from)
+  // Retention removed the entries that would show it; a receipt may still answer below.
+  const compacted = from !== undefined && from < (snapshot.journalFloor ?? 0);
+  if (from !== undefined && to !== undefined && to > from && !compacted)
     return snapshot.journal.some(
       (entry) => entry.cursor > from && entry.cursor <= to && entry.operation === event.operation,
     );

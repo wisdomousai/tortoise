@@ -15,6 +15,16 @@ async function eventBatch<State, Services>(
   kernel.guard.trusted(context);
   if (after > snapshot.cursor)
     throw new ApplicationError('CONFLICT', 'Event cursor requires a fresh snapshot');
+  // Retention removed entries this cursor has not seen; a partial history would look complete.
+  if (after < (snapshot.journalFloor ?? 0)) {
+    kernel.guard.trusted(context);
+    return {
+      events: [],
+      cursor: snapshot.cursor,
+      authorizationRevision: snapshot.authorizationRevision,
+      reset: true,
+    };
+  }
   const events = [];
   for (const event of snapshot.journal)
     if (

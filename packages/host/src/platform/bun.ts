@@ -8,23 +8,31 @@ import type { HostPlatform } from '@agent-native/kernel/platform';
 import { hostComponents } from '../components';
 import { loopbackIngress } from '../plugins/ports';
 
+/** Journal entries a long-running workspace keeps; a subscriber further behind reloads. */
+export const JOURNAL_RETENTION = 50_000;
+
 /**
- * Workspace document storage shared by the HTTP host and embedded authorities. A new workspace
- * starts from the definition's state; a stored one passes through its upgrade on load.
+ * Workspace storage shared by the HTTP host and embedded authorities: one row per record, with
+ * the journal capped at `JOURNAL_RETENTION` entries. Receipts are all kept, so a retry is never
+ * run twice. A new workspace starts from the definition's state; a stored one passes through its
+ * upgrade on load.
  */
 export function workspaceStorage(definition: AnyApplicationDefinition, canonicalPath: string) {
   return new SQLiteStorage<unknown>(
     join(canonicalPath, 'workspace.sqlite'),
     () => definition.createState(LOCAL_OWNER),
-    definition.upgradeState
-      ? { upgrade: (state) => definition.upgradeState!(state, LOCAL_OWNER) }
-      : undefined,
+    {
+      retention: { journal: JOURNAL_RETENTION },
+      ...(definition.upgradeState
+        ? { upgrade: (state: unknown) => definition.upgradeState!(state, LOCAL_OWNER) }
+        : {}),
+    },
   );
 }
 
 /**
  * The desktop and server platform. Ownership is an OS-held SQLite lock in the workspace
- * directory, so a crash releases it; storage is one SQLite snapshot file next to it, and blobs
+ * directory, so a crash releases it; storage is one SQLite file next to it, one row per record, and blobs
  * live in its `blobs` directory. The host's
  * own components (its HTTP listener and the agent providers) join every deployment, and the
  * default listener is loopback.
