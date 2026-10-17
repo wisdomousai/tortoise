@@ -14,7 +14,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'nod
 import { canonicalJson } from '@agent-native/contracts';
 import { addDependency, addWorkspace, type GeneratedContent } from './content';
 import { excludedExamples, pruneLockfile, type ExcludedExample } from './examples';
-import { collect } from './file-rules';
+import { binaryFile, collect } from './file-rules';
 
 export interface ScaffoldOptions {
   readonly target: string;
@@ -170,8 +170,13 @@ async function exportedFiles(
 ) {
   const { sourceRoot, requestedSourceRoot } = locations;
   const paths = (await collect(sourceRoot)).filter((path) => !leftOut(path, context.excluded));
-  const files: { path: string; content: string; sha256: string }[] = [];
+  const files: { path: string; content: string | Uint8Array; sha256: string }[] = [];
   for (const path of paths) {
+    if (binaryFile(path)) {
+      const content = new Uint8Array(await readFile(join(sourceRoot, path)));
+      files.push({ path, content, sha256: createHash('sha256').update(content).digest('hex') });
+      continue;
+    }
     const source = await readFile(join(sourceRoot, path), 'utf8');
     if (source.includes(sourceRoot) || source.includes(requestedSourceRoot))
       throw new Error(`Source file contains checkout-specific absolute path: ${path}`);
@@ -192,7 +197,7 @@ async function exportedFiles(
  */
 async function publish(
   target: string,
-  files: readonly { path: string; content: string }[],
+  files: readonly { path: string; content: string | Uint8Array }[],
   manifest: ScaffoldManifest,
 ) {
   await mkdir(dirname(target), { recursive: true });

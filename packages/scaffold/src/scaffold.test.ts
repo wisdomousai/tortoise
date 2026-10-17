@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { excludedExamples } from './examples';
 import { scaffold } from './index';
 
 test('source export is deterministic, independent and excludes private/runtime artifacts', async () => {
@@ -25,6 +26,9 @@ test('source export is deterministic, independent and excludes private/runtime a
     await writeFile(join(source, 'bun.lock'), '{"workspaces":{"":{"name":"canonical-starter"}}}');
     await writeFile(join(source, 'apps/web/index.html'), '<title>Reference</title>');
     await writeFile(join(source, 'packages/core/src/index.ts'), 'export const value = 1;');
+    // Not valid UTF-8, and names the source package: copied as bytes, not rewritten.
+    const photo = new Uint8Array([0xff, 0xd8, 0xc3, 0x28, ...Buffer.from('canonical-starter')]);
+    await writeFile(join(source, 'packages/core/src/plate.jpg'), photo);
     await writeFile(join(source, 'packages/core/src/credentials.json'), '{"token":"PRIVATE"}');
     await writeFile(join(source, 'apps/.connection.json'), '{"token":"PRIVATE"}');
     await writeFile(join(source, 'apps/.env.local'), 'SECRET=PRIVATE');
@@ -56,7 +60,11 @@ test('source export is deterministic, independent and excludes private/runtime a
       'bun.lock',
       'package.json',
       'packages/core/src/index.ts',
+      'packages/core/src/plate.jpg',
     ]);
+    expect(
+      new Uint8Array(await readFile(join(directory, 'first/packages/core/src/plate.jpg'))),
+    ).toEqual(photo);
     expect(JSON.parse(await readFile(join(directory, 'first/app.config.json'), 'utf8'))).toEqual({
       name: 'new-app',
       displayName: 'New & App',
@@ -178,6 +186,19 @@ test('an example export keeps only that example and configures it as the hosted 
         example: 'gamma',
       }),
     ).rejects.toThrow('Unknown example');
+    // An example that imports another, as a field app imports its hub's domain, keeps it.
+    await mkdir(join(source, 'examples', 'gamma', 'ui'), { recursive: true });
+    await writeFile(
+      join(source, 'examples', 'gamma', 'package.json'),
+      JSON.stringify({ name: '@scope/gamma' }),
+    );
+    await writeFile(
+      join(source, 'examples', 'gamma', 'ui', 'screen.tsx'),
+      "import { schema } from '@scope/alpha/domain';",
+    );
+    expect((await excludedExamples(source, 'gamma')).map((example) => example.directory)).toEqual([
+      'examples/beta',
+    ]);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

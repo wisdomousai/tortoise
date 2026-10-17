@@ -7,11 +7,56 @@ export interface ExcludedExample {
   readonly applicationId?: string;
 }
 
+/** Source files of one example, skipping installed and generated directories. */
+async function sourceFiles(directory: string): Promise<string[]> {
+  const files: string[] = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (['node_modules', 'dist', 'generated'].includes(entry.name)) continue;
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...(await sourceFiles(path)));
+    else if (/\.tsx?$/.test(entry.name)) files.push(path);
+  }
+  return files;
+}
+
+/** Whether `source` names `packageName` or one of its subpaths as a module specifier. */
+const imports = (source: string, packageName: string) =>
+  source.includes(`'${packageName}'`) ||
+  source.includes(`'${packageName}/`) ||
+  source.includes(`"${packageName}"`) ||
+  source.includes(`"${packageName}/`);
+
+/**
+ * `keep` and every example it imports, transitively, such as a field app that shares its hub's
+ * domain modules.
+ */
+async function keptExamples(
+  sourceRoot: string,
+  examples: readonly ExcludedExample[],
+  keep: string,
+): Promise<Set<string>> {
+  const kept = new Set([`examples/${keep}`]);
+  const pending = [`examples/${keep}`];
+  while (pending.length) {
+    const files = await sourceFiles(join(sourceRoot, pending.pop()!));
+    const sources = await Promise.all(files.map((file) => readFile(file, 'utf8')));
+    for (const example of examples)
+      if (
+        !kept.has(example.directory) &&
+        sources.some((text) => imports(text, example.packageName))
+      ) {
+        kept.add(example.directory);
+        pending.push(example.directory);
+      }
+  }
+  return kept;
+}
+
 /**
  * The examples an export leaves out, with the package and application ids that the root
- * manifest, lockfile and generated references name: every example except `keep`, or every
- * example when `keep` is undefined (a new application). Reads text only; no content code is
- * loaded.
+ * manifest, lockfile and generated references name: every example except `keep` and the
+ * examples it imports, or every example when `keep` is undefined (a new application). Reads
+ * text only; no content code is loaded.
  */
 export async function excludedExamples(
   sourceRoot: string,
@@ -22,18 +67,19 @@ export async function excludedExamples(
   );
   if (keep !== undefined && !entries.some((entry) => entry.isDirectory() && entry.name === keep))
     throw new Error(`Unknown example "${keep}"`);
-  const excluded: ExcludedExample[] = [];
+  const examples: ExcludedExample[] = [];
   for (const entry of entries) {
-    if (!entry.isDirectory() || entry.name === keep) continue;
+    if (!entry.isDirectory()) continue;
     const directory = `examples/${entry.name}`;
     const manifest = JSON.parse(await readFile(join(sourceRoot, directory, 'package.json'), 'utf8'))
       .name as string;
     const id = (
       await readFile(join(sourceRoot, directory, 'manifest.ts'), 'utf8').catch(() => '')
     ).match(/\bid:\s*'([a-z0-9-]+)'/)?.[1];
-    excluded.push({ directory, packageName: manifest, ...(id ? { applicationId: id } : {}) });
+    examples.push({ directory, packageName: manifest, ...(id ? { applicationId: id } : {}) });
   }
-  return excluded;
+  const kept = keep === undefined ? new Set() : await keptExamples(sourceRoot, examples, keep);
+  return examples.filter((example) => !kept.has(example.directory));
 }
 
 /** Drop excluded workspaces from Bun's text lockfile so `--frozen-lockfile` installs still pass. */

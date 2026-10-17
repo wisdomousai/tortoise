@@ -72,6 +72,9 @@ const sourceExtensions = new Set([
   '.toml',
   '.svg',
 ]);
+// Images such as test fixtures and golden screenshots; copied byte for byte, never rewritten.
+const binaryExtensions = new Set(['.png', '.jpg', '.jpeg']);
+export const binaryFile = (path: string) => binaryExtensions.has(extname(path).toLowerCase());
 export function allowedFile(path: string): boolean {
   const name = basename(path);
   if (['.connection.json', 'connection.json', 'session.json', 'sessions.json'].includes(name))
@@ -81,7 +84,7 @@ export function allowedFile(path: string): boolean {
     /(?:secret|credential|token|private[-_]?key).*\.(?:json|pem|key|p12)$/i.test(name)
   )
     return false;
-  return rootFiles.has(path) || sourceExtensions.has(extname(name));
+  return rootFiles.has(path) || sourceExtensions.has(extname(name)) || binaryFile(name);
 }
 /** Source files of a checkout, without symlinks, build output, workspaces or credentials. */
 export async function collect(root: string): Promise<string[]> {
