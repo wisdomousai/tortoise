@@ -1,12 +1,20 @@
 import type { HostSession } from '@agent-native/adapters/http';
 import { runRoute } from './runs';
+import { shellRoute } from './shell';
 import { shutdownRoute } from './shutdown';
 import type { HostRoute, HostRouteContext } from './types';
+import { uiDeliveryRoute } from './ui-deliveries';
 import { uiSessionRoute } from './ui-sessions';
 
-const routes: readonly HostRoute[] = [shutdownRoute, uiSessionRoute, runRoute];
+const routes: readonly HostRoute[] = [
+  shutdownRoute,
+  uiSessionRoute,
+  uiDeliveryRoute,
+  shellRoute,
+  runRoute,
+];
 
-/** The host's own API: provider routes first, then shutdown, UI sessions and runs. */
+/** The host's own API: provider routes first, then shutdown, UI sessions, the shell and runs. */
 export async function routeHostRequest(
   request: Request,
   session: HostSession,

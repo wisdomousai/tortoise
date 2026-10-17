@@ -6,16 +6,17 @@ import type { HostRoute, HostRouteContext } from './types';
 
 /**
  * Candidate validation may await multiple reads. Fence the entire batch against local policy
- * changes and enqueue under the authority's serialized read boundary.
+ * changes and enqueue under the authority's serialized read boundary: when authorization changed
+ * while the candidates were validated, the caller gets an empty list and polls again.
  */
-async function pollIntents(
+export async function fencedCandidates(
   request: Request,
   session: HostSession,
-  id: string,
   host: HostRouteContext,
+  validate: () => Promise<unknown>,
 ) {
   const before = await host.application.events(0, session.context);
-  const candidates = await host.uiSessions.poll(session, id);
+  const candidates = await validate();
   return new Response(
     new ReadableStream<Uint8Array>({
       async start(controller) {
@@ -75,7 +76,7 @@ export const uiSessionRoute: HostRoute = async (request, url, session, host) => 
     );
   }
   if (uiRoute[2] === 'intents' && request.method === 'GET')
-    return pollIntents(request, session, id, host);
+    return fencedCandidates(request, session, host, () => host.uiSessions.poll(session, id));
   if (uiRoute[2] === 'intents' && request.method === 'POST')
     return jsonResponse({
       id: await host.uiSessions.send(

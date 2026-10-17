@@ -14,8 +14,9 @@ import {
   type WorkspaceOwnership,
 } from './host/options';
 import { routeHostRequest, type HostRouteContext } from './host/routes';
+import { createShellRelay } from './host/shell-relay';
 import { serveStatic } from './host/static';
-import { createUiSessions } from './host/ui-sessions';
+import { createUiDeliveries, createUiSessions } from './host/ui-sessions';
 
 export type { StartHostOptions } from './host/options';
 
@@ -109,6 +110,33 @@ async function startBackground(authority: Authority, options: StartHostOptions) 
 }
 
 /**
+ * What the UI and shell routes reach: UI sessions, deliveries from OS requests, the composed
+ * shell port and the relay through which an adapter in another process attaches to it.
+ */
+function uiRoutes(
+  authority: Authority,
+  definition: AnyApplicationDefinition,
+  sessions: Sessions,
+  cleanup: ReturnType<typeof createCleanupStack>,
+) {
+  const { application, ports } = authority;
+  const selectable = definition.selectableResources ?? {};
+  const shellRelay = createShellRelay(
+    () => ports.shell,
+    (token) => !!sessions.get(token),
+  );
+  cleanup.push(() => shellRelay.close());
+  return {
+    application,
+    sessions,
+    uiSessions: createUiSessions(application, sessions, selectable),
+    uiDeliveries: createUiDeliveries(application, sessions, selectable),
+    shell: ports.shell,
+    shellRelay,
+  };
+}
+
+/**
  * One local authority owns the workspace and hosts exactly one application. Browser,
  * native and process clients attach via authenticated HTTP. The application's integrations and
  * observers come from its own `connect`; the host names no system of record and no station.
@@ -143,9 +171,7 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
     let running: Running | undefined;
     const close = createClose(() => running!);
     const routes: HostRouteContext = {
-      application,
-      sessions,
-      uiSessions: createUiSessions(application, sessions, definition.selectableResources ?? {}),
+      ...uiRoutes(authority, definition, sessions, cleanup),
       ...agents,
       harnesses: options.harnesses,
       shutdown: { ownerSession, instance: ownership.instance, close },

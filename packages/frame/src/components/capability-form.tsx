@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
+import { OsProvenanceNotice } from '@/components/os-provenance';
+import { usePreparedInput, type PreparedInput } from '@/lib/os-deliveries';
 import { transport } from '@/lib/session';
 
 type Property = {
@@ -133,33 +135,46 @@ function FieldControl({
   );
 }
 
-/**
- * A complete form for any command capability, generated from its contract. Use it to scaffold a
- * screen in one line, then replace it with a purpose-built capture surface where seconds matter.
- * Validation, idempotency and field-level server errors come from `useCapabilityForm`.
- */
-export function CapabilityForm<C extends AnyCapability>({
-  capability,
-  fixed = {},
-  submitLabel = 'Submit',
-  onCommitted,
-}: {
+/** Form values from an OS prefill: only fields the form renders, as the strings it edits. */
+function preparedValues(fields: Field[], input: Record<string, unknown> | undefined) {
+  const values: Record<string, string> = Object.fromEntries(
+    fields.map((field) => [field.name, '']),
+  );
+  for (const field of fields) {
+    const value = input?.[field.name];
+    if (value === undefined || value === null) continue;
+    values[field.name] = typeof value === 'string' ? value : JSON.stringify(value);
+  }
+  return values;
+}
+
+interface FormProps<C extends AnyCapability> {
   capability: C & { kind: 'command' };
   /** Inputs supplied by the screen (for example the selected lot); not rendered as fields. */
   fixed?: Partial<InputOf<C>>;
   submitLabel?: string;
   onCommitted?: (receipt: Receipt<OutputOf<C>>) => void;
+}
+
+function FormBody<C extends AnyCapability>({
+  capability,
+  fixed = {},
+  submitLabel = 'Submit',
+  onCommitted,
+  prepared,
+  dismiss,
+}: FormProps<C> & {
+  prepared: PreparedInput | undefined;
+  dismiss: () => void;
 }) {
   const [saved, setSaved] = useState('');
   const fields = fieldsOf(capability.input.jsonSchema, Object.keys(fixed));
   const { form } = useCapabilityForm(transport, capability, {
-    defaultValues: Object.fromEntries(fields.map((field) => [field.name, ''])) as Record<
-      string,
-      string
-    >,
+    defaultValues: preparedValues(fields, prepared?.input),
     toInput: (values) => ({ ...toTyped(fields, values), ...fixed }) as InputOf<C>,
     onCommitted: (receipt) => {
       setSaved('Saved');
+      dismiss();
       form.reset();
       onCommitted?.(receipt);
     },
@@ -206,5 +221,25 @@ export function CapabilityForm<C extends AnyCapability>({
         </form.Subscribe>
       </div>
     </form>
+  );
+}
+
+/**
+ * A complete form for any command capability, generated from its contract. Use it to scaffold a
+ * screen in one line, then replace it with a purpose-built capture surface where seconds matter.
+ * Validation, idempotency and field-level server errors come from `useCapabilityForm`. A prefill
+ * an OS request prepared for this capability fills the fields and shows where it came from; the
+ * person still submits, and fixed inputs are never taken from it.
+ */
+export function CapabilityForm<C extends AnyCapability>(props: FormProps<C>) {
+  const { prepared, dismiss } = usePreparedInput(props.capability.id);
+  return (
+    <div className="space-y-3">
+      {prepared ? (
+        <OsProvenanceNotice provenance={prepared.provenance} prepared onDismiss={dismiss} />
+      ) : null}
+      {/* A new prefill remounts the form so its values become the defaults. */}
+      <FormBody key={prepared?.id ?? 'blank'} {...props} prepared={prepared} dismiss={dismiss} />
+    </div>
   );
 }

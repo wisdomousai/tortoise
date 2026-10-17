@@ -13,6 +13,7 @@ Layer: framework (`packages/*`). The host composes these; applications rarely im
 - [Storage](../../docs/primitives.md#storage): `SQLiteStorage`.
 - [Blob store](../../docs/primitives.md#blob-store): `createFileBlobStore`, the HTTP routes `POST /api/v1/blobs` and `GET /api/v1/blobs/:digest`, and blobs on the direct transport.
 - [UI session context](../../docs/primitives.md#ui-session-context): `UiSessionStore`.
+- [Shell port](../../docs/primitives.md#shell-port): `UiDeliveryStore`, `validDelivery`: what accepted OS requests asked each session's frame to show.
 
 The [adapter guide](../../docs/adapters.md) explains how to replace one.
 
@@ -20,22 +21,23 @@ The [adapter guide](../../docs/adapters.md) explains how to replace one.
 
 Import a subpath. The root export holds only `adapterContractVersion`.
 
-| Import                                    | Runs in     | Contents                                                                                               |
-| ----------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ |
-| `@agent-native/adapters`                  | server only | `adapterContractVersion`.                                                                              |
-| `@agent-native/adapters/*`                | server only | One adapter per file, listed below.                                                                    |
-| `@agent-native/adapters/http`             | server only | `createHttpHandler`, sessions, `withSignal`, JSON helpers.                                             |
-| `@agent-native/adapters/mcp`              | server only | `createMcpServer`, `toolInputSchema`. Also runnable as `bun run mcp` (stdio bridge to a running host). |
-| `@agent-native/adapters/cli`              | server only | `runCli`, `readConnection`, `exitCodes`. Process clients attach to the running authority.              |
-| `@agent-native/adapters/cli-syntax`       | server only | Pure CLI words, flags and synopsis from the catalog. No IO, so generators use it without a transport.  |
-| `@agent-native/adapters/direct`           | server only | `createDirectTransport`, `readGrantFile` for in-process callers.                                       |
-| `@agent-native/adapters/direct-transport` | any host    | `createDirectTransport` alone, with no Node or Bun API, for in-process callers on mobile.              |
-| `@agent-native/adapters/application-port` | any host    | `ApplicationPort`, the surface every adapter calls, and `withSignal`.                                  |
-| `@agent-native/adapters/sqlite`           | server only | `SQLiteStorage`, the reference snapshot store.                                                         |
-| `@agent-native/adapters/blob-files`       | server only | `createFileBlobStore`: blobs under a workspace directory, written to a temporary file and renamed.     |
-| `@agent-native/adapters/ownership`        | server only | `acquireWorkspaceOwnership`: an OS-held SQLite lock, one owner per workspace.                          |
-| `@agent-native/adapters/casl`             | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.  |
-| `@agent-native/adapters/ui-sessions`      | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents.                         |
+| Import                                    | Runs in     | Contents                                                                                                 |
+| ----------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------- |
+| `@agent-native/adapters`                  | server only | `adapterContractVersion`.                                                                                |
+| `@agent-native/adapters/*`                | server only | One adapter per file, listed below.                                                                      |
+| `@agent-native/adapters/http`             | server only | `createHttpHandler`, sessions, `withSignal`, JSON helpers.                                               |
+| `@agent-native/adapters/mcp`              | server only | `createMcpServer`, `toolInputSchema`. Also runnable as `bun run mcp` (stdio bridge to a running host).   |
+| `@agent-native/adapters/cli`              | server only | `runCli`, `readConnection`, `exitCodes`. Process clients attach to the running authority.                |
+| `@agent-native/adapters/cli-syntax`       | server only | Pure CLI words, flags and synopsis from the catalog. No IO, so generators use it without a transport.    |
+| `@agent-native/adapters/direct`           | server only | `createDirectTransport`, `readGrantFile` for in-process callers.                                         |
+| `@agent-native/adapters/direct-transport` | any host    | `createDirectTransport` alone, with no Node or Bun API, for in-process callers on mobile.                |
+| `@agent-native/adapters/application-port` | any host    | `ApplicationPort`, the surface every adapter calls, and `withSignal`.                                    |
+| `@agent-native/adapters/sqlite`           | server only | `SQLiteStorage`, the reference snapshot store.                                                           |
+| `@agent-native/adapters/blob-files`       | server only | `createFileBlobStore`: blobs under a workspace directory, written to a temporary file and renamed.       |
+| `@agent-native/adapters/ownership`        | server only | `acquireWorkspaceOwnership`: an OS-held SQLite lock, one owner per workspace.                            |
+| `@agent-native/adapters/casl`             | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.    |
+| `@agent-native/adapters/ui-sessions`      | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents.                           |
+| `@agent-native/adapters/ui-deliveries`    | server only | `UiDeliveryStore`: what accepted OS requests asked each session's frame to show, held per session token. |
 
 `version` holds `adapterContractVersion`, which the root barrel re-exports. Two adapters are composers over a folder of parts that are imported only from inside the package:
 
@@ -64,6 +66,7 @@ bun test packages/adapters
 - `src/sqlite.test.ts`: a rolled-back transaction leaves the initial state untouched; blob references persist and older documents load without them.
 - `src/blob-files.test.ts`: storing, listing, reading and removing by digest; a repeated store refreshes `storedAt`; invalid digests never become paths.
 - `src/http-blobs.test.ts`: upload, attach and read over HTTP with the client transport; sandboxed download headers; size and media-type refusals; blobs on the direct transport.
+- `src/ui-deliveries.test.ts`: deliveries are taken only by the session that submitted the request, expire, are revalidated and rejected when access is gone; malformed deliveries, a token reused by another principal and a full inbox.
 - `src/ownership.test.ts`: one owner per workspace across processes, path aliases and a killed owner.
 - `src/cli.test.ts`: catalog-derived words and typed flags, `--json` input, dry-run, generated help and exit codes mapped from error codes.
 

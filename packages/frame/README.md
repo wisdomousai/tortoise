@@ -8,7 +8,8 @@ Layer: framework (`packages/*`). Browser code, plus a build-time Vite plugin.
 
 - [Web frame](../../docs/primitives.md#web-frame): `Frame`, `ScreensProvider`, `useScreens`, `screenForCapability`, `exchangeLaunch`, and the `frame` Vite plugin.
 - [Application](../../docs/primitives.md#application): `defineScreens`, `ApplicationScreens`, the browser entrypoint of every application.
-- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native` shadcn registry in [`registry.json`](registry.json) (`capability-form`, `live-data-table`, `run-panel`, `command-palette`, `conflict-banner`, `accounts`, `app-shell`, `frame` and their libraries).
+- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native` shadcn registry in [`registry.json`](registry.json) (`capability-form`, `live-data-table`, `run-panel`, `command-palette`, `conflict-banner`, `os-provenance`, `accounts`, `app-shell`, `frame` and their libraries).
+- [OS handler](../../docs/primitives.md#os-handler): `useOsDeliveries` (mounted at the frame root), `usePreparedInput`, `useShownProvenance`, `describeProvenance`, `OsProvenanceNotice`, and `ApplicationScreens.resources`, the screen that shows each selectable resource kind.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginScreens`, `PluginScreens`; `defineScreens({ plugins })` merges a plugin's routes, navigation and capability screens before its checks.
 
 A worked `screens` entrypoint is [`examples/project-tasks/screens.tsx`](../../examples/project-tasks/screens.tsx).
@@ -21,7 +22,7 @@ A worked `screens` entrypoint is [`examples/project-tasks/screens.tsx`](../../ex
 | `@agent-native/frame/plugin-screens` | browser    | `definePluginScreens`, `PluginScreens`: a plugin's routes, navigation and capability screens.                   |
 | `@agent-native/frame/vite`           | build time | `frame({ appSource, configPath, outRoot })`: Vite plugins and the output directory `dist/web/<application id>`. |
 | `@agent-native/frame/components/*`   | browser    | Registry components under `src/components/`, for example `run-panel` or `ui/native-dialog`.                     |
-| `@agent-native/frame/lib/*`          | browser    | `session` (transport, client, live bindings, query client), `ui-session`, `host-client`.                        |
+| `@agent-native/frame/lib/*`          | browser    | `session` (transport, client, live bindings, query client), `ui-session`, `os-deliveries`, `host-client`.       |
 
 Inside a Vite build that uses the plugin, frame files are imported through the `@/` alias exactly as they will be after `shadcn add`: `@/frame`, `@/launch`, `@/components/run-panel`, `@/lib/session`. The alias resolves against the starter's `src` first, then this package, then the operator registry, so a starter file at the same path replaces the frame's.
 
@@ -32,6 +33,8 @@ Build the registry with `bun run build:registry` (output in `dist/registry`).
 The frame imports no application and no plugin: plugin screens arrive through `defineScreens({ plugins })`; `virtual:agent-native/screens` is resolved from `app.config.json` at build time. The launch credential travels in the URL fragment, never reaches a server log, is removed from the address bar first and is exchanged once for an HttpOnly session cookie; the transport carries no token. Cache and bindings live as long as the page, and a new launch reloads it with an empty cache. The window title comes from the trusted starter identity, not the template.
 
 The palette lists only operations the session's grant allows and never offers integration-only operations. Rendering `accounts` never reads the OS vault. `native-dialog` uses the `<dialog>` element because the authority's CSP forbids injected `<style>` tags. `live-data-table` never filters or paginates client-side over a partial set: the authority counts and pages after scoping.
+
+What an OS request asks for (a link, an opened file) reaches the frame as a delivery for the session that submitted it. The frame root takes deliveries once a second while the page is visible: it opens a resource through `screens.resources`, navigates to a screen, or holds a prefill and navigates to the capability's screen. A prefill fills `CapabilityForm` fields only, never its fixed inputs, shows its provenance above the form and is committed only when the person submits; a purpose-built form reads it with `usePreparedInput`. Provenance labels come from the sender and are rendered as text.
 
 `defineScreens` fails at definition time on a duplicate route or on a navigation or capability target that no route declares, checked over the application's and its plugins' screens together.
 

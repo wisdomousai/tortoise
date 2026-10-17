@@ -37,7 +37,7 @@
       "name": "capability-form",
       "type": "registry:component",
       "title": "Capability form",
-      "description": "A complete form for any command capability, generated from its JSON Schema, with contract validation, a per-form idempotency key and field-level server errors.",
+      "description": "A complete form for any command capability, generated from its JSON Schema, with contract validation, a per-form idempotency key and field-level server errors. A prefill from an OS request fills the fields and shows its provenance; the person still submits.",
       "dependencies": [
         "@tanstack/react-form",
         "@agent-native/react",
@@ -50,7 +50,8 @@
         "label",
         "native-select",
         "textarea",
-        "@agent-native/session"
+        "@agent-native/session",
+        "@agent-native/os-provenance"
       ],
       "files": [
         {
@@ -108,7 +109,7 @@
       "name": "command-palette",
       "type": "registry:component",
       "title": "Capability palette",
-      "description": "\u2318K palette over the discovered contract: the human mirror of an agent's tool list.",
+      "description": "⌘K palette over the discovered contract: the human mirror of an agent's tool list.",
       "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "cmdk"],
       "registryDependencies": [
         "command",
@@ -127,7 +128,7 @@
       "name": "screens",
       "type": "registry:lib",
       "title": "Application screens contract",
-      "description": "The declaration an application hands the frame: routes, navigation, the screen each capability family opens, and a sidebar status slot.",
+      "description": "The declaration an application hands the frame: routes, navigation, the screen each capability family opens, the screen that shows each selectable resource kind, and sidebar slots.",
       "files": [
         {
           "path": "src/screens.ts",
@@ -153,6 +154,39 @@
       ]
     },
     {
+      "name": "os-deliveries",
+      "type": "registry:lib",
+      "title": "OS deliveries",
+      "description": "Takes what OS requests from this session asked the frame to open, navigate to or prefill, acknowledges each, and holds prefills for capability forms.",
+      "dependencies": ["@tanstack/react-router", "@agent-native/contracts"],
+      "registryDependencies": ["@agent-native/screens", "@agent-native/ui-session"],
+      "files": [
+        {
+          "path": "src/lib/os-deliveries.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "os-provenance",
+      "type": "registry:component",
+      "title": "OS provenance notice",
+      "description": "Shows where a screen or a prefilled form the OS handed the application came from, with a dismiss or discard action.",
+      "dependencies": ["@agent-native/contracts"],
+      "registryDependencies": [
+        "alert",
+        "button",
+        "@agent-native/os-deliveries",
+        "@agent-native/os-provenance"
+      ],
+      "files": [
+        {
+          "path": "src/components/os-provenance.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "accounts",
       "type": "registry:component",
       "title": "Provider accounts",
@@ -162,7 +196,8 @@
         "button",
         "input",
         "native-select",
-        "@agent-native/ui-session"
+        "@agent-native/ui-session",
+        "@agent-native/os-deliveries"
       ],
       "files": [
         {
@@ -175,7 +210,7 @@
       "name": "app-shell",
       "type": "registry:component",
       "title": "App shell",
-      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (\u2318K). Exports NavigationCount, SidebarSection and SidebarLink.",
+      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (⌘K). Exports NavigationCount, SidebarSection and SidebarLink.",
       "dependencies": ["@tanstack/react-router", "lucide-react"],
       "registryDependencies": ["kbd", "@agent-native/command-palette", "@agent-native/frame"],
       "files": [

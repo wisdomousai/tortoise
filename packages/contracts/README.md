@@ -17,15 +17,16 @@ Layer: framework (`packages/*`). Domain-neutral; a domain defines its capabiliti
 - [Event log](../../docs/primitives.md#event-log): the audit envelope and port (`EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`).
 - [OS handler](../../docs/primitives.md#os-handler): `OsHandler`, `OsTarget`, `OsDeclarations` (a module's or component's `os`), `CatalogOs`, `osRequestFields` and the path and template syntax (`linkPathSegments`, `linkPathShape`, `templatePlaceholders`, `isWholePlaceholder`).
 - [OS action](../../docs/primitives.md#os-action): `OsAction`, `CatalogOsAction` and `osActionTargets`, the outbox targets notify actions carry.
+- [Shell port](../../docs/primitives.md#shell-port): the values that cross between adapters, the host's shell routes, the port and the frame (`OsPlatform`, `osPlatforms`, `RawOsRequest`, `OsDelivery`, `OsProvenance`, `OsRefusal`, `OsRequestOutcome`, `OsActionRequest`, `OsInstruction`, `OsActionOutcome`, `OsActionResult`).
 
 The worked example is [`examples/project-tasks/contracts.ts`](../../examples/project-tasks/contracts.ts). [Capability authoring](../../docs/capability-authoring.md) walks through adding an operation.
 
 ## Entrypoints
 
-| Import                      | Runs in            | Contents                                                                                                                                                      |
-| --------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@agent-native/contracts`   | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers.                                                          |
-| `@agent-native/contracts/*` | browser and server | One source file: `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit`, `data-provider`, `blob`, `os`, `os-catalog` or `os-templates`. |
+| Import                      | Runs in            | Contents                                                                                                                                                                 |
+| --------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@agent-native/contracts`   | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers.                                                                     |
+| `@agent-native/contracts/*` | browser and server | One source file: `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit`, `data-provider`, `blob`, `os`, `os-catalog`, `os-templates` or `os-wire`. |
 
 ## Trust boundary
 

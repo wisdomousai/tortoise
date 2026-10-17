@@ -172,9 +172,13 @@ The host platform is shown on a fake platform: `packages/kernel/test/kernel.test
 
 ### OS integration
 
-**Shown, deterministic.** Modules and host components declare OS handlers and OS actions. The catalog validates them (`packages/contracts/test/os.test.ts`), and the security manifest and data-flow document list them (`plugins/compliance/test/compliance.test.ts`). The URL scheme comes from the application identity and refuses reserved schemes (`packages/host/test/config.test.ts`).
+**Shown, deterministic.**
 
-**Not shown.** Nothing is registered with, received from or performed through the OS on any platform yet. No shell port, adapter or OS plugin exists.
+- Declarations: modules and host components declare OS handlers and OS actions. The catalog validates them (`packages/contracts/test/os.test.ts`), and the security manifest and data-flow document list them (`plugins/compliance/test/compliance.test.ts`). The URL scheme comes from the application identity and refuses reserved schemes (`packages/host/test/config.test.ts`).
+- Matching and generation: request parsing, link and file matching, target templates, open-URL and file-path construction, and the native, desktop and web registrations (`packages/shell/test/shell.test.ts`).
+- The shell port: the kernel default refuses every call (`packages/kernel/test/shell.test.ts`). With the OS plugin, a fixture application served over HTTP delivers a link and a text file to the submitting session only, refuses unknown, malformed, disabled and rate-limited requests, logs no content, returns an open action to a page, relays it to an attached adapter, and refuses startup for an unserved kind (`plugins/os/test/os.test.ts`). Deliveries are per session, expire and are revalidated (`packages/adapters/src/ui-deliveries.test.ts`).
+
+**Not shown.** No platform adapter exists yet: nothing has been registered with, received from or performed through a real OS. The frame's delivery handling and prefilled forms have no browser test yet.
 
 ### Layers and scaffold
 

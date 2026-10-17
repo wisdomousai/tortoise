@@ -3,18 +3,22 @@ import { Link, Outlet } from '@tanstack/react-router';
 import { Search } from 'lucide-react';
 import { Kbd } from '@/components/ui/kbd';
 import { CommandPalette } from '@/components/command-palette';
+import { OsProvenanceNotice } from '@/components/os-provenance';
+import { useShownProvenance } from '@/lib/os-deliveries';
 import { useScreens } from '@/screens-context';
 import { cn } from '@/lib/utils';
 
 /**
  * Application frame: the hosted application's name and context, its navigation with live badges,
- * an optional sidebar section, the status slot and the capability palette (⌘K). Every slot is a
+ * an optional sidebar section, the status slot, the capability palette (⌘K) and where a screen the
+ * OS opened came from. Every slot is a
  * component the application declares, so it reads authorized queries like any screen. Shadow this
  * file in the starter (`src/components/app-shell.tsx`) to restyle it.
  */
 export function AppShell() {
   const { title, navigation, context: Context, sidebar: Sidebar, status: Status } = useScreens();
   const [palette, setPalette] = useState(false);
+  const origin = useShownProvenance();
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
@@ -79,7 +83,10 @@ export function AppShell() {
           </div>
         </aside>
       </div>
-      <main className="min-w-0 px-5 py-6 lg:px-10 lg:py-8">
+      <main className="min-w-0 space-y-4 px-5 py-6 lg:px-10 lg:py-8">
+        {origin.shown ? (
+          <OsProvenanceNotice provenance={origin.shown.provenance} onDismiss={origin.dismiss} />
+        ) : null}
         <Outlet />
       </main>
       <CommandPalette open={palette} onOpenChange={setPalette} />

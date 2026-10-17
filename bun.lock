@@ -22,11 +22,13 @@
         "@agent-native/line-station": "workspace:*",
         "@agent-native/network": "workspace:*",
         "@agent-native/operator-ui": "workspace:*",
+        "@agent-native/os": "workspace:*",
         "@agent-native/project-tasks": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
         "@agent-native/react": "workspace:*",
         "@agent-native/runtime": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
+        "@agent-native/shell": "workspace:*",
         "@agent-native/site": "workspace:*",
         "@agent-native/station": "workspace:*",
         "@agent-native/testing": "workspace:*",
@@ -189,6 +191,10 @@
       "name": "@agent-native/scaffold",
       "version": "0.1.0",
     },
+    "packages/shell": {
+      "name": "@agent-native/shell",
+      "version": "0.1.0",
+    },
     "packages/station": {
       "name": "@agent-native/station",
       "version": "0.1.0",
@@ -207,6 +213,10 @@
     },
     "plugins/network": {
       "name": "@agent-native/network",
+      "version": "0.1.0",
+    },
+    "plugins/os": {
+      "name": "@agent-native/os",
       "version": "0.1.0",
     },
     "plugins/site": {
@@ -262,6 +272,8 @@
 
     "@agent-native/operator-ui": ["@agent-native/operator-ui@workspace:packages/operator-ui"],
 
+    "@agent-native/os": ["@agent-native/os@workspace:plugins/os"],
+
     "@agent-native/project-tasks": ["@agent-native/project-tasks@workspace:examples/project-tasks"],
 
     "@agent-native/quality-inspection": ["@agent-native/quality-inspection@workspace:examples/quality-inspection"],
@@ -273,6 +285,8 @@
     "@agent-native/scaffold": ["@agent-native/scaffold@workspace:packages/scaffold"],
 
     "@agent-native/service": ["@agent-native/service@workspace:apps/service"],
+
+    "@agent-native/shell": ["@agent-native/shell@workspace:packages/shell"],
 
     "@agent-native/site": ["@agent-native/site@workspace:plugins/site"],
 

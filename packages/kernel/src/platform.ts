@@ -2,6 +2,7 @@ import type { CatalogRequirements, HostComponent } from '@agent-native/contracts
 import type { BlobStore, Storage } from '@agent-native/runtime';
 import type { AnyApplicationDefinition } from './application';
 import type { IngressPort } from './plugin';
+import type { ShellAdapter } from './shell';
 import type { PlatformId } from './plugin-manifest';
 
 export { platformIds, type PlatformId } from './plugin-manifest';
@@ -37,6 +38,11 @@ export interface HostPlatform {
   readonly components: readonly HostComponent[];
   /** The listener used when no plugin provides the ingress port. Absent: listening is refused. */
   readonly ingress?: IngressPort;
+  /**
+   * The platform's own OS adapter when the OS runs in the same process, as on mobile. The plugin
+   * that provides the shell port attaches it; desktop and web adapters attach over HTTP instead.
+   */
+  readonly shell?: ShellAdapter;
   /**
    * Exclusive ownership of `workspacePath`, so one writer exists per workspace across processes.
    * Rejects when another live authority owns it.
