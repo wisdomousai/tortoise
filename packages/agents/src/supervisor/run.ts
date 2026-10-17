@@ -35,6 +35,19 @@ export interface SupervisorKernel {
   readonly redactor: Redactor;
 }
 
+/** Tell the supervisor's observer about a run; its errors never reach the run. */
+export function observe(
+  kernel: SupervisorKernel,
+  snapshot: RunSnapshot,
+  change: 'started' | 'ended',
+) {
+  try {
+    kernel.options.onRun?.(structuredClone(snapshot), change);
+  } catch {
+    // An observer is evidence only; a run never fails because of it.
+  }
+}
+
 /** Stop the run when its store stops writing; nothing continues on in-memory success. */
 function failPersistence(run: Active) {
   // A durable run receipt is a prerequisite for subsequent tool work. Do not

@@ -22,6 +22,7 @@ description: Choose and run the checks for a change in this repository and repor
 | A model entry, the model server or the model gate | `bun test plugins/model-server packages/agents`; a real llama-server or vLLM run is live evidence |
 | A storage adapter, the workspace lease or the hosted platform | `bun test packages/testing/test/storage.test.ts packages/testing/test/postgres-lease.test.ts packages/host/test/hosted-platform.test.ts`; with `STORAGE_POSTGRES_URL` set against a throwaway server, reported as by-hand evidence |
 | The fleet agent or the fleet protocol | `bun test plugins/fleet-agent`; a run against a real fleet across a network is by-hand evidence |
+| The telemetry plugin | `bun test plugins/telemetry`; a run against a real collector and backend is by-hand evidence |
 | Network or firewall exports | `bun test plugins/network`; regenerate goldens with `UPDATE_GOLDEN=1` and review the diff |
 | Mobile or native screens | `bun run typecheck`, `bun run check:mobile-bundle` |
 | A driver SDK | the commands in that SDK's README |

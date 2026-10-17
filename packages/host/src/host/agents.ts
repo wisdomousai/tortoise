@@ -1,6 +1,6 @@
 import type { Sessions } from '@agent-native/adapters/http';
 import { DeterministicHarness } from '@agent-native/agents/deterministic';
-import { createRunSupervisor } from '@agent-native/agents/supervisor';
+import { createRunSupervisor, runAuditRecord } from '@agent-native/agents/supervisor';
 import { childEnvironment } from '../plugin';
 import { createProviderAccess } from '../providers';
 import { createAgentTools } from './agent-tools';
@@ -32,6 +32,14 @@ export async function startAgents(
     harnesses: [new DeterministicHarness(), ...providers.harnesses, ...(options.harnesses ?? [])],
     store: authority.runStore,
     tools: createAgentTools(application, (id) => supervisor.get(id)),
+    // Run starts and ends go to the audit log after the fact. A log that cannot write never
+    // stops a run: the audit mode's fail-closed settings cover commands, queries and egress.
+    ...(ports.eventLog
+      ? {
+          onRun: (run, change) =>
+            void ports.eventLog!.append([runAuditRecord(run, change)]).catch(() => undefined),
+        }
+      : {}),
   });
   await supervisor.recoverInterrupted();
   return { providers, supervisor };

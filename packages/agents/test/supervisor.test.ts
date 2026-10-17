@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { createRunSupervisor, MemoryRunStore } from '../src/supervisor';
+import { createRunSupervisor, MemoryRunStore, runAuditRecord } from '../src/supervisor';
 import { deterministicHarness } from '../src/deterministic';
 import type { Harness, RunSnapshot, ToolPort } from '../src/types';
 const tools: ToolPort = { execute: async () => ({ ok: true }) };
@@ -286,4 +286,61 @@ test('a failed harness revokes outstanding application work at its commit bounda
   await until(supervisor, run.id, 'failed');
   await Bun.sleep(20);
   expect(committed).toBe(false);
+});
+
+test('the observer hears each run start once and end once, with no prompt or output', async () => {
+  const heard: [string, string][] = [];
+  const records: unknown[] = [];
+  const store = new MemoryRunStore();
+  await store.save({
+    id: 'old',
+    harnessId: 'test',
+    conversationId: 'c',
+    state: 'running',
+    context: {},
+    events: [],
+    nextSequence: 1,
+    createdAt: '',
+    updatedAt: '',
+  } satisfies RunSnapshot);
+  const supervisor = createRunSupervisor({
+    harnesses: [deterministicHarness],
+    tools,
+    store,
+    onRun(snapshot, change) {
+      heard.push([snapshot.id, `${change}:${snapshot.state}`]);
+      records.push(runAuditRecord(snapshot, change));
+      if (snapshot.id === 'boom') throw new Error('observer failed');
+    },
+  });
+  await supervisor.recoverInterrupted();
+  const done = await supervisor.start({
+    harnessId: 'deterministic',
+    prompt: JSON.stringify({ commands: [], text: 'secret output' }),
+    context: { principalId: 'person', workspaceId: 'w' },
+  });
+  await until(supervisor, done.id, 'succeeded');
+  const waiting = await supervisor.start({
+    id: 'boom',
+    harnessId: 'deterministic',
+    prompt: JSON.stringify({ commands: [], question: 'Continue?' }),
+  });
+  await until(supervisor, waiting.id, 'awaiting-question');
+  await supervisor.cancel(waiting.id);
+  await Bun.sleep(10);
+  expect(heard).toEqual([
+    ['old', 'ended:interrupted'],
+    [done.id, 'started:queued'],
+    [done.id, 'ended:succeeded'],
+    ['boom', 'started:queued'],
+    ['boom', 'ended:cancelled'],
+  ]);
+  expect(records[2]).toMatchObject({
+    kind: 'run.ended',
+    outcome: 'completed',
+    actor: { principalId: 'person', workspaceId: 'w', runId: done.id, via: 'harness' },
+    data: { harness: 'deterministic', state: 'succeeded' },
+  });
+  expect(records[0]).toMatchObject({ outcome: 'aborted', reason: 'HOST_RESTARTED' });
+  expect(JSON.stringify(records)).not.toContain('secret output');
 });

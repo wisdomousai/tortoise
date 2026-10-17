@@ -1,4 +1,4 @@
-import type { Harness, RunEvent, RunStore, ToolPort } from './types';
+import type { Harness, RunEvent, RunSnapshot, RunStore, ToolPort } from './types';
 import {
   cancelRun,
   pendingRequest,
@@ -12,6 +12,7 @@ import { runEvents } from './supervisor/replay';
 import type { SupervisorKernel } from './supervisor/run';
 
 export { MemoryRunStore } from './supervisor/memory-run-store';
+export { runAuditRecord } from './supervisor/audit';
 
 export interface SupervisorOptions {
   harnesses: readonly Harness[];
@@ -22,6 +23,12 @@ export interface SupervisorOptions {
   redact?: readonly string[];
   now?: () => Date;
   questionTimeoutMs?: number;
+  /**
+   * Told when a run is queued and once when it ends (including runs a previous process left,
+   * marked interrupted on recovery), for example to append `run.started` and `run.ended` to the
+   * audit log with `runAuditRecord`. It must not throw; an error it throws is ignored.
+   */
+  onRun?: (snapshot: Readonly<RunSnapshot>, change: 'started' | 'ended') => void;
 }
 
 export function createRunSupervisor(options: SupervisorOptions) {

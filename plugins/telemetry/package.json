@@ -1,0 +1,36 @@
+{
+  "name": "@agent-native/telemetry",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "OpenTelemetry metrics and traces from the audit log and the outbox, exported through the egress guard without record contents.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/telemetry"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "devDependencies": {
+    "@agent-native/agents": "workspace:*",
+    "@agent-native/network": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@agent-native/site": "workspace:*",
+    "zod": "4.6.5"
+  },
+  "dependencies": {
+    "@agent-native/audit": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/event-log": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/kernel": "workspace:*"
+  }
+}

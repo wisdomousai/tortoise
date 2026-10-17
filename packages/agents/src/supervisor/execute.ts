@@ -6,6 +6,7 @@ import {
   emit,
   emitText,
   flushText,
+  observe,
   request,
   setState,
   type Active,
@@ -143,6 +144,8 @@ export async function execute(
     await settleFailure(kernel, run, error);
   } finally {
     clearTimeout(timer);
+    // Every path, cancellation and lost persistence included, ends here in a terminal state.
+    observe(kernel, run.snapshot, 'ended');
     // Retain the terminal snapshot in the store; active entries hold no provider tokens.
     if (!run.persistenceFailed) kernel.active.delete(run.snapshot.id);
   }

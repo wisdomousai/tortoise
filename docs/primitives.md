@@ -467,6 +467,12 @@ _A site's outbound-only link to a fleet: health reports with the outbox backlog 
 
 partial · `plugins/fleet-agent`
 
+### Telemetry
+
+_OpenTelemetry metrics and traces of commands, outbox delivery, backlog by target and runs, derived from the audit log and the outbox and exported through the egress guard without record contents._
+
+partial · `plugins/telemetry`
+
 ## Adding or changing a primitive
 
 Add an entry when a concept is domain-neutral and more than one application uses it; an adapter belongs with its port, and a concept only one example needs stays in that example. Prefer extending or extracting existing code. Keep the definition true across adapters and defaults, and put the details in the README.

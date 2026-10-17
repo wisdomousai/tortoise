@@ -4,7 +4,7 @@ import { satisfiesModel, type ModelDemand } from '../placement';
 import type { Harness, RunBudget, RunSnapshot } from '../types';
 import { terminalStates } from '../types';
 import { execute } from './execute';
-import { setState, type Active, type SupervisorKernel } from './run';
+import { observe, setState, type Active, type SupervisorKernel } from './run';
 
 export interface StartInput {
   harnessId: string;
@@ -69,6 +69,7 @@ export async function startRun(
   };
   kernel.active.set(id, run);
   await setState(kernel, run, 'queued');
+  observe(kernel, snapshot, 'started');
   const previous = conversations.get(snapshot.conversationId) ?? Promise.resolve();
   const task = previous.catch(() => {}).then(() => execute(kernel, run, harness, input.prompt));
   conversations.set(snapshot.conversationId, task);
@@ -128,5 +129,6 @@ export async function recoverInterrupted(kernel: SupervisorKernel) {
       });
       snapshot.events = snapshot.events.slice(-256);
       await kernel.store.save(snapshot);
+      observe(kernel, snapshot, 'ended');
     }
 }

@@ -59,6 +59,18 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 - Staging fetches each release file whole. There is no resumed download.
 - The fleet's Devices screen calls a `field-sync` enrollment a phone, as device-link names it; a site is enrolled with that kind.
 
+### Telemetry
+
+**Not shown.**
+
+- No export has reached a real OpenTelemetry Collector or backend. The tests check the OTLP/HTTP JSON against the OTLP specification with a loopback fixture collector.
+
+**Limits.**
+
+- Each export rereads the audit log's segment files to find new events, so exports slow down as the log grows.
+- Counters restart when the host restarts, and history from before the start is not exported.
+- There are metrics and traces only, no logs.
+
 ### Site bundles
 
 **By hand.** `bun run bundle create` built a 69 MB project-tasks bundle (46 files) on macOS arm64, which `verify` accepted and `admit` refused until approved. Rerun on 17 October 2026 after the bundle began writing its contract, security manifest and SBOM from the catalog: the signature verified and `admit` listed the requirements to approve.

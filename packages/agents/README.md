@@ -6,7 +6,7 @@ Layer: framework (`packages/*`). Server only. The host constructs harnesses with
 
 ## Primitives
 
-- [Agent run](../../docs/primitives.md#agent-run): `Harness`, `HarnessEvent`, `createRunSupervisor`, `RunState`, `RunStore`, `MemoryRunStore`, `deterministicHarness`, `CodexHarness`, `ClaudeHarness`, `AiSdkHarness`, `localHarness` (`LocalModel`, `LocalModelClient`, `LocalHarnessOptions`), `HarnessInference` and `ModelIdentity`, the placement checks `satisfiesModel` and `chooseHarness`, and `RunBudget`, the per-run limits of an [agent definition](../../docs/primitives.md#agent-definition) that the supervisor enforces.
+- [Agent run](../../docs/primitives.md#agent-run): `Harness`, `HarnessEvent`, `createRunSupervisor` (with its `onRun` observer and `runAuditRecord`, which turn a run's start and end into `run.started` and `run.ended` audit records), `RunState`, `RunStore`, `MemoryRunStore`, `deterministicHarness`, `CodexHarness`, `ClaudeHarness`, `AiSdkHarness`, `localHarness` (`LocalModel`, `LocalModelClient`, `LocalHarnessOptions`), `HarnessInference` and `ModelIdentity`, the placement checks `satisfiesModel` and `chooseHarness`, and `RunBudget`, the per-run limits of an [agent definition](../../docs/primitives.md#agent-definition) that the supervisor enforces.
 - [Model entry](../../docs/primitives.md#model-entry): `ModelEntry`, `defineModelEntry`, `entryIdentity`, `ModelActivation` and `activates`; `ModelDemand` carries an agent's named models into `satisfiesModel` and `chooseHarness`.
 - [UI session context](../../docs/primitives.md#ui-session-context): `modelPrompt` shows the model the captured selection and the revisions the person saw, nothing else.
 - [OS action](../../docs/primitives.md#os-action): `openAiComponent` declares `openai.authorize`, the ChatGPT sign-in page the desktop opens in the system browser.
@@ -21,7 +21,7 @@ Read the [harness guide](../../docs/agent-harnesses.md), [providers](../../docs/
 | `@agent-native/agents`               | server only | Everything below except `process` and `requirements`.                                         |
 | `@agent-native/agents/*`             | server only | One source file, listed below. Import a subpath to avoid loading every provider SDK.          |
 | `@agent-native/agents/types`         | server only | `Harness`, `ToolPort`, `RunState`, `RunEvent`, `RunStore`, `modelPrompt`, `toolName`.         |
-| `@agent-native/agents/supervisor`    | server only | `createRunSupervisor`, `MemoryRunStore`.                                                      |
+| `@agent-native/agents/supervisor`    | server only | `createRunSupervisor`, `MemoryRunStore`, `runAuditRecord`.                                    |
 | `@agent-native/agents/deterministic` | server only | `deterministicHarness`: a declarative command script, credential-free.                        |
 | `@agent-native/agents/codex`         | server only | `CodexHarness`, `chatGptCodexOptions` (Codex app-server over JSON-RPC).                       |
 | `@agent-native/agents/claude`        | server only | `ClaudeHarness` (Claude Agent SDK with an in-process MCP server).                             |
@@ -66,7 +66,7 @@ bun run test:harness
 
 Deterministic fixtures only; they prove adapter and protocol behavior, not provider login or inference access.
 
-- `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions, interrupted-run recovery.
+- `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions, interrupted-run recovery, and an observer that hears each run start and end once without its prompt or output.
 - `test/budget.test.ts`: a run fails with `BUDGET_EXCEEDED` instead of making one tool call more than its budget or running past its wall time (releasing a waiting question), and the harness receives the turn limit.
 - `test/adapters.test.ts`: each harness against shared fixtures; every model sees the captured selection and never the run's identity or grant.
 - `test/chatgpt.test.ts`: PKCE, OIDC validation, locked-vault abort, serialized refresh and logout.

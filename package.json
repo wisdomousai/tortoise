@@ -96,6 +96,7 @@
     "@agent-native/execution-host": "workspace:*",
     "@agent-native/fleet": "workspace:*",
     "@agent-native/fleet-agent": "workspace:*",
+    "@agent-native/telemetry": "workspace:*",
     "@agent-native/frame": "workspace:*",
     "@agent-native/frame-native": "workspace:*",
     "@agent-native/host": "workspace:*",

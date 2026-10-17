@@ -39,6 +39,7 @@ Pick the closest example as the pattern to read:
 | Site policy, signed bundles, install on a machine | `plugins/site/skills/deploy-to-site/SKILL.md` |
 | A hosted instance with its workspace in Postgres | `packages/host/skills/run-a-hosted-authority/SKILL.md` |
 | A site that reports to a fleet, or the fleet it reports to | `plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md` |
+| Metrics and traces in an observability backend | `plugins/telemetry/skills/export-telemetry/SKILL.md` |
 | Which checks to run and how to report them | `packages/testing/skills/check-a-change/SKILL.md` |
 
 AGENTS.md lists the same skills; `bun install` links them for Claude Code and Codex. In an application that installs the framework from a registry, these skills come from the installed packages under `node_modules/@agent-native/`, and the steps that change framework source apply in the framework checkout instead.

@@ -56,6 +56,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Deploy to a site: policy, signed bundles, install | [deploy-to-site](plugins/site/skills/deploy-to-site/SKILL.md) |
 | Run a hosted authority: Postgres storage, the workspace lease, TLS and workforce sign-in | [run-a-hosted-authority](packages/host/skills/run-a-hosted-authority/SKILL.md) |
 | Connect a site to a fleet: enrollment, reports, audit forwarding, release staging, relay | [connect-a-site-to-a-fleet](plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) |
+| Export OpenTelemetry metrics and traces | [export-telemetry](plugins/telemetry/skills/export-telemetry/SKILL.md) |
 
 How skills stay current with the code (`bun run check:skills` enforces the first three points):
 

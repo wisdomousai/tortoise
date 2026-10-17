@@ -184,6 +184,8 @@ With no site policy, the application is isolated:
 - inference providers report themselves unavailable;
 - the deterministic harness keeps working.
 
+The telemetry plugin exports only catalog operation IDs, outbox target IDs, harness IDs, fixed states, error codes, counts and durations, with correlation, effect and run IDs as digests. It posts to a loopback collector through the egress guard, so each export is a bound, logged connection, and any vendor credential stays with the collector.
+
 A site that reports to a fleet stays offline first: the fleet-agent plugin writes nothing to the workspace, and a cycle that cannot reach the fleet records why and tries again later. Its remote-access relay forwards requests to the host's own API with an allow-list of headers and adds no credential, so a relayed caller needs a session the site issued, and the site's fleet credential opens nothing on the site. Releases from the fleet are verified against the site's own trusted keys before they appear in the staging folder.
 
 `bun run test:isolated` fails on any non-loopback connection from the test process. `bun run test:sandbox` runs the compiled binary in an empty environment, then checks its audit chain and that it attempted no egress.

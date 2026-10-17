@@ -1,6 +1,11 @@
-import { ApplicationError, errorEnvelope, type Catalog } from '@agent-native/contracts';
+import {
+  ApplicationError,
+  errorEnvelope,
+  type Catalog,
+  type EventLogPort,
+} from '@agent-native/contracts';
 import { agentGrant, type DelegationGrant, type ExecutionContext } from '@agent-native/runtime';
-import { chooseHarness, createRunSupervisor } from '@agent-native/agents';
+import { chooseHarness, createRunSupervisor, runAuditRecord } from '@agent-native/agents';
 import type { Harness, ToolPort } from '@agent-native/agents/types';
 import type { HostedApplication } from '@agent-native/host/application';
 import type { OutputOf } from '@agent-native/contracts';
@@ -129,14 +134,31 @@ export function createTriggerRuns(
   jobs: ReadonlyMap<string, Job>,
   agentHarnesses: readonly Harness[],
   triggers: Iterable<ResolvedTrigger>,
+  eventLog?: () => EventLogPort | undefined,
 ) {
   const contexts = new Map<string, ExecutionContext>();
+  const actors = new Map<string, { principalId: string; workspaceId: string }>();
   const agentOperations = new Set(
     [...triggers].flatMap((trigger) => ('agent' in trigger.run ? trigger.operations : [])),
   );
   const supervisor = createRunSupervisor({
     harnesses: [createJobHarness(jobs), ...agentHarnesses],
     tools: createRunTools(application, contexts, agentOperations),
+    // Each run's start and end go to the audit log as the grant's issuer, after the fact. The
+    // issuer is taken when the run starts, since the run's context is gone by the time it ends.
+    onRun(snapshot, change) {
+      const context = contexts.get(snapshot.id);
+      if (change === 'started' && context)
+        actors.set(snapshot.id, {
+          principalId: context.principalId,
+          workspaceId: context.workspaceId,
+        });
+      const actor = actors.get(snapshot.id);
+      if (change === 'ended') actors.delete(snapshot.id);
+      void eventLog?.()
+        ?.append([runAuditRecord(snapshot, change, actor)])
+        .catch(() => undefined);
+    },
   });
   return async function run(
     trigger: ResolvedTrigger,

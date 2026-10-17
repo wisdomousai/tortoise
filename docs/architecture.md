@@ -58,6 +58,8 @@ Opening an authority is portable. The kernel composes the definition and its plu
 
 A hosted authority is the Bun host on `hostedPlatform`: the workspace lives in a shared Postgres database, and ownership is a lease in that database with a fencing token, renewed while the instance runs. Every commit checks the fence inside its own transaction, so when an instance pauses past its lease and another takes over, the old one's next commit is refused rather than written. One instance serves one workspace; many workspaces run as many instances behind a router. Ingress with public TLS and workforce sign-in come from the site plugin's policy, as on a site.
 
+The telemetry plugin derives OpenTelemetry metrics and spans from the audit log and the outbox, so handlers and adapters carry no metrics code. It exports them to a collector on the same machine through the network port, and only identifiers, outcomes, counts and durations leave.
+
 A site and a fleet connect outbound only. The fleet is an ordinary application that composes the fleet protocol module and enrolls each site through device-link; the site's fleet-agent plugin calls the fleet's HTTP API as that enrolled principal, through the network port, to report outbox counts, forward its audit log, stage signed releases and take remote-access requests. Nothing on the site waits on the fleet, and a relayed request reaches the site's API only with a session the site issued, so the fleet holds no authority over the site.
 
 ## Plugins
