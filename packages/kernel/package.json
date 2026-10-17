@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/kernel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Portable host kernel: application and plugin composition, ports and authority opening on any platform.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  }
+}

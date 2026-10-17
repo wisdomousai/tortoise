@@ -47,6 +47,7 @@ flowchart LR
 | `client`, `react` | Typed actions, live queries and UI session context.                                                                   |
 | `adapters`        | HTTP/SSE, MCP, CLI, CASL, SQLite and workspace ownership, each on its own subpath.                                    |
 | `agents`          | Harness and run interfaces, with provider details kept inside.                                                        |
+| `kernel`          | Composes an application and its plugins and opens its authority on a host platform, with no Node or Bun API.          |
 | `host`            | Runs one application and its plugins: workspace ownership, sessions, HTTP, embedded MCP, the CLI, runs and providers. |
 | `frame`           | The web frame registry: session bindings, routing, palette, run panel and accounts.                                   |
 | `testing`         | Direct and scenario drivers, conformance checks and the UI-binding check.                                             |
@@ -57,6 +58,8 @@ Contracts never import handlers, drivers or provider SDKs. Handlers receive trus
 ## The reference host
 
 The host is a Bun loopback service that owns its workspace exclusively. It stores feature state and the framework's receipts, revisions and journal in SQLite. Browsers sign in through a one-time launch exchange and an HttpOnly cookie, and processes use a narrow bearer connection issued by the host. MCP and the CLI either attach to the running host or embed the runtime under the same workspace lock. Electron supervises the service and loads the shared frontend. These are deployment choices, separate from feature behavior.
+
+Opening an authority is portable. The kernel composes the definition and its plugins, checks identity, opens storage and the runtime, runs the plugins' `ready` hooks and builds the integrations, on whatever host platform the starter passes in. A platform supplies workspace ownership, storage, the host's own components and its capabilities (raw sockets, child processes, ingress). The Bun host is one platform; a mobile host is another, and a deployment that needs a capability its platform lacks refuses startup.
 
 ## Plugins and a closed kernel
 

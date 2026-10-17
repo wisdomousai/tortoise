@@ -19,19 +19,21 @@ The [adapter guide](../../docs/adapters.md) explains how to replace one.
 
 Import a subpath. The root export holds only `adapterContractVersion`.
 
-| Import                               | Runs in     | Contents                                                                                               |
-| ------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------ |
-| `@agent-native/adapters`             | server only | `adapterContractVersion`.                                                                              |
-| `@agent-native/adapters/*`           | server only | One adapter per file, listed below.                                                                    |
-| `@agent-native/adapters/http`        | server only | `createHttpHandler`, sessions, `withSignal`, JSON helpers.                                             |
-| `@agent-native/adapters/mcp`         | server only | `createMcpServer`, `toolInputSchema`. Also runnable as `bun run mcp` (stdio bridge to a running host). |
-| `@agent-native/adapters/cli`         | server only | `runCli`, `readConnection`, `exitCodes`. Process clients attach to the running authority.              |
-| `@agent-native/adapters/cli-syntax`  | server only | Pure CLI words, flags and synopsis from the catalog. No IO, so generators use it without a transport.  |
-| `@agent-native/adapters/direct`      | server only | `createDirectTransport`, `readGrantFile` for in-process callers.                                       |
-| `@agent-native/adapters/sqlite`      | server only | `SQLiteStorage`, the reference snapshot store.                                                         |
-| `@agent-native/adapters/ownership`   | server only | `acquireWorkspaceOwnership`: an OS-held SQLite lock, one owner per workspace.                          |
-| `@agent-native/adapters/casl`        | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.  |
-| `@agent-native/adapters/ui-sessions` | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents.                         |
+| Import                                    | Runs in     | Contents                                                                                               |
+| ----------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ |
+| `@agent-native/adapters`                  | server only | `adapterContractVersion`.                                                                              |
+| `@agent-native/adapters/*`                | server only | One adapter per file, listed below.                                                                    |
+| `@agent-native/adapters/http`             | server only | `createHttpHandler`, sessions, `withSignal`, JSON helpers.                                             |
+| `@agent-native/adapters/mcp`              | server only | `createMcpServer`, `toolInputSchema`. Also runnable as `bun run mcp` (stdio bridge to a running host). |
+| `@agent-native/adapters/cli`              | server only | `runCli`, `readConnection`, `exitCodes`. Process clients attach to the running authority.              |
+| `@agent-native/adapters/cli-syntax`       | server only | Pure CLI words, flags and synopsis from the catalog. No IO, so generators use it without a transport.  |
+| `@agent-native/adapters/direct`           | server only | `createDirectTransport`, `readGrantFile` for in-process callers.                                       |
+| `@agent-native/adapters/direct-transport` | any host    | `createDirectTransport` alone, with no Node or Bun API, for in-process callers on mobile.              |
+| `@agent-native/adapters/application-port` | any host    | `ApplicationPort`, the surface every adapter calls, and `withSignal`.                                  |
+| `@agent-native/adapters/sqlite`           | server only | `SQLiteStorage`, the reference snapshot store.                                                         |
+| `@agent-native/adapters/ownership`        | server only | `acquireWorkspaceOwnership`: an OS-held SQLite lock, one owner per workspace.                          |
+| `@agent-native/adapters/casl`             | server only | `createScopedAbility`, `scopeToSql`, `matchesScope`: bounded CASL rules translated to memory and SQL.  |
+| `@agent-native/adapters/ui-sessions`      | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents.                         |
 
 `version` holds `adapterContractVersion`, which the root barrel re-exports. Two adapters are composers over a folder of parts that are imported only from inside the package:
 

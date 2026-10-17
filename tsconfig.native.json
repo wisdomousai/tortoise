@@ -1,7 +1,6 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "lib": ["ESNext"],
     "types": [],
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -10,6 +9,21 @@
     "allowImportingTsExtensions": true,
     "allowJs": false
   },
-  "include": ["apps/mobile/index.ts", "apps/mobile/src"],
-  "exclude": ["node_modules", "dist", "artifacts"]
+  "include": [
+    "apps/mobile/index.ts",
+    "apps/mobile/src",
+    "packages/contracts/src",
+    "packages/runtime/src",
+    "packages/client/src/client.ts",
+    "packages/client/src/live-query.ts",
+    "packages/client/src/types.ts",
+    "packages/integration/src",
+    "packages/kernel/src",
+    "packages/adapters/src/application-port.ts",
+    "packages/adapters/src/direct-transport.ts",
+    "packages/event-log/src/chain.ts",
+    "packages/event-log/src/memory.ts",
+    "packages/event-log/src/forward.ts"
+  ],
+  "exclude": ["node_modules", "dist", "artifacts", "**/*.test.ts", "**/test"]
 }

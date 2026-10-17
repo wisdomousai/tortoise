@@ -165,7 +165,9 @@ Control mappings are indicative, not a certification.
 
 **Shown, deterministic.** `apps/mobile` typechecks under `tsconfig.native.json` without Bun or Node types. `bun run check:mobile-bundle` bundles it for Android with Expo SDK 58 and resolves workspace packages through their `exports` maps. Expo autolinking finds an Expo module in a workspace plugin through the root `node_modules`, checked with `expo-modules-autolinking resolve` against a temporary probe module.
 
-**Not shown.** The shell is a placeholder: no authority, screens or plugins run on a device. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
+The host platform is shown on a fake platform: `packages/kernel/test/kernel.test.ts` opens, closes and reopens an authority on an in-memory platform with no Node or Bun API, and checks the platform, capability, settings-provider and target refusals. The Bun host opens its embedded and serving authorities through the same kernel path, and the host and example suites pass unchanged. `bun run test:portable` runs the kernel, runtime, client and integration suites with `structuredClone`, `AbortSignal.any`, `AbortSignal.timeout` and `crypto.randomUUID` removed and the kernel's replacements installed. The audit and event-log hash chains use a pure JavaScript SHA-256 that produces the same digests as before.
+
+**Not shown.** No platform other than Bun exists, and the globals check has not run under Hermes. The shell is a placeholder: no authority, screens or plugins run on a device. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
 
 ### Layers and scaffold
 

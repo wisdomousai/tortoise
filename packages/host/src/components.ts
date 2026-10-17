@@ -1,10 +1,10 @@
-import {
-  buildCatalog,
-  defineHostComponent,
-  type CatalogRequirements,
-} from '@agent-native/contracts';
+import { defineHostComponent, type CatalogRequirements } from '@agent-native/contracts';
 import { providerComponents } from '@agent-native/agents/requirements';
-import type { ApplicationManifest } from './manifest';
+import {
+  deploymentCatalog as kernelCatalog,
+  deploymentComponents as kernelComponents,
+} from '@agent-native/kernel/components';
+import type { ApplicationManifest } from '@agent-native/kernel/manifest';
 
 /**
  * The generic host's own requirement: its listener. Pure data; every application the host runs
@@ -28,20 +28,18 @@ export const authorityComponent = defineHostComponent({
   },
 });
 
-/** Components the host composes into every application: itself and the agent providers. */
+/** Components the Bun host composes into every application: itself and the agent providers. */
 export const hostComponents = [authorityComponent, ...providerComponents] as const;
 
 /**
- * The catalog of one deployment: the application's modules plus the host's components and the
- * application's own (`manifest.components`). The runtime, the site-policy check, the CLI and the
- * generators all compose requirements through this, so they cannot disagree. Pure: opens nothing.
+ * The catalog of one deployment on the Bun host: the application's modules plus the host's
+ * components and the application's own (`manifest.components`). Generators, the site-policy check
+ * and the CLI use this; the kernel builds the same catalog from the platform's components.
  */
-export function deploymentCatalog(manifest: ApplicationManifest) {
-  return buildCatalog(manifest.modules, { components: deploymentComponents(manifest) });
-}
-/** Requirements of one deployment: the application's, its plugins' and the host's. */
+export const deploymentCatalog = (manifest: ApplicationManifest) =>
+  kernelCatalog(manifest, hostComponents);
+/** Requirements of one deployment on the Bun host: the application's, its plugins' and the host's. */
 export const deploymentRequirements = (manifest: ApplicationManifest): CatalogRequirements =>
-  deploymentCatalog(manifest).requirements;
-export function deploymentComponents(manifest: ApplicationManifest) {
-  return [...hostComponents, ...(manifest.components ?? [])];
-}
+  kernelCatalog(manifest, hostComponents).requirements;
+export const deploymentComponents = (manifest: ApplicationManifest) =>
+  kernelComponents(manifest, hostComponents);

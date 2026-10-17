@@ -1,7 +1,7 @@
 import { hostname } from 'node:os';
 import type { AuditEvent } from '@agent-native/contracts';
 import { rfc5424, type EventSink } from '@agent-native/event-log';
-import type { NetworkPort } from '@agent-native/host/plugin';
+import { bunSocket, type NetworkPort } from '@agent-native/host/plugin';
 
 /**
  * Forward audit events to a bound `tcp` destination as RFC 5424 syslog with RFC 5425
@@ -38,17 +38,15 @@ export function syslogSink(
     return true;
   };
   const connect = () =>
-    (connection ??= network()
-      .socket(destination, {
-        data() {},
-        drain: (socket) => void pump(socket),
-        close: reset,
-        error: reset,
-      })
-      .catch((error: unknown) => {
-        connection = undefined;
-        throw error;
-      }));
+    (connection ??= bunSocket(network())(destination, {
+      data() {},
+      drain: (socket) => void pump(socket),
+      close: reset,
+      error: reset,
+    }).catch((error: unknown) => {
+      connection = undefined;
+      throw error;
+    }));
   const sink = async (events: readonly AuditEvent[]) => {
     const socket = await connect();
     const frames = events.map((event) => {

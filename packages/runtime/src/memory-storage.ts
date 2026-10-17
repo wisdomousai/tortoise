@@ -68,10 +68,12 @@ export function createMemoryStorage<State>(
   const get = (id: string): WorkspaceSnapshot<State> => {
     let value = workspaces.get(id);
     if (!value) {
-      value = createWorkspaceSnapshot(
-        typeof initial === 'function' ? (initial as (id: string) => State)(id) : initial,
-      );
-      refuseSharedMemory(value.state);
+      const state =
+        typeof initial === 'function' ? (initial as (id: string) => State)(id) : initial;
+      // Before cloning: a polyfilled structuredClone copies shared memory where the native one
+      // aliases it, and the refusal must not depend on which one the host has.
+      refuseSharedMemory(state);
+      value = createWorkspaceSnapshot(state);
       workspaces.set(id, value);
     }
     return value;

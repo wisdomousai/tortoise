@@ -45,7 +45,7 @@ The host supplies the `ExecutionContext`. Operation input can never set or widen
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`. Node: `node:crypto`. Storage and policy adapters live in [`@agent-native/adapters`](../adapters/README.md); this package names no database or rules engine.
+Framework: `@agent-native/contracts`. External: `@noble/hashes` for input digests. No Node or Bun API. Storage and policy adapters live in [`@agent-native/adapters`](../adapters/README.md); this package names no database or rules engine.
 
 ## Tests
 

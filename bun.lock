@@ -18,6 +18,7 @@
         "@agent-native/frame": "workspace:*",
         "@agent-native/host": "workspace:*",
         "@agent-native/integration": "workspace:*",
+        "@agent-native/kernel": "workspace:*",
         "@agent-native/line-station": "workspace:*",
         "@agent-native/network": "workspace:*",
         "@agent-native/operator-ui": "workspace:*",
@@ -84,6 +85,7 @@
         "@types/node": "26.6.4",
         "@types/react": "19.3.0",
         "@types/react-dom": "19.3.0",
+        "@types/ungap__structured-clone": "1.2.0",
         "@vitejs/plugin-react": "6.1.2",
         "electron": "44.6.0",
         "electron-builder": "26.15.3",
@@ -167,6 +169,10 @@
       "name": "@agent-native/integration",
       "version": "0.1.0",
     },
+    "packages/kernel": {
+      "name": "@agent-native/kernel",
+      "version": "0.1.0",
+    },
     "packages/operator-ui": {
       "name": "@agent-native/operator-ui",
       "version": "0.1.0",
@@ -245,6 +251,8 @@
     "@agent-native/host": ["@agent-native/host@workspace:packages/host"],
 
     "@agent-native/integration": ["@agent-native/integration@workspace:packages/integration"],
+
+    "@agent-native/kernel": ["@agent-native/kernel@workspace:packages/kernel"],
 
     "@agent-native/line-station": ["@agent-native/line-station@workspace:examples/line-station"],
 
@@ -919,6 +927,8 @@
     "@types/react-dom": ["@types/react-dom@19.3.0", "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-19.3.0.tgz", { "peerDependencies": { "@types/react": "^19.3.0" } }, "sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q=="],
 
     "@types/responselike": ["@types/responselike@1.0.3", "https://registry.yarnpkg.com/@types/responselike/-/responselike-1.0.3.tgz", { "dependencies": { "@types/node": "*" } }, "sha512-H/+L+UkTV33uf49PH5pCAUBVPNj2nDBXTN+qS1dOwyyg24l3CcicicCA7ca+HMvJBZcFgl5r8e+RR6elsb4Lyw=="],
+
+    "@types/ungap__structured-clone": ["@types/ungap__structured-clone@1.2.0", "https://registry.yarnpkg.com/@types/ungap__structured-clone/-/ungap__structured-clone-1.2.0.tgz", {}, "sha512-ZoaihZNLeZSxESbk9PUAPZOlSpcKx81I1+4emtULDVmBLkYutTcMlCj2K9VNlf9EWODxdO6gkAqEaLorXwZQVA=="],
 
     "@types/validate-npm-package-name": ["@types/validate-npm-package-name@4.0.2", "https://registry.yarnpkg.com/@types/validate-npm-package-name/-/validate-npm-package-name-4.0.2.tgz", {}, "sha512-lrpDziQipxCEeK5kWxvljWYhUvOiB2A9izZd9B2AFarYAkqZshb4lPbRs7zKEic6eGtH8V/2qJW+dPp9OtF6bw=="],
 

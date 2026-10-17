@@ -151,16 +151,16 @@ export function collectRequirements(
       claim('devices', owner, device.id);
       devices.push({ ...device, owner });
     }
-    for (const process of requirements?.processes ?? []) {
-      claim('processes', owner, process.id);
-      if (!process.executable) throw new Error(`Missing executable for process ${process.id}`);
-      processes.push({ ...process, owner });
+    for (const child of requirements?.processes ?? []) {
+      claim('processes', owner, child.id);
+      if (!child.executable) throw new Error(`Missing executable for process ${child.id}`);
+      processes.push({ ...child, owner });
     }
   }
-  for (const process of processes)
-    for (const destination of process.network ?? [])
+  for (const child of processes)
+    for (const destination of child.network ?? [])
       if (!seen.network.has(destination))
-        throw new Error(`Process ${process.id} references undeclared destination ${destination}`);
+        throw new Error(`Process ${child.id} references undeclared destination ${destination}`);
   return {
     network: network.sort(byId),
     devices: devices.sort(byId),

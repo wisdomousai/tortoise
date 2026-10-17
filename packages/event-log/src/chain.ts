@@ -1,4 +1,5 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
 import {
   AUDIT_GENESIS,
   canonicalJson,
@@ -33,11 +34,7 @@ function compact<T extends object>(value: T): T {
 
 /** SHA-256 over the previous hash and the canonical JSON of the event without its own hash. */
 export function hashEvent(event: Omit<AuditEvent, 'hash'>): string {
-  return createHash('sha256')
-    .update(event.prev)
-    .update('\n')
-    .update(canonicalJson(event))
-    .digest('hex');
+  return bytesToHex(sha256(utf8ToBytes(`${event.prev}\n${canonicalJson(event)}`)));
 }
 
 /**
@@ -70,7 +67,7 @@ export function sealEvents(
 
 /** SHA-256 of the canonical JSON of `value`, for input digests and attestation. */
 export function digest(value: unknown): string {
-  return createHash('sha256').update(canonicalJson(value)).digest('hex');
+  return bytesToHex(sha256(utf8ToBytes(canonicalJson(value))));
 }
 
 /** Serialize appends so sequence numbers and chain links follow call order. */

@@ -342,10 +342,10 @@ test('without providers the kernel reaches nothing and keeps no audit log', asyn
   await expect(plugins.ports.network.client('counter-sink').fetch('/')).rejects.toMatchObject({
     code: 'UNAVAILABLE',
   });
-  await expect(plugins.ports.network.socket('counter-sink', {})).rejects.toMatchObject({
+  await expect(plugins.ports.network.socket!('counter-sink', {} as never)).rejects.toMatchObject({
     code: 'UNAVAILABLE',
   });
-  expect(() => plugins.ports.network.childEnvironment('child')).toThrow('unreachable');
+  expect(() => plugins.ports.network.childEnvironment!('child')).toThrow('unreachable');
   expect(plugins.ports.identity.localOwnerSessions).toBe(true);
   expect(() => plugins.ports.identity.admit(undefined)).not.toThrow();
 });

@@ -1,4 +1,5 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
 import {
   ApplicationError,
   canonicalJson,
@@ -64,7 +65,7 @@ export function describeInput(capability: AnyCapability, input: unknown) {
       .map((field) => [field, object![field]]),
   ) as JsonObject;
   return {
-    inputDigest: createHash('sha256').update(canonicalJson(input)).digest('hex'),
+    inputDigest: bytesToHex(sha256(utf8ToBytes(canonicalJson(input)))),
     data: {
       fields: object ? Object.keys(object).sort() : [],
       ...(Object.keys(allowed).length ? { values: allowed } : {}),

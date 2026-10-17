@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:71da5b70-e7d4-5ccf-aea7-40e7d69f4670",
+  "serialNumber": "urn:uuid:4df79da5-7a9f-5fba-826f-06168978d104",
   "version": 1,
   "metadata": {
     "tools": {
@@ -4652,6 +4652,20 @@
         {
           "alg": "SHA-512",
           "content": "1fff8bf94913577dee7f8f4f1f9a420140553cd8f69c30574cdfaa4b574ec32ca0db897709c89c89c080edc6be1ccbc9059705825e6bf1ef9147a7a5b1be0bcb"
+        }
+      ],
+      "scope": "excluded"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40types/ungap__structured-clone@1.2.0",
+      "name": "@types/ungap__structured-clone",
+      "version": "1.2.0",
+      "purl": "pkg:npm/%40types/ungap__structured-clone@1.2.0",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6686a285934b7994b11126e4f4f5003d93a54a970ac7cd48d7ee1e9ad50b0d59812e462eb5370c9428f62bd54d95ff4458e0f174eea0900a8468ba2b5f065054"
         }
       ],
       "scope": "excluded"
@@ -15676,6 +15690,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/kernel",
+      "name": "@agent-native/kernel",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "packages/kernel"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/line-station",
       "name": "@agent-native/line-station",
       "properties": [
@@ -16073,6 +16099,7 @@
         "pkg:npm/%40types/node@26.6.4",
         "pkg:npm/%40types/react-dom@19.3.0",
         "pkg:npm/%40types/react@19.3.0",
+        "pkg:npm/%40types/ungap__structured-clone@1.2.0",
         "pkg:npm/%40ungap/structured-clone@1.4.0",
         "pkg:npm/%40vitejs/plugin-react@6.1.2",
         "pkg:npm/ai@7.0.130",
@@ -16125,6 +16152,7 @@
         "workspace:@agent-native/frame",
         "workspace:@agent-native/host",
         "workspace:@agent-native/integration",
+        "workspace:@agent-native/kernel",
         "workspace:@agent-native/line-station",
         "workspace:@agent-native/network",
         "workspace:@agent-native/operator-ui",
@@ -18655,6 +18683,10 @@
       "dependsOn": [
         "pkg:npm/%40types/node@26.6.4"
       ]
+    },
+    {
+      "ref": "pkg:npm/%40types/ungap__structured-clone@1.2.0",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/%40types/validate-npm-package-name@4.0.2",
@@ -23345,6 +23377,10 @@
     },
     {
       "ref": "workspace:@agent-native/integration",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/kernel",
       "dependsOn": []
     },
     {
