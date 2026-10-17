@@ -14,10 +14,11 @@ In the new checkout install the pinned dependencies with `bun install --frozen-l
 bun run scaffold add collection <record-type>
 bun run scaffold add capability <dotted.operation-id> --kind command|query --description "<what it does, for whom>"
 bun run scaffold add target <system-name> --collection <record-type>
+bun run scaffold add agent <agent-name> --collection <record-type>
 bun run format && bun run generate
 ```
 
-`add` inserts at the `// scaffold:<list>` markers in the generated files; keep them. Edit the generated schemas, handlers and policy into the requested domain afterwards: a generated capability starts with empty input and output and a headless UI exception, and a generated target starts with an in-memory fake port. Run `bun run typecheck`, `bun test`, `bun run build` and `bunx playwright test examples/<name>`. A cold dependency cache needs network access; an offline install failure is a dependency-fetch limitation, not an application check passing.
+`add` inserts at the `// scaffold:<list>` markers in the generated files; keep them. Edit the generated schemas, handlers and policy into the requested domain afterwards: a generated capability starts with empty input and output and a headless UI exception, a generated target starts with an in-memory fake port, and a generated agent proposes only `<record-type>.update` until its instructions and operations are rewritten for the domain. Run `bun run typecheck`, `bun test`, `bun run build` and `bunx playwright test examples/<name>`. A cold dependency cache needs network access; an offline install failure is a dependency-fetch limitation, not an application check passing.
 
 To start from a working reference instead, `bun run scaffold <absent-target> --name <app> --example project-tasks` exports one example as the hosted application. Do not present the example as the finished requested application. Customize the starter in `apps/*` freely, but put domain code in the application, and keep the framework packages free of domain-specific imports.
 

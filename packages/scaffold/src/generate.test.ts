@@ -132,6 +132,29 @@ test('add extends the application at its markers and refuses to overwrite a part
   expect(await read(join(app, 'screens.tsx'))).toContain(
     "{ path: 'ledger', component: LedgerScreen }",
   );
+  // The first agent brings the proposal operations and screen; a second adds only itself.
+  const closer = await scaffoldAdd(
+    { kind: 'agent', name: 'closer', collection: 'note' },
+    { root: target },
+  );
+  expect(closer.written).toEqual(
+    expect.arrayContaining([
+      'contracts/closer-agent.ts',
+      'handlers/proposals.ts',
+      'ui/proposals.tsx',
+    ]),
+  );
+  const second = await scaffoldAdd(
+    { kind: 'agent', name: 'reviewer', collection: 'site' },
+    { root: target },
+  );
+  expect(second.written).not.toContain('handlers/proposals.ts');
+  const withAgents = await read(join(app, 'contracts.ts'));
+  expect(withAgents.match(/\.\.\.proposalOperations,/g)).toHaveLength(1);
+  for (const key of ['closerAgent,', 'reviewerAgent,']) expect(withAgents).toContain(key);
+  expect(await read(join(app, 'policy.ts'))).toContain(
+    '[operations.proposalAccept.id]: { person: true },',
+  );
   await expect(scaffoldAdd({ kind: 'collection', name: 'site' }, { root: target })).rejects.toThrow(
     'Refusing to overwrite contracts/site.ts',
   );
@@ -302,6 +325,7 @@ acceptance(
       'Archive a note.',
     ]);
     await run([...cli, 'target', 'ledger', '--collection', 'note']);
+    await run([...cli, 'agent', 'closer', '--collection', 'note']);
     for (const script of ['format', 'generate', 'typecheck', 'build'])
       await run(['bun', 'run', script]);
     await run(['bun', 'test', 'examples/field-notes']);

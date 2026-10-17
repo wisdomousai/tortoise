@@ -4,6 +4,7 @@ import { applyGenerated } from './apply';
 import { prettierJson } from './json';
 import { appNames } from './new';
 import type { AppNames } from './templates/application';
+import { agent } from './templates/agent';
 import { capability, type CapabilitySpec } from './templates/capability';
 import { collection, type Generated } from './templates/collection';
 import { names } from './templates/names';
@@ -13,7 +14,8 @@ import { target } from './templates/target';
 export type AddRequest =
   | { readonly kind: 'collection'; readonly name: string }
   | ({ readonly kind: 'capability' } & CapabilitySpec)
-  | { readonly kind: 'target'; readonly name: string; readonly collection: string };
+  | { readonly kind: 'target'; readonly name: string; readonly collection: string }
+  | { readonly kind: 'agent'; readonly name: string; readonly collection: string };
 
 export interface AddOptions {
   /** The checkout root; the current directory when omitted. */
@@ -68,7 +70,15 @@ async function partFor(request: AddRequest, app: AppNames, directory: string): P
   const one = names(request.collection, 'Collection type');
   if (!(await exists(join(directory, 'contracts', `${one.kebab}.ts`))))
     throw new Error(`No collection ${one.kebab}; add it first with scaffold add collection`);
-  return target(app, names(request.name, 'Target name'), one);
+  if (request.kind === 'target') return target(app, names(request.name, 'Target name'), one);
+  // The first agent brings the proposal operations; later ones only add their definition.
+  const contracts = await readFile(join(directory, 'contracts.ts'), 'utf8');
+  return agent(
+    app,
+    names(request.name, 'Agent name'),
+    one,
+    !contracts.includes('proposalOperations'),
+  );
 }
 
 /**

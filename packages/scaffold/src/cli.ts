@@ -10,6 +10,7 @@ const USAGE = `Usage:
   bun run scaffold add collection <type> [--app <directory>]
   bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
   bun run scaffold add target <name> --collection <type> [--app <directory>]
+  bun run scaffold add agent <name> --collection <type> [--app <directory>]
   bun run scaffold versions [<application-directory>]`;
 
 function parse(args: readonly string[]) {
@@ -35,7 +36,8 @@ function addRequest(
     if (operationKind !== 'command' && operationKind !== 'query') throw new Error(USAGE);
     return { kind, id: name, operationKind, description: option('--description') ?? '' };
   }
-  if (kind === 'target') return { kind, name, collection: option('--collection') ?? '' };
+  if (kind === 'target' || kind === 'agent')
+    return { kind, name, collection: option('--collection') ?? '' };
   throw new Error(USAGE);
 }
 

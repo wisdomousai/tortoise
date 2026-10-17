@@ -9,6 +9,9 @@ export const operations = {
 export const {{app.camel}}Module = defineModule({
   id: '{{app.kebab}}',
   capabilities: Object.values(operations),
+  agents: [
+    // scaffold:agents
+  ],
   requirements: {
     network: [
       // scaffold:network

@@ -5,7 +5,7 @@ description: Create a new agent-native application from this framework with `bun
 
 # Create an agent-native application
 
-Preserve the user's actual business domain. `scaffold new` exports the framework and a thin starter with a generated application as the only content, and `scaffold add` extends it with collections, capabilities and targets. Shaping those generated parts into the requested domain is authored work. `scaffold --example <name>` exports one reference example instead. With `--registry <url>` (or `--published` for npm's registry) the new application installs the framework packages at the checkout's version instead of copying their source; `bun run release:serve` serves them on loopback to try that before anything is published. Read [the setup reference](references/new-application.md) for the commands and what the export contains.
+Preserve the user's actual business domain. `scaffold new` exports the framework and a thin starter with a generated application as the only content, and `scaffold add` extends it with collections, capabilities, targets and agents that propose. Shaping those generated parts into the requested domain is authored work. `scaffold --example <name>` exports one reference example instead. With `--registry <url>` (or `--published` for npm's registry) the new application installs the framework packages at the checkout's version instead of copying their source; `bun run release:serve` serves them on loopback to try that before anything is published. Read [the setup reference](references/new-application.md) for the commands and what the export contains.
 
 ## Before writing
 

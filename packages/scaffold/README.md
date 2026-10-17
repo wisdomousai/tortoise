@@ -26,10 +26,13 @@ bun run scaffold new <absent-target-directory> --name <app-name> [--display-name
 bun run scaffold add collection <type> [--app <directory>]
 bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
 bun run scaffold add target <name> --collection <type> [--app <directory>]
+bun run scaffold add agent <name> --collection <type> [--app <directory>]
 bun run scaffold versions [<application-directory>]
 ```
 
 With `--published` or `--registry <url>`, `new` leaves `packages/*`, `plugins/*`, `sdks/*`, the lockfile and the release scripts out. The root manifest depends on every framework package at the checkout's framework version, the workspaces are `apps/*` and `examples/*`, root scripts that test or release framework source are dropped (and removed from chains such as `check`), and the starter's relative references to framework files (tsconfig paths, stylesheets, README links) point into `node_modules`. `--registry` writes a `bunfig.toml` that installs the `@agent-native` scope from that URL. The first `bun install` writes the lockfile; commit it. Only `new` supports this, because the examples' own tests read plugin and SDK source by path.
+
+`add agent` writes an agent definition that reads the collection and proposes `<type>.update`, with agent scenarios played by the deterministic harness; the first agent also adds the proposal operations, their handlers, rules and state, and a Proposals screen where a person accepts or rejects.
 
 `add target` also lists the target's destination as disabled in `apps/desktop/site-policy.json`, so `site check` passes until someone binds it to the system of record's URL.
 

@@ -15,7 +15,7 @@ A capability is one domain behavior in the catalog. People, agents, the CLI, MCP
 
 ## Steps
 
-1. In an application made by `scaffold new`, start with `bun run scaffold add capability <dotted.id> --kind command|query --description "<what it does, for whom>"` (or `add collection`, `add target`). It writes the contract, handler, policy rule and a test at the `// scaffold:<list>` markers; keep the markers. Otherwise write the parts by hand as below.
+1. In an application made by `scaffold new`, start with `bun run scaffold add capability <dotted.id> --kind command|query --description "<what it does, for whom>"` (or `add collection`, `add target`, `add agent`). It writes the contract, handler, policy rule and a test at the `// scaffold:<list>` markers; keep the markers. Otherwise write the parts by hand as below.
 2. **Contract** in the browser-safe module (`contracts.ts`): stable ID, strict JSON input and output schemas, permission, and a UI binding or a stated headless exception. Add workflow text when agents need a sequence of operations; it names operation IDs, never transport tool names.
 3. **Handler** in the server entrypoint with `createHandlerFactory`. Declare every changed resource with `ctx.change`. No network call inside the transaction: enqueue an outbox effect with `ctx.enqueue` and declare `integration` on the capability instead.
 4. **Policy** for operation, object, current and proposed fields, and grant scope. Filter rows before paging or counting. See [authorization](../../../../docs/authorization.md).
