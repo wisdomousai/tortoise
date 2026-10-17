@@ -1,12 +1,39 @@
 {
   "name": "@agent-native/compliance",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Compliance host plugin: security manifest, data flows, control mapping, CycloneDX SBOM, runtime posture monitor and the auditor queries and screen.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/compliance"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./plugin-screens": "./src/plugin-screens.tsx",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/adapters": "workspace:*",
+    "@agent-native/audit": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/event-log": "workspace:*",
+    "@agent-native/frame": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@agent-native/site": "workspace:*",
+    "@tanstack/react-query": "5.104.1",
+    "lucide-react": "1.52.0",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "react": "19.3.0"
   }
 }

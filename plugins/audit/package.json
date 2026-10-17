@@ -1,11 +1,29 @@
 {
   "name": "@agent-native/audit",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Audit host plugin: the fail-closed, hash-chained event log with off-host forwarding, startup attestation, crash recovery and chain verification.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/audit"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/adapters": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/event-log": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/site": "workspace:*"
   }
 }

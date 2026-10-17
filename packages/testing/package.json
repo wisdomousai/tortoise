@@ -1,10 +1,26 @@
 {
   "name": "@agent-native/testing",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "packages/testing"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/integration": "workspace:*",
+    "@agent-native/runtime": "workspace:*"
   }
 }

@@ -1,6 +1,7 @@
 import { lstat, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { applyGenerated } from './apply';
+import { prettierJson } from './json';
 import { appNames } from './new';
 import type { AppNames } from './templates/application';
 import { capability, type CapabilitySpec } from './templates/capability';
@@ -71,6 +72,27 @@ async function partFor(request: AddRequest, app: AppNames, directory: string): P
 }
 
 /**
+ * The desktop site policy with a new target's destination listed as disabled, or undefined when
+ * there is no policy or it already names the destination. A target's destination is required,
+ * so a policy that names neither a binding nor a deliberate switch-off fails `site check`;
+ * disabled, effects stay queued until someone binds it to the system of record's URL.
+ */
+async function policyWithTarget(root: string, name: string): Promise<string | undefined> {
+  const path = join(root, 'apps/desktop/site-policy.json');
+  if (!(await exists(path))) return;
+  const policy = JSON.parse(await readFile(path, 'utf8')) as {
+    destinations?: Record<string, unknown>;
+  };
+  const id = `${names(name, 'Target name').kebab}-api`;
+  if (policy.destinations?.[id]) return;
+  policy.destinations = {
+    ...policy.destinations,
+    [id]: { disabled: true, reason: `Bind to the ${name} system of record's URL to deliver.` },
+  };
+  return `${prettierJson(policy)}\n`;
+}
+
+/**
  * Generate one part into an application created by `scaffold new`: its contract, handler,
  * policy rules, screens where it has any, and a behavioral test, inserted at the application's
  * `// scaffold:<list>` markers. Nothing is written unless every file can be produced, and no
@@ -89,11 +111,17 @@ export async function scaffoldAdd(request: AddRequest, options: AddOptions = {})
   for (const path of Object.keys(part.files))
     if (await exists(join(directory, path))) throw new Error(`Refusing to overwrite ${path}`);
   const next = applyGenerated(current, part);
+  const policy = request.kind === 'target' ? await policyWithTarget(root, request.name) : undefined;
   for (const [path, content] of Object.entries(next)) {
     await mkdir(dirname(join(directory, path)), { recursive: true });
     await writeFile(join(directory, path), content, {
       flag: Object.hasOwn(part.files, path) ? 'wx' : 'w',
     });
   }
-  return { directory: relative(root, directory), written: Object.keys(next).sort() };
+  if (policy) await writeFile(join(root, 'apps/desktop/site-policy.json'), policy);
+  return {
+    directory: relative(root, directory),
+    written: Object.keys(next).sort(),
+    ...(policy ? { policy: 'apps/desktop/site-policy.json' } : {}),
+  };
 }

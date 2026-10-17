@@ -1,11 +1,29 @@
 {
   "name": "@agent-native/share-target",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Share target host plugin: serves share handlers and share actions for the OS plugin, and holds web share target posts until the landing session claims them.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/share-target"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/os": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@agent-native/shell": "workspace:*"
   }
 }

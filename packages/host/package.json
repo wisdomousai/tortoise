@@ -1,11 +1,33 @@
 {
   "name": "@agent-native/host",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Generic local authority: hosts one application definition over HTTP, MCP and CLI.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "packages/host"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/adapters": "workspace:*",
+    "@agent-native/agents": "workspace:*",
+    "@agent-native/client": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/react": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@ai-sdk/openai": "4.0.86",
+    "@modelcontextprotocol/sdk": "1.32.1"
   }
 }

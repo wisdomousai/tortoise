@@ -1,11 +1,25 @@
 {
   "name": "@agent-native/bundle",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Server-only site bundles: one signed, versioned artifact per application and platform, verified and admitted before a site installs it.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "packages/bundle"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*"
   }
 }

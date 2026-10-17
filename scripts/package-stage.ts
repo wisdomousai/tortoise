@@ -58,7 +58,7 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
   // loader. Initialization precedes importing the service composition root.
   await writeFile(
     entry,
-    `import { installNativeCredentialBinding } from ${JSON.stringify(resolve(root, 'packages/agents/src/credentials.ts'))};\nconst binding = require(${JSON.stringify(keyring)});\ninstallNativeCredentialBinding(binding);\nawait import(${JSON.stringify(await writeApplicationEntry('service', stage))});\n`,
+    `import { installNativeCredentialBinding } from ${JSON.stringify(Bun.resolveSync('@agent-native/agents/credentials', root))};\nconst binding = require(${JSON.stringify(keyring)});\ninstallNativeCredentialBinding(binding);\nawait import(${JSON.stringify(await writeApplicationEntry('service', stage))});\n`,
   );
   const service = resolve(resources, target.startsWith('win32') ? 'service.exe' : 'service');
   const bunTarget =

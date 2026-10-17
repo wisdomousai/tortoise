@@ -1,11 +1,28 @@
 {
   "name": "@agent-native/kernel",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Portable host kernel: application and plugin composition, ports and authority opening on any platform.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "packages/kernel"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/integration": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@ungap/structured-clone": "1.4.0"
   }
 }

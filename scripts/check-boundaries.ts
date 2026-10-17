@@ -70,14 +70,28 @@ const layerDirectories: Record<string, Layer> = {
   sdks: 'sdk',
 };
 const packageLayers = new Map<string, Layer>();
+const manifestOf = (path: string) =>
+  readFile(path, 'utf8')
+    .then((text) => JSON.parse(text) as { name?: string; repository?: { directory?: string } })
+    .catch(() => undefined);
 for (const [directory, layer] of Object.entries(layerDirectories))
-  for (const entry of await readdir(resolve(root, directory), { withFileTypes: true }))
+  for (const entry of await readdir(resolve(root, directory), { withFileTypes: true }).catch(
+    () => [],
+  ))
     if (entry.isDirectory()) {
-      const manifest = await readFile(resolve(root, directory, entry.name, 'package.json'), 'utf8')
-        .then((text) => JSON.parse(text) as { name?: string })
-        .catch(() => undefined);
+      const manifest = await manifestOf(resolve(root, directory, entry.name, 'package.json'));
       if (manifest?.name) packageLayers.set(manifest.name, layer);
     }
+// An application installed from a registry has no framework source; its framework packages
+// name the directory they were published from.
+for (const name of await readdir(resolve(root, 'node_modules/@agent-native')).catch(() => [])) {
+  const manifest = await manifestOf(
+    resolve(root, 'node_modules/@agent-native', name, 'package.json'),
+  );
+  const layer = layerDirectories[manifest?.repository?.directory?.split('/')[0] ?? ''];
+  if (manifest?.name && layer && !packageLayers.has(manifest.name))
+    packageLayers.set(manifest.name, layer);
+}
 function layerOfPath(path: string): Layer | undefined {
   return layerDirectories[relative(root, path).replaceAll('\\', '/').split('/')[0]!];
 }
@@ -181,13 +195,19 @@ for (const file of all) {
   if (exemption) exemptionUsed.add(exemption);
   else errors.push(`${name}: direct ${found.join(', ')} bypasses the egress guard`);
 }
+// An exemption for code this checkout does not contain, such as framework source in an
+// application installed from a registry, is not stale.
+const present = (prefix: string) =>
+  all.some((file) => relative(root, file).replaceAll('\\', '/').startsWith(prefix));
 for (const exemption of Object.keys(egressExemptions))
-  if (!exemptionUsed.has(exemption))
+  if (!exemptionUsed.has(exemption) && present(exemption))
     errors.push(`scripts/boundary-rules.ts: stale egress exemption ${exemption}`);
 // Bundling each application with the starter's real config catches transitive host dependencies
 // as well as direct ones: the boundary plugin in apps/web/vite.config.ts fails the graph.
 const applications = [];
-for (const entry of await readdir(resolve(root, 'examples'), { withFileTypes: true }))
+for (const entry of await readdir(resolve(root, 'examples'), { withFileTypes: true }).catch(
+  () => [],
+))
   if (
     entry.isDirectory() &&
     (await Bun.file(resolve(root, 'examples', entry.name, 'screens.tsx')).exists())

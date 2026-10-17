@@ -8,7 +8,7 @@ import {
   verifyRuntimeFiles,
 } from '@agent-native/host/runtime-manifest';
 import { ensureService } from '../apps/desktop/src/service-lifecycle';
-import { nativeEnvironment } from '../packages/agents/src/process';
+import { nativeEnvironment } from '@agent-native/agents/process';
 /** Offline platform acceptance: real shipped native versions and compiled service.
  * Never invokes provider inference or the OS credential store. Run on each target. */
 export async function smokeStage(stage: string) {

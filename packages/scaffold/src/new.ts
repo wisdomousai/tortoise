@@ -11,6 +11,8 @@ export interface NewOptions {
   /** The first collection's record type; `item` when omitted. */
   readonly collection?: string;
   readonly sourceRoot?: string;
+  /** Install the framework from a registry instead of copying it; see `ScaffoldOptions`. */
+  readonly published?: { readonly registry?: string };
 }
 
 /** The names a generated application is written with. */
@@ -40,6 +42,7 @@ export async function scaffoldNew(options: NewOptions): Promise<ScaffoldManifest
     name: options.name,
     displayName,
     ...(options.sourceRoot ? { sourceRoot: options.sourceRoot } : {}),
+    ...(options.published ? { published: options.published } : {}),
     content: { directory: `examples/${app.app.kebab}`, packageName: app.packageName, files },
   });
 }

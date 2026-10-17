@@ -1,11 +1,28 @@
 {
   "name": "@agent-native/network",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Network host plugin: the egress guard and child proxy over the site policy's bindings, mutual TLS ingress, and default-deny OS and orchestrator rule exports.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/network"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/adapters": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/site": "workspace:*"
   }
 }

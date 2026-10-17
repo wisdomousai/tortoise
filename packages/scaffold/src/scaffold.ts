@@ -15,6 +15,14 @@ import { canonicalJson } from '@agent-native/contracts';
 import { addDependency, addWorkspace, type GeneratedContent } from './content';
 import { excludedExamples, pruneLockfile, type ExcludedExample } from './examples';
 import { binaryFile, collect } from './file-rules';
+import {
+  frameworkFile,
+  publishedContent,
+  publishedFiles,
+  publishedFramework,
+  pruneScripts,
+  type PublishedFramework,
+} from './published';
 
 export interface ScaffoldOptions {
   readonly target: string;
@@ -32,6 +40,12 @@ export interface ScaffoldOptions {
    * is added to the root manifest and lockfile, and the starter is configured to host it.
    */
   readonly content?: GeneratedContent;
+  /**
+   * Install the framework from a registry at the checkout's framework version instead of
+   * copying `packages/*` and `plugins/*`; `registry` serves the `@agent-native` scope. Only for
+   * generated content: the examples' own tests read plugin and SDK source by path.
+   */
+  readonly published?: { readonly registry?: string };
 }
 export interface ScaffoldManifest {
   readonly formatVersion: 1;
@@ -47,6 +61,8 @@ export interface ScaffoldManifest {
   readonly example?: string;
   /** The generated content workspace, for a new application. */
   readonly content?: string;
+  /** Present when the export installs the framework instead of carrying its source. */
+  readonly framework?: { readonly version: string; readonly registry?: string };
   readonly files: readonly { readonly path: string; readonly sha256: string }[];
 }
 
@@ -135,6 +151,7 @@ interface ExportContext {
   readonly application: ScaffoldManifest['application'];
   readonly excluded: readonly ExcludedExample[];
   readonly content?: GeneratedContent;
+  readonly framework?: PublishedFramework;
 }
 
 /** Rename the package and rewrite the files the exported application owns. */
@@ -149,14 +166,23 @@ function exportedContent(path: string, source: string, context: ExportContext): 
     );
   if (path === 'app.config.json') content = JSON.stringify(context.application, null, 2) + '\n';
   if (path === 'package.json' && excluded.length) {
-    const root = JSON.parse(content) as { dependencies?: Record<string, string> };
+    const root = JSON.parse(content) as {
+      dependencies?: Record<string, string>;
+      scripts?: Record<string, string>;
+    };
     for (const { packageName } of excluded) delete root.dependencies?.[packageName];
+    // A script that runs a left-out example's files, such as one example's sandbox test.
+    if (root.scripts)
+      root.scripts = pruneScripts(root.scripts, (_name, command) =>
+        excluded.some(({ directory }) => command.includes(`${directory}/`)),
+      );
     content = JSON.stringify(root, null, 2) + '\n';
   }
   if (path === 'bun.lock' && excluded.length) content = pruneLockfile(content, excluded);
   if (context.content && path === 'package.json')
     content = addDependency(content, context.content.packageName);
   if (context.content && path === 'bun.lock') content = addWorkspace(content, context.content);
+  if (context.framework) content = publishedContent(path, content, context.framework);
   return content;
 }
 
@@ -169,7 +195,9 @@ async function exportedFiles(
   context: ExportContext,
 ) {
   const { sourceRoot, requestedSourceRoot } = locations;
-  const paths = (await collect(sourceRoot)).filter((path) => !leftOut(path, context.excluded));
+  const paths = (await collect(sourceRoot)).filter(
+    (path) => !leftOut(path, context.excluded) && !(context.framework && frameworkFile(path)),
+  );
   const files: { path: string; content: string | Uint8Array; sha256: string }[] = [];
   for (const path of paths) {
     if (binaryFile(path)) {
@@ -184,10 +212,17 @@ async function exportedFiles(
     files.push({ path, content, sha256: createHash('sha256').update(content).digest('hex') });
   }
   // Generated content is written as given; it holds no source paths or checkout data.
-  for (const [file, content] of Object.entries(context.content?.files ?? {})) {
-    const path = `${context.content!.directory}/${file}`;
+  const generated = {
+    ...Object.fromEntries(
+      Object.entries(context.content?.files ?? {}).map(([file, content]) => [
+        `${context.content!.directory}/${file}`,
+        content,
+      ]),
+    ),
+    ...(context.framework ? publishedFiles(context.framework) : {}),
+  };
+  for (const [path, content] of Object.entries(generated))
     files.push({ path, content, sha256: createHash('sha256').update(content).digest('hex') });
-  }
   return files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 }
 
@@ -233,6 +268,11 @@ export async function scaffold(options: ScaffoldOptions): Promise<ScaffoldManife
     await readFile(join(locations.sourceRoot, 'package.json'), 'utf8'),
   ) as { name: string; version: string };
   const displayName = displayNameOf(options);
+  if (options.published && !options.content)
+    throw new Error('Only a new application installs the framework; an example export copies it');
+  const framework = options.published
+    ? await publishedFramework(locations.sourceRoot, options.published.registry)
+    : undefined;
   const { application, excluded } = await applicationOf(options, locations.sourceRoot, displayName);
   const files = await exportedFiles(locations, {
     sourceName: sourcePackage.name,
@@ -241,6 +281,7 @@ export async function scaffold(options: ScaffoldOptions): Promise<ScaffoldManife
     application,
     excluded,
     ...(options.content ? { content: options.content } : {}),
+    ...(framework ? { framework } : {}),
   });
   const manifest: ScaffoldManifest = {
     formatVersion: 1,
@@ -248,6 +289,14 @@ export async function scaffold(options: ScaffoldOptions): Promise<ScaffoldManife
     application,
     ...(options.example ? { example: options.example } : {}),
     ...(options.content ? { content: options.content.directory } : {}),
+    ...(framework
+      ? {
+          framework: {
+            version: framework.version,
+            ...(framework.registry ? { registry: framework.registry } : {}),
+          },
+        }
+      : {}),
     files: files.map(({ path, sha256 }) => ({ path, sha256 })),
   };
   await publish(locations.target, files, manifest);

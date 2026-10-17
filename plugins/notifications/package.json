@@ -1,11 +1,31 @@
 {
   "name": "@agent-native/notifications",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Notifications host plugin: delivers outbox effects as local notifications through the OS plugin and runs the continuation a reply's single-use nonce stands for.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/notifications"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/integration": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/os": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@noble/hashes": "2.4.0",
+    "zod": "4.6.5"
   }
 }

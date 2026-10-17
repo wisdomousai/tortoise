@@ -155,7 +155,7 @@ Control mappings are indicative, not a certification.
 
 **By hand, mobile export.** 17 October 2026: `bun run scaffold <dir> --name field-survey --example asset-survey-field` exports `apps/mobile`, the field app and the hub example it imports. In the export, a frozen install, `bun run typecheck`, `bun test examples`, `bun run mobile:prepare` (the native config lists the managed-config and `expo-camera` config plugins) and `expo export --platform android` (a Hermes bundle) pass. `test:scaffold:full` does not repeat the mobile steps, and no native build was made from the export.
 
-**Limits.** Framework packages are unpublished, so an export copies `packages/*` and depends on them through `workspace:*`. An authority hosts one application. A generated application's export fails `check:boundaries` on the reference examples' stale exemptions, so its acceptance run does not include them.
+**Limits.** No framework version has been published to npm or any real registry; every install from versions ran against the loopback registry (`release:serve`). No license is declared, so nothing can go to a public registry until one is chosen. The packages publish TypeScript source, and only Bun and Vite have consumed them. An example export still copies the framework. An authority hosts one application.
 
 ## Known defects
 
@@ -178,7 +178,7 @@ These are improvements, not defects:
 - Share event, receipt and cancellation adaptation between the HTTP and direct transports. The known defect above is one place where they still diverge.
 - Extract a reusable draft model (target, base revision, local values and conflict state) from capture and scanner setup.
 - Consolidate the repeated polling, delay-cancellation and credential-refresh lifecycles once their semantics settle.
-- Before publishing packages, give each one explicit entrypoints and its own dependencies.
+- Before a 1.0 version, replace the `./*` wildcard exports with explicit entrypoints: today every source file of a package is a public entrypoint.
 
 ## Out of scope
 

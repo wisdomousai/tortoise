@@ -31,7 +31,7 @@ The `operator` registry declares stock shadcn primitives as dependencies and add
 | Components | Operator surface, big action, tile picker, numeric pad, scan prompt, status strip, attention queue, takeover button. |
 | Blocks     | Scanner setup (calibration, profile, live test) and the station layout.                                              |
 
-`bun run build:registry:operator` generates the registry from its manifest and builds it. The generator fails when an item imports something it does not declare, and `check:registry:operator` fails on drift. Inside this repository, the web app resolves registry sources in place, with the same import paths an app gets after `shadcn add`. The scanner items depend on the devices package, which is not yet published, so they can only be pulled outside this workspace once it is published or vendored.
+`bun run build:registry:operator` generates the registry from its manifest and builds it. The generator fails when an item imports something it does not declare, and `check:registry:operator` fails on drift. Inside this repository, the web app resolves registry sources in place, with the same import paths an app gets after `shadcn add`. The scanner items depend on the devices package, which is not on a public registry yet, so outside this workspace they need it installed from a registry (see [Framework packages](development-and-testing.md#framework-packages)) or vendored.
 
 A gallery route renders every part at desk, touch and glove density, and the line-station browser specs use it for interaction tests.
 

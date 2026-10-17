@@ -1,12 +1,31 @@
 {
   "name": "@agent-native/station-sign-in",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Station sign-in host plugin: operators sign in at a shared station seat with a badge scan and PIN, for a short-lived session of their own.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/station-sign-in"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     "./contracts": "./src/contracts.ts",
     "./plugin-manifest": "./src/plugin-manifest.ts",
     "./plugin": "./src/plugin.ts"
+  },
+  "dependencies": {
+    "@agent-native/adapters": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@noble/hashes": "2.4.0",
+    "zod": "4.6.5"
   }
 }

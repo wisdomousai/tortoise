@@ -2,7 +2,7 @@
 
 This repository is a TypeScript reference for applications that people and AI agents operate together, often on or next to the machines where work happens. A typical one records events locally and delivers them to a system of record such as an ERP, quality system or MES. Every operation is defined once and reachable from a desktop or browser UI, HTTP, MCP and a CLI, so a person, an agent, a script or a device calls it with the same validation and authorization.
 
-It contains a domain-neutral framework (`packages/*`), host plugins (`plugins/*`), a thin starter that hosts one application (`apps/*`) and example applications (`examples/*`). It is a reference to read, run and export, not a published library or a hosted service.
+It contains a domain-neutral framework (`packages/*`), host plugins (`plugins/*`), a thin starter that hosts one application (`apps/*`) and example applications (`examples/*`). It is a reference to read, run and export, not a hosted service. Its framework packages can be packed and published at one version, but none is on a public registry yet.
 
 The framework provides:
 

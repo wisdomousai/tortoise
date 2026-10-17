@@ -65,9 +65,14 @@ test('the entry imports the application and its native screens by relative path'
   expect(source).not.toContain(root);
   // The fixture composes no plugin, so no setting is passed and no OS handler is registered.
   expect(source).toContain('const settings = {};');
+  // The scheme comes from the starter's identity, which an export renames.
+  const identity = JSON.parse(readFileSync(join(root, 'app.config.json'), 'utf8')) as {
+    appId: string;
+    scheme?: string;
+  };
   expect(JSON.parse(readFileSync(join(directory, 'native.json'), 'utf8'))).toMatchObject({
     plugins: [],
-    os: { scheme: 'dev.agentnative.workspace', android: { intentFilters: [] } },
+    os: { scheme: identity.scheme ?? identity.appId, android: { intentFilters: [] } },
   });
 });
 

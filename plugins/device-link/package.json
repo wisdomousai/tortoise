@@ -1,13 +1,38 @@
 {
   "name": "@agent-native/device-link",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Device link host plugin: a hub enrolls field devices and tablets with one-use codes and authenticates their credentials on every request.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/device-link"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     "./contracts": "./src/contracts.ts",
     "./plugin-manifest": "./src/plugin-manifest.ts",
     "./plugin": "./src/plugin.ts",
     "./plugin-screens": "./src/plugin-screens.tsx"
+  },
+  "dependencies": {
+    "@agent-native/adapters": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/frame": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@noble/hashes": "2.4.0",
+    "@tanstack/react-query": "5.104.1",
+    "lucide-react": "1.52.0",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "react": "19.3.0"
   }
 }

@@ -1,9 +1,20 @@
 {
   "name": "@agent-native/frame-native",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Native frame for one application on Android and iOS (navigation, session, live invalidation) and glove-sized components, distributed as a shadcn registry.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "packages/frame-native"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     "./screens": "./src/screens.ts",
     "./plugin-screens": "./src/plugin-screens.ts",
@@ -13,5 +24,22 @@
     "./os-provenance": "./src/os-provenance.tsx",
     "./components/*": "./src/components/*.tsx",
     "./theme.css": "./src/styles/theme.css"
+  },
+  "dependencies": {
+    "@agent-native/client": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/react": "workspace:*",
+    "@agent-native/shell": "workspace:*",
+    "@react-navigation/bottom-tabs": "7.21.0",
+    "@react-navigation/native": "7.5.1",
+    "@react-navigation/native-stack": "7.21.0",
+    "@tanstack/react-query": "5.104.1",
+    "lucide-react-native": "1.59.0",
+    "uniwind": "1.12.2"
+  },
+  "peerDependencies": {
+    "react": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-safe-area-context": "5.10.1"
   }
 }

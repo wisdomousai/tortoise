@@ -1,14 +1,37 @@
 {
   "name": "@agent-native/intent-scanner",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Intent scanner host plugin: barcode scans that a rugged Android device's scanner app broadcasts as intents, through a native receiver.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/intent-scanner"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     "./plugin-manifest": "./src/plugin-manifest.ts",
     "./plugin": "./src/expo/plugin.ts",
     "./source": "./src/source.ts",
     "./expo": "./src/expo/source.ts",
     "./plugin-screens-native": "./src/expo/screens.tsx"
+  },
+  "dependencies": {
+    "@agent-native/devices": "workspace:*",
+    "@agent-native/frame-native": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/mobile": "workspace:*",
+    "lucide-react-native": "1.59.0"
+  },
+  "peerDependencies": {
+    "expo-modules-core": "58.0.22",
+    "react": "19.3.0",
+    "react-native": "0.88.0"
   }
 }

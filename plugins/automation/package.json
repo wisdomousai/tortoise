@@ -1,11 +1,35 @@
 {
   "name": "@agent-native/automation",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Host plugin: triggers that run agents or jobs on journal events or a schedule, under standing grants people issue.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/automation"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     "./plugin-screens": "./plugin-screens.tsx",
     "./*": "./*.ts"
+  },
+  "dependencies": {
+    "@agent-native/agents": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/frame": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@tanstack/react-query": "5.104.1",
+    "lucide-react": "1.52.0",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "react": "19.3.0"
   }
 }

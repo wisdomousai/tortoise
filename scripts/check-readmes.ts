@@ -47,7 +47,9 @@ interface Manifest {
 const errors: string[] = [];
 const workspaces: string[] = [];
 for (const layer of ['packages', 'plugins', 'apps', 'examples', 'sdks'])
-  for (const entry of readdirSync(resolve(root, layer), { withFileTypes: true }))
+  for (const entry of existsSync(resolve(root, layer))
+    ? readdirSync(resolve(root, layer), { withFileTypes: true })
+    : [])
     if (entry.isDirectory() && existsSync(resolve(root, layer, entry.name, 'package.json')))
       workspaces.push(`${layer}/${entry.name}`);
 

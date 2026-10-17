@@ -1,14 +1,46 @@
 {
   "name": "@agent-native/frame",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Web frame for one application (session, routing, palette, run panel), distributed as a shadcn registry.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "packages/frame"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     "./screens": "./src/screens.ts",
     "./plugin-screens": "./src/plugin-screens.ts",
     "./vite": "./vite.ts",
     "./components/*": "./src/components/*.tsx",
     "./lib/*": "./src/lib/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/client": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/operator-ui": "workspace:*",
+    "@agent-native/react": "workspace:*",
+    "@agent-native/shell": "workspace:*",
+    "@tanstack/react-query": "5.104.1",
+    "@tanstack/react-router": "1.170.41",
+    "@tanstack/react-table": "9.2.6",
+    "lucide-react": "1.52.0"
+  },
+  "peerDependencies": {
+    "react": "19.3.0",
+    "vite": "8.3.3"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
   }
 }

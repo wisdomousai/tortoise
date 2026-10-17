@@ -51,6 +51,49 @@ test('new writes one generated application and copies no example', async () => {
   );
 });
 
+test('a published-framework export depends on framework versions instead of copying them', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'agent-scaffold-published-'));
+  cleanup.push(directory);
+  const target = join(directory, 'notes');
+  const manifest = await scaffoldNew({
+    target,
+    name: 'field-notes',
+    collection: 'note',
+    published: { registry: 'http://127.0.0.1:4873/' },
+  });
+  const version = JSON.parse(
+    await read(join(import.meta.dir, '../../kernel/package.json')),
+  ).version;
+  expect(manifest.framework).toEqual({ version, registry: 'http://127.0.0.1:4873/' });
+  expect((await readdir(target)).sort()).not.toContain('packages');
+  expect(await readdir(target)).not.toContain('plugins');
+  expect(await readdir(target)).not.toContain('bun.lock');
+  const root = JSON.parse(await read(join(target, 'package.json')));
+  expect(root.workspaces).toEqual(['apps/*', 'examples/*']);
+  expect(root.dependencies).toMatchObject({
+    '@agent-native/kernel': version,
+    '@agent-native/site': version,
+    '@field-notes/application': 'workspace:*',
+  });
+  expect(root.scripts.scaffold).toBe('bun node_modules/@agent-native/scaffold/src/cli.ts');
+  expect(root.scripts['test:portable']).toBeUndefined();
+  expect(root.scripts.build).toBe('bun run build:web');
+  expect(root.scripts.check).toContain('bun run check:framework');
+  expect(root.scripts.check).not.toContain('check:manifests');
+  expect(root.scripts.check).not.toContain('check:registry:operator');
+  const tsconfig = JSON.parse(await read(join(target, 'tsconfig.json')));
+  expect(tsconfig.include).not.toContain('packages');
+  expect(tsconfig.compilerOptions.paths['@/*']).toContain(
+    './node_modules/@agent-native/frame/src/*',
+  );
+  expect(await read(join(target, 'apps/web/src/styles.css'))).toContain(
+    "@import '../../../node_modules/@agent-native/operator-ui/src/styles/operator.css';",
+  );
+  expect(await read(join(target, 'bunfig.toml'))).toContain(
+    '"@agent-native" = "http://127.0.0.1:4873/"',
+  );
+});
+
 test('add extends the application at its markers and refuses to overwrite a part', async () => {
   const { target, app } = await fresh();
   const added = await scaffoldAdd(
@@ -60,7 +103,17 @@ test('add extends the application at its markers and refuses to overwrite a part
   expect(added).toMatchObject({ directory: 'examples/field-notes' });
   expect(added.written).toContain('contracts/note-archive.ts');
   await scaffoldAdd({ kind: 'collection', name: 'site' }, { root: target });
-  await scaffoldAdd({ kind: 'target', name: 'ledger', collection: 'note' }, { root: target });
+  const ledger = await scaffoldAdd(
+    { kind: 'target', name: 'ledger', collection: 'note' },
+    { root: target },
+  );
+  // The target's required destination is switched off in the desktop policy until it is bound.
+  expect(ledger.policy).toBe('apps/desktop/site-policy.json');
+  expect(
+    JSON.parse(await read(join(target, 'apps/desktop/site-policy.json'))).destinations[
+      'ledger-api'
+    ],
+  ).toMatchObject({ disabled: true });
   const contracts = await read(join(app, 'contracts.ts'));
   for (const key of ['noteArchive,', '...siteOperations,', 'ledgerSync: ledgerTarget.sync,'])
     expect(contracts).toContain(key);
@@ -149,6 +202,61 @@ test('a template placeholder without a value throws', () => {
 });
 
 const acceptance = process.env.SCAFFOLD_ACCEPTANCE === '1' ? test : test.skip;
+
+/** Run a command in `cwd`, failing with its output. */
+async function exec(command: string[], cwd: string, env: Record<string, string | undefined>) {
+  const child = Bun.spawn(command, { cwd, env, stdout: 'pipe', stderr: 'pipe' });
+  const [stdout, stderr, code] = await Promise.all([
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+    child.exited,
+  ]);
+  if (code !== 0) throw new Error(`${command.join(' ')} failed (${code}):\n${stdout}\n${stderr}`);
+}
+
+acceptance(
+  'a new application installs the framework from a registry, frozen, and passes its own check',
+  async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'agent-scaffold-registry-'));
+    cleanup.push(directory);
+    const { packFramework } = await import('../../../scripts/release');
+    const { startLocalRegistry } = await import('../../../scripts/local-registry');
+    const packed = join(directory, 'release');
+    await packFramework(packed, join(import.meta.dir, '../../..'));
+    const registry = await startLocalRegistry(packed);
+    try {
+      const target = join(directory, 'notes');
+      await scaffoldNew({
+        target,
+        name: 'field-notes',
+        collection: 'note',
+        published: { registry: registry.url },
+      });
+      const env = {
+        PATH: process.env.PATH,
+        HOME: process.env.HOME,
+        TMPDIR: process.env.TMPDIR,
+        CI: '1',
+        SCAFFOLD_ACCEPTANCE: '0',
+        // A cache of its own, so a tarball cached at the same version from an earlier pack
+        // cannot stand in for the one packed here.
+        BUN_INSTALL_CACHE_DIR: join(directory, 'cache'),
+      };
+      const run = (command: string[]) => exec(command, target, env);
+      // The first install writes the lockfile; a clean install then has to match it exactly.
+      await run(['bun', 'install', '--ignore-scripts']);
+      await rm(join(target, 'node_modules'), { recursive: true, force: true });
+      await run(['bun', 'install', '--frozen-lockfile', '--ignore-scripts']);
+      await run(['bun', 'run', 'scaffold', 'add', 'target', 'ledger', '--collection', 'note']);
+      await run(['bun', 'run', 'format']);
+      await run(['bun', 'run', 'check']);
+      await run(['bunx', 'playwright', 'test', 'examples/field-notes']);
+    } finally {
+      await registry.stop();
+    }
+  },
+  900_000,
+);
 
 acceptance(
   'a new application with every part installs frozen, generates, typechecks, builds and passes its unit and browser tests',

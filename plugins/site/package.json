@@ -1,11 +1,33 @@
 {
   "name": "@agent-native/site",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Site host plugin: loads the site policy, enforces its profile floors and identity, and refuses compositions that would leave the policy unenforced.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/site"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/adapters": "workspace:*",
+    "@agent-native/agents": "workspace:*",
+    "@agent-native/bundle": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "jose": "6.2.12",
+    "zod": "4.6.5"
   }
 }

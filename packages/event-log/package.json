@@ -1,11 +1,26 @@
 {
   "name": "@agent-native/event-log",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Server-only append-only audit event log: hash-chained memory and JSON-lines adapters, verifier and forwarding.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "packages/event-log"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "@noble/hashes": "2.4.0"
   }
 }

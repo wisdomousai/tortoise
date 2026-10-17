@@ -421,9 +421,15 @@ implemented · `packages/testing`
 
 ### Scaffold
 
-_Exports the framework, the starter and content as a standalone application, and generates new applications and their parts._
+_Exports the framework, the starter and content as a standalone application, or the starter and a new application over installed framework versions, and generates new applications and their parts._
 
 implemented · `packages/scaffold`
+
+### Framework release
+
+_The framework and plugin packages published together at one version, each with the dependencies its published files import, and a check that refuses an install with mixed versions._
+
+implemented · `scripts/release.ts` `scripts/check-manifests.ts` `scripts/local-registry.ts` `packages/scaffold/src/versions.ts` `.changeset`
 
 ### Task package
 

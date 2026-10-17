@@ -1,11 +1,29 @@
 {
   "name": "@agent-native/station",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Server-only bridge to legacy station software through its screen: profiles, observer, gated controller connector and perception adapters.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "packages/station"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/integration": "workspace:*",
+    "@agent-native/observation": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "zod": "4.6.5"
   }
 }

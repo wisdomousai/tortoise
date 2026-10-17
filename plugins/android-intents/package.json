@@ -1,11 +1,26 @@
 {
   "name": "@agent-native/android-intents",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Android intents host plugin: serves intent handlers and intent actions for the OS plugin, with the native module that receives activity intents and starts explicit ones.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/android-intents"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/os": "workspace:*"
   }
 }

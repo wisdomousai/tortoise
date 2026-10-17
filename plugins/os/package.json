@@ -1,11 +1,29 @@
 {
   "name": "@agent-native/os",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "OS host plugin: provides the shell port, matches OS requests to declared handlers and performs declared OS actions through an attached adapter.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
+    "directory": "plugins/os"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@agent-native/shell": "workspace:*",
+    "@noble/hashes": "2.4.0"
   }
 }

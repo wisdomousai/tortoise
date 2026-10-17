@@ -10,6 +10,8 @@ Install the pinned dependencies with `bun install --frozen-lockfile`. The starte
 bun run typecheck
 bun run generate          # writes dist/reference/<id>/; not committed
 bun run check:boundaries
+bun run check:manifests
+bun run check:framework
 bun run check:readmes
 bun run check:size
 bun test
@@ -20,8 +22,10 @@ bun run build
 
 | Check              | What it catches                                                                                                                                                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `generate`         | A catalog that cannot be documented: the reference artifacts are written to `dist/reference/` and not committed. |
+| `generate`         | A catalog that cannot be documented: the reference artifacts are written to `dist/reference/` and not committed.                                                                                                    |
 | `check:boundaries` | Imports across layers, server code reaching browser bundles, and direct network or process APIs outside the egress guard. Portable packages may not import `node:` or `bun:` modules or use Node or Bun globals.    |
+| `check:manifests`  | A framework package whose manifest does not list what its published files import, or packages at different versions.                                                                                                |
+| `check:framework`  | More than one installed framework version.                                                                                                                                                                          |
 | `check:readmes`    | A workspace without a README, a README whose title is not the package name, or a dead link.                                                                                                                         |
 | `check:size`       | Code in a package `src/index.ts` besides re-exports. Long files and functions are listed as hints and do not fail.                                                                                                  |
 | `test:portable`    | Kernel, runtime, client, integration and mobile platform code that only works because Bun supplies a Web global Hermes may lack. The suites run with those globals removed and the kernel's replacements installed. |
@@ -60,7 +64,7 @@ A successful build is not a browser interaction or a packaged desktop launch, an
 
 Firewall exports are compared with golden files in the network plugin. Regenerate them with `UPDATE_GOLDEN=1 bun test plugins/network` and review the diff. The mTLS test issues throwaway certificates with `openssl` and is skipped where `openssl` is missing.
 
-A scaffolded export copies the framework packages in, so it needs neither unpublished packages nor the original checkout. `bun run scaffold <target> --name <name> --example <example>` exports one example as the hosted application.
+A scaffolded export copies the framework packages in, so it needs neither published packages nor the original checkout, unless `scaffold new` is given `--published` or `--registry <url>` (see [Framework packages](#framework-packages)). `bun run scaffold <target> --name <name> --example <example>` exports one example as the hosted application.
 
 Service tests bind loopback ports, so a sandbox that blocks listening sockets reports `EADDRINUSE` even for port zero. Subprocess tests use temporary workspaces and stop only the processes they started. Tests that start subprocesses can time out under heavy machine load; rerun them before treating a timeout as a regression.
 
@@ -90,6 +94,22 @@ A line-station host starts a station bridge only when `STATION_HMI_URL` is set. 
 - **Client and UI context:** out-of-order responses, revocation during a refresh, stable captured targets and fenced updates.
 - **Integration:** effects commit only with their command, and delivery handles failure, rejection, lost settlement and targets that are not idempotent. The capture spec checks that a scanner burst records exactly one result per sample.
 - **Transports:** conformance runs the real HTTP, CLI and MCP adapters and compares results and error codes. A listed operation is not evidence that it can be invoked.
+
+## Framework packages
+
+The packages in `packages/*` and `plugins/*` are published together at one version; apps, examples and SDKs are private. Each package lists its own dependencies, worked out from what its published files import (framework packages as `workspace:*`, React, React Native and Expo as peers). Packing replaces `workspace:*` with the exact shared version, so a consistent install has one copy of each.
+
+| Command                                    | What it does                                                                                                                                                                                 |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run check:manifests`                  | Fail when a package's dependencies, repository directory or packed files differ from its source, or versions differ. `bun scripts/check-manifests.ts --write` rewrites them.                 |
+| `bun run check:framework`                  | Fail when more than one framework version is installed, for example when an application pins one package apart from the rest.                                                                |
+| `bun run changeset`                        | Record a change for the next release. Every framework package is in one fixed group, so all bump together.                                                                                   |
+| `bun run release:version`                  | Apply the recorded changes: bump the versions, write changelogs and refresh the lockfile.                                                                                                    |
+| `bun run release:pack`                     | Check the manifests and pack every package into `dist/release`.                                                                                                                              |
+| `bun run release:serve`                    | Pack, then serve the tarballs as a read-only registry on loopback, for `scaffold new --registry`. Add `--port` to keep the URL a lockfile records.                                           |
+| `bun run release:publish --registry <url>` | Publish the packed tarballs in dependency order to the named registry with that registry's configured credentials. It never picks a registry itself; add `--dry-run`, `--tag` or `--access`. |
+
+The packages publish TypeScript source, so they run under Bun and bundlers that compile dependencies' TypeScript (Vite does). No license is declared yet; choose one before publishing anywhere public.
 
 ## Providers and releases
 
