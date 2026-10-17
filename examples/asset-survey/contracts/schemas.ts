@@ -180,6 +180,8 @@ export const filingSchema = z.strictObject({
   id: recordId,
   nodeId: recordId,
   designation: z.string(),
+  /** Where the filing goes: the EAM, or a folder in the export directory. */
+  target: z.enum(['eam', 'export']),
   /** Update this existing EAM asset; absent creates one. */
   assetId: z.string().optional(),
   ...deliveryShape,

@@ -49,3 +49,11 @@ export function Empty({ children }: { children: ReactNode }) {
 
 /** Commands report failures through their hook's `error`; the rejected promise is handled. */
 export const quietly = (promise: Promise<unknown>) => promise.catch(() => undefined);
+
+/** A filing's state in words, by target. */
+export function filingLabel(filing: { target: string; sync: string; sorRef?: string }) {
+  if (filing.sync === 'rejected') return 'Refused';
+  if (filing.target === 'export')
+    return filing.sync === 'accepted' ? `Written to ${filing.sorRef}` : 'Waiting for the export';
+  return filing.sync === 'accepted' ? `Filed as ${filing.sorRef}` : 'Waiting for the EAM';
+}

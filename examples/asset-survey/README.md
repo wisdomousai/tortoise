@@ -10,10 +10,10 @@ This example is one [Application](../../docs/primitives.md#application). It comp
 
 - four [modules](../../docs/primitives.md#module) in [`contracts.ts`](contracts.ts): structure and documents, field work (assignments and captures), extraction, and filing, each with a workflow text for agents;
 - [blob references](../../docs/primitives.md#blob-store): captures and documents carry photos and files as `BlobRef`s with declared limits; extraction requests and filings attach the photos they send, so the connectors can read them;
-- two [targets](../../docs/primitives.md#target): `model` (requests go out through the outbox, proposals come back through its feed) and `eam` (filings go out, asset snapshots come back), wired with `connectTarget`;
+- three [targets](../../docs/primitives.md#target), wired with `connectTarget`: `model` (requests go out through the outbox, proposals come back through its feed), `eam` (filings go out, asset snapshots come back) and `export` (filings go out as folders, no feed);
 - a [data provider](../../docs/primitives.md#data-provider), `eam.asset`, for live EAM search and lookup with the integration's service account;
-- [requirement declarations](../../docs/primitives.md#requirement-declaration) for the `model-api` (internet) and `eam-api` (site) destinations, both `offline: 'queue'`;
-- the `site`, `network`, `audit`, `compliance` and `device-link` [host plugins](../../docs/primitives.md#host-plugin). Device-link pairs phones and authenticates them as `device:<id>`; the application passes `FIELD_SYNC_OPERATIONS` as its default grant;
+- [requirement declarations](../../docs/primitives.md#requirement-declaration) for the `model-api` (internet) and `eam-api` (site) destinations, both `offline: 'queue'`, and the optional `filing-export` process, which carries the `export` target;
+- the `site`, `network`, `process`, `audit`, `compliance` and `device-link` [host plugins](../../docs/primitives.md#host-plugin). Device-link pairs phones and authenticates them as `device:<id>`; the application passes `FIELD_SYNC_OPERATIONS` as its default grant;
 - [capability bindings](../../docs/primitives.md#capability-binding) on every screen, and a `compact` variant of the review queue for tablets.
 
 `bun run generate` writes the operation reference to `dist/reference/asset-survey/operations.md`.
@@ -27,7 +27,7 @@ This example is one [Application](../../docs/primitives.md#application). It comp
 | `@agent-native/asset-survey/screens`     | browser            | Default export: `defineScreens` with Structure (home), node detail, Documents, Assignments, Review, capture detail and Filing, plus the plugin screens. |
 | `@agent-native/asset-survey/*`           | see file           | Other modules by name: `contracts` and `contracts/*` (browser-safe, shared with the field app), `domain`, `policy`, `server`, `connectors/*`.           |
 
-Handlers are grouped by concern in `handlers/`: `structure` (nodes, designations, documents), `field` (assignments, the device feed, ingest, placing and discarding captures), `review` (extraction requests, acceptance, the model target) and `filing` (the EAM provider, filing and the EAM target). They share `handlers/context`.
+Handlers are grouped by concern in `handlers/`: `structure` (nodes, designations, documents), `field` (assignments, the device feed, ingest, placing and discarding captures), `review` (extraction requests, acceptance, the model target) and `filing` (the EAM provider, filing, export, and the EAM and export targets). They share `handlers/context`.
 
 How a capture moves:
 
@@ -37,6 +37,7 @@ How a capture moves:
 4. `extraction.request` enqueues the photos to `model`. The proposal returns through the model's feed with a confidence and photo region per value; values below 0.8 are flagged.
 5. `extraction.accept` writes the reviewer's values to the node, each with its capture and whether the reviewer changed it. Only a person may accept.
 6. `filing.file` sends the node's attributes and the photos they came from to `eam`, updating an asset by ID or creating one. The EAM's outcome names the asset; its feed reports later changes such as retirement.
+7. `filing.export` sends the same record to `export` instead, for a system that imports files. The `filing-export` process writes it as a folder `<designation>_<filing>` with `record.json` and `photos/<digest>.<ext>`; the folder name is the filing's reference. Each target has at most one pending filing per node.
 
 The assignment's stage (`in-field`, `processed`, `filed`) follows from its captures and filings, so no command moves it.
 
@@ -46,7 +47,7 @@ The assignment's stage (`in-field`, `processed`, `filed`) follows from its captu
 
 Run it from the root with `AGENT_NATIVE_APPLICATION=@agent-native/asset-survey`. The demo EAM holds `EAM-1001` (`=G1-Q1`, active, with a serial) and `EAM-1002` (`=G1-F2`, retired). It refuses to create an asset without a serial or with the designation of an active asset.
 
-Known limits: the extractor port keeps proposals in memory until the hub syncs them, so a restart in between loses the proposal and the reviewer requests it again. Filing to a directory export, from the plan, is not built. The scheme tables in [`contracts/schemes.ts`](contracts/schemes.ts) hold the common class letters and device numbers, not the full standards.
+Known limits: the extractor port keeps proposals in memory until the hub syncs them, so a restart in between loses the proposal and the reviewer requests it again. The scheme tables in [`contracts/schemes.ts`](contracts/schemes.ts) hold the common class letters and device numbers, not the full standards.
 
 ## Trust boundary
 
@@ -54,13 +55,15 @@ Roles are per member: managers edit the structure, plan and dispatch assignments
 
 A paired device (`device:<id>`) may read its own feed, return its own assignments and ingest captures into them, and nothing else: no structure query, no journal events. The device-link grant limits it to `FIELD_SYNC_OPERATIONS` and the policy's device lane enforces the same list. Ingest checks that the assignment was dispatched to the calling device. Revoking the device refuses its next request.
 
-The integration principal settles and syncs the `model` and `eam` targets only. A proposal never writes attributes and an EAM snapshot only updates `assetStatus` of nodes filed as that asset.
+The integration principal settles and syncs the `model`, `eam` and `export` targets only. A proposal never writes attributes and an EAM snapshot only updates `assetStatus` of nodes filed as that asset.
+
+The export directory is the site's: the policy binds `filing-export` to an executable and its arguments, and the reference [`export/worker.ts`](export/worker.ts) takes the directory as its last argument, for example `{ "executable": "/usr/local/bin/bun", "args": ["<repo>/examples/asset-survey/export/worker.ts", "/srv/survey-export"] }`. The worker accepts one path segment as the folder name, writes only photos whose bytes match their digest, assembles the folder under a temporary name and renames it into place, and answers a folder that already holds the same effect as written. Unbound, or when the worker fails, the filing stays pending and is retried; the connector records a fixed message, never the worker's output.
 
 Photos are readable by whoever may read a capture, extraction request or filing that references them. The extractor and EAM read them through `readEffectBlob`, scoped to the effect being delivered. The demo EAM's credentials are a service-account string in memory; a deploying application backs `CallerCredentials` with its vault.
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/react`, `@agent-native/frame`, `@agent-native/site`, `@agent-native/network`, `@agent-native/audit`, `@agent-native/compliance`, `@agent-native/device-link`, and `@agent-native/client`, `@agent-native/adapters` and `@agent-native/testing` (tests). Screens use the frame's session and shadcn components through the `@/` alias. External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`.
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/react`, `@agent-native/frame`, `@agent-native/site`, `@agent-native/network`, `@agent-native/process`, `@agent-native/audit`, `@agent-native/compliance`, `@agent-native/device-link`, and `@agent-native/client`, `@agent-native/adapters` and `@agent-native/testing` (tests). Screens use the frame's session and shadcn components through the `@/` alias. External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router`, `lucide-react`.
 
 ## Tests
 
@@ -72,6 +75,7 @@ bunx playwright test examples/asset-survey/e2e
 | Test                       | Proves                                                                                                                                                                                                                                                                                                                                                         |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `test/application.test.ts` | Designations validated per scheme and unique among active nodes; moves under a descendant and retiring a parent refused; proposed nodes accepted only by a person; the feed scoped to its device with a content cursor; ingest idempotent by ID and refused for other devices and people; extraction with flagged values, edited acceptance, EAM refusals (duplicate designation, missing serial), an update with evidence, the EAM feed reaching the node, and a filing that waits while the EAM is down; outsiders and the integration principal refused. |
+| `test/export.test.ts` | An unbound export waits while the EAM filing of the same node goes out, and a second export of the node conflicts; bound through a site policy, the process writes one folder with the record and photos that match their digests, and the filing names it; the worker answers a repeated effect as written and refuses another effect for the same folder, a photo that does not match its digest and a folder outside the directory. |
 | `test/conformance.test.ts` | A device paired through the enrollment route reads its feed, uploads a photo and ingests over HTTP with its own token and is refused elsewhere; the capture reads the same directly, over HTTP, the CLI and MCP; MCP marks EAM search read-only and filing open-world.                                                                                          |
 | `test/ui-bindings.test.ts` | Every operation that claims a UI binding is referenced by a screen.                                                                                                                                                                                                                                                                                            |
 | `e2e/survey.pw.ts`         | Chromium: build the structure with a refused designation shown inline, pair a phone, create and send an assignment, receive a capture, read it with the model, correct a value and accept it, create the asset in the EAM; the review queue's compact variant at tablet width.                                                                                 |

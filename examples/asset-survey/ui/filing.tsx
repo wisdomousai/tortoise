@@ -3,20 +3,24 @@ import { Link } from '@tanstack/react-router';
 import { Badge } from '@/components/ui/badge';
 import { live } from '@/lib/session';
 import { operations } from '../contracts';
-import { Empty, Page, when } from './shared';
+import { Empty, filingLabel, Page, when } from './shared';
 
-/** Every filing with the EAM's answer: the asset it created or updated, or why it refused. */
+/**
+ * Every filing with its target's answer: the asset the EAM created or updated, the folder the
+ * export wrote, or why it was refused.
+ */
 export function FilingScreen() {
   const filings = useQuery(live.liveQueryOptions(operations.filingList, {}));
   const status = useQuery(live.liveQueryOptions(operations.filingStatus, {}));
+  const exported = useQuery(live.liveQueryOptions(operations.filingExportStatus, {}));
   return (
     <Page
       title="Filing"
       description={
-        status.data
-          ? `${status.data.pending} waiting · ${status.data.accepted} accepted · ${status.data.rejected} refused${
-              status.data.lastSyncAt ? ` · EAM read ${when(status.data.lastSyncAt)}` : ''
-            }`
+        status.data && exported.data
+          ? `EAM: ${status.data.pending} waiting · ${status.data.accepted} accepted · ${status.data.rejected} refused${
+              status.data.lastSyncAt ? ` · read ${when(status.data.lastSyncAt)}` : ''
+            }. Export: ${exported.data.pending} waiting · ${exported.data.accepted} written`
           : undefined
       }
     >
@@ -40,8 +44,12 @@ export function FilingScreen() {
                 {filing.designation}
               </Link>
               <span className="ml-2 text-muted-foreground">
-                {filing.assetId ? `update ${filing.assetId}` : 'new asset'} · {when(filing.filedAt)}{' '}
-                by {filing.filedBy}
+                {filing.target === 'export'
+                  ? 'export'
+                  : filing.assetId
+                    ? `update ${filing.assetId}`
+                    : 'new asset'}{' '}
+                · {when(filing.filedAt)} by {filing.filedBy}
               </span>
               {filing.rejection && (
                 <p className="text-destructive">
@@ -58,11 +66,7 @@ export function FilingScreen() {
                     : 'outline'
               }
             >
-              {filing.sync === 'accepted'
-                ? filing.sorRef
-                : filing.sync === 'rejected'
-                  ? 'Refused'
-                  : 'Waiting for the EAM'}
+              {filingLabel(filing)}
             </Badge>
           </li>
         ))}

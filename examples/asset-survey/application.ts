@@ -4,9 +4,11 @@ import { auditPlugin } from '@agent-native/audit/plugin';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { createDeviceLinkPlugin } from '@agent-native/device-link/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
+import { processPlugin } from '@agent-native/process/plugin';
+import { bunProcesses } from '@agent-native/host/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
-import { eamTarget, modelTarget, operations } from './contracts';
+import { eamTarget, exportTarget, modelTarget, operations } from './contracts';
 import {
   createExtractorPort,
   nameplateTextExtractor,
@@ -14,10 +16,11 @@ import {
   type Proposal,
 } from './connectors/extractor';
 import { FakeEam, type AssetChange, type EvidenceReader } from './connectors/fake-eam';
+import { createExportPort } from './export/connector';
 import { createSurveyState, type Role, type SurveyState } from './domain';
 import { createSurveyHandlers, surveyPolicy, type SurveyServices } from './server';
 
-/** The model and EAM integrations' principal; distinct from every person and device. */
+/** The model, EAM and export integrations' principal; distinct from every person and device. */
 export const INTEGRATION_PRINCIPAL = 'integration';
 
 /** What a paired field device may call: read its work, return it, and hand over captures. */
@@ -29,7 +32,8 @@ export const FIELD_SYNC_OPERATIONS = [
 
 /**
  * The asset survey hub. Demo defaults: the nameplate-text extractor instead of a model, and an
- * in-memory EAM, so the reference needs no account. A deploying application passes its own
+ * in-memory EAM, so the reference needs no account. Exports go to the directory the site binds
+ * the `filing-export` process to; unbound, they wait. A deploying application passes its own
  * extractor and EAM port. `members` are the people of a new workspace and their roles; by
  * default the owner is the only manager.
  */
@@ -65,6 +69,7 @@ export function createAssetSurveyApplication(
     plugins: [
       sitePlugin,
       networkPlugin,
+      processPlugin,
       auditPlugin,
       compliancePlugin,
       createDeviceLinkPlugin({ syncOperations: FIELD_SYNC_OPERATIONS }),
@@ -72,7 +77,7 @@ export function createAssetSurveyApplication(
     sources: {
       eam: createRemoteSource({ target: 'eam', port: eam, credentials: eam.credentials }),
     },
-    connect: ({ application, workspaceId }) => {
+    connect: ({ application, workspaceId, processes }) => {
       const readBlob = (effect: { id: string }, digest: string) =>
         application.readEffectBlob(workspaceId, effect.id, digest);
       readEvidence = readBlob;
@@ -86,6 +91,15 @@ export function createAssetSurveyApplication(
         integrations: [
           connectTarget<Proposal>({ ...common, target: modelTarget, port: model }),
           connectTarget<AssetChange>({ ...common, target: eamTarget, port: eam }),
+          // Unbound, the export target keeps its filings pending until the site binds the process.
+          connectTarget({
+            ...common,
+            target: exportTarget,
+            port: createExportPort({
+              start: (signal) => bunProcesses(processes)('filing-export', { signal }),
+              readBlob,
+            }),
+          }),
         ],
       };
     },

@@ -2,9 +2,9 @@ import { z } from 'zod';
 import type { BlobRef } from '@agent-native/contracts';
 import { implementDataProvider, settleDelivery, targetHandlers } from '@agent-native/integration';
 import { own, type HandlerContribution } from '@agent-native/runtime';
-import { eamAssets, eamTarget, filingOperations as ops } from '../contracts/filing';
+import { eamAssets, eamTarget, exportTarget, filingOperations as ops } from '../contracts/filing';
 import type { assetSnapshotSchema } from '../contracts/schemas';
-import type { SurveyState } from '../domain';
+import type { Filing, SurveyState } from '../domain';
 import {
   compact,
   conflict,
@@ -33,8 +33,102 @@ function filingDto(ctx: Context, id: string) {
 }
 
 /**
- * Filing into the EAM: the node's accepted attributes and the photos they were read from go out
- * through the outbox; the EAM's outcome names the asset, and its feed reports assets filed.
+ * File one node to a target: its accepted attributes and the photos they were read from go out
+ * through the outbox. The EAM creates or updates an asset; the export directory receives a
+ * folder. Each target has at most one pending filing per node; the two are independent.
+ */
+function fileNode(ctx: Context, nodeId: string, target: Filing['target'], asset?: string) {
+  const node = nodeRecords(ctx).getExisting(nodeId);
+  if (node.retired || node.source === 'proposed') conflict('Node is not active');
+  const attributes = Object.entries(node.attributes);
+  if (!attributes.length) conflict('Node has no accepted attributes');
+  const filings = filingRecords(ctx);
+  if (
+    filings
+      .values()
+      .some(
+        (filing) =>
+          filing.nodeId === node.id && filing.target === target && filing.sync === 'pending',
+      )
+  )
+    conflict(`A filing for this node to ${target === 'eam' ? 'the EAM' : 'the export'} is pending`);
+  const id = newId(ctx);
+  const resource = filings.resource(id);
+  // Evidence: the photos of every capture an attribute was read from.
+  const photos: BlobRef[] = [];
+  for (const captureId of new Set(attributes.map(([, attribute]) => attribute.captureId)))
+    for (const photo of (captureId && own(ctx.state.captures, captureId)?.photos) || []) {
+      ctx.attach(resource, photo);
+      photos.push(photo);
+    }
+  const assetId = target === 'eam' ? (asset ?? node.assetId) : undefined;
+  const filedAt = now(ctx);
+  const record = {
+    designation: node.designation,
+    scheme: node.scheme,
+    name: node.name,
+    attributes: Object.fromEntries(attributes.map(([name, attribute]) => [name, attribute.value])),
+    photos: photos.map((photo) => ({ ...photo })),
+  };
+  const effectId = ctx.enqueue(
+    target === 'eam'
+      ? {
+          target: eamTarget.target,
+          type: assetId ? 'asset.update' : 'asset.create',
+          resource,
+          payload: { ...(assetId ? { assetId } : {}), ...record },
+        }
+      : {
+          target: exportTarget.target,
+          type: 'filing.export',
+          resource,
+          // The folder records who filed it and when, for the system that imports it.
+          payload: { ...record, filedBy: ctx.context.principalId, filedAt },
+        },
+  );
+  filings.insert(
+    id,
+    compact({
+      id,
+      nodeId: node.id,
+      designation: node.designation,
+      target,
+      assetId,
+      effectId,
+      sync: 'pending' as const,
+      filedBy: ctx.context.principalId,
+      filedAt,
+    }),
+    'filed',
+  );
+  nodeRecords(ctx).touch(node.id);
+  return filingDto(ctx, id);
+}
+
+/** Record a target's outcome on the filing it delivered. */
+function settleFiling(
+  ctx: Context,
+  effect: Parameters<typeof settleDelivery>[1],
+  outcome: Parameters<typeof settleDelivery>[2],
+) {
+  const id = effect.resource.slice('filing:'.length);
+  const filing = filingRecords(ctx).get(id);
+  settleDelivery(filing, effect, outcome);
+  filingRecords(ctx).touch(id);
+  return filing;
+}
+
+function filingCounts(ctx: Context, target: Filing['target']) {
+  const count = (sync: string) =>
+    Object.values(ctx.state.filings).filter(
+      (filing) => filing.target === target && filing.sync === sync,
+    ).length;
+  return { pending: count('pending'), accepted: count('accepted'), rejected: count('rejected') };
+}
+
+/**
+ * Filing into the EAM and the export directory. The EAM's outcome names the asset, and its feed
+ * reports assets filed; the export's outcome names the folder written.
  */
 export const filingHandlers = (): HandlerContribution<SurveyState, SurveyServices>[] => [
   ...implementDataProvider<SurveyState, SurveyServices, typeof eamAssets>(eamAssets, {
@@ -47,56 +141,8 @@ export const filingHandlers = (): HandlerContribution<SurveyState, SurveyService
       return compact({ ...record.data, nodeId: node?.id });
     },
   }),
-  handler(ops.file, (input, ctx) => {
-    const node = nodeRecords(ctx).getExisting(input.nodeId);
-    if (node.retired || node.source === 'proposed') conflict('Node is not active');
-    const attributes = Object.entries(node.attributes);
-    if (!attributes.length) conflict('Node has no accepted attributes');
-    const filings = filingRecords(ctx);
-    if (filings.values().some((filing) => filing.nodeId === node.id && filing.sync === 'pending'))
-      conflict('A filing for this node is pending');
-    const id = newId(ctx);
-    const resource = filings.resource(id);
-    // Evidence: the photos of every capture an attribute was read from.
-    const photos: BlobRef[] = [];
-    for (const captureId of new Set(attributes.map(([, attribute]) => attribute.captureId)))
-      for (const photo of (captureId && own(ctx.state.captures, captureId)?.photos) || []) {
-        ctx.attach(resource, photo);
-        photos.push(photo);
-      }
-    const assetId = input.assetId ?? node.assetId;
-    const effectId = ctx.enqueue({
-      target: eamTarget.target,
-      type: assetId ? 'asset.update' : 'asset.create',
-      resource,
-      payload: {
-        ...(assetId ? { assetId } : {}),
-        designation: node.designation,
-        scheme: node.scheme,
-        name: node.name,
-        attributes: Object.fromEntries(
-          attributes.map(([name, attribute]) => [name, attribute.value]),
-        ),
-        photos: photos.map((photo) => ({ ...photo })),
-      },
-    });
-    filings.insert(
-      id,
-      compact({
-        id,
-        nodeId: node.id,
-        designation: node.designation,
-        assetId,
-        effectId,
-        sync: 'pending' as const,
-        filedBy: ctx.context.principalId,
-        filedAt: now(ctx),
-      }),
-      'filed',
-    );
-    nodeRecords(ctx).touch(node.id);
-    return filingDto(ctx, id);
-  }),
+  handler(ops.file, (input, ctx) => fileNode(ctx, input.nodeId, 'eam', input.assetId)),
+  handler(ops.export, (input, ctx) => fileNode(ctx, input.nodeId, 'export')),
   handler(ops.list, (input, ctx) => ({
     items: filingRecords(ctx)
       .values()
@@ -108,10 +154,7 @@ export const filingHandlers = (): HandlerContribution<SurveyState, SurveyService
     cursor: (state) => state.cursors.eam,
     now,
     onOutcome(effect, outcome, ctx) {
-      const id = effect.resource.slice('filing:'.length);
-      const filing = filingRecords(ctx).get(id);
-      settleDelivery(filing, effect, outcome);
-      filingRecords(ctx).touch(id);
+      const filing = settleFiling(ctx, effect, outcome);
       // The EAM names the asset it created or updated; the node remembers it for later filings.
       if (filing && outcome.status === 'accepted' && outcome.externalRef)
         nodeRecords(ctx).update(filing.nodeId, { assetId: outcome.externalRef }, 'filed');
@@ -128,14 +171,13 @@ export const filingHandlers = (): HandlerContribution<SurveyState, SurveyService
       }
       return applied;
     },
-    status(ctx) {
-      const count = (sync: string) =>
-        Object.values(ctx.state.filings).filter((filing) => filing.sync === sync).length;
-      return {
-        pending: count('pending'),
-        accepted: count('accepted'),
-        rejected: count('rejected'),
-      };
-    },
+    status: (ctx) => filingCounts(ctx, 'eam'),
+  }),
+  ...targetHandlers<SurveyState, SurveyServices>(exportTarget, {
+    // No feed: the written folder is the whole outcome.
+    cursor: () => ({}),
+    now,
+    onOutcome: (effect, outcome, ctx) => void settleFiling(ctx, effect, outcome),
+    status: (ctx) => filingCounts(ctx, 'export'),
   }),
 ];

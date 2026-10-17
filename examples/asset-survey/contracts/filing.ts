@@ -31,6 +31,29 @@ export const eamTarget = defineTarget({
   },
 });
 
+/**
+ * A directory the site names: each filing becomes a folder with its record as JSON and its
+ * evidence photos, for systems that import files instead of offering an API. The declared
+ * `filing-export` process writes it, so the site policy decides the directory. No feed: a
+ * written folder is the outcome.
+ */
+export const exportTarget = defineTarget({
+  target: 'export',
+  resourceType: 'Filing',
+  operations: { settle: 'filing.export.settle', status: 'filing.export.status' },
+  settles: ['filing'],
+  status: {
+    pending: z.number().int(),
+    accepted: z.number().int(),
+    rejected: z.number().int(),
+  },
+  descriptions: {
+    settle:
+      'Integration principal only: record whether a filing was written to the export directory.',
+    status: 'Filing to the export directory: filings waiting, written and refused.',
+  },
+});
+
 /** EAM assets, searched live with the integration's service account. */
 export const eamAssets = defineDataProvider({
   id: 'eam.asset',
@@ -64,14 +87,27 @@ export const filingOperations = {
     // The evidence photos are attached to the filing so the connector may send them.
     blobs: photoLimits,
   }),
+  export: operation('filing.export', 'command', {
+    input: z.strictObject({ nodeId: recordId }),
+    output: filingSchema,
+    permission: { action: 'file', resourceType: 'Filing' },
+    description:
+      'Export a node with its accepted attributes and the photos they were read from to the export directory the site names, as a folder of JSON and photos. The receipt proves the local request; filing.list shows when the folder is written. Independent of filing the node into the EAM.',
+    dependencies: ['filing', 'node'],
+    forwards: 'export',
+    blobs: photoLimits,
+  }),
   list: operation('filing.list', 'query', {
     input: z.strictObject({ nodeId: recordId.optional() }),
     output: z.strictObject({ items: z.array(filingSchema) }),
     permission: { action: 'read', resourceType: 'Filing' },
-    description: 'Filings, newest first, with whether the EAM accepted each and why it refused.',
+    description:
+      'Filings and exports, newest first, with whether the EAM or the export directory accepted each and why it refused.',
     dependencies: ['filing'],
   }),
   status: eamTarget.status,
   sync: eamTarget.sync,
   settle: eamTarget.settle,
+  exportStatus: exportTarget.status,
+  exportSettle: exportTarget.settle,
 } as const;

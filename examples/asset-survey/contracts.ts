@@ -1,12 +1,12 @@
 import { defineModule } from '@agent-native/contracts';
 import { fieldOperations } from './contracts/captures';
 import { extractionOperations, modelTarget } from './contracts/extraction';
-import { eamAssets, eamTarget, filingOperations } from './contracts/filing';
+import { eamAssets, eamTarget, exportTarget, filingOperations } from './contracts/filing';
 import { structureOperations } from './contracts/structure';
 
 export { fieldOperations } from './contracts/captures';
 export { extractionOperations, modelTarget, ATTENTION_BELOW } from './contracts/extraction';
-export { eamAssets, eamTarget, filingOperations } from './contracts/filing';
+export { eamAssets, eamTarget, exportTarget, filingOperations } from './contracts/filing';
 export { structureOperations } from './contracts/structure';
 
 /** Every operation of the hub by short name, for screens and tests. */
@@ -19,6 +19,8 @@ export const operations = {
   filingFile: filingOperations.file,
   filingList: filingOperations.list,
   filingStatus: filingOperations.status,
+  filingExport: filingOperations.export,
+  filingExportStatus: filingOperations.exportStatus,
 } as const;
 
 export const structureModule = defineModule({
@@ -88,8 +90,10 @@ export const filingModule = defineModule({
   capabilities: [
     ...eamAssets.capabilities,
     filingOperations.file,
+    filingOperations.export,
     filingOperations.list,
     ...eamTarget.capabilities,
+    ...exportTarget.capabilities,
   ],
   requirements: {
     network: [
@@ -105,6 +109,16 @@ export const filingModule = defineModule({
         dataClasses: ['asset-record', 'equipment-photo'],
         availability: 'optional',
         offline: 'queue',
+      },
+    ],
+    processes: [
+      {
+        id: 'filing-export',
+        executable: 'filing-export',
+        purpose:
+          'Write each exported filing as a folder of JSON and evidence photos into the directory the site binds as its argument.',
+        availability: 'optional',
+        targets: ['export'],
       },
     ],
   },

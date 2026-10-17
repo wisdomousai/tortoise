@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { live, transport } from '@/lib/session';
 import { eamAssets, operations } from '../../contracts';
-import { ErrorText, quietly, when } from '../shared';
+import { ErrorText, filingLabel, quietly, when } from '../shared';
 
 /**
- * File a node into the EAM. The search is live: a match is updated with its asset ID, and a new
- * asset is created only when nothing matches. A node already filed updates its own asset.
+ * File a node into the EAM or export it to the site's export directory. The EAM search is live:
+ * a match is updated with its asset ID, and a new asset is created only when nothing matches. A
+ * node already filed updates its own asset. The export is independent of the EAM.
  */
 export function FilingPanel({
   node,
@@ -26,12 +27,15 @@ export function FilingPanel({
   const search = useQuery(live.remoteQueryOptions(eamAssets.search, { q }));
   const filings = useQuery(live.liveQueryOptions(operations.filingList, { nodeId: node.id }));
   const file = useCommand(transport, operations.filingFile);
-  const pending = filings.data?.items.some((filing) => filing.sync === 'pending');
+  const exportNode = useCommand(transport, operations.filingExport);
+  const waiting = (target: string) =>
+    filings.data?.items.some((filing) => filing.target === target && filing.sync === 'pending');
+  const pending = waiting('eam');
   const unavailable = search.data?.source.status === 'unavailable';
   return (
     <section aria-labelledby="filing" className="space-y-3 rounded-xl border bg-card p-4">
       <h2 id="filing" className="font-medium">
-        Filing in the EAM
+        Filing
       </h2>
       {node.assetId ? (
         <Button
@@ -92,6 +96,14 @@ export function FilingPanel({
         </>
       )}
       <ErrorText error={file.error} />
+      <Button
+        variant="outline"
+        disabled={exportNode.pending || waiting('export')}
+        onClick={() => void quietly(exportNode.execute({ nodeId: node.id }))}
+      >
+        Export to the export directory
+      </Button>
+      <ErrorText error={exportNode.error} />
       <ul aria-label="Filings" className="space-y-1 text-sm">
         {(filings.data?.items ?? []).map((filing) => (
           <li key={filing.id} className="flex flex-wrap items-center gap-2">
@@ -104,11 +116,7 @@ export function FilingPanel({
                     : 'outline'
               }
             >
-              {filing.sync === 'accepted'
-                ? `Filed as ${filing.sorRef}`
-                : filing.sync === 'rejected'
-                  ? 'Refused'
-                  : 'Sending to the EAM'}
+              {filingLabel(filing)}
             </Badge>
             <span className="text-muted-foreground">
               {when(filing.filedAt)}

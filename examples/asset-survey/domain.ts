@@ -105,6 +105,7 @@ export interface Filing {
   id: string;
   nodeId: string;
   designation: string;
+  target: 'eam' | 'export';
   assetId?: string;
   effectId: string;
   sync: 'pending' | 'accepted' | 'rejected';
