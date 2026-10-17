@@ -7,3 +7,6 @@ export * from './catalog';
 export * from './errors';
 export * from './data-provider';
 export * from './blob';
+export * from './os';
+export * from './os-catalog';
+export * from './os-templates';
