@@ -32,7 +32,7 @@ Read the [harness guide](../../docs/agent-harnesses.md), [providers](../../docs/
 
 Four entries are composers over a folder of parts that are imported only from inside the package:
 
-- `src/supervisor/`: the in-memory run store, bounded event queue, redaction, the run record and its persisted events, turn execution, replay and the run lifecycle (start, cancel, pending requests, interrupted-run recovery).
+- `src/supervisor/`: the in-memory run store, bounded event queue, redaction, the run record and its persisted events, turn execution, replay and the run lifecycle (start, cancel, pending requests, interrupted-run recovery). A caller may pass the run ID to `start`, so a run repeated after a restart keeps its tool calls' idempotency keys; starting an ID that already exists throws.
 - `src/codex/`: the app-server process and thread setup, and the translation of its messages (tool calls, questions, completion).
 - `src/claude/`: the in-process MCP server that exposes the application's tools. The SDK process launch stays in `claude.ts`, the egress-exempt file.
 - `src/chatgpt/`: the vault-backed profile store, the PKCE authorization request and callback checks, and the token and revocation endpoints. The default `fetch` is chosen only in `chatgpt.ts`.

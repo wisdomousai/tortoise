@@ -168,6 +168,10 @@
       "name": "@agent-native/audit",
       "version": "0.1.0",
     },
+    "plugins/automation": {
+      "name": "@agent-native/automation",
+      "version": "0.1.0",
+    },
     "plugins/compliance": {
       "name": "@agent-native/compliance",
       "version": "0.1.0",
@@ -194,6 +198,8 @@
     "@agent-native/agents": ["@agent-native/agents@workspace:packages/agents"],
 
     "@agent-native/audit": ["@agent-native/audit@workspace:plugins/audit"],
+
+    "@agent-native/automation": ["@agent-native/automation@workspace:plugins/automation"],
 
     "@agent-native/client": ["@agent-native/client@workspace:packages/client"],
 

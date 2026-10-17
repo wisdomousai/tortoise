@@ -1,0 +1,11 @@
+{
+  "name": "@agent-native/automation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Host plugin: triggers that run agents or jobs on journal events or a schedule, under standing grants people issue.",
+  "exports": {
+    "./plugin-screens": "./plugin-screens.tsx",
+    "./*": "./*.ts"
+  }
+}

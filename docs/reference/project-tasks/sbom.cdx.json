@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:ad727068-3768-5a20-9240-1818f3362b02",
+  "serialNumber": "urn:uuid:a0db00d2-f68d-5414-8c6a-cf4ebeb79262",
   "version": 1,
   "metadata": {
     "tools": {
@@ -10756,6 +10756,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/automation",
+      "name": "@agent-native/automation",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/automation"
+        }
+      ],
+      "scope": "excluded"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/client",
       "name": "@agent-native/client",
       "properties": [
@@ -16139,6 +16151,10 @@
     },
     {
       "ref": "workspace:@agent-native/audit",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/automation",
       "dependsOn": []
     },
     {

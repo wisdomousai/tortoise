@@ -277,7 +277,7 @@ _An agent session acting as one more caller on the catalog._
 
 The supervisor makes an agent an ordinary caller: its tools are catalog operations, its authority is the narrowed grant of whoever started it, and its narration is kept apart from what it actually committed. Codex, Claude and AI SDK harnesses are adapters behind one port, next to a deterministic harness that needs no provider.
 
-Guarantees: tools are catalog operations only. Text and progress stream separately from commits. Cancellation stops future work without undoing commits, and a restart marks unfinished runs interrupted instead of replaying them. A run started with a budget fails with `BUDGET_EXCEEDED` instead of making one tool call more than allowed or running past its wall time; the turn limit goes to the harness, and the Claude and AI SDK adapters lower their own limit to it.
+Guarantees: tools are catalog operations only. Text and progress stream separately from commits. Cancellation stops future work without undoing commits, and a restart marks unfinished runs interrupted instead of replaying them. A run started with a budget fails with `BUDGET_EXCEEDED` instead of making one tool call more than allowed or running past its wall time; the turn limit goes to the harness, and the Claude and AI SDK adapters lower their own limit to it. A caller may choose the run ID, as [triggers](#trigger) do, so a run repeated after a restart reuses its tool calls' idempotency keys.
 
 implemented · `packages/agents`
 
@@ -291,7 +291,7 @@ _A named agent in the catalog: its instructions, the operations it may call, its
 
 Guarantees: the catalog refuses an agent that names an unknown operation, repeats one, has no operations, has budgets outside fixed bounds, or is `direct` on a command without a UI binding, so every direct write is one a person can make and see. `agentGrant` only narrows: operations within the issuer's grant, resources within the issuer's resources, expiry at the earlier of the issuer's and the wall-time budget, bound to the issuer's principal, workspace and run.
 
-Gaps: the host does not yet start a run from a definition; runs still start from a person's prompt with the issuer's grant. Triggers and standing grants are not implemented. A `propose` agent cannot also be resource-scoped, because grant resources match exactly and do not cover the [proposal](#proposal) records it creates. The model requirement is recorded but no provider is chosen by it. `scaffold add agent` is not implemented.
+Gaps: the host's run panel does not start a run from a definition; runs there still start from a person's prompt with the issuer's grant. A [trigger](#trigger) starts one under a [standing grant](#standing-grant). A `propose` agent cannot also be resource-scoped, because grant resources match exactly and do not cover the [proposal](#proposal) records it creates. The model requirement is recorded but no provider is chosen by it. `scaffold add agent` is not implemented.
 
 implemented · `packages/contracts` `packages/runtime` `packages/agents` `packages/adapters`
 
@@ -305,9 +305,33 @@ The frame's `proposal-review` registry item lists open proposals with Accept and
 
 Guarantees: accepting never widens authority. The proposed command's own rule, grant check and commit recheck apply to the accepter. A caller who may not run it, including a proposer whose grant leaves it out or an accepter demoted after the proposal, is refused. A record changed since the proposer read it conflicts. Either way the acceptance rolls back and the proposal stays open. An expired proposal cannot be accepted. A proposal of an unknown command, of input its schema refuses, or of another proposal operation is refused at submission. A retried accept with the same key returns the same continuation.
 
-Gaps: expiry is not swept; something must call `proposal.expire`. A proposal names one command, so a plan of several steps is several proposals accepted one by one. The model identity is reported by the proposer, not verified.
+Gaps: the framework does not sweep expiry; an application runs `proposal.expire`, as line-station does from a scheduled [trigger](#trigger). A proposal names one command, so a plan of several steps is several proposals accepted one by one. The model identity is reported by the proposer, not verified.
 
 implemented · `packages/contracts` `packages/runtime` `packages/frame` `packages/operator-ui`
+
+### Trigger
+
+_Work that starts on a committed change or a schedule instead of a person's prompt._
+
+`defineTrigger` declares what starts a run (a journal event of one resource type from listed operations, or a schedule slot) and what runs: an [agent definition](#agent-definition) or a deterministic job the server registers. The `automation` plugin checks each trigger against the catalog when it opens and, in a serving host, runs every trigger that has an active [standing grant](#standing-grant) through a run supervisor, so budgets, cancellation and run records are those of an [agent run](#agent-run). An attention item is an event like any other.
+
+Guarantees: one run per matching event or slot, recorded before the next. A failed run becomes an open failure for the grant's issuer and is never retried. A job's commands are keyed by run, operation and input, and the run ID names the grant and the event or slot, so a crash between a commit and its record replays on restart. A trigger whose run calls an operation it reacts to is refused at startup, so a run cannot start itself again. The journal is read as the issuer, so a trigger never sees an event its issuer could not.
+
+Gaps: an agent run repeated after a crash can repeat its writes, because model tool-call IDs are not stable; event triggers suit proposing agents. Triggers are declared in code. Runs do not appear in the host's run panel.
+
+implemented · `plugins/automation`
+
+### Standing grant
+
+_A person's recorded, expiring permission for a trigger to act as them._
+
+`automation.grant.issue` records who enabled a trigger, the operations its runs may call and when it expires (at most 90 days). `renew` extends it and `revoke` ends it. Each run executes as the issuer with a delegation listing only those operations, expiring at the earlier of the grant's expiry and the run's wall-time budget, so the application's policy decides every call as that person at the time of the call.
+
+Guarantees: only a person issues, renews or revokes a grant, and only their own; a run or agent never creates standing authority. A grant never widens the issuer: a role they lost since issuing is refused like any other call of theirs. Revoking or replacing a grant stops future runs. A trigger has at most one active grant.
+
+Gaps: revocation does not interrupt a run already in progress; it finishes within its budget. Grants cover a whole trigger, not individual resources.
+
+implemented · `plugins/automation`
 
 ### Input source
 

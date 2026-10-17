@@ -18,6 +18,10 @@
       "description": "Local authority service: HTTP/SSE API and MCP attach."
     },
     {
+      "id": "automation",
+      "kind": "module"
+    },
+    {
       "id": "compliance",
       "kind": "module"
     },

@@ -1,5 +1,6 @@
 import { Factory } from 'lucide-react';
 import { defineScreens } from '@agent-native/frame/screens';
+import { automationScreens } from '@agent-native/automation/plugin-screens';
 import { complianceScreens } from '@agent-native/compliance/plugin-screens';
 import manifest from './manifest';
 import { MesStatus, StationScreen, StationsScreen } from './ui/station';
@@ -23,5 +24,5 @@ export default defineScreens({
   navigation: [{ to: '/station', label: 'Stations', icon: Factory }],
   capabilityScreens: [{ prefix: 'line.station.', to: '/station' }],
   status: MesStatus,
-  plugins: [complianceScreens],
+  plugins: [complianceScreens, automationScreens],
 });

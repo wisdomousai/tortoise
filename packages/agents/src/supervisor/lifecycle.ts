@@ -12,6 +12,12 @@ export interface StartInput {
   resumeData?: Record<string, string>;
   /** Limits for this run, usually an agent definition's budgets. */
   budget?: RunBudget;
+  /**
+   * A caller-chosen run ID, for example one key per trigger event, so a run repeated after a
+   * restart reuses its tool calls' idempotency keys. Starting an ID the supervisor still holds
+   * throws; a random ID is used when omitted.
+   */
+  id?: string;
 }
 
 /**
@@ -24,7 +30,9 @@ export async function startRun(
   harness: Harness,
   input: StartInput,
 ) {
-  const id = randomUUID();
+  const id = input.id ?? randomUUID();
+  if (input.id !== undefined && (kernel.active.has(id) || (await kernel.store.get(id))))
+    throw new Error(`Run ${id} already exists`);
   const at = kernel.timestamp();
   const snapshot: RunSnapshot = {
     id,

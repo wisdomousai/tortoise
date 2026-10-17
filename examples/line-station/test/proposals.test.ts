@@ -6,6 +6,7 @@ import {
   createMemoryStorage,
   type ExecutionContext,
 } from '@agent-native/runtime';
+import { expireJob } from '../automation';
 import { createLineHandlers, createLineState, lineStationModule, linePolicy } from '../server';
 
 const T0 = 1_760_000_000_000;
@@ -17,6 +18,7 @@ const vic = as('vic');
 
 function setup() {
   let ids = 0;
+  let clock = T0;
   let keys = 0;
   const state = createLineState({
     stations: [
@@ -40,14 +42,22 @@ function setup() {
     handlers: createLineHandlers(),
     storage: createMemoryStorage(state),
     authorization: linePolicy,
-    services: { newId: () => `p${++ids}`, now: () => T0 },
-    now: () => T0,
+    services: { newId: () => `p${++ids}`, now: () => clock },
+    now: () => clock,
   });
   const command = (operation: string, input: unknown, context: ExecutionContext) =>
     app.invokeRaw({ operation, input, idempotencyKey: `k${++keys}` }, context);
   const query = async (operation: string, input: unknown, context = olga): Promise<any> =>
     (await app.queryRaw({ operation, input }, context)).data;
-  return { command, query };
+  /** Run the expiry job once as `as`, the way the automation plugin calls it. */
+  const expire = (as: ExecutionContext) =>
+    expireJob(() => clock)({
+      trigger: 'expire-proposals',
+      signal: new AbortController().signal,
+      query: (operation, input) => app.queryRaw({ operation, input }, as) as never,
+      command: (operation, input) => command(operation, input, as) as never,
+    });
+  return { command, query, expire, advance: (ms: number) => (clock += ms) };
 }
 
 /** A stop explainer run started by `issuer`. */
@@ -131,5 +141,19 @@ describe('stop explainer proposals', () => {
     expect(
       (await query('proposal.list', { status: 'open' }, sam)).items.map((item: any) => item.id),
     ).toEqual(['p1', 'p2']);
+  });
+
+  test('the expiry job closes only expired proposals at the stations of the person who enabled it', async () => {
+    const { command, query, expire, advance } = setup();
+    await command('proposal.submit', classifyJam('s1'), explainer(sam));
+    await command('proposal.submit', classifyJam('s2'), explainer(sam));
+    await expire(olga);
+    expect((await query('proposal.list', { status: 'open' }, sam)).total).toBe(2);
+    advance(24 * 60 * 60 * 1000);
+    // Olga works only at line-1, so her run closes only the proposal there.
+    await expire(olga);
+    expect(
+      (await query('proposal.list', { status: 'open' }, sam)).items.map((item: any) => item.id),
+    ).toEqual(['p2']);
   });
 });

@@ -8,6 +8,7 @@ import {
 } from '@agent-native/devices/server';
 import { defineApplication } from '@agent-native/host/application';
 import { auditPlugin } from '@agent-native/audit/plugin';
+import { lineAutomationPlugin } from './automation';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
@@ -169,7 +170,7 @@ export function createLineStationApplication(
         devices: value.devices ?? createDeviceState(),
       };
     },
-    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
+    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin, lineAutomationPlugin],
     handlers: lineStationHandlers(),
     authorization: lineStationAuthorization(),
     ...(options.services ? { services: options.services } : {}),

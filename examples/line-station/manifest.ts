@@ -1,6 +1,7 @@
 import { defineHostComponent } from '@agent-native/contracts';
 import { defineManifest } from '@agent-native/host/manifest';
 import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
+import { automationPluginManifest } from '@agent-native/automation/plugin-manifest';
 import { compliancePluginManifest } from '@agent-native/compliance/plugin-manifest';
 import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
 import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
@@ -40,5 +41,6 @@ export default defineManifest({
     networkPluginManifest,
     auditPluginManifest,
     compliancePluginManifest,
+    automationPluginManifest,
   ],
 });

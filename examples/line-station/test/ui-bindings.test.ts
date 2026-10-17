@@ -9,7 +9,13 @@ test('every operation that claims a UI binding is referenced by a screen', async
     import.meta.dir,
     '../../../plugins/compliance/src/components/compliance-screen.tsx',
   );
+  // The Automation screen comes from the automation plugin, at /automation.
+  const automationScreen = resolve(import.meta.dir, '../../../plugins/automation/ui');
   expect(
-    await unboundOperations(manifest.modules, [resolve(import.meta.dir, '..'), securityScreen]),
+    await unboundOperations(manifest.modules, [
+      resolve(import.meta.dir, '..'),
+      securityScreen,
+      automationScreen,
+    ]),
   ).toEqual([]);
 });

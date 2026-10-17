@@ -24,6 +24,729 @@
   "formatVersion": 1,
   "operations": [
     {
+      "dependencies": [],
+      "description": "Failed trigger runs under grants you issued, open ones first. A failed run is never retried; resolve it after acting on it yourself.",
+      "errors": [],
+      "id": "automation.failure.list",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "open": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "automation_failure_list",
+      "module": "automation",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "code": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "grant": {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "id": {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "message": {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                "resolvedAt": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "resolvedBy": {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "runId": {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "trigger": {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "trigger",
+                "grant",
+                "runId",
+                "code",
+                "message",
+                "at"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "Trigger"
+      },
+      "ui": {
+        "binding": "automation.failures"
+      }
+    },
+    {
+      "dependencies": [],
+      "description": "Mark a failed trigger run under a grant you issued as handled. People only.",
+      "errors": [],
+      "id": "automation.failure.resolve",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "automation_failure_resolve",
+      "module": "automation",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "code": {
+            "maxLength": 64,
+            "type": "string"
+          },
+          "grant": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "resolvedAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "resolvedBy": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "runId": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "trigger": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "trigger",
+          "grant",
+          "runId",
+          "code",
+          "message",
+          "at"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "resolve",
+        "resourceType": "Trigger"
+      },
+      "ui": {
+        "binding": "automation.failures"
+      }
+    },
+    {
+      "audit": {
+        "fields": [
+          "trigger",
+          "expiresInMs"
+        ]
+      },
+      "dependencies": [],
+      "description": "Enable a trigger by issuing a standing grant as yourself for `expiresInMs` (at most 90 days). Its runs act as you, narrowed to the trigger's operations, and are refused whatever you could not do yourself. Replaces any earlier grant for the trigger, so the trigger then runs as you. People only.",
+      "errors": [],
+      "id": "automation.grant.issue",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expiresInMs": {
+            "maximum": 7776000000,
+            "minimum": 60000,
+            "type": "integer"
+          },
+          "trigger": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "trigger",
+          "expiresInMs"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "automation_grant_issue",
+      "module": "automation",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expiresAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "issuedAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "issuedBy": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "operations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "revokedAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "revokedBy": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "trigger": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "trigger",
+          "issuedBy",
+          "operations",
+          "issuedAt",
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "issue",
+        "resourceType": "StandingGrant"
+      },
+      "ui": {
+        "binding": "automation.triggers"
+      }
+    },
+    {
+      "audit": {
+        "fields": [
+          "id",
+          "expiresInMs"
+        ]
+      },
+      "dependencies": [],
+      "description": "Extend a standing grant you issued to `expiresInMs` from now. A revoked grant cannot be renewed. People only.",
+      "errors": [],
+      "id": "automation.grant.renew",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expiresInMs": {
+            "maximum": 7776000000,
+            "minimum": 60000,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "expiresInMs"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "automation_grant_renew",
+      "module": "automation",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expiresAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "issuedAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "issuedBy": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "operations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "revokedAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "revokedBy": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "trigger": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "trigger",
+          "issuedBy",
+          "operations",
+          "issuedAt",
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "issue",
+        "resourceType": "StandingGrant"
+      },
+      "ui": {
+        "binding": "automation.triggers"
+      }
+    },
+    {
+      "audit": {
+        "fields": [
+          "id"
+        ]
+      },
+      "dependencies": [],
+      "description": "Revoke a standing grant you issued. No run starts under it again. People only.",
+      "errors": [],
+      "id": "automation.grant.revoke",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "automation_grant_revoke",
+      "module": "automation",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expiresAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "issuedAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "issuedBy": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "operations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "revokedAt": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "revokedBy": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "trigger": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "trigger",
+          "issuedBy",
+          "operations",
+          "issuedAt",
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "issue",
+        "resourceType": "StandingGrant"
+      },
+      "ui": {
+        "binding": "automation.triggers"
+      }
+    },
+    {
+      "audit": {
+        "fields": [
+          "grant",
+          "cursor",
+          "slot",
+          "run"
+        ]
+      },
+      "dependencies": [],
+      "description": "Record a trigger's progress under one grant: the journal cursor or schedule slot reached and, when a run finished, its outcome. A failed run becomes an open failure. Called only by the trigger loop.",
+      "errors": [],
+      "id": "automation.progress.record",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "grant": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "run": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "maxLength": 64,
+                "type": "string"
+              },
+              "id": {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              "message": {
+                "maxLength": 500,
+                "type": "string"
+              },
+              "outcome": {
+                "enum": [
+                  "succeeded",
+                  "failed"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "outcome"
+            ],
+            "type": "object"
+          },
+          "slot": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "grant"
+        ],
+        "type": "object"
+      },
+      "kind": "command",
+      "mcpName": "automation_progress_record",
+      "module": "automation",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "grant": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "grant"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "record",
+        "resourceType": "StandingGrant"
+      },
+      "ui": {
+        "exception": "Written only by the trigger loop as the grant issuer; people see the result in automation.trigger.list and automation.failure.list."
+      }
+    },
+    {
+      "dependencies": [],
+      "description": "List the triggers the application declares, each with its active standing grant (who issued it and until when), its last run and its open failures.",
+      "errors": [],
+      "id": "automation.trigger.list",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "kind": "query",
+      "mcpName": "automation_trigger_list",
+      "module": "automation",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "cursor": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "grant": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "expiresAt": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "id": {
+                      "maxLength": 256,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "issuedAt": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "issuedBy": {
+                      "maxLength": 256,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "operations": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "revokedAt": {
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "type": "integer"
+                    },
+                    "revokedBy": {
+                      "maxLength": 256,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "trigger": {
+                      "maxLength": 256,
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "trigger",
+                    "issuedBy",
+                    "operations",
+                    "issuedAt",
+                    "expiresAt"
+                  ],
+                  "type": "object"
+                },
+                "id": {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "lastOutcome": {
+                  "enum": [
+                    "succeeded",
+                    "failed"
+                  ],
+                  "type": "string"
+                },
+                "lastRunAt": {
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer"
+                },
+                "on": {
+                  "enum": [
+                    "event",
+                    "schedule"
+                  ],
+                  "type": "string"
+                },
+                "openFailures": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "runs": {
+                  "enum": [
+                    "agent",
+                    "job"
+                  ],
+                  "type": "string"
+                },
+                "slot": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "on",
+                "runs",
+                "openFailures"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "permission": {
+        "action": "read",
+        "resourceType": "Trigger"
+      },
+      "ui": {
+        "binding": "automation.triggers"
+      }
+    },
+    {
       "dependencies": [
         "audit"
       ],
