@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:269567e9-e6ea-5047-a323-38770ecb022e",
+  "serialNumber": "urn:uuid:cd94b848-a513-5f9b-a2a8-629ca8b9cd65",
   "version": 1,
   "metadata": {
     "tools": {
@@ -15872,6 +15872,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/connector-driver",
+      "name": "@agent-native/connector-driver",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/connector-driver"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/contracts",
       "name": "@agent-native/contracts",
       "properties": [
@@ -16687,6 +16699,7 @@
         "workspace:@agent-native/bundle",
         "workspace:@agent-native/client",
         "workspace:@agent-native/compliance",
+        "workspace:@agent-native/connector-driver",
         "workspace:@agent-native/contracts",
         "workspace:@agent-native/crm-capture",
         "workspace:@agent-native/device-link",
@@ -24008,6 +24021,10 @@
     },
     {
       "ref": "workspace:@agent-native/compliance",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/connector-driver",
       "dependsOn": []
     },
     {
