@@ -26,6 +26,9 @@ const seconds = (ms: number | undefined) =>
  */
 export function PlantScreen() {
   const plants = useQuery(live.liveQueryOptions(operations.plantList, {}));
+  // Held here, not in the form: a role change resets the plant list (an authorization change
+  // clears cached reads), which unmounts the plant sections until the list is read again.
+  const [saved, setSaved] = useState('');
   const items = plants.data?.items ?? [];
   const title = items.length === 1 ? `Plant ${items[0]!.plant}` : 'Plants';
   return (
@@ -37,12 +40,15 @@ export function PlantScreen() {
         </p>
       </header>
       <CaptureMetrics />
+      <p role="status" className="text-sm text-muted-foreground empty:hidden">
+        {saved}
+      </p>
       {plants.isPending && <p role="status">Loading plants…</p>}
       {plants.data && !items.length && (
         <p className="text-sm text-muted-foreground">You hold no plant role.</p>
       )}
       {items.map((plant) => (
-        <People key={plant.plant} plant={plant} />
+        <People key={plant.plant} plant={plant} onAdded={setSaved} />
       ))}
     </div>
   );
@@ -95,7 +101,7 @@ function Metric({ title, value, detail }: { title: string; value: string; detail
 }
 
 /** Members of one plant. Only supervisors receive the member list, so others see their role. */
-function People({ plant }: { plant: Plant }) {
+function People({ plant, onAdded }: { plant: Plant; onAdded: (message: string) => void }) {
   const [error, setError] = useState('');
   const [pending, setPending] = useState<string>();
   const setRole = async (principalId: string, role: Role | null) => {
@@ -163,20 +169,19 @@ function People({ plant }: { plant: Plant }) {
               {error}
             </p>
           )}
-          <AddMember plant={plant.plant} />
+          <AddMember plant={plant.plant} onAdded={onAdded} />
         </>
       )}
     </section>
   );
 }
 
-function AddMember({ plant }: { plant: string }) {
-  const [saved, setSaved] = useState('');
+function AddMember({ plant, onAdded }: { plant: string; onAdded: (message: string) => void }) {
   const { form } = useCapabilityForm(transport, operations.plantSetMember, {
     defaultValues: { principalId: '', role: 'inspector' as Role },
     toInput: (values) => ({ plant, principalId: values.principalId.trim(), role: values.role }),
     onCommitted: () => {
-      setSaved(`Added ${form.state.values.principalId.trim()}`);
+      onAdded(`Added ${form.state.values.principalId.trim()} at ${plant}`);
       form.reset();
     },
   });
@@ -223,13 +228,9 @@ function AddMember({ plant }: { plant: string }) {
       <Button type="submit">Add</Button>
       <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
         {(error) =>
-          typeof error === 'string' ? (
+          typeof error === 'string' && (
             <p role="alert" className="w-full text-sm text-destructive">
               {error}
-            </p>
-          ) : (
-            <p role="status" className="w-full text-sm text-muted-foreground empty:hidden">
-              {saved}
             </p>
           )
         }
