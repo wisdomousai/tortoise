@@ -1,7 +1,8 @@
-import { app, BrowserWindow, dialog, session, shell } from 'electron';
+import { app, BrowserWindow, dialog, session } from 'electron';
 import { mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createOsShell } from './os-shell';
 import { ensureService, type ServiceHandle } from './service-lifecycle';
 import {
   developmentAppName,
@@ -30,6 +31,8 @@ app.setName(
     ? developmentAppName(identity.name, process.env.AGENT_NATIVE_APPLICATION)
     : identity.name,
 );
+// Links and files the OS opens the application with; macOS sends them before `ready`.
+const osShell = createOsShell(identity.scheme);
 /**
  * Trusted host override supports isolated desktop acceptance and alternate workspaces; renderer
  * input cannot choose arbitrary filesystem paths.
@@ -42,7 +45,11 @@ const workspacePath = () =>
 /** Attach to or start the authority: from this checkout in development, else the verified runtime. */
 async function startService(workspace: string): Promise<ServiceHandle> {
   // Bun runs the service from this checkout. Digest checks stay on the packaged stage.
-  if (developmentDesktop) return ensureService(developmentServiceLaunch(process.env, workspace));
+  if (developmentDesktop)
+    return ensureService({
+      ...developmentServiceLaunch(process.env, workspace),
+      scheme: identity.scheme,
+    });
   const resources = app.isPackaged
     ? resolve(process.resourcesPath, 'application')
     : resolve(sourceDir, '../resources');
@@ -61,6 +68,7 @@ async function startService(workspace: string): Promise<ServiceHandle> {
     executable: resourcePath(resources, manifest.service.executable),
     webRoot: resourcePath(resources, manifest.webRoot),
     runtimeManifest: resolve(resources, 'runtime-manifest.json'),
+    scheme: identity.scheme,
     ...(sitePolicy ? { sitePolicy } : {}),
   });
 }
@@ -101,28 +109,6 @@ function restrictedSession(origin: string) {
   return uiSession;
 }
 
-/** Only the explicit account-connect link may leave the renderer, and only to the system browser. */
-function openProviderAuthorization(url: string) {
-  // OAuth runs in the user's browser; the desktop never embeds provider login pages.
-  try {
-    const target = new URL(url);
-    if (
-      target.protocol === 'https:' &&
-      target.host === 'auth.openai.com' &&
-      target.pathname === '/api/accounts/authorize' &&
-      !target.username &&
-      !target.password &&
-      !target.hash &&
-      target.searchParams.get('response_type') === 'code' &&
-      target.searchParams.get('code_challenge_method') === 'S256'
-    ) {
-      void shell.openExternal(target.toString());
-    }
-  } catch {
-    /* malformed external navigation is denied */
-  }
-}
-
 /** A sandboxed window that cannot navigate, redirect or embed outside `origin`. */
 function createWindow(origin: string) {
   const created = new BrowserWindow({
@@ -143,8 +129,10 @@ function createWindow(origin: string) {
       allowRunningInsecureContent: false,
     },
   });
+  // A new window is never created. A URL that a declared open action builds, such as the
+  // provider sign-in, opens in the system browser as that action; anything else is dropped.
   created.webContents.setWindowOpenHandler(({ url }) => {
-    openProviderAuthorization(url);
+    osShell.openFromPage(url);
     return { action: 'deny' };
   });
   created.webContents.on('will-navigate', (event, url) => {
@@ -159,13 +147,20 @@ function createWindow(origin: string) {
 }
 
 if (process.platform === 'win32') app.setAppUserModelId(identity.appId);
-if (!app.requestSingleInstanceLock()) app.quit();
+const showWindow = () => {
+  if (window?.isMinimized()) window.restore();
+  window?.show();
+  window?.focus();
+};
+// A second launch hands its parsed links and files to this instance and exits.
+if (!app.requestSingleInstanceLock(osShell.handOver)) app.quit();
 else {
-  app.on('second-instance', () => {
-    window?.show();
-    window?.focus();
+  app.on('second-instance', (_event, _argv, _directory, handedOver) => {
+    osShell.secondInstance(handedOver);
+    showWindow();
   });
   app.on('before-quit', (event) => {
+    osShell.close();
     if (!quitting && service?.owned) {
       event.preventDefault();
       quitting = true;
@@ -181,6 +176,10 @@ else {
       service = await startService(workspace);
       if (developmentDesktop) printDevelopmentLaunch(workspace, service.launchUrl);
       window = createWindow(service.endpoint);
+      // The connection token is the window's session, so OS requests reach this window.
+      osShell
+        .connect(service.endpoint, service.token, showWindow)
+        .catch(() => console.warn('[os] The authority shell API is unreachable'));
       service.child?.once('exit', () => {
         if (!quitting)
           dialog.showErrorBox(

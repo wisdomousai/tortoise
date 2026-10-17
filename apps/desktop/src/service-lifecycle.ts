@@ -8,6 +8,8 @@ export interface ServiceConnection {
 }
 export interface ServiceHandle {
   endpoint: string;
+  /** The connection-file session; the launch URL signs the window in as the same session. */
+  token: string;
   launchUrl: string;
   owned: boolean;
   child?: ChildProcessWithoutNullStreams;
@@ -78,6 +80,8 @@ interface ServiceOptions {
   runtimeManifest?: string;
   /** Site policy file for the service; absent leaves the service isolated (loopback only). */
   sitePolicy?: string;
+  /** The application's URL scheme, passed to the OS plugin as `AGENT_NATIVE_OS_SCHEME`. */
+  scheme?: string;
   startupTimeoutMs?: number;
   /** Listen port for a service this host starts. Packaged startup leaves this unset (`0`). */
   port?: string;
@@ -92,6 +96,7 @@ interface ServiceOptions {
 /** A handle on an authority someone else started; this frontend never stops it. */
 const attached = (existing: Awaited<ReturnType<typeof connect>>): ServiceHandle => ({
   endpoint: existing.connection.endpoint,
+  token: existing.connection.token,
   launchUrl: existing.launchUrl,
   owned: false,
   async stop() {},
@@ -127,6 +132,8 @@ function serviceEnvironment(options: ServiceOptions, workspace: string): NodeJS.
   });
   if (options.runtimeManifest) env.AGENT_RUNTIME_MANIFEST = options.runtimeManifest;
   if (options.sitePolicy) env.AGENT_NATIVE_SITE_POLICY = options.sitePolicy;
+  // The OS plugin answers links in this scheme; an application without it ignores the key.
+  if (options.scheme) env.AGENT_NATIVE_OS_SCHEME = options.scheme;
   return env;
 }
 
@@ -272,6 +279,7 @@ export async function ensureService(options: ServiceOptions): Promise<ServiceHan
     const current = await connect(workspace);
     return {
       endpoint: current.connection.endpoint,
+      token: current.connection.token,
       launchUrl: current.launchUrl,
       owned: true,
       child,
