@@ -94,6 +94,8 @@
     "@agent-native/devices": "workspace:*",
     "@agent-native/event-log": "workspace:*",
     "@agent-native/execution-host": "workspace:*",
+    "@agent-native/fleet": "workspace:*",
+    "@agent-native/fleet-agent": "workspace:*",
     "@agent-native/frame": "workspace:*",
     "@agent-native/frame-native": "workspace:*",
     "@agent-native/host": "workspace:*",

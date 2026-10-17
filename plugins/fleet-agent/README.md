@@ -38,6 +38,7 @@ The credential is kept in the platform's secret store when it has one, otherwise
 | `@agent-native/fleet-agent/contracts` | browser-safe | the protocol operations, `fleetSiteModule`, `fleetSiteOperationIds`, the report, release and relay schemas, `fleetLinkComponent` |
 | `@agent-native/fleet-agent/plugin-manifest` | browser-safe | `fleetAgentPluginManifest`: the destination, the folder and the settings |
 | `@agent-native/fleet-agent/plugin` | server | `createFleetAgentPlugin`, `fleetAgentPlugin`, the service and status types |
+| `@agent-native/fleet-agent/testing` | server (tests) | `fleetNetworkFixture`: a network plugin whose `fleet` destination goes through a function the test supplies |
 
 ## Trust boundary
 

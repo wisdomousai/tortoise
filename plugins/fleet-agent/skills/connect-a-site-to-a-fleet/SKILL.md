@@ -19,6 +19,10 @@ The fleet agent is outbound only: each cycle it reports outbox counts, forwards 
 
 A fleet is an application like any other. Compose `fleetSiteModule` from `@agent-native/fleet-agent/contracts`, implement its handlers, and compose the device-link plugin with `syncOperations: fleetSiteOperationIds`. Each handler acts for `ctx.context.principalId`, the calling site, and must answer only about that site. Attach release files to a resource the site's policy lets it read, so `GET /api/v1/blobs/<digest>` serves them. Store forwarded audit events as received and accept each sequence once: the site resends after a lost reply.
 
+`examples/fleet` is a complete fleet built this way: site records, release channels, a health view, audit events checked against each site's hash chain, and relay requests.
+
+To test a fleet against real sites, start each site with `fleetNetworkFixture(reach)` from `@agent-native/fleet-agent/testing` in place of the network plugin, with `reach` mapping the `fleet` destination onto the fleet's loopback port, as `examples/fleet/test/site.ts` does. Fail, drop or change answers in `reach` to stand in for an unreliable uplink.
+
 ## Checks
 
 ```sh

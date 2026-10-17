@@ -3443,7 +3443,8 @@
     "./src/plugin-manifest fleetAgentPluginManifest",
     "./src/relay forwardToSite",
     "./src/releases stageRelease",
-    "./src/report siteReport"
+    "./src/report siteReport",
+    "./src/testing fleetNetworkFixture"
   ],
   "plugins/hub-link": [
     "./contracts enrollPath",

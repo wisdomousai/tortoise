@@ -45,6 +45,8 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 ### Fleet agent
 
+**Browser.** On 18 October 2026, `examples/fleet/e2e/fleet.pw.ts` passed in headless Chromium against the real service: enrollment from the Devices screen, a site report, a channel created and assigned from the screens, and the drift shown on the Health screen.
+
 **Not shown.**
 
 - No site has reported to a fleet across a real network, behind a firewall that allows only outbound https.
@@ -55,6 +57,7 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 - The relay polls the fleet (every two seconds by default) and forwards one request at a time, with bodies up to 1 MiB. It carries no event streams.
 - A site credential is not rotated. A fleet that loses one re-enrolls the site with a new code.
 - Staging fetches each release file whole. There is no resumed download.
+- The fleet's Devices screen calls a `field-sync` enrollment a phone, as device-link names it; a site is enrolled with that kind.
 
 ### Site bundles
 

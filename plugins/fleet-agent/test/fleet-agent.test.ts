@@ -8,7 +8,8 @@ import { startHost } from '@agent-native/host/host';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
 import type { FleetRelease, RelayAnswer, SiteReport } from '../src/contracts';
 import type { FleetAgentService } from '../src/plugin';
-import { fixtureNetwork, fleetApplication, siteApplication } from './fixtures';
+import { fleetNetworkFixture } from '../src/testing';
+import { fleetApplication, siteApplication } from './fixtures';
 
 const cleanups: (() => Promise<void> | void)[] = [];
 afterEach(async () => {
@@ -82,7 +83,7 @@ async function startSite(
     offline: false,
     corrupt: false,
   };
-  const network = fixtureNetwork(async (url, init) => {
+  const network = fleetNetworkFixture(async (url, init) => {
     if (link.offline) throw new TypeError('Network is unreachable');
     const response = await fetch(new URL(url.pathname + url.search, fleetUrl), init);
     if (link.drop && url.pathname === link.drop) {

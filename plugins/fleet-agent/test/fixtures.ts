@@ -16,9 +16,6 @@ import { deviceLinkPluginManifest } from '@agent-native/device-link/plugin-manif
 import { defineApplication } from '@agent-native/kernel/application';
 import { LOCAL_OWNER } from '@agent-native/kernel/authority';
 import { defineManifest } from '@agent-native/kernel/manifest';
-import { defaultPorts } from '@agent-native/kernel';
-import { defineHostPlugin, type NetworkPort } from '@agent-native/kernel/plugin';
-import { definePluginManifest } from '@agent-native/host/plugin-manifest';
 import { createHandlerFactory } from '@agent-native/runtime';
 import { sitePlugin } from '@agent-native/site/plugin';
 import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
@@ -34,6 +31,7 @@ import {
 } from '../src/contracts';
 import { createFleetAgentPlugin } from '../src/plugin';
 import { fleetAgentPluginManifest } from '../src/plugin-manifest';
+import type { fleetNetworkFixture } from '../src/testing';
 
 // The fleet: one channel, sites enrolled with device-link, each site seeing only its own record.
 interface FleetSite {
@@ -201,29 +199,9 @@ const erp = defineHostComponent({
   },
 });
 
-/** A network port whose only destination is the fleet, reached through `reach` (a test's fetch). */
-export function fixtureNetwork(reach: (url: URL, init?: RequestInit) => Promise<Response>) {
-  const manifest = definePluginManifest({ id: 'fixture-network', title: 'Fixture network' });
-  const fallback = defaultPorts().network;
-  const network: NetworkPort = {
-    ...fallback,
-    client: (destination) => {
-      if (destination !== 'fleet') return fallback.client(destination);
-      return {
-        destination,
-        fetch: (input, init) => reach(new URL(String(input), 'http://fleet.invalid'), init),
-      };
-    },
-  };
-  return {
-    manifest,
-    plugin: defineHostPlugin({ manifest, open: async () => ({ ports: { network } }) }),
-  };
-}
-
 const siteBind = createHandlerFactory<{ notes: { count: number } }, unknown>();
 
-export function siteApplication(network: ReturnType<typeof fixtureNetwork>) {
+export function siteApplication(network: ReturnType<typeof fleetNetworkFixture>) {
   return defineApplication<{ notes: { count: number } }>({
     manifest: defineManifest({
       id: 'plant',
