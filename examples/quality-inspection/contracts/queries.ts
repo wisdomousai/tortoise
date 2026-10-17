@@ -1,34 +1,29 @@
 import { z } from 'zod';
+import { collectionList } from '@agent-native/contracts';
+import { lots } from './collections';
 import { operation } from './operation';
 import {
   id,
   timestamp,
   plantRoleSchema,
   nextSample,
-  lotSummarySchema,
   lotDetailSchema,
   codeGroupSchema,
   latency,
-  page,
 } from './schemas';
 
 const lotRead = { action: 'read', resourceType: 'InspectionLot' };
 
 /** Reads, each authorized per plant before filtering, counting and paging. */
 export const queryOperations = {
-  lotList: operation(
-    'inspection.lot.list',
-    'query',
-    z.strictObject({
-      ...page,
-      plant: id.optional(),
-      status: z.enum(['open', 'decided', 'closed']).optional(),
-      search: z.string().max(100).optional(),
-    }),
-    z.strictObject({ items: z.array(lotSummarySchema), count: z.number().int() }),
-    lotRead,
-    { dependencies: ['lot', 'result', 'defect', 'plant'] },
-  ),
+  lotList: collectionList(lots, {
+    id: 'inspection.lot',
+    filters: ['plant', 'status'],
+    search: true,
+    description:
+      'List inspection lots at plants where you hold a role, open lots first, with capture progress and synchronization counts. search matches lot, material and batch. Authorization precedes filtering, counting (total) and pagination.',
+    dependencies: ['result', 'defect', 'plant'],
+  }),
   lotGet: operation(
     'inspection.lot.get',
     'query',

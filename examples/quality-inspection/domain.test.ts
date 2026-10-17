@@ -99,7 +99,7 @@ const measure = (characteristicId: string, value: number, at = T0 - 1_000) => ({
 describe('quality inspection on top of a system of record', () => {
   test('inbound sync applies SoR master data under an ordered watermark', async () => {
     const { app, query, sor, inbound } = await setup();
-    expect((await query('inspection.lot.list', {}, supervisor)).count).toBe(2);
+    expect((await query('inspection.lot.list', {}, supervisor)).total).toBe(2);
     expect((await query('inspection.code.list', {})).groups.map((g: any) => g.id)).toEqual([
       'SURFACE',
       'VISUAL',
@@ -126,7 +126,7 @@ describe('quality inspection on top of a system of record', () => {
     await expect(
       app.queryRaw({ operation: 'inspection.lot.get', input: { id: '4000003' } }, inspector),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    expect((await query('inspection.lot.list', {}, as('stranger'))).count).toBe(0);
+    expect((await query('inspection.lot.list', {}, as('stranger'))).total).toBe(0);
     const resources = (await app.events(0, inspector)).events.map((event) => event.resource);
     expect(resources).toContain('lot:4000001');
     expect(resources).not.toContain('lot:4000003');

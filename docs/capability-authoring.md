@@ -44,6 +44,27 @@ export const renameHandler = handler(rename, (input, ctx) => {
 
 How state is represented is up to the feature. It can wrap transaction-bound state in its own repositories and receive domain services through `services`. The kernel needs no universal record table.
 
+For keyed records, declare a [collection](primitives.md#collection) and use its records helper. It does the own-property lookup, the `NOT_FOUND` and the change declaration:
+
+```ts
+import { defineCollection, collectionList } from '@agent-native/contracts';
+import { records, collectionListHandler } from '@agent-native/runtime';
+
+export const noteRecords = defineCollection({
+  type: 'note',
+  resourceType: 'note',
+  item: noteSchema,
+});
+export const listNotes = collectionList(noteRecords, {
+  id: 'note',
+  filters: ['folder'],
+  description: '…',
+});
+
+// In a command handler: records(ctx, noteRecords, ctx.state.notes).update(input.id, { title: input.title });
+// For the list: collectionListHandler(noteRecords, listNotes, { store: (s) => s.notes, visible: canSee });
+```
+
 - **Declare every change.** Each state change is declared with `ctx.change`, and an undeclared change fails. Use expected revisions for updates that depend on what the caller saw.
 - **No network calls inside a transaction.** Work that needs another system either happens before the command, as an authorized read or computation, or after it as a durable intent. Use `ctx.enqueue` on a changed resource, let the dispatcher deliver it, and record the outcome with a settle command under the integration principal ([task/workflow pattern](task-workflow-pattern.md)). Declare the outbox integration on the capability, so the generated docs say that a receipt is not acceptance. The `quality-inspection` example shows the full loop.
 - **Errors.** Use `ApplicationError` with details that are safe to show the caller.

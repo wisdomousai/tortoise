@@ -1099,7 +1099,7 @@
     "/api/v1/queries/crm.account.list": {
       "post": {
         "operationId": "crm.account.list",
-        "summary": "List accounts this workspace follows, in your regions: their status (following until the CRM feed delivers them, adopted, or rejected) and activity counts. Works while the CRM is unreachable.",
+        "summary": "List accounts this workspace follows, in your regions, newest first: their status (following until the CRM feed delivers them, adopted, or rejected) and activity counts. total counts every match in your regions; page with offset and limit. Works while the CRM is unreachable.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1111,6 +1111,16 @@
                     "$schema": "https://json-schema.org/draft/2020-12/schema",
                     "additionalProperties": false,
                     "properties": {
+                      "limit": {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      "offset": {
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
                       "status": {
                         "enum": [
                           "following",
@@ -1221,10 +1231,16 @@
                             "type": "object"
                           },
                           "type": "array"
+                        },
+                        "total": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
                         }
                       },
                       "required": [
-                        "items"
+                        "items",
+                        "total"
                       ],
                       "type": "object"
                     },

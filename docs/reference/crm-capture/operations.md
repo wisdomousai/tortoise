@@ -925,13 +925,13 @@ Output:
 
 ## crm.account.list
 
-List accounts this workspace follows, in your regions: their status (following until the CRM feed delivers them, adopted, or rejected) and activity counts. Works while the CRM is unreachable.
+List accounts this workspace follows, in your regions, newest first: their status (following until the CRM feed delivers them, adopted, or rejected) and activity counts. total counts every match in your regions; page with offset and limit. Works while the CRM is unreachable.
 
 - Kind: query
 - MCP: `crm_account_list`
 - Permission: `read` on `CrmAccount`
 - UI: crm.account.list
-- CLI: `agent-native-desktop-starter crm account list [--status <following|adopted|rejected>]`
+- CLI: `agent-native-desktop-starter crm account list [--limit <integer>] [--offset <integer>] [--status <following|adopted|rejected>]`
 
 Input:
 
@@ -940,6 +940,16 @@ Input:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "limit": {
+      "maximum": 100,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "offset": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
     "status": {
       "enum": [
         "following",
@@ -1039,10 +1049,16 @@ Output:
         "type": "object"
       },
       "type": "array"
+    },
+    "total": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
     }
   },
   "required": [
-    "items"
+    "items",
+    "total"
   ],
   "type": "object"
 }

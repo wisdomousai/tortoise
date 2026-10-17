@@ -111,6 +111,18 @@ Guarantees: data and cursor come from one snapshot. Rows are scoped before filte
 
 implemented · `packages/runtime`
 
+### Collection
+
+_A typed set of records a module keeps in its state slice, with generated reads._
+
+Every application holds keyed records: accounts, lots, tasks. `defineCollection` names the record type, its journal resource prefix (`<type>:<key>`), the visible record and, optionally, the field that names its container. `collectionGet` and `collectionList` turn it into ordinary catalog queries with literal IDs; `collectionGetHandler` and `collectionListHandler` serve them with the module's own visibility rule. Inside commands, `records(ctx, collection, store)` gives prototype-safe `get`, `require`, `insert`, `set`, `update` and `remove` that declare each changed record. It is not an ORM: records stay a plain keyed object in the module's slice and commit with the rest of the state.
+
+Guarantees: a write through `records` always declares `<type>:<key>`, so revisions, `expectedRevisions` conflicts and the journal apply to it. Keys such as `__proto__` stay ordinary keys. A generated list applies the visibility rule to every row before equality filters, search, counting and paging, and a generated get answers `NOT_FOUND` for a record the caller may not see. Search runs only over the text the handler supplies, so hidden fields are never searchable unless the handler includes them.
+
+Gaps: paging is by offset, so a page can shift when records are added between requests. Generated lists filter by equality only. Field-level writes and generated create and update commands are not implemented; commands are still written by hand.
+
+implemented · `packages/contracts` `packages/runtime`
+
 ### Execution context
 
 _Who is calling, in which workspace, under which delegation grant._

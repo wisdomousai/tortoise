@@ -1,8 +1,8 @@
 import { ApplicationError } from '@agent-native/contracts';
 import type { EffectOutcome, HandlerContribution } from '@agent-native/runtime';
 import { operations } from '../contracts';
-import { own, type CrmState } from '../domain';
-import { handler, now, type CrmServices } from './context';
+import type { CrmState } from '../domain';
+import { accountRecords, activityRecords, handler, now, type CrmServices } from './context';
 
 /** The CRM feed and outbox settlement, for the integration principal only. */
 export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices>[] => [
@@ -12,14 +12,13 @@ export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices
       throw new ApplicationError('CONFLICT', 'Watermark changed', {
         watermark: ctx.state.watermark ?? null,
       });
+    const accounts = accountRecords(ctx);
     let applied = 0;
-    for (const snapshot of input.accounts) {
-      const account = own(ctx.state.accounts, snapshot.externalId);
+    for (const { externalId, ...details } of input.accounts) {
       // The feed only carries accounts this workspace follows; anything else is ignored.
+      const account = accounts.get(externalId);
       if (!account || account.status === 'rejected') continue;
-      const { externalId: _externalId, ...details } = snapshot;
-      Object.assign(account, details, { status: 'adopted', syncedAt: now(ctx) });
-      ctx.change(`account:${account.id}`, 'synced');
+      accounts.update(externalId, { ...details, status: 'adopted', syncedAt: now(ctx) }, 'synced');
       applied++;
     }
     ctx.state.watermark = input.to;
@@ -31,7 +30,7 @@ export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices
     const effect = ctx.settleEffect(input.effectId, input.outcome as EffectOutcome);
     const [type, id = ''] = effect.resource.split(':', 2) as [string, string?];
     if (type === 'account') {
-      const account = own(ctx.state.accounts, id);
+      const account = accountRecords(ctx).get(id);
       if (!account || account.effectId !== effect.id)
         throw new ApplicationError('NOT_FOUND', 'Followed account unavailable');
       // Accepted keeps `following`: the details arrive with the next feed batch.
@@ -40,7 +39,7 @@ export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices
         account.rejection = { code: input.outcome.code, message: input.outcome.message };
       }
     } else {
-      const activity = own(ctx.state.activities, id);
+      const activity = activityRecords(ctx).get(id);
       if (type !== 'activity' || !activity || activity.effectId !== effect.id)
         throw new ApplicationError('NOT_FOUND', 'Forwarded activity unavailable');
       activity.sync = input.outcome.status;

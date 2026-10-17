@@ -1,3 +1,5 @@
+import { own } from '@agent-native/runtime';
+
 /**
  * CRM capture: find customers in the CRM live, bring the ones you work with into this workspace,
  * and log what happened with them.
@@ -70,19 +72,6 @@ export function createCrmState(options: {
     accounts: {},
     activities: {},
   };
-}
-
-export function own<T>(records: Record<string, T>, id: string): T | undefined {
-  return Object.hasOwn(records, id) ? records[id] : undefined;
-}
-/** Define rather than assign, so an ID such as `__proto__` stays an ordinary key. */
-export function put<T>(records: Record<string, T>, id: string, value: T): void {
-  Object.defineProperty(records, id, {
-    value,
-    enumerable: true,
-    configurable: true,
-    writable: true,
-  });
 }
 
 export const memberOf = (state: CrmState, principalId: string) => own(state.members, principalId);

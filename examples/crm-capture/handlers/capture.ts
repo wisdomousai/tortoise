@@ -1,9 +1,10 @@
 import { ApplicationError } from '@agent-native/contracts';
 import type { HandlerContribution } from '@agent-native/runtime';
 import { operations } from '../contracts';
-import { own, put, type CrmState } from '../domain';
+import type { CrmState } from '../domain';
 import {
-  accountOf,
+  accountRecords,
+  activityRecords,
   handler,
   invalid,
   MAX_AGE_MS,
@@ -21,7 +22,8 @@ import {
  */
 export const captureHandlers = (): HandlerContribution<CrmState, CrmServices>[] => [
   handler(operations.accountAdopt, (input, ctx) => {
-    const existing = own(ctx.state.accounts, input.externalId);
+    const accounts = accountRecords(ctx);
+    const existing = accounts.get(input.externalId);
     // Following or adopted already: nothing to ask the CRM again.
     if (existing && existing.status !== 'rejected')
       return { id: existing.id, status: existing.status };
@@ -29,21 +31,25 @@ export const captureHandlers = (): HandlerContribution<CrmState, CrmServices>[] 
     const effectId = ctx.enqueue({
       target: TARGET,
       type: 'account.follow',
-      resource: `account:${input.externalId}`,
+      resource: accounts.resource(input.externalId),
       payload: { externalId: input.externalId },
     });
-    put(ctx.state.accounts, input.externalId, {
-      id: input.externalId,
-      status: 'following',
-      effectId,
-      adoptedBy: ctx.context.principalId,
-      adoptedAt: now(ctx),
-    });
-    ctx.change(`account:${input.externalId}`, 'adopted');
+    accounts.set(
+      input.externalId,
+      {
+        id: input.externalId,
+        status: 'following',
+        effectId,
+        adoptedBy: ctx.context.principalId,
+        adoptedAt: now(ctx),
+      },
+      'adopted',
+    );
     return { id: input.externalId, status: 'following' as const };
   }),
   handler(operations.activityLog, (input, ctx) => {
-    const account = accountOf(ctx.state, input.accountId);
+    const accounts = accountRecords(ctx);
+    const account = accounts.require(input.accountId);
     if (account.status !== 'adopted')
       throw new ApplicationError('CONFLICT', `Account is ${account.status}`, {
         status: account.status,
@@ -52,11 +58,12 @@ export const captureHandlers = (): HandlerContribution<CrmState, CrmServices>[] 
     if (input.occurredAt > at + MAX_CLOCK_SKEW_MS)
       invalid('occurredAt', 'Activity is in the future');
     if (input.occurredAt < at - MAX_AGE_MS) invalid('occurredAt', 'Activity is older than 7 days');
+    const activities = activityRecords(ctx);
     const id = newId(ctx);
     const effectId = ctx.enqueue({
       target: TARGET,
       type: 'activity.create',
-      resource: `activity:${id}`,
+      resource: activities.resource(id),
       payload: {
         accountId: account.id,
         kind: input.kind,
@@ -64,17 +71,19 @@ export const captureHandlers = (): HandlerContribution<CrmState, CrmServices>[] 
         occurredAt: input.occurredAt,
       },
     });
-    const activity = {
+    const activity = activities.insert(
       id,
-      ...input,
-      recordedAt: at,
-      recordedBy: ctx.context.principalId,
-      effectId,
-      sync: 'pending' as const,
-    };
-    put(ctx.state.activities, id, activity);
-    ctx.change(`activity:${id}`, 'logged');
-    ctx.change(`account:${account.id}`);
+      {
+        id,
+        ...input,
+        recordedAt: at,
+        recordedBy: ctx.context.principalId,
+        effectId,
+        sync: 'pending' as const,
+      },
+      'logged',
+    );
+    accounts.touch(account.id);
     const { effectId: _effectId, recordedAt: _recordedAt, ...visible } = activity;
     return visible;
   }),

@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { defineCapability, jsonSchema } from '@agent-native/contracts';
+import { collectionList, defineCapability, jsonSchema } from '@agent-native/contracts';
+import { accounts } from './collections';
 import {
   accountDetailSchema,
-  accountSchema,
   accountSnapshotSchema,
   activitySchema,
   externalId,
@@ -43,13 +43,12 @@ function operation<const Id extends string, const Kind extends 'command' | 'quer
 
 /** Local reads, writes forwarded to the CRM, and the integration principal's feed. */
 export const operations = {
-  accountList: operation('crm.account.list', 'query', {
-    input: z.strictObject({ status: localStatus.exclude(['none']).optional() }),
-    output: z.strictObject({ items: z.array(accountSchema) }),
-    permission: accountRead,
+  accountList: collectionList(accounts, {
+    id: 'crm.account',
+    filters: ['status'],
     description:
-      'List accounts this workspace follows, in your regions: their status (following until the CRM feed delivers them, adopted, or rejected) and activity counts. Works while the CRM is unreachable.',
-    dependencies: ['account', 'activity'],
+      'List accounts this workspace follows, in your regions, newest first: their status (following until the CRM feed delivers them, adopted, or rejected) and activity counts. total counts every match in your regions; page with offset and limit. Works while the CRM is unreachable.',
+    dependencies: ['activity'],
   }),
   accountGet: operation('crm.account.get', 'query', {
     input: z.strictObject({ id: externalId }),

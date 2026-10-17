@@ -5,8 +5,9 @@ import {
   type InputOf,
   type OutputOf,
 } from '@agent-native/contracts';
-import type { HandlerContext, HandlerContribution } from '@agent-native/runtime';
-import { own, type CrmState, type LocalAccount } from '../domain';
+import { records, type HandlerContext, type HandlerContribution } from '@agent-native/runtime';
+import { accounts, activities } from '../contracts/collections';
+import type { CrmState, LocalAccount } from '../domain';
 
 export interface CrmServices {
   newId?: () => string;
@@ -39,11 +40,9 @@ export function accountDto(state: CrmState, account: LocalAccount) {
   ).length;
   return compact({ ...visible, activities });
 }
-export const accountOf = (state: CrmState, id: string) => {
-  const account = own(state.accounts, id);
-  if (!account) throw new ApplicationError('NOT_FOUND', 'Account unavailable');
-  return account;
-};
+/** The followed accounts and logged activities, bound to this handler's transaction. */
+export const accountRecords = (ctx: Context) => records(ctx, accounts, ctx.state.accounts);
+export const activityRecords = (ctx: Context) => records(ctx, activities, ctx.state.activities);
 
 export function handler<C extends AnyCapability>(
   capability: C,

@@ -7,3 +7,4 @@ export {
   createRemoteQueryFactory,
   type ApplicationOptions,
 } from './application.js';
+export * from './collection.js';

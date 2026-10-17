@@ -153,7 +153,7 @@ export function LotsScreen() {
           <LiveDataTable
             columns={columns}
             rows={lots.data?.items ?? []}
-            count={lots.data?.count ?? 0}
+            count={lots.data?.total ?? 0}
             offset={offset}
             limit={PAGE}
             onOffset={setOffset}
@@ -172,6 +172,6 @@ function TabCount({ status, filter }: { status: Status; filter: { search?: strin
   const count = useQuery(
     live.liveQueryOptions(operations.lotList, { offset: 0, limit: 1, status, ...filter }),
   );
-  if (!count.data?.count) return null;
-  return <span className="font-normal text-muted-foreground tabular-nums">{count.data.count}</span>;
+  if (!count.data?.total) return null;
+  return <span className="font-normal text-muted-foreground tabular-nums">{count.data.total}</span>;
 }

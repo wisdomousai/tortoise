@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { implementDataProvider } from '@agent-native/integration';
+import { own } from '@agent-native/runtime';
 import { crmAccounts, crmContacts } from '../contracts';
-import { coversRegion, own, type CrmState } from '../domain';
+import { coversRegion, type CrmState } from '../domain';
 import type { Context, CrmServices } from './context';
 
 /**

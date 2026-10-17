@@ -2,8 +2,6 @@ import type { z } from 'zod';
 import { defineCapability, jsonSchema } from '@agent-native/contracts';
 
 const descriptions: Readonly<Record<string, string>> = {
-  'inspection.lot.list':
-    'List inspection lots at plants where you hold a role, with capture progress and synchronization counts. Authorization precedes filtering, counting and pagination.',
   'inspection.lot.get':
     'Read one inspection lot with its characteristics, specification limits, active results, defects, usage decision and the next open sample. Use its revision as lot:<id> in a decision expectedRevisions map.',
   'inspection.worklist':

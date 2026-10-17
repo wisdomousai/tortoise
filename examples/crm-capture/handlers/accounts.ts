@@ -1,19 +1,23 @@
 import { ApplicationError } from '@agent-native/contracts';
-import type { HandlerContribution } from '@agent-native/runtime';
+import { collectionListHandler, type HandlerContribution } from '@agent-native/runtime';
 import { operations } from '../contracts';
-import { coversRegion, visibleAccount, type CrmState } from '../domain';
+import { accounts } from '../contracts/collections';
+import { coversRegion, visibleAccount, type CrmState, type LocalAccount } from '../domain';
 import { accountDto, compact, handler, TARGET, type CrmServices } from './context';
 
 /** Local reads of followed and adopted accounts, region-scoped before anything is counted. */
 export const accountHandlers = (): HandlerContribution<CrmState, CrmServices>[] => [
-  handler(operations.accountList, (input, ctx) => ({
-    // Region scope first, then the status filter: nothing outside the caller's regions counts.
-    items: Object.values(ctx.state.accounts)
-      .filter((account) => coversRegion(ctx.state, ctx.context.principalId, account.region))
-      .filter((account) => !input.status || account.status === input.status)
-      .sort((a, b) => b.adoptedAt - a.adoptedAt)
-      .map((account) => accountDto(ctx.state, account)),
-  })),
+  // Region scope first, then the status filter: nothing outside the caller's regions counts.
+  collectionListHandler<CrmState, CrmServices, typeof operations.accountList, LocalAccount>(
+    accounts,
+    operations.accountList,
+    {
+      store: (state) => state.accounts,
+      visible: (account, ctx) => coversRegion(ctx.state, ctx.context.principalId, account.region),
+      present: (account, ctx) => accountDto(ctx.state, account),
+      order: (a, b) => b.adoptedAt - a.adoptedAt,
+    },
+  ),
   handler(operations.accountGet, (input, ctx) => {
     const account = visibleAccount(ctx.state, ctx.context.principalId, input.id);
     if (!account) throw new ApplicationError('NOT_FOUND', 'Account unavailable');

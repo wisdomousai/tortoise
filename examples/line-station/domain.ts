@@ -1,3 +1,5 @@
+import { own, put } from '@agent-native/runtime';
+
 /**
  * Line stations on top of a homebrew MES and screen-only station software.
  *
@@ -175,18 +177,8 @@ export function createLineState(
   };
 }
 
-/** Dictionary keys are untrusted input; inherited properties are never domain records. */
-export function own<T>(records: Record<string, T>, id: string): T | undefined {
-  return Object.hasOwn(records, id) ? records[id] : undefined;
-}
-export function put<T>(records: Record<string, T>, id: string, value: T): void {
-  Object.defineProperty(records, id, {
-    value,
-    enumerable: true,
-    configurable: true,
-    writable: true,
-  });
-}
+/** Prototype-safe record access; keys are untrusted input. */
+export { own, put };
 export function stationRole(state: LineState, principalId: string, station: string) {
   const entry = own(state.stations, station);
   return entry ? own(entry.members, principalId) : undefined;

@@ -35,6 +35,8 @@ On macOS arm64 with Bun 1.4.0.
 - Memory and SQLite agree in conformance tests, including process death before and after commit, and a crash releasing the OS lock.
 - State that shares memory and JSON with sparse arrays are refused.
 
+- Collections: generated `get` and `list` scope rows before filters, search, counts and paging, and `records` writes declare their resource. crm-capture's account list and quality-inspection's lot list are generated, and all four examples use the runtime's prototype-safe `own` and `put`.
+
 **Limits.** SQLite stores whole JSON snapshots, which suits small local workspaces. Journal and receipts are never pruned.
 
 ### Authorization and live views

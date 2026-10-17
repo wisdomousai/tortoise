@@ -1,3 +1,5 @@
+import { own, put } from '@agent-native/runtime';
+
 /**
  * Quality inspection capture on top of an external quality system of record (SoR).
  *
@@ -118,18 +120,8 @@ export function createQualityState(
   };
 }
 
-/** Dictionary keys are untrusted input; inherited properties are never domain records. */
-export function own<T>(records: Record<string, T>, id: string): T | undefined {
-  return Object.hasOwn(records, id) ? records[id] : undefined;
-}
-export function put<T>(records: Record<string, T>, id: string, value: T): void {
-  Object.defineProperty(records, id, {
-    value,
-    enumerable: true,
-    configurable: true,
-    writable: true,
-  });
-}
+/** Prototype-safe record access; keys are untrusted input. */
+export { own, put };
 
 export function plantRole(
   state: QualityState,

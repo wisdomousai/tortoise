@@ -1652,7 +1652,7 @@ Output:
 
 ## inspection.lot.list
 
-List inspection lots at plants where you hold a role, with capture progress and synchronization counts. Authorization precedes filtering, counting and pagination.
+List inspection lots at plants where you hold a role, open lots first, with capture progress and synchronization counts. search matches lot, material and batch. Authorization precedes filtering, counting (total) and pagination.
 
 - Kind: query
 - MCP: `inspection_lot_list`
@@ -1706,11 +1706,6 @@ Output:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
-    "count": {
-      "maximum": 9007199254740991,
-      "minimum": -9007199254740991,
-      "type": "integer"
-    },
     "items": {
       "items": {
         "additionalProperties": false,
@@ -1797,11 +1792,16 @@ Output:
         "type": "object"
       },
       "type": "array"
+    },
+    "total": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
     }
   },
   "required": [
     "items",
-    "count"
+    "total"
   ],
   "type": "object"
 }

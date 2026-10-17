@@ -1,6 +1,6 @@
-import type { AuthorizationPort } from '@agent-native/runtime';
+import { own, type AuthorizationPort } from '@agent-native/runtime';
 import { crmAccounts, crmContacts, operations } from './contracts';
-import { memberOf, own, visibleAccount, type CrmState } from './domain';
+import { memberOf, visibleAccount, type CrmState } from './domain';
 
 const known = new Set<string>([
   ...crmAccounts.capabilities.map((capability) => capability.id),
