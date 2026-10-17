@@ -9,6 +9,7 @@ import {
 import { createLineStationBridge, filler, loadProfile } from './bridge';
 import { createSimulatorOcr } from './fake-hmi/memory';
 import type { HostedApplication } from '@agent-native/host/application';
+import { bunProcesses, noProcesses, type ProcessPort } from '@agent-native/host/plugin';
 
 /**
  * How the host reaches one station's screen. Supplied explicitly by the deploying application
@@ -16,7 +17,8 @@ import type { HostedApplication } from '@agent-native/host/application';
  * reference HMI, so they need a perception source:
  * - `simulator`: ground truth from the simulated HMI (demo and tests only);
  * - `vision`: a local OpenAI-compatible vision model, loopback or allowlisted;
- * - `worker`: a JSON-lines perception worker process;
+ * - `worker`: the JSON-lines `perception-worker` process the site policy binds, started through the
+ *   process port;
  * - `none`: counters stay unread.
  */
 export interface StationBridgeConfig {
@@ -34,7 +36,7 @@ export interface StationBridgeConfig {
         readonly allowedHosts?: readonly string[];
         readonly reads?: number;
       }
-    | { readonly kind: 'worker'; readonly command: readonly [string, ...string[]] }
+    | { readonly kind: 'worker' }
     | { readonly kind: 'none' };
   readonly observeMs?: number;
   readonly deliverMs?: number;
@@ -42,6 +44,7 @@ export interface StationBridgeConfig {
 
 function counterExtractor(
   config: StationBridgeConfig,
+  processes: ProcessPort,
   closers: (() => Promise<void>)[],
 ): Extractor {
   const id = 'counter-ocr';
@@ -56,7 +59,15 @@ function counterExtractor(
     case 'vision':
       return createOpenAiCompatibleVisionExtractor({ id, ...counters });
     case 'worker': {
-      const worker = createWorkerExtractor({ id, modality: 'ocr', command: counters.command });
+      // Refuse at startup, with the port's reason, rather than on the first frame.
+      const ready = processes.availability('perception-worker');
+      if (!ready.available) throw new Error(ready.reason);
+      const spawn = bunProcesses(processes);
+      const worker = createWorkerExtractor({
+        id,
+        modality: 'ocr',
+        start: () => spawn('perception-worker'),
+      });
       closers.push(() => worker.close());
       return worker;
     }
@@ -74,6 +85,8 @@ export async function startStationBridge(options: {
   application: HostedApplication;
   workspaceId: string;
   config: StationBridgeConfig;
+  /** Starts the `perception-worker` for `worker` counters; without it they are refused. */
+  processes?: ProcessPort;
   onError?: (error: unknown) => void;
 }) {
   const { config } = options;
@@ -108,7 +121,10 @@ export async function startStationBridge(options: {
       station: config.station,
       profile,
       transport,
-      extractors: [createAccessibilityExtractor(), counterExtractor(config, closers)],
+      extractors: [
+        createAccessibilityExtractor(),
+        counterExtractor(config, options.processes ?? noProcesses, closers),
+      ],
     });
     bridge.start(config.observeMs ?? 1_000, config.deliverMs ?? 1_000, options.onError);
     return {

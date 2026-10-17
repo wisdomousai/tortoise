@@ -85,8 +85,8 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'The desktop shell submits OS requests to and polls OS actions from its loopback authority.',
   'examples/line-station/station-bridge.ts':
     'Launches Chromium for the station screen and reads simulator counters; to be routed through the station-screen destination.',
-  'packages/station/src/perception/worker.ts':
-    'Starts the declared perception-worker process with an empty environment.',
+  'plugins/process/src/spawn.ts':
+    'Starts declared child processes from site-policy bindings with a built environment; the process port is the only caller.',
   'packages/station/src/perception/openai-compatible-vision.ts':
     'Falls back to global fetch when no fetch is injected; to be made required so the host passes the guard.',
   'examples/line-station/fake-hmi/': 'Test fixture: the simulated station HMI and its recorder.',

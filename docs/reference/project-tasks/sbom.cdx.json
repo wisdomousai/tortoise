@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:35d490f1-0964-53e8-91b3-1ac4192940f4",
+  "serialNumber": "urn:uuid:a2563e26-9083-50f9-8482-bb19f08328cf",
   "version": 1,
   "metadata": {
     "tools": {
@@ -16028,6 +16028,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/process",
+      "name": "@agent-native/process",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "plugins/process"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/project-tasks",
       "name": "@agent-native/project-tasks",
       "properties": [
@@ -16482,6 +16494,7 @@
         "workspace:@agent-native/network",
         "workspace:@agent-native/operator-ui",
         "workspace:@agent-native/os",
+        "workspace:@agent-native/process",
         "workspace:@agent-native/project-tasks",
         "workspace:@agent-native/quality-inspection",
         "workspace:@agent-native/react",
@@ -23825,6 +23838,10 @@
     },
     {
       "ref": "workspace:@agent-native/os",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/process",
       "dependsOn": []
     },
     {

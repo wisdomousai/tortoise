@@ -62,3 +62,9 @@ export {
 } from './authority';
 export { assertGlobals, installGlobals, missingGlobals, type RequiredGlobal } from './globals';
 export { noShell, type ShellAdapter, type ShellPort } from './shell';
+export {
+  noProcesses,
+  type ProcessAvailability,
+  type ProcessPort,
+  type ProcessSpawnOptions,
+} from './processes';

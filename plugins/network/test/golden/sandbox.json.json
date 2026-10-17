@@ -3,7 +3,7 @@
   "application": "agent-native",
   "profile": "sandbox",
   "mode": "connected",
-  "policyDigest": "a874c563fd1c45914f7a172ce03f7eab3232e9928f429f345535f8e8b3d897f1",
+  "policyDigest": "7325a6cdf090f465ed9da125ee7f48109f2012ecf84aede8acf612582de92c20",
   "defaultEgress": "deny",
   "ingress": {
     "listen": "loopback"

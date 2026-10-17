@@ -106,6 +106,9 @@ export const auditEventKinds = {
   'os.request.refused': 'An OS request matched no enabled handler or failed validation.',
   'os.action.performed': 'A declared OS action was handed to the shell.',
   'os.action.refused': 'An OS action was undeclared, disabled, malformed or had no shell.',
+  'child.started': 'A declared child process started from its site binding.',
+  'child.exited': 'A declared child process exited; carries the exit code or signal.',
+  'child.refused': 'A child process was undeclared, unbound, disabled or failed its pin check.',
 } as const;
 export type FrameworkAuditKind = keyof typeof auditEventKinds;
 

@@ -11,6 +11,7 @@ import type { Cidr } from './cidr';
 import { resolveBinding } from './policy/bindings';
 import { createFindings } from './policy/findings';
 import { checkFloors, offlineConsequences } from './policy/floors';
+import { resolveProcesses, type ResolvedProcess } from './policy/processes';
 import { sitePolicySchema, type HardeningProfile, type SitePolicy } from './policy/schema';
 
 export {
@@ -21,6 +22,8 @@ export {
   type SitePolicyInput,
 } from './policy/schema';
 export { portOf } from './policy/urls';
+export type { DeclaredProcess, ResolvedProcess } from './policy/processes';
+export type { ProcessBinding } from './policy/schema';
 
 export interface PolicyFinding {
   readonly level: 'error' | 'warning' | 'info';
@@ -57,6 +60,10 @@ export interface ResolvedPolicy {
   readonly declared: ReadonlyMap<string, Declared>;
   readonly findings: readonly PolicyFinding[];
   readonly consequences: readonly OfflineConsequence[];
+  /** Declared child processes this site binds to an executable, by process ID. */
+  readonly processes: ReadonlyMap<string, ResolvedProcess>;
+  /** Declared child processes this site explicitly disables. */
+  readonly disabledProcesses: ReadonlySet<string>;
   /** SHA-256 of the canonical policy, for attestation events and reports. */
   readonly digest: string;
   /**
@@ -135,6 +142,7 @@ export function resolveSitePolicy(
   const declared = new Map(requirements.network.map((item) => [item.id, item]));
   const { bindings, disabled } = resolveBindings(policy, declared, files.ca, report);
   const consequences = offlineConsequences(policy, requirements, bindings, disabled, report);
+  const { processes, disabledProcesses } = resolveProcesses(policy, requirements, report);
   checkFloors(policy, bindings, files.ingress, report);
   return {
     policy,
@@ -145,6 +153,8 @@ export function resolveSitePolicy(
     declared,
     findings: report.findings,
     consequences,
+    processes,
+    disabledProcesses,
     digest: createHash('sha256')
       .update(canonicalJson(JSON.parse(JSON.stringify(policy))))
       .digest('hex'),

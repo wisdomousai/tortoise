@@ -9,7 +9,7 @@ Layer: framework (`packages/*`). The starter's `apps/service` calls it; content 
 - [Application](../../docs/primitives.md#application): `defineManifest`, `ApplicationManifest`, `defineApplication`, `ApplicationDefinition`, `ApplicationConnections`.
 - [Host](../../docs/primitives.md#host): `startHost`, `serve`, `createCli`, `openEmbeddedAuthority`, `combineIntegrations`, `readStarterConfig`, `readMobileTarget`, `loadApplication`, `loadManifest`, `hostComponents`, `deploymentCatalog`, `deploymentRequirements`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `PluginManifest`, `PluginSetting`, `PluginModules`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `PluginOpenContext`, `PluginStartContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `readPluginSettings`, `PluginSettings`. The definitions and the ports come from [`@agent-native/kernel`](../kernel/README.md); the host re-exports them and adds the Bun parts.
-- [Host platform](../../docs/primitives.md#host-platform): `bunPlatform` (sockets, child processes and loopback ingress; SQLite row storage with `JOURNAL_RETENTION` journal entries, a file blob store in the workspace's `blobs` directory and the OS workspace lock), `BunNetworkPort`, `bunSocket`, `childEnvironment`.
+- [Host platform](../../docs/primitives.md#host-platform): `bunPlatform` (sockets, child processes and loopback ingress; SQLite row storage with `JOURNAL_RETENTION` journal entries, a file blob store in the workspace's `blobs` directory and the OS workspace lock), `BunNetworkPort`, `bunSocket`, `childEnvironment`, and `BunProcessPort`, `bunProcesses`, `SpawnedProcess` and `SpawnedChild`, which type the process port's handle on Bun as the child's streams and a `terminate` for its tree.
 - [Shell port](../../docs/primitives.md#shell-port): the shell routes (`POST /api/v1/shell/requests`, `POST /api/v1/shell/actions`, `GET /api/v1/shell/actions` and `POST /api/v1/shell/actions/:id/result` for an adapter in another process, `GET /api/v1/shell/declarations`) and the delivery routes (`GET /api/v1/ui/deliveries`, `POST /api/v1/ui/deliveries/:id/ack`).
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus host components the generators read.
@@ -18,24 +18,24 @@ Each example's `manifest.ts` and `application.ts` show the two content entrypoin
 
 ## Entrypoints
 
-| Import                                 | Runs in     | Contents                                                                                                                             |
-| -------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `@agent-native/host`                   | server only | The public API listed under Primitives.                                                                                              |
-| `@agent-native/host/*`                 | server only | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                               |
-| `@agent-native/host/manifest`          | browser     | `defineManifest`: an application's id, title and modules. Imports no host code.                                                      |
-| `@agent-native/host/plugin-manifest`   | browser     | `definePluginManifest`, `PluginSetting`: a plugin's id, modules, components and settings. Imports no host code.                      |
-| `@agent-native/host/plugin`            | server only | The kernel's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket` and `childEnvironment`.       |
-| `@agent-native/host/application`       | server only | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                       |
-| `@agent-native/host/config`            | server only | `app.config.json` reading, the URL scheme, and runtime resolution of the configured application (`loadApplication`, `loadManifest`). |
-| `@agent-native/host/mobile-target`     | build time  | `readMobileTarget`: the application the mobile app hosts, from `targets.mobile` in `app.config.json`.                                |
-| `@agent-native/host/serve`             | server only | `serve`: run the HTTP authority until SIGINT/SIGTERM; the first stdout line is a `listening` JSON record.                            |
-| `@agent-native/host/cli`               | server only | `createCli`: catalog-derived CLI with `serve`, `mcp`, `drain`, `sync`, `backup`, `restore` and attached or `--embedded` authorities. |
-| `@agent-native/host/platform/bun`      | server only | `bunPlatform` and `workspaceStorage`: the kernel's host platform on Bun.                                                             |
-| `@agent-native/host/embedded`          | server only | `openEmbeddedAuthority`, `workspaceStorage`, `LOCAL_OWNER`, `LOCAL_WORKSPACE`.                                                       |
-| `@agent-native/host/components`        | server only | The host's own declared requirements (listener, providers), `deploymentCatalog` and `deploymentRequirements`.                        |
-| `@agent-native/host/providers`         | server only | `createProviderAccess`: provider accounts, API-key funding and harness construction.                                                 |
-| `@agent-native/host/runtime-manifest`  | server only | Digest checks for the packaged service and its shipped site policy.                                                                  |
-| `@agent-native/host/optional-packages` | server only | Packages loaded only when an optional adapter is configured; standalone builds keep them external.                                   |
+| Import                                 | Runs in     | Contents                                                                                                                                                         |
+| -------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@agent-native/host`                   | server only | The public API listed under Primitives.                                                                                                                          |
+| `@agent-native/host/*`                 | server only | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                                                           |
+| `@agent-native/host/manifest`          | browser     | `defineManifest`: an application's id, title and modules. Imports no host code.                                                                                  |
+| `@agent-native/host/plugin-manifest`   | browser     | `definePluginManifest`, `PluginSetting`: a plugin's id, modules, components and settings. Imports no host code.                                                  |
+| `@agent-native/host/plugin`            | server only | The kernel's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket`, `childEnvironment`, `BunProcessPort` and `bunProcesses`. |
+| `@agent-native/host/application`       | server only | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                                                   |
+| `@agent-native/host/config`            | server only | `app.config.json` reading, the URL scheme, and runtime resolution of the configured application (`loadApplication`, `loadManifest`).                             |
+| `@agent-native/host/mobile-target`     | build time  | `readMobileTarget`: the application the mobile app hosts, from `targets.mobile` in `app.config.json`.                                                            |
+| `@agent-native/host/serve`             | server only | `serve`: run the HTTP authority until SIGINT/SIGTERM; the first stdout line is a `listening` JSON record.                                                        |
+| `@agent-native/host/cli`               | server only | `createCli`: catalog-derived CLI with `serve`, `mcp`, `drain`, `sync`, `backup`, `restore` and attached or `--embedded` authorities.                             |
+| `@agent-native/host/platform/bun`      | server only | `bunPlatform` and `workspaceStorage`: the kernel's host platform on Bun.                                                                                         |
+| `@agent-native/host/embedded`          | server only | `openEmbeddedAuthority`, `workspaceStorage`, `LOCAL_OWNER`, `LOCAL_WORKSPACE`.                                                                                   |
+| `@agent-native/host/components`        | server only | The host's own declared requirements (listener, providers), `deploymentCatalog` and `deploymentRequirements`.                                                    |
+| `@agent-native/host/providers`         | server only | `createProviderAccess`: provider accounts, API-key funding and harness construction.                                                                             |
+| `@agent-native/host/runtime-manifest`  | server only | Digest checks for the packaged service and its shipped site policy.                                                                                              |
+| `@agent-native/host/optional-packages` | server only | Packages loaded only when an optional adapter is configured; standalone builds keep them external.                                                               |
 
 `host` and `integrations` are also importable by path; prefer the root export.
 

@@ -41,7 +41,7 @@ export const stationBridgeComponent = defineHostComponent({
     processes: [
       {
         id: 'perception-worker',
-        // Deployment-configured command (STATION_PERCEPTION_WORKER), spawned with an empty environment.
+        // Bound by the site policy's `processes` section; the process port starts it with a built environment.
         executable: 'configured',
         purpose: 'JSON-lines perception worker for local OCR, classifier or audio models.',
         availability: 'optional',

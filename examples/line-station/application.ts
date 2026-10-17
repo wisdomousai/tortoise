@@ -11,6 +11,8 @@ import { auditPlugin } from '@agent-native/audit/plugin';
 import { lineAutomationPlugin } from './automation';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
+import { processPlugin } from '@agent-native/process/plugin';
+import type { ProcessPort } from '@agent-native/host/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
 import { mesTarget } from './contracts';
@@ -37,7 +39,7 @@ export const MES_PRINCIPAL = 'mes-integration';
  * Demo only: bridge the simulated filler HMI when `STATION_HMI_URL` names it (start it with
  * `bun run dev:hmi`, or `bun run dev` in this directory). Counters come from
  * `STATION_VISION_BASE_URL` + `STATION_VISION_MODEL` (a local vision model),
- * `STATION_PERCEPTION_WORKER` (JSON array command), or, with `STATION_SIMULATOR=1` (the HMI is
+ * `STATION_PERCEPTION_WORKER=1` (the `perception-worker` process the site policy binds), or, with `STATION_SIMULATOR=1` (the HMI is
  * the simulator), from its ground truth; the simulator also reports local input then. Explicit
  * configuration only; a deploying application passes its own station list, and the framework
  * never reads these.
@@ -56,11 +58,8 @@ export function demoStations(
           allowedHosts: (env.STATION_VISION_ALLOWED_HOSTS ?? '').split(',').filter(Boolean),
           reads: Number(env.STATION_VISION_READS ?? 3),
         }
-      : env.STATION_PERCEPTION_WORKER
-        ? {
-            kind: 'worker',
-            command: JSON.parse(env.STATION_PERCEPTION_WORKER) as [string, ...string[]],
-          }
+      : env.STATION_PERCEPTION_WORKER === '1'
+        ? { kind: 'worker' }
         : env.STATION_SIMULATOR === '1'
           ? { kind: 'simulator' }
           : { kind: 'none' };
@@ -119,6 +118,7 @@ type BridgeApplication = Parameters<typeof startStationBridge>[0]['application']
 async function startBridges(
   application: BridgeApplication,
   workspaceId: string,
+  processes: ProcessPort,
   stations: readonly StationBridgeConfig[],
   onError: (source: string, error: unknown) => void,
 ) {
@@ -130,6 +130,7 @@ async function startBridges(
           application,
           workspaceId,
           config,
+          processes,
           onError: (error) => onError(`Station ${config.station}`, error),
         }),
       );
@@ -170,11 +171,18 @@ export function createLineStationApplication(
         devices: value.devices ?? createDeviceState(),
       };
     },
-    plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin, lineAutomationPlugin],
+    plugins: [
+      sitePlugin,
+      networkPlugin,
+      processPlugin,
+      auditPlugin,
+      compliancePlugin,
+      lineAutomationPlugin,
+    ],
     handlers: lineStationHandlers(),
     authorization: lineStationAuthorization(),
     ...(options.services ? { services: options.services } : {}),
-    connect: ({ application, workspaceId }) => ({
+    connect: ({ application, workspaceId, processes }) => ({
       integrations: [
         connectTarget<MesItem>({
           target: mesTarget,
@@ -187,7 +195,13 @@ export function createLineStationApplication(
       ],
       // Async, so a bad demo environment rejects like a failing bridge instead of throwing.
       observe: async (onError) =>
-        await startBridges(application, workspaceId, options.stations ?? demoStations(), onError),
+        await startBridges(
+          application,
+          workspaceId,
+          processes,
+          options.stations ?? demoStations(),
+          onError,
+        ),
     }),
   });
 }

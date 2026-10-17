@@ -10,8 +10,15 @@ import type { ApplicationManifest } from './manifest';
 import type { HostPlatform, SecretStore } from './platform';
 import type { PluginManifest } from './plugin-manifest';
 import type { PluginSettings } from './plugins/settings';
+import type { ProcessPort } from './processes';
 import type { ShellPort } from './shell';
 
+export {
+  noProcesses,
+  type ProcessAvailability,
+  type ProcessPort,
+  type ProcessSpawnOptions,
+} from './processes';
 export { noShell, type ShellAdapter, type ShellPort } from './shell';
 
 /**
@@ -63,7 +70,8 @@ export interface IdentityPort {
 
 /**
  * The kernel's ports. Each has at most one provider plugin and a safe default otherwise: no
- * network, no audit log, a loopback listener, the local owner admitted, no OS integration.
+ * network, no audit log, a loopback listener, the local owner admitted, no OS integration and no
+ * child processes.
  */
 export interface HostPorts {
   readonly eventLog?: EventLogPort;
@@ -71,6 +79,7 @@ export interface HostPorts {
   readonly ingress: IngressPort;
   readonly identity: IdentityPort;
   readonly shell: ShellPort;
+  readonly processes: ProcessPort;
 }
 
 /** What `provideSettings` receives. */

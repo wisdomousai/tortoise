@@ -77,10 +77,10 @@ A line-station host starts a station bridge only when `STATION_HMI_URL` is set. 
 | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `STATION_SIMULATOR=1`                                                                                     | Counters come from the simulator's ground truth. For demos and tests only.                                    |
 | `STATION_VISION_BASE_URL`, `STATION_VISION_MODEL`, `STATION_VISION_ALLOWED_HOSTS`, `STATION_VISION_READS` | A local OpenAI-compatible vision model, on loopback unless allowlisted. Confidence is agreement across reads. |
-| `STATION_PERCEPTION_WORKER`                                                                               | A command for a JSON-lines perception worker, started with an empty environment.                              |
+| `STATION_PERCEPTION_WORKER=1`                                                                             | The `perception-worker` process the site policy binds under `processes`, started by the process plugin.       |
 | `STATION_ID`, `STATION_PROFILE`, `STATION_OBSERVE_MS`                                                     | Station ID, profile path and observation interval.                                                            |
 
-`bun run station:golden` in the example gates a profile or perception change on labeled frames. Without a model configured, it replays recorded expectations, which checks only the wiring. `station:record-golden` re-records the frames from the fake HMI. Exported projects contain no golden images, so a configured model refuses to run there until they are recorded. A result from a live model is recorded separately from the deterministic gate.
+`bun run station:golden` in the example gates a profile or perception change on labeled frames. Without a model configured, it replays recorded expectations, which checks only the wiring. `STATION_GOLDEN_WORKER` names a worker command (a JSON array) for the gate, started with an empty environment. `station:record-golden` re-records the frames from the fake HMI. Exported projects contain no golden images, so a configured model refuses to run there until they are recorded. A result from a live model is recorded separately from the deterministic gate.
 
 ## What the suites cover
 

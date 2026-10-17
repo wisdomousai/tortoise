@@ -7,11 +7,13 @@
  * Accessibility fields are read from each frame's recorded tree. Pixel fields use, in order:
  * - STATION_VISION_BASE_URL + STATION_VISION_MODEL: a local OpenAI-compatible vision model
  *   (loopback, or hosts listed in STATION_VISION_ALLOWED_HOSTS), STATION_VISION_READS reads each;
- * - STATION_PERCEPTION_WORKER: a JSON array command for a JSON-lines perception worker;
+ * - STATION_GOLDEN_WORKER: a JSON array command for a JSON-lines perception worker, started here
+ *   with an empty environment (a host starts its worker from the site policy instead);
  * - otherwise the manifest's expected values replayed as a fixture, which checks wiring only.
  * Nothing is discovered: without explicit configuration no model is called. Exits non-zero when
  * a screen is misidentified or any reading is confident and wrong.
  */
+import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
@@ -44,9 +46,9 @@ const manifest = JSON.parse(readFileSync(resolve(directory, 'manifest.json'), 'u
 const profile = parseProfile(
   JSON.parse(readFileSync(resolve(directory, manifest.profile), 'utf8')),
 );
-const { STATION_VISION_BASE_URL, STATION_VISION_MODEL, STATION_PERCEPTION_WORKER } = process.env;
+const { STATION_VISION_BASE_URL, STATION_VISION_MODEL, STATION_GOLDEN_WORKER } = process.env;
 const pixelModel = Boolean(
-  (STATION_VISION_BASE_URL && STATION_VISION_MODEL) || STATION_PERCEPTION_WORKER,
+  (STATION_VISION_BASE_URL && STATION_VISION_MODEL) || STATION_GOLDEN_WORKER,
 );
 // Source exports carry text files only, so recorded PNGs can be absent. The wiring check needs
 // only the recorded tree and digest; a pixel model needs the pixels, so it fails instead.
@@ -79,7 +81,7 @@ function pixelExtractor(id: string): Extractor {
   const [baseUrl, model, worker] = [
     STATION_VISION_BASE_URL,
     STATION_VISION_MODEL,
-    STATION_PERCEPTION_WORKER,
+    STATION_GOLDEN_WORKER,
   ];
   if (baseUrl && model) {
     source = `vision model ${model}`;
@@ -94,7 +96,15 @@ function pixelExtractor(id: string): Extractor {
   if (worker) {
     const command = JSON.parse(worker) as [string, ...string[]];
     source = `perception worker ${command[0]}`;
-    const extractor = createWorkerExtractor({ id, modality: 'ocr', command });
+    const [executable, ...args] = command;
+    const extractor = createWorkerExtractor({
+      id,
+      modality: 'ocr',
+      start: async () => {
+        const child = spawn(executable, args, { env: {}, stdio: 'pipe', windowsHide: true });
+        return { child, terminate: () => void child.kill() };
+      },
+    });
     closers.push(() => extractor.close());
     return extractor;
   }

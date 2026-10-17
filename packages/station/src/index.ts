@@ -40,7 +40,11 @@ export { createScriptedDriver } from './scripted-driver';
 export { runGolden, type GoldenFieldReport, type GoldenFrame, type GoldenReport } from './golden';
 export { createAccessibilityExtractor, parseDisplayed } from './perception/accessibility';
 export { createFixtureExtractor } from './perception/fixture';
-export { createWorkerExtractor, type WorkerExtractorOptions } from './perception/worker';
+export {
+  createWorkerExtractor,
+  type WorkerExtractorOptions,
+  type WorkerProcess,
+} from './perception/worker';
 export {
   createOpenAiCompatibleVisionExtractor,
   visionEndpoint,
