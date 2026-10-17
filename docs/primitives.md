@@ -235,6 +235,12 @@ _The kernel port that receives OS requests and performs OS actions; its default 
 
 partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell` `plugins/os` `apps/desktop`
 
+### Process port
+
+_The kernel port that starts declared child processes from the site policy's bindings; its default refuses._
+
+partial · `packages/kernel` `packages/egress` `packages/host` `plugins/process`
+
 ### UI registry
 
 _Reusable screen parts published as registries over stock shadcn primitives._
@@ -289,13 +295,13 @@ partial · `packages/contracts` `packages/integration` `examples/crm-capture`
 
 _A reading from a source that cannot be queried, submitted through an ingest command._
 
-implemented · `packages/station`
+implemented · `packages/observation` `packages/station`
 
 ### Gated actuator
 
 _Lets a model propose screen actions while deterministic code executes and verifies them._
 
-implemented · `packages/station`
+implemented · `packages/station` `packages/integration`
 
 ### Reconciliation
 

@@ -1,5 +1,5 @@
 import type { Effect, EffectOutcome } from '@agent-native/runtime';
-import { DeliveryFailure, DeliveryUncertain } from '@agent-native/integration';
+import { DeliveryFailure, interruption } from '@agent-native/integration';
 import { evaluate, type View } from '../perceive';
 import type { Frame, ScreenAction } from '../ports';
 import { center, resolveBinding, type Procedure, type ProcedureStep } from '../profile';
@@ -27,9 +27,7 @@ interface Run {
 }
 
 const stop = (run: Run, message: string) =>
-  run.acted && !run.procedure.rerunnable
-    ? new DeliveryUncertain(message)
-    : new DeliveryFailure(message);
+  interruption(run.acted, run.procedure.rerunnable ?? false, message);
 
 /** Re-checked before every action: seat, mode, local input, budget and deadline. */
 async function guard(run: Run) {
@@ -59,7 +57,7 @@ async function act(run: Run, action: ScreenAction, at: string, frame?: Frame) {
       `Expected ${run.expected} before the ${action.kind} at ${at}, found ${shown ?? 'an unknown screen'}`,
     );
   run.acted = true;
-  kernel.touched.add(run.effect.id);
+  kernel.attempts.touch(run.effect.id);
   await kernel.options.transport.act(action, signal);
   run.actions++;
 }

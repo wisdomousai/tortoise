@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:2cf2258c-4eaa-5df9-a632-005fe867085f",
+  "serialNumber": "urn:uuid:8e3700ef-14ea-5c63-87d5-310df908924b",
   "version": 1,
   "metadata": {
     "tools": {
@@ -16016,6 +16016,18 @@
     },
     {
       "type": "library",
+      "bom-ref": "workspace:@agent-native/observation",
+      "name": "@agent-native/observation",
+      "properties": [
+        {
+          "name": "workspace:path",
+          "value": "packages/observation"
+        }
+      ],
+      "scope": "required"
+    },
+    {
+      "type": "library",
       "bom-ref": "workspace:@agent-native/operator-ui",
       "name": "@agent-native/operator-ui",
       "properties": [
@@ -16513,6 +16525,7 @@
         "workspace:@agent-native/managed-config",
         "workspace:@agent-native/mobile",
         "workspace:@agent-native/network",
+        "workspace:@agent-native/observation",
         "workspace:@agent-native/operator-ui",
         "workspace:@agent-native/os",
         "workspace:@agent-native/process",
@@ -23855,6 +23868,10 @@
     },
     {
       "ref": "workspace:@agent-native/network",
+      "dependsOn": []
+    },
+    {
+      "ref": "workspace:@agent-native/observation",
       "dependsOn": []
     },
     {
