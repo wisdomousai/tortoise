@@ -8,7 +8,7 @@ This guide covers the design. The API is in the READMEs:
 - [`plugins/process`](../plugins/process/README.md): the process port that starts declared executables;
 - [`sdks/driver-python`](../sdks/driver-python/README.md) and [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md): libraries for driver authors.
 
-The [operator workstation pattern](operator-workstation-pattern.md) describes the station setting this comes from. A station is reached through its screen, or through its automation interface with a driver.
+The [operator workstation pattern](operator-workstations.md) describes the station setting this comes from. A station is reached through its screen, or through its automation interface with a driver.
 
 ## Why a separate process
 

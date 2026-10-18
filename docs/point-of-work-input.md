@@ -5,7 +5,7 @@ Operator screens are used with gloves, at arm's length or further, by someone wa
 - **`packages/devices`**: scanner profiles, sources, decoding, calibration and routing, plus a reusable module for per-station device configuration;
 - **`packages/operator-ui`**: a shadcn registry of glove-sized UI parts built from stock primitives.
 
-The `line-station` example and the quality-inspection capture screen use both. The surrounding architecture is in the [operator workstation pattern](operator-workstation-pattern.md).
+The `line-station` example and the quality-inspection capture screen use both. The surrounding architecture is in the [operator workstation pattern](operator-workstations.md).
 
 ## Design guidelines
 

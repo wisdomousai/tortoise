@@ -15,7 +15,7 @@ This example is one [Application](../../docs/primitives.md#application) and the 
 - the `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primitives.md#host-plugin), listed in each of its three entrypoints, which add the Compliance screen and the `compliance.*` queries;
 - [capability bindings](../../docs/primitives.md#capability-binding): `remoteInfiniteQueryOptions` for the paged search box, `liveQueryOptions` for adopted accounts, `useCapabilityForm` for activities.
 
-Read the [system-of-record pattern](../../docs/system-of-record-pattern.md#live-search-and-adoption) for the design, including why search is a query and adoption a command. `bun run generate` writes the operation reference to `dist/reference/crm-capture/operations.md`.
+Read the [system-of-record pattern](../../docs/systems-of-record.md#live-search-and-adoption) for the design, including why search is a query and adoption a command. `bun run generate` writes the operation reference to `dist/reference/crm-capture/operations.md`.
 
 ## Entrypoints
 

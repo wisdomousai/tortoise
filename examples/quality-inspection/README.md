@@ -15,7 +15,7 @@ This example is one [Application](../../docs/primitives.md#application) and the 
 - [Capability bindings](../../docs/primitives.md#capability-binding) for keyboard-first capture (`useCapabilityForm`, capture timing and wedge-scan routing);
 - the frame's [registry](../../docs/primitives.md#ui-registry) parts (`capability-form`, `live-data-table`); its Compliance screen comes from the compliance plugin.
 
-Read the [system-of-record pattern](../../docs/system-of-record-pattern.md). `bun run generate` writes the operation reference to `dist/reference/quality-inspection/operations.md`.
+Read the [system-of-record pattern](../../docs/systems-of-record.md). `bun run generate` writes the operation reference to `dist/reference/quality-inspection/operations.md`.
 
 ## Entrypoints
 

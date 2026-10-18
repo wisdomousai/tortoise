@@ -22,10 +22,10 @@ The framework provides:
 | Who may do what                                     | [Authorization](authorization.md)                                |
 | Commands, queries and live views                    | [State and reactivity](state-and-reactivity.md)                  |
 | Ports and reference adapters                        | [Adapters](adapters.md)                                          |
-| Outbox, inbound sync, live search, CLI and MCP      | [System-of-record pattern](system-of-record-pattern.md)          |
-| Station software that has only a screen             | [Operator workstation pattern](operator-workstation-pattern.md)  |
+| Outbox, inbound sync, live search, CLI and MCP      | [System-of-record pattern](systems-of-record.md)          |
+| Station software that has only a screen             | [Operator workstation pattern](operator-workstations.md)  |
 | Scanners and glove-sized UI                         | [Point-of-work input](point-of-work-input.md)                    |
-| Agents and providers                                | [Agent harnesses](agent-harnesses.md), [providers](providers.md) |
+| Agents and providers                                | [Agent harnesses](agents.md), [providers](providers.md) |
 | What the application may reach, and the audit trail | [Security and compliance](security-and-compliance.md)            |
 | Desktop packaging                                   | [Desktop](desktop.md)                                            |
 | Running the checks                                  | [Development and testing](development-and-testing.md)            |
@@ -57,9 +57,9 @@ Bun, TypeScript, Zod for schemas, SQLite for local storage, CASL for policy, Rea
 | Example                                                | Exercises                                                                                                                                                                                              |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [`project-tasks`](../examples/project-tasks)           | The runtime alone: roles, field projection, revisions, live updates and a deterministic agent. Also the fixture for transport, storage and security conformance.                                       |
-| [`quality-inspection`](../examples/quality-inspection) | Outbox delivery and inbound sync against a mock quality system, keyboard capture, and a sandboxed CLI and MCP binary ([pattern](system-of-record-pattern.md)).                                         |
-| [`line-station`](../examples/line-station)             | Control software driven through its screen as an outbox connector, MES sync, scanner routing and held effects ([pattern](operator-workstation-pattern.md)).                                            |
-| [`crm-capture`](../examples/crm-capture)               | Live search of a fake CRM with each caller's own access, adoption through outbox and feed, and an unreachable CRM shown as a status ([pattern](system-of-record-pattern.md#live-search-and-adoption)). |
+| [`quality-inspection`](../examples/quality-inspection) | Outbox delivery and inbound sync against a mock quality system, keyboard capture, and a sandboxed CLI and MCP binary ([pattern](systems-of-record.md)).                                         |
+| [`line-station`](../examples/line-station)             | Control software driven through its screen as an outbox connector, MES sync, scanner routing and held effects ([pattern](operator-workstations.md)).                                            |
+| [`crm-capture`](../examples/crm-capture)               | Live search of a fake CRM with each caller's own access, adoption through outbox and feed, and an unreachable CRM shown as a status ([pattern](systems-of-record.md#live-search-and-adoption)). |
 | [`asset-survey`](../examples/asset-survey)             | A site structure under reference designations, assignments for paired phones, model extraction from photos with review, and filing into a fake EAM. Blobs, device pairing and a compact tablet screen. |
 | [`receiving`](../examples/receiving) | Goods receiving against an ERP reached through shared folders: notices imported from an inbox, goods receipts posted as files and settled from receipt files, and discrepancy reasons an agent proposes. Generated with `scaffold` and built on collections, the policy builder, a target, default screens and proposals. |
 | [`fleet`](../examples/fleet) | The fleet that on-site authorities report to through the [fleet agent](../plugins/fleet-agent/README.md): sites enrolled through device-link, signed releases on channels, a health view, audit events checked against each site's hash chain, and remote access relayed to a site's own API. Runs on a site host or hosted. |

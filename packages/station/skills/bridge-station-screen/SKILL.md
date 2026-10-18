@@ -5,7 +5,7 @@ description: Bridge station software (vendor HMI, test bench, homebrew MES clien
 
 # Bridge a station screen
 
-The station software is a system of record reached through its screen. A model may read the screen or propose targets; deterministic code acts and verifies. The [operator workstation pattern](../../../../docs/operator-workstation-pattern.md) explains the design, the [package README](../../README.md) lists the parts, and `examples/line-station` is the worked example.
+The station software is a system of record reached through its screen. A model may read the screen or propose targets; deterministic code acts and verifies. The [operator workstation pattern](../../../../docs/operator-workstations.md) explains the design, the [package README](../../README.md) lists the parts, and `examples/line-station` is the worked example.
 
 ## Before writing
 

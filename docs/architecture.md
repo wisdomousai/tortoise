@@ -1,6 +1,6 @@
 # Architecture
 
-The [primitives](primitives.md) list the building blocks and where they live. This page describes the layers, the kernel and how a request flows through them. Two guides cover the integrations built on it: [systems of record](system-of-record-pattern.md) (outbox, inbound sync, live search, the CLI) and [operator workstations](operator-workstation-pattern.md) (station software reached through its screen).
+The [primitives](primitives.md) list the building blocks and where they live. This page describes the layers, the kernel and how a request flows through them. Two guides cover the integrations built on it: [systems of record](systems-of-record.md) (outbox, inbound sync, live search, the CLI) and [operator workstations](operator-workstations.md) (station software reached through its screen).
 
 ## Layers
 
@@ -89,7 +89,7 @@ Authorization is injected; see [authorization](authorization.md). The reactive c
 
 ## Agents
 
-Harness output and application commits are separate streams. The supervisor captures the initiating context, limits tools to catalog operations and cancels through run state; see [agent harnesses](agent-harnesses.md). Fixture and protocol tests are one kind of evidence. Live credentials, plan eligibility and real inference need separate configured checks.
+Harness output and application commits are separate streams. The supervisor captures the initiating context, limits tools to catalog operations and cancels through run state; see [agent harnesses](agents.md). Fixture and protocol tests are one kind of evidence. Live credentials, plan eligibility and real inference need separate configured checks.
 
 Cloud hosting, multi-device sync, package publication and signed distribution are outside the current reference.
 

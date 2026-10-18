@@ -12,7 +12,7 @@ Layer: framework (`packages/*`). Server only, except `requirements`. Domain-neut
 - [Profile](../../docs/primitives.md#profile): `StationProfile`, `stationProfileSchema`, `validateProfile`, `parseProfile`.
 - [Golden check](../../docs/primitives.md#golden-check): `runGolden`, `GoldenReport`.
 
-The [operator workstation pattern](../../docs/operator-workstation-pattern.md) explains the design.
+The [operator workstation pattern](../../docs/operator-workstations.md) explains the design.
 
 ## Entrypoints
 

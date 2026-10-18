@@ -1,6 +1,6 @@
 # Providers and account connections
 
-The application runtime stays the only authority over business data. A harness gets the catalog's tool definitions and a tool port. It cannot choose who it acts as, grant itself access, or replace the captured resource context. Tool calls take the same path as HTTP, CLI and MCP calls, so new behavior belongs in the catalog, not in provider-specific code. Runs are described in [agent harnesses](agent-harnesses.md).
+The application runtime stays the only authority over business data. A harness gets the catalog's tool definitions and a tool port. It cannot choose who it acts as, grant itself access, or replace the captured resource context. Tool calls take the same path as HTTP, CLI and MCP calls, so new behavior belongs in the catalog, not in provider-specific code. Runs are described in [agent harnesses](agents.md).
 
 A harness streams text, progress, tool and native-session events. A run succeeds only when the adapter has validated the provider's terminal result and every tracked tool call has finished. Native session IDs are kept for resuming. Credentials and prompts never go into run records.
 

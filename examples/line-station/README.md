@@ -16,7 +16,7 @@ This example is one [Application](../../docs/primitives.md#application) and the 
 - the automation route: a [Driver contract](../../docs/primitives.md#driver-contract) for the station software's automation interface (`contracts/automation.ts`), the driver bridge (`driver-bridge.ts`) and a .NET [Driver process](../../docs/primitives.md#driver-process) in `drivers/automation/`. See [Automation route](#automation-route);
 - [Input sources](../../docs/primitives.md#input-source) and the operator [UI registry](../../docs/primitives.md#ui-registry) on a glove-sized station surface.
 
-Read the [operator workstation pattern](../../docs/operator-workstation-pattern.md) and [point-of-work input](../../docs/point-of-work-input.md). `bun run generate` writes the operation reference to `dist/reference/line-station/operations.md`.
+Read the [operator workstation pattern](../../docs/operator-workstations.md) and [point-of-work input](../../docs/point-of-work-input.md). `bun run generate` writes the operation reference to `dist/reference/line-station/operations.md`.
 
 ## Entrypoints
 

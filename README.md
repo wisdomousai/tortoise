@@ -6,10 +6,10 @@ Each operation is defined once as a capability. The composed catalog drives HTTP
 
 Where to read next:
 
-- [Overview](docs/overview.md): layout, the capability model, command execution, ports and delivery.
+- [Overview](docs/architecture.md): layout, the capability model, command execution, ports and delivery.
 - [Architecture](docs/architecture.md): layers, the kernel and the invariants the checks test.
-- [Systems of record](docs/system-of-record-pattern.md): outbox, inbound sync, live search and the CLI, as the `quality-inspection` and `crm-capture` examples use them.
-- [Operator workstations](docs/operator-workstation-pattern.md): station software reached through its screen, as `line-station` uses it, with [point-of-work input](docs/point-of-work-input.md) for scanners and glove-sized screens.
+- [Systems of record](docs/systems-of-record.md): outbox, inbound sync, live search and the CLI, as the `quality-inspection` and `crm-capture` examples use them.
+- [Operator workstations](docs/operator-workstations.md): station software reached through its screen, as `line-station` uses it, with [point-of-work input](docs/point-of-work-input.md) for scanners and glove-sized screens.
 - [Mobile host](docs/mobile.md): the Expo app, embedded and attached modes, pairing with a hub, and the device's trust boundary, as `asset-survey-field` uses them.
 - [Security and compliance](docs/security-and-compliance.md): declared egress under a site policy, hardening profiles, the audit log and the generated audit bundle.
 - [Implementation status](docs/implementation-status.md): what has been run, what has not, and the [known defects](docs/implementation-status.md#known-defects).
@@ -43,7 +43,7 @@ bun run cli project list
 bun run mcp
 ```
 
-Every operation is also a generated subcommand with typed flags, for example `bun run cli inspection lot list --output text` or `bun run cli help inspection result record`. `bun run build:cli` compiles the same CLI into one executable at `dist/bin/<name>` for sandbox images: `mcp --embedded --grant-file <file>` serves an agent without a network listener, and `drain` exits non-zero while captured results have not reached the system of record. See the [system-of-record reference](docs/system-of-record-pattern.md).
+Every operation is also a generated subcommand with typed flags, for example `bun run cli inspection lot list --output text` or `bun run cli help inspection result record`. `bun run build:cli` compiles the same CLI into one executable at `dist/bin/<name>` for sandbox images: `mcp --embedded --grant-file <file>` serves an agent without a network listener, and `drain` exits non-zero while captured results have not reached the system of record. See the [system-of-record reference](docs/systems-of-record.md).
 
 `bun run mcp` speaks MCP over stdio. Configure an MCP client to run that command with the connection-file environment variable. Commands take an `input` object, an `idempotencyKey` and optional `expectedRevisions`; query tools take `input`. Execution identity and effective authority come from trusted host context, never tool arguments. Membership operations may name a target principal and role; those inputs do not change the caller's authority. Provider credentials stay outside business inputs.
 
@@ -85,7 +85,7 @@ Each package's README covers its primitives, entrypoints, trust boundary, depend
 
 The runtime treats feature state as opaque. The reference SQLite adapter serializes a complete JSON snapshot, including receipts and journal, in one transaction. Storage adapters can map the snapshot to existing tables; handlers receive materialized state. Large applications may need a different unit-of-work adapter and transaction-bound repository design rather than loading the whole workspace. The framework does not impose an ORM or cloud platform.
 
-Start with the [primitives](docs/primitives.md): a capability catalog over a logical CQRS authority, where people, agents, scripts and devices use the same commands and queries. They are kept current with the code. Then read the [architecture](docs/architecture.md), [interaction contract](docs/interaction-contract.md), [authorization](docs/authorization.md), [reactivity](docs/state-and-reactivity.md), [adapter guide](docs/adapters.md) and [harness guide](docs/agent-harnesses.md). `bun run generate` writes each application's operation reference, OpenAPI and agent skill to `dist/reference/<id>/`.
+Start with the [primitives](docs/primitives.md): a capability catalog over a logical CQRS authority, where people, agents, scripts and devices use the same commands and queries. They are kept current with the code. Then read the [architecture](docs/architecture.md), [interaction contract](docs/interaction-contract.md), [authorization](docs/authorization.md), [reactivity](docs/state-and-reactivity.md), [adapter guide](docs/adapters.md) and [harness guide](docs/agents.md). `bun run generate` writes each application's operation reference, OpenAPI and agent skill to `dist/reference/<id>/`.
 
 ## Verification and delivery
 

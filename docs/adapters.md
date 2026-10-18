@@ -20,7 +20,7 @@ A different database can back the same port if it gives the same atomicity: rece
 
 ## Systems of record are not storage
 
-An external business API cannot join the local transaction. Model it as a connector instead. Commit a delivery intent locally, do the external work outside the transaction, and record the outcome through a trusted command. Identity and version mapping, idempotency, uncertain outcomes and reconciliation are part of that connector's contract. See the [system-of-record pattern](system-of-record-pattern.md).
+An external business API cannot join the local transaction. Model it as a connector instead. Commit a delivery intent locally, do the external work outside the transaction, and record the outcome through a trusted command. Identity and version mapping, idempotency, uncertain outcomes and reconciliation are part of that connector's contract. See the [system-of-record pattern](systems-of-record.md).
 
 ## Authorization
 

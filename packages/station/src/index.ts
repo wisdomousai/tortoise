@@ -2,7 +2,7 @@
  * Server-only bridge to legacy station software through its screen. Observations enter the
  * application through a domain ingest command (`createStationObserver`); actions leave through
  * the outbox as a system-of-record connector (`createStationConnector`). Nothing here writes
- * application state directly. See docs/operator-workstation-pattern.md.
+ * application state directly. See docs/operator-workstations.md.
  */
 export * from './ports';
 export {

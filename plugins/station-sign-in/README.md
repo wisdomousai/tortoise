@@ -46,7 +46,7 @@ Layer: plugins (`plugins/*`). Bun only: sign-in needs a serving host.
 ## Gaps
 
 - No badge administration screen exists yet. The `station.badge.*` operations declare a UI exception and are used over HTTP, MCP or the CLI.
-- Signing in does not move a seat that an agent holds. The operator takes the screen back with the application's takeover command ([operator workstation pattern](../../docs/operator-workstation-pattern.md)).
+- Signing in does not move a seat that an agent holds. The operator takes the screen back with the application's takeover command ([operator workstation pattern](../../docs/operator-workstations.md)).
 - No physical badge reader has been tested.
 
 ## Dependencies

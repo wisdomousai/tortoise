@@ -1,6 +1,6 @@
 # State, concurrency and reactivity
 
-Commands change authoritative state and queries read it. Both pass through the same runtime, trusted context and current authorization. Query results are derived synchronously from local state, so there is no local projection lag. Freshness of other systems is a separate concern. Outbox effects commit with their command, and acknowledgements and imported changes come back as commands, so subscribed views update through the same journal ([systems of record](system-of-record-pattern.md)).
+Commands change authoritative state and queries read it. Both pass through the same runtime, trusted context and current authorization. Query results are derived synchronously from local state, so there is no local projection lag. Freshness of other systems is a separate concern. Outbox effects commit with their command, and acknowledgements and imported changes come back as commands, so subscribed views update through the same journal ([systems of record](systems-of-record.md)).
 
 ## A command, step by step
 

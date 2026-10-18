@@ -5,7 +5,7 @@ description: Connect an agent-native application to another system that keeps it
 
 # Connect a system of record
 
-The application owns its capture working set and pending effects; the other system stays the authority for its records. A local receipt proves the local commit, never acceptance by the target. The [system-of-record pattern](../../../../docs/system-of-record-pattern.md) explains the design and the [package README](../../README.md) lists every primitive. `examples/quality-inspection` is the worked outbox and sync example, and `examples/crm-capture` adds live search and adoption.
+The application owns its capture working set and pending effects; the other system stays the authority for its records. A local receipt proves the local commit, never acceptance by the target. The [system-of-record pattern](../../../../docs/systems-of-record.md) explains the design and the [package README](../../README.md) lists every primitive. `examples/quality-inspection` is the worked outbox and sync example, and `examples/crm-capture` adds live search and adoption.
 
 ## Before writing
 

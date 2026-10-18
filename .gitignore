@@ -28,3 +28,6 @@ plugins/*/LICENSE
 # Solution files an IDE writes when it opens the repo root; each .NET workspace keeps its own .slnx
 /*.sln
 /*.slnx
+
+# VitePress cache, written by `bun run docs:dev`.
+docs/.vitepress/cache/
