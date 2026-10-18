@@ -33,8 +33,6 @@ bun run test:sandbox
 bun run build
 ```
 
-What each step catches:
-
 - **`check:format`**: a file that Prettier would change. `bun run format` rewrites them, and `.prettierignore` leaves Markdown out.
 - **`typecheck`**: type errors in two TypeScript projects. `tsconfig.json` covers everything with Bun and Node types, and `tsconfig.native.json` covers the React Native sources without them.
 - **`check:boundaries`**: imports across layers, server code reaching browser bundles, and direct network or process APIs outside the reviewed exemptions in `scripts/boundary-rules.ts`. Portable source may not import `node:` or `bun:` modules or use Node or Bun globals.
@@ -51,8 +49,6 @@ What each step catches:
 React Native declares globals that conflict with Node's, so the root TypeScript project excludes the React Native sources.
 
 Split a file that `check:size` lists only when it holds a second responsibility. A long declarative table or a long linear function can stay as it is.
-
-A successful build does not show a browser interaction or a packaged desktop launch.
 
 ## Test scripts
 
@@ -143,7 +139,7 @@ The fake HMI shows its counters only as pixels, so reading them needs a [percept
 - **Integration:** effects commit only with their command. Delivery handles failure, rejection, lost settlement and targets that are not idempotent.
 - **Capture:** a scanner burst records exactly one result per sample.
 - **Agents:** [agent scenarios](glossary.md#agent-scenario) judge a run by its receipts and approval requests, never its text. CI runs them with the deterministic harness; a live run needs a configured harness and `AGENT_SCENARIOS=live`, and is recorded apart.
-- **Surfaces:** conformance runs the real HTTP, CLI and MCP adapters and compares results and error codes. A listed capability is no evidence that it can be invoked.
+- **Surfaces:** conformance runs the real HTTP, CLI and MCP adapters and compares results and error codes.
 
 ## Framework packages
 
@@ -173,7 +169,7 @@ bun run scaffold <target> --name <name> --example <example>
 
 ## Provider checks
 
-Fixture tests prove adapter behavior. The tests do not show login or inference. Provider checks are opt-in and use an explicitly configured account.
+Provider checks are opt-in and use an explicitly configured account.
 
 Never discover credentials from unrelated configuration, and never switch silently to a paid key. The in-memory vault is a test fixture and is not a fallback.
 
@@ -186,8 +182,6 @@ Never discover credentials from unrelated configuration, and never switch silent
 - **native:** typecheck, `test:package`, staging, the package smoke test and `package:desktop` on macOS arm64, macOS x64, Windows x64 and Linux x64.
 
 The workflow follows the [GitHub-hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) and the [Bun CI guide](https://bun.sh/guides/runtime/cicd). It has not yet run remotely.
-
-An export, a bundled sidecar or a passing suite does not count as a release. Skipped acceptance tests and unsupported platforms are reported as such.
 
 ## References
 

@@ -69,8 +69,6 @@ The SDK enforces these rules whatever the handlers do:
   - `assist` refuses any [hazard class](../../docs/glossary.md#hazard-class) other than `none`;
   - an `operator-present` action needs `presence.confirmedBy`.
 
-  The driver is therefore safe even if the host's own check failed.
-
 - **Deadline.** An action whose deadline has passed is refused as transient without running.
 - **Once per effect.** Actions with the `idempotent` or `once` [delivery mode](../../docs/glossary.md#delivery-mode) run at most once per effect ID:
   - a repeat returns the recorded outcome;

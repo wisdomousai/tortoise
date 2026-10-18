@@ -1,6 +1,6 @@
 # @agent-native/connector-files
 
-This [connector](../../docs/glossary.md#connector) reaches a [system of record](../../docs/glossary.md#system-of-record) through shared folders, as many homebrew MES, test benches and lab systems are reached. [Outbox effects](../../docs/glossary.md#effect) are dropped as files, and their outcome is read from receipt files or from the archive that the other system moves accepted files into. Result exports in an inbox folder feed [inbound sync](../../docs/glossary.md#inbound-sync).
+This [connector](../../docs/glossary.md#connector) reaches a [system of record](../../docs/glossary.md#system-of-record) through shared folders. [Outbox effects](../../docs/glossary.md#effect) are dropped as files, and their outcome is read from receipt files or from the archive that the other system moves accepted files into. Result exports in an inbox folder feed [inbound sync](../../docs/glossary.md#inbound-sync).
 
 ## Layer
 

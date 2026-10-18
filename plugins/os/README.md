@@ -40,8 +40,6 @@ Each handler and each action is limited to 30 uses a minute. A site lists the ID
 - a consumer with no registered receiver;
 - an `os-disabled` ID that names nothing.
 
-A registration therefore never looks served while nothing answers it.
-
 The plugin builds an action from its declaration. Without an attached adapter, `open` and `share` instructions return to the caller, which runs them while it has user activation. Other kinds are refused as `unattached`.
 
 The plugin records every request and action on the `shell` channel of the [audit log](../../docs/glossary.md#audit-log). A record holds IDs, reason codes, the platform and a digest of the raw request. Content, file names and full URLs are never logged, and an open action records only the URL's origin.

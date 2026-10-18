@@ -5,7 +5,7 @@ description: Build or change the web screens of an agent-native application or h
 
 # Build screens
 
-[Screens](../../../../docs/glossary.md#screen) are the browser half of an application. They read through [live queries](../../../../docs/glossary.md#live-query) and write only through catalog commands, so a person and an agent reach the same behavior.
+[Screens](../../../../docs/glossary.md#screen) are the browser half of an application. They read through [live queries](../../../../docs/glossary.md#live-query) and write only through catalog commands.
 
 ## Before writing
 
@@ -40,7 +40,7 @@ description: Build or change the web screens of an agent-native application or h
 
 1. Add a UI-binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`, as in `examples/project-tasks/test/ui-bindings.test.ts`. It proves a screen references every capability that claims a binding.
 2. Add plugin screen directories to that test's scan.
-3. Add a Playwright spec in `examples/<app>/e2e/` that proves the screen renders and commits. A static scan does not prove it.
+3. Add a Playwright spec in `examples/<app>/e2e/` that proves the screen renders and commits.
 4. Run the checks:
 
    ```sh
@@ -50,7 +50,7 @@ description: Build or change the web screens of an agent-native application or h
    bunx playwright test examples/<app>/e2e
    ```
 
-5. Report browser runs separately from unit tests. A successful build is not a browser interaction.
+5. Report browser runs separately from unit tests.
 
 ## References
 

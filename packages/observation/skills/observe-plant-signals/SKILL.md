@@ -41,7 +41,7 @@ bun test plugins/connector-mqtt plugins/connector-opcua packages/observation
 bun test examples/<app>
 ```
 
-The fakes prove the wiring. Record a run against a real broker, edge node or server separately in [implementation status](../../../../docs/implementation-status.md#connector-plugins).
+Record a run against a real broker, edge node or server separately in [implementation status](../../../../docs/implementation-status.md#connector-plugins).
 
 ## References
 

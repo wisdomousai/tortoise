@@ -9,14 +9,11 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 
 ## Before writing
 
-- Preserve the business domain the person actually asked for. Shaping the generated parts into the requested domain is authored work.
 - For a bounded task or workflow over existing [systems of record](../../../../docs/glossary.md#system-of-record), establish these before shaping the UI:
   - the real-world trigger;
   - record ownership;
   - the difference between capture and acceptance;
   - the exception path.
-- Ask only for choices that materially change the implementation.
-- Use explicit ports for storage, identity, authorization and provider integration.
 - Do not reuse discovered credentials, publish a release or install global agent configuration as part of scaffolding.
 
 ## Steps
@@ -60,7 +57,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 
 ## Checks
 
-Run the checks the `check-a-change` skill names and report what actually passed. Generated source and deterministic tests do not establish provider login, live inference, native packaging, real hardware or a release. Report those gaps separately from scaffolding success.
+Run the checks the `check-a-change` skill names and report what actually passed. Report provider login, live inference, native packaging, real hardware and release as unchecked unless they ran.
 
 ## References
 

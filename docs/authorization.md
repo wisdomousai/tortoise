@@ -10,7 +10,7 @@ Terms: the [principal](glossary.md#principal), the [container](glossary.md#conta
 
 Every command and query reaches the instance with an [execution context](glossary.md#execution-context) that the host derives from the [session](glossary.md#session). The screens, HTTP, MCP, the CLI and agent tools reach the same handlers and policy. Capability input cannot choose the principal, workspace, roles or grant. The local reference host starts as the [local owner](glossary.md#owner), and test hosts can create isolated sessions.
 
-Authentication, authorization, provider funding and approval are separate. A provider account grants no workspace access. An approval never permits an operation the policy denies.
+A provider account grants no workspace access. An approval never permits an operation the policy denies.
 
 ## Command checks
 
@@ -38,7 +38,7 @@ In the `project-tasks` example, workspace owners administer projects, project ow
 - `integration`: only a [policy lane](glossary.md#policy-lane) may call it.
 - A rule: it resolves the container from authoritative state and names the roles allowed. It can also name the resource a limited grant must contain, and refuse a delegated run.
 
-The builder decides in a fixed order. It evaluates a command on both the current and the proposed state, so a rule cannot forget the commit-time check (`packages/runtime/test/policy.test.ts`). Roles come from a membership, whose `set-member` command refuses a change to the caller's own role.
+It evaluates a command on both the current and the proposed state, so a rule cannot forget the commit-time check (`packages/runtime/test/policy.test.ts`). Roles come from a membership, whose `set-member` command refuses a change to the caller's own role.
 
 ## Lists
 

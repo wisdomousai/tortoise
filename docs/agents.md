@@ -24,13 +24,13 @@ Harness processes start directly instead of through the [process port](glossary.
 
 A harness that composes other CLIs and MCP servers needs an enforced execution boundary and a broker that keeps upstream credentials outside it. On Linux, the [execution host](glossary.md#execution-host) is that boundary, and its [README](../plugins/execution-host/README.md) describes the sandbox. A task runs in a bubblewrap sandbox and reaches the application CLI or MCP server through a token bound to the run's grant. It reaches providers only through the egress proxy. No harness launches its tools through it yet, and macOS and Windows have no backend.
 
-The application binary supplies the tool side: an embedded MCP server under a launcher-written [grant file](glossary.md#grant-file), and generated CLI subcommands with mapped exit codes ([systems of record](systems-of-record.md#command-line)). Protocol fixtures and real provider calls count as separate evidence.
+The application binary supplies the tool side: an embedded MCP server under a launcher-written [grant file](glossary.md#grant-file), and generated CLI subcommands with mapped exit codes ([systems of record](systems-of-record.md#command-line)).
 
 ## Runs
 
 The run supervisor executes runs that share a conversation ID one after another, and other runs concurrently. A run is queued, running, awaiting a question, awaiting approval, succeeded, failed, cancelled or interrupted. Success needs a terminal result from the provider. Partial text followed by a provider failure is a failed run.
 
-Output is bounded, and known credential formats are redacted, including a secret split across streamed chunks. Redaction is a safety net: keep credentials away from runs in the first place.
+Output is bounded, and known credential formats are redacted, including a secret split across streamed chunks.
 
 The host keeps run snapshots in a separate SQLite database, `runs.sqlite`, in the workspace directory. At startup, runs that had not settled become interrupted. The host never silently repeats a model turn or a committed command. Resume identifiers are provider-specific and are not a portable conversation format. The host appends each run's start and end to the [audit log](glossary.md#audit-log), without its prompt or output.
 
@@ -42,7 +42,7 @@ Every tool call goes through the [instance](glossary.md#instance) like any other
 
 When the authorization revision changes, the host hides the run's earlier free-form output, because model text cannot be field-projected. A run started from a selection captures the resource IDs and revisions from the [UI session context](glossary.md#ui-session-context). Later selection changes do not retarget it.
 
-Cancellation aborts the active work and is checked before commit. Commands that already committed stay committed. An answer to a question or approval resolves only the matching request. Approval never adds authorization.
+Cancellation aborts the active work and is checked before commit. Commands that already committed stay committed. An answer to a question or approval resolves only the matching request.
 
 ## Agent definitions
 
@@ -94,11 +94,11 @@ The fine-tune becomes a new entry. It serves only after `gateModel` in `packages
 
 ## Evaluation
 
-An [agent scenario](glossary.md#agent-scenario) gives an agent definition a task and fixture state. It checks what the run committed and what it requested approval for: the receipts, the approval requests and the refusals, never the text. The same scenario runs on the deterministic harness in CI. It runs on a configured model only when a test is given one and `AGENT_SCENARIOS=live` is set. `scenarioRegressions` lists what a candidate model fails that the current one passes, and [`packages/testing`](../packages/testing/README.md#agent-scenarios) describes the scenario shape.
+An [agent scenario](glossary.md#agent-scenario) gives an agent definition a task and fixture state. It checks what the run committed and what it requested approval for: the receipts, the approval requests and the refusals, never the text. The same scenario runs on the deterministic harness in CI. It runs on a configured model only when a test is given one and `AGENT_SCENARIOS=live` is set. `scenarioRegressions` lists what a candidate model fails that the current one passes.
 
 ## Background jobs
 
-A background job is an ordinary caller with a scoped identity and grant. It reads current revisions and submits commands with stable idempotency keys. Schedulers, retries and queues can change without touching handlers. A job never writes storage directly.
+A background job is an ordinary caller with a scoped identity and grant. It reads current revisions and submits commands with stable idempotency keys. A job never writes storage directly.
 
 ## Use
 
@@ -124,8 +124,6 @@ AGENT_SCENARIOS=live bun test examples/<app>/test/agent-scenarios.test.ts
 LOCAL_MODEL_GGUF=~/models/gemma-4-E4B-it-Q4_0.gguf bun test plugins/model-server/test/live.test.ts
 ```
 
-Skills cover the steps: [add-capability](../packages/runtime/skills/add-capability/SKILL.md) for triggers, [serve-a-local-model](../plugins/model-server/skills/serve-a-local-model/SKILL.md) for model entries and the gate, and [run-agent-tools-in-a-sandbox](../plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) for the execution host.
-
 ## Limits
 
 No host route starts an agent run from an agent definition. Definitions run through triggers and agent scenarios.
@@ -138,4 +136,8 @@ No host route starts an agent run from an agent definition. Definitions run thro
 - [State and reactivity](state-and-reactivity.md)
 - [Implementation status](implementation-status.md)
 - [Desktop](desktop.md#packaged-resources)
+- [Testing package: agent scenarios](../packages/testing/README.md#agent-scenarios)
+- [add-capability skill](../packages/runtime/skills/add-capability/SKILL.md)
+- [serve-a-local-model skill](../plugins/model-server/skills/serve-a-local-model/SKILL.md)
+- [run-agent-tools-in-a-sandbox skill](../plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md)
 - [`examples/project-tasks/job.ts`](../examples/project-tasks/job.ts)

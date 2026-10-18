@@ -38,7 +38,7 @@ The registry check accepts imports between files of the same item. Every other `
 
 ## Trust boundary
 
-Nothing here is a security boundary. Parts hold no state beyond what input needs. Every slot is data from queries, and every action is a callback that issues a catalog command. The behavior the parts guarantee concerns intent:
+Nothing here is a security boundary. Parts hold no state beyond what input needs. Every slot is data from queries, and every action is a callback that issues a catalog command.
 
 - `use-press-and-hold` replaces confirmation dialogs for consequential actions. Releasing early, sliding off or cancelling aborts, and auto-repeat is ignored.
 - `use-tap-guard` drops double taps, bouncing pedals, scroll gestures and layout-shift activations.

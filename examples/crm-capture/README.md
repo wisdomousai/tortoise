@@ -2,7 +2,7 @@
 
 `crm-capture` is field sales capture against a CRM that stays the [system of record](../../docs/glossary.md#system-of-record). People and agents search the CRM live as they type, with their own CRM access, and the results are not stored. Picking a result adopts the account into the local working set, where the CRM's feed keeps it current and activities go back to the CRM.
 
-The example is the reference for live search of a system of record; [systems of record](../../docs/systems-of-record.md#capture-screens) explains the design, including why search is a query and adoption a command. When the CRM is unreachable, search says so, and everything already adopted keeps working.
+The example is the reference for live search of a system of record. When the CRM is unreachable, search says so, and everything already adopted keeps working.
 
 ## Layer
 
@@ -102,7 +102,7 @@ bunx playwright test examples/crm-capture/e2e
   - an activity reaches the CRM;
   - the unavailable state leaves the local list usable.
 
-The fake CRM proves the wiring and the trust order. It does not prove a real CRM's API. A live probe against a real system needs an explicitly configured account, and its result is recorded in the [implementation status](../../docs/implementation-status.md).
+A live probe against a real system needs an explicitly configured account, and its result is recorded in the [implementation status](../../docs/implementation-status.md).
 
 ## Demonstrated mechanisms
 

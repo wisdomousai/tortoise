@@ -46,7 +46,7 @@ To set values for a test on demand:
 
 Managed values come from the device's management, which the administrator controls. They are trusted like launcher settings, and they win over launcher settings, so a person cannot point a managed device at another hub. The exception is an instance opened with `launcherSettingsWin`, which is meant for development builds. The mobile starter passes no launcher settings, so on a device managed values are the only supplied settings. An application cannot change its own restrictions.
 
-A key that no composed plugin declares refuses startup and names the key. So does a value that is not text. A pushed value that nothing reads would look enforced while being ignored.
+A key that no composed plugin declares refuses startup and names the key. So does a value that is not text.
 
 Values are read once, when the instance opens. A change pushed later applies on the next start. A build without the native module refuses startup in `provideSettings`, before any plugin opens, with the instruction to run `bun run mobile:prebuild`.
 

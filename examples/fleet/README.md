@@ -10,8 +10,6 @@ A site uses the fleet to:
 - stage the signed release its channel assigns;
 - answer remote-access requests that operators relay to its own API.
 
-The example demonstrates the fleet described in [hosting](../../docs/hosting.md#fleet).
-
 ## Layer
 
 Content (`examples/*`).
@@ -296,6 +294,7 @@ The example uses no fake system of record. Its tests replace the site's network 
 
 ## References
 
+- [Hosting: fleet](../../docs/hosting.md#fleet)
 - [Fleet agent README](../../plugins/fleet-agent/README.md)
 - [Device link README](../../plugins/device-link/README.md)
 - [Architecture](../../docs/architecture.md)

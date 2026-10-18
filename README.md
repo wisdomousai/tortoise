@@ -1,6 +1,6 @@
 # Agent-native desktop starter
 
-Desktop applications are the expert's tools again. A single-user application on the expert's own machine responds at once, works without a network, and composes with the other programs there, including the control software that runs equipment. Agent harnesses such as Claude Code and Codex run on the same machine and act through its CLIs and MCP servers. This repository is a reference architecture and [framework](docs/glossary.md#framework) for that paradigm. It provides reusable building blocks for agent-native, hyper-specialized applications for the edge workforce. People and agents operate each application together, and it delivers their work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES.
+A single-user application on the expert's own machine responds at once, works without a network, and composes with the other programs there, including the control software that runs equipment. Agent harnesses such as Claude Code and Codex run on the same machine and act through its CLIs and MCP servers. This repository is a reference architecture and [framework](docs/glossary.md#framework) for that paradigm. It provides reusable building blocks for agent-native, hyper-specialized applications for the edge workforce. People and agents operate each application together, and it delivers their work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES.
 
 ## Capabilities and surfaces
 
@@ -13,8 +13,6 @@ People, agents, scripts and devices call the same capabilities with the same val
 The Bun [host](docs/glossary.md#host) keeps the [workspace](docs/glossary.md#workspace) in SQLite by default and serves the React screens. Electron wraps it on the desktop. The mobile host, built with Expo, runs an [application](docs/glossary.md#application) on Android and iOS.
 
 ## Layers and packages
-
-The repository has these parts:
 
 - the framework in `packages/*`;
 - workstation packages in `workstations/*`;
@@ -42,9 +40,7 @@ bun run test:e2e
 bun run test:scaffold
 ```
 
-The standalone scaffold acceptance run and the platform checks are in [Development and testing](docs/development-and-testing.md).
-
-The framework includes ChatGPT plan connection code, Claude execution with an API key and AI SDK execution. Provider credentials pay for inference and give no access to a workspace. Live sign-in and inference, provider eligibility and signed platform distribution each need their own check. Deterministic protocol tests do not establish those results.
+The framework includes ChatGPT plan connection code, Claude execution with an API key and AI SDK execution. `bun run check` does not run live sign-in and inference, provider eligibility or signed platform distribution.
 
 ## Scope
 
@@ -75,4 +71,5 @@ Each [storage](docs/glossary.md#storage) transaction receives the whole workspac
 ## References
 
 - [Providers](docs/providers.md)
+- [Development and testing](docs/development-and-testing.md)
 - [Architecture](docs/architecture.md#storage)

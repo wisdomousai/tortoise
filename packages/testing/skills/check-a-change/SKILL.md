@@ -5,8 +5,6 @@ description: Choose and run the checks for a change in this repository and repor
 
 # Check a change
 
-Every change must pass `bun run check`.
-
 ## Before writing
 
 - In an application that installs the framework from a registry, the framework rows of the table do not apply. `bun run check` there runs what the export keeps, and `bun run check:framework` fails when two framework versions are installed.
@@ -31,7 +29,7 @@ Every change must pass `bun run check`.
     - **Native:** a packaged build or a real OS facility, on a named platform.
     - **Live:** real providers, models, devices, hardware or [systems of record](../../../../docs/glossary.md#system-of-record), with explicitly configured accounts.
     - **By hand:** a one-off run, and what it showed.
-12. Say which checks were skipped and why. A build does not count as a browser run, an export does not count as a release, and a fixture does not count as a provider login.
+12. Say which checks were skipped and why.
 
 ## Checks
 

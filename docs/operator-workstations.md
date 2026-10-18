@@ -33,7 +33,7 @@ The MES is an ordinary system of record. It owns orders, recipes and reason cata
 
 The workstation application owns the actual machine state, the loaded recipe and the counters. The application reads them by observing its screen. It changes them only through declared procedures, which the controller performs and then confirms by reading the screen back.
 
-The application never talks to the PLC or the hardware. Safety functions remain with the machine and its builder.
+The application never talks to the PLC or the hardware.
 
 ## Screen bridge
 
@@ -70,7 +70,7 @@ Screen actions are not idempotent and can be interrupted. A station procedure th
 
 An unexpected screen such as an alarm popup, local input, a timeout or an exhausted step budget stops a procedure. An effect for a type with no procedure is rejected with `UNSUPPORTED`. `workstations/screen-bridge/test/controller.test.ts` tests this order.
 
-A held effect never re-runs and stays visible as needing [reconciliation](glossary.md#reconciliation). The operator states through a reconcile command whether the change was applied. A lost reply does not reject the effect, and an empty observation does not prove that nothing happened.
+A held effect never re-runs and stays visible as needing [reconciliation](glossary.md#reconciliation). The operator states through a reconcile command whether the change was applied. A lost reply does not reject the effect.
 
 ## Bridge modes and hazard classes
 
@@ -93,8 +93,6 @@ Each procedure declares a hazard class:
 Driver actions use the same bridge modes and hazard classes, as the hardware drivers [gate](hardware-drivers.md#gate) describes. In `line-station`, only a supervisor at the station may change the bridge mode. A supervisor can pause actuation at any time, and pending effects then wait visibly.
 
 ## Deployment stages
-
-Each stage is worth deploying alone:
 
 1. **Observe.** Machine state, counters, alarms and the loaded recipe become authorized live data with freshness and confidence, and stops are detected from state transitions. This stage has no actuation risk.
 2. **Annotate.** People and agents add meaning to observed events, such as stop reasons and count confirmations. Each annotation is an ordinary command, forwarded to the MES through the outbox.
@@ -131,7 +129,7 @@ The operator's takeover command changes the seat in the domain state, and the ga
 Each source of an [observation](glossary.md#observation) implements the [extractor](glossary.md#extractor) port. Prefer the most deterministic source available, in this order:
 
 1. Vendor exports, log files, the station's own database, or an automation interface such as COM or local RPC, read by an inbound connector or an extractor.
-2. The accessibility tree of the workstation application, such as UI Automation on Windows. Old Win32 software often has one, and it is exact.
+2. The accessibility tree of the workstation application, such as UI Automation on Windows.
 3. OCR and vision on screen pixels, through local models.
 4. Audio, for example to classify alarm horns or spoken notes.
 
@@ -155,7 +153,7 @@ A station profile holds everything specific to one installation as versioned dat
 - the forbidden regions;
 - the procedures, each with preconditions, steps, readback, hazard class and whether it is rerunnable.
 
-Validation rejects a step that targets a forbidden region or an unknown field, as `workstations/screen-bridge/test/profile.test.ts` shows. A station profile is unrelated to a [scanner profile](point-of-work-input.md) and to a [hardening profile](glossary.md#hardening-profile).
+Validation rejects a step that targets a forbidden region or an unknown field, as `workstations/screen-bridge/test/profile.test.ts` shows.
 
 When the vendor updates the workstation application or a model changes, the [golden check](glossary.md#golden-check) replays labeled frames through the profile's extractors. It reports per-field accuracy and confidence. It fails on any confident wrong reading or misidentified screen.
 
@@ -203,7 +201,7 @@ cd examples/line-station && bun run station:golden
 
 ## Limits
 
-- The bridge never operates safety functions. Station profiles mark emergency-stop reset, interlock override, manual jog and similar controls as forbidden regions, and no procedure can target them.
+- The bridge never operates safety functions. A station profile lists emergency-stop reset, interlock override, manual jog and similar controls as forbidden regions, and validation rejects a step that targets one.
 - Machine guarding and safety remain the responsibility of the machine and its builder. Nothing here is safety-rated. Regulated environments, such as Good Manufacturing Practice (GMP) or 21 CFR Part 11, need validation for each deployment.
 - No live computer-use driver ships, and no VNC, RDP, KVM-over-IP or UI Automation transport.
 - The station observer reads frames from a screen transport only.

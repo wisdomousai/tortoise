@@ -56,7 +56,7 @@ STORAGE_POSTGRES_URL=postgres://user:password@localhost:5432/scratch bun test pa
 
 ## Fleet
 
-The fleet agent [host plugin](glossary.md#host-plugin) (`plugins/fleet-agent`) connects outbound only, through the network port's `fleet` destination, so the site needs no inbound rule. The fleet has no rights on the site.
+The fleet agent [host plugin](glossary.md#host-plugin) (`plugins/fleet-agent`) connects outbound only, through the network port's `fleet` destination, so the site needs no inbound rule.
 
 ### Fleet protocol
 

@@ -123,4 +123,6 @@ Surface parity is proven in content, where real capabilities exist. `examples/pr
 
 - [run-a-hosted-instance](../host/skills/run-a-hosted-instance/SKILL.md): Postgres storage and the workspace lease behind a hosted instance, and proving a new storage adapter with the conformance suite.
 
-Replacing another port adapter or adding a surface adapter follows [adapters](../../docs/adapters.md).
+## References
+
+- [Adapters](../../docs/adapters.md)

@@ -10,7 +10,7 @@ The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attach
 
 ## First run
 
-[First run](../README.md#first-run) in the README installs the dependencies and opens `project-tasks`, the application `app.config.json` names. `bun run dev` builds the web screens before it opens the desktop window. The host also prints a [launch link](glossary.md#launch-exchange) for a browser. That link signs a browser in once and expires after one minute.
+`bun install --frozen-lockfile` installs the dependencies. `bun run dev` builds the web screens, then opens the desktop window on `project-tasks`, the application `app.config.json` names. The host also prints a [launch link](glossary.md#launch-exchange) for a browser. That link signs a browser in once and expires after one minute.
 
 The host keeps the workspace in `.workspace/` by default. These environment variables change the defaults:
 
@@ -167,7 +167,7 @@ bun run scaffold /path/to/new-app --name new-app
 
 With `--example <name>`, it exports one example as the application the starter hosts. Every export writes a versioned list of file hashes to `scaffold.manifest.json`.
 
-The scaffold does not install global agent configuration or invent a domain from the application name. A coding agent shapes the generated parts into the requested domain with the [setup skill](../packages/scaffold/skills/create-agent-native-app/SKILL.md) and the [capability authoring guide](capability-authoring.md). The other task skills live next to the package they describe and are listed in [AGENTS.md](../AGENTS.md#skills). Running `bun install` links them for Claude Code and Codex.
+The scaffold installs no global agent configuration. A coding agent shapes the generated parts into the requested domain with the [setup skill](../packages/scaffold/skills/create-agent-native-app/SKILL.md) and the [capability authoring guide](capability-authoring.md). The other task skills live next to the package they describe and are listed in [AGENTS.md](../AGENTS.md#skills). Running `bun install` links them for Claude Code and Codex.
 
 ## References
 

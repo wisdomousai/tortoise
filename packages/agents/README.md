@@ -68,7 +68,7 @@ The `openai.authorize` parameter schema is the only rule for opening ChatGPT sig
 
 ### Provider credentials
 
-Provider credentials pay for inference and never grant workspace access. They are never discovered from the environment or from developer configuration. They never reach browser state, model context or run logs. An exhausted plan does not fall back silently to an API key.
+Provider credentials are never discovered from the environment or from developer configuration. They never reach browser state, model context or run logs. An exhausted plan does not fall back silently to an API key.
 
 The OS vault fails closed when the keyring is locked or unavailable. `MemoryCredentialVault` is a fixture the host selects explicitly, and the OS vault does not fall back to it. Account connections serialize credential writes, so a sign-in or refresh already in flight cannot undo a logout.
 
@@ -96,7 +96,7 @@ Framework: `@agent-native/contracts`. External: `@anthropic-ai/claude-agent-sdk`
 bun run test:harness
 ```
 
-The tests use deterministic fixtures only. They prove adapter and protocol behavior, not provider login or inference access. Paths are relative to this package.
+The tests use deterministic fixtures only. Paths are relative to this package.
 
 - `test/supervisor.test.ts`: run state separate from commits, redaction, one-use questions and interrupted-run recovery. An observer hears each run start and end once, without its prompt or output.
 - `test/budget.test.ts`: a run fails with `BUDGET_EXCEEDED` instead of making one tool call past its budget or running past its wall time, and it releases a waiting question. The harness receives the turn limit.

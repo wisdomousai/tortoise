@@ -9,7 +9,7 @@ A [workstation application](../../../../docs/glossary.md#workstation-application
 
 ## Before writing
 
-- Prefer a deterministic source. When the workstation application has an automation interface, such as COM, OPC UA or a vendor export, follow the automation route below instead of the screen.
+- When the workstation application has an automation interface, such as COM, OPC UA or a vendor export, follow the automation route below instead of the screen.
 - Among screen sources, prefer accessibility to OCR or vision.
 - List the screens, the fields and the [procedures](../../../../docs/glossary.md#procedure) with their [hazard class](../../../../docs/glossary.md#hazard-class).
 - List the regions no procedure may touch: emergency-stop reset, interlock override, manual jog.
@@ -61,7 +61,7 @@ bun test examples/line-station
 bunx playwright test examples/line-station/e2e
 ```
 
-Report deterministic, browser, device and live-model evidence separately in [implementation status](../../../../docs/implementation-status.md#operator-workstation-bridge). None of them implies a live computer-use driver or real hardware.
+Report deterministic, browser, device and live-model evidence separately in [implementation status](../../../../docs/implementation-status.md#operator-workstation-bridge).
 
 ## References
 

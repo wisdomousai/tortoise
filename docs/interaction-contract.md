@@ -20,7 +20,7 @@ Each handler is registered against its exact capability, and the typed `invoke` 
 
 ## UI bindings
 
-A capability declares a UI binding, or a UI exception that says why no [screen](glossary.md#screen) offers it. The catalog checks only the declaration, and an application's UI-binding test uses `unboundOperations` to find bound capabilities that no screen references. Whether a control renders needs a browser test. A module adds workflow text when agents need a sequence of capabilities.
+A capability declares a UI binding, or a UI exception that says why no [screen](glossary.md#screen) offers it. The catalog checks only the declaration, and an application's UI-binding test uses `unboundOperations` to find bound capabilities that no screen references. A module adds workflow text when agents need a sequence of capabilities.
 
 The React capability form validates with the capability's schema. It keeps one idempotency key for every retry until the command commits.
 

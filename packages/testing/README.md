@@ -116,7 +116,7 @@ Framework:
 - `@agent-native/integration`: the port and its errors, for `connectors`;
 - `@agent-native/adapters`: the `PgDriver` type, for `postgres`.
 
-External: `@electric-sql/pglite`. Framework tests must not import an example. Content imports this package, not the other way round.
+External: `@electric-sql/pglite`. Framework tests must not import an example.
 
 ## Tests
 

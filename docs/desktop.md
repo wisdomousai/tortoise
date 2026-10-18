@@ -14,7 +14,7 @@ The window runs with context isolation, sandboxing, web security and a self-only
 
 The workspace is a canonical path on a local filesystem. A dedicated lock database holds an exclusive OS lock for the host's lifetime, separate from business transactions. A crash releases the lock, and no stale PID or timeout removes a live one. When two windows race to start, the lock decides the owner.
 
-The window first tries to attach. It reads the private [connection file](glossary.md#connection-file), checks that the endpoint is loopback, verifies the contract with the bearer token and asks for a one-time launch credential. A connection file alone does not prove that a host is alive. If attaching fails, Electron launches the compiled host from the runtime manifest and waits for its ready line. It performs the same handshake and loads the bootstrap URL. Secrets go to the host and never through the preload.
+The window first tries to attach. It reads the private [connection file](glossary.md#connection-file), checks that the endpoint is loopback, verifies the contract with the bearer token and asks for a one-time launch credential. If attaching fails, Electron launches the compiled host from the runtime manifest and waits for its ready line. It performs the same handshake and loads the bootstrap URL. Secrets go to the host and never through the preload.
 
 An attached host stays owned by the process that started the host, and closing an attaching window never stops the host. Electron stops a host it started only if the instance file still names that exact instance, so a failed competing launch cannot stop the winner. The default workspace sits under Electron's `userData` directory. Trusted launchers and tests can point `AGENT_NATIVE_WORKSPACE` elsewhere; the renderer cannot.
 
@@ -66,7 +66,7 @@ The packaged-window tests take the absolute path of the executable:
 DESKTOP_EXECUTABLE='/absolute/path/to/packaged/executable' bunx playwright test tests/e2e/desktop.pw.ts
 ```
 
-The packaged-window tests check the window's isolation, live UI updates, persistence across reopen, shutdown of an owned host and survival of an attached one. Rerun the tests on the final stage after any change; the executable path identifies the artifact that was checked.
+The packaged-window tests check the window's isolation, live UI updates, persistence across reopen, shutdown of an owned host and survival of an attached one. Rerun the tests on the final stage after any change.
 
 ## Platform gates
 

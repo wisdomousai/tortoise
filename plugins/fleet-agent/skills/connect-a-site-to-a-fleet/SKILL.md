@@ -10,7 +10,6 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 ## Before writing
 
 - The site side needs a provided network port, so startup refuses an application without one.
-- A fleet is an application like any other.
 
 ## Steps
 

@@ -6,7 +6,7 @@ A [system of record](glossary.md#system-of-record) owns records an [application]
 
 Terms: [system of record](glossary.md#system-of-record), [outbox effect](glossary.md#effect), [dispatcher](glossary.md#dispatcher), [connector](glossary.md#connector), [delivery outcome](glossary.md#delivery-outcome), [settlement](glossary.md#settlement), [reconciliation](glossary.md#reconciliation), [grant file](glossary.md#grant-file) and [remote query](glossary.md#remote-query).
 
-The application keeps its working set, its pending effects and their outcomes. People at [screens](glossary.md#screen), the CLI and agents through MCP can use every [capability](glossary.md#capability). These [examples](glossary.md#example) connect a system of record:
+The application keeps its working set, its pending effects and their outcomes. People at [screens](glossary.md#screen), the CLI and agents through MCP reach the same [capabilities](glossary.md#capability) under the same authorization. These [examples](glossary.md#example) connect a system of record:
 
 - `quality-inspection`: inspection lots, specifications and code groups arrive from an in-memory quality system. Inspectors or an agent record values and codes, and each result is delivered, then accepted or rejected.
 - `crm-capture`: the [caller](glossary.md#caller) searches a fake CRM with the caller's access and adopts the accounts the caller finds.
@@ -20,7 +20,7 @@ An agent reaches the [instance](glossary.md#instance) in [embedded or attached m
 
 `app mcp --embedded --workspace <dir> --grant-file <file>` runs the instance inside the MCP process over stdio. The process listens on no network port and refuses to start without a grant file. The orchestrator writes the [grant](glossary.md#grant) file and starts the process. Tool arguments cannot change the [principal](glossary.md#principal) or widen the grant.
 
-The process pulls master data once, then delivers and syncs in the background. A failed first pull is reported and does not block capture. A one-shot CLI call with `--embedded` opens the [workspace](glossary.md#workspace), runs one capability and exits. Both take the workspace's OS lock, which [architecture](architecture.md#embedded-and-attached-modes) explains.
+The process pulls master data once, then delivers and syncs in the background. A failed first pull is reported and does not block capture. A one-shot CLI call with `--embedded` opens the [workspace](glossary.md#workspace), runs one capability and exits. Both take the workspace's OS lock.
 
 ### Attached mode
 
@@ -124,7 +124,7 @@ A connector implements `SystemOfRecordPort`. These connectors are ready-made:
 - [`connector-http`](../plugins/connector-http/README.md): a REST system through the network port, with requests, rejection rules and lookup as data. It needs an idempotency header or a lookup.
 - [`connector-files`](../plugins/connector-files/README.md): shared folders. Effects are dropped as files and settled from receipt files or the archive; result exports feed inbound sync.
 - [`connector-driver`](../plugins/connector-driver/README.md): equipment behind a [driver](hardware-drivers.md) process.
-- [Screen bridge](../workstations/screen-bridge/README.md): a [workstation application](glossary.md#workstation-application) reached through its screen, as [operator workstations](operator-workstations.md) explains.
+- [Screen bridge](../workstations/screen-bridge/README.md): a [workstation application](glossary.md#workstation-application) reached through its screen.
 - [Peer port](../packages/integration/README.md): another agent-native [host](glossary.md#host), through its HTTP API.
 
 The folders of `connector-files` are [requirement declarations](glossary.md#requirement-declaration) that the [deployment policy](glossary.md#deployment-policy) binds. Each connector plugin ships a fake for tests. The HTTP, files and driver connectors pass the conformance suite in [`packages/testing`](../packages/testing/README.md).
@@ -175,7 +175,7 @@ Screens run remote queries through [`packages/react`](../packages/react/README.m
 
 ## Command line
 
-`bun run build:cli` compiles the CLI into one executable that needs no Bun, Node or package install. It writes `dist/bin/<name>`. `bun run build:cli --target bun-linux-x64` compiles for another platform. [Getting started](getting-started.md#command-line) runs the CLI against a host. Every capability is a subcommand with flags typed from its input schema:
+`bun run build:cli` compiles the CLI into one executable that needs no Bun, Node or package install. It writes `dist/bin/<name>`. `bun run build:cli --target bun-linux-x64` compiles for another platform. Every capability is a subcommand with flags typed from its input schema:
 
 ```sh
 app inspection result record --lot-id 4000001 --characteristic-id C10 --value 220.01 --occurred-at 1791370306000 --key r-1
@@ -222,8 +222,6 @@ The site, network, audit, compliance and driver verbs exist when the application
 
 ## Limits
 
-- The system of record keeps the records it owns. The application owns its working set, its pending effects and their outcomes.
-- Exactly-once delivery is not possible across two systems.
 - The fake quality system and fake CRM are in-memory and per process, for demos and tests. The fake CRM keeps demo credentials in memory; a site backs caller credentials with its vault.
 - A grant limited to specific resources can create new records only of the types its `creates` list names.
 
@@ -234,6 +232,7 @@ The site, network, audit, compliance and driver verbs exist when the application
 - [Authorization](authorization.md)
 - [Hardware drivers](hardware-drivers.md)
 - [Operator workstations](operator-workstations.md)
+- [Getting started: command line](getting-started.md#command-line)
 - [Hosting](hosting.md)
 - [`packages/integration`](../packages/integration/README.md)
 - [`packages/react`](../packages/react/README.md)

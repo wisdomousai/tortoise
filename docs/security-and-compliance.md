@@ -1,6 +1,6 @@
 # Security and compliance
 
-An application declares what it may reach, the host enforces that, actions are recorded, and an auditor checks the result before deployment and while the application runs. Each control is a [host plugin](glossary.md#host-plugin), and [architecture](architecture.md#host-plugins) explains how plugins compose.
+An application declares what it may reach, the host enforces that, actions are recorded, and an auditor checks the result before deployment and while the application runs. Each control is a [host plugin](glossary.md#host-plugin).
 
 ## Concepts
 
@@ -24,7 +24,7 @@ Most examples compose the four plugins below.
 | `audit` | The audit log, forwarding, startup attestation and crash recovery | `audit verify` |
 | `compliance` | Auditor queries, the posture monitor and the Compliance screen | `compliance report` |
 
-Leaving a plugin out keeps its part closed. Without `network`, nothing leaves the host. Without `audit`, the composition's audit log port keeps no log.
+Without `network`, nothing leaves the host. Without `audit`, the composition's audit log port keeps no log.
 
 Startup refuses configuration that no composed plugin would enforce:
 
@@ -37,7 +37,7 @@ The host reads environment variables only for settings that a composed plugin de
 
 ## Declarations
 
-Modules, host components and plugins declare their requirements as data, and an application adds the host components it brings, such as a screen bridge or device drivers. The catalog composes the declarations. Reach is declared in the catalog. An OS sandbox is not portable, and the application cannot read or check the sandbox.
+Modules, host components and plugins declare their requirements as data, and an application adds the host components it brings, such as a screen bridge or device drivers. The catalog composes the declarations. An OS sandbox is not portable, and the application cannot read or check the sandbox.
 
 The audit plugin declares its collector in `plugins/audit/src/plugin-manifest.ts`:
 
@@ -143,7 +143,7 @@ A certificate within 30 days of expiry is a warning. So is an expired certificat
 
 ### Egress guard
 
-Every outbound connection of the host and its plugins passes through the egress guard:
+Outbound connections of the host and its plugins pass through the egress guard, except the reviewed exemptions in `scripts/boundary-rules.ts`:
 
 - **Destination clients.** A fetch scoped to one destination allows only the bound scheme, host and port. It checks every redirect hop and the resolved addresses, applies the CA and pin settings, and caps response size and time.
 - **Provider SDKs.** They get a fetch routed by origin, which explains each refusal.

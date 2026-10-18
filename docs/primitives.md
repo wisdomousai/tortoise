@@ -389,7 +389,7 @@ partial · [`workstations/sign-in`](../workstations/sign-in/README.md) [`package
 
 ### Egress guard
 
-_The only path from server code, and from declared child processes, to the network. `bun run check:boundaries` fails a direct network call outside the reviewed exemptions in `scripts/boundary-rules.ts`._
+_The path from server code, and from declared child processes, to the network. `bun run check:boundaries` fails a direct network call outside the reviewed exemptions in `scripts/boundary-rules.ts`._
 
 implemented · [`plugins/network`](../plugins/network/README.md) [`scripts/boundary-rules.ts`](../scripts/boundary-rules.ts)
 
@@ -473,4 +473,4 @@ partial · [`plugins/telemetry`](../plugins/telemetry/README.md)
 
 ## New and changed entries
 
-Add an entry when a concept is domain-neutral and more than one application uses it. An adapter belongs with its port, and a concept only one example needs stays in that example. Prefer extending or extracting existing code. Keep the definition true across adapters and defaults, and put the details in the README.
+Add an entry when a concept is domain-neutral and more than one application uses it. An adapter belongs with its port, and a concept only one example needs stays in that example. Put the details in the README.

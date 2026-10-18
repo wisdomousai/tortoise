@@ -96,7 +96,7 @@ Public routes are tried in order: agent provider callbacks, then the composed pl
 
 Agent runs reach providers only through `ports.network`. `providers.ts` falls back to global `fetch` only when constructed without one, an exemption listed in `scripts/boundary-rules.ts`. `check:boundaries` fails if `src/` imports `@agent-native/event-log`.
 
-Provider credentials pay for inference and never grant workspace access. Startup and status never read the vault.
+Startup and status never read the vault.
 
 ### Shell routes
 

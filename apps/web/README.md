@@ -4,7 +4,7 @@ The starter's web root: the [web frame](../../packages/frame/README.md) around t
 
 ## Layer
 
-[starter](../../docs/glossary.md#starter) (`apps/*`), owned by whoever forks or scaffolds the starter. Extend it here, or shadow any frame file by adding one at the same `src/` path.
+[starter](../../docs/glossary.md#starter) (`apps/*`). Extend it here, or shadow any frame file by adding one at the same `src/` path.
 
 ## Primitives
 

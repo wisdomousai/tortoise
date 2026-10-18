@@ -4,7 +4,7 @@ The starter's Electron window for the configured [application](../../docs/glossa
 
 ## Layer
 
-[starter](../../docs/glossary.md#starter) (`apps/*`), owned by whoever forks or scaffolds the starter. The Electron main process trusts the launcher's environment and the runtime files after their digest check. Renderer input is untrusted.
+[starter](../../docs/glossary.md#starter) (`apps/*`). The Electron main process trusts the launcher's environment and the runtime files after their digest check. Renderer input is untrusted.
 
 ## Primitives
 

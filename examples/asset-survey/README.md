@@ -2,7 +2,7 @@
 
 `asset-survey` is the hub of a field survey of an industrial or power-grid site. A manager prepares the site structure and sends assignments to paired phones, which capture nameplates and equipment photos, often offline, and hand them back. A model reads the photos, a reviewer accepts the values, and a manager files the result into the enterprise asset management system (EAM), which accepts or refuses each filing.
 
-The example demonstrates pairing with the [mobile host](../../docs/mobile.md) and delivery to a [system of record](../../docs/systems-of-record.md). The phone side is [`asset-survey-field`](../asset-survey-field/README.md), a separate application that pairs with this hub. This package does not depend on it.
+The phone side is [`asset-survey-field`](../asset-survey-field/README.md), a separate application that pairs with this hub. This package does not depend on it.
 
 ## Layer
 
@@ -135,8 +135,6 @@ bunx playwright test examples/asset-survey/e2e
   - correct the doubted serial, accept it and create the asset in the EAM;
   - start an export that waits with no process bound;
   - show the review queue's compact variant at tablet width.
-
-The fakes prove the wiring and the trust order. They do not prove a real model or EAM.
 
 `test/live-extraction.test.ts` reads the six sample plates with a real model. It prints how the model's reading compares with the ground truth. It runs only with `ASSET_SURVEY_MODEL` and `ASSET_SURVEY_MODEL_URL` set, plus `ASSET_SURVEY_MODEL_API_KEY` for a hosted provider. Its result is recorded in the [implementation status](../../docs/implementation-status.md).
 

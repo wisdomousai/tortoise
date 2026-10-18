@@ -5,7 +5,7 @@ description: Connect an agent-native application to another system that keeps it
 
 # Connect a system of record
 
-The application owns its working set and its pending [outbox effects](../../../../docs/glossary.md#effect). The [system of record](../../../../docs/glossary.md#system-of-record) keeps ownership of its own records. A local [receipt](../../../../docs/glossary.md#receipt) proves the local commit, not acceptance by the [target](../../../../docs/glossary.md#target).
+The application owns its working set and its pending [outbox effects](../../../../docs/glossary.md#effect). A local [receipt](../../../../docs/glossary.md#receipt) proves the local commit, not acceptance by the [target](../../../../docs/glossary.md#target).
 
 ## Before writing
 
@@ -37,7 +37,7 @@ The application owns its working set and its pending [outbox effects](../../../.
 12. Write adoption of a search result as a domain command that enqueues a follow effect.
 13. For a target that can only be observed and acted on, such as a screen or an instrument, use convergent delivery from `packages/integration/src/convergent/`. Follow the `bridge-station-screen` skill (`workstations/screen-bridge/skills/bridge-station-screen/SKILL.md`) or `write-hardware-driver` (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`).
 
-Never give the integration principal more than settle, sync and status. Never let a CLI or agent bypass application policy with broad upstream credentials.
+Never give the integration principal more than settle, sync and status. Never give a CLI or agent the upstream system's credentials; it calls the application's capabilities.
 
 ## Checks
 
@@ -50,7 +50,7 @@ bun test examples/<app>
 bun run generate
 ```
 
-`generate` writes the capability reference, which states for each integrated command that a receipt is not acceptance. Review the destinations in the generated security manifest. A fake system of record proves the wiring. Record a run against the real system separately in [implementation status](../../../../docs/implementation-status.md).
+`generate` writes the capability reference, which states for each integrated command that a receipt is not acceptance. Review the destinations in the generated security manifest. Record a run against the real system separately in [implementation status](../../../../docs/implementation-status.md).
 
 ## References
 

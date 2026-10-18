@@ -5,11 +5,11 @@ description: Prepare an agent-native application for a site, plant or customer m
 
 # Deploy to a site
 
-A [deployment policy](../../../../docs/glossary.md#deployment-policy) is deployment data. It binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its [hardening profile](../../../../docs/glossary.md#hardening-profile) floor. The network, process, audit and compliance plugins enforce it.
+A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its [hardening profile](../../../../docs/glossary.md#hardening-profile) floor. The network, process, audit and compliance plugins enforce it.
 
 ## Before writing
 
-- Declarations come first. A module or plugin must declare every destination, [exchange folder](../../../../docs/glossary.md#exchange-folder), device or process the policy binds.
+- A module or plugin must declare every destination, [exchange folder](../../../../docs/glossary.md#exchange-folder), device or process the policy binds.
 - `bun run generate` writes the security manifest and data flows to `dist/reference/<id>/`. They list what the policy has to bind.
 - Pick the hardening profile from where the host runs: `desktop-local`, `site-hub` (paired devices over the site network), `sandbox` or `zero-trust`.
 - The site issues and renews certificates. The host only reads them and warns 30 days before expiry.

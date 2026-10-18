@@ -1,8 +1,6 @@
 # Point-of-work input
 
-[Operators](glossary.md#operator) give input at a [workstation](glossary.md#workstation). Scanner input is in the [add-scanner-input](../packages/devices/skills/add-scanner-input/SKILL.md) skill.
-
-Scanners and keypads do most of the input. Two domain-neutral kits support these screens:
+Two domain-neutral kits support [operator](glossary.md#operator) screens at a [workstation](glossary.md#workstation):
 
 - [`packages/devices`](../packages/devices/README.md): scanner profiles, sources, decoding, calibration and routing, plus a reusable [module](glossary.md#module) for per-station device configuration.
 - [`packages/operator-ui`](../packages/operator-ui/README.md): the `operator` [UI registry](glossary.md#ui-registry) of glove-sized parts.
@@ -15,16 +13,14 @@ Terms: [scanner profiles](glossary.md#scanner-profile), [input sources](glossary
 
 ## Design guidelines
 
-The kit is built for these defaults. A screen can depart from them where its setting differs.
-
 - **No precision gestures.** Drag, double-tap, long text entry, small close buttons, hover-only affordances and swipes fail with gloves. Targets follow the operator size tokens, which are larger at glove density.
 - **Scanner and keypad first.** A task should work with a scanner, a numeric keypad or a pedal mapped to keys. Touch is the fallback, and typing is the last resort.
-- **One task at a time.** The screen shows the operator and the station at the top, then station signals, the current task, what needs a person, and seat control. The layout stays fixed during a press.
+- **Fixed layout.** The screen shows the operator and the station at the top, then station signals, the current task, what needs a person, and seat control. The layout stays fixed during a press.
 - **Hold to confirm.** Starting an order, confirming counts or reporting that a held procedure took effect takes a hold instead of a tap. The hold cancels when the finger slides off.
 - **Tap guard.** A tap guard ignores double taps, taps during scroll or layout shift, and taps while a request is pending.
 - **Icon plus text.** State is readable from 1 to 2 m, and color is never the only signal. Observed values show their age and confidence.
 - **Feedback by sound.** Distinct tones mark scanned, accepted, rejected and attention, with vibration where available. Each device can mute them.
-- **One owner for digit keys.** Where digit hotkeys pick tiles, the numeric pad is touch-only. A wedge scanner's keystroke burst, including its final Enter, never fires a hotkey.
+- **Digit keys.** Where digit hotkeys pick tiles, the numeric pad is touch-only. A wedge scanner's keystroke burst, including its final Enter, never fires a hotkey.
 
 Delivery state shows as one of these:
 
@@ -66,7 +62,7 @@ Profiles are configuration without secrets, and are stored per station.
 
 ## Sources
 
-Each transport is a source that is registered explicitly. Nothing is discovered.
+Each transport is a source that is registered explicitly.
 
 | Transport | Reached through | Notes |
 | --- | --- | --- |
@@ -90,7 +86,7 @@ Every source decodes through the same steps:
 3. parse GS1 element strings and validate their check digits;
 4. correct keyboard-layout mismatches for wedge input.
 
-Layout mismatch is the most common wedge failure. A scanner emulating a US keyboard on a German or Swiss host types `z` for `y`, swaps punctuation and loses characters to dead keys. The group separator is often dropped or replaced. The supported layouts are US, German and Swiss German.
+A scanner emulating a US keyboard on a German or Swiss host types `z` for `y`, swaps punctuation and loses characters to dead keys. The group separator is often dropped or replaced. The supported layouts are US, German and Swiss German.
 
 ## Calibration
 
@@ -135,8 +131,6 @@ bun run check:registry:operator
 - Device access is declared but not mediated.
 - The intent receiver has not been compiled or run.
 
-A device type counts as supported only once it has been checked and recorded in the [implementation ledger](implementation-status.md#operator-workstation-bridge).
-
 ## References
 
 - [Operator workstations](operator-workstations.md)
@@ -144,3 +138,4 @@ A device type counts as supported only once it has been checked and recorded in 
 - [`packages/devices`](../packages/devices/README.md)
 - [`packages/operator-ui`](../packages/operator-ui/README.md)
 - [`plugins/intent-scanner`](../plugins/intent-scanner/README.md)
+- [add-scanner-input skill](../packages/devices/skills/add-scanner-input/SKILL.md)

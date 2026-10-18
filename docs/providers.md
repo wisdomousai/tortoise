@@ -8,7 +8,7 @@ Terms: the [credential vault](glossary.md#credential-vault).
 
 ## Provider harnesses
 
-A [harness](glossary.md#harness) reaches business data only through the application's tools, which pass through the [instance](glossary.md#instance) like any other caller ([agents](agents.md#application-tools)). Provider credentials pay for inference and give no access to a workspace. New behavior therefore belongs in the catalog instead of in provider-specific code.
+A [harness](glossary.md#harness) reaches business data only through the application's tools, which pass through the [instance](glossary.md#instance) like any other caller ([agents](agents.md#application-tools)). Provider credentials pay for inference and give no access to a workspace.
 
 | Harness         | Funding chosen by the host | Native resume | Questions and approvals                                    |
 | --------------- | -------------------------- | ------------- | ---------------------------------------------------------- |
@@ -20,7 +20,7 @@ A [harness](glossary.md#harness) reaches business data only through the applicat
 
 Each adapter is limited to application tools. Codex runs the app-server with shell, edit and search disabled and a read-only sandbox. Its protocol version is pinned because its dynamic tools are still experimental. Claude sees only the application's MCP tools, with no built-in tools and no settings sources. The AI SDK adapter refuses a string model alias, so it cannot pick up an ambient gateway credential.
 
-A run succeeds only when the adapter has validated the provider's terminal result and every tracked tool call has finished. Native thread and session IDs are kept for resuming, and run records hold neither credentials nor prompts. A product that adds shell or file tools defines its own authorization boundary.
+A run succeeds only when the adapter has validated the provider's terminal result and every tracked tool call has finished. Native thread and session IDs are kept for resuming, and run records hold neither credentials nor prompts.
 
 ## Provider processes
 
@@ -46,7 +46,7 @@ The connection follows the documented dynamic public-client flow. The instance s
 - **Authorization URLs** are never logged and carry no ID-token hint, so no stored token reaches browser code.
 - **Inference** needs both the `resource.invoke` and `chatgpt.tokens.use.direct` scopes. A verified identity without them is kept as a disabled profile.
 
-Profile listing and status return metadata without tokens. Only the instance reads a profile's tokens, and it refuses for a profile that is disconnected, lacks the inference scopes or has expired. The host refreshes tokens within a minute of expiry, and the whole rotating refresh write runs serialized. A model list is not evidence that inference or billing works.
+Profile listing and status return metadata without tokens. Only the instance reads a profile's tokens, and it refuses for a profile that is disconnected, lacks the inference scopes or has expired. The host refreshes tokens within a minute of expiry, and the whole rotating refresh write runs serialized.
 
 Logout removes the access, refresh and ID tokens locally and keeps the registration. It then attempts revocation at the provider and reports whether revocation was confirmed. No local token remains as a fallback.
 
@@ -112,9 +112,7 @@ The opt-in live probe sends one synthetic prompt and a read-only tool through th
 AGENT_LIVE_ALLOWED=1 bun packages/agents/scripts/live-smoke.ts claude
 ```
 
-A passing fixture or packaged startup does not show that live consent, billing, entitlement or model quality work.
-
-A new adapter documents its runtime version, credential source, tool boundary, success rule, cancellation and resume storage. It adds fixtures for success, partial failure and tool rejection. Platform and live checks run separately, and skipped ones are recorded as skipped.
+A new adapter documents its runtime version, credential source, tool boundary, success rule, cancellation and resume storage. It adds fixtures for success, partial failure and tool rejection. Platform and live checks run separately.
 
 ## Limits
 

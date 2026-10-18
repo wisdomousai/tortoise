@@ -25,7 +25,7 @@ Framework (`packages/*`). Server only, because the observer hashes payloads with
 
 ## Trust boundary
 
-An observer submits as the principal in its `context`. The application's policy should grant that principal the ingest capability only. Readings are claims about the source, not facts: the domain's ingest handler decides what they change. Confidence is only as good as the extractor's calibration against golden frames.
+An observer submits as the principal in its `context`. The application's policy should grant that principal the ingest capability only. The domain's ingest handler decides what a reading changes.
 
 The gate filters flicker and one-off misreads. It cannot detect a source that is steadily wrong.
 

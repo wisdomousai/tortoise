@@ -2,7 +2,7 @@
 
 `project-tasks` is a local project and task workspace, and the smallest application that exercises the whole [kernel](../../docs/glossary.md#composition). People and agents create projects, manage members with owner, editor and viewer roles, and create, edit and complete tasks. Owners see a private note on each task that no one else can read, search or sort by.
 
-It is the starter's default application in `app.config.json`, and the home of the framework's cross-cutting conformance suites. It demonstrates [state and reactivity](../../docs/state-and-reactivity.md), [authorization](../../docs/authorization.md), [agents](../../docs/agents.md) and [capability authoring](../../docs/capability-authoring.md).
+It is the starter's default application in `app.config.json`, and the home of the framework's cross-cutting conformance suites.
 
 ## Layer
 
@@ -160,8 +160,6 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | `domain.test.ts`, `test/`, `e2e/` | Policy, conformance, host and OS tests; Playwright specs. |
 
 ## Task edit flow
-
-Renaming a task from its row passes through these steps.
 
 1. Editing starts in `ui/projects/task-row.tsx` with a fresh read of the task. The draft keeps that revision as its base while the live list updates around it.
 2. Saving sends the new title through the typed client, with the base revision as the expected revision of `task:<id>`. The HTTP client adds a random idempotency key when the caller gives none.

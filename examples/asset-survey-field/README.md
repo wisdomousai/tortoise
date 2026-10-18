@@ -2,8 +2,6 @@
 
 `asset-survey-field` is the field application of the [asset survey](../asset-survey/README.md). It runs on a phone or rugged handheld with its own workspace in [embedded mode](../../docs/glossary.md#embedded-mode), and receives the assignments the [hub](../../docs/glossary.md#hub) dispatched to it with their structure. Offline, it photographs nameplates and equipment, and it hands the captures back when it reaches the hub again.
 
-The example demonstrates the [mobile host](../../docs/mobile.md) and delivery to a peer host as a [system of record](../../docs/systems-of-record.md).
-
 ## Layer
 
 Content (`examples/*`). It reuses the hub's browser-safe contracts (`@agent-native/asset-survey/contracts/*`) for the capture input and the feed item, so both sides validate the same records. It never imports the hub's server code.
@@ -169,7 +167,7 @@ The phone runs this pass every 5 seconds while the application is in the foregro
 6. `field.assignment.return` enqueues `assignment.return` after the waiting captures and stores the return as pending. The assignment then takes no further captures.
 7. The dispatcher takes pending `hub` effects in creation order. For each, the peer port reads every blob the payload references with `readEffectBlob`, which returns only blobs attached to the effect's resource.
 8. The port uploads each blob to the hub's `/api/v1/blobs`. It then posts the payload to `/api/v1/commands/<type>` with the effect ID as idempotency key.
-9. The hub authorizes the call as `device:<id>` and runs its own ingest or return command. The hub side is described in [Asset survey](../asset-survey/README.md).
+9. The hub authorizes the call as `device:<id>` and runs its own ingest or return command.
 10. A success settles the effect as accepted. `INVALID_INPUT`, `NOT_FOUND`, `FORBIDDEN`, `CONFLICT` or `IDEMPOTENCY_CONFLICT` settles it as rejected with the hub's code and text.
 11. An unreachable hub, an unpaired device, a refused device credential or a server error leaves the effect pending. The dispatcher retries it with backoff.
 12. `field.hub.settle` runs `onOutcome` in `handlers.ts`. A capture takes the outcome and any rejection; a rejected return is removed, which reopens the assignment on the device.

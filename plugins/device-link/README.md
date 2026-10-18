@@ -1,6 +1,6 @@
 # @agent-native/device-link
 
-The hub side of [device link](../../docs/glossary.md#device-link), which pairs phones and tablets with a [hub](../../docs/glossary.md#hub). An administrator creates a one-use enrollment code on the hub. A device exchanges the code at the enrollment route for its own bearer credential and presents that credential on every later request. The device side is [`@agent-native/hub-link`](../hub-link/README.md), and [mobile](../../docs/mobile.md#pairing) explains pairing.
+The hub side of [device link](../../docs/glossary.md#device-link), which pairs phones and tablets with a [hub](../../docs/glossary.md#hub). An administrator creates a one-use enrollment code on the hub. A device exchanges the code at the enrollment route for its own bearer credential and presents that credential on every later request. The device side is [`@agent-native/hub-link`](../hub-link/README.md).
 
 ## Layer
 
@@ -86,3 +86,7 @@ bun test plugins/device-link
 ## Skills
 
 - [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): native plugins, native screens and pairing.
+
+## References
+
+- [Mobile: pairing](../../docs/mobile.md#pairing)

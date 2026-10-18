@@ -126,7 +126,7 @@ bun test apps/desktop/test/site-policy.test.ts
 bun test plugins/site
 ```
 
-Applications that compose the plugin exercise it, because a policy only means something against a catalog with declared destinations:
+Applications that compose the plugin exercise it:
 
 - the project-tasks suites cover isolated defaults, profile floors, identity and mTLS;
 - the network suite shows a connected policy refused without the network plugin;

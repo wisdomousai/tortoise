@@ -13,7 +13,7 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 - [Deployment policy](../../docs/primitives.md#deployment-policy): the `processes` section binds each declared process to an absolute executable, or disables it.
 - [Egress guard](../../docs/primitives.md#egress-guard): a process that declares destinations gets the network port's `childEnvironment`, which points it at the loopback proxy.
 - [Audit log](../../docs/primitives.md#audit-log): every start, refusal and exit is a `child.started`, `child.refused` or `child.exited` record.
-- [Process port](../../docs/primitives.md#process-port): the port this plugin provides. [Hardware drivers](../../docs/hardware-drivers.md) use it most.
+- [Process port](../../docs/primitives.md#process-port): the port this plugin provides.
 
 ## Entrypoints
 

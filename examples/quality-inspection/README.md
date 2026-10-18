@@ -2,7 +2,7 @@
 
 `quality-inspection` captures quality inspection results on top of an external quality system, which is the [system of record](../../docs/glossary.md#system-of-record). The system of record owns inspection lots, specifications and code catalogs, which arrive through the integration principal's sync command. This application owns what is recorded at the moment of inspection: results, defects and usage decisions, each forwarded to the system of record through the [outbox](../../docs/glossary.md#outbox).
 
-Records are append-only, and a correction supersedes a result instead of editing it. Inspectors, supervisors and viewers hold roles per plant. The example is the reference for [systems of record](../../docs/systems-of-record.md), and its measuring instrument follows [hardware drivers](../../docs/hardware-drivers.md).
+Records are append-only, and a correction supersedes a result instead of editing it. Inspectors, supervisors and viewers hold roles per plant.
 
 ## Layer
 
@@ -81,7 +81,7 @@ Plant roles come from state. Handlers scope lots and results to the caller's pla
 
 The quality-system integration runs as its own principal (`INTEGRATION_PRINCIPAL`), whose grant can sync and settle but cannot capture. The instrument driver runs as another principal (`INSTRUMENT_PRINCIPAL`), which can only report readings. Readings are visible to people who capture at some plant.
 
-A commit [receipt](../../docs/glossary.md#receipt) proves the local write only. The sync badge and the Synchronization screen show whether the system of record has accepted it. Capture telemetry measures interface economics and does not influence authorization.
+A commit [receipt](../../docs/glossary.md#receipt) proves the local write only. The sync badge and the Synchronization screen show whether the system of record has accepted it. Capture telemetry does not influence authorization.
 
 ## Dependencies
 

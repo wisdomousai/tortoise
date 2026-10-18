@@ -5,14 +5,14 @@ description: Observe or control equipment from an agent-native application throu
 
 # Write a hardware driver
 
-A [driver](../../../../docs/glossary.md#driver) is an executable in whatever language suits the equipment. The host starts it as a child process through the [process port](../../../../docs/glossary.md#process-port) and speaks JSON-RPC over stdin and stdout. Driver actions are delivered as outbox effects on a target, and driver state becomes [observations](../../../../docs/glossary.md#observation). Commands, handlers, screens and agents then work as they do for any other system of record.
+A [driver](../../../../docs/glossary.md#driver) is an executable in any language. The host starts it as a child process through the [process port](../../../../docs/glossary.md#process-port) and speaks JSON-RPC over stdin and stdout. Driver actions are delivered as outbox effects on a target, and driver state becomes [observations](../../../../docs/glossary.md#observation). Commands, handlers, screens and agents then work as they do for any other system of record.
 
 ## Before writing
 
 - Drivers never operate safety functions.
 - The framework is not real-time. A timing-critical loop stays inside the driver or the controller below it, and is one action to the framework.
 - High-rate data stays in the driver or goes to a historian.
-- Prefer a deterministic route. A station whose software has an automation interface is reached through a driver. A station reachable only through its screen uses the `bridge-station-screen` skill (`workstations/screen-bridge/skills/bridge-station-screen/SKILL.md`).
+- A station whose software has an automation interface is reached through a driver. A station reachable only through its screen uses the `bridge-station-screen` skill (`workstations/screen-bridge/skills/bridge-station-screen/SKILL.md`).
 - Choose each action's [delivery mode](../../../../docs/hardware-drivers.md#delivery-modes) from what the equipment can prove:
   - `idempotent` when the driver can deduplicate by effect ID;
   - `convergent` when a readback shows the result;
@@ -35,8 +35,8 @@ A [driver](../../../../docs/glossary.md#driver) is an executable in whatever lan
 5. Write the contract file with `app driver contract <id> --out <id>.json`. In a checkout, run `bun run cli driver contract <id> --out <id>.json`.
 6. Run the SDK's stub generator on that file. The digest is written into the driver, and the handshake refuses a driver built against another contract.
 7. Write the driver as the SDK README's "Writing a driver" describes. The SDKs gate by mode and presence again inside the driver.
-   - [Python](../../../../sdks/driver-python/README.md#writing-a-driver) suits serial instruments and scripting.
-   - [.NET](../../../../sdks/driver-dotnet/README.md#writing-a-driver) suits COM automation on an STA thread, with a `win-x86` build for a 32-bit COM server.
+   - [Python](../../../../sdks/driver-python/README.md#writing-a-driver): serial instruments and scripting.
+   - [.NET](../../../../sdks/driver-dotnet/README.md#writing-a-driver): COM automation on an STA thread, with a `win-x86` build for a 32-bit COM server.
 8. Check the driver with `app driver check <id> -- <executable>`. The check never invokes an action, so it is safe against connected equipment.
 9. Build a self-contained executable with PyInstaller, Nuitka or a .NET single-file build.
 10. Print the process IDs and contract digests to bind with `app driver list`.

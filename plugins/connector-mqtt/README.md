@@ -50,7 +50,7 @@ The observer reads a stale value with confidence 0, so the gate marks it `uncert
 
 Packets are capped at 1 MB. Protobuf fields are read by wire type with bounds checks, so a malformed payload is dropped. Every connection goes through the network port to the bound destination, so the [egress guard](../../docs/glossary.md#egress-guard) audits it.
 
-The observer submits as the principal in `context`, and the policy should grant that principal the ingest command only. Observations are claims about the source, and the ingest handler decides what they change.
+The observer submits as the principal in `context`, and the policy should grant that principal the ingest command only. The ingest handler decides what an observation changes.
 
 Limits:
 

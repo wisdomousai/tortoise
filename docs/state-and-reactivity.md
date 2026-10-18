@@ -26,7 +26,7 @@ A command increments the revision of each resource it declares changed. Optimist
 
 ## Snapshots and storage
 
-A query returns its data and the journal cursor from one snapshot. A query that changes state fails. Results come from local state, so there is no projection lag. Freshness of other systems is a separate concern.
+A query returns its data and the journal cursor from one snapshot. A query that changes state fails. Results come from local state, so there is no projection lag.
 
 The memory adapter gives each transaction its own copy and serializes transactions per workspace. The SQLite and Postgres adapters store one row per record and write only the rows a commit changed. The rows are not an index: a query still reads the snapshot.
 

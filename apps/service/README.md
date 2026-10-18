@@ -4,7 +4,7 @@ The starter's [instance](../../docs/glossary.md#instance) process: the HTTP entr
 
 ## Layer
 
-Starter (`apps/*`), owned by whoever forks or scaffolds the starter. It trusts the application it is configured with, which runs with the [host](../../docs/glossary.md#host)'s privileges. Everything it runs comes from [`@agent-native/host`](../../packages/host/README.md).
+Starter (`apps/*`). It trusts the application it is configured with, which runs with the [host](../../docs/glossary.md#host)'s privileges. Everything it runs comes from [`@agent-native/host`](../../packages/host/README.md).
 
 ## Primitives
 
@@ -50,7 +50,7 @@ bun run test:service
 bun run test:sandbox
 ```
 
-The package is a few lines of wiring and has no test files; its behavior is the host's. An example's `test/application.test.ts` drives the host with that application. `test:sandbox` compiles the standalone CLI binary and runs it with an empty environment.
+The package has no test files. An example's `test/application.test.ts` drives the host with that application. `test:sandbox` compiles the standalone CLI binary and runs it with an empty environment.
 
 ## Skills
 

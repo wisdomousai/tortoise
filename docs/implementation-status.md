@@ -1,13 +1,11 @@
 # Implementation status
 
-No public release has been made. Evidence of one kind never counts as evidence of another:
+No public release has been made. The entries use these kinds of evidence:
 
 - **Browser:** Playwright in Chromium against the real host (`bun run test:e2e`).
 - **Native:** a packaged build or a real OS facility, on a named platform.
 - **Live:** real providers, devices or [systems of record](glossary.md#system-of-record), with explicitly configured accounts.
 - **By hand:** a one-off run of a script or tool, with what it showed.
-
-When a change adds or invalidates evidence, or closes a gap, edit the entry for that area.
 
 ## By area
 
@@ -262,7 +260,7 @@ The kit's interaction tests also pass.
 - **Processes:** the agent harness launches still spawn directly instead of through the process port. Tree termination has not run on Windows.
 - **Secrets:** the Bun platform has no secret store, so processes that declare secrets are unavailable there.
 
-Control mappings are indicative. The mappings are not a certification.
+Control mappings are indicative.
 
 ### Desktop
 
@@ -348,14 +346,12 @@ Control mappings are indicative. The mappings are not a certification.
 **Limits.**
 
 - No framework version has been published to npm or any real registry. Every install from versions ran against the loopback registry (`release:serve`).
-- The packages are MIT licensed, but publishing to a public registry needs an account for it.
+- The packages are MIT licensed.
 - The packages publish TypeScript source, and only Bun and Vite have consumed them.
 - An example export still copies the framework.
 - An instance hosts one application.
 
 ## Known defects
-
-Defects reproduced against the current source and not yet fixed are listed here.
 
 A session revoked during a request does not stop the request. HTTP authenticates each request once. If a session is revoked or expires while its command waits, the command's context stays live and the command commits. New requests with that token are refused.
 

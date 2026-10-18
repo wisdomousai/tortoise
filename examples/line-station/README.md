@@ -9,7 +9,7 @@ The application owns what happens at the workstation:
 - operator verifications;
 - the desired recipe, the bridge mode and the [seat](../../docs/glossary.md#seat).
 
-Records forwarded to the MES and recipe loads on the screen leave through the [outbox](../../docs/glossary.md#outbox). The example is the reference for [operator workstations](../../docs/operator-workstations.md) and uses [point-of-work input](../../docs/point-of-work-input.md).
+Records forwarded to the MES and recipe loads on the screen leave through the [outbox](../../docs/glossary.md#outbox).
 
 ## Layer
 

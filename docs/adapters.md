@@ -8,8 +8,6 @@ Terms: the [adapter](glossary.md#adapter), the [surface](glossary.md#surface) ad
 
 ## Ports
 
-[Capabilities](glossary.md#capability) never mention how the application is hosted or stored. Each outside dependency enters through a port with stated guarantees.
-
 | Port | Reference adapters | What an adapter keeps |
 | --- | --- | --- |
 | Storage | Memory, SQLite, Postgres, snapshot | State, revisions, receipts and journal commit together, and a read sees one snapshot. |
@@ -59,7 +57,7 @@ The CLI maps arguments onto the catalog; the instance decides identity and autho
 
 ## Adapter replacement
 
-To move to another host, inject its identity, policy and storage, and keep the catalog and handlers. To add a surface, map requests onto the instance's raw command and query entry points (`packages/adapters/src/application-port.ts`), and keep the error envelope, revisions and authorization state. No adapter for a cloud provider ships; the ports make one a defined piece of work.
+To move to another host, inject its identity, policy and storage, and keep the catalog and handlers. To add a surface, map requests onto the instance's raw command and query entry points (`packages/adapters/src/application-port.ts`), and keep the error envelope, revisions and authorization state. No adapter for a cloud provider ships.
 
 A new storage adapter passes `storageConformance` from `packages/testing`, which checks atomicity, isolation and persistence. `pgliteDriver` runs the Postgres adapter in process for it.
 

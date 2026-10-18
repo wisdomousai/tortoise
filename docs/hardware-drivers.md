@@ -1,6 +1,6 @@
 # Hardware drivers
 
-An application observes and controls equipment through a driver process. A driver connects an instrument, a controller or workstation application. The API is in the [connector-driver README](../plugins/connector-driver/README.md) and the [process plugin README](../plugins/process/README.md).
+An application observes and controls equipment through a driver process. A driver connects an instrument, a controller or workstation application.
 
 ## Concepts
 
@@ -91,7 +91,7 @@ Driver actions pass the same gate as the screen bridge's procedures, which makes
 
 The application's control query supplies the bridge mode for each action. It can also refuse delivery for its own reasons; `examples/line-station` refuses while the operator holds the station [seat](glossary.md#seat).
 
-A driver starts in `monitor-only` at its handshake. The mode travels with every `action.invoke`, and the SDKs check mode and presence again inside the driver. A driver built with an SDK therefore stays safe if the host's check fails. `plugins/connector-driver/test/driver.test.ts` covers mode refusal on both sides and the operator confirmation.
+A driver starts in `monitor-only` at its handshake. The mode travels with every `action.invoke`, and the SDKs check mode and presence again inside the driver. `plugins/connector-driver/test/driver.test.ts` covers mode refusal on both sides and the operator confirmation.
 
 ## Timing and rates
 
@@ -146,8 +146,6 @@ app driver list
 - **Secrets:** a process that declares secrets needs a platform secret store. The Bun platform has none, so such a driver is unavailable there.
 - **Signing:** driver executables are pinned by hash only. A site bundle does not carry the executables. The executables get no signature and no staged activation.
 
-A kind of equipment counts as supported only once it has run on real hardware or its real software, and the [implementation ledger](implementation-status.md#hardware-drivers) records that run.
-
 Not built:
 
 - a remote transport, for a driver on another machine over an mTLS socket;
@@ -162,3 +160,5 @@ Not built:
 - [Systems of record](systems-of-record.md)
 - [Security and compliance](security-and-compliance.md)
 - [write-hardware-driver](../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
+- [Connector-driver plugin](../plugins/connector-driver/README.md)
+- [Process plugin](../plugins/process/README.md)

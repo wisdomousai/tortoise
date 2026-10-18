@@ -48,7 +48,7 @@ export const renameHandler = handler(rename, (input, ctx) => {
 });
 ```
 
-The module decides how its state is represented. A handler can wrap the transaction's state in its own repositories and receive domain services through `services`. The composition needs no universal record table.
+The module decides how its state is represented. A handler can wrap the transaction's state in its own repositories and receive domain services through `services`.
 
 A handler declares each changed resource with `ctx.change`, and the runtime assigns its [revision](glossary.md#revision) and [journal](glossary.md#journal) entry. A command that changes state but declares no changed resource fails. An effect or blob reference on an undeclared resource fails too, and so does a query that changes state.
 
@@ -85,7 +85,7 @@ export const listNotes = collectionList(noteRecords, {
 
 Add the module to the application's [manifest](glossary.md#manifest) and the handler to its [application definition](glossary.md#application-definition). The host builds the [instance](glossary.md#instance) from that definition, so no host or starter file changes. Tests compose the same definition directly.
 
-Write the policy rule for the operation, the object, current and proposed fields, and the [grant](glossary.md#grant) scope; [authorization](authorization.md) explains where each check runs.
+Write the policy rule for the operation, the object, current and proposed fields, and the [grant](glossary.md#grant) scope.
 
 ## Requirement declarations
 

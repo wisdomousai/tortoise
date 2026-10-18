@@ -1,6 +1,6 @@
 # Architecture
 
-The [framework](glossary.md#framework) is built in layers. Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an instance on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns.
+Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an instance on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns.
 
 ## Concepts
 
@@ -127,17 +127,15 @@ Inbound sync imports changes through ordinary commands. No transaction spans two
 
 ## Authorization and reactivity
 
-The policy port is injected; [authorization](authorization.md) explains it. Every open screen receives live updates after a commit that changes what it reads.
+The policy port is injected. Every open screen receives live updates after a commit that changes what it reads.
 
 In the React bindings, a [live query](glossary.md#live-query) refetches when a declared dependency changes, or on every change when it declares none. It ignores stale responses. It clears protected data when authorization changes, and reconnects from a [snapshot](glossary.md#snapshot) cursor.
 
-Drafts stay separate from committed data. [UI intents](glossary.md#ui-session-context) expire and are not business events.
+[UI intents](glossary.md#ui-session-context) expire and are not business events.
 
 ## Agents
 
 An [agent run](glossary.md#agent-run) keeps [harness](glossary.md#harness) output and application commits in separate streams. The run supervisor captures the initiating context, offers the harness only catalog capabilities as tools, and cancels through run state.
-
-Fixture and protocol tests are one kind of evidence. Live credentials, plan eligibility and real inference need separate configured checks, and the [ledger](implementation-status.md) records them.
 
 ## Host plugins
 
@@ -246,7 +244,7 @@ The framework packages can be packed and published at one version. The workstati
 - Expo and React Native for the mobile host.
 - Playwright for browser tests.
 
-`bun.lock` pins the versions. Desktop packaging produces an unsigned directory. Signed distribution is out of scope; [desktop](desktop.md) describes the build.
+`bun.lock` pins the versions. Desktop packaging produces an unsigned directory. Signed distribution is out of scope.
 
 ## Examples
 
@@ -262,8 +260,6 @@ Each [example](glossary.md#example) is an application under `examples/` and serv
 | [`receiving`](../examples/receiving/README.md) | Goods receiving against an ERP through files: notices arrive in an inbox folder, and receipts are posted as files and settled from receipt files. An agent requests approval for discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and approval requests. | site, network, audit, compliance |
 | [`fleet`](../examples/fleet/README.md) | The [fleet](hosting.md#fleet) that site instances report to: enrollment through device link, signed releases on channels, a health screen, audit events checked against each site's hash chain, and relayed remote access. Runs on a site host or as a hosted instance. | site, network, audit, device-link |
 | [`asset-survey-field`](../examples/asset-survey-field/README.md) | The phone side of the survey on the [mobile host](mobile.md): offline capture with photos and scans, delivered to the [hub](glossary.md#hub) through the peer connector, and assignments received through the hub's feed. | hub-link, managed-config, intent-scanner |
-
-[Getting started](getting-started.md#other-examples) runs each example and gives its port.
 
 ## References
 

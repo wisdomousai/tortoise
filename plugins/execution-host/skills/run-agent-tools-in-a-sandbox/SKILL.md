@@ -35,11 +35,6 @@ The [execution host](../../../../docs/glossary.md#execution-host) runs an agent'
 4. For an application's own task, copy the pattern in `plugins/execution-host/test/sandbox.test.ts`. Start the host with the plugin and run the task.
 5. Assert the receipts, the refused calls outside the grant, and the denied file and network attempts that matter to the task.
 
-```sh
-bun test plugins/execution-host
-bun run test:execution-host:linux
-```
-
 Record a run in a container separately from a run on a deployed host in [implementation status](../../../../docs/implementation-status.md#execution-host).
 
 ## References
