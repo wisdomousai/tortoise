@@ -5,13 +5,13 @@ description: Prepare an agent-native application for a site, plant or customer m
 
 # Deploy to a site
 
-A [deployment policy](../../../../docs/glossary.md#deployment-policy) is deployment data. It binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its [hardening profile](../../../../docs/glossary.md#hardening-profile) floor. The network, process, audit and compliance plugins enforce it. See [Security and compliance](../../../../docs/security-and-compliance.md) and the [site plugin README](../../README.md).
+A [deployment policy](../../../../docs/glossary.md#deployment-policy) is deployment data. It binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its [hardening profile](../../../../docs/glossary.md#hardening-profile) floor. The network, process, audit and compliance plugins enforce it.
 
 ## Before writing
 
 - Declarations come first. A module or plugin must declare every destination, [exchange folder](../../../../docs/glossary.md#exchange-folder), device or process the policy binds.
 - `bun run generate` writes the security manifest and data flows to `dist/reference/<id>/`. They list what the policy has to bind.
-- Pick the hardening profile from where the host runs: `desktop-local`, `site-hub` (paired devices over the site network), `sandbox` or `zero-trust`. The [profiles table](../../../../docs/security-and-compliance.md#hardening-profiles) gives each floor.
+- Pick the hardening profile from where the host runs: `desktop-local`, `site-hub` (paired devices over the site network), `sandbox` or `zero-trust`.
 - The site issues and renews certificates. The host only reads them and warns 30 days before expiry.
 - A secret never goes into the policy or a process environment by hand.
 
@@ -40,8 +40,6 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) is deploym
 14. Remove a release with `site uninstall`. It keeps data unless `--purge` is given.
 15. Produce evidence with `app audit verify --log <dir>` and `app compliance report --log <dir> --site <file> --format markdown`. A running host re-checks posture, including certificate validity, on every check.
 
-[Desktop](../../../../docs/desktop.md) covers the desktop build's shipped policy and packaging.
-
 ## Checks
 
 1. Run the tests:
@@ -60,3 +58,10 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) is deploym
    ```
 
 3. Record a by-hand bundle build, install or firewall load in [implementation status](../../../../docs/implementation-status.md#site-install), with its platform. The tests compare the exporters with golden files as text, and none loads a rule into a firewall or cluster.
+
+## References
+
+- [Security and compliance](../../../../docs/security-and-compliance.md)
+- [`@agent-native/site`](../../README.md)
+- [Profiles table](../../../../docs/security-and-compliance.md#hardening-profiles)
+- [Desktop](../../../../docs/desktop.md)

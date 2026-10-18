@@ -226,7 +226,7 @@ Steps that cite a file of an existing example give its path from the framework r
 
 ### Setup
 
-1. Create the application by exporting this example or by generating one with a single collection. The [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md) skill covers both.
+1. Create the application by exporting this example or by generating one with a single collection.
 
    ```sh
    bun run scaffold <absent-target-directory> --name <app-name> --example quality-inspection
@@ -410,19 +410,20 @@ Follow the [write-hardware-driver](../../plugins/connector-driver/skills/write-h
 - **Uncertain deliveries.** The fake quality system is idempotent by effect ID and never reports an uncertain outcome. A real connector can also cause held effects for uncertain deliveries and lost acknowledgements.
 - **State versions.** The example declares no numbered state migrations. Its `upgradeState` fills fields that older state lacks.
 
-## Related pages
+## Skills
+
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
+- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md)
+- [build-screens](../../packages/frame/skills/build-screens/SKILL.md)
+
+## References
 
 - [System-of-record pattern](../../docs/systems-of-record.md)
 - [Hardware drivers](../../docs/hardware-drivers.md)
-- [Primitives](../../docs/primitives.md)
-- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) and [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) skills
-- [CRM capture](../crm-capture/README.md), which adds a remote query and adoption over a system of record
-- [Receiving](../receiving/README.md), which reaches its system of record through shared folders and reconciles held effects
-- [Line station](../line-station/README.md), which drives workstation application through a .NET driver
-
-## Skills
-
-- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) covers the target, delivery and inbound sync.
-- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) covers the instrument driver.
-- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md) covers the deployment policy, starting from `site-policy.sandbox.json`.
-- [build-screens](../../packages/frame/skills/build-screens/SKILL.md) covers the capture screens and registry parts.
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
+- [CRM capture](../crm-capture/README.md)
+- [Receiving](../receiving/README.md)
+- [Line station](../line-station/README.md)
+- [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md)

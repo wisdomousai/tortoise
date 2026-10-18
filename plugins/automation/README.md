@@ -13,8 +13,6 @@ Plugin layer, with the three plugin entrypoints an application lists. It trusts 
 - [Host plugin](../../docs/primitives.md#host-plugin): `createAutomationPlugin`, `automationPluginManifest`, `automationScreens`.
 - [Agent run](../../docs/primitives.md#agent-run): runs go through the plugin's own run supervisor. Its harnesses are the job harness (`createJobHarness`), the local harness when `localModel` is set, and any `agentHarnesses`.
 
-[Agents](../../docs/agents.md#triggers-and-standing-grants) explains triggers and standing grants.
-
 ## Entrypoints
 
 | Import | Runs in | Contents |
@@ -35,7 +33,7 @@ Each pass of the loop lists the triggers and visits each one with an active gran
 
 The loop runs once per matching event or slot and records progress before the next. A grant seen for the first time starts at the snapshot that listed it, and a schedule starts with the next slot. Events that matched nothing are skipped in memory, so an idle loop writes nothing.
 
-A run ID names the grant and the event cursor or slot, as in `auto:<grant>:event:<cursor>`. [Agents](../../docs/agents.md#triggers-and-standing-grants) explains failed runs, command keys and repeats after a crash.
+A run ID names the grant and the event cursor or slot, as in `auto:<grant>:event:<cursor>`.
 
 ### Agent runs
 
@@ -92,3 +90,7 @@ bun test plugins/automation
 ## Skills
 
 - [add-capability](../../packages/runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
+
+## References
+
+- [Agents](../../docs/agents.md#triggers-and-standing-grants)

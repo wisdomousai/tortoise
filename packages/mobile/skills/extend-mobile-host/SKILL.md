@@ -5,7 +5,7 @@ description: Run an agent-native application on Android or iOS, or extend what i
 
 # Extend the mobile host
 
-The Expo project in `apps/mobile` runs one [application](../../../../docs/glossary.md#application)'s [instance](../../../../docs/glossary.md#instance) on the device. It uses the same [kernel](../../../../docs/glossary.md#composition) and runtime as the desktop host and has its own [workspace](../../../../docs/glossary.md#workspace). The application, its plugins and its native screens come from `app.config.json` through a generated entry, so the starter names no content. Design: [Mobile host](../../../../docs/mobile.md). `examples/asset-survey-field` is the worked reference for a field application paired with a [hub](../../../../docs/glossary.md#hub).
+The Expo project in `apps/mobile` runs one [application](../../../../docs/glossary.md#application)'s [instance](../../../../docs/glossary.md#instance) on the device. It uses the same [kernel](../../../../docs/glossary.md#composition) and runtime as the desktop host and has its own [workspace](../../../../docs/glossary.md#workspace). The application, its plugins and its native screens come from `app.config.json` through a generated entry, so the starter names no content.
 
 ## Before writing
 
@@ -21,7 +21,7 @@ The Expo project in `apps/mobile` runs one [application](../../../../docs/glossa
 4. Build native screens from the `agent-native-native` [UI registry](../../../../docs/glossary.md#ui-registry) in `packages/frame-native`, such as `hold-button`, `status-pill` and `list-row`.
 5. Run `bun run build:registry:native` after changing a registry item.
 6. Contribute a plugin's native screens with `definePluginNativeScreens`.
-7. For a native plugin, follow "Writing a native plugin" in the [mobile package README](../../README.md#writing-a-native-plugin). `plugins/intent-scanner` and `plugins/managed-config` are the references. In short:
+7. For a native plugin, follow "Writing a native plugin" in the [mobile package README](../../README.md#writing-a-native-plugin). In short:
    - put an Expo module next to `src/`, with an optional `app.plugin.js` config plugin;
    - set `platforms` and `native: { module, expoPlugin? }` in `plugin-manifest`;
    - call `pluginNativeModule(manifest)` in `open`;
@@ -53,3 +53,10 @@ bun run check:mobile-bundle   # Metro bundle of the starter's fixture; not part 
 ```
 
 Bun tests run the mobile instance on Bun's SQLite and files with fake device bindings. Kotlin and Swift compile only in a native build, and device, emulator and simulator runs are on demand. Record each such run in the [implementation status](../../../../docs/implementation-status.md#mobile), separately from the Bun tests.
+
+## References
+
+- [Mobile host](../../../../docs/mobile.md)
+- [`examples/asset-survey-field`](../../../../examples/asset-survey-field/README.md)
+- [`plugins/intent-scanner`](../../../../plugins/intent-scanner/README.md)
+- [`plugins/managed-config`](../../../../plugins/managed-config/README.md)

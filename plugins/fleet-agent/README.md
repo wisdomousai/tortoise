@@ -1,6 +1,6 @@
 # @agent-native/fleet-agent
 
-The site side of a [fleet](../../docs/glossary.md#fleet). A site's [instance](../../docs/glossary.md#instance) composes this plugin to report its health to a fleet application, forward its [audit log](../../docs/glossary.md#audit-log) there and stage the releases the fleet assigns. The plugin can also let the fleet relay remote-access requests to the site's own HTTP API. Every connection is outbound through the network port's `fleet` [destination](../../docs/glossary.md#destination), so the site needs no inbound rule. [Hosting](../../docs/hosting.md#fleet) explains the fleet protocol, the agent's cycle, the relay and the fleet application.
+The site side of a [fleet](../../docs/glossary.md#fleet). A site's [instance](../../docs/glossary.md#instance) composes this plugin to report its health to a fleet application, forward its [audit log](../../docs/glossary.md#audit-log) there and stage the releases the fleet assigns. The plugin can also let the fleet relay remote-access requests to the site's own HTTP API. Every connection is outbound through the network port's `fleet` [destination](../../docs/glossary.md#destination), so the site needs no inbound rule.
 
 ## Layer
 
@@ -35,8 +35,6 @@ Compose the plugin after the site plugin, the network plugin and, for audit forw
 `createFleetAgentPlugin({ intervalMs, relayMs })` sets the cycle and the relay poll, one minute and two seconds by default. The service at `services['fleet-agent']` offers `status()`, `sync()` and `relay()`.
 
 ## Trust boundary
-
-See [Hosting](../../docs/hosting.md#fleet-agent).
 
 - **Fleet outages.** The plugin writes nothing to the workspace. A failed cycle records its reason in `status().lastError`, and the site keeps committing and delivering while the fleet is unreachable.
 - **Reports.** The plugin reads the outbox with the host's trusted identity (`pendingEffects`). Only [effect](../../docs/glossary.md#effect) counts per target leave the site.
@@ -73,3 +71,8 @@ The upgrade test installs version 1 of the site with `site install` and runs it 
 ## Skills
 
 - [connect-a-site-to-a-fleet](skills/connect-a-site-to-a-fleet/SKILL.md): composing the plugin, enrolling a site, staging releases and turning on the relay.
+
+## References
+
+- [Hosting](../../docs/hosting.md#fleet)
+- [Hosting](../../docs/hosting.md#fleet-agent)

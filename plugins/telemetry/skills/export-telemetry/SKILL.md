@@ -5,7 +5,7 @@ description: Export OpenTelemetry metrics and traces from an agent-native instan
 
 # Export telemetry
 
-The telemetry plugin turns the [audit log](../../../../docs/glossary.md#audit-log) and the [outbox](../../../../docs/glossary.md#outbox) into OpenTelemetry metrics and spans. It posts them as OTLP/HTTP JSON through the [egress guard](../../../../docs/glossary.md#egress-guard). See [Architecture](../../../../docs/architecture.md#telemetry) and the [README](../../README.md).
+The telemetry plugin turns the [audit log](../../../../docs/glossary.md#audit-log) and the [outbox](../../../../docs/glossary.md#outbox) into OpenTelemetry metrics and spans. It posts them as OTLP/HTTP JSON through the [egress guard](../../../../docs/glossary.md#egress-guard).
 
 ## Before writing
 
@@ -41,3 +41,8 @@ The telemetry plugin turns the [audit log](../../../../docs/glossary.md#audit-lo
 
 3. Record a run against a real collector and backend as by-hand evidence in [implementation status](../../../../docs/implementation-status.md#telemetry).
 4. Follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) for the rest.
+
+## References
+
+- [Architecture](../../../../docs/architecture.md#telemetry)
+- [`@agent-native/telemetry`](../../README.md)

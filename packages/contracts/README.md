@@ -28,7 +28,7 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 - [OS action](../../docs/primitives.md#os-action): `OsAction`, `CatalogOsAction`, and `osActionTargets`, the outbox targets that notify actions carry.
 - [Shell port](../../docs/primitives.md#shell-port): the values that cross between adapters, the host's shell routes, the port and the frame. They are `OsPlatform`, `osPlatforms`, `RawOsRequest`, `OsDelivery`, `OsProvenance`, `OsRefusal`, `OsRequestOutcome`, `OsActionRequest`, `OsInstruction`, `OsActionOutcome` and `OsActionResult`.
 
-The worked example is [`examples/project-tasks/contracts.ts`](../../examples/project-tasks/contracts.ts). [Capability authoring](../../docs/capability-authoring.md) walks through adding a capability.
+The worked example is [`examples/project-tasks/contracts.ts`](../../examples/project-tasks/contracts.ts).
 
 ## Entrypoints
 
@@ -77,3 +77,7 @@ bun test packages/contracts
 - [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
 - [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox settlement, sync and live reads.
 - [add-os-integration](../shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.
+
+## References
+
+- [Capability authoring](../../docs/capability-authoring.md)

@@ -465,7 +465,7 @@ The object a host plugin exposes to later plugins and to handlers as `services[<
 
 ### Point of work
 
-The place where an operator, a device or station software produces the input an application captures: a station PC, a site server or a phone next to the equipment. [Point-of-work input](point-of-work-input.md) describes the input kits, and [overview](overview.md) the request path from there.
+The place where an operator, a device or station software produces the input an application captures: a station PC, a site server or a phone next to the equipment.
 
 Do not use: edge (for the point of work), shop floor (as a term).
 
@@ -718,3 +718,8 @@ Do not use: database (for a workspace), tenant, project (for a workspace), data 
 One instance's hold on a hosted workspace, kept in the shared database with a fencing token that every commit checks. Another instance can take the workspace over once the lease expires. Lives in [`packages/adapters`](../packages/adapters/README.md); explained in [hosting](hosting.md).
 
 Do not use: lock (for a lease), ownership record, heartbeat (for the lease).
+
+## References
+
+- [Point-of-work input](point-of-work-input.md)
+- [Overview](overview.md)

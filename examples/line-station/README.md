@@ -25,7 +25,7 @@ The example is one [application](../../docs/primitives.md#application). It compo
 - the station bridge. [Observations](../../docs/primitives.md#observation) are submitted through `line.observation.ingest`. A [gated actuator](../../docs/primitives.md#gated-actuator) sits behind a station-screen [connector](../../docs/primitives.md#connector), configured by a [station profile](../../docs/primitives.md#station-and-scanner-profiles) ([`station-profile.json`](station-profile.json)) and gated by a [golden check](../../docs/primitives.md#golden-check).
 - MES delivery through [outbox effects](../../docs/primitives.md#outbox-effect), a [dispatcher](../../docs/primitives.md#dispatcher) and [inbound sync](../../docs/primitives.md#inbound-sync), declared as a [target](../../docs/primitives.md#target) in `contracts/target.ts`. Station bridges settle their screen procedures through the same settle command, so its handler overrides which effects a principal may settle.
 - the `stop.explainer` [agent definition](../../docs/primitives.md#agent-definition), which submits a stop reason as an [approval request](../../docs/primitives.md#approval-request) about `stop:<id>`. The station shows it as an attention tile, and approving it classifies the stop as the operator. An approval request takes the station of the stop it is about, so the policy resolves that station for submit, approve and reject.
-- the automation route: a [driver contract](../../docs/primitives.md#driver-contract) for the workstation application's automation interface (`contracts/automation.ts`), the driver bridge (`driver-bridge.ts`) and a .NET [driver process](../../docs/primitives.md#driver-process) in `drivers/automation/`. [Automation route](#automation-route) describes it.
+- the automation route: a [driver contract](../../docs/primitives.md#driver-contract) for the workstation application's automation interface (`contracts/automation.ts`), the driver bridge (`driver-bridge.ts`) and a .NET [driver process](../../docs/primitives.md#driver-process) in `drivers/automation/`.
 - [input sources](../../docs/primitives.md#input-source) and the operator [UI registry](../../docs/primitives.md#ui-registry) on a glove-sized station surface.
 
 `bun run generate` writes the capability reference to `dist/reference/line-station/operations.md`.
@@ -62,8 +62,6 @@ Counters on the fake HMI are pixel-only. They need one of these:
 - `STATION_SIMULATOR=1`;
 - a local vision model: `STATION_VISION_BASE_URL`, `STATION_VISION_MODEL`, `STATION_VISION_ALLOWED_HOSTS`, `STATION_VISION_READS`;
 - a perception worker: `STATION_PERCEPTION_WORKER=1` with a `perception-worker` binding in the deployment policy, started by the process plugin.
-
-[Development and testing](../../docs/development-and-testing.md#station-bridge-demo-and-opt-in-perception) has the full table.
 
 ### Automation route
 
@@ -254,7 +252,7 @@ These steps start from the exported example and name the file to change in it. F
    bun install --frozen-lockfile
    ```
 
-2. Rename the operation IDs in `contracts/`, then follow the type errors and failing tests through the handlers, policy, screens and tests. The [add-capability skill](../../packages/runtime/skills/add-capability/SKILL.md) covers contracts, handlers and tests.
+2. Rename the operation IDs in `contracts/`, then follow the type errors and failing tests through the handlers, policy, screens and tests.
 3. Change the schemas and capabilities in `contracts/schemas.ts`, `contracts/queries.ts` and `contracts/commands.ts`. Give each a description in `contracts/operation.ts`, and keep the `target` option on commands that change another system.
 4. Change the network requirements of the module in `contracts.ts` to the destinations your workstation application and MES use. Keep the host components in `manifest.ts` that your routes need.
 5. Change the MES target in `contracts/target.ts`, its handlers in `handlers/integration.ts` and the status shape of `syncStatus` in `handlers/queries.ts`. Keep the `settles` override, because the bridge principals settle through the same operation.
@@ -267,7 +265,7 @@ These steps start from the exported example and name the file to change in it. F
     - One `integrations` lane whose `is` matches every bridge principal and whose `allow` limits each to its own station.
     - `targetLane` with `targetRules` for the MES.
     - An `events` entry for each resource type, so a person sees a station's changes only with a role at that station.
-11. Write a station profile for your workstation application in place of `station-profile.json`, with screens, fields, forbidden regions and procedures. The [bridge-station-screen skill](../../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md) covers profiles, extractors and the gate.
+11. Write a station profile for your workstation application in place of `station-profile.json`, with screens, fields, forbidden regions and procedures.
 12. Capture frames of the screen with its transport, and write each frame's expected values into `golden/manifest.json`. Then run the gate in the example directory.
 
     ```sh
@@ -278,7 +276,7 @@ These steps start from the exported example and name the file to change in it. F
 
 13. Take `network` in the `connect` of `application.ts`, and pass it through `startBridges` and `startStationBridge` to `counterExtractor` in `station-bridge.ts`. There, give the vision extractor's `fetch` option `network.routedFetch(['station-vision', 'station-vision-site'])`.
 14. Replace the `startStationBridge` call in `startBridges` of `application.ts` when your screen is not a web page, because that starter always launches Chromium. Write a `ScreenTransport` for your screen and pass it to `createLineStationBridge`.
-15. For a station with an automation interface, change the driver contract in `contracts/automation.ts` to the same fields and procedure as the profile. The [write-hardware-driver skill](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) covers the contract, the plugin and the SDKs.
+15. For a station with an automation interface, change the driver contract in `contracts/automation.ts` to the same fields and procedure as the profile.
 16. Keep the driver plugin in all three entrypoints: `driverPluginManifest` in `manifest.ts`, `createDriverPlugin` in `application.ts` and `driverScreens` in `screens.tsx`.
 17. Keep the `control` callback in `driver-bridge.ts`, which reads the same control query and returns its mode to the driver connector. While the operator holds the seat, it throws `DeliveryFailure` instead.
 18. Map the member names in `drivers/automation/ComStation.cs` to the vendor's COM object model. Then regenerate the stub and build the driver, with every other output under `artifacts/`.
@@ -335,21 +333,23 @@ These steps start from the exported example and name the file to change in it. F
 - **Concurrent recipe loads**: a station refuses a new order while a recipe load is pending or held.
 - **Safety**: the bridge is not safety-rated. Forbidden regions keep procedures off e-stop reset, jog and start, and the machine keeps its own safety functions.
 
-## Related pages
+## Skills
+
+- [bridge-station-screen](../../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md)
+- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
+- [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md)
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [build-screens](../../packages/frame/skills/build-screens/SKILL.md)
+
+## References
 
 - [Operator workstation pattern](../../docs/operator-workstations.md)
 - [Hardware drivers](../../docs/hardware-drivers.md)
 - [System-of-record pattern](../../docs/systems-of-record.md)
 - [Point-of-work input](../../docs/point-of-work-input.md)
-- [Bridge-station-screen skill](../../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md)
-- [Write-hardware-driver skill](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
-- [Quality inspection](../quality-inspection/README.md), which reaches an instrument through a Python driver
-- [Receiving](../receiving/README.md), which reconciles held effects with the framework's reconciliation operations
-
-## Skills
-
-- [bridge-station-screen](../../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md) covers the station profile, the screen bridge, the golden check and the choice of route.
-- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) covers the automation driver.
-- [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md) covers the scanner sources and device configuration.
-- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) covers the MES target.
-- [build-screens](../../packages/frame/skills/build-screens/SKILL.md) covers the station surface and the operator registry.
+- [bridge-station-screen](../../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md)
+- [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
+- [Quality inspection](../quality-inspection/README.md)
+- [Receiving](../receiving/README.md)
+- [Development and testing](../../docs/development-and-testing.md#station-bridge-demo-and-opt-in-perception)
+- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md)

@@ -1,6 +1,6 @@
 # @agent-native/intent-scanner
 
-The intent scanner [host plugin](../../docs/glossary.md#host-plugin) reads scans from rugged Android devices, such as Zebra, Honeywell and Datalogic. These devices scan with a built-in imager and hand each scan to other software as a broadcast intent, configured in the vendor's scanner software. The plugin brings a native receiver for those intents and an [input source](../../docs/glossary.md#input-source) that decodes each one through the same `decodeScan` as the wedge, serial, HID and camera sources. Prefixes, AIM identifiers and GS1 parsing therefore follow the [scanner profile](../../docs/glossary.md#scanner-profile), and scan routes work unchanged. [Point-of-work input](../../docs/point-of-work-input.md#sources) describes the sources.
+The intent scanner [host plugin](../../docs/glossary.md#host-plugin) reads scans from rugged Android devices, such as Zebra, Honeywell and Datalogic. These devices scan with a built-in imager and hand each scan to other software as a broadcast intent, configured in the vendor's scanner software. The plugin brings a native receiver for those intents and an [input source](../../docs/glossary.md#input-source) that decodes each one through the same `decodeScan` as the wedge, serial, HID and camera sources. Prefixes, AIM identifiers and GS1 parsing therefore follow the [scanner profile](../../docs/glossary.md#scanner-profile), and scan routes work unchanged.
 
 ## Layer
 
@@ -96,3 +96,7 @@ The Kotlin receiver has not been compiled or run. The device test with `adb shel
 ## Skills
 
 - [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md): scanner sources, profiles and routes.
+
+## References
+
+- [Point-of-work input](../../docs/point-of-work-input.md#sources)

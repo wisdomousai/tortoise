@@ -35,8 +35,6 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
   - `putBlob`, `readBlob`, `readEffectBlob` and `sweepBlobs` on the application.
 - [Audit log](../../docs/primitives.md#audit-log): the runtime appends `command.accepted` inside the transaction and resolves commands a crash left open.
 
-[Architecture](../../docs/architecture.md), [authorization](../../docs/authorization.md) and [state and reactivity](../../docs/state-and-reactivity.md) explain the mechanism.
-
 ## Entrypoints
 
 | Import                    | Runs in     | Contents                                                                   |
@@ -114,3 +112,9 @@ Every `Storage` adapter must pass `storageConformance` from [`@agent-native/test
 ## Skills
 
 - [add-capability](skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
+
+## References
+
+- [Architecture](../../docs/architecture.md)
+- [Authorization](../../docs/authorization.md)
+- [State and reactivity](../../docs/state-and-reactivity.md)

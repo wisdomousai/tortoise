@@ -38,7 +38,7 @@ What each step catches:
 - **`check:format`**: a file that Prettier would change. `bun run format` rewrites them, and `.prettierignore` leaves Markdown out.
 - **`typecheck`**: type errors in two TypeScript projects. `tsconfig.json` covers everything with Bun and Node types, and `tsconfig.native.json` covers the React Native sources without them.
 - **`check:boundaries`**: imports across layers, server code reaching browser bundles, and direct network or process APIs outside the reviewed exemptions in `scripts/boundary-rules.ts`. Portable source may not import `node:` or `bun:` modules or use Node or Bun globals.
-- **`check:manifests`**: a framework package manifest that would not install on its own. [Framework packages](#framework-packages) lists what it compares.
+- **`check:manifests`**: a framework package manifest that would not install on its own.
 - **`check:framework`**: more than one installed framework version. It runs `scaffold versions`.
 - **`check:skills`**: a skill that is out of date with the code it describes ([AGENTS.md](../AGENTS.md#skills)).
 - **`check:size`**: code in a package `src/index.ts` other than re-exports. Files over 300 lines and functions over 80 lines are listed as hints and do not fail.
@@ -52,7 +52,7 @@ React Native declares globals that conflict with Node's, so the root TypeScript 
 
 Split a file that `check:size` lists only when it holds a second responsibility. A long declarative table or a long linear function can stay as it is.
 
-A successful build does not show a browser interaction or a packaged desktop launch. [Browser and desktop](#browser-and-desktop) covers those runs.
+A successful build does not show a browser interaction or a packaged desktop launch.
 
 ## Test scripts
 
@@ -113,7 +113,7 @@ Packaged desktop tests need a built application. Set `DESKTOP_EXECUTABLE` and ru
 bunx playwright test tests/e2e/desktop.pw.ts
 ```
 
-Without `DESKTOP_EXECUTABLE` the tests skip. See [desktop](desktop.md).
+Without `DESKTOP_EXECUTABLE` the tests skip.
 
 ## Station bridge demo and opt-in perception
 
@@ -189,9 +189,9 @@ The workflow follows the [GitHub-hosted runner reference](https://docs.github.co
 
 An export, a bundled sidecar or a passing suite does not count as a release. Skipped acceptance tests and unsupported platforms are reported as such.
 
-## Related pages
+## References
 
-- [Architecture](architecture.md): the layers and how a request flows.
-- [Capability authoring](capability-authoring.md): adding a command or query.
-- [Desktop](desktop.md): packaging and the smoke test.
-- [Implementation status](implementation-status.md): runs outside `bun run check` and known gaps.
+- [Architecture](architecture.md)
+- [Capability authoring](capability-authoring.md)
+- [Desktop](desktop.md)
+- [Implementation status](implementation-status.md)

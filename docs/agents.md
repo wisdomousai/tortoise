@@ -1,6 +1,6 @@
 # Agents
 
-Agents act on an application's records through agent runs, with the same capabilities, validation and authorization as people. A harness executes each run. [Providers](providers.md) covers provider accounts, funding and the local harness.
+Agents act on an application's records through agent runs, with the same capabilities, validation and authorization as people. A harness executes each run.
 
 ## Concepts
 
@@ -24,7 +24,7 @@ Harness processes start directly instead of through the [process port](glossary.
 
 A harness that composes other CLIs and MCP servers needs an enforced execution boundary and a broker that keeps upstream credentials outside it. On Linux, the [execution host](glossary.md#execution-host) is that boundary, and its [README](../plugins/execution-host/README.md) describes the sandbox. A task runs in a bubblewrap sandbox and reaches the application CLI or MCP server through a token bound to the run's grant. It reaches providers only through the egress proxy. No harness launches its tools through it yet, and macOS and Windows have no backend.
 
-The application binary supplies the tool side: an embedded MCP server under a launcher-written [grant file](glossary.md#grant-file), and generated CLI subcommands with mapped exit codes ([systems of record](systems-of-record.md#command-line)). [Desktop](desktop.md#packaged-resources) covers native resources. Protocol fixtures and real provider calls count as separate evidence.
+The application binary supplies the tool side: an embedded MCP server under a launcher-written [grant file](glossary.md#grant-file), and generated CLI subcommands with mapped exit codes ([systems of record](systems-of-record.md#command-line)). Protocol fixtures and real provider calls count as separate evidence.
 
 ## Runs
 
@@ -98,7 +98,7 @@ An [agent scenario](glossary.md#agent-scenario) gives an agent definition a task
 
 ## Background jobs
 
-A background job is an ordinary caller with a scoped identity and grant. It reads current revisions and submits commands with stable idempotency keys. `examples/project-tasks/job.ts` is one. Schedulers, retries and queues can change without touching handlers. A job never writes storage directly.
+A background job is an ordinary caller with a scoped identity and grant. It reads current revisions and submits commands with stable idempotency keys. Schedulers, retries and queues can change without touching handlers. A job never writes storage directly.
 
 ## Use
 
@@ -130,10 +130,12 @@ Skills cover the steps: [add-capability](../packages/runtime/skills/add-capabili
 
 No host route starts an agent run from an agent definition. Definitions run through triggers and agent scenarios.
 
-## Related pages
+## References
 
-- [Providers](providers.md): provider accounts, the local harness and model requirements.
-- [Authorization](authorization.md): delegated grants, resource scopes and revocation.
-- [Security and compliance](security-and-compliance.md): the execution host's sandbox and the audit log.
-- [State and reactivity](state-and-reactivity.md): commands, continuations and cancellation.
-- [Implementation status](implementation-status.md): live runs of local models and triggered agents.
+- [Providers](providers.md)
+- [Authorization](authorization.md)
+- [Security and compliance](security-and-compliance.md)
+- [State and reactivity](state-and-reactivity.md)
+- [Implementation status](implementation-status.md)
+- [Desktop](desktop.md#packaged-resources)
+- [`examples/project-tasks/job.ts`](../examples/project-tasks/job.ts)

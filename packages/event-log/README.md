@@ -10,7 +10,7 @@ Framework (`packages/*`). Server only as a whole. The `chain`, `memory` and `for
 
 - [Audit log](../../docs/primitives.md#audit-log): `createMemoryEventLog`, `openJsonlEventLog`, `verifyEventLog`, `unresolvedCommands`, `readEvents`, `forwardingEventLog`.
 
-Inject an `EventLogPort` into the runtime, the egress guard, the dispatcher and the host. Nothing in the framework writes audit events any other way. The [`@agent-native/audit`](../../plugins/audit/README.md) plugin opens this log and provides it as the host's `EventLogPort`. [Security and compliance](../../docs/security-and-compliance.md#audit-log) covers audit modes and verification.
+Inject an `EventLogPort` into the runtime, the egress guard, the dispatcher and the host. Nothing in the framework writes audit events any other way. The [`@agent-native/audit`](../../plugins/audit/README.md) plugin opens this log and provides it as the host's `EventLogPort`.
 
 ## Entrypoints
 
@@ -61,3 +61,7 @@ bun test packages/event-log
 ## Skills
 
 None. `plugins/audit` opens the log, and the package has no extension point of its own.
+
+## References
+
+- [Security and compliance](../../docs/security-and-compliance.md#audit-log)

@@ -16,8 +16,6 @@ Workstation (`workstations/*`). Server only, except `requirements`. The domain [
 - [Station profile](../../docs/primitives.md#station-and-scanner-profiles): `StationProfile`, `stationProfileSchema`, `validateProfile`, `parseProfile`.
 - [Golden check](../../docs/primitives.md#golden-check): `runGolden`, `GoldenReport`.
 
-[Operator workstations](../../docs/operator-workstations.md) explains the design.
-
 ## Entrypoints
 
 | Import                               | Runs in            | Contents                                                                                                   |
@@ -86,3 +84,7 @@ cd examples/line-station && bun run station:golden
 ## Skills
 
 - [bridge-station-screen](skills/bridge-station-screen/SKILL.md): Bridge workstation application through its screen, or choose its automation route instead.
+
+## References
+
+- [Operator workstations](../../docs/operator-workstations.md)

@@ -1,6 +1,6 @@
 # Mobile host
 
-The mobile host runs an application on Android and iOS phones and tablets, with its storage on the device. It manages the instance lifecycle, pairs with a hub and keeps the device's trust boundary. [Architecture](architecture.md#embedded-and-attached-modes) explains embedded and attached modes.
+The mobile host runs an application on Android and iOS phones and tablets, with its storage on the device. It manages the instance lifecycle, pairs with a hub and keeps the device's trust boundary.
 
 ## Concepts
 
@@ -36,7 +36,7 @@ The screens and the background task share one instance through `apps/mobile/src/
 
 ## Embedded and attached modes
 
-**Embedded.** Work for another system goes through the [outbox](glossary.md#outbox) as on the desktop. For a hub, that is the peer [connector](glossary.md#connector) `createPeerPort` over the hub-link network port. The hub's feed comes back through [inbound sync](glossary.md#inbound-sync). [`examples/asset-survey-field`](../examples/asset-survey-field/README.md) is the reference.
+**Embedded.** Work for another system goes through the [outbox](glossary.md#outbox) as on the desktop. For a hub, that is the peer [connector](glossary.md#connector) `createPeerPort` over the hub-link network port. The hub's feed comes back through [inbound sync](glossary.md#inbound-sync).
 
 **Attached.** A tablet paired as `attached` opens the hub's own web build in a WebView, from hub-link's Hub screens tab. Nothing is bundled, so the screens always match the hub's version. The hub's screens can declare a `compact` variant for narrow viewports, as the asset-survey review queue does.
 
@@ -78,9 +78,13 @@ bun run dev:mobile
 - the native type check (`tsconfig.native.json`);
 - the hub-and-phone tests in device-link and asset-survey-field.
 
-`bun run check:mobile-bundle` bundles the starter's fixture with Metro. Device, emulator and simulator runs are on demand. The [implementation status](implementation-status.md#mobile) records what has run. The [extend-mobile-host](../packages/mobile/skills/extend-mobile-host/SKILL.md) skill has the steps.
+`bun run check:mobile-bundle` bundles the starter's fixture with Metro. Device, emulator and simulator runs are on demand.
 
-## Related pages
+## References
 
-- [Hosting](hosting.md#fleet): the fleet, which enrolls sites through device link.
-- [Security and compliance](security-and-compliance.md#hardening-profiles): the `site-hub` profile.
+- [Hosting](hosting.md#fleet)
+- [Security and compliance](security-and-compliance.md#hardening-profiles)
+- [Architecture](architecture.md#embedded-and-attached-modes)
+- [`examples/asset-survey-field`](../examples/asset-survey-field/README.md)
+- [Implementation status](implementation-status.md#mobile)
+- [extend-mobile-host](../packages/mobile/skills/extend-mobile-host/SKILL.md)

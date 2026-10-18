@@ -5,7 +5,7 @@ description: Write a host plugin in plugins/<name> for a cross-cutting concern (
 
 # Write a host plugin
 
-A [host plugin](../../../../docs/glossary.md#host-plugin) adds [modules](../../../../docs/glossary.md#module), a state slice, a [policy](../../../../docs/glossary.md#policy), settings, lifecycle hooks and ports to the [host](../../../../docs/glossary.md#host). An [application](../../../../docs/glossary.md#application) lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one. Design: [Architecture](../../../../docs/architecture.md#host-plugins).
+A [host plugin](../../../../docs/glossary.md#host-plugin) adds [modules](../../../../docs/glossary.md#module), a state slice, a [policy](../../../../docs/glossary.md#policy), settings, lifecycle hooks and ports to the [host](../../../../docs/glossary.md#host). An [application](../../../../docs/glossary.md#application) lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one.
 
 ## Before writing
 
@@ -47,3 +47,7 @@ Test the plugin through a fixture application in its own `test/`, never through 
 - a [behavioral scenario](../../../../docs/glossary.md#behavioral-scenario) through `directDriver`.
 
 Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`).
+
+## References
+
+- [Architecture](../../../../docs/architecture.md#host-plugins)

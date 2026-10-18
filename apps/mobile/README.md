@@ -4,7 +4,7 @@ The starter's Expo project for Android and iOS. It opens the configured applicat
 
 ## Layer
 
-[starter](../../docs/glossary.md#starter) (`apps/*`). Like `apps/web`, it never names content: the product identity and the application come from `app.config.json`. Attached mode runs through the screens of the [hub-link](../../plugins/hub-link/README.md) [host plugin](../../docs/glossary.md#host-plugin). The [mobile host](../../docs/mobile.md) guide covers the modes and pairing.
+[starter](../../docs/glossary.md#starter) (`apps/*`). Like `apps/web`, it never names content: the product identity and the application come from `app.config.json`. Attached mode runs through the screens of the [hub-link](../../plugins/hub-link/README.md) [host plugin](../../docs/glossary.md#host-plugin).
 
 ## Primitives
 
@@ -100,3 +100,7 @@ bun run check:mobile-bundle
 ## Skills
 
 - [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): mobile targets, native plugins and screens, and pairing with a hub.
+
+## References
+
+- [Mobile host](../../docs/mobile.md)

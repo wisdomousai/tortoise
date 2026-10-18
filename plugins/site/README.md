@@ -1,6 +1,6 @@
 # @agent-native/site
 
-The site [host plugin](../../docs/glossary.md#host-plugin). It resolves the [deployment policy](../../docs/glossary.md#deployment-policy) against the composed [requirement declarations](../../docs/glossary.md#requirement-declaration) and refuses a policy below its [hardening profile](../../docs/glossary.md#hardening-profile) floor. It enforces the policy's identity floor and hands the resolved policy to the network, audit and compliance plugins. [Security and compliance](../../docs/security-and-compliance.md#deployment-policy) explains the deployment policy, the hardening profiles and the [audit log](../../docs/glossary.md#audit-log).
+The site [host plugin](../../docs/glossary.md#host-plugin). It resolves the [deployment policy](../../docs/glossary.md#deployment-policy) against the composed [requirement declarations](../../docs/glossary.md#requirement-declaration) and refuses a policy below its [hardening profile](../../docs/glossary.md#hardening-profile) floor. It enforces the policy's identity floor and hands the resolved policy to the network, audit and compliance plugins.
 
 ## Layer
 
@@ -16,8 +16,6 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 - [Task package](../../docs/primitives.md#task-package): `site install <bundle>`, `site status` and `site uninstall` (`installVerb`, `installBundle`, `installStatus`, `uninstall`, `installLayout`, `InstallRecord`). They run in the bundled binary of the application being installed.
 - [Workforce sign-in](../../docs/primitives.md#workforce-sign-in): `createWorkforceSignIn`, `WorkforceConfig`, `discover`, `providerJson`, `ProviderMetadata`, `DestinationFetch`, and `workforceIdentityComponent`, which declares the `workforce-idp` destination. Under `identity: external` on a serving host, `openSite` serves the `/auth/sign-in`, `/auth/callback` and `/auth/sign-out` routes as `publicRoute`. It resolves their session cookies through `authenticateCookie`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `sitePlugin` is written only against `@agent-native/host/plugin`. It provides the `identity` port and declares the ports its policy `needs`.
-
-The [architecture](../../docs/architecture.md#host-plugins) explains how plugins use each other through ports and declare the ports they need.
 
 ### Site install
 
@@ -60,7 +58,7 @@ What the plugin does at each lifecycle hook:
 
 The `site-policy` setting (`--site-policy` or `AGENT_NATIVE_SITE_POLICY`) is a trusted launcher input. Without a policy, the application is isolated and needs nothing from other plugins. A policy below its profile floor refuses startup. The plugin never falls back to plain transport or to the local owner.
 
-A supplied policy declares the ports it depends on through `portsNeeded`: `network`, `ingress` or `eventLog`. The host refuses a composition in which no composed plugin provides one of them. [Security and compliance](../../docs/security-and-compliance.md#controls-and-plugins) lists which policy settings need which port.
+A supplied policy declares the ports it depends on through `portsNeeded`: `network`, `ingress` or `eventLog`. The host refuses a composition in which no composed plugin provides one of them.
 
 The service at `services.site` holds the resolved policy and the composed requirements. It holds no credentials and no file contents beyond what the policy names.
 
@@ -165,3 +163,9 @@ With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the ins
 ## Skills
 
 - [deploy-to-site](skills/deploy-to-site/SKILL.md): writing and checking a deployment policy, building and installing a signed bundle, and exporting firewall rules.
+
+## References
+
+- [Security and compliance](../../docs/security-and-compliance.md#deployment-policy)
+- [Architecture](../../docs/architecture.md#host-plugins)
+- [Security and compliance](../../docs/security-and-compliance.md#controls-and-plugins)

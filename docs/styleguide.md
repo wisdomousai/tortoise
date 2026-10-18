@@ -44,7 +44,7 @@ A guide in `docs/` explains one topic. Sections, in order, each present when it 
 3. Mechanism: how the code does it, in the order a request or a record travels.
 4. Use: the commands that apply the mechanism.
 5. Limits: what the code does not do at all. A caveat about one mechanism stays with that mechanism.
-6. Related pages.
+6. References.
 
 ### Reference
 
@@ -62,10 +62,11 @@ A README describes one package, plugin, app, example or SDK. "Package" on this p
 6. Dependencies.
 7. Tests: the command and one line per test file.
 8. Skills: links, or one line saying why none apply.
+9. References.
 
 ### Skill
 
-A skill is a task guide. It keeps its frontmatter and these sections: a first paragraph, then "Before writing", "Steps" and "Checks". These section names are fixed across skills. Steps are numbered, imperative and one action each. A skill links to the guide for the explanation instead of repeating it.
+A skill is a task guide. It keeps its frontmatter and these sections: a first paragraph, then "Before writing", "Steps" and "Checks". A "References" section may follow. These section names are fixed across skills. Steps are numbered, imperative and one action each. A skill links to the guide for the explanation instead of repeating it.
 
 ### Ledger
 
@@ -185,7 +186,8 @@ out of the box, ", or nothing", never stands in for
 
 ## Links and structure
 
-- Each concept has one home page. Other pages link to it in one sentence instead of re-explaining it.
+- Each concept has one home page. Prose links a term where the term is used.
+- A link to another page, guide, README or skill goes in the References section at the end of the page, one link per bullet, with nothing after the link. No sentence says what another page contains, covers, lists or explains.
 - Links are relative Markdown links to files in the repository. A link to a source file or directory is turned into a GitHub link on the site.
 - Every `docs/*.md` page is listed in the `guides` list of `docs/.vitepress/sidebar.ts`.
 - Link text is the name of the page or the term. Do not use "here" or "this" as link text.

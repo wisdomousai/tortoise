@@ -5,7 +5,7 @@ description: Serve a local base or fine-tuned model to agents with measured dige
 
 # Serve a local model
 
-A [model entry](../../../../docs/glossary.md#model-entry) names the weights by digest. At each start, the model server plugin proves that the files on disk are those weights and that a fine-tune passed its gate. It then starts the server through the [process port](../../../../docs/glossary.md#process-port). See [Agents](../../../../docs/agents.md#local-models) and the [plugin README](../../README.md).
+A [model entry](../../../../docs/glossary.md#model-entry) names the weights by digest. At each start, the model server plugin proves that the files on disk are those weights and that a fine-tune passed its gate. It then starts the server through the [process port](../../../../docs/glossary.md#process-port).
 
 ## Before writing
 
@@ -50,3 +50,8 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 
 2. Treat a run against a real model server as live evidence. Report the runtime, the entry and its digests, and the gate's results in [implementation status](../../../../docs/implementation-status.md#agents-and-providers).
 3. Follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) for the rest.
+
+## References
+
+- [Agents](../../../../docs/agents.md#local-models)
+- [`@agent-native/model-server`](../../README.md)

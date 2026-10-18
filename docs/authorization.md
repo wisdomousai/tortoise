@@ -72,7 +72,7 @@ UI intents are bounded, expire, are offered until acknowledged, and end as accep
 
 ## Process boundary
 
-The instance owns the [workspace](glossary.md#workspace). Other processes attach through its protected [connection file](glossary.md#connection-file) and never open a second writable copy. An exclusive OS lock guards the workspace, including through path aliases, and a crash releases it (`packages/adapters/src/ownership.test.ts`). Another process running as the same OS user is not sandboxed. [Architecture](architecture.md#instances-and-hosts) describes embedded and attached modes.
+The instance owns the [workspace](glossary.md#workspace). Other processes attach through its protected [connection file](glossary.md#connection-file) and never open a second writable copy. An exclusive OS lock guards the workspace, including through path aliases, and a crash releases it (`packages/adapters/src/ownership.test.ts`). Another process running as the same OS user is not sandboxed.
 
 ## CASL adapter
 
@@ -100,8 +100,9 @@ bun test packages/runtime/test packages/adapters/src/casl.test.ts
 bun test examples/project-tasks/test/security-conformance.test.ts
 ```
 
-## Related pages
+## References
 
-- [State and reactivity](state-and-reactivity.md): command steps and live queries.
-- [Systems of record](systems-of-record.md#worker-claims): the claim before delivery.
-- [Adapters](adapters.md): surface and storage adapters.
+- [State and reactivity](state-and-reactivity.md)
+- [Systems of record](systems-of-record.md#worker-claims)
+- [Adapters](adapters.md)
+- [Architecture](architecture.md#instances-and-hosts)

@@ -375,18 +375,19 @@ The extractor port keeps proposals in memory until the hub syncs them. A restart
 - **Scheme tables.** `contracts/schemes.ts` labels common class letters and device numbers only. An unknown letter or number is valid syntax without a label.
 - **Export directory.** The export folder has been written by the worker in `test/export.test.ts` only, not on a site.
 
-## Related pages
+## Skills
+
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md)
+
+## References
 
 - [Asset survey field](../asset-survey-field/README.md)
 - [System-of-record pattern](../../docs/systems-of-record.md)
 - [Mobile](../../docs/mobile.md)
-- [Connect-system-of-record skill](../../packages/integration/skills/connect-system-of-record/SKILL.md)
-- [Quality inspection](../quality-inspection/README.md), the outbox and inbound sync with a fake quality system
-- [CRM capture](../crm-capture/README.md), live search with each caller's own credential
-- [Receiving](../receiving/README.md), a system of record reached through shared folders
-
-## Skills
-
-- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) covers the targets and the data provider.
-- [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md) covers pairing and the field application.
-- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md) and [build-screens](../../packages/frame/skills/build-screens/SKILL.md) cover capabilities and screens.
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [Quality inspection](../quality-inspection/README.md)
+- [CRM capture](../crm-capture/README.md)
+- [Receiving](../receiving/README.md)
+- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md)
+- [build-screens](../../packages/frame/skills/build-screens/SKILL.md)

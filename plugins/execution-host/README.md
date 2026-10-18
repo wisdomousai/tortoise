@@ -1,6 +1,6 @@
 # @agent-native/execution-host
 
-The [execution host](../../docs/glossary.md#execution-host) plugin runs the tools an agent uses in Linux bubblewrap sandboxes. Such a tool is a coding agent's shell command, a provider CLI, or a script that calls the application's CLI or MCP server. A sandbox sees only the tools and paths its task names, and reaches the network only through the egress proxy. It holds one credential: a token bound to its [agent run](../../docs/glossary.md#agent-run) and its delegated [grant](../../docs/glossary.md#grant), which this plugin issues and revokes. [Agents](../../docs/agents.md#harnesses) explains how harnesses and their tools relate to it.
+The [execution host](../../docs/glossary.md#execution-host) plugin runs the tools an agent uses in Linux bubblewrap sandboxes. Such a tool is a coding agent's shell command, a provider CLI, or a script that calls the application's CLI or MCP server. A sandbox sees only the tools and paths its task names, and reaches the network only through the egress proxy. It holds one credential: a token bound to its [agent run](../../docs/glossary.md#agent-run) and its delegated [grant](../../docs/glossary.md#grant), which this plugin issues and revokes.
 
 ## Layer
 
@@ -119,3 +119,7 @@ bun run test:execution-host:linux
 ## Skills
 
 - [run-agent-tools-in-a-sandbox](skills/run-agent-tools-in-a-sandbox/SKILL.md): declaring a sandbox, binding bubblewrap and running a task under a grant.
+
+## References
+
+- [Agents](../../docs/agents.md#harnesses)

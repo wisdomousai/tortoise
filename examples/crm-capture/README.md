@@ -218,17 +218,17 @@ Adopting is a domain command, because what adoption means depends on the domain,
    - **Destination**: `crm-api` with `targets`, `dataClasses`, scope `site` and availability `required`, listed as disabled in `apps/desktop/site-policy.json`.
    - **Screens**: a `crm` route, a `/crm` navigation entry and a `crm.` capability-screen prefix for a status screen with a send form.
 
-5. Reshape the account record in `contracts/account.ts` to what adoption stores. `examples/crm-capture/contracts/schemas.ts` and `domain.ts` are the reference.
+5. Reshape the account record in `contracts/account.ts` to what adoption stores.
    - **Key**: the CRM ID in place of a generated key.
    - **Status**: `following`, `adopted` and `rejected` in place of `open` and `done`.
    - **Fields**: the CRM details as optional fields, the adopting principal, the rejection and a count of the account's activities.
    - **Stored type**: a type in `domain.ts` that adds the effect ID, which callers never see.
    - **List**: the `id` option set to `crm.account`, which names the list `crm.account.list`, with a status filter and no `search`.
 6. Change the list handler in `handlers/account.ts`: `order` by adoption time, no `searchText`, and a `present` option that strips the effect ID and adds the activity count. `examples/crm-capture/handlers/accounts.ts` and `accountDto` in `handlers/context.ts` are the reference.
-7. Replace the generated `collectionGet` and its handler with a `crm.account.get` query that returns the account and its activities as `history`. `examples/crm-capture/contracts/operations.ts` and `handlers/accounts.ts` are the reference.
+7. Replace the generated `collectionGet` and its handler with a `crm.account.get` query that returns the account and its activities as `history`.
 8. Delete the generated `account.create` and `account.update` commands with their rules, handlers and `test/account.test.ts`, so a local account can only come from adoption.
-9. Replace the default account screens in `ui/account.tsx` with a followed-account list and an account screen that shows the history from `crm.account.get`. The [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md) covers screens, and `examples/crm-capture/ui/accounts.tsx` and `ui/account.tsx` are the reference.
-10. Reshape the activity record in `contracts/activity.ts` to what the log command stores. `examples/crm-capture/contracts/schemas.ts` and `domain.ts` are the reference.
+9. Replace the default account screens in `ui/account.tsx` with a followed-account list and an account screen that shows the history from `crm.account.get`.
+10. Reshape the activity record in `contracts/activity.ts` to what the log command stores.
     - **Content**: the account ID, the kind, the summary and `occurredAt`.
     - **Delivery**: the delivery fields `sync`, `sorRef` and `rejection`.
     - **Stored type**: a type in `domain.ts` that adds the effect ID, which callers never see.
@@ -284,7 +284,7 @@ Adopting is a domain command, because what adoption means depends on the domain,
     - **Foreign cursor**: throw `ApplicationError` with `INVALID_INPUT`.
 29. Implement `CallerCredentials` over the deployment's credential store: `forPrincipal` returns the principal's own CRM credential, and `service` the technical one. Never read a credential from input.
 30. Move the generated port out of `connect` into the application factory, type its option with the credential, and add an option that supplies the `CallerCredentials`. The generated factory builds the port inside `connect` and has no credentials option.
-31. Pass the same port instance to the `connectTarget` call and to `sources: { crm: createRemoteSource({ target: 'crm', port, credentials }) }`. `examples/crm-capture/application.ts` is the reference.
+31. Pass the same port instance to the `connectTarget` call and to `sources: { crm: createRemoteSource({ target: 'crm', port, credentials }) }`.
 32. Wrap the integration's `start` to pass `syncMs` if the default feed interval of five seconds is too slow. The example passes one second, so an adopted account fills in shortly after the CRM accepts the follow.
 33. Add `selectableResources: { account: 'crm.account.get' }` to the application definition, so an agent run can capture the account a person has open. The host checks each selection through that query with the caller's own grants and policy.
 34. Add `workflows` to the module in `contracts.ts` that tell agents which operations to chain and how. `find-and-log` and `review-sync` in `examples/crm-capture/contracts.ts` are the reference.
@@ -326,20 +326,22 @@ Adopting is a domain command, because what adoption means depends on the domain,
 - **Held effects.** The example composes no reconciliation operations, so no command in it can settle or release an effect the dispatcher holds.
 - **No unfollow or edit.** No command stops following an account or changes a logged activity. A followed account stays in the feed for the life of the fake.
 - **Accounts without a region.** An account without details has no region, so every member sees it (`domain.ts`). A followed account gets its region when the feed delivers it, and a refused account never gets one.
-- **State migrations.** The example declares none, so a change to the stored record shape needs a migration the example does not show. The [add-capability skill](../../packages/runtime/skills/add-capability/SKILL.md) covers state migrations.
-
-## Related pages
-
-- [System-of-record pattern](../../docs/systems-of-record.md#remote-queries)
-- [Primitives](../../docs/primitives.md)
-- [connect-system-of-record skill](../../packages/integration/skills/connect-system-of-record/SKILL.md)
-- [add-capability skill](../../packages/runtime/skills/add-capability/SKILL.md)
-- [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md)
-- [Quality inspection](../quality-inspection/README.md), the outbox and feed without remote queries
-- [Asset survey](../asset-survey/README.md), a second data provider over an EAM
-- [Receiving](../receiving/README.md), held effects and reconciliation
+- **State migrations.** The example declares none, so a change to the stored record shape needs a migration the example does not show.
 
 ## Skills
 
-- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) covers data providers, the target and adoption.
-- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md) and [build-screens](../../packages/frame/skills/build-screens/SKILL.md) cover the local capabilities and the screens.
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+
+## References
+
+- [System-of-record pattern](../../docs/systems-of-record.md#remote-queries)
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md)
+- [build-screens](../../packages/frame/skills/build-screens/SKILL.md)
+- [Quality inspection](../quality-inspection/README.md)
+- [Asset survey](../asset-survey/README.md)
+- [Receiving](../receiving/README.md)
+- [`examples/crm-capture/contracts/schemas.ts`](contracts/schemas.ts)
+- [`examples/crm-capture/contracts/operations.ts`](contracts/operations.ts)
+- [`examples/crm-capture/ui/accounts.tsx`](ui/accounts.tsx)
+- [`examples/crm-capture/application.ts`](application.ts)

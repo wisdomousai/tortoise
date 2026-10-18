@@ -4,7 +4,7 @@ This plugin puts hardware [drivers](../../docs/glossary.md#driver) in any langua
 
 ## Layer
 
-[Host plugin](../../docs/glossary.md#host-plugin) layer. `contracts`, `plugin-manifest` and `plugin-screens` are browser-safe; everything else is server only. The equipment's own code runs in the driver process. A crash, a 32-bit COM server or a device permission therefore never touches the process that holds the workspace. The plugin trusts the executable the [deployment policy](../../docs/glossary.md#deployment-policy) binds, and still checks every answer it sends. [Hardware drivers](../../docs/hardware-drivers.md) explains the design and its limits.
+[Host plugin](../../docs/glossary.md#host-plugin) layer. `contracts`, `plugin-manifest` and `plugin-screens` are browser-safe; everything else is server only. The equipment's own code runs in the driver process. A crash, a 32-bit COM server or a device permission therefore never touches the process that holds the workspace. The plugin trusts the executable the [deployment policy](../../docs/glossary.md#deployment-policy) binds, and still checks every answer it sends.
 
 ## Primitives
 
@@ -67,7 +67,7 @@ The deployment policy binds each driver's process ID to an absolute executable, 
 
 ### Driver contract
 
-A contract declares state fields, actions and events. Each action has an input schema, a [delivery mode](../../docs/glossary.md#delivery-mode), a [hazard class](../../docs/glossary.md#hazard-class) and a timeout. It may also have a readback and preconditions on state. [Hardware drivers](../../docs/hardware-drivers.md#delivery-modes) describes the delivery modes.
+A contract declares state fields, actions and events. Each action has an input schema, a [delivery mode](../../docs/glossary.md#delivery-mode), a [hazard class](../../docs/glossary.md#hazard-class) and a timeout. It may also have a readback and preconditions on state.
 
 The contract digest is the SHA-256 of `driverContractDocument`'s canonical JSON. The stub generators write it into the driver, and the handshake refuses a driver that answers with another.
 
@@ -157,3 +157,8 @@ Each SDK's own tests run its simulated chamber against this base.
 ## Skills
 
 - [write-hardware-driver](skills/write-hardware-driver/SKILL.md): writing a driver contract, wiring it into an application, and writing, checking and binding the driver.
+
+## References
+
+- [Hardware drivers](../../docs/hardware-drivers.md)
+- [Hardware drivers](../../docs/hardware-drivers.md#delivery-modes)

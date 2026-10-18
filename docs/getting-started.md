@@ -6,7 +6,7 @@ An [application](glossary.md#application) runs as a desktop window, a browser pa
 
 Only one [instance](glossary.md#instance) may own a [workspace](glossary.md#workspace). The desktop window starts that instance, or attaches to one that is already running. Closing a window that started the instance stops it. Closing an attached window leaves the existing instance running.
 
-The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attached mode](glossary.md#attached-mode), through its [connection file](glossary.md#connection-file). The CLI's `--embedded` flag puts a capability call or the CLI's own MCP verb in [embedded mode](glossary.md#embedded-mode), which opens the workspace in the CLI's process. An embedded call fails with `CONFLICT` while a live instance owns the workspace. Embedded calls and the CLI's workspace verbs for sync, drain, backup, restore and migrate open a local workspace only, so a [hosted instance](hosting.md#hosted-instance) is always reached attached. [Architecture](architecture.md#embedded-and-attached-modes) explains both modes.
+The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attached mode](glossary.md#attached-mode), through its [connection file](glossary.md#connection-file). The CLI's `--embedded` flag puts a capability call or the CLI's own MCP verb in [embedded mode](glossary.md#embedded-mode), which opens the workspace in the CLI's process. An embedded call fails with `CONFLICT` while a live instance owns the workspace. Embedded calls and the CLI's workspace verbs for sync, drain, backup, restore and migrate open a local workspace only, so a [hosted instance](hosting.md#hosted-instance) is always reached attached.
 
 ## First run
 
@@ -45,7 +45,7 @@ In the same directory, `bun run dev:web` serves the browser instead. When an exa
 | [`fleet`](../examples/fleet/README.md) | 4340 | [Hosting](hosting.md#fleet) |
 | [`asset-survey-field`](../examples/asset-survey-field/README.md) | none | [Mobile](mobile.md) |
 
-`asset-survey-field` runs on a phone or emulator instead; its README has the steps. [Architecture](architecture.md#examples) describes what each example exercises.
+`asset-survey-field` runs on a phone or emulator instead; its README has the steps.
 
 ### Quality inspection run
 
@@ -98,7 +98,7 @@ bun run cli help inspection result record
 - `mcp --embedded --grant-file <file>` serves the agent over MCP under the [grant](glossary.md#grant) in the file, without listening on the network.
 - `drain` delivers pending [outbox effects](glossary.md#effect) and exits with code 75 while any remain.
 
-An embedded call without a grant file acts as the local workspace [owner](glossary.md#owner) unless the deployment policy refuses the local owner. [Systems of record](systems-of-record.md) has the grant file, the other verbs and the exit codes.
+An embedded call without a grant file acts as the local workspace [owner](glossary.md#owner) unless the deployment policy refuses the local owner.
 
 ## MCP
 
@@ -169,11 +169,13 @@ With `--example <name>`, it exports one example as the application the starter h
 
 The scaffold does not install global agent configuration or invent a domain from the application name. A coding agent shapes the generated parts into the requested domain with the [setup skill](../packages/scaffold/skills/create-agent-native-app/SKILL.md) and the [capability authoring guide](capability-authoring.md). The other task skills live next to the package they describe and are listed in [AGENTS.md](../AGENTS.md#skills). Running `bun install` links them for Claude Code and Codex.
 
-## Related pages
+## References
 
-- [Architecture](architecture.md): layers, surfaces, instances and hosts.
-- [Systems of record](systems-of-record.md): the CLI verbs, grant files and exit codes.
-- [Desktop](desktop.md): the Electron window and packaging.
-- [Mobile](mobile.md): running an application on a phone or tablet.
-- [Hosting](hosting.md): the hosted instance and the fleet.
-- [Development and testing](development-and-testing.md): the checks to run after a change.
+- [Architecture](architecture.md)
+- [Systems of record](systems-of-record.md)
+- [Desktop](desktop.md)
+- [Mobile](mobile.md)
+- [Hosting](hosting.md)
+- [Development and testing](development-and-testing.md)
+- [Architecture](architecture.md#embedded-and-attached-modes)
+- [Architecture](architecture.md#examples)

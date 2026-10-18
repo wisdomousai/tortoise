@@ -11,8 +11,6 @@ Plugin layer, shipped with the framework. Server only, except `plugin-manifest`.
 - [Audit log](../../docs/primitives.md#audit-log): `auditPlugin`, `auditPluginManifest`, `auditCollectorComponent`, `openAudit`, `auditServiceOf`, `AuditService`, `auditCommand`, `auditCliCommand`, `auditUsage`, `AUDIT_INVALID_EXIT_CODE`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `auditPlugin` requires `site`. It is written only against `@agent-native/host/plugin` and reaches its collector through the composed network port.
 
-See [Architecture](../../docs/architecture.md#host-plugins) and [Security and compliance](../../docs/security-and-compliance.md#audit-log).
-
 ## Entrypoints
 
 | Import | Runs in | Contents |
@@ -72,3 +70,8 @@ The package has no tests of its own. Applications that compose it exercise it:
 ## Skills
 
 - [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.
+
+## References
+
+- [Architecture](../../docs/architecture.md#host-plugins)
+- [Security and compliance](../../docs/security-and-compliance.md#audit-log)

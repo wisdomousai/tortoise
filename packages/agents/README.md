@@ -20,8 +20,6 @@ Framework (`packages/*`). Server only. The host constructs harnesses with explic
 - [OS action](../../docs/primitives.md#os-action): `openAiComponent` declares `openai.authorize`, the ChatGPT sign-in page the desktop opens in the system browser.
 - [Credential vault](../../docs/primitives.md#credential-vault): `CredentialVault`, `OsCredentialVault`, `MemoryCredentialVault`, `OidcAccountConnection` and `ChatGptAccountConnection`.
 
-[Agents](../../docs/agents.md), [providers](../../docs/providers.md) and [authorization](../../docs/authorization.md) explain the design.
-
 ## Entrypoints
 
 | Import | Runs in | Contents |
@@ -114,4 +112,10 @@ The tests use deterministic fixtures only. They prove adapter and protocol behav
 
 - [serve-a-local-model](../../plugins/model-server/skills/serve-a-local-model/SKILL.md): model entries, named models on agents and the activation gate.
 
-No skill covers adding a harness adapter or a provider connection. That work follows [agents](../../docs/agents.md) and [providers](../../docs/providers.md).
+None for harness adapters or provider connections.
+
+## References
+
+- [Agents](../../docs/agents.md)
+- [Providers](../../docs/providers.md)
+- [Authorization](../../docs/authorization.md)

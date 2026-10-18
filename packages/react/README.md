@@ -13,7 +13,7 @@ Framework (`packages/*`). Browser-safe. The bindings trust the [instance](../../
 - [Journal and live query](../../docs/primitives.md#journal-and-live-query): `createLiveBindings`, `changedResourceTypes`, `isAffected`.
 - [UI session context](../../docs/primitives.md#ui-session-context): `captureUiContext`, `UiSessions`, `UiContext`, `UiIntent`.
 
-The [interaction contract](../../docs/interaction-contract.md) defines drafts, conflicts and intents. The quality-inspection capture screen ([`examples/quality-inspection/ui/capture-station.tsx`](../../examples/quality-inspection/ui/capture-station.tsx)) uses the form and capture bindings together.
+The quality-inspection capture screen ([`examples/quality-inspection/ui/capture-station.tsx`](../../examples/quality-inspection/ui/capture-station.tsx)) uses the form and capture bindings together.
 
 ## Entrypoints
 
@@ -60,3 +60,7 @@ bun test packages/react
 ## Skills
 
 - [build-screens](../frame/skills/build-screens/SKILL.md): screens, forms, live queries and registry items.
+
+## References
+
+- [Interaction contract](../../docs/interaction-contract.md)

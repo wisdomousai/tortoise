@@ -20,7 +20,7 @@ Framework (`packages/*`). Server only. Domain-neutral: the domain supplies the p
 - [Data provider](../../docs/primitives.md#data-provider): `implementDataProvider` supplies a provider's search and lookup handlers from one item mapper.
 - [Gated actuator](../../docs/primitives.md#gated-actuator): convergent delivery for a target that can only be observed and acted on, such as a screen or an instrument.
 
-[Systems of record](../../docs/systems-of-record.md) explains the design. [`examples/quality-inspection/application.ts`](../../examples/quality-inspection/application.ts) wires a target against a fake quality system. [`examples/crm-capture/application.ts`](../../examples/crm-capture/application.ts) adds a remote source for a remote query.
+[`examples/quality-inspection/application.ts`](../../examples/quality-inspection/application.ts) wires a target against a fake quality system. [`examples/crm-capture/application.ts`](../../examples/crm-capture/application.ts) adds a remote source for a remote query.
 
 ## Entrypoints
 
@@ -96,3 +96,7 @@ bun run test:integration
 ## Skills
 
 - [connect-system-of-record](skills/connect-system-of-record/SKILL.md): connect a system of record with outbox delivery and settlement, held effects, inbound sync, a remote query or a new `SystemOfRecordPort`.
+
+## References
+
+- [Systems of record](../../docs/systems-of-record.md)

@@ -5,7 +5,7 @@ description: Add or change barcode scanner input at a point of work, so a scan s
 
 # Add scanner input
 
-A scan is input data from the person who scans, and it grants nothing by itself. A scan route turns it into an ordinary command that [policy](../../../../docs/glossary.md#policy) still authorizes, with no model turn. Design: [Point-of-work input](../../../../docs/point-of-work-input.md).
+A scan is input data from the person who scans, and it grants nothing by itself. A scan route turns it into an ordinary command that [policy](../../../../docs/glossary.md#policy) still authorizes, with no model turn.
 
 ## Before writing
 
@@ -25,7 +25,7 @@ A scan is input data from the person who scans, and it grants nothing by itself.
 7. Declare each source other than the wedge with `scannerDevicesComponent`, so the security manifest lists serial, HID and camera access. Web Serial, WebHID and camera access start only from a person's click or key press, as browsers require.
 8. Write a new transport as a `ScannerSource` that decodes through `decodeScan`. Prefixes, AIM identifiers and GS1 parsing then follow the profile.
 9. Keep `packages/devices/src/scanner` portable, with no Node or Bun imports, because it also runs in React Native.
-10. For rugged Android, compose `plugins/intent-scanner`. Give the profile `transport: 'intent'` with the action, the data extra, and a sender permission where injected scans matter. The [intent-scanner README](../../../../plugins/intent-scanner/README.md) has Zebra and Honeywell profiles, and `examples/asset-survey-field` uses one.
+10. For rugged Android, compose `plugins/intent-scanner`. Give the profile `transport: 'intent'` with the action, the data extra, and a sender permission where injected scans matter.
 11. Build the screen parts from the operator [UI registry](../../../../docs/glossary.md#ui-registry): `scan-prompt`, `scanner-setup` and the `use-scanner` hook. Add the capture hooks from `@agent-native/react/capture`. The `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers both.
 12. Make sure a scanner's keystroke burst, including its final Enter, never fires a hotkey.
 
@@ -49,3 +49,9 @@ A scan is input data from the person who scans, and it grants nothing by itself.
 3. Report deterministic, browser and device evidence separately.
 
 No physical scanner has been checked yet. A scanner type counts as supported only once it has run on the device and [implementation status](../../../../docs/implementation-status.md#operator-workstation-bridge) records it.
+
+## References
+
+- [Point-of-work input](../../../../docs/point-of-work-input.md)
+- [`@agent-native/intent-scanner`](../../../../plugins/intent-scanner/README.md)
+- [`examples/asset-survey-field`](../../../../examples/asset-survey-field/README.md)

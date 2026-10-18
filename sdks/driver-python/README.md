@@ -1,6 +1,6 @@
 # @agent-native/driver-sdk-python
 
-The Python package `agent-native-driver` (module `agent_native_driver`), for writing a hardware [driver](../../docs/glossary.md#driver) for an agent-native [host](../../docs/glossary.md#host) in Python. The SDK answers the driver protocol, and the driver author writes the handlers that touch the equipment. [Hardware drivers](../../docs/hardware-drivers.md) explains the protocol, the gate and deployment.
+The Python package `agent-native-driver` (module `agent_native_driver`), for writing a hardware [driver](../../docs/glossary.md#driver) for an agent-native [host](../../docs/glossary.md#host) in Python. The SDK answers the driver protocol, and the driver author writes the handlers that touch the equipment.
 
 ## Layer
 
@@ -101,3 +101,7 @@ The host test runs from the repository root as part of `bun run check`. It is sk
 ## Skills
 
 - [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.
+
+## References
+
+- [Hardware drivers](../../docs/hardware-drivers.md)

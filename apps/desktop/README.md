@@ -1,6 +1,6 @@
 # @agent-native/desktop
 
-The starter's Electron window for the configured [application](../../docs/glossary.md#application). It attaches to the [instance](../../docs/glossary.md#instance) already serving the [workspace](../../docs/glossary.md#workspace), or starts `apps/service` as a sidecar and stops it again when the window closes. [Desktop](../../docs/desktop.md) covers the lifecycle and the native build.
+The starter's Electron window for the configured [application](../../docs/glossary.md#application). It attaches to the [instance](../../docs/glossary.md#instance) already serving the [workspace](../../docs/glossary.md#workspace), or starts `apps/service` as a sidecar and stops it again when the window closes.
 
 ## Layer
 
@@ -77,3 +77,7 @@ The native Playwright tests need an already packaged build and skip without `DES
 
 - [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers and actions, and the electron-builder registrations.
 - [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): the shipped deployment policy and its test.
+
+## References
+
+- [Desktop](../../docs/desktop.md)

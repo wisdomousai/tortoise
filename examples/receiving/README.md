@@ -163,7 +163,7 @@ The steps build an application equivalent to the example. The example itself was
 
 Run `scaffold new` from the framework checkout's root, and every later command from the new checkout's root unless a step names another directory. Steps 7 to 39 edit files, and the application typechecks again once they are all done.
 
-1. Export the framework with a new application whose first collection is `delivery`, into a directory that is absent and outside the checkout. The [create-agent-native-app skill](../../packages/scaffold/skills/create-agent-native-app/SKILL.md) covers this step.
+1. Export the framework with a new application whose first collection is `delivery`, into a directory that is absent and outside the checkout.
 
    ```sh
    bun run scaffold new /absolute/path/to/goods-receiving --name receiving --display-name "Goods receiving" --collection delivery
@@ -182,7 +182,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
    bun run scaffold add target erp --collection delivery
    ```
 
-4. Add the two commands, each with an empty contract and a headless UI exception, a handler, an editor rule and a test. The [add-capability skill](../../packages/runtime/skills/add-capability/SKILL.md) covers the shaping.
+4. Add the two commands, each with an empty contract and a headless UI exception, a handler, an editor rule and a test.
 
    ```sh
    bun run scaffold add capability delivery.receive --kind command --description "Record the quantity counted for a delivery line. Editors only."
@@ -221,10 +221,10 @@ Run `scaffold new` from the framework checkout's root, and every later command f
 23. Remove the generated `erpDeliveries` map from the state type and the initial state, together with its type import. Store the posting on the delivery line instead.
 24. Rewrite the send handler in `handlers/erp-target.ts` with the posting preconditions and a goods receipt payload that holds the columns the port writes. Rewrite the send command's description to list its three refusals.
 25. Rewrite the target's outcome hook, batch callback and status counts in the same file, as the example does.
-26. Write `handlers/reconciliation.ts`, which calls the runtime's reconciliation handlers with a visibility filter for delivery effects and a resolve hook. The [connect-system-of-record skill](../../packages/integration/skills/connect-system-of-record/SKILL.md) covers this step and the target steps.
+26. Write `handlers/reconciliation.ts`, which calls the runtime's reconciliation handlers with a visibility filter for delivery effects and a resolve hook.
 27. List the reconciliation handler group in `server.ts`, and spread the framework's reconciliation capabilities into the operations map.
 28. Give the reconciliation list query the open rule, and the resolve command the editor rule with `person: true`.
-29. In `ui/delivery.tsx`, drop the create form from the list screen and replace the generated record screen with a line screen. The [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md) covers the screen steps.
+29. In `ui/delivery.tsx`, drop the create form from the list screen and replace the generated record screen with a line screen.
 30. Put the count, reason and send forms and the approval request review on the line screen, and remove the send form from the ERP screen.
 31. Add a Held receipts screen with the reconciliation review, and register its route, navigation item and capability screen prefix in `screens.tsx`.
 32. Rewrite the generated conformance test on the model of `test/conformance.test.ts`. That test opens the application with a quiet period of 0, binds the notice folder, writes a notice, syncs and counts.
@@ -264,7 +264,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
     AGENT_NATIVE_SITE_POLICY=/absolute/path/to/site-policy.json bun run dev
     ```
 
-The [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md) covers site policies. The ERP side replaces `FakeFileConsumer` and follows the rules in the [connector-files delivery section](../../plugins/connector-files/README.md#delivery).
+The ERP side replaces `FakeFileConsumer` and follows the rules in the [connector-files delivery section](../../plugins/connector-files/README.md#delivery).
 
 ## Limits
 
@@ -279,17 +279,21 @@ The [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md) co
 - **Integration lane.** No example test checks that a person is refused the ERP's sync and settle capabilities.
 - **No agents marker.** The example's `contracts.ts` has no agents marker, so the scaffold cannot add an agent to it.
 
-## Related pages
+## Skills
+
+- [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md)
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+
+## References
 
 - [System-of-record pattern](../../docs/systems-of-record.md)
-- [connector-files README](../../plugins/connector-files/README.md)
+- [Connector-files README](../../plugins/connector-files/README.md)
 - [Scaffold README](../../packages/scaffold/README.md)
-- [create-agent-native-app skill](../../packages/scaffold/skills/create-agent-native-app/SKILL.md)
-- [connect-system-of-record skill](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md)
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
 - [Quality inspection](../quality-inspection/README.md)
 - [CRM capture](../crm-capture/README.md)
 - [Line station](../line-station/README.md)
-
-## Skills
-
-The example has no skills of its own. [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md) generated it, and [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) covers the ERP target.
+- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md)
+- [build-screens](../../packages/frame/skills/build-screens/SKILL.md)
+- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md)

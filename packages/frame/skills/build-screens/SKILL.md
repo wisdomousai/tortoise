@@ -5,7 +5,7 @@ description: Build or change the web screens of an agent-native application or h
 
 # Build screens
 
-[Screens](../../../../docs/glossary.md#screen) are the browser half of an application. They read through [live queries](../../../../docs/glossary.md#live-query) and write only through catalog commands, so a person and an agent reach the same behavior. See the [frame README](../../README.md) for the [web frame](../../../../docs/glossary.md#web-frame). `examples/project-tasks/screens.tsx` is the smallest worked `screens` entrypoint.
+[Screens](../../../../docs/glossary.md#screen) are the browser half of an application. They read through [live queries](../../../../docs/glossary.md#live-query) and write only through catalog commands, so a person and an agent reach the same behavior.
 
 ## Before writing
 
@@ -14,7 +14,7 @@ description: Build or change the web screens of an agent-native application or h
   - `capability-form` renders any command;
   - `live-data-table` pages after the instance scopes rows.
 - For gloved or high-frequency input, use the `operator` registry (`packages/operator-ui`) and read [point-of-work input](../../../../docs/point-of-work-input.md).
-- `examples/quality-inspection/ui/capture-station.tsx` is the pattern for repeated entry. `examples/line-station/ui/station.tsx` composes a full station's screen.
+- `examples/line-station/ui/station.tsx` composes a full station's screen.
 - Each command a screen issues needs a matching `ui.binding` on its capability, its [UI binding](../../../../docs/glossary.md#ui-binding). The `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`) covers it.
 - The instance's content security policy rejects inline scripts and injected styles. Use components that render native elements, such as `ui/native-dialog`, instead of ones that inject styles at runtime.
 - Browser files must not import server modules.
@@ -51,3 +51,9 @@ description: Build or change the web screens of an agent-native application or h
    ```
 
 5. Report browser runs separately from unit tests. A successful build is not a browser interaction.
+
+## References
+
+- [`@agent-native/frame`](../../README.md)
+- [`examples/project-tasks/screens.tsx`](../../../../examples/project-tasks/screens.tsx)
+- [`examples/quality-inspection/ui/capture-station.tsx`](../../../../examples/quality-inspection/ui/capture-station.tsx)

@@ -17,7 +17,7 @@ Terms: [application](glossary.md#application), [instance](glossary.md#instance),
 | Content | `examples/*` or the owner's code | [Applications](#application-entrypoints), with their tests and demo scripts. |
 | Driver SDKs | `sdks/*` | The driver protocol in Python and C#, for [hardware drivers](hardware-drivers.md). |
 
-The starter learns its application from configuration. Generic behavior goes into framework packages. A new application therefore does not edit the starter, and an owner who forks it keeps receiving framework changes. [Invariants](#invariants) lists the import rules between layers.
+The starter learns its application from configuration. Generic behavior goes into framework packages. A new application therefore does not edit the starter, and an owner who forks it keeps receiving framework changes.
 
 The web frame files are registry sources. A file in `apps/web/src` replaces the frame file at the same path.
 
@@ -94,13 +94,13 @@ A host platform is trusted host code that the starter chooses; an application ca
 
 The desktop window starts the host or attaches to a running one, and loads the shared web build. These are deployment choices, and module behavior does not depend on them.
 
-A [hosted instance](glossary.md#hosted-instance) is the Bun host on the hosted platform. [Hosting](hosting.md) describes it, what it leaves out of scope, and the [fleet](glossary.md#fleet) that sites report to. Synchronization of one workspace across several devices is out of scope.
+A [hosted instance](glossary.md#hosted-instance) is the Bun host on the hosted platform. Synchronization of one workspace across several devices is out of scope.
 
 ### Embedded and attached modes
 
 A CLI call or an MCP bridge with `--embedded` runs in embedded mode, and so does a phone that opens its own workspace. A CLI call with a connection file, the MCP bridge without `--embedded`, the desktop window and an attached tablet run in attached mode.
 
-An embedded CLI or MCP process takes the same OS lock as a serving host. It fails with `CONFLICT` while a live instance owns the workspace. [Lifecycle](#lifecycle) lists which plugin hooks it runs.
+An embedded CLI or MCP process takes the same OS lock as a serving host. It fails with `CONFLICT` while a live instance owns the workspace.
 
 ## Storage
 
@@ -115,7 +115,7 @@ The storage port has an atomic transaction callback and a read callback. It impo
 
 The SQLite, Postgres and snapshot adapters accept only JSON. The adapters reject sparse arrays instead of reloading the holes as nulls. The row layout is not a relational model of module state.
 
-A replacement adapter passes the storage conformance suite in `packages/testing`, which checks the atomicity, isolation and persistence the composition relies on. [Adapters](adapters.md) explains how to replace one.
+A replacement adapter passes the storage conformance suite in `packages/testing`, which checks the atomicity, isolation and persistence the composition relies on.
 
 ## Systems of record
 
@@ -123,25 +123,25 @@ A [system of record](glossary.md#system-of-record) owns records the application 
 
 A command commits an [outbox effect](glossary.md#effect) with its [receipt](glossary.md#receipt). The dispatcher delivers the effect outside the transaction, at least once. It relies on the system of record's idempotency or on a lookup, and a settle command records the outcome. The effect's phase keeps accepted, rejected and held outcomes apart.
 
-Inbound sync imports changes through ordinary commands. No transaction spans two systems. [Systems of record](systems-of-record.md) explains the topologies, the effect phases, connectors, [remote queries](glossary.md#remote-query) and inbound sync.
+Inbound sync imports changes through ordinary commands. No transaction spans two systems.
 
 ## Authorization and reactivity
 
 The policy port is injected; [authorization](authorization.md) explains it. Every open screen receives live updates after a commit that changes what it reads.
 
-In the React bindings, a [live query](glossary.md#live-query) refetches when a declared dependency changes, or on every change when it declares none. It ignores stale responses. It clears protected data when authorization changes, and reconnects from a [snapshot](glossary.md#snapshot) cursor. [State and reactivity](state-and-reactivity.md) explains live queries and the [journal](glossary.md#journal).
+In the React bindings, a [live query](glossary.md#live-query) refetches when a declared dependency changes, or on every change when it declares none. It ignores stale responses. It clears protected data when authorization changes, and reconnects from a [snapshot](glossary.md#snapshot) cursor.
 
 Drafts stay separate from committed data. [UI intents](glossary.md#ui-session-context) expire and are not business events.
 
 ## Agents
 
-An [agent run](glossary.md#agent-run) keeps [harness](glossary.md#harness) output and application commits in separate streams. The run supervisor captures the initiating context, offers the harness only catalog capabilities as tools, and cancels through run state. [Agents](agents.md) explains runs, harnesses, [approval requests](glossary.md#approval-request) and [triggers](glossary.md#trigger).
+An [agent run](glossary.md#agent-run) keeps [harness](glossary.md#harness) output and application commits in separate streams. The run supervisor captures the initiating context, offers the harness only catalog capabilities as tools, and cancels through run state.
 
 Fixture and protocol tests are one kind of evidence. Live credentials, plan eligibility and real inference need separate configured checks, and the [ledger](implementation-status.md) records them.
 
 ## Host plugins
 
-Modules, [host components](glossary.md#host-component) and plugins declare their network access, devices, [exchange folders](glossary.md#exchange-folder) and child processes as [requirement declarations](glossary.md#requirement-declaration). Nothing is discovered at runtime. [Security and compliance](security-and-compliance.md) explains the declarations and the deployment policy that binds them.
+Modules, [host components](glossary.md#host-component) and plugins declare their network access, devices, [exchange folders](glossary.md#exchange-folder) and child processes as [requirement declarations](glossary.md#requirement-declaration). Nothing is discovered at runtime.
 
 ### Ports
 
@@ -189,8 +189,6 @@ Startup refuses the composition in these cases:
 - **network** guards outbound connections.
 - **audit** keeps the tamper-evident audit log.
 - **compliance** adds auditor queries, the posture monitor and the Compliance screen.
-
-[Security and compliance](security-and-compliance.md) describes these four plugins, including the audit log's modes.
 
 ### Telemetry
 
@@ -267,18 +265,23 @@ Each [example](glossary.md#example) is an application under `examples/` and serv
 
 [Getting started](getting-started.md#other-examples) runs each example and gives its port.
 
-## Related pages
+## References
 
-- [Getting started](getting-started.md): running an example, the CLI and MCP, and creating an application.
-- [Capability authoring](capability-authoring.md) and [interaction contract](interaction-contract.md): writing a capability, and its schemas, results, errors and idempotency.
-- [Authorization](authorization.md) and [state and reactivity](state-and-reactivity.md): who may do what, and commands, queries and live queries.
-- [Adapters](adapters.md): ports and reference adapters.
-- [Systems of record](systems-of-record.md): the outbox, inbound sync, remote queries, the CLI and MCP.
-- [Operator workstations](operator-workstations.md), [point-of-work input](point-of-work-input.md) and [hardware drivers](hardware-drivers.md): workstation applications, scanners and driver processes.
-- [Agents](agents.md) and [providers](providers.md): agent runs, harnesses and provider accounts.
-- [Hosting](hosting.md): hosted instances and fleets.
-- [Security and compliance](security-and-compliance.md): what the application may reach, and the audit log.
-- [Desktop](desktop.md) and [mobile](mobile.md): packaging and the mobile host.
-- [Development and testing](development-and-testing.md): running the checks.
-
-[Implementation status](implementation-status.md) is the only status page.
+- [Getting started](getting-started.md)
+- [Capability authoring](capability-authoring.md)
+- [Interaction contract](interaction-contract.md)
+- [Authorization](authorization.md)
+- [State and reactivity](state-and-reactivity.md)
+- [Adapters](adapters.md)
+- [Systems of record](systems-of-record.md)
+- [Operator workstations](operator-workstations.md)
+- [Point-of-work input](point-of-work-input.md)
+- [Hardware drivers](hardware-drivers.md)
+- [Agents](agents.md)
+- [Providers](providers.md)
+- [Hosting](hosting.md)
+- [Security and compliance](security-and-compliance.md)
+- [Desktop](desktop.md)
+- [Mobile](mobile.md)
+- [Development and testing](development-and-testing.md)
+- [Implementation status](implementation-status.md)

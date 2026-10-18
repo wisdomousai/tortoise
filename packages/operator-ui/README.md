@@ -14,7 +14,7 @@ Framework (`packages/*`). Browser code. Trust-relevant behavior stays in the cat
   - the hooks `use-press-and-hold`, `use-tap-guard`, `use-operator-keys`, `use-scanner`, `use-feedback` and `use-idle-return`.
 - [Approval request](../../docs/primitives.md#approval-request): the attention queue's `approval request` kind and `approvalChoices` give an agent's [approval request](../../docs/glossary.md#approval-request) a one-tap Approve and a Reject. The station resolves them to `approval.approve` and `approval.reject`.
 
-[Point-of-work input](../../docs/point-of-work-input.md) and [operator workstations](../../docs/operator-workstations.md) explain the interaction rules. [`examples/line-station/ui/station.tsx`](../../examples/line-station/ui/station.tsx) composes a station [screen](../../docs/glossary.md#screen) from these parts.
+[`examples/line-station/ui/station.tsx`](../../examples/line-station/ui/station.tsx) composes a station [screen](../../docs/glossary.md#screen) from these parts.
 
 ## Entrypoints
 
@@ -68,3 +68,8 @@ Gap: no acceptance test runs `shadcn add` in a scratch application.
 
 - [build-screens](../frame/skills/build-screens/SKILL.md): screens, forms, live queries and registry items.
 - [add-scanner-input](../devices/skills/add-scanner-input/SKILL.md): scanner sources, profiles and routes.
+
+## References
+
+- [Point-of-work input](../../docs/point-of-work-input.md)
+- [Operator workstations](../../docs/operator-workstations.md)

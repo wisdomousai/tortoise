@@ -27,8 +27,6 @@ A command takes this path:
 7. The system of record accepts the change, rejects it or acknowledges it without a decision.
 8. A settle command records the outcome. An effect whose outcome nobody can tell is held for a person.
 
-[Systems of record](systems-of-record.md) explains the outbox, inbound sync and remote queries.
-
 ### Effect phases
 
 An outbox effect is in one phase at a time.
@@ -47,21 +45,17 @@ An outbox effect is in one phase at a time.
 | Files | An inbox folder feeds inbound sync, and delivered files settle from receipt files. | [`plugins/connector-files`](../plugins/connector-files/README.md) | `receiving` |
 | Phone | A paired phone captures offline and delivers to its [hub](glossary.md#hub). | [`packages/mobile`](../packages/mobile/README.md), [`plugins/device-link`](../plugins/device-link/README.md), [`plugins/hub-link`](../plugins/hub-link/README.md) | `asset-survey-field` |
 
-[Point-of-work input](point-of-work-input.md), [operator workstations](operator-workstations.md) and [hardware drivers](hardware-drivers.md) describe the routes.
-
 ## Operating properties
 
 <OverviewView view="properties" />
 
 ## Layers and dependencies
 
-[Architecture](architecture.md#layers) describes the layers, and its [invariants](architecture.md#invariants) list the import rules.
-
 <OverviewView view="layers" />
 
 ## Ports and plugins
 
-The kernel takes each port from the one plugin that provides it, or uses the default. [Architecture](architecture.md#ports) explains the ports and the composition rules.
+The kernel takes each port from the one plugin that provides it, or uses the default.
 
 <OverviewView view="ports" />
 
@@ -89,11 +83,15 @@ bun run docs:dev
 - One instance hosts one application, and a workspace is not synchronized across devices ([hosting](hosting.md)).
 - Each storage transaction loads the whole workspace state ([scope](../README.md#scope)).
 
-## Related pages
+## References
 
-- [Architecture](architecture.md): layers, surfaces, request flow, hosts, plugins and the invariants.
-- [Systems of record](systems-of-record.md): the outbox, inbound sync, remote queries and connectors.
-- [Point-of-work input](point-of-work-input.md) and [operator workstations](operator-workstations.md): scanners, glove-sized screens and workstation applications.
-- [Hardware drivers](hardware-drivers.md): equipment reached through a driver process.
-- [Security and compliance](security-and-compliance.md): deployment policy, egress, the audit log and isolated operation.
-- [Mobile](mobile.md): the mobile host and pairing with a hub.
+- [Architecture](architecture.md)
+- [Systems of record](systems-of-record.md)
+- [Point-of-work input](point-of-work-input.md)
+- [Operator workstations](operator-workstations.md)
+- [Hardware drivers](hardware-drivers.md)
+- [Security and compliance](security-and-compliance.md)
+- [Mobile](mobile.md)
+- [Architecture](architecture.md#layers)
+- [Invariants](architecture.md#invariants)
+- [Architecture](architecture.md#ports)

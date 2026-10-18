@@ -46,7 +46,7 @@ Keep files that import `expo-modules-core` or React Native under `src/expo/`, wh
 bun run mobile:prebuild
 ```
 
-TypeScript checks none of the Kotlin or Swift; that code compiles only in a native build. `plugins/intent-scanner` is the reference for Android with a runtime receiver and no config plugin. `plugins/managed-config` is the reference for Android and iOS with a config plugin.
+TypeScript checks none of the Kotlin or Swift; that code compiles only in a native build.
 
 ## Trust boundary
 
@@ -129,3 +129,8 @@ bun run test:portable
 ## Skills
 
 - [extend-mobile-host](skills/extend-mobile-host/SKILL.md): targeting Android and iOS, writing native plugins and screens, and pairing devices with a hub.
+
+## References
+
+- [`plugins/intent-scanner`](../../plugins/intent-scanner/README.md)
+- [`plugins/managed-config`](../../plugins/managed-config/README.md)

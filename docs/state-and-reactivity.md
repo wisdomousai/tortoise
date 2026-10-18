@@ -16,7 +16,7 @@ Terms: [snapshot](glossary.md#snapshot), [revision](glossary.md#revision), [jour
 4. Project and validate the output, then recheck authorization and cancellation.
 5. Assign revisions and journal cursors, store the [receipt](glossary.md#receipt), and commit.
 
-Any failure rolls everything back. A handler that changes state without declaring a changed resource fails, so no change bypasses live delivery. [Authorization](authorization.md) explains each check.
+Any failure rolls everything back. A handler that changes state without declaring a changed resource fails, so no change bypasses live delivery.
 
 [Outbox effects](glossary.md#effect) commit with their command. Acknowledgements and imported changes come back as commands through the same journal ([systems of record](systems-of-record.md)).
 
@@ -28,7 +28,7 @@ A command increments the revision of each resource it declares changed. Optimist
 
 A query returns its data and the journal cursor from one snapshot. A query that changes state fails. Results come from local state, so there is no projection lag. Freshness of other systems is a separate concern.
 
-The memory adapter gives each transaction its own copy and serializes transactions per workspace. The SQLite and Postgres adapters store one row per record and write only the rows a commit changed. The rows are not an index: a query still reads the snapshot. [Adapters](adapters.md) describes each adapter.
+The memory adapter gives each transaction its own copy and serializes transactions per workspace. The SQLite and Postgres adapters store one row per record and write only the rows a commit changed. The rows are not an index: a query still reads the snapshot.
 
 Receipts and journal entries commit with the state, so a crash after commit but before notification keeps both. An optional retention limit drops old journal entries and receipts. A retry whose receipt was dropped runs again.
 
@@ -62,6 +62,10 @@ Keep drafts in separate component state, so a live update refreshes the record u
 
 Cancellation stops future work and is checked before commit, but does not undo committed commands. Cancelling an [agent run](glossary.md#agent-run) aborts its tool calls still in flight. A host session revoked during a request does not stop that request, a [known defect](implementation-status.md). After a restart, unsettled runs are marked interrupted rather than replayed. Only a receipt shows that a change committed; a finished stream or run does not.
 
-## Related pages
+## References
 
-[Capability authoring](capability-authoring.md), [interaction contract](interaction-contract.md) and [agents](agents.md).
+- [Capability authoring](capability-authoring.md)
+- [Interaction contract](interaction-contract.md)
+- [Agents](agents.md)
+- [Authorization](authorization.md)
+- [Adapters](adapters.md)

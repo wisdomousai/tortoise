@@ -5,7 +5,7 @@ description: Run an agent-native application's instance on a server, with its wo
 
 # Run a hosted instance
 
-A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [host](../../../../docs/glossary.md#host) on another [host platform](../../../../docs/glossary.md#host-platform). `hostedPlatform` keeps the [workspace](../../../../docs/glossary.md#workspace) in a shared Postgres database and makes ownership a [workspace lease](../../../../docs/glossary.md#workspace-lease) with a fencing token. A replacement instance can take over, and a paused old one commits nothing more. Contracts and handlers do not change. Design: [Hosting](../../../../docs/hosting.md#hosted-instance).
+A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [host](../../../../docs/glossary.md#host) on another [host platform](../../../../docs/glossary.md#host-platform). `hostedPlatform` keeps the [workspace](../../../../docs/glossary.md#workspace) in a shared Postgres database and makes ownership a [workspace lease](../../../../docs/glossary.md#workspace-lease) with a fencing token. A replacement instance can take over, and a paused old one commits nothing more. Contracts and handlers do not change.
 
 ## Before writing
 
@@ -28,7 +28,7 @@ A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [h
 ### Storage adapter
 
 1. Implement `Storage<State>` with `transact` and `read`. A Postgres-compatible database can reuse `PostgresStorage` with its own `PgDriver`.
-2. Prove it with `storageConformance(harness)` from `@agent-native/testing/storage`, as `packages/testing/test/storage.test.ts` does for memory, SQLite and Postgres. [Adapters](../../../../docs/adapters.md#storage) describes the [storage](../../../../docs/glossary.md#storage) port.
+2. Prove it with `storageConformance(harness)` from `@agent-native/testing/storage`, as `packages/testing/test/storage.test.ts` does for memory, SQLite and Postgres.
 
 ## Checks
 
@@ -38,3 +38,8 @@ STORAGE_POSTGRES_URL=postgres://... bun test packages/testing/test/storage.test.
 ```
 
 The second line runs the same cases against a real server, with a database made for the run. Report it, and any run of a hosted instance, as by-hand evidence in `docs/implementation-status.md`. The `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) covers the rest.
+
+## References
+
+- [Hosting](../../../../docs/hosting.md#hosted-instance)
+- [Adapters](../../../../docs/adapters.md#storage)

@@ -5,7 +5,7 @@ description: Connect an agent-native application to another system that keeps it
 
 # Connect a system of record
 
-The application owns its working set and its pending [outbox effects](../../../../docs/glossary.md#effect). The [system of record](../../../../docs/glossary.md#system-of-record) keeps ownership of its own records. A local [receipt](../../../../docs/glossary.md#receipt) proves the local commit, not acceptance by the [target](../../../../docs/glossary.md#target). Design: [Systems of record](../../../../docs/systems-of-record.md). `examples/quality-inspection` is the worked outbox and sync example, and `examples/crm-capture` adds live search and adoption.
+The application owns its working set and its pending [outbox effects](../../../../docs/glossary.md#effect). The [system of record](../../../../docs/glossary.md#system-of-record) keeps ownership of its own records. A local [receipt](../../../../docs/glossary.md#receipt) proves the local commit, not acceptance by the [target](../../../../docs/glossary.md#target).
 
 ## Before writing
 
@@ -51,3 +51,9 @@ bun run generate
 ```
 
 `generate` writes the capability reference, which states for each integrated command that a receipt is not acceptance. Review the destinations in the generated security manifest. A fake system of record proves the wiring. Record a run against the real system separately in [implementation status](../../../../docs/implementation-status.md).
+
+## References
+
+- [Systems of record](../../../../docs/systems-of-record.md)
+- [`examples/quality-inspection`](../../../../examples/quality-inspection/README.md)
+- [`examples/crm-capture`](../../../../examples/crm-capture/README.md)

@@ -1,6 +1,6 @@
 # Providers and account connections
 
-The host runs agent harnesses under provider accounts that the local owner connects. [Agents](agents.md) explains harnesses and runs.
+The host runs agent harnesses under provider accounts that the local owner connects.
 
 ## Concepts
 
@@ -78,7 +78,7 @@ An agent definition's model requirement decides which harnesses may run it:
 
 The deterministic fixture uses no model and meets every requirement. A harness that does not say where it sends prompts counts as remote, so a new adapter cannot run a local agent by omission.
 
-For a server the deployment runs itself, the harness records the configured digest as unverified and does not check it against the served weights. The [model server plugin](../plugins/model-server/README.md) starts llama.cpp `llama-server` or vLLM through the [process port](glossary.md#process-port), on the address the deployment policy binds to `local-inference`. It hashes the weights before every start, and its harness records the measured digests as verified. [Agents](agents.md#local-models) covers model entries and the fine-tune gate.
+For a server the deployment runs itself, the harness records the configured digest as unverified and does not check it against the served weights. The [model server plugin](../plugins/model-server/README.md) starts llama.cpp `llama-server` or vLLM through the [process port](glossary.md#process-port), on the address the deployment policy binds to `local-inference`. It hashes the weights before every start, and its harness records the measured digests as verified.
 
 ## Run supervision
 
@@ -122,15 +122,12 @@ A new adapter documents its runtime version, credential source, tool boundary, s
 - Only tests use the generic OIDC connection.
 - The model server does not manage Ollama, which keeps models in its own store, so an Ollama run is unverified.
 
-## Related pages
+## References
 
-- [Agents](agents.md): harnesses, runs, model entries and the fine-tune gate.
-- [Desktop](desktop.md): packaged runtimes and the credential addon.
-- [Security and compliance](security-and-compliance.md): the deployment policy and the egress guard.
-- [Implementation status](implementation-status.md#agents-and-providers): live runs.
-
-Provider documentation:
-
+- [Agents](agents.md)
+- [Desktop](desktop.md)
+- [Security and compliance](security-and-compliance.md)
+- [Implementation status](implementation-status.md#agents-and-providers)
 - [Codex app-server protocol](https://developers.openai.com/codex/app-server/)
 - [ChatGPT dynamic registration and sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in)
 - [ChatGPT profiles and sessions](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions)
@@ -139,3 +136,4 @@ Provider documentation:
 - [Claude Agent SDK TypeScript](https://github.com/anthropics/claude-agent-sdk-typescript)
 - [AI SDK streaming reference](https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-text)
 - [Native keyring adapter](https://github.com/Brooooooklyn/keyring-node)
+- [Agents](agents.md#local-models)

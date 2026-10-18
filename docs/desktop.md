@@ -1,6 +1,6 @@
 # Desktop host
 
-The Electron window in `apps/desktop` and its packaged build run an application on one person's machine. [Architecture](architecture.md#instances-and-hosts) explains hosts and [attached mode](glossary.md#attached-mode).
+The Electron window in `apps/desktop` and its packaged build run an application on one person's machine.
 
 ## Window and renderer
 
@@ -28,7 +28,7 @@ The main process receives the links and files of [OS handlers](glossary.md#os-ha
 
 The adapter also runs relayed [OS actions](glossary.md#os-action). Open uses the system browser. Reveal and open-file act only on a regular file that is not executable and has no runnable extension. Share opens the share menu on macOS only, and notify shows an Electron notification with buttons on macOS and Windows. The declared shortcuts become the macOS dock menu and the Windows jump list.
 
-Windows registers the scheme at startup with `--` before the link. A packaged macOS bundle declares the scheme and document types in its `Info.plist`, from the `os-registrations.json` that `package:stage` writes. The [add-os-integration](../packages/shell/skills/add-os-integration/SKILL.md) skill has the steps.
+Windows registers the scheme at startup with `--` before the link. A packaged macOS bundle declares the scheme and document types in its `Info.plist`, from the `os-registrations.json` that `package:stage` writes.
 
 ## Packaged resources
 
@@ -84,13 +84,15 @@ On Linux, a missing or locked Secret Service leaves credential-free work usable 
 - Packaging produces an unsigned directory. Signed installers, notarization, updates and release identity are separate work.
 - The Linux and Windows `dir` targets register no file types, and Linux gets no desktop actions.
 
-## Related pages
+## References
 
-- [`apps/desktop`](../apps/desktop/README.md): the Electron sources and their trust checks.
-- [Security and compliance](security-and-compliance.md): deployment policy, hardening profiles and the audit log.
-- [Implementation status](implementation-status.md#desktop): the native runs.
+- [`apps/desktop`](../apps/desktop/README.md)
+- [Security and compliance](security-and-compliance.md)
+- [Implementation status](implementation-status.md#desktop)
 - [Electron security recommendations](https://www.electronjs.org/docs/latest/tutorial/security)
 - [Electron application packaging](https://www.electronjs.org/docs/latest/tutorial/application-distribution)
 - [Bun standalone executables and native addons](https://bun.com/docs/bundler/executables)
 - [SQLite locking](https://www.sqlite.org/lockingv3.html)
 - [Native credential adapter](https://github.com/Brooooooklyn/keyring-node)
+- [Architecture](architecture.md#instances-and-hosts)
+- [add-os-integration](../packages/shell/skills/add-os-integration/SKILL.md)

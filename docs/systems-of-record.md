@@ -1,6 +1,6 @@
 # Systems of record
 
-A [system of record](glossary.md#system-of-record) owns records an [application](glossary.md#application) reads or changes, and decides which of those changes it accepts. It cannot join the application's transaction. A [command](glossary.md#command) that changes those records commits an [outbox effect](glossary.md#effect) with the local change. The [dispatcher](glossary.md#dispatcher) delivers the effect afterwards. The [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md) skill covers the connection.
+A [system of record](glossary.md#system-of-record) owns records an [application](glossary.md#application) reads or changes, and decides which of those changes it accepts. It cannot join the application's transaction. A [command](glossary.md#command) that changes those records commits an [outbox effect](glossary.md#effect) with the local change. The [dispatcher](glossary.md#dispatcher) delivers the effect afterwards.
 
 ## Concepts
 
@@ -74,7 +74,7 @@ An expired claim does not tell the new worker whether the target received the ef
 
 ### Recheck before the first claim
 
-Before the first claim, the dispatcher authorizes the person who committed the effect again, on the current state. A denial holds the effect and is recorded in the journal and the audit log. Later claims skip the recheck, because a worker may already have sent the effect. A dispatcher can turn the recheck off. [Authorization](authorization.md#delegation-and-replay) explains what the recheck asks.
+Before the first claim, the dispatcher authorizes the person who committed the effect again, on the current state. A denial holds the effect and is recorded in the journal and the audit log. Later claims skip the recheck, because a worker may already have sent the effect. A dispatcher can turn the recheck off.
 
 ## Acknowledged effects
 
@@ -107,7 +107,7 @@ An effect that the domain's visibility rule hides from the caller reads as missi
 - `accepted` or `rejected`: settled with the target's answer.
 - `cancelled`: withdrawn by a command and never sent.
 
-Only the outbox changes a phase: a claim, an attempt, a settlement, the release of a held effect or a cancellation. A claim whose expiry passed reads as the phase before it. [Hardware drivers](hardware-drivers.md#failure-kinds) lists how the driver connector maps a driver's failure kinds onto these phases.
+Only the outbox changes a phase: a claim, an attempt, a settlement, the release of a held effect or a cancellation. A claim whose expiry passed reads as the phase before it.
 
 A command cancels an effect with `ctx.cancelEffect` and a reason, only while no worker has ever claimed it. After a claim the target may have the effect, so the domain must reconcile instead.
 
@@ -218,21 +218,26 @@ The instance verbs open the workspace or serve it:
 | 10 | | `compliance report`: the posture is failing |
 | 75 | | `drain`: effects still await delivery |
 
-The site, network, audit, compliance and driver verbs exist when the application composes the matching [host plugin](glossary.md#host-plugin). [Security and compliance](security-and-compliance.md) explains the first four, and [hardware drivers](hardware-drivers.md) the driver verbs.
+The site, network, audit, compliance and driver verbs exist when the application composes the matching [host plugin](glossary.md#host-plugin).
 
 ## Limits
 
 - The system of record keeps the records it owns. The application owns its working set, its pending effects and their outcomes.
 - Exactly-once delivery is not possible across two systems.
 - The fake quality system and fake CRM are in-memory and per process, for demos and tests. The fake CRM keeps demo credentials in memory; a site backs caller credentials with its vault.
-- A grant limited to specific resources can create new records only of the types its `creates` list names. [Authorization](authorization.md#delegation-and-replay) explains it.
+- A grant limited to specific resources can create new records only of the types its `creates` list names.
 
-## Related pages
+## References
 
-- [Implementation status](implementation-status.md): the evidence for each part.
-- [Architecture](architecture.md#instances-and-hosts): instances and hosts.
-- [Authorization](authorization.md): where access is checked again.
-- [Hardware drivers](hardware-drivers.md) and [operator workstations](operator-workstations.md): connectors for equipment and workstation application.
-- [Hosting](hosting.md): the hosted instance and its workspace lease.
-- [`packages/integration`](../packages/integration/README.md): the dispatcher, inbound sync, targets and remote sources.
-- [`packages/react`](../packages/react/README.md): the capture screens' forms, live and remote queries, and scanner capture.
+- [Implementation status](implementation-status.md)
+- [Architecture](architecture.md#instances-and-hosts)
+- [Authorization](authorization.md)
+- [Hardware drivers](hardware-drivers.md)
+- [Operator workstations](operator-workstations.md)
+- [Hosting](hosting.md)
+- [`packages/integration`](../packages/integration/README.md)
+- [`packages/react`](../packages/react/README.md)
+- [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [Authorization](authorization.md#delegation-and-replay)
+- [Hardware drivers](hardware-drivers.md#failure-kinds)
+- [Security and compliance](security-and-compliance.md)

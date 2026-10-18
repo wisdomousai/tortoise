@@ -12,7 +12,7 @@ Framework (`packages/*`). Scanner logic and the capability [module](../../docs/g
 - [Scanner profile](../../docs/primitives.md#station-and-scanner-profiles): `ScannerProfile`, `scannerProfileSchema`, `ScanRoute`.
 - [Device configuration module](../../docs/primitives.md#device-configuration-module): `deviceConfigModule`, `createDeviceHandlers`. A supervisor's screen, a CLI script and an agent change scanner profiles and routes through it the same way, under policy and revisions.
 
-[Point-of-work input](../../docs/point-of-work-input.md) explains wedge layouts, GS1 and calibration. The setup screen and the scanner hook ship in [`@agent-native/operator-ui`](../operator-ui/README.md).
+The setup screen and the scanner hook ship in [`@agent-native/operator-ui`](../operator-ui/README.md).
 
 A [scanner profile](../../docs/glossary.md#scanner-profile)'s `transport` may be `intent`, with `intent: { action, dataExtra, senderPermission? }`. A rugged Android device's scanner application then broadcasts each scan. This package only describes that transport. The receiver and its source ship in [`@agent-native/intent-scanner`](../../plugins/intent-scanner/README.md).
 
@@ -60,3 +60,7 @@ bun test packages/devices
 ## Skills
 
 - [add-scanner-input](skills/add-scanner-input/SKILL.md): add a scanner source, profile, route or rugged Android vendor profile.
+
+## References
+
+- [Point-of-work input](../../docs/point-of-work-input.md)

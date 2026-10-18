@@ -11,8 +11,6 @@ Framework (`packages/*`). Browser-safe. It trusts its transport to carry the cal
 - [Journal and live query](../../docs/primitives.md#journal-and-live-query): `createClient`, `createHttpTransport`, `LiveQuery`, `Snapshot`, `Receipt`, `ChangeBatch`. A `LiveQuery` keeps one query result current by following the journal from the query's own cursor.
 - [Blob store](../../docs/primitives.md#blob-store): `Transport.blobs`, typed `BlobTransport` and `BlobReference`, which the HTTP transport implements over `/api/v1/blobs`.
 
-[State and reactivity](../../docs/state-and-reactivity.md#live-queries) describes how a [live query](../../docs/glossary.md#live-query) reads a snapshot and then follows the journal.
-
 ## Entrypoints
 
 | Import | Runs in | Contents |
@@ -46,4 +44,8 @@ bun test packages/client
 
 ## Skills
 
-None. Screens use the client through `packages/react` and the frame, which the [build-screens](../frame/skills/build-screens/SKILL.md) skill covers.
+- [build-screens](../frame/skills/build-screens/SKILL.md)
+
+## References
+
+- [State and reactivity](../../docs/state-and-reactivity.md#live-queries)

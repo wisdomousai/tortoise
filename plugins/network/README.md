@@ -12,8 +12,6 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 - [Execution host](../../docs/primitives.md#execution-host): `networkRules`, `exportRules`, `exportFormats`, `networkCommand`, `networkCliCommand` and `networkUsage`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `networkPlugin` requires `site`. It is written only against `@agent-native/host/plugin`, and reads the [audit log](../../docs/glossary.md#audit-log) port through the composed ports.
 
-See [Architecture](../../docs/architecture.md#host-plugins) and [Security and compliance](../../docs/security-and-compliance.md#egress).
-
 ## Entrypoints
 
 | Import                                  | Runs in            | Contents                                                                                                        |
@@ -79,3 +77,8 @@ The webhook suite shows a third-party plugin refused by the guard for an unbound
 ## Skills
 
 - [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.
+
+## References
+
+- [Architecture](../../docs/architecture.md#host-plugins)
+- [Security and compliance](../../docs/security-and-compliance.md#egress)

@@ -45,15 +45,13 @@ The example is one [application](../../docs/primitives.md#application), targetin
 
 ### Scanner profile
 
-The [scanner profile](../../docs/glossary.md#scanner-profile) in [`ui-native/shared.tsx`](ui-native/shared.tsx) is Zebra DataWedge broadcasting `dev.agentnative.SCAN`. Change it to match the device's scanner software. The [intent-scanner README](../../plugins/intent-scanner/README.md) has the Honeywell variant. The profile is a constant, not a setting.
+The [scanner profile](../../docs/glossary.md#scanner-profile) in [`ui-native/shared.tsx`](ui-native/shared.tsx) is Zebra DataWedge broadcasting `dev.agentnative.SCAN`. Change it to match the device's scanner software. The profile is a constant, not a setting.
 
 ### Device run
 
 1. Set `targets.mobile.application` in `app.config.json` to `@agent-native/asset-survey-field`, or set `AGENT_NATIVE_MOBILE_APPLICATION` for one build.
 2. Run `bun run mobile:prepare`.
 3. Run the mobile build scripts in [`apps/mobile`](../../apps/mobile/README.md).
-
-The [implementation status](../../docs/implementation-status.md) records which device runs have not been done.
 
 ## Trust boundary
 
@@ -240,7 +238,7 @@ The phone runs this pass every 5 seconds while the application is in the foregro
 21. On the hub, write the feed query that takes an optional `cursor` and answers `{ items, cursor, more }`. Return only the calling device's assignments and no items when the cursor is current, and page with `more` to stay within the field target's `max`.
 22. On the hub, write the ingest command so that a repeated delivery of the same device-generated ID returns the first result. A different capture under the same ID conflicts.
 23. On the hub, compose `createDeviceLinkPlugin({ syncOperations })` with the feed, ingest and return capabilities.
-24. On the hub, add a policy lane for `device:` principals that admits only those capabilities. [Asset survey](../asset-survey/README.md) describes the hub's lane.
+24. On the hub, add a policy lane for `device:` principals that admits only those capabilities.
 25. Write a pipeline test that starts the hub with `startHost` and opens the phone with `openMobileInstance` over `createMobilePlatform`. Give the platform `bunSqlDriver`, `createFileBlobStore` and an in-memory secret store, as `test/pipeline.test.ts` does.
 26. In that test, compose `createManagedConfigPlugin(() => values)` so the phone pairs from settings. Drive delivery with `dispatcher.runOnce(undefined, { ignoreBackoff: true })` and the feed with `integrations.sync()`.
 27. Write a UI binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`. Pass the hub-link screen directory because hub-link routes its own pairing screen, and pass `deploymentComponents(manifest)` because hub-link declares the `hub` destination.
@@ -293,20 +291,25 @@ The device side uses no fake system of record. The tests run the real hub on loo
 - **Foreground delivery.** Delivery and sync loops run only while the application is in the foreground. In the background the OS decides when one bounded pass runs, and iOS runs it rarely.
 - **Check in an export.** The full `bun run check` fails in a single-example export at `check:readmes` on framework README links to the omitted examples. The skills check also fails on paths into those examples and on the changed root scripts, and `check:boundaries` fails while `apps/mobile/generated/` exists. The full `bun test` also fails, because the compliance controls name evidence tests in those examples.
 - **Owner only.** Anyone who unlocks the device acts as its owner. The device has no per-person identity.
-- **Device runs.** The native screens, camera, scanner, managed configuration and pairing have not run on a device. [Implementation status](../../docs/implementation-status.md#mobile) records what has run.
+- **Device runs.** The native screens, camera, scanner, managed configuration and pairing have not run on a device.
 
-## Related pages
+## Skills
 
-- [Asset survey](../asset-survey/README.md), the hub
+- [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md)
+- [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md)
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+
+## References
+
+- [Asset survey](../asset-survey/README.md)
 - [Mobile host](../../docs/mobile.md)
 - [System-of-record pattern](../../docs/systems-of-record.md)
 - [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md)
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
 - [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md)
-- [hub-link](../../plugins/hub-link/README.md), [device-link](../../plugins/device-link/README.md), [managed-config](../../plugins/managed-config/README.md) and [intent-scanner](../../plugins/intent-scanner/README.md)
-
-## Skills
-
-- [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md) covers the mobile host, its plugins and pairing.
-- [add-scanner-input](../../packages/devices/skills/add-scanner-input/SKILL.md) covers the scanner profile and the intent scanner.
-- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) covers the `hub` target.
+- [Hub-link](../../plugins/hub-link/README.md)
+- [Device-link](../../plugins/device-link/README.md)
+- [Managed-config](../../plugins/managed-config/README.md)
+- [Intent-scanner](../../plugins/intent-scanner/README.md)
+- [Implementation status](../../docs/implementation-status.md)
+- [Implementation status](../../docs/implementation-status.md#mobile)

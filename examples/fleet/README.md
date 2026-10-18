@@ -69,7 +69,7 @@ cd examples/fleet
 bun run dev
 ```
 
-Enroll a site from the Devices screen. Then start the site with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`, and a deployment policy that binds `destinations.fleet` to this host's HTTPS origin. The [connect-a-site-to-a-fleet](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) skill has the steps.
+Enroll a site from the Devices screen. Then start the site with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`, and a deployment policy that binds `destinations.fleet` to this host's HTTPS origin.
 
 ## Trust boundary
 
@@ -216,7 +216,7 @@ These steps build a new application with `scaffold new` and add the fleet's part
    bun install --frozen-lockfile
    ```
 
-2. Declare the other records and the capabilities people call, each with its handler. Use `defineCollection`, `collectionList` and `collectionGet` for records, and `defineCapability` for commands. A capability without a screen states a `ui.exception`, as `release.publish` does. The scaffold writes the contract, handler, policy rule and test together at its markers. The [add-capability skill](../../packages/runtime/skills/add-capability/SKILL.md) covers each part.
+2. Declare the other records and the capabilities people call, each with its handler. Use `defineCollection`, `collectionList` and `collectionGet` for records, and `defineCapability` for commands. A capability without a screen states a `ui.exception`, as `release.publish` does. The scaffold writes the contract, handler, policy rule and test together at its markers.
 
    ```sh
    bun run scaffold add collection <next-record-type>
@@ -225,7 +225,7 @@ These steps build a new application with `scaffold new` and add the fleet's part
    bun run generate
    ```
 
-3. Reshape what the scaffold generated and the fleet does not have. The [setup reference](../../packages/scaffold/skills/create-agent-native-app/references/new-application.md) describes the generated parts.
+3. Reshape what the scaffold generated and the fleet does not have.
    - **Records.** Each collection comes with create and update commands and title and status fields. Replace the fields, and drop the create command where records come from elsewhere, as sites come from reports.
    - **Tests.** The conformance test, each collection's test and the default-screens Playwright spec call those create commands, so rewrite or remove them. Rewrite each generated capability test once its input is widened.
    - **Role.** The generated role is `editor`. Rename it where the domain uses another name, as the fleet uses operator.
@@ -235,15 +235,15 @@ These steps build a new application with `scaffold new` and add the fleet's part
    - **First report.** The report handler inserts the site on its first report, with its audit head at `AUDIT_GENESIS` from `@agent-native/contracts`.
 5. Write the publish handler. Validate the manifest with `parseBundleManifest` from `@agent-native/bundle/manifest`, match the uploaded blobs to its files, and attach them with `ctx.attach`. Declare `blobs` with the size limit and media type on the capability, so the upload route accepts the files.
 6. Write the audit ingest handler. Check each event with `hashEvent` from `@agent-native/event-log/chain` before storing it.
-7. Compose device-link in all three entrypoints. The [extend-mobile-host skill](../../packages/mobile/skills/extend-mobile-host/SKILL.md) covers device-link pairing.
+7. Compose device-link in all three entrypoints.
    - **Manifest.** `deviceLinkPluginManifest` from `@agent-native/device-link/plugin-manifest` in `plugins`.
    - **Application.** `createDeviceLinkPlugin({ syncOperations: fleetSiteOperationIds })` from `@agent-native/device-link/plugin` in `plugins`.
    - **Screens.** `deviceLinkScreens` from `@agent-native/device-link/plugin-screens` in the plugins of `defineScreens`.
    - **UI-binding test.** Add the device-link plugin's `ui` directory to the directories the generated test scans. Without it the test fails on the device-link capabilities from this step on.
-8. Write the policy with `definePolicy`. Add an integration lane whose `is` matches `device:` principals, whose `operations` list is `fleetSiteOperationIds`, and whose `events` rule admits only the release the site may read. Mark each protocol capability `integration`, use `person: true` for remote access, and give the policy an `events` rule for each record type. [Authorization](../../docs/authorization.md) explains the order of the checks.
+8. Write the policy with `definePolicy`. Add an integration lane whose `is` matches `device:` principals, whose `operations` list is `fleetSiteOperationIds`, and whose `events` rule admits only the release the site may read. Mark each protocol capability `integration`, use `person: true` for remote access, and give the policy an `events` rule for each record type.
 9. List in `audit.fields` the input fields that are safe in plain text, and leave out headers, bodies and anything that carries a session.
-10. Build the screens with `defineScreens` and the registry items `CollectionScreen`, `RecordScreen` and `CapabilityForm`. Map each operation ID prefix to a screen in `capabilityScreens`. The [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md) covers routes and registry items.
-11. Write the behavior tests, as [test/site.ts](test/site.ts) and [test/fleet.test.ts](test/fleet.test.ts) do. The [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) covers testing a fleet against real sites.
+10. Build the screens with `defineScreens` and the registry items `CollectionScreen`, `RecordScreen` and `CapabilityForm`. Map each operation ID prefix to a screen in `capabilityScreens`.
+11. Write the behavior tests, as [test/site.ts](test/site.ts) and [test/fleet.test.ts](test/fleet.test.ts) do.
     - **Fleet.** Start it with `startHost` and a temporary deployment policy.
     - **Enrollment.** Create a `field-sync` enrollment code for each site with `link.enrollment.create`, and pass it as the site's `fleet-enrollment-code` setting.
     - **Sites.** Compose `createFleetAgentPlugin` and `fleetAgentPluginManifest`, with the manifest and plugin of `fleetNetworkFixture` in place of the network plugin. The deployment policy binds the `fleet-releases` folder, and `fleet-trust` is the path to the release signing key's public key file. Set `fleet-relay` to `on` for a relay test.
@@ -289,20 +289,25 @@ The example uses no fake system of record. Its tests replace the site's network 
 - **Devices screen wording.** The Devices screen calls a `field-sync` device a phone, as device-link names it.
 - **Evidence.** No site has reported across a real network behind an outbound-only firewall. No staged release has been activated by `site install` on a real machine ([implementation status](../../docs/implementation-status.md#fleet-agent)).
 
-## Related pages
+## Skills
+
+- [connect-a-site-to-a-fleet](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md)
+- [run-a-hosted-instance](../../packages/host/skills/run-a-hosted-instance/SKILL.md)
+
+## References
 
 - [Fleet agent README](../../plugins/fleet-agent/README.md)
 - [Device link README](../../plugins/device-link/README.md)
 - [Architecture](../../docs/architecture.md)
 - [Security and compliance](../../docs/security-and-compliance.md)
-- [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md)
-- [run-a-hosted-instance skill](../../packages/host/skills/run-a-hosted-instance/SKILL.md)
-- [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md)
-- [Asset survey](../asset-survey/README.md), a hub that pairs field devices through device-link
-- [Asset survey field](../asset-survey-field/README.md), the paired field application
-- [Project tasks](../project-tasks/README.md), the smallest whole application
-
-## Skills
-
-- [connect-a-site-to-a-fleet](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) covers enrollment, reports, audit forwarding, release staging and the relay.
-- [run-a-hosted-instance](../../packages/host/skills/run-a-hosted-instance/SKILL.md) covers running the fleet as a hosted instance.
+- [connect-a-site-to-a-fleet](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md)
+- [run-a-hosted-instance](../../packages/host/skills/run-a-hosted-instance/SKILL.md)
+- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md)
+- [Asset survey](../asset-survey/README.md)
+- [Asset survey field](../asset-survey-field/README.md)
+- [Project tasks](../project-tasks/README.md)
+- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md)
+- [Setup reference](../../packages/scaffold/skills/create-agent-native-app/references/new-application.md)
+- [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md)
+- [Authorization](../../docs/authorization.md)
+- [build-screens](../../packages/frame/skills/build-screens/SKILL.md)

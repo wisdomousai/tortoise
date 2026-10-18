@@ -17,7 +17,7 @@ Vendor code never runs inside the host process: no FFI, no native addons and no 
 - a 32-bit COM server cannot load into a 64-bit host;
 - device access often needs another OS user or group.
 
-[Operator workstations](operator-workstations.md) describes the station setting. A station is reached through its screen, or through its automation interface with a driver.
+A station is reached through its screen, or through its automation interface with a driver.
 
 ## Process binding
 
@@ -156,9 +156,9 @@ Not built:
 - in-process drivers on Android as Expo native modules;
 - a C++ SDK.
 
-## Related pages
+## References
 
-- [Operator workstations](operator-workstations.md): the screen route and bridge modes.
-- [Systems of record](systems-of-record.md): the outbox, held effects and reconciliation.
-- [Security and compliance](security-and-compliance.md): deployment policy and exported OS rules.
-- [write-hardware-driver](../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): the skill for this task.
+- [Operator workstations](operator-workstations.md)
+- [Systems of record](systems-of-record.md)
+- [Security and compliance](security-and-compliance.md)
+- [write-hardware-driver](../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)

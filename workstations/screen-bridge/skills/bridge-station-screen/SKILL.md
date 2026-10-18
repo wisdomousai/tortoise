@@ -5,7 +5,7 @@ description: Bridge a workstation application (vendor HMI, test-bench software, 
 
 # Bridge a workstation application through its screen
 
-A [workstation application](../../../../docs/glossary.md#workstation-application) that has no API is a [system of record](../../../../docs/glossary.md#system-of-record) the application reaches through its screen. A model may read the screen or suggest an on-screen target; deterministic code acts and verifies. `examples/line-station` is the worked example. See [Operator workstations](../../../../docs/operator-workstations.md) and the [package README](../../README.md).
+A [workstation application](../../../../docs/glossary.md#workstation-application) that has no API is a [system of record](../../../../docs/glossary.md#system-of-record) the application reaches through its screen. A model may read the screen or suggest an on-screen target; deterministic code acts and verifies.
 
 ## Before writing
 
@@ -39,7 +39,7 @@ A [workstation application](../../../../docs/glossary.md#workstation-application
 
 ### Automation route
 
-A station whose software has an automation interface is reached through a [driver](../../../../docs/glossary.md#driver) instead of its screen. Handlers, contracts and screens stay the same on either route. [Operator workstations](../../../../docs/operator-workstations.md#automation-route) explains the route.
+A station whose software has an automation interface is reached through a [driver](../../../../docs/glossary.md#driver) instead of its screen. Handlers, contracts and screens stay the same on either route.
 
 1. Give the driver's contract the same fields and procedures, with the same preconditions, readback and hazard classes.
 2. Run its bridge as the same station principal, with the same grant and target.
@@ -62,3 +62,10 @@ bunx playwright test examples/line-station/e2e
 ```
 
 Report deterministic, browser, device and live-model evidence separately in [implementation status](../../../../docs/implementation-status.md#operator-workstation-bridge). None of them implies a live computer-use driver or real hardware.
+
+## References
+
+- [`examples/line-station`](../../../../examples/line-station/README.md)
+- [Operator workstations](../../../../docs/operator-workstations.md)
+- [`@agent-native/screen-bridge`](../../README.md)
+- [Operator workstations](../../../../docs/operator-workstations.md#automation-route)

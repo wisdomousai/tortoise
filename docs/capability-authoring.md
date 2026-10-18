@@ -8,7 +8,7 @@ Terms: [capability](glossary.md#capability), [module](glossary.md#module), [hand
 
 ## Contract
 
-The contract is browser-safe data with a stable operation ID and explicit schemas. The [interaction contract](interaction-contract.md) gives the schema rules.
+The contract is browser-safe data with a stable operation ID and explicit schemas.
 
 ```ts
 import { z } from 'zod';
@@ -52,7 +52,7 @@ The module decides how its state is represented. A handler can wrap the transact
 
 A handler declares each changed resource with `ctx.change`, and the runtime assigns its [revision](glossary.md#revision) and [journal](glossary.md#journal) entry. A command that changes state but declares no changed resource fails. An effect or blob reference on an undeclared resource fails too, and so does a query that changes state.
 
-A handler makes no network call inside the transaction. It reads what it needs before the command, or enqueues an [outbox effect](glossary.md#effect) with `ctx.enqueue`. Declare the integration on such a capability, so the generated reference says that a [receipt](glossary.md#receipt) is not acceptance by the target. [Systems of record](systems-of-record.md) explains delivery and settlement, and the quality inspection example shows the full loop.
+A handler makes no network call inside the transaction. It reads what it needs before the command, or enqueues an [outbox effect](glossary.md#effect) with `ctx.enqueue`. Declare the integration on such a capability, so the generated reference says that a [receipt](glossary.md#receipt) is not acceptance by the target.
 
 A handler reports a failure with `ApplicationError`, whose message and details must be safe to show the [caller](glossary.md#caller).
 
@@ -85,7 +85,7 @@ export const listNotes = collectionList(noteRecords, {
 
 Add the module to the application's [manifest](glossary.md#manifest) and the handler to its [application definition](glossary.md#application-definition). The host builds the [instance](glossary.md#instance) from that definition, so no host or starter file changes. Tests compose the same definition directly.
 
-Write the policy rule for the operation, the object, current and proposed fields, and the [grant](glossary.md#grant) scope; [authorization](authorization.md) explains where each check runs. [State and reactivity](state-and-reactivity.md) lists the steps of a command.
+Write the policy rule for the operation, the object, current and proposed fields, and the [grant](glossary.md#grant) scope; [authorization](authorization.md) explains where each check runs.
 
 ## Requirement declarations
 
@@ -95,19 +95,19 @@ A module declares what it reaches outside the process as [requirement declaratio
 - exchange folders, each with a purpose, access and data classes;
 - devices and child processes, each with a purpose and availability.
 
-A network destination that carries an outbox target must queue while offline. Server code reaches the network only through the [egress guard](glossary.md#egress-guard). A capability's `audit` field lists the input fields safe to record in plain text; the [audit log](glossary.md#audit-log) records the rest as digests. After `bun run generate`, review the generated security manifest and data flows. [Security and compliance](security-and-compliance.md) explains how a deployment policy binds the declarations.
+A network destination that carries an outbox target must queue while offline. Server code reaches the network only through the [egress guard](glossary.md#egress-guard). A capability's `audit` field lists the input fields safe to record in plain text; the [audit log](glossary.md#audit-log) records the rest as digests. After `bun run generate`, review the generated security manifest and data flows.
 
 ## Screen binding
 
-Bind the capability to a [screen](glossary.md#screen) through the typed client. The [interaction contract](interaction-contract.md) describes UI bindings and workflow text.
+Bind the capability to a [screen](glossary.md#screen) through the typed client.
 
 ## Record shape changes
 
-When a stored record shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. A step must be deterministic, because storage runs it on every load until a commit persists the result. The [`packages/kernel`](../packages/kernel/README.md) README describes versions and compatible steps.
+When a stored record shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. A step must be deterministic, because storage runs it on every load until a commit persists the result.
 
 ## Triggers
 
-A [trigger](glossary.md#trigger) runs a job or an agent definition on a committed change or a schedule. Declare it with `defineTrigger` from [`plugins/automation`](../plugins/automation/README.md). Each run acts as the issuer of the trigger's [standing grant](glossary.md#standing-grant), narrowed to the trigger's operations, and its commands are authorized like any caller's. [Agents](agents.md) explains runs and standing grants.
+A [trigger](glossary.md#trigger) runs a job or an agent definition on a committed change or a schedule. Declare it with `defineTrigger` from [`plugins/automation`](../plugins/automation/README.md). Each run acts as the issuer of the trigger's [standing grant](glossary.md#standing-grant), narrowed to the trigger's operations, and its commands are authorized like any caller's.
 
 ## Scenarios
 
@@ -121,8 +121,15 @@ In an application made by the [scaffold](glossary.md#scaffold), this command wri
 bun run scaffold add capability note.archive --kind command --description "Archive a note"
 ```
 
-Then run the checks in [development and testing](development-and-testing.md), and record browser and native runs in the [implementation ledger](implementation-status.md). The [add-capability](../packages/runtime/skills/add-capability/SKILL.md) skill lists these steps for a coding agent.
+Then run the checks in [development and testing](development-and-testing.md), and record browser and native runs in the [implementation ledger](implementation-status.md).
 
-## Related pages
+## References
 
-[Interaction contract](interaction-contract.md), [state and reactivity](state-and-reactivity.md), [authorization](authorization.md) and [systems of record](systems-of-record.md).
+- [Interaction contract](interaction-contract.md)
+- [State and reactivity](state-and-reactivity.md)
+- [Authorization](authorization.md)
+- [Systems of record](systems-of-record.md)
+- [Security and compliance](security-and-compliance.md)
+- [`packages/kernel`](../packages/kernel/README.md)
+- [Agents](agents.md)
+- [add-capability](../packages/runtime/skills/add-capability/SKILL.md)

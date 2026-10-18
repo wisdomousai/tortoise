@@ -11,7 +11,7 @@ Framework (`packages/*`). Server-side CLI. The scaffold trusts the source checko
 - [Scaffold](../../docs/primitives.md#scaffold): `scaffold`, `scaffoldNew`, `scaffoldAdd`, `ScaffoldOptions`, `ScaffoldManifest`, `NewOptions`, `AddRequest`, `AddOptions`.
 - [Framework release](../../docs/primitives.md#framework-release): `installedFramework`, the check behind `bun run check:framework`.
 
-Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` [UI registry](../../docs/primitives.md#ui-registry) item. [Getting started](../../docs/getting-started.md#new-application) shows the export flow, and the [setup skill](skills/create-agent-native-app/SKILL.md) guides an agent through both.
+Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` [UI registry](../../docs/primitives.md#ui-registry) item.
 
 Skills live in each package's `skills/` directory and travel with it. A source export copies them, and an installed-framework export gets them from the installed packages. Neither carries the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
 
@@ -125,3 +125,8 @@ The full acceptance runs are opt-in with `SCAFFOLD_ACCEPTANCE=1`, so an exported
 ## Skills
 
 - [create-agent-native-app](skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.
+
+## References
+
+- [Getting started](../../docs/getting-started.md#new-application)
+- [create-agent-native-app](skills/create-agent-native-app/SKILL.md)

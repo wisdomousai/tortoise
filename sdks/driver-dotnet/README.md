@@ -1,6 +1,6 @@
 # @agent-native/driver-sdk-dotnet
 
-The .NET library `AgentNative.Driver`, for writing a hardware [driver](../../docs/glossary.md#driver) for an agent-native [host](../../docs/glossary.md#host) in C#. The SDK answers the driver protocol, and the driver author writes the handlers that touch the equipment. [Hardware drivers](../../docs/hardware-drivers.md) explains the protocol, the gate and deployment.
+The .NET library `AgentNative.Driver`, for writing a hardware [driver](../../docs/glossary.md#driver) for an agent-native [host](../../docs/glossary.md#host) in C#. The SDK answers the driver protocol, and the driver author writes the handlers that touch the equipment.
 
 ## Layer
 
@@ -115,3 +115,7 @@ The tests do not cover the STA apartment or COM interop, which need Windows, or 
 ## Skills
 
 - [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.
+
+## References
+
+- [Hardware drivers](../../docs/hardware-drivers.md)

@@ -12,13 +12,13 @@ Framework (`packages/*`). The starter's `apps/service` calls it. Content calls o
 - [Host](../../docs/primitives.md#host): `startHost`, `serve`, `createCli`, `openEmbeddedInstance`, `combineIntegrations`, `readStarterConfig`, `readMobileTarget`, `loadApplication`, `loadManifest`, `hostComponents`, `deploymentCatalog`, `deploymentRequirements`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `PluginManifest`, `PluginSetting`, `PluginModules`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `PluginOpenContext`, `PluginStartContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `readPluginSettings`, `PluginSettings`. The definitions and the ports come from [`@agent-native/kernel`](../kernel/README.md); the host re-exports them and adds the Bun parts.
 - [Host platform](../../docs/primitives.md#host-platform): `bunPlatform` and the Bun port types, described under [Bun platform](#bun-platform).
-- [Host platform](../../docs/primitives.md#host-platform): `hostedPlatform` (`HostedPlatformOptions`), the Bun platform with the workspace in Postgres under a [workspace lease](../../docs/glossary.md#workspace-lease). `serve --hosted-workspace <name>` selects it, with `AGENT_NATIVE_DATABASE_URL`. [Hosting](../../docs/hosting.md#hosted-instance) explains the hosted instance.
+- [Host platform](../../docs/primitives.md#host-platform): `hostedPlatform` (`HostedPlatformOptions`), the Bun platform with the workspace in Postgres under a [workspace lease](../../docs/glossary.md#workspace-lease). `serve --hosted-workspace <name>` selects it, with `AGENT_NATIVE_DATABASE_URL`.
 - [Shell port](../../docs/primitives.md#shell-port): the shell routes and the delivery routes, listed under [Shell and delivery routes](#shell-and-delivery-routes).
 - [State migration](../../docs/primitives.md#state-migration): `migrate [--dry-run]`, described under [Migrate command](#migrate-command).
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus the host components that the generators read.
 
-Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/project-tasks/application.ts`](../../examples/project-tasks/application.ts). [Architecture](../../docs/architecture.md#layers) explains the layering and the [host plugins](../../docs/architecture.md#host-plugins).
+Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/project-tasks/application.ts`](../../examples/project-tasks/application.ts).
 
 ### Bun platform
 
@@ -71,7 +71,7 @@ An application definition is trusted code: its policy, handlers and connections 
 
 ### Workspace ownership
 
-One instance owns a workspace. A serving and an embedded host enforce this with the same OS lock. A hosted instance also holds the workspace's lease in Postgres, and the CLI's `serve` exits with code 1 once a renewal finds the lease gone. [Hosting](../../docs/hosting.md#workspace-lease-and-fence) describes the lease, the fence check and the one-instance-per-workspace layout.
+One instance owns a workspace. A serving and an embedded host enforce this with the same OS lock. A hosted instance also holds the workspace's lease in Postgres, and the CLI's `serve` exits with code 1 once a renewal finds the lease gone.
 
 ### Plugins and observers
 
@@ -148,3 +148,10 @@ The shell and delivery routes are tested with a fixture application in `plugins/
 - [write-host-plugin](skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
 - [run-a-hosted-instance](skills/run-a-hosted-instance/SKILL.md): a workspace in Postgres under a lease, behind TLS ingress and workforce sign-in.
 - [create-agent-native-app](../scaffold/skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.
+
+## References
+
+- [Hosting](../../docs/hosting.md#hosted-instance)
+- [Architecture](../../docs/architecture.md#layers)
+- [Host plugins](../../docs/architecture.md#host-plugins)
+- [Hosting](../../docs/hosting.md#workspace-lease-and-fence)

@@ -1,6 +1,6 @@
 # Operator workstations
 
-An [application](glossary.md#application) observes and drives a [workstation application](glossary.md#workstation-application) through its [screen](glossary.md#screen). The [bridge-station-screen](../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md) skill covers the [screen bridge](glossary.md#screen-bridge). The example is [`examples/line-station`](../examples/line-station/README.md).
+An [application](glossary.md#application) observes and drives a [workstation application](glossary.md#workstation-application) through its [screen](glossary.md#screen). The example is [`examples/line-station`](../examples/line-station/README.md).
 
 A workstation application has no API and must stay unmodified. Where its only stable interface is its screen, the application treats it as a [system of record](systems-of-record.md) reached through that screen. Software with an automation interface, such as COM, a local RPC service, files or a decodable network protocol, is reached through a [driver](hardware-drivers.md) instead, as [Automation route](#automation-route) describes.
 
@@ -70,7 +70,7 @@ Screen actions are not idempotent and can be interrupted. A station procedure th
 
 An unexpected screen such as an alarm popup, local input, a timeout or an exhausted step budget stops a procedure. An effect for a type with no procedure is rejected with `UNSUPPORTED`. `workstations/screen-bridge/test/controller.test.ts` tests this order.
 
-A held effect never re-runs and stays visible as needing [reconciliation](glossary.md#reconciliation). The operator states through a reconcile command whether the change was applied. A lost reply does not reject the effect, and an empty observation does not prove that nothing happened. [Held effects](systems-of-record.md#held-effects) explains reconciliation.
+A held effect never re-runs and stays visible as needing [reconciliation](glossary.md#reconciliation). The operator states through a reconcile command whether the change was applied. A lost reply does not reject the effect, and an empty observation does not prove that nothing happened.
 
 ## Bridge modes and hazard classes
 
@@ -199,7 +199,7 @@ cd examples/line-station && bun run dev
 cd examples/line-station && bun run station:golden
 ```
 
-`bun run dev` starts the fake HMI in the same process and bridges it. A host starts a bridge only when `STATION_HMI_URL` is set. [Development and testing](development-and-testing.md#station-bridge-demo-and-opt-in-perception) lists the variables that choose the station, the station profile and the perception source.
+`bun run dev` starts the fake HMI in the same process and bridges it. A host starts a bridge only when `STATION_HMI_URL` is set.
 
 ## Limits
 
@@ -210,10 +210,14 @@ cd examples/line-station && bun run station:golden
 - Activating a station profile does not require a passing golden check.
 - No physical badge reader has been tested, and no example signs people in through the workstation application's screen.
 
-## Related pages
+## References
 
-- [Implementation status](implementation-status.md#operator-workstation-bridge): deterministic, browser, device and live local-model evidence, kept apart.
-- [Point-of-work input](point-of-work-input.md): scanners and the operator UI registry.
-- [Hardware drivers](hardware-drivers.md): delivery modes and the automation route's driver.
-- [Systems of record](systems-of-record.md): the outbox, settlement and held effects.
-- [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`workstations/sign-in`](../workstations/sign-in/README.md): the parts and their tests.
+- [Implementation status](implementation-status.md#operator-workstation-bridge)
+- [Point-of-work input](point-of-work-input.md)
+- [Hardware drivers](hardware-drivers.md)
+- [Systems of record](systems-of-record.md)
+- [`workstations/screen-bridge`](../workstations/screen-bridge/README.md)
+- [`workstations/sign-in`](../workstations/sign-in/README.md)
+- [bridge-station-screen](../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md)
+- [Held effects](systems-of-record.md#held-effects)
+- [Development and testing](development-and-testing.md#station-bridge-demo-and-opt-in-perception)

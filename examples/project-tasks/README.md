@@ -266,7 +266,7 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 19. Set `blobs` limits on the capability that accepts a file. Type its input field with `blobRefSchema`.
 20. Reference the bytes with `ctx.attach` in the create handler.
 21. Drop the reference with `ctx.detach` in the delete handler.
-22. Declare OS handlers and actions as an `OsDeclarations` object on the module. The [add-os-integration skill](../../packages/shell/skills/add-os-integration/SKILL.md) maps each kind to its plugin.
+22. Declare OS handlers and actions as an `OsDeclarations` object on the module.
 23. Append the plugins that serve the declared kinds to the lists in `application.ts` and `manifest.ts`, with `osPlugin` before `notificationsPlugin`, which requires it. The composition's `checkPlugins` refuses lists that differ in plugins or order, or that place a plugin before one it requires.
 24. Set `integration: { target, delivery: 'outbox' }` on the capability that sends a notification. A target that a queueing notify action carries needs no network destination.
 25. Enqueue the notification with `ctx.enqueue`, passing `target`, `type`, `resource` and an `OsNotificationPayload` as `payload`. The payload holds the principal, the category, a title, an optional body and optional replies, as the [notifications plugin README](../../plugins/notifications/README.md) lists.
@@ -328,26 +328,26 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 - **Full check.** In an application that `scaffold new` exported from source, `bun run check` fails at its README and skill checks, and one compliance test fails in the full `bun test`. The [recorded scaffold runs](../../docs/implementation-status.md#layers-and-scaffold) pass the whole check only for an application that installs the framework from a registry.
 - **Systems of record.** The example has no target besides reminders, no inbound sync and no remote query.
 
-## Related pages
+## Skills
+
+- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md)
+- [build-screens](../../packages/frame/skills/build-screens/SKILL.md)
+- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
+- [write-host-plugin](../../packages/host/skills/write-host-plugin/SKILL.md)
+
+## References
 
 - [Capability authoring](../../docs/capability-authoring.md)
 - [Authorization](../../docs/authorization.md)
 - [State and reactivity](../../docs/state-and-reactivity.md)
 - [Agent harnesses](../../docs/agents.md)
 - [Notifications plugin README](../../plugins/notifications/README.md)
-- [create-agent-native-app skill](../../packages/scaffold/skills/create-agent-native-app/SKILL.md)
-- [add-capability skill](../../packages/runtime/skills/add-capability/SKILL.md)
-- [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md)
-- [add-os-integration skill](../../packages/shell/skills/add-os-integration/SKILL.md)
-- [connect-system-of-record skill](../../packages/integration/skills/connect-system-of-record/SKILL.md)
-- [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md)
+- [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md)
+- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md)
+- [build-screens](../../packages/frame/skills/build-screens/SKILL.md)
+- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md)
+- [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [check-a-change](../../packages/testing/skills/check-a-change/SKILL.md)
 - [Quality inspection](../quality-inspection/README.md)
 - [CRM capture](../crm-capture/README.md)
 - [Receiving](../receiving/README.md)
-
-## Skills
-
-- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md) covers the capabilities, the policy and the scenarios.
-- [build-screens](../../packages/frame/skills/build-screens/SKILL.md) covers the screens and the UI-binding test.
-- [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md) covers the OS handlers, the reminder and the OS plugins.
-- [write-host-plugin](../../packages/host/skills/write-host-plugin/SKILL.md) covers the `webhook` example plugin.

@@ -5,7 +5,7 @@ description: Read values from plant control systems into an agent-native applica
 
 # Observe plant signals
 
-A broker or an OPC UA server is a source that can be read but not queried for history or written. Its values become readings: claims about the source, with provenance and confidence. An ingest command decides what they change. See the [observation package README](../../README.md), [MQTT](../../../../plugins/connector-mqtt/README.md) and [OPC UA](../../../../plugins/connector-opcua/README.md).
+A broker or an OPC UA server is a source that can be read but not queried for history or written. Its values become readings: claims about the source, with provenance and confidence. An ingest command decides what they change.
 
 ## Before writing
 
@@ -42,3 +42,9 @@ bun test examples/<app>
 ```
 
 The fakes prove the wiring. Record a run against a real broker, edge node or server separately in [implementation status](../../../../docs/implementation-status.md#connector-plugins).
+
+## References
+
+- [`@agent-native/observation`](../../README.md)
+- [MQTT](../../../../plugins/connector-mqtt/README.md)
+- [OPC UA](../../../../plugins/connector-opcua/README.md)

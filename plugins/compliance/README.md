@@ -13,7 +13,7 @@ Plugin layer, shipped with the framework. An application composes it as `complia
 - [Host plugin](../../docs/primitives.md#host-plugin): `compliancePlugin` requires `site` and `audit` and reads their services. It is written only against `@agent-native/host/plugin`.
 - [UI registry](../../docs/primitives.md#ui-registry): `compliance-screen`, the plugin's own shadcn registry in [`registry.json`](registry.json).
 
-[Security and compliance](../../docs/security-and-compliance.md#compliance-bundle) describes the bundle. `bun run generate` writes each application's output to `dist/reference/<id>/` and the control mapping to `dist/reference/controls.md`. None of it is committed. The [network plugin](../network/README.md) exports firewall and orchestrator rules.
+`bun run generate` writes each application's output to `dist/reference/<id>/` and the control mapping to `dist/reference/controls.md`. None of it is committed. The [network plugin](../network/README.md) exports firewall and orchestrator rules.
 
 ## Entrypoints
 
@@ -75,3 +75,7 @@ bun test plugins/compliance
 ## Skills
 
 - [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.
+
+## References
+
+- [Security and compliance](../../docs/security-and-compliance.md#compliance-bundle)

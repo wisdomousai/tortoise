@@ -7,7 +7,7 @@ Scanners and keypads do most of the input. Two domain-neutral kits support these
 - [`packages/devices`](../packages/devices/README.md): scanner profiles, sources, decoding, calibration and routing, plus a reusable [module](glossary.md#module) for per-station device configuration.
 - [`packages/operator-ui`](../packages/operator-ui/README.md): the `operator` [UI registry](glossary.md#ui-registry) of glove-sized parts.
 
-`line-station` uses both kits, and the `quality-inspection` capture screen uses parts of the registry. [Operator workstations](operator-workstations.md) describes the station around them.
+`line-station` uses both kits, and the `quality-inspection` capture screen uses parts of the registry.
 
 ## Concepts
 
@@ -137,8 +137,10 @@ bun run check:registry:operator
 
 A device type counts as supported only once it has been checked and recorded in the [implementation ledger](implementation-status.md#operator-workstation-bridge).
 
-## Related pages
+## References
 
-- [Operator workstations](operator-workstations.md): the screen, the seat and workstation sign-in.
-- [Systems of record](systems-of-record.md): delivery state and held effects.
-- [`packages/devices`](../packages/devices/README.md), [`packages/operator-ui`](../packages/operator-ui/README.md) and [`plugins/intent-scanner`](../plugins/intent-scanner/README.md): entrypoints and tests.
+- [Operator workstations](operator-workstations.md)
+- [Systems of record](systems-of-record.md)
+- [`packages/devices`](../packages/devices/README.md)
+- [`packages/operator-ui`](../packages/operator-ui/README.md)
+- [`plugins/intent-scanner`](../plugins/intent-scanner/README.md)

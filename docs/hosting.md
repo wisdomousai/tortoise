@@ -1,6 +1,6 @@
 # Hosting
 
-An [instance](glossary.md#instance) can run on a server, with its [workspace](glossary.md#workspace) in Postgres under a lease, and [sites](glossary.md#site) can report to a fleet through enrollment, reports, releases and a relay. [Architecture](architecture.md#instances-and-hosts) explains instances, hosts and host platforms.
+An [instance](glossary.md#instance) can run on a server, with its [workspace](glossary.md#workspace) in Postgres under a lease, and [sites](glossary.md#site) can report to a fleet through enrollment, reports, releases and a relay.
 
 ## Concepts
 
@@ -43,11 +43,11 @@ A site-scoped destination, a device, an exchange folder or a station process tie
 6. In the same policy, set `identity: external`, name the OpenID Connect provider in `workforce`, and bind the `workforce-idp` destination to the provider's origin.
 7. Back up the database with its own tools, such as `pg_dump` or point-in-time recovery.
 
-People then sign in through [workforce sign-in](glossary.md#workforce-sign-in), and no local owner session exists. Workforce sessions live in the instance's memory, so a restart or a takeover signs everyone out. The [deploy-to-site](../plugins/site/skills/deploy-to-site/SKILL.md) skill has the policy steps.
+People then sign in through [workforce sign-in](glossary.md#workforce-sign-in), and no local owner session exists. Workforce sessions live in the instance's memory, so a restart or a takeover signs everyone out.
 
 The CLI's backup, restore, migrate, sync and drain verbs and any embedded call open a local workspace only. A hosted instance is reached in [attached mode](glossary.md#attached-mode).
 
-A Postgres-compatible database can reuse the Postgres adapter with its own driver. [Adapters](adapters.md#storage) describes the storage port and its conformance suite. The first command below runs the hosted tests on PGlite. The second runs the conformance and lease cases against the server the URL names, each case under its own workspace scope.
+A Postgres-compatible database can reuse the Postgres adapter with its own driver. The first command below runs the hosted tests on PGlite. The second runs the conformance and lease cases against the server the URL names, each case under its own workspace scope.
 
 ```sh
 bun test packages/testing/test/storage.test.ts packages/testing/test/postgres-lease.test.ts packages/host/test/hosted-platform.test.ts
@@ -97,7 +97,7 @@ A relayed request reaches a capability only with a [session](glossary.md#session
 
 ### Fleet application
 
-[`examples/fleet`](../examples/fleet/README.md) is a complete fleet. It keeps site records, release channels, forwarded audit events and relay requests, and has a health screen. It has no outbox target and needs nothing from a site, so it can run as a hosted instance.
+It keeps site records, release channels, forwarded audit events and relay requests, and has a health screen. It has no outbox target and needs nothing from a site, so it can run as a hosted instance.
 
 Only workspace members pass the fleet's caller gate. Operators update sites, publish, assign and relay, and viewers read. Device link lets only the local owner create enrollments. An enrolled site is an integration lane that may call only the protocol and read only the release its channel assigns, so it can fetch no other blob. Relaying needs a person, so an agent run cannot reach a site through the fleet.
 
@@ -133,7 +133,7 @@ A relay request's headers and body are stored only while it waits, are never lis
 6. Activate a staged release with `site install <releases folder>/<release id> --trust key.pub.json`, by hand or from a timer the site runs.
 7. Set `fleet-relay` (`AGENT_NATIVE_FLEET_RELAY`) to `on` only when remote access is wanted. The relay is off by default.
 
-`createFleetAgentPlugin({ intervalMs, relayMs })` changes the cycle and the relay poll. The [connect-a-site-to-a-fleet](../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) skill has the steps for both sides.
+`createFleetAgentPlugin({ intervalMs, relayMs })` changes the cycle and the relay poll.
 
 ### Fleet setup
 
@@ -147,9 +147,16 @@ A fleet attaches a release's files to a resource the site's policy lets it read,
 
 To test a fleet against real sites, compose `fleetNetworkFixture` from `@agent-native/fleet-agent/testing` in place of the network plugin. The test supplies the function that reaches the fleet, as `examples/fleet/test/site.ts` does, and can fail, drop or change answers there.
 
-## Related pages
+## References
 
-- [Architecture](architecture.md): instances, hosts, host platforms and host plugins.
-- [Security and compliance](security-and-compliance.md): deployment policy, ingress, workforce sign-in and the audit log.
-- [Mobile](mobile.md): device link and pairing.
-- [Implementation status](implementation-status.md): the runs for the [hosted instance](implementation-status.md#hosted-instance) and the [fleet agent](implementation-status.md#fleet-agent).
+- [Architecture](architecture.md)
+- [Security and compliance](security-and-compliance.md)
+- [Mobile](mobile.md)
+- [Implementation status](implementation-status.md)
+- [Hosted instance](implementation-status.md#hosted-instance)
+- [Fleet agent](implementation-status.md#fleet-agent)
+- [Architecture](architecture.md#instances-and-hosts)
+- [deploy-to-site](../plugins/site/skills/deploy-to-site/SKILL.md)
+- [Adapters](adapters.md#storage)
+- [`examples/fleet`](../examples/fleet/README.md)
+- [connect-a-site-to-a-fleet](../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md)

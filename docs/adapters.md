@@ -35,11 +35,11 @@ Another database can back the port if it gives the same atomicity: receipts and 
 
 ## Systems of record
 
-A [system of record](glossary.md#system-of-record) cannot join the local transaction, so it is not storage. A command commits an [outbox effect](glossary.md#effect), the dispatcher delivers it afterwards, and a trusted command records the outcome. Identity and version mapping, idempotency, held effects and reconciliation belong to the [connector](glossary.md#connector)'s contract. [Systems of record](systems-of-record.md) describes the pattern.
+A [system of record](glossary.md#system-of-record) cannot join the local transaction, so it is not storage. A command commits an [outbox effect](glossary.md#effect), the dispatcher delivers it afterwards, and a trusted command records the outcome. Identity and version mapping, idempotency, held effects and reconciliation belong to the [connector](glossary.md#connector)'s contract.
 
 ## Surface adapters
 
-Each surface adapter calls the instance's command and query entry points with a context the host supplies. [Architecture](architecture.md#surfaces-and-identity) lists how each surface identifies its caller.
+Each surface adapter calls the instance's command and query entry points with a context the host supplies.
 
 ### HTTP
 
@@ -70,9 +70,11 @@ bun test examples/project-tasks/test/transport-conformance.test.ts
 
 The first runs the suite on the memory, SQLite and Postgres adapters. The second compares results and errors across the in-process, HTTP, CLI and MCP adapters.
 
-## Related pages
+## References
 
-- [Authorization](authorization.md): the policy port and the CASL adapter.
-- [Architecture](architecture.md#host-plugins): the host ports that host plugins provide.
-- [Security and compliance](security-and-compliance.md): the audit log and the egress guard.
-- [Agents](agents.md): harnesses.
+- [Authorization](authorization.md)
+- [Architecture](architecture.md#host-plugins)
+- [Security and compliance](security-and-compliance.md)
+- [Agents](agents.md)
+- [Systems of record](systems-of-record.md)
+- [Architecture](architecture.md#surfaces-and-identity)

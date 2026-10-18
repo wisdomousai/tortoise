@@ -68,8 +68,10 @@ bun test plugins/connector-opcua
 - a fault for an ended session;
 - the observer: observations, a lost server making them uncertain, and only reads sent.
 
-The [implementation status](../../docs/implementation-status.md#connector-plugins) records an interop run by hand against an independent server.
-
 ## Skills
 
 - [observe-plant-signals](../../packages/observation/skills/observe-plant-signals/SKILL.md): declaring the source, writing the ingest command, starting the observer and binding the destination.
+
+## References
+
+- [Implementation status](../../docs/implementation-status.md#connector-plugins)

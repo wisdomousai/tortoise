@@ -5,7 +5,7 @@ description: Observe or control equipment from an agent-native application throu
 
 # Write a hardware driver
 
-A [driver](../../../../docs/glossary.md#driver) is an executable in whatever language suits the equipment. The host starts it as a child process through the [process port](../../../../docs/glossary.md#process-port) and speaks JSON-RPC over stdin and stdout. Driver actions are delivered as outbox effects on a target, and driver state becomes [observations](../../../../docs/glossary.md#observation). Commands, handlers, screens and agents then work as they do for any other system of record. See [Hardware drivers](../../../../docs/hardware-drivers.md) and the [connector-driver README](../../README.md).
+A [driver](../../../../docs/glossary.md#driver) is an executable in whatever language suits the equipment. The host starts it as a child process through the [process port](../../../../docs/glossary.md#process-port) and speaks JSON-RPC over stdin and stdout. Driver actions are delivered as outbox effects on a target, and driver state becomes [observations](../../../../docs/glossary.md#observation). Commands, handlers, screens and agents then work as they do for any other system of record.
 
 ## Before writing
 
@@ -58,3 +58,8 @@ A [driver](../../../../docs/glossary.md#driver) is an executable in whatever lan
 3. Prove a new SDK with `checkDriver` and `chamberConformance` against its simulated chamber, run as a real child process.
 4. Record a run against real hardware or its real software in [implementation status](../../../../docs/implementation-status.md#hardware-drivers), with its platform and what it did not show. A kind of equipment counts as supported only after such a run.
 5. Record simulator and pseudo-terminal runs as such.
+
+## References
+
+- [Hardware drivers](../../../../docs/hardware-drivers.md)
+- [`@agent-native/connector-driver`](../../README.md)

@@ -79,8 +79,10 @@ bun test plugins/connector-mqtt
 - a dropped broker making observations uncertain, with nothing published;
 - a refused connection, retried.
 
-The [implementation status](../../docs/implementation-status.md#connector-plugins) records an interop run by hand against an independent broker and publisher.
-
 ## Skills
 
 - [observe-plant-signals](../../packages/observation/skills/observe-plant-signals/SKILL.md): declaring the source, writing the ingest command, starting the observer and binding the destination.
+
+## References
+
+- [Implementation status](../../docs/implementation-status.md#connector-plugins)

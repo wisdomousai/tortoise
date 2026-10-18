@@ -26,7 +26,7 @@ The React capability form validates with the capability's schema. It keeps one i
 
 ## UI session context
 
-A screen registers the resources a person selected and the [revision](glossary.md#revision) observed for each. The host checks that the caller may read each one and that no revision is ahead of the [instance](glossary.md#instance). An [agent run](glossary.md#agent-run) started from the screen captures this context and does not follow later selection changes. [Authorization](authorization.md) covers the intents a run sends back.
+A screen registers the resources a person selected and the [revision](glossary.md#revision) observed for each. The host checks that the caller may read each one and that no revision is ahead of the [instance](glossary.md#instance). An [agent run](glossary.md#agent-run) started from the screen captures this context and does not follow later selection changes.
 
 ## Results
 
@@ -37,7 +37,7 @@ A screen registers the resources a person selected and the [revision](glossary.m
 
 ## Errors
 
-Shared error codes distinguish invalid input or output, unknown operations, forbidden access, revision conflicts, idempotency conflicts, cancellation, an unavailable dependency and internal failure. Surface adapters map an `ApplicationError` to one envelope with its code, message and details. Any other exception becomes a generic internal error. [Systems of record](systems-of-record.md) lists the CLI exit codes.
+Shared error codes distinguish invalid input or output, unknown operations, forbidden access, revision conflicts, idempotency conflicts, cancellation, an unavailable dependency and internal failure. Surface adapters map an `ApplicationError` to one envelope with its code, message and details. Any other exception becomes a generic internal error.
 
 ## Versions and idempotency
 
@@ -49,6 +49,9 @@ HTTP and MCP require a key for a command, the CLI generates one, and direct call
 
 `bun run generate` writes each application's catalog, OpenAPI document, operation reference, workflows, security manifest, data flows and agent skill to `dist/reference/<id>/`. Nothing generated is committed. `bun run check` runs the generator, so a catalog that cannot be documented fails.
 
-## Related pages
+## References
 
-[Capability authoring](capability-authoring.md), [state and reactivity](state-and-reactivity.md) and [authorization](authorization.md).
+- [Capability authoring](capability-authoring.md)
+- [State and reactivity](state-and-reactivity.md)
+- [Authorization](authorization.md)
+- [Systems of record](systems-of-record.md)

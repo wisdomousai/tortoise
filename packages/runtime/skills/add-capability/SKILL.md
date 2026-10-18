@@ -5,7 +5,7 @@ description: Add or change a command or query in an agent-native application, wi
 
 # Add a capability
 
-A [capability](../../../../docs/glossary.md#capability) is one domain behavior in the [catalog](../../../../docs/glossary.md#catalog). People, agents, the CLI, MCP and HTTP all reach it through the same runtime, so it is written once. [Capability authoring](../../../../docs/capability-authoring.md) is the full guide, and `examples/project-tasks` is the smallest worked application.
+A [capability](../../../../docs/glossary.md#capability) is one domain behavior in the [catalog](../../../../docs/glossary.md#catalog). People, agents, the CLI, MCP and HTTP all reach it through the same runtime, so it is written once.
 
 ## Before writing
 
@@ -27,7 +27,7 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
 3. Add workflow text when agents need a sequence of capabilities. It names operation IDs, never transport tool names.
 4. Write the [handler](../../../../docs/glossary.md#handler) in the server entrypoint with `createHandlerFactory`. Declare every changed resource with `ctx.change`.
 5. Make no network call inside the transaction. Enqueue an [outbox effect](../../../../docs/glossary.md#effect) with `ctx.enqueue` and declare `integration` on the capability instead. The framework's reconciliation capabilities decide the effects the dispatcher holds, without a new command; the `connect-system-of-record` skill covers them.
-6. Write the policy for the operation, the object, current and proposed fields, and grant scope. Filter rows before paging or counting. [Authorization](../../../../docs/authorization.md) explains the checks.
+6. Write the policy for the operation, the object, current and proposed fields, and grant scope. Filter rows before paging or counting.
 7. Compose through the application's `manifest.ts` and `application.ts`, never in `apps/*`.
 8. Declare what it reaches: network destinations, exchange folders, devices, child processes, and the input fields safe to log in plain text.
 9. Bind it to a [screen](../../../../docs/glossary.md#screen) with the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`). Keep `useCapabilityForm`, so a retry reuses one [idempotency key](../../../../docs/glossary.md#idempotency-key).
@@ -54,3 +54,9 @@ bunx playwright test examples/<app>/e2e
 ```
 
 After `generate`, read the application's security manifest and data flows in `dist/reference/<id>/` for the destinations the change added. Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) for the rest and for how to report what passed.
+
+## References
+
+- [Capability authoring](../../../../docs/capability-authoring.md)
+- [`examples/project-tasks`](../../../../examples/project-tasks/README.md)
+- [Authorization](../../../../docs/authorization.md)

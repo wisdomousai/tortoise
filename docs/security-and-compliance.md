@@ -100,7 +100,7 @@ A policy file under the `sandbox` profile:
 
 Folder bindings have their own findings. Two folders cannot share a directory. An undeclared folder, or a required folder left unbound, is an error. A bound directory that does not exist is a warning, because a share may be mounted later.
 
-`examples/quality-inspection/site-policy.sandbox.json` is a complete sandbox policy. The desktop build ships `apps/desktop/site-policy.json`, which binds only provider endpoints.
+The desktop build ships `apps/desktop/site-policy.json`, which binds only provider endpoints.
 
 ### Hardening profiles
 
@@ -125,7 +125,7 @@ The policy's `identity` is `local-owner`, `grant-file` or `external`:
 - **`grant-file`:** the host issues no local owner session and writes no owner credential. It admits only a launcher's [delegated grant](glossary.md#grant) within the maximum lifetime, including for embedded CLI and MCP calls.
 - **`external`:** people sign in through [workforce sign-in](glossary.md#workforce-sign-in) with the OpenID Connect provider named in `workforce`, using the authorization code flow with PKCE. The provider's issuer must be on the origin bound to the `workforce-idp` destination. The host issues the local owner no session, and embedded calls need a launcher grant.
 
-Under `external`, the host never falls back to the local owner. The [site plugin's trust boundary](../plugins/site/README.md#trust-boundary) describes the sign-in flow. `examples/project-tasks/test/hardening.test.ts` covers the identity floors.
+Under `external`, the host never falls back to the local owner. `examples/project-tasks/test/hardening.test.ts` covers the identity floors.
 
 ### Ingress and certificates
 
@@ -185,7 +185,7 @@ Two relays are the sandbox's only way out. One reaches the host API with a token
 
 ### Local models
 
-The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start. It refuses files that differ from the [model entry](glossary.md#model-entry), and a fine-tune without a passing activation for its exact digests. Its runs record the measured digests with `verified: true`, so an auditor can trace an approval request to the base weights, the adapter and the dataset. A harness for a model server run outside the host records the digests it was given as unverified. The [approval dataset](glossary.md#approval-dataset) export applies redaction before its digest, so only what the exporting caller may see leaves the host for training. [Agents](agents.md) describes local models.
+The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start. It refuses files that differ from the [model entry](glossary.md#model-entry), and a fine-tune without a passing activation for its exact digests. Its runs record the measured digests with `verified: true`, so an auditor can trace an approval request to the base weights, the adapter and the dataset. A harness for a model server run outside the host records the digests it was given as unverified. The [approval dataset](glossary.md#approval-dataset) export applies redaction before its digest, so only what the exporting caller may see leaves the host for training.
 
 ## Audit log
 
@@ -239,8 +239,6 @@ app audit verify --log /var/lib/app/audit             # exit 10 if the chain is 
 app compliance report --log /var/lib/app/audit --site site-policy.json --format markdown   # exit 10 if failing
 ```
 
-[Systems of record](systems-of-record.md#exit-codes) lists every CLI exit code.
-
 While the application runs, a posture monitor re-verifies the chain on an interval and on demand. It summarizes egress per destination and never probes the network. Auditors read posture, events and chain status through ordinary read-only queries and the Compliance screen. The screen polls every five seconds, so a denial appears within seconds.
 
 Only listed auditors may read the audit log; at creation the workspace owner is the only one. A delegated grant must name the operation. A grant limited to resources must also name `audit:log`.
@@ -267,11 +265,15 @@ A site connected to a fleet keeps working while the fleet is unreachable ([hosti
 - The isolated-test trap does not cover child processes.
 - Devices are declared but not mediated. The systemd export needs explicit allowances for declared devices.
 
-## Related pages
+## References
 
-- [Architecture](architecture.md): host plugins, ports and the invariants.
-- [Hosting](hosting.md): the hosted instance, workforce sign-in in a deployment, and the fleet.
-- [Systems of record](systems-of-record.md): targets, outbox effects and CLI exit codes.
-- [Agents](agents.md): agent runs, harnesses and local models.
-- [Desktop](desktop.md) and [mobile](mobile.md): the desktop window and paired devices.
-- [Implementation status](implementation-status.md): what has run by hand and the known gaps.
+- [Architecture](architecture.md)
+- [Hosting](hosting.md)
+- [Systems of record](systems-of-record.md)
+- [Agents](agents.md)
+- [Desktop](desktop.md)
+- [Mobile](mobile.md)
+- [Implementation status](implementation-status.md)
+- [`examples/quality-inspection/site-policy.sandbox.json`](../examples/quality-inspection/site-policy.sandbox.json)
+- [Site plugin's trust boundary](../plugins/site/README.md#trust-boundary)
+- [Systems of record](systems-of-record.md#exit-codes)

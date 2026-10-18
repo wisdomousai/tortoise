@@ -5,12 +5,12 @@ description: Connect an on-site agent-native instance to a fleet application, or
 
 # Connect a site to a fleet
 
-The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet) and is outbound only. Each cycle it reports outbox counts, forwards the [audit log](../../../../docs/glossary.md#audit-log) events the fleet lacks and stages the assigned release. With the relay on, it also forwards remote-access requests to the site's own API. See [Hosting](../../../../docs/hosting.md#fleet) and the [README](../../README.md#trust-boundary).
+The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet) and is outbound only. Each cycle it reports outbox counts, forwards the [audit log](../../../../docs/glossary.md#audit-log) events the fleet lacks and stages the assigned release. With the relay on, it also forwards remote-access requests to the site's own API.
 
 ## Before writing
 
 - The site side needs a provided network port, so startup refuses an application without one.
-- A fleet is an application like any other. `examples/fleet` is a complete fleet.
+- A fleet is an application like any other.
 
 ## Steps
 
@@ -48,3 +48,9 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 5. Fail, drop or change answers in `reach` to stand in for an unreliable uplink.
 6. Record a run against a real fleet across a network as by-hand evidence in [implementation status](../../../../docs/implementation-status.md#fleet-agent).
 7. Follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) for the rest.
+
+## References
+
+- [Hosting](../../../../docs/hosting.md#fleet)
+- [`@agent-native/fleet-agent`](../../README.md#trust-boundary)
+- [`examples/fleet`](../../../../examples/fleet/README.md)

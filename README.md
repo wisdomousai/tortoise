@@ -44,13 +44,13 @@ bun run test:scaffold
 
 The standalone scaffold acceptance run and the platform checks are in [Development and testing](docs/development-and-testing.md).
 
-The framework includes ChatGPT plan connection code, Claude execution with an API key and AI SDK execution. Provider credentials pay for inference and give no access to a workspace. Live sign-in and inference, provider eligibility and signed platform distribution each need their own check. Deterministic protocol tests do not establish those results. [Providers](docs/providers.md) has the details.
+The framework includes ChatGPT plan connection code, Claude execution with an API key and AI SDK execution. Provider credentials pay for inference and give no access to a workspace. Live sign-in and inference, provider eligibility and signed platform distribution each need their own check. Deterministic protocol tests do not establish those results.
 
 ## Scope
 
 The framework is local-first. A [hosted instance](docs/hosting.md#hosted-instance) keeps its workspace in a shared Postgres database under a [workspace lease](docs/glossary.md#workspace-lease). Managed cloud hosting, multi-device synchronization, more than one application per instance, publication to a public registry and signed distribution are outside the framework.
 
-Each [storage](docs/glossary.md#storage) transaction receives the whole workspace state in memory, and the CPU time of a commit grows with that state (`packages/adapters/src/row-storage.ts`). A large application may need a storage design that does not load the whole workspace. The storage port imposes no record model on module state. [Architecture](docs/architecture.md#storage) describes the storage adapters.
+Each [storage](docs/glossary.md#storage) transaction receives the whole workspace state in memory, and the CPU time of a commit grows with that state (`packages/adapters/src/row-storage.ts`). A large application may need a storage design that does not load the whole workspace. The storage port imposes no record model on module state.
 
 ## Guides
 
@@ -71,3 +71,8 @@ Each [storage](docs/glossary.md#storage) transaction receives the whole workspac
 - [Mobile](docs/mobile.md)
 - [Security and compliance](docs/security-and-compliance.md)
 - [Implementation status](docs/implementation-status.md) and its [known defects](docs/implementation-status.md#known-defects)
+
+## References
+
+- [Providers](docs/providers.md)
+- [Architecture](docs/architecture.md#storage)

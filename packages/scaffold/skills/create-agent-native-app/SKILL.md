@@ -5,7 +5,7 @@ description: Create a new agent-native application from this framework with `bun
 
 # Create an agent-native application
 
-The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets and requesting agents. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead. Commands: [setup reference](references/new-application.md) and [getting started](../../../../docs/getting-started.md#new-application).
+The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets and requesting agents. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead.
 
 ## Before writing
 
@@ -60,4 +60,10 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 
 ## Checks
 
-Run the checks the `check-a-change` skill names and report what actually passed. Generated source and deterministic tests do not establish provider login, live inference, native packaging, real hardware or a release. The [implementation status](../../../../docs/implementation-status.md) lists what has not been shown. Report those gaps separately from scaffolding success.
+Run the checks the `check-a-change` skill names and report what actually passed. Generated source and deterministic tests do not establish provider login, live inference, native packaging, real hardware or a release. Report those gaps separately from scaffolding success.
+
+## References
+
+- [Setup reference](references/new-application.md)
+- [Getting started](../../../../docs/getting-started.md#new-application)
+- [Implementation status](../../../../docs/implementation-status.md)
