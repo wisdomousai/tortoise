@@ -36,7 +36,7 @@ A seat is the local owner or a principal listed in `station-sign-in-seats`, such
 
 ### Secrets and storage
 
-- The badge value and the PIN reach only the plugin's routes. They never go into a command input, because the [authority](../../docs/glossary.md#authority) stores inputs with [receipts](../../docs/glossary.md#receipt).
+- The badge value and the PIN reach only the plugin's routes. They never go into a command input, because the [instance](../../docs/glossary.md#instance) stores inputs with [receipts](../../docs/glossary.md#receipt).
 - Enrollment hashes the PIN with scrypt and a random salt. Sign-in reads the verifier through `station.badge.verifier` and compares in constant time.
 - State keeps only SHA-256 digests of badge values and operator tokens.
 - A PIN has few possible values, so its hash does not keep it from someone who can read the workspace. The lockout is the defense: five wrong PINs in a row lock the badge for fifteen minutes.
@@ -67,7 +67,7 @@ Each attempt is a recorded command, with the badge ID, the seat and whether the 
 
 ## Dependencies
 
-- **Framework:** `@agent-native/contracts`, `@agent-native/kernel` (`plugin`, `plugin-manifest`, `application`, `authority`), `@agent-native/runtime` and `@agent-native/adapters` (`http`, for the JSON helpers).
+- **Framework:** `@agent-native/contracts`, `@agent-native/kernel` (`plugin`, `plugin-manifest`, `application`, `instance`), `@agent-native/runtime` and `@agent-native/adapters` (`http`, for the JSON helpers).
 - **External:** `@noble/hashes` (scrypt, SHA-256) and `zod`.
 - **Tests only:** `@agent-native/host` and `@agent-native/testing`.
 

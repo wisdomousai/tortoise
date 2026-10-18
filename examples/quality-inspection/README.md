@@ -59,7 +59,7 @@ The capture station can read a gauge or balance through its serial data output. 
 3. The capture station offers the newest unconfirmed reading above the value field. **Use reading** records it as the current sample through `inspection.result.record` with `instrumentReading`.
 4. The result keeps the reading's provenance, and the forwarded record names the instrument.
 
-A reading is not a result until a person confirms it. The instrument does not know the part or characteristic it measured. The authority refuses a confirmation when:
+A reading is not a result until a person confirms it. The instrument does not know the part or characteristic it measured. The instance refuses a confirmation when:
 
 - the reading was already used;
 - it is older than 10 minutes;
@@ -114,7 +114,7 @@ bunx playwright test examples/quality-inspection/e2e
   - outage behavior;
   - metrics.
 - `test/conformance.test.ts`: a datapoint captured over any surface commits once, is forwarded once and settles live.
-- `test/application.test.ts`: the embedded authority syncs and drains the target it declares.
+- `test/application.test.ts`: the embedded instance syncs and drains the target it declares.
 - `test/sandbox.test.ts`: the compiled binary with an empty environment runs embedded MCP capture under a grant, returns drain exit codes and runs a grant-bound `serve`.
 - `test/security.test.ts`: auditors read posture over HTTP, and the CLI verifies, reports and detects tampering.
 - `test/ui-bindings.test.ts`: every capability that claims a UI binding is referenced by a screen.
@@ -414,7 +414,7 @@ Follow the [write-hardware-driver](../../plugins/connector-driver/skills/write-h
 - **Instrument readings.** The application keeps only the newest 20 instrument readings. The README lists when a confirmation is refused.
 - **Corrections.** Only results can be corrected. A rejected defect or usage decision has no command in the application, and the Needs attention screen says to follow it up in the quality system.
 - **Usage decisions.** No command reverts a decision, and capture stops once a lot is decided or closed.
-- **Measurement age.** The authority refuses a measurement more than 24 hours old. A batch holds at most 100 measurements for one lot.
+- **Measurement age.** The instance refuses a measurement more than 24 hours old. A batch holds at most 100 measurements for one lot.
 - **Held effects.** The example composes no reconciliation capabilities, so a held effect has no screen or command a person can use. The dispatcher holds an effect when the principal that committed it may no longer run its command at the first claim.
 - **Uncertain deliveries.** The fake quality system is idempotent by effect ID and never reports an uncertain outcome. A real connector can also cause held effects for uncertain deliveries and lost acknowledgements.
 - **State versions.** The example declares no numbered state migrations. Its `upgradeState` fills fields that older state lacks.

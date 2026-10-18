@@ -103,7 +103,7 @@ async function verification(options: PostureMonitorOptions): Promise<LogVerifica
 }
 
 /**
- * Continuous, passive posture monitoring for a running authority. Each check verifies the
+ * Continuous, passive posture monitoring for a running instance. Each check verifies the
  * chain up to the writer's head, folds new egress events into per-destination usage, assesses
  * the posture and records `posture.checked` (best effort: monitoring never blocks the app).
  * Reads scan the log files, which suits the reference scale; a large deployment would index.

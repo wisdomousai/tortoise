@@ -17,11 +17,11 @@ const platform: OsPlatform =
   process.platform === 'darwin' ? 'macos' : process.platform === 'win32' ? 'windows' : 'linux';
 
 /**
- * The authority's shell API over loopback, as the connection-file session. The window's launch
+ * The instance's shell API over loopback, as the connection-file session. The window's launch
  * cookie carries the same session, so a request submitted here is delivered to that window.
  * 503 means the application composes no shell port; 204 ends a relay wait without work.
  */
-function authorityClient(endpoint: string, token: string): DesktopShellClient {
+function instanceClient(endpoint: string, token: string): DesktopShellClient {
   async function call(path: string, body?: unknown, signal?: AbortSignal) {
     const response = await fetch(`${endpoint}/api/v1/${path}`, {
       method: body === undefined ? 'GET' : 'POST',
@@ -79,7 +79,7 @@ async function readBytes(path: string, maxBytes: number): Promise<Uint8Array | u
 const runnable =
   /\.(?:app|bat|cmd|com|command|cpl|desktop|exe|hta|jar|js|jse|lnk|msi|pif|ps1|scr|sh|terminal|url|vbs|wsf|workflow)$/i;
 
-/** A regular, non-executable file the authority resolved below its root. */
+/** A regular, non-executable file the instance resolved below its root. */
 async function existingFile(path: string): Promise<string | undefined> {
   try {
     const real = await realpath(path);
@@ -200,11 +200,11 @@ export function createOsShell(scheme: string) {
     handOver: { urls: launch.urls, paths: launch.paths },
     /** The data a second instance handed over; untrusted, so it is parsed again. */
     secondInstance: (data: unknown) => receive(receivedArguments(data, scheme)),
-    /** Connect to the authority once it runs and the window exists. */
+    /** Connect to the instance once it runs and the window exists. */
     async connect(endpoint: string, token: string, onDelivered: () => void) {
       desktop = createDesktopShell({
         platform,
-        client: authorityClient(endpoint, token),
+        client: instanceClient(endpoint, token),
         readFile: readBytes,
         open: (url) => shell.openExternal(url),
         reveal: async (path) => {

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * Modal built on the native <dialog> element. The browser provides focus trapping, Escape and an
- * inert background without injecting <style> tags, which the local authority's CSP forbids
+ * inert background without injecting <style> tags, which the local instance's CSP forbids
  * (Radix Dialog's scroll lock injects one). Content mounts only while open.
  */
 function NativeDialog({

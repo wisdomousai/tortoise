@@ -19,7 +19,7 @@ export const captureTelemetrySchema = z.strictObject({
   input: z.enum(['keyboard', 'scanner', 'instrument', 'touch']),
 });
 export const captureSchema = z.strictObject({
-  /** Derived by the authority: delegated runs and grants are agents, direct sessions humans. */
+  /** Derived by the instance: delegated runs and grants are agents, direct sessions humans. */
   actor: z.enum(['human', 'agent']),
   durationMs: z.number().int().min(0).optional(),
   input: captureTelemetrySchema.shape.input.optional(),

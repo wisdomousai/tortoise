@@ -1,6 +1,6 @@
 # Authorization
 
-The [authority](glossary.md#authority) decides who may run which [capability](glossary.md#capability) on which records, and checks it inside the transaction.
+The [instance](glossary.md#instance) decides who may run which [capability](glossary.md#capability) on which records, and checks it inside the transaction.
 
 ## Concepts
 
@@ -8,7 +8,7 @@ Terms: the [principal](glossary.md#principal), the [container](glossary.md#conta
 
 ## Execution context
 
-Every command and query reaches the authority with an [execution context](glossary.md#execution-context) that the host derives from the [session](glossary.md#session). The screens, HTTP, MCP, the CLI and agent tools reach the same handlers and policy. Capability input cannot choose the principal, workspace, roles or grant. The local reference host starts as the [local owner](glossary.md#owner), and test hosts can create isolated sessions.
+Every command and query reaches the instance with an [execution context](glossary.md#execution-context) that the host derives from the [session](glossary.md#session). The screens, HTTP, MCP, the CLI and agent tools reach the same handlers and policy. Capability input cannot choose the principal, workspace, roles or grant. The local reference host starts as the [local owner](glossary.md#owner), and test hosts can create isolated sessions.
 
 Authentication, authorization, provider funding and approval are separate. A provider account grants no workspace access. An approval never permits an operation the policy denies.
 
@@ -72,7 +72,7 @@ UI intents are bounded, expire, are offered until acknowledged, and end as accep
 
 ## Process boundary
 
-The authority owns the [workspace](glossary.md#workspace). Other processes attach through its protected [connection file](glossary.md#connection-file) and never open a second writable copy. An exclusive OS lock guards the workspace, including through path aliases, and a crash releases it (`packages/adapters/src/ownership.test.ts`). Another process running as the same OS user is not sandboxed. [Architecture](architecture.md#authorities-and-hosts) describes embedded and attached modes.
+The instance owns the [workspace](glossary.md#workspace). Other processes attach through its protected [connection file](glossary.md#connection-file) and never open a second writable copy. An exclusive OS lock guards the workspace, including through path aliases, and a crash releases it (`packages/adapters/src/ownership.test.ts`). Another process running as the same OS user is not sandboxed. [Architecture](architecture.md#instances-and-hosts) describes embedded and attached modes.
 
 ## CASL adapter
 

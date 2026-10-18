@@ -66,7 +66,7 @@ bun test plugins/share-target
 - expiry and the eight-post limit;
 - a share action returned to the browser, and startup refused without the plugin.
 
-`test/mobile.test.ts` runs the same application on the mobile authority with Bun bindings for the device. It covers:
+`test/mobile.test.ts` runs the same application on the mobile instance with Bun bindings for the device. It covers:
 
 - text and a PDF shared through the `expo-sharing` link, prefilling the form;
 - an undeclared type never read;

@@ -5,10 +5,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createFileBlobStore } from '@agent-native/adapters/blob-files';
 import { bunSqlDriver } from '@agent-native/adapters/sqlite';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import type { SecretStore } from '@agent-native/kernel/platform';
 import { startHost } from '@agent-native/host/host';
-import { createMobilePlatform, openMobileAuthority } from '@agent-native/mobile';
+import { createMobilePlatform, openMobileInstance } from '@agent-native/mobile';
 import { createManagedConfigPlugin } from '@agent-native/managed-config/managed-config';
 import { createAssetSurveyApplication } from '@agent-native/asset-survey/application';
 import { nameplatePhoto } from '@agent-native/asset-survey/connectors/nameplate-photo';
@@ -90,7 +90,7 @@ async function openPhone(origin: string, code: string, workspace = 'phone-1') {
     secrets: memorySecrets(),
   });
   const managed = createManagedConfigPlugin(() => ({ 'hub-url': origin, 'enrollment-code': code }));
-  const phone = await openMobileAuthority(
+  const phone = await openMobileInstance(
     createFieldApplication({ fetch: phoneFetch, plugins: [managed] }),
     // One workspace per phone: a process holds each workspace name once.
     { platform, workspace },
@@ -107,10 +107,10 @@ async function openPhone(origin: string, code: string, workspace = 'phone-1') {
     (await phone.transport.query<T>(operation, input)).data;
   const deviceId = await paired(query);
   const deliver = () =>
-    phone.authority.integrations
+    phone.instance.integrations
       .target('hub')
       .dispatcher.runOnce(undefined, { ignoreBackoff: true });
-  const sync = () => phone.authority.integrations.sync();
+  const sync = () => phone.instance.integrations.sync();
   const photo = (lines: Record<string, string>) =>
     phone.transport.blobs!.put(nameplatePhoto(lines), 'image/png');
   return { phone, link, deviceId, command, query, deliver, sync, photo };

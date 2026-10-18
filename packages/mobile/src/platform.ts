@@ -2,7 +2,7 @@ import { acquireExclusiveLock } from '@agent-native/adapters/exclusive-lock';
 import { SnapshotStorage } from '@agent-native/adapters/snapshot-storage';
 import type { SqlDriver } from '@agent-native/adapters/sql-driver';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import type { HostPlatform, SecretStore } from '@agent-native/kernel/platform';
 import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
 import type { BlobStore } from '@agent-native/runtime';
@@ -27,7 +27,7 @@ const workspaceName = /^[a-z0-9][a-z0-9-]{0,62}$/;
 /**
  * The phone and tablet platform. It has no raw sockets, no child processes and no listener, so a
  * deployment that declares any of them refuses to start here. Ownership is an `EXCLUSIVE`
- * transaction on the workspace's lock database, held for as long as the authority is open, so a
+ * transaction on the workspace's lock database, held for as long as the instance is open, so a
  * background task cannot open a second writer while the screens hold one. Storage is the same
  * snapshot storage as on the desktop, over the device's SQLite.
  */

@@ -163,7 +163,7 @@ Paths in the Code and Proof columns are relative to the example directory. A pat
 | [Policy](../../docs/primitives.md#policy) with station roles and person-only commands | `policy.ts` `linePolicy` | `domain.test.ts`: an agent run cannot start an order |
 | Lanes for the bridge and MES [integration principals](../../docs/authorization.md) | `policy.ts` `integrations`, `handlers/integration.ts` `settles` | `domain.test.ts`: "integration principals stay in their lane" |
 | [Journal and live query](../../docs/primitives.md#journal-and-live-query) with per-station event visibility | `policy.ts` `events`, `ui/station/station-surface.tsx` | `domain.test.ts`: the completed order gets its own journal entry; per-station visibility is untested |
-| [Target](../../docs/primitives.md#target) for the MES | `contracts/target.ts` `mesTarget` | `test/application.test.ts`: the embedded authority syncs and drains it |
+| [Target](../../docs/primitives.md#target) for the MES | `contracts/target.ts` `mesTarget` | `test/application.test.ts`: the embedded instance syncs and drains it |
 | [Outbox effect](../../docs/primitives.md#outbox-effect) and [dispatcher](../../docs/primitives.md#dispatcher) to a non-idempotent MES | `handlers/production.ts`, `fake-mes.ts` `lookup` | `domain.test.ts`: a classified stop is forwarded exactly once |
 | [Inbound sync](../../docs/primitives.md#inbound-sync) of orders and stop reasons | `handlers/integration.ts` `applyBatch`, `fake-mes.ts` `toSyncInput` | `test/conformance.test.ts`; the unknown-station rule is untested |
 | [Observation](../../docs/primitives.md#observation) through an ingest command | `handlers/observation.ts`, `bridge.ts` | `domain.test.ts`: readings with provenance; stops open and close |
@@ -320,7 +320,7 @@ These steps start from the exported example and name the file to change in it. F
     - `domain.test.ts`: the domain over the in-memory simulator transport and a fake MES.
     - `test/conformance.test.ts`: direct, HTTP, CLI and MCP results, and the lanes.
     - `test/proposals.test.ts`: proposals, their conflicts and the expiry job.
-    - `test/application.test.ts` and `golden.test.ts`: the demo configuration, the embedded authority and the golden gate.
+    - `test/application.test.ts` and `golden.test.ts`: the demo configuration, the embedded instance and the golden gate.
     - `test/automation.test.ts` and `test/automation-driver.test.ts`: the automation route over a fake driver and the built driver.
     - `test/ui-bindings.test.ts` and `e2e/station.pw.ts`: the bindings and the browser run against a separate fake HMI process.
 29. Run the checks with the [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md).

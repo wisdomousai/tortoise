@@ -66,7 +66,7 @@ export function useCapture(lot: LotDetail, codeGroups: CodeGroups) {
   }
   /**
    * Confirm an instrument reading as this sample's result. The value and time are the reading's
-   * own; the authority checks they still match it, so a newer reading is never recorded instead.
+   * own; the instance checks they still match it, so a newer reading is never recorded instead.
    */
   const recordReading = async (reading: InstrumentReading) => {
     if (!target || !characteristic || taken) return;

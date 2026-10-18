@@ -48,7 +48,7 @@ The stream sends a reset instead of changes when:
 
 A client then clears its cache and queries again. The stream enqueues each batch inside the storage read boundary, so a permission change cannot commit between the check and the send. An asynchronous delivery callback is rejected.
 
-The React bindings serve one authority, principal and grant, and never share a cache across sessions. They:
+The React bindings serve one instance, principal and grant, and never share a cache across sessions. They:
 
 - coalesce each batch into one invalidation;
 - refetch only queries whose declared dependencies include a changed resource type, or every query that declares none;

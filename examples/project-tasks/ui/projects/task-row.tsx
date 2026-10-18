@@ -202,7 +202,7 @@ export function TaskRow({
           </button>
         )}
         {task.attachment && (
-          // Served by the authority to callers who may read this task, sandboxed and never
+          // Served by the instance to callers who may read this task, sandboxed and never
           // rendered on its origin; the browser or desktop saves it as a download.
           <Button size="icon-sm" variant="ghost" asChild>
             <a

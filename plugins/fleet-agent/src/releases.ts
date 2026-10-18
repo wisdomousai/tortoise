@@ -24,7 +24,7 @@ const exists = (path: string) =>
  * checked as it arrives and written under a temporary directory, which is renamed into place only
  * once the whole bundle verifies, so the folder never holds a partial or unverified release.
  * Activation is not done here: the operator's `site install` (or a timer that runs it) installs
- * a staged release, so the authority never replaces itself.
+ * a staged release, so the instance never replaces itself.
  */
 export async function stageRelease(
   link: FleetLink,

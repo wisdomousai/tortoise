@@ -34,7 +34,7 @@ export async function runContinuation<State, Services>(
 }
 
 /**
- * A replayed receipt's continuation, reprojected for the caller's current authority: the
+ * A replayed receipt's continuation, reprojected for the caller's current grants: the
  * continued operation is authorized for replay with the input it ran with, like the parent.
  */
 export async function replayContinuation<State, Services>(

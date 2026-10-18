@@ -198,7 +198,7 @@ test('forwarded audit events are verified, and a forged one stops collection vis
     kind: 'command.committed',
     seq: record.auditSeq + 1,
     at: Date.now(),
-    source: { component: 'authority', instance: 'forged' },
+    source: { component: 'host', instance: 'forged' },
     prev: record.auditHash,
     hash: 'f'.repeat(64),
   };

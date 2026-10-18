@@ -30,7 +30,7 @@ An application declares what the OS may send it and what it may ask of the OS as
    - a notify action over outbox targets with `offline: 'queue'`;
    - a `<target>.effect.settle` command per target;
    - a command that enqueues an `OsNotificationPayload` with the replies it offers.
-5. Declare the data classes an action carries. Notification text leaves the [authority](../../../../docs/glossary.md#authority) for the lock screen.
+5. Declare the data classes an action carries. Notification text leaves the [instance](../../../../docs/glossary.md#instance) for the lock screen.
 6. Show the delivery on the screen. The web frame and `packages/frame-native` apply deliveries and show provenance (`describeProvenance`) above a prefilled form.
 7. Write no platform registration by hand. The generators in `@agent-native/shell/registrations` turn the same declarations into platform files:
    - `nativeOsConfig` runs in `bun run mobile:prepare` (`scripts/mobile-entry.ts`) and adds the Expo config plugins for shares, notifications, intent filters and shortcuts;
@@ -52,7 +52,7 @@ bun test examples/<app>
 bunx playwright test examples/<app>/e2e
 ```
 
-- Each plugin README lists what its `test/mobile.test.ts` covers on the mobile authority, with Bun bindings for the device.
+- Each plugin README lists what its `test/mobile.test.ts` covers on the mobile instance, with Bun bindings for the device.
 - `examples/project-tasks/test/os.test.ts` covers the desktop path over HTTP.
 - `examples/project-tasks/e2e/os.pw.ts` covers the browser.
 

@@ -33,7 +33,7 @@ A screen names itself by `path`, such as `/captures`, the way a web route does. 
 
 Every other screen is pushed on a stack above the tabs and receives its parameters as React Navigation route params. `useFrameNavigation().open(path, params)` opens either kind. `openCapability(id)` opens the screen bound to a [capability](../../docs/glossary.md#capability).
 
-Screens read the session with `useSession()`. Web screens import it from `@/lib/session`, but on the device the transport exists only after the [authority](../../docs/glossary.md#authority) opens. `NativeFrame` starts a new session with an empty query cache whenever it gets a new transport.
+Screens read the session with `useSession()`. Web screens import it from `@/lib/session`, but on the device the transport exists only after the [instance](../../docs/glossary.md#instance) opens. `NativeFrame` starts a new session with an empty query cache whenever it gets a new transport.
 
 ### Theme and components
 
@@ -49,9 +49,9 @@ bun run build:registry:native
 
 ## Trust boundary
 
-The frame imports no application and no plugin. The starter passes the screens in from its generated entry. The frame does not open the authority, choose the [principal](../../docs/glossary.md#principal) or hold credentials. It renders whatever the transport it receives allows.
+The frame imports no application and no plugin. The starter passes the screens in from its generated entry. The frame does not open the instance, choose the [principal](../../docs/glossary.md#principal) or hold credentials. It renders whatever the transport it receives allows.
 
-The starter may also pass the authority's [plugin services](../../docs/glossary.md#plugin-service), which screens read from `useSession().services`. A plugin's screen uses only its own plugin's service, such as pairing. That service still writes through commands.
+The starter may also pass the instance's [plugin services](../../docs/glossary.md#plugin-service), which screens read from `useSession().services`. A plugin's screen uses only its own plugin's service, such as pairing. That service still writes through commands.
 
 `defineNativeScreens` checks the application's and its plugins' screens together. It fails at definition time on:
 

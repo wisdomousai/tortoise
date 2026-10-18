@@ -48,7 +48,7 @@ export const defineTrigger = <const T extends TriggerDefinition>(trigger: T): T 
 export const standingGrantSchema = z.strictObject({
   id,
   trigger: id,
-  /** The person whose authority every run of this grant uses. */
+  /** The person whose instance every run of this grant uses. */
   issuedBy: id,
   operations: z.array(z.string()),
   issuedAt: time,

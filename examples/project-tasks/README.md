@@ -60,10 +60,10 @@ The job uses stable revision-bound [idempotency keys](../../docs/glossary.md#ide
 
 ## Trust boundary
 
-The [application definition](../../docs/glossary.md#application-definition) is trusted code that runs inside the [authority](../../docs/glossary.md#authority).
+The [application definition](../../docs/glossary.md#application-definition) is trusted code that runs inside the [instance](../../docs/glossary.md#instance).
 
 - Every capability authorizes against current state. Roles come from project membership and never from input.
-- Membership capabilities may name a target principal and role. Those inputs never change the caller's authority.
+- Membership capabilities may name a target principal and role. Those inputs never change the caller's instance.
 - Task reads are scoped before filtering, pagination and counts.
 - `privateNote` is projected away for non-owners.
 - Mutations take `expectedRevisions`, so concurrent edits conflict instead of overwriting.
@@ -127,7 +127,7 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | [Journal and live query](../../docs/primitives.md#journal-and-live-query) | `dependencies` in `contracts.ts`; `live.liveQueryOptions` in `ui/` | `test/direct-transport.test.ts`; `test/host.test.ts`: "SSE resets after revocation…" and "HTTP projections agree across sessions…"; `e2e/workspace.pw.ts` |
 | [Proposal](../../docs/primitives.md#proposal) operations and review screen | `handlers/proposals.ts`; `proposalRules` in `policy.ts`; `ui/proposals.tsx` | `test/proposal-surfaces.test.ts` |
 | [Agent definition](../../docs/primitives.md#agent-definition) that proposes | `contracts.ts`: `project.planner` | No test in this example |
-| [Agent run](../../docs/primitives.md#agent-run) with [UI session context](../../docs/primitives.md#ui-session-context) | `ui/projects/agent-panel.tsx`; `selectableResources` in `application.ts` | `test/host.test.ts`: "real host preserves delegated authority…"; `test/ui-sessions.test.ts`; `e2e/workspace.pw.ts` |
+| [Agent run](../../docs/primitives.md#agent-run) with [UI session context](../../docs/primitives.md#ui-session-context) | `ui/projects/agent-panel.tsx`; `selectableResources` in `application.ts` | `test/host.test.ts`: "real host preserves delegated instance…"; `test/ui-sessions.test.ts`; `e2e/workspace.pw.ts` |
 | [Blob store](../../docs/primitives.md#blob-store) references with limits | `attachments.ts`; `handlers/tasks.ts` | `test/os.test.ts`: "an image is staged…" |
 | [Outbox effect](../../docs/primitives.md#outbox-effect) and its settle command | `task.remind`, `task-reminders.effect.settle` in `handlers/tasks.ts` | `test/os.test.ts`: "a reminder waits for the desktop…" |
 | [Dispatcher](../../docs/primitives.md#dispatcher) for the reminder target | `plugins/notifications/src/open.ts`: `createEffectDispatcher`, one per notify target | `test/os.test.ts`: "a reminder waits for the desktop…" |
@@ -138,7 +138,7 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | [Egress guard](../../docs/primitives.md#egress-guard) | The network plugin in `application.ts` | `test/security.test.ts`: "provider egress is denied unless the site policy binds it" |
 | [Host plugin](../../docs/primitives.md#host-plugin) composition, with a third-party plugin | Plugin lists in `manifest.ts`, `application.ts`, `screens.tsx` | `e2e/workspace.pw.ts`, which counts the plugins' MCP tools; `test/ui-bindings.test.ts` |
 | Exclusive workspace ownership through the [host platform](../../docs/primitives.md#host-platform) | `packages/host/src/platform/bun.ts`: `bunPlatform`; no example code | `packages/adapters/src/ownership.test.ts`; `test/security.test.ts`: "…refuses startup and releases the workspace" for release after a refused start |
-| [Workspace lease](../../docs/primitives.md#workspace-lease) on the hosted platform | No example code; `serve --hosted-workspace` | No test here; one by-hand run in the [implementation status](../../docs/implementation-status.md#hosted-authority) |
+| [Workspace lease](../../docs/primitives.md#workspace-lease) on the hosted platform | No example code; `serve --hosted-workspace` | No test here; one by-hand run in the [implementation status](../../docs/implementation-status.md#hosted-instance) |
 | [Capability binding](../../docs/primitives.md#capability-binding) coverage | `screens.tsx` and `ui/` | `test/ui-bindings.test.ts` |
 | Background job as an ordinary caller | `job.ts` | No test and no recorded run |
 | Host session, origin and launch checks, with this example as fixture | Framework code in `packages/adapters` and `packages/host` | `test/host.test.ts` |

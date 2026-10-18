@@ -25,7 +25,7 @@ export type MobileShare =
   | { readonly kind: 'url'; readonly url: string }
   | { readonly kind: 'file'; readonly uri: string; readonly mediaType?: string };
 
-/** The OS calls and the in-process authority a mobile shell uses. */
+/** The OS calls and the in-process instance a mobile shell uses. */
 export interface MobileShellDependencies {
   readonly platform: 'android' | 'ios';
   /** The application's URL scheme; links in any other scheme except `https` are ignored. */

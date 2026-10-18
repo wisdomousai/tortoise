@@ -1,6 +1,6 @@
 /**
  * Agent definitions are catalog metadata: what an agent is for, which operations it may call and
- * how far a run may go. They hold no model credentials, prompts from people or authority of
+ * how far a run may go. They hold no model credentials, prompts from people or permissions of
  * their own. A run under a definition still executes as the person or standing grant that
  * started it, narrowed to the definition's operations, and every call is authorized by the
  * application policy like any other caller's.
@@ -12,7 +12,7 @@ export type ModelRequirement = 'local' | 'remote' | 'any';
 /**
  * `direct`: the agent runs its commands itself, so each one must have a UI binding a person can
  * use to see and repeat the change. `propose`: the agent's commands become proposals a person
- * or allowed caller accepts under their own authority; it runs queries directly.
+ * or allowed caller accepts with their own grants and policy; it runs queries directly.
  */
 export type AgentOutput = 'direct' | 'propose';
 

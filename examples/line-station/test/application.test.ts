@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import { createLineStationApplication, demoAutomationStation, demoStations } from '../application';
 
 test('upgrade is idempotent for line-station state', () => {
@@ -26,19 +26,19 @@ test('the demo reaches a station through its automation driver only when asked',
   expect(demoStations(env)).toEqual([]);
 });
 
-test('the embedded authority syncs the MES and reports station targets it cannot deliver', async () => {
+test('the embedded instance syncs the MES and reports station targets it cannot deliver', async () => {
   const workspacePath = await mkdtemp(join(tmpdir(), 'agent-native-embedded-'));
-  const authority = await openEmbeddedAuthority(createLineStationApplication({ stations: [] }), {
+  const instance = await openEmbeddedInstance(createLineStationApplication({ stations: [] }), {
     workspacePath,
   });
   try {
-    expect((await authority.integrations.sync()).map((report) => report.target)).toEqual(['mes']);
-    expect(await authority.integrations.drain(0)).toEqual({
+    expect((await instance.integrations.sync()).map((report) => report.target)).toEqual(['mes']);
+    expect(await instance.integrations.drain(0)).toEqual({
       pending: 0,
       targets: [{ target: 'mes', pending: 0, held: 0, upstream: 0, deliverable: true }],
     });
   } finally {
-    await authority.close();
+    await instance.close();
     await rm(workspacePath, { recursive: true, force: true });
   }
 });

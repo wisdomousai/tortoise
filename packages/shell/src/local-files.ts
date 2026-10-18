@@ -42,7 +42,7 @@ function uploadMediaType(handler: FileHandler, name: string, reported?: string) 
   return handler.types.find((type) => type.extensions.includes(extension))?.mediaTypes[0];
 }
 
-/** Store bytes in the authority's blob store as the shell's session; `undefined` when refused. */
+/** Store bytes in the instance's blob store as the shell's session; `undefined` when refused. */
 export type BlobUpload = (bytes: Uint8Array, mediaType: string) => Promise<BlobRef | undefined>;
 
 /**

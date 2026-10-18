@@ -204,7 +204,7 @@ describe('proposals', () => {
     });
   });
 
-  test('accepting never widens authority; a refusal leaves the proposal open', async () => {
+  test('accepting never widens instance; a refusal leaves the proposal open', async () => {
     const { app, lot, proposal } = setup();
     await propose(app);
     // The agent's grant lacks accept and the command, and the policy refuses delegated accepts.

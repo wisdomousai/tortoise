@@ -8,21 +8,21 @@ import { deploymentCatalog } from '../components';
 import {
   LOCAL_OWNER,
   LOCAL_WORKSPACE,
-  openEmbeddedAuthority,
-  type EmbeddedAuthority,
+  openEmbeddedInstance,
+  type EmbeddedInstance,
 } from '../embedded';
 import { settingsOf, workspaceOf } from './args';
 
 const OWNER: ExecutionContext = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
 const offlineVerbs = new Set(['help', 'list', 'schema', 'workflows']);
 
-/** The published contract, for discovery without any authority. Executing is refused. */
+/** The published contract, for discovery without any instance. Executing is refused. */
 function offlineClient(definition: AnyApplicationDefinition): CliClient {
   const catalog = deploymentCatalog(definition.manifest);
   const unavailable = () => {
     throw new ApplicationError(
       'INVALID_INPUT',
-      'No authority: pass --embedded or --connection, or set AGENT_NATIVE_CONNECTION',
+      'No instance: pass --embedded or --connection, or set AGENT_NATIVE_CONNECTION',
     );
   };
   return {
@@ -33,7 +33,7 @@ function offlineClient(definition: AnyApplicationDefinition): CliClient {
   };
 }
 
-/** An operation against a live authority, or offline discovery when none is named. */
+/** An operation against a live instance, or offline discovery when none is named. */
 function attachedOperation(
   definition: AnyApplicationDefinition,
   program: string,
@@ -67,7 +67,7 @@ async function embeddedOperation(
 ) {
   const workspacePath = workspaceOf(args);
   const settings = settingsOf(definition.manifest, args);
-  let authority: EmbeddedAuthority | undefined;
+  let instance: EmbeddedInstance | undefined;
   try {
     return await runCliMain(
       args,
@@ -76,16 +76,16 @@ async function embeddedOperation(
           ...(grantFile ? await readGrantFile(grantFile, LOCAL_WORKSPACE) : OWNER),
           channel: 'cli',
         };
-        authority = await openEmbeddedAuthority(definition, { workspacePath, settings });
+        instance = await openEmbeddedInstance(definition, { workspacePath, settings });
         // The local owner acts only where the identity port admits it; otherwise a grant is required.
-        authority.ports.identity.admit(context);
+        instance.ports.identity.admit(context);
         // Commits stay in the workspace outbox; `drain`, `mcp --embedded` or `serve` deliver them.
-        return createDirectTransport(authority.application, context);
+        return createDirectTransport(instance.application, context);
       },
       { program },
     );
   } finally {
-    await authority?.close();
+    await instance?.close();
   }
 }
 

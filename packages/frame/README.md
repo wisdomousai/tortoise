@@ -11,7 +11,7 @@ Framework (`packages/*`). Browser code, plus a build-time Vite plugin. The frame
 - [Web frame](../../docs/primitives.md#web-frame): `Frame`, `ScreensProvider`, `useScreens`, `screenForCapability`, `exchangeLaunch`, and the `frame` Vite plugin.
 - [Application](../../docs/primitives.md#application): `defineScreens`, `ApplicationScreens`, the browser entrypoint of every application.
 - [UI registry](../../docs/primitives.md#ui-registry): the `agent-native` shadcn registry in [`registry.json`](registry.json): `capability-form`, `live-data-table`, `collection-screen`, `proposal-review`, `reconciliation-review`, `run-panel`, `command-palette`, `conflict-banner`, `os-provenance`, `accounts`, `app-shell`, `frame` and their libraries.
-- [Proposal](../../docs/primitives.md#proposal): `proposal-review` lists open proposals live with Accept and Reject. The authority's refusal or conflict shows on the proposal, which stays open.
+- [Proposal](../../docs/primitives.md#proposal): `proposal-review` lists open proposals live with Accept and Reject. The instance's refusal or conflict shows on the proposal, which stays open.
 - [Reconciliation](../../docs/primitives.md#reconciliation): `reconciliation-review` lists held effects live with what was sent, and offers Applied, Not applied and Refused.
 - [OS handler](../../docs/primitives.md#os-handler): `useOsDeliveries` (mounted at the frame root), `usePreparedInput`, `useShownProvenance`, `OsProvenanceNotice`, `describeProvenance` and `ApplicationScreens.resources`, the screen that shows each selectable resource kind. `describeProvenance` is re-exported from `@agent-native/shell/provenance`, which the native frame shares.
 - [OS handler](../../docs/primitives.md#os-handler): `useBrowserOsInput`, mounted at the frame root, is the browser shell adapter. It submits the link, shortcut or share claim in a landing URL and the files an installed web application was launched with.
@@ -55,9 +55,9 @@ The launch credential travels in the URL fragment and never reaches a server log
 
 ### Palette and components
 
-The palette lists only capabilities the session's grant allows and never offers integration-only capabilities. Rendering `accounts` never reads the OS vault. `native-dialog` uses the `<dialog>` element because the authority's CSP forbids injected `<style>` tags.
+The palette lists only capabilities the session's grant allows and never offers integration-only capabilities. Rendering `accounts` never reads the OS vault. `native-dialog` uses the `<dialog>` element because the instance's CSP forbids injected `<style>` tags.
 
-`live-data-table` never filters or paginates client-side over a partial set; the authority counts and pages after scoping. `collection-screen` builds a collection's list and record screens over `live-data-table` and `capability-form`. It uses the collection's generated `list`, `get`, create and update capabilities, so it inherits the same paging rule. A record the caller may not see shows as unavailable.
+`live-data-table` never filters or paginates client-side over a partial set; the instance counts and pages after scoping. `collection-screen` builds a collection's list and record screens over `live-data-table` and `capability-form`. It uses the collection's generated `list`, `get`, create and update capabilities, so it inherits the same paging rule. A record the caller may not see shows as unavailable.
 
 `defineScreens` checks the application's and its plugins' screens together. It fails at definition time on a duplicate route, or on a navigation or capability target that no route declares.
 

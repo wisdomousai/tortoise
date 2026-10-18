@@ -5,7 +5,7 @@ import type { ServingPlatform } from './platform/bun';
 import type { PluginSettings } from './plugins/settings';
 
 /**
- * Run the HTTP authority for one application until SIGINT/SIGTERM. The first stdout line is a
+ * Run the HTTP instance for one application until SIGINT/SIGTERM. The first stdout line is a
  * `listening` JSON record; the desktop shell and tests read it to find the launch URL and
  * connection file.
  */

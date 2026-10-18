@@ -57,7 +57,7 @@ export interface InspectionResult extends Synchronized {
   evaluation: Valuation;
   /** When the real-world measurement happened (client clock, bounded skew). */
   occurredAt: number;
-  /** When the authority committed it (authority clock). */
+  /** When the instance committed it (instance clock). */
   recordedAt: number;
   recordedBy: string;
   station?: string;
@@ -66,7 +66,7 @@ export interface InspectionResult extends Synchronized {
   reason?: string;
   /** The instrument reading the inspector confirmed, and the unit that took it. */
   instrument?: InstrumentProvenance;
-  /** Capture telemetry; `actor` is derived by the authority, the rest is client-reported. */
+  /** Capture telemetry; `actor` is derived by the instance, the rest is client-reported. */
   capture: {
     actor: 'human' | 'agent';
     durationMs?: number;
@@ -108,7 +108,7 @@ export interface InstrumentReading {
   id: string;
   value: number;
   unit: string;
-  /** The authority host's clock when the reading arrived. */
+  /** The instance host's clock when the reading arrived. */
   observedAt: number;
   device: InstrumentDevice;
   usedBy?: string;

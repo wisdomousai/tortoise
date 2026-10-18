@@ -52,7 +52,7 @@ export const targetTest = (
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import { create${app.app.pascal}Application } from '../application';
 import { Fake${t.pascal} } from '../${t.kebab}-port';
 
@@ -67,7 +67,7 @@ async function open() {
   const workspacePath = await mkdtemp(join(tmpdir(), '${app.app.kebab}-${t.kebab}-'));
   const port = new Fake${t.pascal}();
   let ids = 0;
-  const authority = await openEmbeddedAuthority(
+  const instance = await openEmbeddedInstance(
     create${app.app.pascal}Application({
       members: { viewer: 'viewer' },
       ${t.camel}: port,
@@ -76,8 +76,8 @@ async function open() {
     { workspacePath },
   );
   cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
-  cleanup.push(() => authority.close());
-  return { port, ...authority };
+  cleanup.push(() => instance.close());
+  return { port, ...instance };
 }
 
 test('a sent ${one.words} is delivered after commit and settled; the feed adds ${many.words}', async () => {

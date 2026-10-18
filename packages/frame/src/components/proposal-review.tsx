@@ -94,7 +94,7 @@ function ProposalItem({
 
 /**
  * Open proposals, live, each with what it would run, why, and Accept and Reject. Accepting runs
- * the proposed command as the signed-in person, so the authority refuses a command they may not
+ * the proposed command as the signed-in person, so the instance refuses a command they may not
  * run and conflicts when a record changed since the proposer read it; both leave the proposal
  * open and show here. Pass `resource` to show only the proposals about one record.
  */

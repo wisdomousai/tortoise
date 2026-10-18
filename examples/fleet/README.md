@@ -1,6 +1,6 @@
 # @agent-native/fleet
 
-`fleet` is the [fleet](../../docs/glossary.md#fleet) that on-site [authorities](../../docs/glossary.md#authority) report to. Each site runs the [fleet-agent plugin](../../plugins/fleet-agent/README.md) and connects outbound only. The fleet is an ordinary application with no outbox target and no site-pinned requirement, so it runs on a site host or as a [hosted authority](../../docs/hosting.md#hosted-authority).
+`fleet` is the [fleet](../../docs/glossary.md#fleet) that on-site [instances](../../docs/glossary.md#instance) report to. Each site runs the [fleet-agent plugin](../../plugins/fleet-agent/README.md) and connects outbound only. The fleet is an ordinary application with no outbox target and no site-pinned requirement, so it runs on a site host or as a [hosted instance](../../docs/hosting.md#hosted-instance).
 
 A site uses the fleet to:
 
@@ -105,7 +105,7 @@ The framework packages and the site, network, audit and device-link plugins, thr
 bun test examples/fleet
 ```
 
-`test/fleet.test.ts` starts the fleet and one or two plant authorities on loopback. Each plant runs the real fleet-agent plugin, and `fleetNetworkFixture` maps its `fleet` destination to the fleet's loopback port. The tests cover:
+`test/fleet.test.ts` starts the fleet and one or two plant instances on loopback. Each plant runs the real fleet-agent plugin, and `fleetNetworkFixture` maps its `fleet` destination to the fleet's loopback port. The tests cover:
 
 - reports and the health screen, with stale sites and release drift;
 - a release reaching only the sites on its channel, with no other release readable;
@@ -275,7 +275,7 @@ These steps build a new application with `scaffold new` and add the fleet's part
     bun run check
     ```
 
-14. Run the fleet on a site host with the [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md), or as a hosted authority with the [run-a-hosted-authority skill](../../packages/host/skills/run-a-hosted-authority/SKILL.md). The fleet declares no outbox target and no site-pinned requirement, so it runs on either.
+14. Run the fleet on a site host with the [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md), or as a hosted instance with the [run-a-hosted-instance skill](../../packages/host/skills/run-a-hosted-instance/SKILL.md). The fleet declares no outbox target and no site-pinned requirement, so it runs on either.
 15. Connect each site with the [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md).
     - **Plugins.** The site composes the site, network and audit plugins and `createFleetAgentPlugin`, and its manifest lists `fleetAgentPluginManifest`. Without the audit plugin it forwards no audit events.
     - **Site policy.** It binds `destinations.fleet` to the fleet's https origin and the `fleet-releases` folder to a directory.
@@ -316,7 +316,7 @@ bun run dev
 - [Architecture](../../docs/architecture.md)
 - [Security and compliance](../../docs/security-and-compliance.md)
 - [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md)
-- [run-a-hosted-authority skill](../../packages/host/skills/run-a-hosted-authority/SKILL.md)
+- [run-a-hosted-instance skill](../../packages/host/skills/run-a-hosted-instance/SKILL.md)
 - [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md)
 - [Asset survey](../asset-survey/README.md), a hub that pairs field devices through device-link
 - [Asset survey field](../asset-survey-field/README.md), the paired field application
@@ -325,4 +325,4 @@ bun run dev
 ## Skills
 
 - [connect-a-site-to-a-fleet](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) covers enrollment, reports, audit forwarding, release staging and the relay.
-- [run-a-hosted-authority](../../packages/host/skills/run-a-hosted-authority/SKILL.md) covers running the fleet as a hosted authority.
+- [run-a-hosted-instance](../../packages/host/skills/run-a-hosted-instance/SKILL.md) covers running the fleet as a hosted instance.

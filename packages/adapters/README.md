@@ -1,6 +1,6 @@
 # @agent-native/adapters
 
-This package holds the reference [adapters](../../docs/glossary.md#adapter) behind the runtime's ports and the [surface](../../docs/glossary.md#surface) adapters that expose the [authority](../../docs/glossary.md#authority). Each surface adapter translates a request onto the raw command and query entry points. None holds business logic or its own list of capabilities, so a new [capability](../../docs/glossary.md#capability) reaches every surface.
+This package holds the reference [adapters](../../docs/glossary.md#adapter) behind the runtime's ports and the [surface](../../docs/glossary.md#surface) adapters that expose the [instance](../../docs/glossary.md#instance). Each surface adapter translates a request onto the raw command and query entry points. None holds business logic or its own list of capabilities, so a new [capability](../../docs/glossary.md#capability) reaches every surface.
 
 ## Layer
 
@@ -10,7 +10,7 @@ Framework (`packages/*`). The [host](../../docs/glossary.md#host) composes these
 
 - [Surface adapter](../../docs/primitives.md#surface-adapter): `createHttpHandler`, `createMcpServer`, `runCli`, `createDirectTransport`, `withSignal`, `exitCodes`.
 - [Agent definition](../../docs/primitives.md#agent-definition): `createMcpServer` serves each definition as the `app://agents/<id>` resource.
-- [Authority](../../docs/primitives.md#authority): `acquireWorkspaceOwnership`, `WorkspaceOwnedError`, and `acquireExclusiveLock`, the portable lock the mobile platform owns its workspace with.
+- [Instance](../../docs/primitives.md#instance): `acquireWorkspaceOwnership`, `WorkspaceOwnedError`, and `acquireExclusiveLock`, the portable lock the mobile platform owns its workspace with.
 - [Execution context](../../docs/primitives.md#execution-context): `readGrantFile`, `readConnection`.
 - [Policy](../../docs/primitives.md#policy): the CASL adapter, `createScopedAbility`, `scopeToSql`.
 - [Storage](../../docs/primitives.md#storage):
@@ -34,7 +34,7 @@ Import a subpath. The root export holds only `adapterContractVersion`.
 | `@agent-native/adapters/*` | per row below | One adapter per file. |
 | `@agent-native/adapters/http` | server only | `createHttpHandler`, sessions, `withSignal` and JSON helpers. |
 | `@agent-native/adapters/mcp` | server only | `createMcpServer` and `toolInputSchema`; serves the contract, workflows and agent definitions as resources. |
-| `@agent-native/adapters/cli` | server only | `runCli`, `readConnection` and `exitCodes`, for callers in other processes that attach to the running authority. |
+| `@agent-native/adapters/cli` | server only | `runCli`, `readConnection` and `exitCodes`, for callers in other processes that attach to the running instance. |
 | `@agent-native/adapters/cli-syntax` | server only | CLI words, flags and synopsis from the catalog, with no IO, so generators open no workspace. |
 | `@agent-native/adapters/direct` | server only | `createDirectTransport` and `readGrantFile` for in-process callers. |
 | `@agent-native/adapters/direct-transport` | any host | `createDirectTransport` alone, with no Node or Bun API, for in-process callers on mobile. |
@@ -83,7 +83,7 @@ A session that stands for such a credential (`HostSession.credential`) can mint 
 
 ### Blobs
 
-A blob upload is read only up to the largest size any capability declares. Its media type comes from `Content-Type`. A blob download carries `Content-Security-Policy: sandbox`, `nosniff` and `no-store`. An uploaded document therefore cannot run script on the authority's origin, and a revoked reader gets nothing from a cache. The file store accepts only `sha256:` digests as names, so no reference becomes a path outside its directory.
+A blob upload is read only up to the largest size any capability declares. Its media type comes from `Content-Type`. A blob download carries `Content-Security-Policy: sandbox`, `nosniff` and `no-store`. An uploaded document therefore cannot run script on the instance's origin, and a revoked reader gets nothing from a cache. The file store accepts only `sha256:` digests as names, so no reference becomes a path outside its directory.
 
 ### Postgres and the lease
 
@@ -130,6 +130,6 @@ Surface parity is proven in content, where real capabilities exist. `examples/pr
 
 ## Skills
 
-- [run-a-hosted-authority](../host/skills/run-a-hosted-authority/SKILL.md): Postgres storage and the workspace lease behind a hosted instance, and proving a new storage adapter with the conformance suite.
+- [run-a-hosted-instance](../host/skills/run-a-hosted-instance/SKILL.md): Postgres storage and the workspace lease behind a hosted instance, and proving a new storage adapter with the conformance suite.
 
 Replacing another port adapter or adding a surface adapter follows [adapters](../../docs/adapters.md).

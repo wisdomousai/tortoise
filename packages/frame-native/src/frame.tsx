@@ -79,7 +79,7 @@ export function NativeFrame({
 }: {
   screens: NativeApplicationScreens;
   transport: Transport;
-  /** The authority's plugin services, for plugin screens that drive their own plugin. */
+  /** The instance's plugin services, for plugin screens that drive their own plugin. */
   services?: PluginServices;
   /** Deliveries from the mobile host's OS connection. */
   os?: OsDeliverySource;

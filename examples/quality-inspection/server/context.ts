@@ -11,7 +11,7 @@ import { own, type InspectionLot, type QualityState } from '../domain';
 
 export interface QualityServices {
   newId?: () => string;
-  /** Authority clock for recordedAt and occurredAt skew checks. */
+  /** Instance clock for recordedAt and occurredAt skew checks. */
   now?: () => number;
 }
 export type Context = HandlerContext<QualityState, QualityServices>;

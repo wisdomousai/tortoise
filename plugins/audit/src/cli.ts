@@ -10,7 +10,7 @@ export const AUDIT_INVALID_EXIT_CODE = 10;
 
 export const auditUsage = (
   program: string,
-) => `Audit log (offline; no authority or workspace needed):
+) => `Audit log (offline; no instance or workspace needed):
   ${program} audit verify --log dir [--anchor-seq n --anchor-hash h]   check the hash chain (exit ${AUDIT_INVALID_EXIT_CODE} if damaged)
 `;
 
@@ -33,7 +33,7 @@ async function auditVerify(args: string[]) {
 
 /**
  * `audit verify` against a log directory, which may be a copy taken off the host. It opens no
- * workspace and no authority. Returns undefined when `args` is not an `audit` verb.
+ * workspace and no instance. Returns undefined when `args` is not an `audit` verb.
  */
 export async function auditCommand(
   _manifest: ApplicationManifest,

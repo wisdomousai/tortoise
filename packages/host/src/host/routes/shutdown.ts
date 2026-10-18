@@ -12,10 +12,7 @@ export const shutdownRoute: HostRoute = async (request, url, _session, host) => 
     request.headers.get('authorization') !== `Bearer ${ownerSession.token}` ||
     body.instance !== instance
   )
-    throw new ApplicationError(
-      'FORBIDDEN',
-      'Only the owning native host can stop this authority instance',
-    );
+    throw new ApplicationError('FORBIDDEN', 'Only the owning native host can stop this instance');
   setTimeout(() => void host.shutdown.close(), 25);
   return jsonResponse({ stopping: true });
 };

@@ -5,13 +5,13 @@ import { randomUUID } from 'node:crypto';
 import { WorkspaceOwnedError } from './exclusive-lock';
 
 export { WorkspaceOwnedError };
-export type AuthorityMetadata = { instance: string; endpoint: string; workspacePath: string };
+export type InstanceMetadata = { instance: string; endpoint: string; workspacePath: string };
 
 /** A live SQLite EXCLUSIVE transaction is an OS-held lock; PID files never grant ownership. */
 export async function acquireWorkspaceOwnership(path: string) {
   await mkdir(path, { recursive: true });
   const canonicalPath = await realpath(path);
-  const db = new Database(join(canonicalPath, '.authority-lock.sqlite'), { create: true });
+  const db = new Database(join(canonicalPath, '.workspace-lock.sqlite'), { create: true });
   try {
     db.exec('PRAGMA busy_timeout = 0; PRAGMA journal_mode = DELETE; BEGIN EXCLUSIVE;');
   } catch {
@@ -19,14 +19,14 @@ export async function acquireWorkspaceOwnership(path: string) {
     throw new WorkspaceOwnedError(canonicalPath);
   }
   const instance = randomUUID();
-  const metadataPath = join(canonicalPath, '.authority.json');
+  const metadataPath = join(canonicalPath, '.instance.json');
   let released = false;
   return {
     canonicalPath,
     instance,
     async publish(endpoint: string): Promise<void> {
       if (released) throw new Error('Ownership was released');
-      const metadata: AuthorityMetadata = { instance, endpoint, workspacePath: canonicalPath };
+      const metadata: InstanceMetadata = { instance, endpoint, workspacePath: canonicalPath };
       const temporary = `${metadataPath}.${instance}.tmp`;
       await writeFile(temporary, JSON.stringify(metadata), { mode: 0o600 });
       await rename(temporary, metadataPath);
@@ -35,7 +35,7 @@ export async function acquireWorkspaceOwnership(path: string) {
       if (released) return;
       released = true;
       try {
-        const current = JSON.parse(await readFile(metadataPath, 'utf8')) as AuthorityMetadata;
+        const current = JSON.parse(await readFile(metadataPath, 'utf8')) as InstanceMetadata;
         if (current.instance === instance) await unlink(metadataPath);
       } catch {
         /* Crash metadata may be absent; the OS lock remains authoritative. */
@@ -46,12 +46,12 @@ export async function acquireWorkspaceOwnership(path: string) {
   };
 }
 
-/** Endpoint hints are untrusted until the caller authenticates the authority instance. */
-export async function readAuthorityMetadata(path: string): Promise<AuthorityMetadata | undefined> {
+/** Endpoint hints are untrusted until the caller authenticates the instance. */
+export async function readInstanceMetadata(path: string): Promise<InstanceMetadata | undefined> {
   try {
     return JSON.parse(
-      await readFile(join(await realpath(path), '.authority.json'), 'utf8'),
-    ) as AuthorityMetadata;
+      await readFile(join(await realpath(path), '.instance.json'), 'utf8'),
+    ) as InstanceMetadata;
   } catch {
     return undefined;
   }

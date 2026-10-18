@@ -50,14 +50,14 @@ The framework includes ChatGPT plan connection code, Claude execution with an AP
 
 ## Scope
 
-The framework is local-first. A [hosted authority](docs/hosting.md#hosted-authority) keeps its workspace in a shared Postgres database under a [workspace lease](docs/glossary.md#workspace-lease). Managed cloud hosting, multi-device synchronization, more than one application per authority, publication to a public registry and signed distribution are outside the framework.
+The framework is local-first. A [hosted instance](docs/hosting.md#hosted-instance) keeps its workspace in a shared Postgres database under a [workspace lease](docs/glossary.md#workspace-lease). Managed cloud hosting, multi-device synchronization, more than one application per instance, publication to a public registry and signed distribution are outside the framework.
 
 Each [storage](docs/glossary.md#storage) transaction receives the whole workspace state in memory, and the CPU time of a commit grows with that state (`packages/adapters/src/row-storage.ts`). A large application may need a storage design that does not load the whole workspace. The storage port imposes no record model on module state. [Architecture](docs/architecture.md#storage) describes the storage adapters.
 
 ## Guides
 
 - [Getting started](docs/getting-started.md): run the examples, use them through the CLI and MCP, and create another application.
-- [Architecture](docs/architecture.md): layers, surfaces, request flow, authorities and hosts, host plugins, storage and the invariants the checks test.
+- [Architecture](docs/architecture.md): layers, surfaces, request flow, instances and hosts, host plugins, storage and the invariants the checks test.
 - [Primitives](docs/primitives.md): the building blocks, their status and where they live.
 - [Glossary](docs/glossary.md): the terms every page uses.
 - [Capability authoring](docs/capability-authoring.md), [interaction contract](docs/interaction-contract.md), [authorization](docs/authorization.md) and [state and reactivity](docs/state-and-reactivity.md): writing a capability and what callers can rely on.
@@ -67,7 +67,7 @@ Each [storage](docs/glossary.md#storage) transaction receives the whole workspac
 - [Point-of-work input](docs/point-of-work-input.md): scanners and glove-sized screens.
 - [Hardware drivers](docs/hardware-drivers.md): equipment reached through a driver process.
 - [Agents](docs/agents.md) and [providers](docs/providers.md): agent runs, harnesses and provider accounts.
-- [Hosting](docs/hosting.md): the hosted authority and the fleet.
+- [Hosting](docs/hosting.md): the hosted instance and the fleet.
 - [Desktop](docs/desktop.md): the Electron window, its packaged resources and the build.
 - [Mobile](docs/mobile.md): the mobile host, pairing with a hub and the device's trust boundary.
 - [Security and compliance](docs/security-and-compliance.md): declared egress under a site policy, hardening profiles, the audit log and the compliance bundle.

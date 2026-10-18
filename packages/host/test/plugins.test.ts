@@ -13,7 +13,7 @@ import {
 } from '@agent-native/contracts';
 import { createMemoryStorage, type AuthorizationPort } from '@agent-native/runtime';
 import { createApplicationRuntime, defineApplication } from '../src/application';
-import { openEmbeddedAuthority } from '../src/embedded';
+import { openEmbeddedInstance } from '../src/embedded';
 import { startHost } from '../src/host';
 import { defineManifest } from '../src/manifest';
 import { defineHostPlugin, type PluginInstance } from '../src/plugin';
@@ -388,15 +388,15 @@ test('settings come from flags before env; undeclared flags stay for the command
   });
 });
 
-test('an embedded authority runs ready before the first call and exposes plugin services', async () => {
+test('an embedded instance runs ready before the first call and exposes plugin services', async () => {
   await withDirectory(async (directory) => {
     const calls: string[] = [];
-    const authority = await openEmbeddedAuthority(application([recorder('first', calls)]), {
+    const instance = await openEmbeddedInstance(application([recorder('first', calls)]), {
       workspacePath: join(directory, 'workspace'),
     });
     expect(calls).toEqual(['open first after []', 'ready first']);
-    expect(authority.services).toEqual({ first: { id: 'first' } });
-    await authority.close();
+    expect(instance.services).toEqual({ first: { id: 'first' } });
+    await instance.close();
     expect(calls.at(-1)).toBe('close first');
   });
 });

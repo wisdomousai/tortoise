@@ -1,6 +1,6 @@
 # @agent-native/service
 
-The starter's [authority](../../docs/glossary.md#authority) process: the HTTP entry and the application CLI for the application that `app.config.json` names. It is the one place the [starter](../../docs/glossary.md#starter) learns which content it hosts, and it learns it from configuration. Adding or switching an application therefore changes no starter code.
+The starter's [instance](../../docs/glossary.md#instance) process: the HTTP entry and the application CLI for the application that `app.config.json` names. It is the one place the [starter](../../docs/glossary.md#starter) learns which content it hosts, and it learns it from configuration. Adding or switching an application therefore changes no starter code.
 
 ## Layer
 
@@ -35,7 +35,7 @@ Environment:
 
 ## Trust boundary
 
-[Callers](../../docs/glossary.md#caller) are untrusted, and the host authenticates them. The authority prints a single-use, short-lived `launchUrl` and writes a [connection file](../../docs/glossary.md#connection-file). Both are local credentials. Without a [site policy](../../docs/glossary.md#site-policy), the authority is isolated to loopback.
+[Callers](../../docs/glossary.md#caller) are untrusted, and the host authenticates them. The instance prints a single-use, short-lived `launchUrl` and writes a [connection file](../../docs/glossary.md#connection-file). Both are local credentials. Without a [site policy](../../docs/glossary.md#site-policy), the instance is isolated to loopback.
 
 The starter names no [host plugin](../../docs/glossary.md#host-plugin); the application composes them. `runService` passes the application's URL scheme from `app.config.json` as the default of `AGENT_NATIVE_OS_SCHEME`. Only the OS plugin reads it, and the launcher's environment wins.
 

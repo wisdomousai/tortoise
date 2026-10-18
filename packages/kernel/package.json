@@ -2,7 +2,7 @@
   "name": "@agent-native/kernel",
   "version": "0.1.0",
   "type": "module",
-  "description": "Portable host kernel: application and plugin composition, ports and authority opening on any platform.",
+  "description": "Portable host kernel: application and plugin composition, ports and instance opening on any platform.",
   "license": "MIT",
   "repository": {
     "type": "git",

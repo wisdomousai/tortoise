@@ -1,4 +1,4 @@
-import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import { defineHostPlugin } from '@agent-native/kernel/plugin';
 import type { ExecutionContext } from '@agent-native/runtime';
 import { stationSignInOperations as ops } from './contracts';
@@ -26,7 +26,7 @@ function minutesOf(setting: string | undefined) {
 /**
  * The person an operator token stands for, looked up through the runtime on every request, so a
  * sign-out, a revoked badge or an expiry applies at the next one. The context carries no grant:
- * the operator acts with their own authority under the application's policy.
+ * the operator acts with their own grants under the application's policy.
  */
 async function authenticateOperator(
   token: string,

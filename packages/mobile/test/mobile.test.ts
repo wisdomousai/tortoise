@@ -17,7 +17,7 @@ import { defineHostPlugin } from '@agent-native/kernel/plugin';
 import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
 import { createHandlerFactory } from '@agent-native/runtime';
 import { defineManifest } from '@agent-native/kernel/manifest';
-import { createMobilePlatform, openMobileAuthority, type MobileBindings } from '../src/index';
+import { createMobilePlatform, openMobileInstance, type MobileBindings } from '../src/index';
 
 const directories: string[] = [];
 afterEach(() => {
@@ -88,7 +88,7 @@ function field(
 
 test('the field app commits a capture with a photo, closes, reopens and finds both', async () => {
   const platform = createMobilePlatform(bindings());
-  const first = await openMobileAuthority(field(), { platform });
+  const first = await openMobileInstance(field(), { platform });
   const photo = new Uint8Array([255, 216, 255, 224]);
   const ref = await first.transport.blobs!.put(photo, 'image/jpeg');
   await first.transport.command(
@@ -97,10 +97,10 @@ test('the field app commits a capture with a photo, closes, reopens and finds bo
     { idempotencyKey: 'capture-1' },
   );
   // One writer: neither the app nor a background task can open the workspace again.
-  await expect(openMobileAuthority(field(), { platform })).rejects.toThrow('live authority');
+  await expect(openMobileInstance(field(), { platform })).rejects.toThrow('live instance');
   await first.close();
 
-  const second = await openMobileAuthority(field(), { platform });
+  const second = await openMobileInstance(field(), { platform });
   expect((await second.transport.query('capture.list', {})).data).toEqual({ ids: ['c1'] });
   expect((await second.transport.blobs!.get(ref.digest)).data).toEqual(photo);
   await second.close();
@@ -126,24 +126,24 @@ test('a deployment that needs sockets, a listener or a child process refuses to 
       ],
     },
   });
-  await expect(openMobileAuthority(field([listener]), { platform })).rejects.toThrow(
+  await expect(openMobileInstance(field([listener]), { platform })).rejects.toThrow(
     'Platform "ios" cannot run this deployment',
   );
   // Refused before anything opened: the workspace is free again.
-  const opened = await openMobileAuthority(field(), { platform });
+  const opened = await openMobileInstance(field(), { platform });
   await opened.close();
 });
 
 test('workspace names on a device cannot address another path', async () => {
   const platform = createMobilePlatform(bindings());
-  await expect(openMobileAuthority(field(), { platform, workspace: '../other' })).rejects.toThrow(
+  await expect(openMobileInstance(field(), { platform, workspace: '../other' })).rejects.toThrow(
     'Invalid workspace name',
   );
 });
 
 test('foreground and background start and stop the integration loops', async () => {
   const platform = createMobilePlatform(bindings());
-  const opened = await openMobileAuthority(field(), { platform });
+  const opened = await openMobileInstance(field(), { platform });
   opened.foreground();
   opened.foreground();
   await opened.background();
@@ -174,7 +174,7 @@ test('each foreground starts the plugin and application observers again; backgro
       return [observer('application')];
     },
   });
-  const opened = await openMobileAuthority(field([], { plugins: [plugin], connect }), {
+  const opened = await openMobileInstance(field([], { plugins: [plugin], connect }), {
     platform: createMobilePlatform(bindings()),
   });
   expect(calls).toEqual([]);

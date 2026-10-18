@@ -4,7 +4,7 @@ This [host plugin](../../docs/glossary.md#host-plugin) connects an [application]
 
 ## Layer
 
-Plugin layer, shipped with the framework. The TypeScript runs in the [authority](../../docs/glossary.md#authority) on every platform. The Kotlin module `AgentNativeOsIntents` carries intents between the OS and the mobile host, and is in Android builds only. The plugin runs on top of the [OS plugin](../os/README.md), which it requires. Without the plugin, startup refuses an application that declares an intent handler or action. It trusts the application's declarations and treats every intent from another app as input.
+Plugin layer, shipped with the framework. The TypeScript runs in the [instance](../../docs/glossary.md#instance) on every platform. The Kotlin module `AgentNativeOsIntents` carries intents between the OS and the mobile host, and is in Android builds only. The plugin runs on top of the [OS plugin](../os/README.md), which it requires. Without the plugin, startup refuses an application that declares an intent handler or action. It trusts the application's declarations and treats every intent from another app as input.
 
 ## Primitives
 
@@ -60,7 +60,7 @@ Extras are flat strings, numbers and booleans. A whole number goes as an Android
 bun test plugins/android-intents
 ```
 
-- `test/mobile.test.ts` runs a fixture notes application on the mobile authority, with Bun bindings for the device. It covers:
+- `test/mobile.test.ts` runs a fixture notes application on the mobile instance, with Bun bindings for the device. It covers:
   - the device listening for the declared action and its typed extras only;
   - the launching intent prefilling the form with its provenance;
   - an undeclared action, an extra the schema refuses, an undeclared extra and a malformed record showing nothing;

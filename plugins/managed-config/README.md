@@ -1,6 +1,6 @@
 # @agent-native/managed-config
 
-The managed configuration [host plugin](../../docs/glossary.md#host-plugin) supplies settings that an administrator sets through device management. On Android these are application restrictions, set by the MDM's device policy controller. On iOS they are managed app configuration, pushed by the MDM. The plugin reads the values when the [authority](../../docs/glossary.md#authority) opens and supplies them as other plugins' settings. A hub address, an enrollment code or a [site policy](../../docs/glossary.md#site-policy) therefore reaches the plugins that declare them without the person typing anything.
+The managed configuration [host plugin](../../docs/glossary.md#host-plugin) supplies settings that an administrator sets through device management. On Android these are application restrictions, set by the MDM's device policy controller. On iOS they are managed app configuration, pushed by the MDM. The plugin reads the values when the [instance](../../docs/glossary.md#instance) opens and supplies them as other plugins' settings. A hub address, an enrollment code or a [site policy](../../docs/glossary.md#site-policy) therefore reaches the plugins that declare them without the person typing anything.
 
 ## Layer
 
@@ -44,11 +44,11 @@ To set values for a test on demand:
 
 ## Trust boundary
 
-Managed values come from the device's management, which the administrator controls. They are trusted like launcher settings, and they win over launcher settings, so a person cannot point a managed device at another hub. The exception is an authority opened with `launcherSettingsWin`, which is meant for development builds. The mobile starter passes no launcher settings, so on a device managed values are the only supplied settings. An application cannot change its own restrictions.
+Managed values come from the device's management, which the administrator controls. They are trusted like launcher settings, and they win over launcher settings, so a person cannot point a managed device at another hub. The exception is an instance opened with `launcherSettingsWin`, which is meant for development builds. The mobile starter passes no launcher settings, so on a device managed values are the only supplied settings. An application cannot change its own restrictions.
 
 A key that no composed plugin declares refuses startup and names the key. So does a value that is not text. A pushed value that nothing reads would look enforced while being ignored.
 
-Values are read once, when the authority opens. A change pushed later applies on the next start. A build without the native module refuses startup in `provideSettings`, before any plugin opens, with the instruction to run `bun run mobile:prebuild`.
+Values are read once, when the instance opens. A change pushed later applies on the next start. A build without the native module refuses startup in `provideSettings`, before any plugin opens, with the instruction to run `bun run mobile:prebuild`.
 
 ## Dependencies
 

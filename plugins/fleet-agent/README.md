@@ -1,6 +1,6 @@
 # @agent-native/fleet-agent
 
-The site side of a [fleet](../../docs/glossary.md#fleet). A site's [authority](../../docs/glossary.md#authority) composes this plugin to report its health to a fleet application, forward its [audit log](../../docs/glossary.md#audit-log) there and stage the releases the fleet assigns. The plugin can also let the fleet relay remote-access requests to the site's own HTTP API. Every connection is outbound through the network port's `fleet` [destination](../../docs/glossary.md#destination), so the site needs no inbound rule. [Hosting](../../docs/hosting.md#fleet) explains the fleet protocol, the agent's cycle, the relay and the fleet application.
+The site side of a [fleet](../../docs/glossary.md#fleet). A site's [instance](../../docs/glossary.md#instance) composes this plugin to report its health to a fleet application, forward its [audit log](../../docs/glossary.md#audit-log) there and stage the releases the fleet assigns. The plugin can also let the fleet relay remote-access requests to the site's own HTTP API. Every connection is outbound through the network port's `fleet` [destination](../../docs/glossary.md#destination), so the site needs no inbound rule. [Hosting](../../docs/hosting.md#fleet) explains the fleet protocol, the agent's cycle, the relay and the fleet application.
 
 ## Layer
 
@@ -44,7 +44,7 @@ Compose the plugin after the site plugin, the network plugin and, for audit forw
 - **Reports.** The plugin reads the outbox with the host's trusted identity (`pendingEffects`). Only [effect](../../docs/glossary.md#effect) counts per target leave the site.
 - **Audit forwarding.** The site keeps no forwarding state and sends events unchanged, so the fleet can check the hash chain.
 - **Releases.** Each file is checked against the signed manifest as it arrives, and the whole bundle is verified with `verifyBundle` against `fleet-trust`. Only then is the temporary directory renamed into `fleet-releases/<release id>`.
-- **Activation.** Activation stays with the site operator's `site install`. The authority never replaces itself.
+- **Activation.** Activation stays with the site operator's `site install`. The instance never replaces itself.
 - **Relay.** The relay forwards a request to the host's own listener under `/api/v1/` only and adds no credential. A relayed request reaches a [capability](../../docs/glossary.md#capability) only with a [session](../../docs/glossary.md#session) the site issued ([hosting](../../docs/hosting.md#relay)).
 - **Relay exemption.** `scripts/boundary-rules.ts` lists `src/relay.ts` as a reviewed exemption from the [egress guard](../../docs/glossary.md#egress-guard), because its only target is the host itself.
 - **Fleet credential.** The plugin sends the credential only through the network port's `fleet` client, which resolves every path against the bound origin and refuses redirects. The credential is kept in the platform's secret store when it has one, and otherwise in `<workspace>/fleet-agent/credential` with mode 0600.

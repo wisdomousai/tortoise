@@ -12,7 +12,7 @@ import {
 } from '@agent-native/bundle';
 import type { BlobRef } from '@agent-native/contracts';
 import { startHost } from '@agent-native/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import type { FleetRelease, RelayAnswer, SiteReport } from '../src/contracts';
 import type { FleetAgentService } from '../src/plugin';
 import { fleetNetworkFixture } from '../src/testing';

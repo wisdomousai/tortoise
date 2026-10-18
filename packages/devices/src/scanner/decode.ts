@@ -2,7 +2,7 @@ import { GROUP_SEPARATOR, parseGs1, type Gs1Result } from './gs1';
 import type { ScannerProfile, ScannerTransport } from './profile';
 import { parseAim, type Symbology } from './symbology';
 
-/** One completed scan, normalized and decoded. It is input data, never trusted for authority. */
+/** One completed scan, normalized and decoded. It is input data, never trusted for instance. */
 export interface ScanEvent {
   /** Exactly what the source delivered, after key-code decoding for wedge sources. */
   readonly raw: string;

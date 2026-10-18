@@ -38,7 +38,7 @@ The host keeps run snapshots in their own SQLite database, `runs.sqlite` in the 
 
 Tools are derived from the [catalog](glossary.md#catalog), one per [capability](glossary.md#capability). A tool call carries domain input and, for a command, optional expected [revisions](glossary.md#revision). The host turns the provider's call ID into an [idempotency key](glossary.md#idempotency-key) scoped to the run. The run captures the [principal](glossary.md#principal), workspace and grant when it is created, and tool arguments cannot replace them.
 
-Every tool call goes through the [authority](glossary.md#authority) like any other [caller](glossary.md#caller). The authority validates input, rechecks current authorization and cancellation, and commits. The initiating grant stays the upper bound even when the principal could do more. A run cannot start another run, so runs cannot delegate further.
+Every tool call goes through the [instance](glossary.md#instance) like any other [caller](glossary.md#caller). The instance validates input, rechecks current authorization and cancellation, and commits. The initiating grant stays the upper bound even when the principal could do more. A run cannot start another run, so runs cannot delegate further.
 
 When the authorization revision changes, the host hides the run's earlier free-form output, because model text cannot be field-projected. A run started from a selection captures the resource IDs and revisions from the [UI session context](glossary.md#ui-session-context). Later selection changes do not retarget it.
 

@@ -52,7 +52,7 @@ export interface NetworkPort {
   childEnvironment?(processId: string): Record<string, string>;
 }
 
-/** Where the authority listens. The default is loopback on the requested port. */
+/** Where the instance listens. The default is loopback on the requested port. */
 export interface IngressPort {
   listen(
     port: number | undefined,
@@ -101,11 +101,11 @@ export interface SettingsProviderContext {
 export interface PluginOpenContext {
   readonly manifest: ApplicationManifest;
   readonly catalog: Catalog;
-  /** The platform the authority runs on, so a plugin can adapt to what it offers. */
+  /** The platform the instance runs on, so a plugin can adapt to what it offers. */
   readonly platform: Pick<HostPlatform, 'id' | 'capabilities'>;
   readonly workspacePath: string;
-  /** Audit source component: `authority` for a serving host, `embedded` in-process. */
-  readonly component: 'authority' | 'embedded';
+  /** Audit source component: `host` for a serving host, `embedded` in-process. */
+  readonly component: 'host' | 'embedded';
   readonly instance: string;
   /** True for a serving host, which may start background work and child processes. */
   readonly serving: boolean;
@@ -157,7 +157,7 @@ export interface PluginInstance {
   /** After the runtime exists and before anything is served: attestation, crash recovery. */
   ready?(application: HostedApplication): Promise<void>;
   /**
-   * Serving host only, after it listens, and the mobile authority each time the app comes to the
+   * Serving host only, after it listens, and the mobile instance each time the app comes to the
    * foreground. Returned observers stop before `close`; on mobile they also stop when the app goes
    * to the background, and `start` runs again on the next foreground, so it must not assume it
    * runs once.

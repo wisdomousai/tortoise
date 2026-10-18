@@ -21,7 +21,7 @@ const seconds = (ms: number | undefined) =>
 
 /**
  * The person's plants: how capture is going there and, for supervisors, who may inspect or
- * decide. Role changes go through plant.set-member, so the authority enforces who may grant
+ * decide. Role changes go through plant.set-member, so the instance enforces who may grant
  * what (supervisors only, never their own role) whichever caller asks.
  */
 export function PlantScreen() {

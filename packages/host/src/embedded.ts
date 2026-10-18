@@ -1,11 +1,11 @@
 import { ApplicationError } from '@agent-native/contracts';
 import { WorkspaceOwnedError } from '@agent-native/adapters/ownership';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import { openAuthority } from '@agent-native/kernel/authority';
+import { openInstance } from '@agent-native/kernel/instance';
 import type { PluginSettings } from '@agent-native/kernel/plugins/settings';
 import { bunPlatform } from './platform/bun';
 
-export { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
+export { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 export { workspaceStorage } from './platform/bun';
 
 /**
@@ -18,7 +18,7 @@ export { workspaceStorage } from './platform/bun';
  * resolves crash-orphaned entries here too. Plugins never `start` here and observers never
  * start; integrations are built but only run when the caller starts them.
  */
-export async function openEmbeddedAuthority(
+export async function openEmbeddedInstance(
   definition: AnyApplicationDefinition,
   options: { workspacePath: string; settings?: PluginSettings },
 ) {
@@ -28,11 +28,11 @@ export async function openEmbeddedAuthority(
       if (error instanceof WorkspaceOwnedError)
         throw new ApplicationError(
           'CONFLICT',
-          'A live authority owns this workspace; attach with --connection or stop it first',
+          'A live instance owns this workspace; attach with --connection or stop it first',
         );
       throw error;
     });
-  const authority = await openAuthority(definition, {
+  const instance = await openInstance(definition, {
     platform: bunPlatform,
     ownership,
     component: 'embedded',
@@ -44,19 +44,19 @@ export async function openEmbeddedAuthority(
   });
   let closed = false;
   return {
-    application: authority.application,
-    integrations: authority.integrations,
-    ports: authority.ports,
+    application: instance.application,
+    integrations: instance.integrations,
+    ports: instance.ports,
     /** Services the plugins expose, keyed by plugin id. */
-    services: authority.services,
+    services: instance.services,
     workspacePath: ownership.canonicalPath,
     /** Stop background delivery, release storage, close the plugins, then the ownership lock. */
     async close() {
       if (closed) return;
       closed = true;
-      await authority.close();
+      await instance.close();
       await ownership.release();
     },
   };
 }
-export type EmbeddedAuthority = Awaited<ReturnType<typeof openEmbeddedAuthority>>;
+export type EmbeddedInstance = Awaited<ReturnType<typeof openEmbeddedInstance>>;

@@ -3,7 +3,7 @@ import { SQLiteStorage } from '@agent-native/adapters/sqlite';
 import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
 import { createFileBlobStore } from '@agent-native/adapters/blob-files';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
 import type { HostPlatform, PlatformOwnership } from '@agent-native/kernel/platform';
 import { hostComponents } from '../components';
@@ -13,7 +13,7 @@ import { loopbackIngress } from '../plugins/ports';
 export const JOURNAL_RETENTION = 50_000;
 
 /**
- * Workspace storage shared by the HTTP host and embedded authorities: one row per record, with
+ * Workspace storage shared by the HTTP host and embedded instances: one row per record, with
  * the journal capped at `JOURNAL_RETENTION` entries. Receipts are all kept, so a retry is never
  * run twice. A new workspace starts from the definition's state; a stored one passes through its
  * upgrade on load.

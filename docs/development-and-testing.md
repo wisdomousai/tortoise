@@ -63,7 +63,7 @@ A successful build does not show a browser interaction or a packaged desktop lau
 | ----------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `bun run test:unit`                 | Contracts, runtime, client ordering and UI context.                                             |
 | `bun run test:conformance`          | Policy, repositories, adapters and example-domain scenarios.                                    |
-| `bun run test:service`              | The host, the plugins, and each example's HTTP boundary and authority behavior.                 |
+| `bun run test:service`              | The host, the plugins, and each example's HTTP boundary and instance behavior.                 |
 | `bun run test:harness`              | Harness and supervision fixtures that need no provider.                                         |
 | `bun run test:integration`          | Outbox dispatch and inbound sync against fake systems of record.                                |
 | `bun run test:isolated`             | The whole suite, failing on any non-loopback connection from the test process.                  |

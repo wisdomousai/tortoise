@@ -19,7 +19,7 @@ const message = (cause: unknown) => (cause instanceof Error ? cause.message : 'R
 
 /**
  * Scanner configuration for one station. Operators can test and see the profile; saving needs a
- * supervisor, which the authority enforces (the screen only reports the refusal).
+ * supervisor, which the instance enforces (the screen only reports the refusal).
  */
 export function StationDevicesScreen() {
   const { stationId } = useParams({ strict: false }) as { stationId: string };

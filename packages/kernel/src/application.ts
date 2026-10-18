@@ -27,7 +27,7 @@ import {
  * storage, integrations and observers from it.
  *
  * Trust boundary: a definition is trusted code. Its policy, handlers and connections run inside
- * the authority with the host's privileges; only callers are untrusted.
+ * the instance with the host's privileges; only callers are untrusted.
  */
 export interface ApplicationDefinition<State, Services = unknown> {
   readonly manifest: ApplicationManifest;
@@ -55,15 +55,15 @@ export interface ApplicationDefinition<State, Services = unknown> {
   readonly services?: Services;
   /**
    * UI selections an agent run may capture, as `kind → query operation`. The host validates each
-   * selected `kind:id` through that query under the caller's own authority before capturing it.
+   * selected `kind:id` through that query with the caller's own grants and policy before capturing it.
    */
   readonly selectableResources?: Readonly<Record<string, string>>;
   /**
-   * Sources for remote queries, by target (see `createRemoteSource`). Every authority built from
+   * Sources for remote queries, by target (see `createRemoteSource`). Every instance built from
    * this definition shares them; they hold credentials access, never application state.
    */
   readonly sources?: Readonly<Record<string, RemoteSource>>;
-  /** Wire systems of record and observers once the runtime exists. Called once per authority. */
+  /** Wire systems of record and observers once the runtime exists. Called once per instance. */
   readonly connect?: (context: ConnectContext) => ApplicationConnections;
   /**
    * Server parts of the plugins the manifest lists, in the same order. `defineApplication`
@@ -102,8 +102,8 @@ export interface ApplicationConnections {
   readonly integrations?: readonly TargetIntegration<any>[];
   /**
    * Start observers. A serving host with background work enabled calls this once, after it
-   * listens; the mobile authority calls it on each foreground after the previous observers
-   * stopped; embedded authorities never do. A failed observation pass reports through `onError`
+   * listens; the mobile instance calls it on each foreground after the previous observers
+   * stopped; embedded instances never do. A failed observation pass reports through `onError`
    * and is retried by the observer.
    */
   readonly observe?: (

@@ -1,16 +1,16 @@
 # Architecture
 
-The [framework](glossary.md#framework) is built in four layers. Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an authority on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns, and the checks test the invariants. [Primitives](primitives.md) lists the building blocks and where they live.
+The [framework](glossary.md#framework) is built in four layers. Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an instance on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns, and the checks test the invariants. [Primitives](primitives.md) lists the building blocks and where they live.
 
 The project is a TypeScript reference, to read, run and export, for applications that people and AI agents operate together, often on or next to the machines where work happens. A typical application records events locally and delivers them to a [system of record](glossary.md#system-of-record) such as an ERP, a quality system or an MES.
 
 ## Concepts
 
 - [Application](glossary.md#application): one unit of content that a host runs, with its tests.
-- [Authority](glossary.md#authority): the one running instance that owns a [workspace](glossary.md#workspace) and executes its [commands](glossary.md#command) and [queries](glossary.md#query).
-- [Host](glossary.md#host): the process that opens an authority for one application on a [host platform](glossary.md#host-platform) and serves it.
-- [Embedded mode](glossary.md#embedded-mode): the authority runs inside the calling process.
-- [Attached mode](glossary.md#attached-mode): the [caller](glossary.md#caller) reaches an authority that another process owns, through a [session](glossary.md#session) that authority issued.
+- [Instance](glossary.md#instance): the one running instance that owns a [workspace](glossary.md#workspace) and executes its [commands](glossary.md#command) and [queries](glossary.md#query).
+- [Host](glossary.md#host): the process that opens an instance for one application on a [host platform](glossary.md#host-platform) and serves it.
+- [Embedded mode](glossary.md#embedded-mode): the instance runs inside the calling process.
+- [Attached mode](glossary.md#attached-mode): the [caller](glossary.md#caller) reaches an instance that another process owns, through a [session](glossary.md#session) that instance issued.
 - [Host plugin](glossary.md#host-plugin): a cross-cutting part an application composes, with [modules](glossary.md#module), a state slice, a [policy](glossary.md#policy), ports and lifecycle hooks. "Plugin" alone means a host plugin.
 
 ## Layers
@@ -41,7 +41,7 @@ Each application has its own [catalog](glossary.md#catalog), generated reference
 
 ## Surfaces and identity
 
-Every surface calls the same authority.
+Every surface calls the same instance.
 
 | Surface | Entry | Identity |
 | --- | --- | --- |
@@ -73,18 +73,18 @@ flowchart LR
 
 A handler receives the trusted [execution context](glossary.md#execution-context) and injected services, never a transport request. Literal operation IDs carry their types through composition into the typed client. Surface adapters still validate input at runtime.
 
-## Authorities and hosts
+## Instances and hosts
 
-### Authority startup
+### Instance startup
 
-The [kernel](glossary.md#kernel) opens an authority in the same steps on every host platform (`packages/kernel/src/authority.ts`):
+The [kernel](glossary.md#kernel) opens an instance in the same steps on every host platform (`packages/kernel/src/instance.ts`):
 
 1. Refuse a deployment whose requirements the host platform cannot meet.
 2. Open the plugins, and with them the ports. A plugin that refuses stops startup before the workspace opens.
 3. Check the launcher's identity against the identity port, when the host asks for it.
 4. Open storage and the [blob](glossary.md#blob) store, then the runtime with the [audit log](glossary.md#audit-log) port and the plugins' services.
 5. Run each plugin's `ready` hook before the first request or integration pass.
-6. Build the [dispatchers](glossary.md#dispatcher) and [inbound sync](glossary.md#inbound-sync) from the application's connections. The process that opened the authority starts them.
+6. Build the [dispatchers](glossary.md#dispatcher) and [inbound sync](glossary.md#inbound-sync) from the application's connections. The process that opened the instance starts them.
 
 On a failure, the kernel closes everything it opened, newest first.
 
@@ -100,13 +100,13 @@ A host platform is trusted host code that the starter chooses; an application ca
 
 The desktop window starts the host or attaches to a running one, and loads the shared web build. These are deployment choices, and module behavior does not depend on them.
 
-A [hosted authority](glossary.md#hosted-authority) is the Bun host on the hosted platform. [Hosting](hosting.md) describes it, what it leaves out of scope, and the [fleet](glossary.md#fleet) that sites report to. Synchronization of one workspace across several devices is out of scope.
+A [hosted instance](glossary.md#hosted-instance) is the Bun host on the hosted platform. [Hosting](hosting.md) describes it, what it leaves out of scope, and the [fleet](glossary.md#fleet) that sites report to. Synchronization of one workspace across several devices is out of scope.
 
 ### Embedded and attached modes
 
 A CLI call or an MCP bridge with `--embedded` runs in embedded mode, and so does a phone that opens its own workspace. A CLI call with a connection file, the MCP bridge without `--embedded`, the desktop window and an attached tablet run in attached mode.
 
-An embedded CLI or MCP process takes the same OS lock as a serving host. It fails with `CONFLICT` while a live authority owns the workspace. [Lifecycle](#lifecycle) lists which plugin hooks it runs.
+An embedded CLI or MCP process takes the same OS lock as a serving host. It fails with `CONFLICT` while a live instance owns the workspace. [Lifecycle](#lifecycle) lists which plugin hooks it runs.
 
 ## Storage
 
@@ -174,8 +174,8 @@ A plugin imports the packages of the plugins it requires, for their types, polic
 ### Lifecycle
 
 - `open` runs before storage, in composition order, and may refuse startup.
-- `ready` runs in every authority, including an embedded CLI or MCP authority, before the first request.
-- `start` runs in a serving host once it listens, and on the mobile host each time it returns to the foreground. It never runs in an embedded CLI or MCP authority, and it acts as the local owner narrowed by a [delegated grant](glossary.md#grant).
+- `ready` runs in every instance, including an embedded CLI or MCP instance, before the first request.
+- `start` runs in a serving host once it listens, and on the mobile host each time it returns to the foreground. It never runs in an embedded CLI or MCP instance, and it acts as the local owner narrowed by a [delegated grant](glossary.md#grant).
 - `close` runs in reverse order.
 
 Startup refuses a composition in which configuration would look enforced while it is ignored:
@@ -210,7 +210,7 @@ The telemetry plugin derives OpenTelemetry metrics and spans from the audit log 
 - Surfaces, schemas, API descriptions and agent skills are generated from the catalog. Contracts import no handlers, adapters or provider SDKs.
 - The host derives the principal, the workspace and the grant from the session. Input cannot choose or widen them.
 - Authorization is rechecked inside the transaction, on replay and on event delivery. Rows are filtered before they are counted or paged.
-- One authority writes each workspace. A command commits state, [revisions](glossary.md#revision), its receipt, journal entries and outbox effects in one transaction, or the command fails.
+- One instance writes each workspace. A command commits state, [revisions](glossary.md#revision), its receipt, journal entries and outbox effects in one transaction, or the command fails.
 - Handlers make no network or model calls. Other systems are changed through outbox effects and read through declared remote queries.
 - Server code reaches the network only through the network port, and starts child processes only through the [process port](glossary.md#process-port). The boundary check enforces both, and `scripts/boundary-rules.ts` lists each reviewed exemption with its reason.
 - The framework imports no starter, example or plugin code, and the starter imports no example or plugin. A plugin or an SDK imports no starter or example code, an example imports no starter code, and nothing imports a driver SDK.
@@ -225,7 +225,7 @@ The rest of the documentation describes how the code is built today. It is not a
 | --- | --- |
 | `contracts` | Serializable metadata, schemas and protocol errors. |
 | `runtime` | Composes contracts with handlers, storage and authorization. |
-| `kernel` | Composes an application and its plugins and opens its authority on a host platform, with no Node or Bun API. |
+| `kernel` | Composes an application and its plugins and opens its instance on a host platform, with no Node or Bun API. |
 | `host` | Runs one application and its plugins: workspace ownership, sessions, HTTP, embedded MCP, the CLI, agent runs, providers and the hosted platform. |
 | `adapters` | HTTP and SSE, MCP, the CLI, CASL, SQLite and Postgres storage, the workspace lease and workspace ownership, each on its own subpath. |
 | `client`, `react` | The typed client, live queries and UI session context. |
@@ -250,7 +250,7 @@ The framework packages can be packed and published at one version. None is on a 
 
 - Bun and TypeScript.
 - Zod for schemas.
-- SQLite for local storage, and Postgres for a hosted authority.
+- SQLite for local storage, and Postgres for a hosted instance.
 - CASL for the policy adapter.
 - React with Vite, TanStack Query, shadcn and Tailwind for the screens.
 - Electron for the desktop.
@@ -271,7 +271,7 @@ Each [example](glossary.md#example) is an application under `examples/` and serv
 | [`crm-capture`](../examples/crm-capture/README.md) | Remote queries of a fake CRM with each caller's own access, adoption through the outbox and the CRM's feed, and an unreachable CRM shown as a status. | site, network, audit, compliance |
 | [`asset-survey`](../examples/asset-survey/README.md) | A site structure under reference designations, assignments for paired phones, model extraction from photos with review, and filing into a fake EAM. Blobs, [device link](glossary.md#device-link) pairing and a compact tablet screen. | site, network, process, audit, compliance, device-link |
 | [`receiving`](../examples/receiving/README.md) | Goods receiving against an ERP through files: notices arrive in an inbox folder, and receipts are posted as files and settled from receipt files. An agent proposes discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and proposals. | site, network, audit, compliance |
-| [`fleet`](../examples/fleet/README.md) | The [fleet](hosting.md#fleet) that site authorities report to: enrollment through device link, signed releases on channels, a health screen, audit events checked against each site's hash chain, and relayed remote access. Runs on a site host or as a hosted authority. | site, network, audit, device-link |
+| [`fleet`](../examples/fleet/README.md) | The [fleet](hosting.md#fleet) that site instances report to: enrollment through device link, signed releases on channels, a health screen, audit events checked against each site's hash chain, and relayed remote access. Runs on a site host or as a hosted instance. | site, network, audit, device-link |
 | [`asset-survey-field`](../examples/asset-survey-field/README.md) | The phone side of the survey on the [mobile host](mobile.md): offline capture with photos and scans, delivered to the [hub](glossary.md#hub) through the peer connector, and assignments received through the hub's feed. | hub-link, managed-config, intent-scanner |
 
 [Getting started](getting-started.md#other-examples) runs each example and gives its port.
@@ -285,7 +285,7 @@ Each [example](glossary.md#example) is an application under `examples/` and serv
 - [Systems of record](systems-of-record.md): the outbox, inbound sync, remote queries, the CLI and MCP.
 - [Operator workstations](operator-workstations.md), [point-of-work input](point-of-work-input.md) and [hardware drivers](hardware-drivers.md): station screens, scanners and driver processes.
 - [Agents](agents.md) and [providers](providers.md): agent runs, harnesses and provider accounts.
-- [Hosting](hosting.md): hosted authorities and fleets.
+- [Hosting](hosting.md): hosted instances and fleets.
 - [Security and compliance](security-and-compliance.md): what the application may reach, and the audit log.
 - [Desktop](desktop.md) and [mobile](mobile.md): packaging and the mobile host.
 - [Development and testing](development-and-testing.md): running the checks.

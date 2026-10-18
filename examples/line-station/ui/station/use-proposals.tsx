@@ -9,7 +9,7 @@ const PREFIX = 'proposal:';
 /**
  * Open proposals to classify the current stop, as attention items with Accept and Reject.
  * Accepting classifies the stop as the operator, so a viewer or a changed stop is refused by the
- * authority and the proposal stays open. Item IDs carry a `proposal:` prefix so they never
+ * instance and the proposal stays open. Item IDs carry a `proposal:` prefix so they never
  * collide with attention entries.
  */
 export function useProposals(stopId: string | undefined, run: Run) {

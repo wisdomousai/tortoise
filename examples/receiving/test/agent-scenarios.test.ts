@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { deterministicHarness } from '@agent-native/agents';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import { runAgentScenarios, type AgentScenario } from '@agent-native/testing/agent-scenarios';
 import { createReceivingApplication } from '../application';
 import { erpFolders } from '../contracts/erp-target';
@@ -19,7 +19,7 @@ const notice = [
 ].join('\n');
 
 let directory: string;
-let authority: Awaited<ReturnType<typeof openEmbeddedAuthority>>;
+let instance: Awaited<ReturnType<typeof openEmbeddedInstance>>;
 beforeAll(async () => {
   directory = await mkdtemp(join(tmpdir(), 'receiving-agent-'));
   const folders = Object.fromEntries(
@@ -31,15 +31,15 @@ beforeAll(async () => {
     policy,
     JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' }, folders }),
   );
-  authority = await openEmbeddedAuthority(
+  instance = await openEmbeddedInstance(
     createReceivingApplication({ quietMs: 0, services: { now: () => 1_000 } }),
     { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
   );
   await writeFile(join(directory, 'share', erpFolders.inbox, 'asn-1001.csv'), notice);
-  await authority.integrations.sync();
+  await instance.integrations.sync();
 });
 afterAll(async () => {
-  await authority?.close();
+  await instance?.close();
   await rm(directory, { recursive: true, force: true });
 });
 
@@ -107,7 +107,7 @@ const scenarios: AgentScenario[] = [
 
 test('the discrepancy agent proposes classifications and never commits them', async () => {
   const results = await runAgentScenarios(scenarios, {
-    application: authority.application,
+    application: instance.application,
     harness: deterministicHarness,
   });
   expect(results.map((result) => [result.scenario, result.failures])).toEqual(

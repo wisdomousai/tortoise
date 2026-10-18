@@ -32,7 +32,7 @@ test('native package extraction rejects traversal and links before writes', () =
     expect(() => readNpmTarball(tar(path))).toThrow();
   expect(() => readNpmTarball(tar('package/link', '2'))).toThrow('link or special file');
 });
-test('runtime resources and authority endpoints cannot escape their trusted boundary', () => {
+test('runtime resources and instance endpoints cannot escape their trusted boundary', () => {
   expect(resourcePath('/safe/resources', 'runtimes/codex')).toBe('/safe/resources/runtimes/codex');
   for (const value of ['../secret', '/secret'])
     expect(() => resourcePath('/safe/resources', value)).toThrow();

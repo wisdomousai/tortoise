@@ -10,7 +10,7 @@ export const POLICY_REJECTED_EXIT_CODE = exitCodes.INVALID_INPUT;
 
 export const siteUsage = (
   program: string,
-) => `Site policy (offline; no authority or workspace needed):
+) => `Site policy (offline; no instance or workspace needed):
   ${program} site check --site file                validate a site policy against the declared requirements
 ${installUsage(program)}`;
 

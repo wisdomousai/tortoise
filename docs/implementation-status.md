@@ -28,7 +28,7 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 - The phone's snapshot storage has neither rows nor retention.
 - No encryption at rest.
 
-### Hosted authority
+### Hosted instance
 
 **By hand.** On 18 October 2026, on macOS arm64, against a throwaway Postgres 17.6 container. The container used the `supabase/postgres` image, with a password set for the run.
 
@@ -39,7 +39,7 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Not shown.**
 
-- No [hosted authority](glossary.md#hosted-authority) has run behind a public TLS listener with workforce OIDC sign-in.
+- No [hosted instance](glossary.md#hosted-instance) has run behind a public TLS listener with workforce OIDC sign-in.
 - None has run under a real orchestrator, or on Linux.
 - No commit from a paused holder has been caught by the fence in a live run. The resumed instance's renewal found the loss first, and the tests cover the fence.
 
@@ -353,7 +353,7 @@ Control mappings are indicative. They are not a certification.
 - The packages are MIT licensed, but publishing to a public registry needs an account for it.
 - The packages publish TypeScript source, and only Bun and Vite have consumed them.
 - An example export still copies the framework.
-- An authority hosts one application.
+- An instance hosts one application.
 
 ## Known defects
 
@@ -379,6 +379,6 @@ These were fixed by inspection only and have no regression test:
 
 - managed cloud hosting: the hosted platform runs on any server with Postgres, and no provider is targeted;
 - multi-device synchronization;
-- more than one application per authority;
+- more than one application per instance;
 - package publication;
 - signed distribution.

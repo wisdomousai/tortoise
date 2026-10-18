@@ -202,7 +202,7 @@ function judge(
 }
 
 /**
- * Tools for the run: the operations its grant names. Authority is the run's context, never the
+ * Tools for the run: the operations its grant names. Instance is the run's context, never the
  * call; every answer is recorded, refusals included, before it goes back to the harness.
  */
 function scenarioTools(

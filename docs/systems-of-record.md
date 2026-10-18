@@ -14,17 +14,17 @@ In this pattern, a capture application with a bounded working set sits in front 
 
 ## Topologies
 
-An agent reaches the [authority](glossary.md#authority) in [embedded or attached mode](architecture.md#embedded-and-attached-modes). Either way, the authority's dispatcher delivers to the system of record.
+An agent reaches the [instance](glossary.md#instance) in [embedded or attached mode](architecture.md#embedded-and-attached-modes). Either way, the instance's dispatcher delivers to the system of record.
 
 ### Embedded mode
 
-`app mcp --embedded --workspace <dir> --grant-file <file>` runs the authority inside the MCP process over stdio. The process listens on no network port and refuses to start without a grant file. The orchestrator writes the [grant](glossary.md#grant) file and starts the process. Tool arguments cannot change the [principal](glossary.md#principal) or widen the grant.
+`app mcp --embedded --workspace <dir> --grant-file <file>` runs the instance inside the MCP process over stdio. The process listens on no network port and refuses to start without a grant file. The orchestrator writes the [grant](glossary.md#grant) file and starts the process. Tool arguments cannot change the [principal](glossary.md#principal) or widen the grant.
 
 The process pulls master data once, then delivers and syncs in the background. A failed first pull is reported and does not block capture. A one-shot CLI call with `--embedded` opens the [workspace](glossary.md#workspace), runs one capability and exits. Both take the workspace's OS lock, which [architecture](architecture.md#embedded-and-attached-modes) explains.
 
 ### Attached mode
 
-`app serve` is the authority behind the web and desktop screens. With `--grant-file <file>` and `--grant-connection <path>`, which are used together, it also writes a [connection file](glossary.md#connection-file) bound to a delegated [session](glossary.md#session). An agent that runs as another OS user attaches with it, without the owner's credential. The file is a bearer credential, readable by its owner only and deleted when the authority stops. Its session expires with the grant, or after 30 days without a grant expiry.
+`app serve` is the instance behind the web and desktop screens. With `--grant-file <file>` and `--grant-connection <path>`, which are used together, it also writes a [connection file](glossary.md#connection-file) bound to a delegated [session](glossary.md#session). An agent that runs as another OS user attaches with it, without the owner's credential. The file is a bearer credential, readable by its owner only and deleted when the instance stops. Its session expires with the grant, or after 30 days without a grant expiry.
 
 ### Topology choice
 
@@ -140,7 +140,7 @@ Importing the whole system of record through inbound sync would copy records tha
 ```mermaid
 sequenceDiagram
   participant C as Caller (screen, MCP, CLI)
-  participant A as Authority
+  participant A as Instance
   participant S as Remote source
   participant CRM as CRM
   C->>A: crm.account.search { q }
@@ -182,13 +182,13 @@ app inspection result record --lot-id 4000001 --characteristic-id C10 --value 22
 ```
 
 - A nested object takes JSON, and `--json` supplies the whole input.
-- `--dry-run` validates without executing. It is advice only, because the authority validates and authorizes again.
-- `help`, `list`, `schema` and `workflows` work without an authority.
+- `--dry-run` validates without executing. It is advice only, because the instance validates and authorizes again.
+- `help`, `list`, `schema` and `workflows` work without an instance.
 - An error prints a JSON error envelope, or `CODE: message` with `--output text`.
 
-The authority verbs open the workspace or serve it:
+The instance verbs open the workspace or serve it:
 
-- `serve` runs the HTTP authority; `--hosted-workspace` keeps the workspace in Postgres under a [workspace lease](glossary.md#workspace-lease).
+- `serve` runs the HTTP instance; `--hosted-workspace` keeps the workspace in Postgres under a [workspace lease](glossary.md#workspace-lease).
 - `mcp` serves MCP over stdio, attached with `--connection <file>` or embedded.
 - `sync` pulls master data from each target once.
 - `drain` delivers to every target until nothing awaits delivery or the timeout passes.
@@ -206,11 +206,11 @@ The authority verbs open the workspace or serve it:
 | 1 | `INTERNAL`, `INVALID_OUTPUT` | Internal failure |
 | 1 | | `site status`: a site release is installed but not verified |
 | 1 | | `driver check`: a check failed |
-| 1 | | `serve --hosted-workspace`: the authority lost its workspace lease |
+| 1 | | `serve --hosted-workspace`: the instance lost its workspace lease |
 | 2 | `INVALID_INPUT` | Invalid input or usage; also `site check` and `network export` when the site policy has error findings. |
 | 3 | `NOT_FOUND` | Not found |
 | 4 | `FORBIDDEN` | Forbidden |
-| 5 | `CONFLICT` | Conflict, including a workspace that a live authority owns |
+| 5 | `CONFLICT` | Conflict, including a workspace that a live instance owns |
 | 6 | `IDEMPOTENCY_CONFLICT` | Idempotency key reused with other input |
 | 7 | `CANCELLED` | Cancelled |
 | 8 | `UNAVAILABLE` | Unavailable |
@@ -230,9 +230,9 @@ The site, network, audit, compliance and driver verbs exist when the application
 ## Related pages
 
 - [Implementation status](implementation-status.md): the evidence for each part.
-- [Architecture](architecture.md#authorities-and-hosts): authorities and hosts.
+- [Architecture](architecture.md#instances-and-hosts): instances and hosts.
 - [Authorization](authorization.md): where access is checked again.
 - [Hardware drivers](hardware-drivers.md) and [operator workstations](operator-workstations.md): connectors for equipment and station software.
-- [Hosting](hosting.md): the hosted authority and its workspace lease.
+- [Hosting](hosting.md): the hosted instance and its workspace lease.
 - [`packages/integration`](../packages/integration/README.md): the dispatcher, inbound sync, targets and remote sources.
 - [`packages/react`](../packages/react/README.md): the capture screens' forms, live and remote queries, and scanner capture.

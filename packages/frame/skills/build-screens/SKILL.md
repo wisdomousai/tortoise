@@ -12,11 +12,11 @@ description: Build or change the web screens of an agent-native application or h
 - Start from a [UI registry](../../../../docs/glossary.md#ui-registry) item before writing a component. The items live in `packages/frame/src/components`:
   - `collection-screen` builds list and record screens from a collection's generated capabilities;
   - `capability-form` renders any command;
-  - `live-data-table` pages after the authority scopes rows.
+  - `live-data-table` pages after the instance scopes rows.
 - For gloved or high-frequency input, use the `operator` registry (`packages/operator-ui`) and read [point-of-work input](../../../../docs/point-of-work-input.md).
 - `examples/quality-inspection/ui/capture-station.tsx` is the pattern for repeated entry. `examples/line-station/ui/station.tsx` composes a full station's screen.
 - Each command a screen issues needs a matching `ui.binding` on its capability, its [UI binding](../../../../docs/glossary.md#ui-binding). The `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`) covers it.
-- The authority's content security policy rejects inline scripts and injected styles. Use components that render native elements, such as `ui/native-dialog`, instead of ones that inject styles at runtime.
+- The instance's content security policy rejects inline scripts and injected styles. Use components that render native elements, such as `ui/native-dialog`, instead of ones that inject styles at runtime.
 - Browser files must not import server modules.
 
 ## Steps

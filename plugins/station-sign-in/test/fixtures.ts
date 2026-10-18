@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
 import { defineApplication } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import { defineManifest } from '@agent-native/kernel/manifest';
 import { createHandlerFactory } from '@agent-native/runtime';
 import { createStationSignInPlugin } from '../src/plugin';

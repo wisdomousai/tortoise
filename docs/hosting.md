@@ -1,14 +1,14 @@
 # Hosting
 
-An [authority](glossary.md#authority) can run on a server, with its [workspace](glossary.md#workspace) in Postgres under a lease, and [sites](glossary.md#site) can report to a fleet through enrollment, reports, releases and a relay. [Architecture](architecture.md#authorities-and-hosts) explains authorities, hosts and host platforms.
+An [instance](glossary.md#instance) can run on a server, with its [workspace](glossary.md#workspace) in Postgres under a lease, and [sites](glossary.md#site) can report to a fleet through enrollment, reports, releases and a relay. [Architecture](architecture.md#instances-and-hosts) explains instances, hosts and host platforms.
 
 ## Concepts
 
-- [Hosted authority](glossary.md#hosted-authority): the Bun host on the hosted platform, with its workspace in a shared Postgres database.
-- [Workspace lease](glossary.md#workspace-lease): one authority's hold on a hosted workspace, with a fencing token that every commit checks.
+- [Hosted instance](glossary.md#hosted-instance): the Bun host on the hosted platform, with its workspace in a shared Postgres database.
+- [Workspace lease](glossary.md#workspace-lease): one instance's hold on a hosted workspace, with a fencing token that every commit checks.
 - [Fleet](glossary.md#fleet): an application that sites report to through the fleet agent plugin.
 
-## Hosted authority
+## Hosted instance
 
 `serve --hosted-workspace` starts the [host](glossary.md#host) on the hosted [host platform](glossary.md#host-platform) (`packages/host/src/platform/hosted.ts`). The platform keeps the workspace in a shared Postgres database and makes ownership a workspace lease there. Contracts and handlers do not change. Managed cloud hosting is out of scope: the platform runs on any server with Postgres and targets no provider. No Cloudflare Durable Object host exists: the host uses Bun APIs and has no Workers entry.
 
@@ -24,11 +24,11 @@ When a renewal finds the lease gone, the host logs a `lease-lost` JSON record on
 
 ### Instance layout
 
-One instance serves one workspace, because the [kernel](glossary.md#kernel)'s authority, its plugins and their ports are per workspace. Several workspaces run one instance each, and a router sends each workspace's requests to its instance.
+One instance serves one workspace, because the [kernel](glossary.md#kernel)'s instance, its plugins and their ports are per workspace. Several workspaces run one instance each, and a router sends each workspace's requests to its instance.
 
 The instance also takes the OS lock on its local directory (`--workspace`). That directory still holds [blobs](glossary.md#blob), agent run history, the [audit log](glossary.md#audit-log) and the plugins' local files. Put it on a volume that follows the instance, or a takeover on another machine starts without those files.
 
-A site-scoped destination, a device, an exchange folder or a station process ties an application to a site, so such an application does not belong on a hosted authority. Nothing refuses it at startup, because the hosted platform offers everything the Bun platform offers. The generated security manifest (`bun run generate`) lists every [requirement](glossary.md#requirement-declaration) the application declares.
+A site-scoped destination, a device, an exchange folder or a station process ties an application to a site, so such an application does not belong on a hosted instance. Nothing refuses it at startup, because the hosted platform offers everything the Bun platform offers. The generated security manifest (`bun run generate`) lists every [requirement](glossary.md#requirement-declaration) the application declares.
 
 ### Instance setup
 
@@ -47,7 +47,7 @@ A site-scoped destination, a device, an exchange folder or a station process tie
 
 People then sign in through [workforce sign-in](glossary.md#workforce-sign-in), and no local owner session exists. Workforce sessions live in the instance's memory, so a restart or a takeover signs everyone out. The [deploy-to-site](../plugins/site/skills/deploy-to-site/SKILL.md) skill has the policy steps.
 
-The CLI's backup, restore, migrate, sync and drain verbs and any embedded call open a local workspace only. A hosted authority is reached in [attached mode](glossary.md#attached-mode).
+The CLI's backup, restore, migrate, sync and drain verbs and any embedded call open a local workspace only. A hosted instance is reached in [attached mode](glossary.md#attached-mode).
 
 A Postgres-compatible database can reuse the Postgres adapter with its own driver. [Adapters](adapters.md#storage) describes the storage port and its conformance suite. The first command below runs the hosted tests on PGlite. The second runs the conformance and lease cases against the server the URL names, each case under its own workspace scope.
 
@@ -58,7 +58,7 @@ STORAGE_POSTGRES_URL=postgres://user:password@localhost:5432/scratch bun test pa
 
 ## Fleet
 
-The fleet agent [host plugin](glossary.md#host-plugin) (`plugins/fleet-agent`) connects outbound only, through the network port's `fleet` destination, so the site needs no inbound rule. The fleet holds no authority over the site.
+The fleet agent [host plugin](glossary.md#host-plugin) (`plugins/fleet-agent`) connects outbound only, through the network port's `fleet` destination, so the site needs no inbound rule. The fleet has no rights on the site.
 
 ### Fleet protocol
 
@@ -85,7 +85,7 @@ A report holds [effect](glossary.md#effect) counts per target and no effect payl
 
 Audit forwarding keeps no state on the site. The fleet says where its copy ends, so after a lost reply or a restart the site sends the same events again. Events leave unchanged, so the fleet can check the hash chain.
 
-The plugin verifies a release before it appears in the releases folder. Each file is checked against the signed manifest as it arrives. The whole bundle is then verified against the `fleet-trust` keys before the temporary directory is renamed into the folder. Staging fetches each file whole and does not resume a download. Activation stays with the operator's site install, and the authority never replaces itself.
+The plugin verifies a release before it appears in the releases folder. Each file is checked against the signed manifest as it arrives. The whole bundle is then verified against the `fleet-trust` keys before the temporary directory is renamed into the folder. Staging fetches each file whole and does not resume a download. Activation stays with the operator's site install, and the instance never replaces itself.
 
 The fleet credential goes only to the fleet. The network port's `fleet` client resolves every path against the bound origin and refuses redirects. The plugin keeps the credential in the platform's secret store when the platform has one, and otherwise in `<workspace>/fleet-agent/credential` with mode 0600. The credential is not rotated, so a fleet that loses one re-enrolls the site with a new code.
 
@@ -99,7 +99,7 @@ A relayed request reaches a capability only with a [session](glossary.md#session
 
 ### Fleet application
 
-[`examples/fleet`](../examples/fleet/README.md) is a complete fleet. It keeps site records, release channels, forwarded audit events and relay requests, and has a health screen. It has no outbox target and needs nothing from a site, so it can run as a hosted authority.
+[`examples/fleet`](../examples/fleet/README.md) is a complete fleet. It keeps site records, release channels, forwarded audit events and relay requests, and has a health screen. It has no outbox target and needs nothing from a site, so it can run as a hosted instance.
 
 Only workspace members pass the fleet's caller gate. Operators update sites, publish, assign and relay, and viewers read. Device link lets only the local owner create enrollments. An enrolled site is an integration lane that may call only the protocol and read only the release its channel assigns, so it can fetch no other blob. Relaying needs a person, so an agent run cannot reach a site through the fleet.
 
@@ -121,7 +121,7 @@ A relay request's headers and body are stored only while it waits, are never lis
 
 `bun test examples/fleet` runs these tests:
 
-- `examples/fleet/test/fleet.test.ts` runs the fleet with one or two plant authorities on the real fleet agent. It covers the health screen, release channels, a release whose blobs are not exactly its files, a forged audit event that stops collection, the protocol's per-site scope and the relay.
+- `examples/fleet/test/fleet.test.ts` runs the fleet with one or two plant instances on the real fleet agent. It covers the health screen, release channels, a release whose blobs are not exactly its files, a forged audit event that stops collection, the protocol's per-site scope and the relay.
 - `examples/fleet/test/ui-bindings.test.ts` checks that every bound capability is on a screen.
 - `examples/fleet/e2e/fleet.pw.ts` runs the real host in a browser, from enrollment to release drift on the health screen.
 
@@ -151,7 +151,7 @@ To test a fleet against real sites, compose `fleetNetworkFixture` from `@agent-n
 
 ## Related pages
 
-- [Architecture](architecture.md): authorities, hosts, host platforms and host plugins.
+- [Architecture](architecture.md): instances, hosts, host platforms and host plugins.
 - [Security and compliance](security-and-compliance.md): site policy, ingress, workforce sign-in and the audit log.
 - [Mobile](mobile.md): device link and pairing.
-- [Implementation status](implementation-status.md): the runs for the [hosted authority](implementation-status.md#hosted-authority) and the [fleet agent](implementation-status.md#fleet-agent).
+- [Implementation status](implementation-status.md): the runs for the [hosted instance](implementation-status.md#hosted-instance) and the [fleet agent](implementation-status.md#fleet-agent).

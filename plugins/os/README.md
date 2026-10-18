@@ -72,7 +72,7 @@ bun test plugins/os
 - a link landing as the only cross-site request served, and only as a top-level page;
 - startup refused for an unserved kind or an unknown disabled ID.
 
-`test/mobile.test.ts` runs a fixture application on the mobile authority with Bun bindings for the device. It covers:
+`test/mobile.test.ts` runs a fixture application on the mobile instance with Bun bindings for the device. It covers:
 
 - a launch link held until the frame subscribes;
 - a `content:` text file matched by media type, with undeclared types never read;

@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { SitePolicyInput } from '@agent-native/site/policy';
 import { startHost } from '@agent-native/host/host';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
-import { openMobileAuthority } from '@agent-native/mobile';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
+import { openMobileInstance } from '@agent-native/mobile';
 import { hubLinkServiceOf } from '@agent-native/hub-link/plugin';
 import { devicePlatform, fieldApplication, hubApplication } from './fixtures';
 
@@ -110,7 +110,7 @@ test.skipIf(!Bun.which('openssl'))(
         const ca = Bun.file(join(directory, 'site-ca.pem'));
         const trusting = ((input: string | URL | Request, init?: RequestInit) =>
           fetch(input, { ...init, tls: { ca } } as RequestInit)) as typeof fetch;
-        const field = await openMobileAuthority(fieldApplication({ fetch: trusting }), {
+        const field = await openMobileInstance(fieldApplication({ fetch: trusting }), {
           platform,
         });
         try {
@@ -123,7 +123,7 @@ test.skipIf(!Bun.which('openssl'))(
             },
             owner,
           );
-          const pairing = hubLinkServiceOf(field.authority.services)!;
+          const pairing = hubLinkServiceOf(field.instance.services)!;
           await pairing.pair({ origin: hub.url, code: (result as { code: string }).code });
 
           const photo = await field.transport.blobs!.put(
@@ -136,7 +136,7 @@ test.skipIf(!Bun.which('openssl'))(
             { idempotencyKey: 'c1' },
           );
           expect(
-            await field.authority.integrations
+            await field.instance.integrations
               .target('hub')
               .dispatcher.runOnce(undefined, { ignoreBackoff: true }),
           ).toMatchObject({ accepted: 1 });

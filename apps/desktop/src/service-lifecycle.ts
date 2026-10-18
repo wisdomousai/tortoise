@@ -54,7 +54,7 @@ async function connect(
     signal: AbortSignal.timeout(3_000),
     redirect: 'error',
   });
-  if (!contract.ok) throw new Error('Existing authority handshake failed');
+  if (!contract.ok) throw new Error('Existing instance handshake failed');
   const response = await fetch(`${connection.endpoint}/api/v1/launch`, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
@@ -62,10 +62,10 @@ async function connect(
     signal: AbortSignal.timeout(3_000),
     redirect: 'error',
   });
-  if (!response.ok) throw new Error('Existing authority could not bootstrap a browser session');
+  if (!response.ok) throw new Error('Existing instance could not bootstrap a browser session');
   const body = (await response.json()) as { launch?: string };
   if (!body.launch || typeof body.launch !== 'string')
-    throw new Error('Authority returned no launch credential');
+    throw new Error('Instance returned no launch credential');
   return {
     connection,
     launchUrl: `${connection.endpoint}/#launch=${encodeURIComponent(body.launch)}`,
@@ -89,11 +89,11 @@ interface ServiceOptions {
   cwd?: string;
   /** Developer environment for a source service. Applied before the host-owned keys. */
   extraEnv?: Record<string, string>;
-  /** Copy the child authority's output to this process. Development launches use this. */
+  /** Copy the child instance's output to this process. Development launches use this. */
   mirror?: boolean;
 }
 
-/** A handle on an authority someone else started; this frontend never stops it. */
+/** A handle on an instance someone else started; this frontend never stops it. */
 const attached = (existing: Awaited<ReturnType<typeof connect>>): ServiceHandle => ({
   endpoint: existing.connection.endpoint,
   token: existing.connection.token,
@@ -145,15 +145,15 @@ interface OwnedService {
   stopped: boolean;
 }
 
-/** Ask the authority to shut down, but only if it is still the instance this child announced. */
+/** Ask the instance to shut down, but only if it is still the instance this child announced. */
 async function requestShutdown(workspace: string, instance: string) {
   try {
-    const authority = JSON.parse(await readFile(resolve(workspace, '.authority.json'), 'utf8')) as {
+    const metadata = JSON.parse(await readFile(resolve(workspace, '.instance.json'), 'utf8')) as {
       instance?: string;
     };
-    // A failed competing launch must never stop the existing authority through a
+    // A failed competing launch must never stop the existing instance through a
     // shared connection file. The instance must match our child's ready message.
-    if (authority.instance === instance) {
+    if (metadata.instance === instance) {
       const connection = await readConnection(workspace);
       await fetch(`${connection.endpoint}/api/v1/shutdown`, {
         method: 'POST',
@@ -200,7 +200,7 @@ function awaitReady(service: OwnedService, options: ServiceOptions): Promise<voi
   const { child } = service;
   return new Promise<void>((ready, reject) => {
     const timeout = setTimeout(
-      () => reject(new Error('Local authority startup timed out')),
+      () => reject(new Error('Local host startup timed out')),
       options.startupTimeoutMs ?? 15_000,
     );
     let buffer = '';
@@ -216,14 +216,14 @@ function awaitReady(service: OwnedService, options: ServiceOptions): Promise<voi
     };
     const onExit = () => {
       cleanup();
-      reject(new Error('Local authority exited before becoming ready'));
+      reject(new Error('Local host exited before becoming ready'));
     };
     const onData = (chunk: Buffer) => {
       if (options.mirror) process.stdout.write(chunk);
       buffer += chunk.toString('utf8');
       if (buffer.length > 65_536) {
         cleanup();
-        reject(new Error('Local authority startup output exceeded limit'));
+        reject(new Error('Local host startup output exceeded limit'));
         return;
       }
       let end: number;
@@ -242,7 +242,7 @@ function awaitReady(service: OwnedService, options: ServiceOptions): Promise<voi
             return;
           }
         } catch {
-          /* Non-protocol log lines do not grant authority or expose tokens. */
+          /* Non-protocol log lines grant no access and expose no tokens. */
         }
       }
     };

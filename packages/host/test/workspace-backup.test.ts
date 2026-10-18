@@ -7,7 +7,7 @@ import { defineCapability, defineModule, jsonSchema } from '@agent-native/contra
 import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
 import { defineApplication } from '../src/application';
 import { createCli } from '../src/cli';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedAuthority } from '../src/embedded';
+import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '../src/embedded';
 import { defineManifest } from '../src/manifest';
 
 const count = jsonSchema(z.strictObject({ count: z.number() }));
@@ -40,15 +40,15 @@ const definition = defineApplication<{ counter: { count: number } }>({
 });
 
 async function bumpOnce(workspacePath: string, key: string) {
-  const authority = await openEmbeddedAuthority(definition, { workspacePath });
+  const instance = await openEmbeddedInstance(definition, { workspacePath });
   try {
-    const receipt = await authority.application.invokeRaw(
+    const receipt = await instance.application.invokeRaw(
       { operation: 'counter.bump', input: {}, idempotencyKey: key },
       { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER },
     );
     return (receipt.result as { count: number }).count;
   } finally {
-    await authority.close();
+    await instance.close();
   }
 }
 

@@ -15,7 +15,7 @@ import {
   verifyEventLog,
 } from '../src/index';
 
-const source = { component: 'authority', instance: 'test' };
+const source = { component: 'host', instance: 'test' };
 let clock = 1_800_000_000_000;
 const now = () => ++clock;
 const withDirectory = async (run: (directory: string) => Promise<void>) => {

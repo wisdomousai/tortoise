@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import type { ExecutionContext } from '@agent-native/runtime';
 import { createCrmCaptureApplication } from '../application';
 import { FakeCrm } from '../fake-crm';
@@ -23,7 +23,7 @@ afterEach(async () => {
 
 async function open(crm = new FakeCrm({ logins: { owner: 'ann' } })) {
   const workspacePath = await mkdtemp(join(tmpdir(), 'agent-native-crm-'));
-  const authority = await openEmbeddedAuthority(
+  const instance = await openEmbeddedInstance(
     createCrmCaptureApplication({
       crm,
       members: { owner: { regions: ['north', 'south', 'west'] }, pat: { regions: ['north'] } },
@@ -31,8 +31,8 @@ async function open(crm = new FakeCrm({ logins: { owner: 'ann' } })) {
     { workspacePath },
   );
   cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
-  cleanup.push(() => authority.close());
-  const { application, integrations } = authority;
+  cleanup.push(() => instance.close());
+  const { application, integrations } = instance;
   const query = async <T = Result>(operation: string, input: unknown, as = owner) =>
     (await application.queryRaw({ operation, input }, as)).data as T;
   const command = (operation: string, input: unknown, key: string, as = owner) =>

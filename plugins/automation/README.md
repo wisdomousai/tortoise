@@ -53,7 +53,7 @@ Only a person issues, renews or revokes a grant, and only their own; no run and 
 
 `automation.progress.record` is allowed only for a context with the issuer's principal and a run ID under that grant. Only the in-process loop creates such a context.
 
-The plugin reaches nothing outside the [authority](../../docs/glossary.md#authority) except the local model. It calls the model only through the network port's `local-inference` destination. The [site policy](../../docs/glossary.md#site-policy) binds that destination to a loopback address, and the guard refuses any other.
+The plugin reaches nothing outside the [instance](../../docs/glossary.md#instance) except the local model. It calls the model only through the network port's `local-inference` destination. The [site policy](../../docs/glossary.md#site-policy) binds that destination to a loopback address, and the guard refuses any other.
 
 Limits:
 

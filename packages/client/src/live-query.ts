@@ -11,7 +11,7 @@ export interface LiveState<T> {
 
 /**
  * Snapshot then replay closes the query/subscription race. Each instance is scoped to one
- * authority + principal + grant by its transport; never share it across authenticated sessions.
+ * instance + principal + grant by its transport; never share it across authenticated sessions.
  * A generation fence prevents an older request from restoring revoked or superseded data.
  */
 export class LiveQuery<T> {

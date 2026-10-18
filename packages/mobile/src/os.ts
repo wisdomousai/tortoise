@@ -8,7 +8,7 @@ import {
 } from '@agent-native/shell/mobile';
 import type { AndroidIntent, IntentListening } from '@agent-native/shell/intents';
 import type { ShellNotification } from '@agent-native/shell/notifications';
-import type { MobileAuthority } from './authority';
+import type { MobileInstance } from './instance';
 
 /** The device's link and file calls; the Expo bindings are `expoOsBindings`. */
 export interface MobileOsBindings {
@@ -52,7 +52,7 @@ const bufferLimit = 16;
  * resource and the device's owner may run that kind's read query for it.
  */
 async function assertReadable(
-  opened: MobileAuthority,
+  opened: MobileInstance,
   definition: AnyApplicationDefinition,
   delivery: OsDelivery,
 ) {
@@ -62,7 +62,7 @@ async function assertReadable(
   const operation = Object.hasOwn(selectable, kind) ? selectable[kind] : undefined;
   if (!operation || !rest.length)
     throw new ApplicationError('INVALID_INPUT', 'Unknown selected resource type');
-  await opened.authority.application.queryRaw(
+  await opened.instance.application.queryRaw(
     { operation, input: { id: rest.join(':') } },
     opened.context,
   );
@@ -85,7 +85,7 @@ function listenForIntents(shell: MobileShell, bindings: MobileOsBindings) {
 }
 
 /**
- * Connect the device's OS integration to the authority: links and files the OS opens the app
+ * Connect the device's OS integration to the instance: links and files the OS opens the app
  * with are submitted to the shell port as the device's owner, what the port delivers waits for
  * the frame's subscription once an opened resource is checked readable, and the port's actions
  * run through this device. The OS runs in this process, so the adapter attaches directly
@@ -96,12 +96,12 @@ function listenForIntents(shell: MobileShell, bindings: MobileOsBindings) {
  * commits through the screen it opens.
  */
 export function connectMobileShell(
-  opened: MobileAuthority,
+  opened: MobileInstance,
   definition: AnyApplicationDefinition,
   bindings: MobileOsBindings,
 ) {
-  const { authority, context } = opened;
-  const port = authority.ports.shell;
+  const { instance, context } = opened;
+  const port = instance.ports.shell;
   let waiting: OsDelivery[] = [];
   const listeners = new Set<(delivery: OsDelivery) => void>();
   const show = (delivery: OsDelivery) => {
@@ -116,10 +116,10 @@ export function connectMobileShell(
   const shell = createMobileShell({
     platform: bindings.platform,
     scheme: bindings.scheme,
-    declarations: () => authority.application.catalog.os ?? { handlers: [], actions: [] },
+    declarations: () => instance.application.catalog.os ?? { handlers: [], actions: [] },
     inspect: (uri) => bindings.inspect(uri),
     read: (uri, maxBytes) => bindings.read(uri, maxBytes),
-    upload: (bytes, mediaType) => authority.application.putBlob(bytes, mediaType, context),
+    upload: (bytes, mediaType) => instance.application.putBlob(bytes, mediaType, context),
     submit: (request) => port.receive(context, request, bindings.platform),
     deliver,
     open: (url) => bindings.open(url),

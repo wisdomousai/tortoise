@@ -7,7 +7,7 @@ export const grantCoversResource = (grant: DelegationGrant | undefined, resource
 
 /**
  * Whether an unexpired grant permits an operation (and, when given, a resource). No grant means
- * the principal acts on its own authority, which policy decides.
+ * the principal acts with its own grants, which policy decides.
  */
 export function grantPermits(
   grant: DelegationGrant | undefined,

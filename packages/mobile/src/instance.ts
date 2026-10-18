@@ -1,10 +1,10 @@
 import { createDirectTransport } from '@agent-native/adapters/direct-transport';
 import type { AnyApplicationDefinition, Observer } from '@agent-native/kernel/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openAuthority } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER, LOCAL_WORKSPACE, openInstance } from '@agent-native/kernel/instance';
 import type { HostPlatform } from '@agent-native/kernel/platform';
 import type { PluginSettings } from '@agent-native/kernel/plugins/settings';
 
-export interface MobileAuthorityOptions {
+export interface MobileInstanceOptions {
   readonly platform: HostPlatform;
   /** The workspace's name on this device. Defaults to the application's id. */
   readonly workspace?: string;
@@ -16,25 +16,25 @@ export interface MobileAuthorityOptions {
 }
 
 /**
- * Open the application's authority inside the app, for the person holding the device. The screens
+ * Open the application's instance inside the app, for the person holding the device. The screens
  * talk to it through the direct transport as the local owner; there is no listener and no session.
- * The authority sweeps unreferenced blobs when it opens. Integrations, plugin observers (such as
+ * The instance sweeps unreferenced blobs when it opens. Integrations, plugin observers (such as
  * a notification dispatcher) and the application's observers are built but stopped: call
  * `foreground` when the app becomes active and `background` when it leaves, and
  * `backgroundPass` from a background task. `close` stops everything and releases ownership.
  *
- * Fails when another authority in this app or process holds the workspace, and when a plugin or a
+ * Fails when another instance in this app or process holds the workspace, and when a plugin or a
  * declared requirement cannot run on this platform; nothing stays open after a failure.
  */
-export async function openMobileAuthority(
+export async function openMobileInstance(
   definition: AnyApplicationDefinition,
-  options: MobileAuthorityOptions,
+  options: MobileInstanceOptions,
 ) {
   const { platform } = options;
   const ownership = await platform.acquireOwnership(options.workspace ?? definition.manifest.id);
-  let authority: Awaited<ReturnType<typeof openAuthority>>;
+  let instance: Awaited<ReturnType<typeof openInstance>>;
   try {
-    authority = await openAuthority(definition, {
+    instance = await openInstance(definition, {
       platform,
       ownership,
       component: 'embedded',
@@ -52,7 +52,7 @@ export async function openMobileAuthority(
     principalId: LOCAL_OWNER,
     channel: 'direct' as const,
   };
-  const transport = createDirectTransport(authority.application, context, {
+  const transport = createDirectTransport(instance.application, context, {
     ...(options.pollMs ? { pollMs: options.pollMs } : {}),
   });
   let active = false;
@@ -62,8 +62,8 @@ export async function openMobileAuthority(
   const onError = (scope: string, error: unknown) => console.warn(`${scope}:`, error);
   async function startObservers(): Promise<readonly Observer[]> {
     try {
-      const started = await authority.plugins.start({
-        application: authority.application,
+      const started = await instance.plugins.start({
+        application: instance.application,
         workspaceId: LOCAL_WORKSPACE,
         delegate: (grant) => ({
           workspaceId: LOCAL_WORKSPACE,
@@ -72,8 +72,8 @@ export async function openMobileAuthority(
         }),
         onError,
       });
-      const observed = authority.connections.observe
-        ? await authority.connections.observe(onError)
+      const observed = instance.connections.observe
+        ? await instance.connections.observe(onError)
         : [];
       return [...started, ...observed];
     } catch (error) {
@@ -87,14 +87,14 @@ export async function openMobileAuthority(
     await Promise.all(running.map((observer) => observer.stop()));
   }
   return {
-    authority,
+    instance,
     transport,
     context,
     /** Start delivery and inbound sync loops and the plugin and application observers; idempotent. */
     foreground() {
       if (active || closed) return;
       active = true;
-      authority.integrations.start();
+      instance.integrations.start();
       const previous = observers;
       observers = previous.then(startObservers);
     },
@@ -102,15 +102,15 @@ export async function openMobileAuthority(
     async background() {
       if (!active) return;
       active = false;
-      await Promise.all([authority.integrations.stop(), stopObservers()]);
+      await Promise.all([instance.integrations.stop(), stopObservers()]);
     },
     /**
      * One bounded delivery and sync pass for a background task, which the OS may stop at any
      * time. Undelivered effects stay in the outbox for the next pass.
      */
     async backgroundPass(timeoutMs = 20_000) {
-      const delivered = await authority.integrations.drain(timeoutMs);
-      const synced = await authority.integrations.sync();
+      const delivered = await instance.integrations.drain(timeoutMs);
+      const synced = await instance.integrations.sync();
       return { delivered, synced };
     },
     async close() {
@@ -119,11 +119,11 @@ export async function openMobileAuthority(
       active = false;
       try {
         await stopObservers();
-        await authority.close();
+        await instance.close();
       } finally {
         await ownership.release();
       }
     },
   };
 }
-export type MobileAuthority = Awaited<ReturnType<typeof openMobileAuthority>>;
+export type MobileInstance = Awaited<ReturnType<typeof openMobileInstance>>;

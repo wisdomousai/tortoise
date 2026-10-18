@@ -45,7 +45,7 @@ async function shared(uri: string, scheme: string): Promise<readonly MobileShare
 /**
  * Show a notification now under its id, so showing it again replaces it. A category is
  * registered per set of buttons, because the OS reads button titles from the category; each
- * button opens the app, since a reply is submitted by the running authority, and one that
+ * button opens the app, since a reply is submitted by the running instance, and one that
  * requires unlock asks for it first. The buttons, nonces included, travel in the data.
  */
 async function notify(notification: ShellNotification) {

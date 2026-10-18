@@ -27,7 +27,7 @@ const identifier = /^[A-Za-z0-9._:-]{1,128}$/;
 /**
  * The reply a chosen button submits, or `undefined` when the button is not one of `buttons`.
  * `buttons` may come back from the platform's notification data, so it is checked as unknown
- * input; the authority checks the nonce itself either way.
+ * input; the instance checks the nonce itself either way.
  */
 export function replyRequest(buttons: unknown, chosen: string): RawOsRequest | undefined {
   if (!Array.isArray(buttons)) return undefined;

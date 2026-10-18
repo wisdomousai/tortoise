@@ -74,7 +74,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { deterministicHarness } from '@agent-native/agents';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import { runAgentScenarios, type AgentScenario } from '@agent-native/testing/agent-scenarios';
 import { create${app.app.pascal}Application } from '../application';
 
@@ -83,10 +83,10 @@ import { create${app.app.pascal}Application } from '../application';
 const owner = { workspaceId: 'local', principalId: 'owner' };
 let ids = 0;
 let directory: string;
-let authority: Awaited<ReturnType<typeof openEmbeddedAuthority>>;
+let instance: Awaited<ReturnType<typeof openEmbeddedInstance>>;
 beforeAll(async () => {
   directory = await mkdtemp(join(tmpdir(), '${app.app.kebab}-${agent.kebab}-'));
-  authority = await openEmbeddedAuthority(
+  instance = await openEmbeddedInstance(
     create${app.app.pascal}Application({
       services: { newId: () => \`${one.kebab}-\${++ids}\`, now: () => 1_000 },
     }),
@@ -94,7 +94,7 @@ beforeAll(async () => {
   );
 });
 afterAll(async () => {
-  await authority?.close();
+  await instance?.close();
   await rm(directory, { recursive: true, force: true });
 });
 
@@ -157,7 +157,7 @@ const scenarios: AgentScenario[] = [
 
 test('the ${agent.words} agent proposes updates and never commits them', async () => {
   const results = await runAgentScenarios(scenarios, {
-    application: authority.application,
+    application: instance.application,
     harness: deterministicHarness,
   });
   expect(results.map((result) => [result.scenario, result.failures])).toEqual(
@@ -166,7 +166,7 @@ test('the ${agent.words} agent proposes updates and never commits them', async (
 });
 
 test('a person accepts a proposal, and the update commits as that person', async () => {
-  const app = authority.application;
+  const app = instance.application;
   const created = await app.invokeRaw(
     { operation: '${one.kebab}.create', input: { title: 'Accepted' }, idempotencyKey: 'create-accepted' },
     owner,

@@ -81,7 +81,7 @@ bun test examples/receiving
 bunx playwright test examples/receiving
 ```
 
-- `test/receiving.test.ts` runs an embedded authority with a site policy that binds the folders to temporary directories, and `FakeFileConsumer` playing the ERP. It covers:
+- `test/receiving.test.ts` runs an embedded instance with a site policy that binds the folders to temporary directories, and `FakeFileConsumer` playing the ERP. It covers:
   - notice import;
   - the agent's grant refusing a direct classification, and a viewer's acceptance being refused;
   - posting with a pending upstream, and settling from the receipt;
@@ -115,7 +115,7 @@ Paths in this table are relative to the example directory, except those under `p
 | [Agent definition](../../docs/primitives.md#agent-definition) with `output: 'propose'` | `contracts.ts` (`receiving.discrepancy`) | [`test/agent-scenarios.test.ts`](test/agent-scenarios.test.ts) |
 | [Proposal](../../docs/primitives.md#proposal) accepted under the accepter | `handlers/proposals.ts`; `ui/delivery.tsx`; `ui/proposals.tsx` | `test/receiving.test.ts`: the agent grant and viewer acceptance checks |
 | [Agent scenario](../../docs/primitives.md#agent-scenario) on the deterministic harness | `test/agent-scenarios.test.ts` (`runAgentScenarios`) | The same file |
-| [Surface adapter](../../docs/primitives.md#surface-adapter) parity | Generated from the catalog; no example code | `test/conformance.test.ts`: authority, HTTP, CLI and MCP read one list |
+| [Surface adapter](../../docs/primitives.md#surface-adapter) parity | Generated from the catalog; no example code | `test/conformance.test.ts`: instance, HTTP, CLI and MCP read one list |
 | [UI registry](../../docs/primitives.md#ui-registry) screens and [capability bindings](../../docs/primitives.md#capability-binding) | `ui/delivery.tsx`; `ui/proposals.tsx`; `ui/reconcile.tsx` | `test/ui-bindings.test.ts`, `e2e/receiving.pw.ts` |
 | [Live query](../../docs/primitives.md#journal-and-live-query) of target status | `ui/erp-target.tsx` (`live.liveQueryOptions`) | `e2e/receiving.pw.ts`: the ERP screen shows the goods receipt accepted |
 
@@ -236,8 +236,8 @@ Run `scaffold new` from the framework checkout's root, and every later command f
 33. Pass the manifest's components to the UI binding test, as `test/ui-bindings.test.ts` does. Without them the catalog refuses the ERP target, which then has no declared network destination, folder or process.
 34. In the generated target test, keep the case that refuses a viewer's send and a person's sync, and drop the other case. Change the file's open helper so it builds the application without the fake and without the `erp` option.
 35. Replace the generated collection, capability and agent tests with a behavioral test like `test/receiving.test.ts` and agent scenarios like the example's. The generated tests use the create command or empty inputs.
-36. Open the application in those tests with `openEmbeddedAuthority`, a quiet period of 0 and a site policy setting that binds the three folders to temporary directories.
-37. Play the ERP with `FakeFileConsumer` from the connector's testing entrypoint. Run each delivery pass with `runOnce` on the ERP target's dispatcher from the authority's integrations, with backoff ignored.
+36. Open the application in those tests with `openEmbeddedInstance`, a quiet period of 0 and a site policy setting that binds the three folders to temporary directories.
+37. Play the ERP with `FakeFileConsumer` from the connector's testing entrypoint. Run each delivery pass with `runOnce` on the ERP target's dispatcher from the instance's integrations, with backoff ignored.
 38. Replace the generated default screens spec with a spec like `e2e/receiving.pw.ts`. Keep the package name that the generated spec passes to `startService`, because the example's spec names the example's own package.
 39. Rewrite the generated `README.md` with the entrypoints, exchange folders, trust boundary and tests, as the example's README does.
 40. Run the focused checks, then the full check. The [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md) says which to report.

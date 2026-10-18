@@ -44,7 +44,7 @@ function checkMeasurement(ctx: Context, characteristic: Characteristic, measurem
   }
 }
 
-/** The authority's recording time, refusing a measurement too old or in the future. */
+/** The instance's recording time, refusing a measurement too old or in the future. */
 function recordedAtFor(ctx: Context, measurement: Measurement): number {
   const recordedAt = now(ctx);
   if (recordedAt - measurement.occurredAt > MAX_AGE_MS)

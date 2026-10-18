@@ -1,11 +1,11 @@
 ---
-name: run-a-hosted-authority
-description: Run an agent-native application's authority on a server, with its workspace in Postgres under a lease that another instance can take over. Use when deploying a hosted instance (no site requirements), choosing between local SQLite and Postgres storage, setting AGENT_NATIVE_DATABASE_URL and serve --hosted-workspace, putting public TLS ingress and workforce OIDC sign-in in front of it, or writing a new Storage adapter and proving it with the storage conformance suite. Covers hostedPlatform in packages/host, PostgresStorage and acquireWorkspaceLease in packages/adapters, and storageConformance in packages/testing.
+name: run-a-hosted-instance
+description: Run an agent-native application's instance on a server, with its workspace in Postgres under a lease that another instance can take over. Use when deploying a hosted instance (no site requirements), choosing between local SQLite and Postgres storage, setting AGENT_NATIVE_DATABASE_URL and serve --hosted-workspace, putting public TLS ingress and workforce OIDC sign-in in front of it, or writing a new Storage adapter and proving it with the storage conformance suite. Covers hostedPlatform in packages/host, PostgresStorage and acquireWorkspaceLease in packages/adapters, and storageConformance in packages/testing.
 ---
 
-# Run a hosted authority
+# Run a hosted instance
 
-A [hosted authority](../../../../docs/glossary.md#hosted-authority) is the same [host](../../../../docs/glossary.md#host) on another [host platform](../../../../docs/glossary.md#host-platform). `hostedPlatform` keeps the [workspace](../../../../docs/glossary.md#workspace) in a shared Postgres database and makes ownership a [workspace lease](../../../../docs/glossary.md#workspace-lease) with a fencing token. A replacement instance can take over, and a paused old one commits nothing more. Contracts and handlers do not change. [Hosting](../../../../docs/hosting.md#hosted-authority) explains the lease, the [host README](../../README.md#trust-boundary) states what it guarantees, and the [ledger](../../../../docs/implementation-status.md#hosted-authority) lists what is not built.
+A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [host](../../../../docs/glossary.md#host) on another [host platform](../../../../docs/glossary.md#host-platform). `hostedPlatform` keeps the [workspace](../../../../docs/glossary.md#workspace) in a shared Postgres database and makes ownership a [workspace lease](../../../../docs/glossary.md#workspace-lease) with a fencing token. A replacement instance can take over, and a paused old one commits nothing more. Contracts and handlers do not change. [Hosting](../../../../docs/hosting.md#hosted-instance) explains the lease, the [host README](../../README.md#trust-boundary) states what it guarantees, and the [ledger](../../../../docs/implementation-status.md#hosted-instance) lists what is not built.
 
 ## Before writing
 

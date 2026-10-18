@@ -4,7 +4,7 @@ export interface ConnectionFile {
   endpoint: string;
   token: string;
 }
-/** Process clients attach to the running authority, never open its data files. */
+/** Process clients attach to the running instance, never open its data files. */
 export async function readConnection(
   path = process.env.AGENT_NATIVE_CONNECTION,
 ): Promise<ConnectionFile> {
@@ -30,6 +30,6 @@ export async function readConnection(
     url.password ||
     url.pathname !== '/'
   )
-    throw new Error('Connection must use a loopback authority');
+    throw new Error('Connection must use a loopback instance');
   return { endpoint: value.endpoint, token: value.token };
 }

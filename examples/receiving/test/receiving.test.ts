@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildCatalog } from '@agent-native/contracts';
 import { FakeFileConsumer } from '@agent-native/connector-files/testing';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import { agentGrant, type ExecutionContext } from '@agent-native/runtime';
 import { createReceivingApplication } from '../application';
 import { receivingModule } from '../contracts';
@@ -67,7 +67,7 @@ async function site() {
       policy,
       JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' }, folders }),
     );
-    const authority = await openEmbeddedAuthority(
+    const instance = await openEmbeddedInstance(
       createReceivingApplication({
         members: { viewer: 'viewer' },
         quietMs: 0,
@@ -75,23 +75,23 @@ async function site() {
       }),
       { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
     );
-    cleanup.push(() => authority.close());
+    cleanup.push(() => instance.close());
     let keys = 0;
     const command = (operation: string, input: unknown, context: ExecutionContext = owner) =>
-      authority.application.invokeRaw(
+      instance.application.invokeRaw(
         { operation, input, idempotencyKey: `${operation}-${++keys}` },
         context,
       );
     const query = (operation: string, input: unknown, context: ExecutionContext = viewer) =>
-      authority.application.queryRaw({ operation, input }, context);
+      instance.application.queryRaw({ operation, input }, context);
     const line = async (id: string) =>
       (await query('delivery.get', { id })).data as Record<string, any>;
     // Deliver now, past the retry and lookup backoff a running dispatcher would wait out.
     const deliver = () =>
-      authority.integrations
+      instance.integrations
         .target('erp')
         .dispatcher.runOnce(new AbortController().signal, { ignoreBackoff: true });
-    return { ...authority, command, query, line, deliver };
+    return { ...instance, command, query, line, deliver };
   }
   return { directory, path, consumer, open };
 }

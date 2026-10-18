@@ -25,7 +25,7 @@ export interface Delivered {
 export interface TargetHandlerOptions<State, Services, Item, Extra, Status> {
   /** The mutable object in `state` that holds the watermark and the last sync time. */
   readonly cursor: (state: State) => TargetCursor;
-  /** Authority clock for `lastSyncAt`; `Date.now` when omitted. */
+  /** Instance clock for `lastSyncAt`; `Date.now` when omitted. */
   readonly now?: (context: HandlerContext<State, Services>) => number;
   /**
    * Apply a settled outcome to the record the effect forwarded, in the same transaction. Throw

@@ -31,7 +31,7 @@ Framework (`packages/*`). Test code; production code does not import it. Scenari
 
 A `ScenarioDriver` sends commands and queries for one transport. The package ships `directDriver`, which calls the application's `invokeRaw` and `queryRaw`. `runScenarios` runs a list of scenarios on one driver. `assertEquivalent` compares two outcomes as canonical JSON.
 
-Every example's `examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty. Five examples also have a `test/conformance.test.ts` that reads the same result through the authority, HTTP, the CLI and MCP. Those tests call the surfaces directly and do not use this package.
+Every example's `examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty. Five examples also have a `test/conformance.test.ts` that reads the same result through the instance, HTTP, the CLI and MCP. Those tests call the surfaces directly and do not use this package.
 
 ### Connector conformance
 
@@ -102,7 +102,7 @@ The gate passes only when every scenario passes.
 
 ## Trust boundary
 
-Scenarios receive the `ExecutionContext` from the test, which stands in for the trusted host. They must not derive it from capability input. An agent scenario's tools take authority from the run's context only, never from the call, as the host's run tools do. `assertEquivalent` compares canonical JSON, so key order cannot hide or fake a difference.
+Scenarios receive the `ExecutionContext` from the test, which stands in for the trusted host. They must not derive it from capability input. An agent scenario's tools take their grants from the run's context only, never from the call, as the host's run tools do. `assertEquivalent` compares canonical JSON, so key order cannot hide or fake a difference.
 
 `unboundOperations` proves that a screen names a capability (`<contracts import>.<key>` in a `.tsx` file). It does not prove that a control renders it. Browser specs cover the reference screens, not every capability.
 

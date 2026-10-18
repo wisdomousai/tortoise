@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createClient, type Transport } from '@agent-native/client';
 import { createLiveBindings } from '@agent-native/react/query';
 
-/** Services the open authority's plugins expose, keyed by plugin id. */
+/** Services the open instance's plugins expose, keyed by plugin id. */
 export type PluginServices = Readonly<Record<string, unknown>>;
 
 function createSession(transport: Transport, services: PluginServices) {
@@ -12,7 +12,7 @@ function createSession(transport: Transport, services: PluginServices) {
     /**
      * In-process plugin services, such as pairing on the device. They are trusted code of this
      * app; a screen calls only the service of its own plugin and every write still goes through
-     * the authority's commands.
+     * the instance's commands.
      */
     services,
     client: createClient(transport),
@@ -21,7 +21,7 @@ function createSession(transport: Transport, services: PluginServices) {
   };
 }
 
-/** The transport, client, live bindings, query cache and plugin services of the open authority. */
+/** The transport, client, live bindings, query cache and plugin services of the open instance. */
 export type NativeSession = ReturnType<typeof createSession>;
 
 const noServices: PluginServices = {};
@@ -33,9 +33,9 @@ function LiveInvalidation({ session }: { session: NativeSession }) {
 }
 
 /**
- * One session over `transport`. On the device the transport exists only once the authority is
+ * One session over `transport`. On the device the transport exists only once the instance is
  * open, so screens read it from context instead of a module, which is what the web frame does. A
- * new transport starts a new cache: a cache is never shared across authorities or principals.
+ * new transport starts a new cache: a cache is never shared across instances or principals.
  */
 export function SessionProvider({
   transport,

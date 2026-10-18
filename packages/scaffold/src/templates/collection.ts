@@ -167,7 +167,7 @@ const test = (
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import { create${app.app.pascal}Application } from '../application';
 
 const owner = { workspaceId: 'local', principalId: 'owner' };
@@ -181,7 +181,7 @@ afterEach(async () => {
 async function open() {
   const workspacePath = await mkdtemp(join(tmpdir(), '${app.app.kebab}-${one.kebab}-'));
   let ids = 0;
-  const authority = await openEmbeddedAuthority(
+  const instance = await openEmbeddedInstance(
     create${app.app.pascal}Application({
       members: { viewer: 'viewer' },
       services: { newId: () => \`${one.kebab}-\${++ids}\`, now: () => 1_000 },
@@ -189,8 +189,8 @@ async function open() {
     { workspacePath },
   );
   cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
-  cleanup.push(() => authority.close());
-  return authority.application;
+  cleanup.push(() => instance.close());
+  return instance.application;
 }
 
 test('editors create and update ${many.words}; members list, filter and search them', async () => {

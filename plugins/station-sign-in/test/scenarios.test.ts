@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { createApplicationRuntime } from '@agent-native/host/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import { createMemoryStorage } from '@agent-native/runtime';
 import {
   directDriver,

@@ -195,7 +195,7 @@ function startAutomation(
 
 /**
  * The line-station application: stations with device configuration. `mes` is the MES port
- * (each authority gets its own in-memory homebrew MES fake without one); `stations` are the
+ * (each instance gets its own in-memory homebrew MES fake without one); `stations` are the
  * station screens a serving host bridges (from the demo environment without them), and
  * `automation` the one station reached through the station automation driver instead. Without
  * either nothing touches any station software.

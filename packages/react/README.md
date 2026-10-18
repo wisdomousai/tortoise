@@ -4,7 +4,7 @@ React bindings that turn a [person's](../../docs/glossary.md#person) intent into
 
 ## Layer
 
-Framework (`packages/*`). Browser-safe. The bindings trust the [authority](../../docs/glossary.md#authority) to authorize and validate.
+Framework (`packages/*`). Browser-safe. The bindings trust the [instance](../../docs/glossary.md#instance) to authorize and validate.
 
 ## Primitives
 
@@ -39,13 +39,13 @@ Nothing here is a security boundary. The bindings protect correctness on the cli
 
 `useCapabilityForm` mints the idempotency key when the form opens. It reuses the key for every retry until commit, so double taps and scanner double-sends record once. Mapped input is frozen per attempt, so a retry replays the original [receipt](../../docs/glossary.md#receipt). Server field errors land on the field, and a `CONFLICT` keeps the draft.
 
-`createLiveBindings` serves one session: one authority, [principal](../../docs/glossary.md#principal) and [grant](../../docs/glossary.md#grant). Discard it on sign-out. The fence works like this:
+`createLiveBindings` serves one session: one instance, [principal](../../docs/glossary.md#principal) and [grant](../../docs/glossary.md#grant). Discard it on sign-out. The fence works like this:
 
 - A [snapshot](../../docs/glossary.md#snapshot) produced under an older authorization revision than the stream has seen is rejected instead of cached.
 - A permission change clears cached data before refetching.
 - Change batches do not refetch `remoteQueryOptions` results, because each refetch would call the other system on every commit. A permission change clears them too.
 
-A captured UI context is an immutable snapshot of the selection and observed revisions. It grants no authority. Intents do not write business records.
+A captured UI context is an immutable snapshot of the selection and observed revisions. It grants no permission. Intents do not write business records.
 
 ## Dependencies
 

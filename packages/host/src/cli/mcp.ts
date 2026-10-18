@@ -6,10 +6,10 @@ import { createHttpTransport } from '@agent-native/client';
 import { ApplicationError, errorEnvelope } from '@agent-native/contracts';
 import type { ExecutionContext } from '@agent-native/runtime';
 import type { AnyApplicationDefinition } from '../application';
-import { LOCAL_WORKSPACE, openEmbeddedAuthority } from '../embedded';
+import { LOCAL_WORKSPACE, openEmbeddedInstance } from '../embedded';
 import { rejectRemaining, settingsOf, workspaceOf } from './args';
 
-/** An MCP server over stdio for an authority that is already running. */
+/** An MCP server over stdio for an instance that is already running. */
 async function attachedMcp(args: string[]) {
   const connection = await readConnection(takeFlag(args, 'connection'));
   rejectRemaining(args);
@@ -32,27 +32,27 @@ async function embeddedMcp(definition: AnyApplicationDefinition, args: string[])
     ...(await readGrantFile(grantFile, LOCAL_WORKSPACE)),
     channel: 'mcp',
   };
-  const authority = await openEmbeddedAuthority(definition, { workspacePath, settings });
+  const instance = await openEmbeddedInstance(definition, { workspacePath, settings });
   try {
-    authority.ports.identity.admit(context);
+    instance.ports.identity.admit(context);
   } catch (error) {
-    await authority.close();
+    await instance.close();
     throw error;
   }
   // Load master data before the first tool call so the worklist is not empty on a fresh sandbox.
   // An unreachable system of record must not block capture; the background loop retries.
-  await authority.integrations.sync().catch((error) => {
+  await instance.integrations.sync().catch((error) => {
     process.stderr.write(`Initial master-data sync failed: ${errorEnvelope(error).message}\n`);
   });
-  authority.integrations.start();
-  const server = createMcpServer(createDirectTransport(authority.application, context));
+  instance.integrations.start();
+  const server = createMcpServer(createDirectTransport(instance.application, context));
   let closing: Promise<void> | undefined;
   const shutdown = () => {
     // Pending effects stay committed in the workspace; `drain` or the next start delivers them.
     closing ??= server
       .close()
       .catch(() => undefined)
-      .then(() => authority.close())
+      .then(() => instance.close())
       .then(() => process.exit(0));
     return closing;
   };
@@ -62,7 +62,7 @@ async function embeddedMcp(definition: AnyApplicationDefinition, args: string[])
   return new Promise<number>(() => {});
 }
 
-/** `mcp`: attached to a live authority, or `--embedded` in-process. */
+/** `mcp`: attached to a live instance, or `--embedded` in-process. */
 export async function mcpCommand(definition: AnyApplicationDefinition, args: string[]) {
   const embedded = takeFlag(args, 'embedded', false) !== undefined;
   return embedded ? embeddedMcp(definition, args) : attachedMcp(args);

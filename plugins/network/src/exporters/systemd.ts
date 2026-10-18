@@ -13,7 +13,7 @@ export function systemd(rules: RuleSet, options: ExportOptions): string {
     header(rules, 'systemd', '#'),
     '# IPAddressAllow restricts addresses, not ports; pair it with the nftables export for ports.',
     '[Unit]',
-    `Description=${rules.application} local authority`,
+    `Description=${rules.application} local host`,
     'After=network-online.target',
     'Wants=network-online.target',
     '',

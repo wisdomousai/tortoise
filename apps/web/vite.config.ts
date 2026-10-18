@@ -12,7 +12,7 @@ const wiring = await frame({
   outRoot: resolve(repository, 'dist/web'),
 });
 
-// Output goes to dist/web/<application> with flat file names: the local authority serves a flat
+// Output goes to dist/web/<application> with flat file names: the local instance serves a flat
 // directory under a strict CSP (no inline scripts or styles), and Electron packages it unchanged.
 export default defineConfig({
   root: import.meta.dirname,

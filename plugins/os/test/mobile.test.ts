@@ -17,8 +17,8 @@ import { defineManifest } from '@agent-native/kernel/manifest';
 import {
   connectMobileShell,
   createMobilePlatform,
-  openMobileAuthority,
-  type MobileAuthority,
+  openMobileInstance,
+  type MobileInstance,
   type MobileOsBindings,
 } from '@agent-native/mobile';
 import { createOsPlugin } from '../src/plugin';
@@ -120,15 +120,15 @@ const application = defineApplication<Record<string, never>>({
 });
 
 const sandboxes: string[] = [];
-const opened: MobileAuthority[] = [];
+const opened: MobileInstance[] = [];
 afterEach(async () => {
-  for (const authority of opened.splice(0)) await authority.close();
+  for (const instance of opened.splice(0)) await instance.close();
   for (const sandbox of sandboxes.splice(0)) rmSync(sandbox, { recursive: true, force: true });
 });
 async function phone() {
   const sandbox = mkdtempSync(join(tmpdir(), 'os-mobile-'));
   sandboxes.push(sandbox);
-  const authority = await openMobileAuthority(application, {
+  const instance = await openMobileInstance(application, {
     platform: createMobilePlatform({
       id: 'android',
       openDatabase: (name) => bunSqlDriver(join(sandbox, name)),
@@ -136,8 +136,8 @@ async function phone() {
     }),
     settings: { 'os-scheme': scheme },
   });
-  opened.push(authority);
-  return authority;
+  opened.push(instance);
+  return instance;
 }
 
 /** The device's OS, faked: a launch link, later URIs, files by URI and opened URLs. */
@@ -194,12 +194,12 @@ async function until(condition: () => boolean) {
 const text = (value: string) => new TextEncoder().encode(value);
 
 test('a launch link waits for the frame, then later links and files are delivered', async () => {
-  const authority = await phone();
+  const instance = await phone();
   const fake = device(`${scheme}://notes/n-1`, {
     'content://media/42': { name: '42', type: 'text/plain', bytes: text('milk') },
     'content://media/43': { name: 'movie', type: 'video/mp4', bytes: new Uint8Array(4) },
   });
-  const connection = connectMobileShell(authority, application, fake.bindings);
+  const connection = connectMobileShell(instance, application, fake.bindings);
   await settle();
   const shown: OsDelivery[] = [];
   connection.deliveries.subscribe((delivery) => shown.push(delivery));
@@ -233,12 +233,12 @@ test('a launch link waits for the frame, then later links and files are delivere
 });
 
 test('a scanned file is staged in the blob store and prefills the form as its reference', async () => {
-  const authority = await phone();
+  const instance = await phone();
   const fake = device(null, {
     'content://scans/7': { name: 'Receipt.pdf', type: 'application/pdf', bytes: text('%PDF-1') },
     'content://scans/8': { name: 'Big.pdf', type: 'application/pdf', bytes: new Uint8Array(65) },
   });
-  const connection = connectMobileShell(authority, application, fake.bindings);
+  const connection = connectMobileShell(instance, application, fake.bindings);
   const shown: OsDelivery[] = [];
   connection.deliveries.subscribe((delivery) => shown.push(delivery));
   fake.send('content://scans/7');
@@ -256,11 +256,11 @@ test('a scanned file is staged in the blob store and prefills the form as its re
 });
 
 test('a declared open action runs through the device; without the plugin nothing attaches', async () => {
-  const authority = await phone();
+  const instance = await phone();
   const fake = device(null, {});
-  const connection = connectMobileShell(authority, application, fake.bindings);
+  const connection = connectMobileShell(instance, application, fake.bindings);
   expect(
-    await authority.authority.ports.shell.perform(authority.context, {
+    await instance.instance.ports.shell.perform(instance.context, {
       action: 'notes.docs',
       params: { page: 'start' },
     }),
@@ -276,7 +276,7 @@ test('a declared open action runs through the device; without the plugin nothing
     handlers: [],
     authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
   });
-  const without = await openMobileAuthority(plain, {
+  const without = await openMobileInstance(plain, {
     platform: createMobilePlatform({
       id: 'ios',
       openDatabase: (name) => bunSqlDriver(join(sandbox, name)),

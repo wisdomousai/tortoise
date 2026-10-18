@@ -116,7 +116,7 @@ function AuditLog({ data }: { data: Posture }) {
 /**
  * Security posture for auditors (`compliance.*` bindings): what this installation may reach and
  * whether it did, recent denials, and whether the audit chain is intact. Read-only; changing
- * the posture means changing the site policy and restarting the authority.
+ * the posture means changing the site policy and restarting the instance.
  */
 export function ComplianceScreen() {
   const posture = useQuery({

@@ -32,7 +32,7 @@ export async function uploadBlob(
 /**
  * GET /api/v1/blobs/:digest: a blob the caller may read through a resource that references it.
  * The response is sandboxed and never sniffed, so an uploaded document cannot run script on the
- * authority's origin, and it is not cached, so a revoked reader cannot read it again.
+ * instance's origin, and it is not cached, so a revoked reader cannot read it again.
  */
 export async function downloadBlob(
   application: ApplicationPort,

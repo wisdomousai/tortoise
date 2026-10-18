@@ -204,7 +204,7 @@ const personal = new Set<string>([
 
 /**
  * Issuing, renewing and revoking a standing grant and resolving a failure are for people: a
- * delegated run or agent never creates or extends standing authority. Handlers limit each to
+ * delegated run or agent never creates or extends standing instance. Handlers limit each to
  * the caller's own grants. Progress is recorded only by the trigger loop, which acts as the
  * grant's issuer with a run ID under that grant (`auto:<grant>:...`), a context only the
  * in-process loop creates. Reads are open to every caller: they show configuration and the

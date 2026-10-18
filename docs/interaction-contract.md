@@ -28,7 +28,7 @@ The React capability form validates with the capability's schema. It keeps one i
 
 ## UI session context
 
-A screen registers the resources a person selected and the [revision](glossary.md#revision) observed for each. The host checks that the caller may read each one and that no revision is ahead of the [authority](glossary.md#authority). An [agent run](glossary.md#agent-run) started from the screen captures this context and does not follow later selection changes. [Authorization](authorization.md) covers the intents a run sends back.
+A screen registers the resources a person selected and the [revision](glossary.md#revision) observed for each. The host checks that the caller may read each one and that no revision is ahead of the [instance](glossary.md#instance). An [agent run](glossary.md#agent-run) started from the screen captures this context and does not follow later selection changes. [Authorization](authorization.md) covers the intents a run sends back.
 
 ## Results
 

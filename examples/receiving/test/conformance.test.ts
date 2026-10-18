@@ -9,7 +9,7 @@ import { createMcpServer } from '@agent-native/adapters/mcp';
 import { startHost } from '@agent-native/host/host';
 import { createReceivingApplication } from '../application';
 
-test('a count over HTTP, then the authority, HTTP, the CLI and MCP read the same delivery list', async () => {
+test('a count over HTTP, then the instance, HTTP, the CLI and MCP read the same delivery list', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'receiving-conformance-'));
   // The ERP's notice export reaches the host through the inbox folder the site policy binds.
   const inbox = join(directory, 'asn');

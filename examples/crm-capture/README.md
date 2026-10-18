@@ -177,7 +177,7 @@ Paths in this section are relative to the example directory unless they start wi
 | `application.ts` | The application definition, the remote source, the target connection and the demo variables |
 | `fake-crm.ts`, `fake-crm/` | The in-memory CRM, its seed records with CRM field names, and its paging |
 | `screens.tsx`, `ui/` | Search, followed accounts, one account with its activities, and the sync badge |
-| `test/`, `e2e/` | Embedded-authority tests, the cross-surface test, the UI-binding test and the Playwright spec |
+| `test/`, `e2e/` | Embedded-instance tests, the cross-surface test, the UI-binding test and the Playwright spec |
 
 ## Search flow
 
@@ -313,13 +313,13 @@ Paths in this section are relative to the example directory unless they start wi
 30. Move the generated port out of `connect` into the application factory, type its option with the credential, and add an option that supplies the `CallerCredentials`. The generated factory builds the port inside `connect` and has no credentials option.
 31. Pass the same port instance to the `connectTarget` call and to `sources: { crm: createRemoteSource({ target: 'crm', port, credentials }) }`. `examples/crm-capture/application.ts` is the reference.
 32. Wrap the integration's `start` to pass `syncMs` if the default feed interval of five seconds is too slow. The example passes one second, so an adopted account fills in shortly after the CRM accepts the follow.
-33. Add `selectableResources: { account: 'crm.account.get' }` to the application definition, so an agent run can capture the account a person has open. The host checks each selection through that query under the caller's own authority.
+33. Add `selectableResources: { account: 'crm.account.get' }` to the application definition, so an agent run can capture the account a person has open. The host checks each selection through that query with the caller's own grants and policy.
 34. Add `workflows` to the module in `contracts.ts` that tell agents which operations to chain and how. `find-and-log` and `review-sync` in `examples/crm-capture/contracts.ts` are the reference.
 35. Build the search screen with `live.remoteInfiniteQueryOptions` over debounced input, and fall back to the followed-account list when `source.status` is `unavailable` (`examples/crm-capture/ui/search.tsx`).
 36. Register the search screen in `screens.tsx` with a `search` route as home and a navigation entry. Add prefixes for the provider queries and the adopt command, which win over `crm.` because the longest prefix wins (`examples/crm-capture/screens.tsx`).
 37. Overlay each result's local status from `live.liveQueryOptions` over the account list (`examples/crm-capture/ui/local-status.tsx`).
 38. Build the activity form with `useCapabilityForm` (`examples/crm-capture/ui/account/activity-form.tsx`).
-39. Replace `test/crm-target.test.ts` with behavioral tests on `openEmbeddedAuthority`, with one delivery pass and one feed pass through `integrations.target('crm').dispatcher.runOnce()` and `integrations.sync()`. Cover these cases, as `examples/crm-capture/test/application.test.ts` does:
+39. Replace `test/crm-target.test.ts` with behavioral tests on `openEmbeddedInstance`, with one delivery pass and one feed pass through `integrations.target('crm').dispatcher.runOnce()` and `integrations.sync()`. Cover these cases, as `examples/crm-capture/test/application.test.ts` does:
     - **Sharing**: the caller's own CRM access.
     - **Fallback**: a service credential limited to the member's scope.
     - **Cursors**: a cursor refused under another credential or search.

@@ -3,7 +3,7 @@ import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@ag
 import { notificationsModule, notificationOperations as ops } from './contracts';
 import { digestOf, type NotificationsState } from './state';
 
-/** What the plugin hands its handlers: the authority clock and how long a reply stays live. */
+/** What the plugin hands its handlers: the instance clock and how long a reply stays live. */
 export interface NotificationsService {
   readonly now: () => number;
   readonly replyTtlMs: number;

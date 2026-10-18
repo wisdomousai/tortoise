@@ -49,7 +49,7 @@ Do not use: server definition, definition file.
 
 ### Attached mode
 
-Running a CLI, MCP bridge, desktop window or phone against an authority that another process owns, through a session that authority issued. The opposite of embedded mode. Explained in [architecture](architecture.md#authorities-and-hosts).
+Running a CLI, MCP bridge, desktop window or phone against an instance that another process owns, through a session that instance issued. The opposite of embedded mode. Explained in [architecture](architecture.md#instances-and-hosts).
 
 Do not use: remote mode.
 
@@ -58,12 +58,6 @@ Do not use: remote mode.
 The hash-chained, tamper-evident record of commands, queries, denials, outbox transitions, sync passes, connections and agent runs. The kernel's default port keeps no log; `plugins/audit` provides one in the site policy's audit mode. In required mode, a command whose accepted record cannot be appended inside its transaction rolls back. The code names are `packages/event-log`, `EventLogPort` and the policy key `eventLog`. Lives in [`plugins/audit`](../plugins/audit/README.md); explained in [security and compliance](security-and-compliance.md#audit-log).
 
 Do not use: event log, audit trail, log (alone, for the audit log).
-
-### Authority
-
-The one running instance that owns a workspace and executes its commands and queries. A host opens an authority; an embedded CLI or MCP process is its own authority. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/kernel`](../packages/kernel/README.md).
-
-Do not use: application runtime, server (for the authority).
 
 ### Behavioral scenario
 
@@ -141,7 +135,7 @@ A command a handler continues with, run inside the parent command's transaction 
 
 ### Credential vault
 
-The port for provider secrets, kept by the authority only. Lives in [`packages/agents`](../packages/agents/README.md); explained in [providers](providers.md).
+The port for provider secrets, kept by the instance only. Lives in [`packages/agents`](../packages/agents/README.md); explained in [providers](providers.md).
 
 ### Cursor
 
@@ -205,7 +199,7 @@ Do not use: firewall (for the guard), proxy (alone), network policy.
 
 ### Embedded mode
 
-Running the authority inside the calling process: a CLI call or an MCP bridge with `--embedded`, or a phone that opens its own workspace. Embedded calls open a local workspace only. The opposite of attached mode.
+Running the instance inside the calling process: a CLI call or an MCP bridge with `--embedded`, or a phone that opens its own workspace. Embedded calls open a local workspace only. The opposite of attached mode.
 
 Do not use: in-process mode, standalone mode, local mode.
 
@@ -305,7 +299,7 @@ What a declared action can do to people or equipment. `none` runs in assist mode
 
 ### Host
 
-The process that opens an authority for one application on a host platform and serves it: the Bun host behind the desktop and browser, or the mobile host. Lives in [`packages/host`](../packages/host/README.md) and [`packages/mobile`](../packages/mobile/README.md).
+The process that opens an instance for one application on a host platform and serves it: the Bun host behind the desktop and browser, or the mobile host. Lives in [`packages/host`](../packages/host/README.md) and [`packages/mobile`](../packages/mobile/README.md).
 
 Do not use: service (for the host), server (alone, for the host), daemon.
 
@@ -325,15 +319,15 @@ A cross-cutting part an application composes: modules, a state slice, a policy, 
 
 Do not use: framework plugin, add-on.
 
-### Hosted authority
+### Hosted instance
 
-The Bun host on the hosted platform: the workspace in a shared Postgres database, ownership as a workspace lease, and TLS ingress with workforce sign-in from the site policy. Explained in [hosting](hosting.md#hosted-authority).
+The Bun host on the hosted platform: the workspace in a shared Postgres database, ownership as a workspace lease, and TLS ingress with workforce sign-in from the site policy. Explained in [hosting](hosting.md#hosted-instance).
 
 Do not use: cloud mode, multi-tenant host, server deployment.
 
 ### Hub
 
-The authority that phones and tablets pair with and deliver to, usually the site's host under the `site-hub` hardening profile. Explained in [mobile](mobile.md).
+The instance that phones and tablets pair with and deliver to, usually the site's host under the `site-hub` hardening profile. Explained in [mobile](mobile.md).
 
 Do not use: server (for the hub), base station, gateway (for the hub).
 
@@ -353,6 +347,12 @@ Do not use: import job, pull sync, replication (for inbound sync), mirror (as a 
 
 Device input, such as a scan, normalized into events and routed to a capability without a model turn. Lives in [`packages/devices`](../packages/devices/README.md); explained in [point-of-work input](point-of-work-input.md).
 
+### Instance
+
+One application opened on one workspace: its plugins and ports, storage, the runtime and the integrations. While it is open it is the only writer of that workspace and executes the workspace's commands and queries. A host opens an instance; an embedded CLI or MCP process opens its own. Each opening gets a new instance ID, which audit records and the workspace lease name. Lives in [`packages/kernel`](../packages/kernel/README.md) and [`packages/runtime`](../packages/runtime/README.md).
+
+Do not use: authority, application runtime, server (for the instance).
+
 ### Integration principal
 
 The narrow principal the dispatcher and inbound sync run as. It can settle, sync and read status, and nothing else.
@@ -367,7 +367,7 @@ Do not use: event stream (for the journal), changelog, event log (for the journa
 
 ### Kernel
 
-The portable layer that composes an application and its plugins and opens an authority on a host platform. It uses no Node, Bun or React Native API. Lives in [`packages/kernel`](../packages/kernel/README.md).
+The portable layer that composes an application and its plugins and opens an instance on a host platform. It uses no Node, Bun or React Native API. Lives in [`packages/kernel`](../packages/kernel/README.md).
 
 Do not use: core (for the kernel), bootstrapper, composition root.
 
@@ -503,7 +503,7 @@ Do not use: manual resolution, exception handling (for reconciliation).
 
 ### Release
 
-Always qualified. Releasing a held effect returns it to queued for another delivery. A framework release and a site bundle installed as a site release have entries of their own. Releasing workspace ownership ends an authority's hold on its workspace.
+Always qualified. Releasing a held effect returns it to queued for another delivery. A framework release and a site bundle installed as a site release have entries of their own. Releasing workspace ownership ends an instance's hold on its workspace.
 
 ### Remote query
 
@@ -615,13 +615,13 @@ An operator signing in at a station by badge and PIN, for a short-lived session 
 
 ### Storage
 
-The port for the authority's transactional state. The memory adapter is in `packages/runtime`. The SQLite and Postgres adapters store one row per record and write only what a commit changed. The mobile host uses the snapshot adapter, which stores each workspace as one JSON document. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/adapters`](../packages/adapters/README.md).
+The port for the instance's transactional state. The memory adapter is in `packages/runtime`. The SQLite and Postgres adapters store one row per record and write only what a commit changed. The mobile host uses the snapshot adapter, which stores each workspace as one JSON document. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/adapters`](../packages/adapters/README.md).
 
 Do not use: database (for the port), persistence layer, store (alone).
 
 ### Surface
 
-One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. A surface adapter maps one surface onto the authority's command and query entry points. Lives in [`packages/adapters`](../packages/adapters/README.md).
+One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. A surface adapter maps one surface onto the instance's command and query entry points. Lives in [`packages/adapters`](../packages/adapters/README.md).
 
 Do not use: transport (for a surface), channel (for a surface), interface (for a surface), API (alone).
 
@@ -687,12 +687,12 @@ Do not use: SSO (alone), enterprise login, OIDC login (for the primitive).
 
 ### Workspace
 
-The data one authority owns: state, revisions, receipts, journal, outbox, blobs and plugin slices, at one path or in one database. One authority holds it at a time, through an OS lock or a workspace lease. A package of this repository is a package, plugin, app, example or SDK, not a workspace.
+The data one instance owns: state, revisions, receipts, journal, outbox, blobs and plugin slices, at one path or in one database. One instance holds it at a time, through an OS lock or a workspace lease. A package of this repository is a package, plugin, app, example or SDK, not a workspace.
 
 Do not use: database (for a workspace), tenant, project (for a workspace), data directory (for the concept).
 
 ### Workspace lease
 
-One authority's hold on a hosted workspace, kept in the shared database with a fencing token that every commit checks. Another instance can take the workspace over once the lease expires. Lives in [`packages/adapters`](../packages/adapters/README.md); explained in [hosting](hosting.md).
+One instance's hold on a hosted workspace, kept in the shared database with a fencing token that every commit checks. Another instance can take the workspace over once the lease expires. Lives in [`packages/adapters`](../packages/adapters/README.md); explained in [hosting](hosting.md).
 
 Do not use: lock (for a lease), ownership record, heartbeat (for the lease).

@@ -89,7 +89,7 @@ async function handle(options: HttpHandlerOptions, cursors: Cursors, request: Re
   if (url.origin !== origin || request.headers.get('host') !== new URL(origin).host)
     return jsonResponse({ error: { code: 'FORBIDDEN', message: 'Untrusted host' } }, 403);
   // OAuth top-level callbacks arrive cross-site. The sole public callback owns its
-  // state/nonce/session checks and still passes the authority Host check above.
+  // state/nonce/session checks and still passes the instance Host check above.
   const publicResponse = await options.publicRoute?.(request);
   if (publicResponse) return publicResponse;
   const requestOrigin = request.headers.get('origin');

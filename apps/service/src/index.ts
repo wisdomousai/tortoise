@@ -6,7 +6,7 @@ import { readPluginSettings } from '@agent-native/host';
 /**
  * Sidecar entry used by the desktop shell and `bun run dev`; configuration comes from the
  * environment the native host prepares. The application CLI (`./cli.ts`) offers the same
- * authority as `serve` with flags. Without `WEB_ROOT`, the web build of this application is served.
+ * instance as `serve` with flags. Without `WEB_ROOT`, the web build of this application is served.
  * Plugin settings come from the environment variables the composed plugins declare, for example
  * the security plugin's `AGENT_NATIVE_SITE_POLICY` and `AGENT_NATIVE_AUDIT_LOG`. With `identity`,
  * the application's URL scheme is the default for the OS plugin's scheme setting.

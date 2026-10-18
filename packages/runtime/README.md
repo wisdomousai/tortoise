@@ -1,6 +1,6 @@
 # @agent-native/runtime
 
-The [authority](../../docs/glossary.md#authority): one transactional runtime per [workspace](../../docs/glossary.md#workspace) that authorizes and executes [commands](../../docs/glossary.md#command) and [queries](../../docs/glossary.md#query) from a composed [catalog](../../docs/glossary.md#catalog). A command commits state, revisions, its idempotency [receipt](../../docs/glossary.md#receipt), [journal](../../docs/glossary.md#journal) entries and [outbox effects](../../docs/glossary.md#effect) in one transaction, and nothing commits when any part fails. A query reads one authorized [snapshot](../../docs/glossary.md#snapshot) and returns a [cursor](../../docs/glossary.md#cursor) that a [caller](../../docs/glossary.md#caller) can follow.
+The [instance](../../docs/glossary.md#instance): one transactional runtime per [workspace](../../docs/glossary.md#workspace) that authorizes and executes [commands](../../docs/glossary.md#command) and [queries](../../docs/glossary.md#query) from a composed [catalog](../../docs/glossary.md#catalog). A command commits state, revisions, its idempotency [receipt](../../docs/glossary.md#receipt), [journal](../../docs/glossary.md#journal) entries and [outbox effects](../../docs/glossary.md#effect) in one transaction, and nothing commits when any part fails. A query reads one authorized [snapshot](../../docs/glossary.md#snapshot) and returns a [cursor](../../docs/glossary.md#cursor) that a [caller](../../docs/glossary.md#caller) can follow.
 
 ## Layer
 
@@ -8,7 +8,7 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 
 ## Primitives
 
-- [Authority](../../docs/primitives.md#authority): `createApplication`, `ApplicationOptions`.
+- [Instance](../../docs/primitives.md#instance): `createApplication`, `ApplicationOptions`.
 - [Module](../../docs/primitives.md#module): `sliceHandlers`, `composeAuthorization` and `authorizationRoute` compose independently authored [modules](../../docs/glossary.md#module) into one state and policy.
 - [Command](../../docs/primitives.md#command): `createHandlerFactory`, `HandlerContext` (with `continueWith`), `CommandReceipt` (with `continuation`), `StoredReceipt`.
 - [Query](../../docs/primitives.md#query): `QueryResult`.

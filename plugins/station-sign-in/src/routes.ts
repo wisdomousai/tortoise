@@ -94,7 +94,7 @@ async function signOut(request: Request, caller: StationCaller) {
   return jsonResponse(receipt.result);
 }
 
-/** POST enroll: hashes the PIN, then enrolls as the caller, whose authority the policy checks. */
+/** POST enroll: hashes the PIN, then enrolls as the caller, whose instance the policy checks. */
 async function enroll(request: Request, admin: ExecutionContext, caller: StationCaller) {
   const body = await readJsonBody(request);
   const badge = text(body.badge, 256);

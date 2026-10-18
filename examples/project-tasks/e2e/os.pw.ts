@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startService } from '../../../tests/e2e/service';
 
-/** A call to the authority as the page's own session, as the frame makes it. */
+/** A call to the instance as the page's own session, as the frame makes it. */
 const api = (page: Page, path: string, body: unknown) =>
   page.evaluate(
     async ([path, body]) => {

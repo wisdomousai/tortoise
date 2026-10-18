@@ -63,7 +63,7 @@ function createAuthorizationFence() {
       fenceRevision = Math.max(fenceRevision, streamRevision);
       // Reset, not invalidate: invalidation keeps showing the old data while it refetches.
       if (streamRevision > previous) return 'reset';
-      // A stream's first batch is a reset at the authority's current position.
+      // A stream's first batch is a reset at the instance's current position.
       if (batch.reset || first) return 'invalidate';
       return batch.changes.length ? 'changes' : 'ignore';
     },
@@ -71,8 +71,8 @@ function createAuthorizationFence() {
 }
 
 /**
- * Follow the authority's change stream until `signal` aborts, reconnecting after failures.
- * Starts from an unknown cursor, which the authority answers with a reset at its current
+ * Follow the instance's change stream until `signal` aborts, reconnecting after failures.
+ * Starts from an unknown cursor, which the instance answers with a reset at its current
  * position, so no event between an earlier snapshot and this subscription can be missed.
  */
 async function followStream(
@@ -101,7 +101,7 @@ async function followStream(
 }
 
 /**
- * TanStack Query bindings for one authenticated transport (one authority, principal and grant).
+ * TanStack Query bindings for one authenticated transport (one instance, principal and grant).
  * Create one per signed-in session and discard it on sign-out; never share a cache across
  * principals. The bindings keep an authorization fence: a snapshot produced under an older
  * authorization revision than the stream has observed is rejected instead of cached, so a slow

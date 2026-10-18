@@ -365,7 +365,7 @@ Commands store the assignment states draft, dispatched and returned. The derived
     AGENT_NATIVE_SITE_POLICY="$PWD/site/site-policy.json" bun run dev:web
     ```
 
-19. Write the tests as `test/survey.ts` does: open the application with `openEmbeddedAuthority` and drive each target with `dispatcher.runOnce()` and `integrations.sync()`. Add a conformance test with `startHost`, a UI-binding test with `unboundOperations`, and a Playwright spec that starts the host with `startService` from `tests/e2e/service.ts`.
+19. Write the tests as `test/survey.ts` does: open the application with `openEmbeddedInstance` and drive each target with `dispatcher.runOnce()` and `integrations.sync()`. Add a conformance test with `startHost`, a UI-binding test with `unboundOperations`, and a Playwright spec that starts the host with `startService` from `tests/e2e/service.ts`.
 
     ```sh
     bun test examples/<application-directory>

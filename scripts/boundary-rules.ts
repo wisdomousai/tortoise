@@ -82,13 +82,13 @@ export const egressExemptions: Readonly<Record<string, string>> = {
   'packages/host/src/providers.ts':
     'Falls back to global fetch only when constructed without one; the host injects the guard.',
   'apps/desktop/src/service-lifecycle.ts':
-    'The desktop shell starts its own authority sidecar, which listens on loopback.',
+    'The desktop shell starts its own instance sidecar, which listens on loopback.',
   'apps/desktop/src/os-shell.ts':
-    'The desktop shell submits OS requests to and polls OS actions from its loopback authority.',
+    'The desktop shell submits OS requests to and polls OS actions from its loopback instance.',
   'examples/line-station/station-bridge.ts':
     'Launches Chromium for the station screen and reads simulator counters; to be routed through the station-screen destination.',
   'plugins/site/src/install/native.ts':
-    'Operator verbs only, never inside an authority: `site install` runs the release it placed (network export, migrate) and, with --apply, the OS service manager and firewall loader.',
+    'Operator verbs only, never inside an instance: `site install` runs the release it placed (network export, migrate) and, with --apply, the OS service manager and firewall loader.',
   'plugins/execution-host/src/relay.ts':
     "Forwards a sandbox's unix socket to one fixed loopback port: the host's own API listener or the egress CONNECT proxy, which applies the destination rules.",
   'plugins/execution-host/sandbox/':

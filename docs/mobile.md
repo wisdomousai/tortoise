@@ -1,6 +1,6 @@
 # Mobile host
 
-The mobile host runs an application on Android and iOS phones and tablets, with its storage on the device. It manages the authority lifecycle, pairs with a hub and keeps the device's trust boundary. [Architecture](architecture.md#embedded-and-attached-modes) explains embedded and attached modes.
+The mobile host runs an application on Android and iOS phones and tablets, with its storage on the device. It manages the instance lifecycle, pairs with a hub and keeps the device's trust boundary. [Architecture](architecture.md#embedded-and-attached-modes) explains embedded and attached modes.
 
 ## Concepts
 
@@ -10,7 +10,7 @@ Terms: the [hub](glossary.md#hub), the [device link](glossary.md#device-link) an
 
 The Expo project in `apps/mobile` runs one application on Android and iOS. The application, its plugins and its screens come from `app.config.json` through a generated entry, so the starter names no content. The READMEs hold the details:
 
-- [`packages/mobile`](../packages/mobile/README.md): the platform, the authority and writing a native plugin.
+- [`packages/mobile`](../packages/mobile/README.md): the platform, the instance and writing a native plugin.
 - [`packages/frame-native`](../packages/frame-native/README.md): the native frame and the glove-sized components.
 - [`apps/mobile`](../apps/mobile/README.md): the Expo project, `mobile:prepare` and the build scripts.
 - [`plugins/device-link`](../plugins/device-link/README.md) and [`plugins/hub-link`](../plugins/hub-link/README.md): the hub and device sides of pairing.
@@ -19,20 +19,20 @@ The Expo project in `apps/mobile` runs one application on Android and iOS. The a
 
 The mobile [host platform](glossary.md#host-platform) runs the same kernel and runtime as the desktop host. It keeps secrets in the Keychain or Keystore, and the app lifecycle takes the place of a host process. It declares no capabilities: no raw sockets, no inbound listener and no child processes. A deployment that needs one refuses to start.
 
-A workspace on a device is a name, not a path, so a configured value cannot address files outside the app sandbox. The snapshot [storage](glossary.md#storage) adapter keeps the workspace as one JSON document in `<name>.workspace.sqlite`. Blobs sit under `agent-native/<name>/blobs` in the document directory. Ownership is an exclusive transaction on `<name>.lock.sqlite`, held while the authority is open, and a second open is refused (`packages/mobile/src/platform.ts`).
+A workspace on a device is a name, not a path, so a configured value cannot address files outside the app sandbox. The snapshot [storage](glossary.md#storage) adapter keeps the workspace as one JSON document in `<name>.workspace.sqlite`. Blobs sit under `agent-native/<name>/blobs` in the document directory. Ownership is an exclusive transaction on `<name>.lock.sqlite`, held while the instance is open, and a second open is refused (`packages/mobile/src/platform.ts`).
 
-## Authority lifecycle
+## Instance lifecycle
 
-The authority runs on the device with its own workspace and works offline. The screens call it in-process through the direct transport, as the device's [owner](glossary.md#owner). There is no listener and no session.
+The instance runs on the device with its own workspace and works offline. The screens call it in-process through the direct transport, as the device's [owner](glossary.md#owner). There is no listener and no session.
 
-The delivery and inbound sync loops and the plugin and application observers follow the app state (`packages/mobile/src/authority.ts`):
+The delivery and inbound sync loops and the plugin and application observers follow the app state (`packages/mobile/src/instance.ts`):
 
 - **Foreground** starts them, so a plugin's start hook runs once per foreground ([lifecycle](architecture.md#lifecycle)).
 - **Background** stops them.
 - **A background pass** runs one delivery pass, bounded at 20 seconds by default, and one sync pass.
 - **Close** stops everything and releases the workspace.
 
-The screens and the background task share one authority through `apps/mobile/src/app.tsx`, because ownership refuses a second. The OS may start the runtime only to run the task. `expo-background-task` runs the pass when the OS allows it, at most every 15 minutes by default. iOS runs it rarely, so delivery there is effectively a foreground job. Records wait in the outbox meanwhile, with `offline: 'queue'` destinations.
+The screens and the background task share one instance through `apps/mobile/src/app.tsx`, because ownership refuses a second. The OS may start the runtime only to run the task. `expo-background-task` runs the pass when the OS allows it, at most every 15 minutes by default. iOS runs it rarely, so delivery there is effectively a foreground job. Records wait in the outbox meanwhile, with `offline: 'queue'` destinations.
 
 ## Embedded and attached modes
 

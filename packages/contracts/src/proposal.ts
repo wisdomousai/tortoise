@@ -51,7 +51,7 @@ const closed = (status: ProposalStatus) =>
 /**
  * Operations of the proposal module, under fixed IDs. A proposer (usually an agent run whose
  * definition has output `propose`) submits the command it would run; a person or another allowed
- * caller accepts it, which runs that command under the accepter's own authority in the same
+ * caller accepts it, which runs that command with the accepter's own grants and policy in the same
  * transaction (`continueWith`), or rejects it. The application's policy gives each its rule;
  * accepting also passes the proposed command's own rule. Browser-safe.
  */

@@ -1,4 +1,4 @@
-/** Authority-only storage. Implementations must distinguish missing credentials from
+/** Instance-only storage. Implementations must distinguish missing credentials from
  * inaccessible storage, and must not silently persist secrets in files or SQLite. */
 export interface CredentialVault {
   get(account: string): Promise<string | undefined>;

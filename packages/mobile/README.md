@@ -1,6 +1,6 @@
 # @agent-native/mobile
 
-The [host platform](../../docs/glossary.md#host-platform) for Android and iOS. It runs the same kernel and runtime as the desktop host inside the mobile starter, with one [workspace](../../docs/glossary.md#workspace) per application. The starter owns the workspace while its [authority](../../docs/glossary.md#authority) is open, and stores it in the device's SQLite through the snapshot [storage](../../docs/glossary.md#storage) adapter, with blobs in its documents directory. The screens call the authority in-process through the direct transport. There is no listener, no session and no child process.
+The [host platform](../../docs/glossary.md#host-platform) for Android and iOS. It runs the same kernel and runtime as the desktop host inside the mobile starter, with one [workspace](../../docs/glossary.md#workspace) per application. The starter owns the workspace while its [instance](../../docs/glossary.md#instance) is open, and stores it in the device's SQLite through the snapshot [storage](../../docs/glossary.md#storage) adapter, with blobs in its documents directory. The screens call the instance in-process through the direct transport. There is no listener, no session and no child process.
 
 ## Layer
 
@@ -9,7 +9,7 @@ Framework (`packages/*`). The mobile starter in `apps/mobile` uses it, and conte
 ## Primitives
 
 - [Host platform](../../docs/primitives.md#host-platform): `createMobilePlatform`, `MobileBindings`, and on Expo `expoPlatform`, `expoSqlDriver`, `expoBlobStore` and `expoSecretStore`.
-- [Authority](../../docs/primitives.md#authority): `openMobileAuthority`, `MobileAuthority`, `MobileAuthorityOptions`, and on Expo `followAppState` and `defineBackgroundDelivery`.
+- [Instance](../../docs/primitives.md#instance): `openMobileInstance`, `MobileInstance`, `MobileInstanceOptions`, and on Expo `followAppState` and `defineBackgroundDelivery`.
 - [Shell port](../../docs/primitives.md#shell-port): `connectMobileShell`, `MobileOsBindings`, `MobileOsConnection`, and on Expo `expoOsBindings`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `requirePluginNativeModule`, `NativeModuleLookup`, and on Expo `pluginNativeModule`, for plugins that ship native code.
 
@@ -17,7 +17,7 @@ Framework (`packages/*`). The mobile starter in `apps/mobile` uses it, and conte
 
 | Import                                | Runs in               | Contents                                                                                                                       |
 | ------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `@agent-native/mobile`                | any host              | `createMobilePlatform` over injected bindings and `openMobileAuthority`. No Expo or React Native import, so Bun tests run it.  |
+| `@agent-native/mobile`                | any host              | `createMobilePlatform` over injected bindings and `openMobileInstance`. No Expo or React Native import, so Bun tests run it.  |
 | `@agent-native/mobile/expo`           | React Native (Hermes) | The Expo bindings. Importing it installs the Web globals Hermes lacks, with `expo-crypto` as the random source. Import it first. |
 | `@agent-native/mobile/intent-filters` | build time            | `intent-filters.plugin.cjs`, the Expo config plugin that registers Android intent handlers.                                    |
 | `@agent-native/mobile/shortcuts`      | build time            | `shortcuts.plugin.cjs`, the Expo config plugin that writes static Android app shortcuts.                                       |
@@ -64,7 +64,7 @@ The platform declares no capabilities. A deployment that needs raw sockets, an i
 
 ### Ownership and identity
 
-Ownership is an `EXCLUSIVE` transaction on the lock database, held while the authority is open. A second open in the same runtime is refused before SQLite is asked. This covers a background task started while the screens hold the workspace. `defineBackgroundDelivery` therefore takes a function that returns the open authority instead of opening its own.
+Ownership is an `EXCLUSIVE` transaction on the lock database, held while the instance is open. A second open in the same runtime is refused before SQLite is asked. This covers a background task started while the screens hold the workspace. `defineBackgroundDelivery` therefore takes a function that returns the open instance instead of opening its own.
 
 The screens act as the local [owner](../../docs/glossary.md#owner), the person holding the device. The OS app sandbox is the only isolation from other apps on the device, and anyone who can unlock the device can use the starter. Pairing and device credentials belong to a plugin. This package supplies the secret store they are kept in.
 
@@ -80,7 +80,7 @@ Notifications are local, through `expo-notifications`; there is no push service.
 - registers one category per set of buttons, because the OS takes button titles from the category;
 - shows the notification under its ID, so showing it again replaces it.
 
-Every button brings the starter to the foreground, since its authority submits the reply. A button that requires unlock asks for it first. The `replies` binding reports the choice that launched the starter (`getLastNotificationResponse`) and each later one, but not a plain tap. `expoOsBindings` sets the process's notification handler. Notifications therefore also show while the starter is in the foreground.
+Every button brings the starter to the foreground, since its instance submits the reply. A button that requires unlock asks for it first. The `replies` binding reports the choice that launched the starter (`getLastNotificationResponse`) and each later one, but not a plain tap. `expoOsBindings` sets the process's notification handler. Notifications therefore also show while the starter is in the foreground.
 
 ### Intent filters and shortcuts
 
@@ -96,9 +96,9 @@ Each shortcut is a VIEW intent to `<package>.MainActivity` with the shortcut lin
 
 ### Shell port
 
-`connectMobileShell` attaches the mobile shell adapter to the [shell port](../../docs/glossary.md#shell-port) in-process, as the device's owner. The OS runs in the same process as the authority, so there is no shell route on the device. A link or file the OS opens the starter with is submitted to the port. What the port delivers is held until the frame subscribes, at most 16 deliveries with the oldest dropped.
+`connectMobileShell` attaches the mobile shell adapter to the [shell port](../../docs/glossary.md#shell-port) in-process, as the device's owner. The OS runs in the same process as the instance, so there is no shell route on the device. A link or file the OS opens the starter with is submitted to the port. What the port delivers is held until the frame subscribes, at most 16 deliveries with the oldest dropped.
 
-An opened resource is checked readable by the owner with its kind's read query before it is shown. A blob file is staged in the authority's blob store as the owner, and staged blobs do not survive a restart. Without a plugin that provides the shell port, nothing is attached, read or submitted.
+An opened resource is checked readable by the owner with its kind's read query before it is shown. A blob file is staged in the instance's blob store as the owner, and staged blobs do not survive a restart. Without a plugin that provides the shell port, nothing is attached, read or submitted.
 
 ### Foreground and background
 

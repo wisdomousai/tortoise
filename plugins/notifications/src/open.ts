@@ -9,7 +9,7 @@ import type { NotificationsService } from './handlers';
 import { replyConsumer } from './reply';
 
 export interface NotificationsOptions {
-  /** The authority clock, for reply expiry and delivery backoff. */
+  /** The instance clock, for reply expiry and delivery backoff. */
   readonly now?: () => number;
   /** How long a reply works after its notification was shown. Default one day. */
   readonly replyTtlMs?: number;

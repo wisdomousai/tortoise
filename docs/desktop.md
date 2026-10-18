@@ -1,22 +1,22 @@
 # Desktop host
 
-The Electron window in `apps/desktop` and its packaged build run an application on one person's machine. [Architecture](architecture.md#authorities-and-hosts) explains hosts and [attached mode](glossary.md#attached-mode).
+The Electron window in `apps/desktop` and its packaged build run an application on one person's machine. [Architecture](architecture.md#instances-and-hosts) explains hosts and [attached mode](glossary.md#attached-mode).
 
 ## Window and renderer
 
-The desktop is an Electron window around the same loopback [authority](glossary.md#authority) that browsers, the CLI and MCP clients use. Electron owns the window and the trusted bootstrap. The Bun [host](glossary.md#host) owns sessions, authorization, storage, provider credentials and runs. Renderer code has no Node integration, generic IPC, file access or token bridge. The preload exposes only immutable platform metadata.
+The desktop is an Electron window around the same loopback [instance](glossary.md#instance) that browsers, the CLI and MCP clients use. Electron owns the window and the trusted bootstrap. The Bun [host](glossary.md#host) owns sessions, authorization, storage, provider credentials and runs. Renderer code has no Node integration, generic IPC, file access or token bridge. The preload exposes only immutable platform metadata.
 
-The window runs with context isolation, sandboxing, web security and a self-only content security policy. It denies every permission and blocks navigation, redirects and webviews outside the authority's origin. Its network requests reach only the local authority. It opens no new windows. A URL it asks to open leaves only as a declared open action, such as the provider sign-in, in the system browser.
+The window runs with context isolation, sandboxing, web security and a self-only content security policy. It denies every permission and blocks navigation, redirects and webviews outside the instance's origin. Its network requests reach only the local instance. It opens no new windows. A URL it asks to open leaves only as a declared open action, such as the provider sign-in, in the system browser.
 
 `app.config.json` is the product identity. It sets the web build's title, the application name and ID, the window title, the Windows application model ID and the URL scheme. The [scaffold](glossary.md#scaffold) rewrites it for an exported application.
 
-## Authority ownership
+## Instance ownership
 
 The workspace is a canonical path on a local filesystem. A dedicated lock database holds an exclusive OS lock for the host's lifetime, separate from business transactions. A crash releases the lock, and no stale PID or timeout removes a live one. When two windows race to start, the lock decides the owner.
 
 The window first tries to attach. It reads the private [connection file](glossary.md#connection-file), checks that the endpoint is loopback, verifies the contract with the bearer token and asks for a one-time launch credential. A connection file alone does not prove that a host is alive. If attaching fails, Electron launches the compiled host from the runtime manifest and waits for its ready line. It performs the same handshake and loads the bootstrap URL. Secrets go to the host and never through the preload.
 
-An attached host stays owned by whoever started it, and closing an attaching window never stops it. Electron stops a host it started only if the authority file still names that exact instance, so a failed competing launch cannot stop the winner. The default workspace sits under Electron's `userData` directory. Trusted launchers and tests can point `AGENT_NATIVE_WORKSPACE` elsewhere; the renderer cannot.
+An attached host stays owned by whoever started it, and closing an attaching window never stops it. Electron stops a host it started only if the instance file still names that exact instance, so a failed competing launch cannot stop the winner. The default workspace sits under Electron's `userData` directory. Trusted launchers and tests can point `AGENT_NATIVE_WORKSPACE` elsewhere; the renderer cannot.
 
 ## Site policy
 
@@ -42,7 +42,7 @@ The targets are macOS arm64 and x64, Windows x64 and Linux x64 with glibc. Each 
 
 ## Development
 
-`bun run dev`, from the repository root or an example, opens the window without packaging. The launcher builds the web assets, bundles the main and preload scripts, and starts Electron in development mode. Electron starts the host from source in that workspace, or attaches when an authority already runs there. An example's dev script keeps its fakes alive until the window closes.
+`bun run dev`, from the repository root or an example, opens the window without packaging. The launcher builds the web assets, bundles the main and preload scripts, and starts Electron in development mode. Electron starts the host from source in that workspace, or attaches when an instance already runs there. An example's dev script keeps its fakes alive until the window closes.
 
 A packaged build ignores development mode. The source host inherits the developer's environment, but the workspace, port, web root, runtime manifest and site policy that Electron sets win. The desktop site policy is the default, so provider sign-in behaves as in a packaged build. Set `AGENT_NATIVE_SITE_POLICY` to an empty value to run isolated. `bun run dev:web` serves the browser without a window.
 
@@ -75,7 +75,7 @@ Before claiming support for a target, run on that platform:
 - the smoke test and the packaged-window tests;
 - set, get and delete on a disposable credential-store entry, plus locked and denied store behavior;
 - process-tree cancellation;
-- authority contention and crash recovery.
+- instance contention and crash recovery.
 
 On Linux, a missing or locked Secret Service leaves credential-free work usable and refuses provider connections. Live ChatGPT enrollment, refresh, revocation and inference are separate opt-in checks ([providers](providers.md)).
 
