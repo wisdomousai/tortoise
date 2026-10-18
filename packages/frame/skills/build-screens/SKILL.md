@@ -5,39 +5,49 @@ description: Build or change the web screens of an agent-native application or h
 
 # Build screens
 
-Screens are the browser half of an application. They read through live queries and write only through catalog commands, so a person and an agent reach the same behavior. The [frame README](../../README.md) describes the shell, routes, layouts and registry; [primitives](../../../../docs/primitives.md#ui-registry) lists the registry items. `examples/project-tasks/screens.tsx` is the smallest worked `screens` entrypoint.
+[Screens](../../../../docs/glossary.md#screen) are the browser half of an application. They read through [live queries](../../../../docs/glossary.md#live-query) and write only through catalog commands, so a person and an agent reach the same behavior. The [frame README](../../README.md) describes the [web frame](../../../../docs/glossary.md#web-frame), routes, layouts and registry. [Primitives](../../../../docs/primitives.md#ui-registry) lists the registry items. `examples/project-tasks/screens.tsx` is the smallest worked `screens` entrypoint.
 
 ## Before writing
 
-- Start from a registry item before writing a component. `collection-screen` builds list and record screens from a collection's generated capabilities, `capability-form` renders any command, and `live-data-table` pages after the authority scopes rows. They live in `packages/frame/src/components`.
-- For gloved or high-frequency input, use the `operator` registry (`packages/operator-ui`) and read [point-of-work input](../../../../docs/point-of-work-input.md). `examples/quality-inspection/ui/capture-station.tsx` is the pattern for repeated entry; `examples/line-station/ui/station.tsx` composes a full station screen.
-- Each command a screen issues must be declared with a matching `ui.binding` on its capability (the `add-capability` skill, `packages/runtime/skills/add-capability/SKILL.md`).
+- Start from a [UI registry](../../../../docs/glossary.md#ui-registry) item before writing a component. The items live in `packages/frame/src/components`:
+  - `collection-screen` builds list and record screens from a collection's generated capabilities;
+  - `capability-form` renders any command;
+  - `live-data-table` pages after the authority scopes rows.
+- For gloved or high-frequency input, use the `operator` registry (`packages/operator-ui`) and read [point-of-work input](../../../../docs/point-of-work-input.md).
+- `examples/quality-inspection/ui/capture-station.tsx` is the pattern for repeated entry. `examples/line-station/ui/station.tsx` composes a full station's screen.
+- Each command a screen issues needs a matching `ui.binding` on its capability, its [UI binding](../../../../docs/glossary.md#ui-binding). The `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`) covers it.
+- The authority's content security policy rejects inline scripts and injected styles. Use components that render native elements, such as `ui/native-dialog`, instead of ones that inject styles at runtime.
+- Browser files must not import server modules.
 
 ## Steps
 
-1. **Declare routes** in the application's `screens.tsx` with `defineScreens`: routes, navigation, the screen for each capability, and `resources` for screens that open an OS-delivered resource. A station screen uses `layout: 'full'`; a route may declare `compact` for phone and portrait-tablet widths.
-2. **A plugin's screens** come from `definePluginScreens` in its `plugin-screens` entrypoint and are merged with `defineScreens({ plugins })`. `defineScreens` fails on duplicate routes and on targets no route declares.
-3. **Write commands** with `useCapabilityForm` from `@agent-native/react/form`. It keeps one idempotency key until the command commits, so a double tap or a scanner's double Enter records once. Do not mint keys per click.
-4. **Read data** with `useLiveQuery`. It refetches only queries whose dependencies changed. Never filter or page client-side over a partial set.
-5. **Capture input** with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@agent-native/react/capture`, so capture time is measured.
-6. **Change a registry item** in its source. For the operator registry, edit `packages/operator-ui/registry.manifest.ts` and run `bun run build:registry:operator`; never hand-edit the generated `registry.json` or `src/styles/operator.css`. Rebuild the frame registry with `bun run build:registry`.
-7. **Framework operations have registry screens**: `proposal-review` for `proposalOperations` and `reconciliation-review` for `reconciliationOperations`. Wrap one in an application screen that passes the operations and a `describe` label (`examples/receiving/ui/reconcile.tsx`).
-8. **Change the starter's look** in `apps/web`: a file at the same `src/` path as a frame file replaces it, and stock primitives are added with `shadcn add`. Keep domain screens in the application, never in the starter.
-
-The authority's CSP rejects inline scripts and injected styles, so use components that render native elements (`ui/native-dialog`) instead of ones that inject styles at runtime. Browser files must not import server modules.
-
-Native screens use `defineNativeScreens` from `packages/frame-native`; see the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).
+1. Declare the routes in the application's `screens.tsx` with `defineScreens`: routes, navigation, the screen for each capability, and `resources` for screens that open a resource the OS delivers.
+2. Give a station's screen `layout: 'full'`. Declare `compact` on a route for phone and portrait-tablet widths.
+3. Declare a plugin's screens with `definePluginScreens` in its `plugin-screens` entrypoint.
+4. Merge plugin screens with `defineScreens({ plugins })`. It fails on duplicate routes and on targets no route declares.
+5. Write commands with `useCapabilityForm` from `@agent-native/react/form`. It keeps one [idempotency key](../../../../docs/glossary.md#idempotency-key) until the command commits, so a double tap or a scanner's double Enter records once. Do not mint keys per click.
+6. Read data with `useLiveQuery`. It refetches only the queries whose dependencies changed. Never filter or page client-side over a partial set.
+7. Capture input with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@agent-native/react/capture`, so capture time is measured.
+8. Change a registry item in its source. For the operator registry, edit `packages/operator-ui/registry.manifest.ts` and run `bun run build:registry:operator`.
+9. Never hand-edit the generated `registry.json` or `src/styles/operator.css`.
+10. Rebuild the frame registry with `bun run build:registry`.
+11. For framework capabilities, wrap the registry screen in an application screen that passes the capabilities and a `describe` label, as `examples/receiving/ui/reconcile.tsx` does. `proposal-review` takes `proposalOperations`, and `reconciliation-review` takes `reconciliationOperations`.
+12. Change the starter's look in `apps/web`. A file at the same `src/` path as a frame file replaces it.
+13. Add stock primitives to `apps/web` with `shadcn add`. Keep domain screens in the application, never in the starter.
+14. For native screens, use `defineNativeScreens` from `packages/frame-native` and follow the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).
 
 ## Checks
 
-- A UI-binding test with `unboundOperations` from `@agent-native/testing/ui-bindings` proves every operation that claims a binding is referenced by a screen (`examples/project-tasks/test/ui-bindings.test.ts`). Add plugin screen directories to its scan.
-- A Playwright spec in `examples/<app>/e2e/` proves the screen renders and commits. A static scan does not.
+1. Add a UI-binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`, as in `examples/project-tasks/test/ui-bindings.test.ts`. It proves a screen references every capability that claims a binding.
+2. Add plugin screen directories to that test's scan.
+3. Add a Playwright spec in `examples/<app>/e2e/` that proves the screen renders and commits. A static scan does not prove it.
+4. Run the checks:
 
-```sh
-bun run check:boundaries
-bun run build:web:examples
-bun run check:registry:operator
-bunx playwright test examples/<app>/e2e
-```
+   ```sh
+   bun run check:boundaries
+   bun run build:web:examples
+   bun run check:registry:operator
+   bunx playwright test examples/<app>/e2e
+   ```
 
-Report browser runs separately from unit tests; a successful build is not a browser interaction.
+5. Report browser runs separately from unit tests. A successful build is not a browser interaction.

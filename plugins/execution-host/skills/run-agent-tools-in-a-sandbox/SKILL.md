@@ -5,31 +5,39 @@ description: Run the tools an agent uses (shell commands, a provider CLI, the ap
 
 # Run agent tools in a sandbox
 
-A sandbox is a declared child process whose executable is bubblewrap. The task inside sees only the tools and paths it names, reaches the host API with a token bound to its run's grant, and reaches the network only through the egress proxy. The [plugin README](../../README.md) describes the layout, the seccomp filter and the gaps; read its trust boundary section before choosing what to mount.
+The [execution host](../../../../docs/glossary.md#execution-host) runs an agent's tools in a sandbox: a declared child process whose executable is bubblewrap. The task inside sees only the tools and paths it names. It reaches the host API with a token bound to its run's [grant](../../../../docs/glossary.md#grant), and the network only through the egress proxy. [Security and compliance](../../../../docs/security-and-compliance.md#agent-tool-sandboxes) explains the isolation. The [plugin README](../../README.md) describes the layout, the seccomp filter and the gaps; read its trust boundary section before choosing what to mount.
 
 ## Before writing
 
-- List the tools by absolute path (`bun`, `git`, a provider CLI). Only these executables exist inside, at their host paths, plus the C library.
-- Decide the paths: a working directory bound read-write at `/work`, and anything else read-only (a checkout to read). Nothing else of the host is visible.
-- List the destinations the tools must reach, such as a model API. Each must be declared in the manifest and bound in the site policy; a sandbox without destinations has no network but the host API.
-- Decide who the sandbox acts as. Its context must carry a delegation grant, normally from `agentGrant(catalog, agentId, issuer, { now, runId })` in `@agent-native/runtime`, so the sandbox can call only what the agent definition allows.
+- List the tools by absolute path, such as `bun`, `git` or a provider CLI. Only these executables exist inside, at their host paths, plus the C library.
+- Decide the paths. A working directory is bound read-write at `/work`, and anything else is read-only, such as a checkout to read. Nothing else of the host is visible.
+- List the [destinations](../../../../docs/glossary.md#destination) the tools must reach, such as a model API. The manifest declares each one, and the [site policy](../../../../docs/glossary.md#site-policy) binds it.
+- A sandbox without destinations has no network except the host API.
+- Decide who the sandbox acts as. Its context must carry a delegated grant, normally from `agentGrant(catalog, agentId, issuer, { now, runId })` in `@agent-native/runtime`. The sandbox can then call only what the agent definition allows.
 
 ## Steps
 
-1. **Declare the sandbox** in the manifest's `components`: `executionSandbox({ id, description, network: ['model-api'] })` from `@agent-native/execution-host/contracts`, and declare each destination it names.
-2. **Compose the plugin** after the site, network and process plugins: `executionHostPluginManifest` in the manifest's `plugins`, and `createExecutionHostPlugin({ tools: { bun: '/usr/local/bin/bun' } })` in the definition's `plugins`.
-3. **Bind bubblewrap** in the site policy under `processes`, with its digest pinned (`"<id>": { "executable": "/usr/bin/bwrap", "sha256": "…" }`), as in the `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`).
-4. **Run tasks** from trusted host code: `services['execution-host'].run({ sandbox, command: ['bun', script, ...args], context, workdir, readOnly, limits })`. Inside, `AGENT_NATIVE_CONNECTION` points at the connection file, so the application CLI (`packages/adapters/src/cli.ts`) and MCP server (`packages/adapters/src/mcp.ts`) attach without arguments. Read effects from the command receipts and the host's state, never from the task's narration.
-5. **Stop and revoke**: pass a `signal`, or use `start` for a handle with `cancel()` and `revoke()`. Set `limits` for wall time and output that fit the task.
+1. Declare the sandbox in the manifest's `components` with `executionSandbox({ id, description, network: ['model-api'] })` from `@agent-native/execution-host/contracts`.
+2. Declare each destination the sandbox names.
+3. Add `executionHostPluginManifest` to the manifest's `plugins`, after the site, network and process plugins.
+4. Add `createExecutionHostPlugin({ tools: { bun: '/usr/local/bin/bun' } })` to the definition's `plugins`, in the same order.
+5. Bind bubblewrap in the site policy under `processes`, with its digest pinned: `"<id>": { "executable": "/usr/bin/bwrap", "sha256": "…" }`. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+6. Run tasks from trusted host code with `services['execution-host'].run({ sandbox, command: ['bun', script, ...args], context, workdir, readOnly, limits })`. Inside, `AGENT_NATIVE_CONNECTION` points at the [connection file](../../../../docs/glossary.md#connection-file). The application CLI (`packages/adapters/src/cli.ts`) and MCP server (`packages/adapters/src/mcp.ts`) attach with it and need no arguments.
+7. Read the task's effects from the command receipts and the host's state, never from the task's narration.
+8. Stop a task by passing a `signal`, or use `start` for a handle with `cancel()` and `revoke()`.
+9. Set `limits` for wall time and output that fit the task.
 
 ## Checks
 
-- On any platform: `bun test plugins/execution-host` covers the filter, layout and broker; `availability(sandbox)` explains why a sandbox cannot run (not Linux, no bubblewrap binding, no serving host).
-- On Linux, or anywhere with Docker: `bun run test:execution-host:linux`. Copy the pattern in `plugins/execution-host/test/sandbox.test.ts` for an application's own task: start the host with the plugin, run the task, and assert the receipts, refused calls outside the grant, and the denied file and network attempts that matter to it.
+1. On any platform, run `bun test plugins/execution-host`. It covers the filter, the layout and the broker.
+2. Call `availability(sandbox)` to learn why a sandbox cannot run: not Linux, no bubblewrap binding, or no serving host.
+3. On Linux, or anywhere with Docker, run `bun run test:execution-host:linux`.
+4. For an application's own task, copy the pattern in `plugins/execution-host/test/sandbox.test.ts`. Start the host with the plugin and run the task.
+5. Assert the receipts, the refused calls outside the grant, and the denied file and network attempts that matter to the task.
 
 ```sh
 bun test plugins/execution-host
 bun run test:execution-host:linux
 ```
 
-A run in a container is recorded separately from a run on a deployed host in [implementation status](../../../../docs/implementation-status.md#execution-host).
+Record a run in a container separately from a run on a deployed host in [implementation status](../../../../docs/implementation-status.md#execution-host).

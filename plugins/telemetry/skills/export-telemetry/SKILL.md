@@ -5,23 +5,39 @@ description: Export OpenTelemetry metrics and traces from an agent-native author
 
 # Export telemetry
 
-The telemetry plugin turns the audit log and the outbox into OpenTelemetry metrics and spans and posts them as OTLP/HTTP JSON through the egress guard. The [README](../../README.md) lists every metric, attribute and span and states what may leave.
+The telemetry plugin turns the [audit log](../../../../docs/glossary.md#audit-log) and the [outbox](../../../../docs/glossary.md#outbox) into OpenTelemetry metrics and spans. It posts them as OTLP/HTTP JSON through the [egress guard](../../../../docs/glossary.md#egress-guard). [Architecture](../../../../docs/architecture.md#telemetry) explains what the export carries. The [README](../../README.md) lists every metric, attribute and span and states what may leave.
+
+## Before writing
+
+- A metric comes from audit events or the outbox, never from workspace state or handler code.
+- An attribute value must be a catalog or outbox identifier, a fixed state or an error code.
 
 ## Steps
 
-1. **Compose** `telemetryPluginManifest` in the manifest's `plugins` and `telemetryPlugin` (or `createTelemetryPlugin({ intervalMs })`) in the application's `plugins`, after the site, network and audit plugins.
-2. **Run a collector** on the same machine with an OTLP/HTTP receiver, for example on `127.0.0.1:4318`. The collector holds any vendor credential and forwards to the backend; the authority never does.
-3. **Bind** `destinations.telemetry` to the collector's address in the site policy (the `deploy-to-site` skill, `plugins/site/skills/deploy-to-site/SKILL.md`). Leave it out and the authority runs without exporting.
-4. **Check** with `services.telemetry.status()`: `exports` counts successful exports and `lastError` says why the last one failed.
+### Export
 
-## Adding a metric
+1. Add `telemetryPluginManifest` to the manifest's `plugins`, after the site, network and audit plugins.
+2. Add `telemetryPlugin`, or `createTelemetryPlugin({ intervalMs })`, to the application's `plugins` in the same order.
+3. Run a collector on the same machine with an OTLP/HTTP receiver, for example on `127.0.0.1:4318`. The collector holds any vendor credential and forwards to the backend; the authority never does.
+4. Bind `destinations.telemetry` to the collector's address in the [site policy](../../../../docs/glossary.md#site-policy). The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy. Without the binding, the authority runs without exporting.
+5. Read `services.telemetry.status()`. `exports` counts successful exports, and `lastError` says why the last one failed.
 
-A metric comes from audit events or the outbox, never from workspace state or handler code. Add it in `src/recorder.ts` and its encoding in `src/otlp.ts`. An attribute value must be a catalog or outbox identifier, a fixed state or an error code; pass free values through `identifier` or `code` so nothing from a record reaches it. If the event you need does not exist, emit it where the framework emits its other audit events (`packages/runtime/src/application/audit.ts`, or `runAuditRecord` in `packages/agents` for runs) and list its kind in `auditEventKinds`.
+### New metric
+
+1. Add the metric in `src/recorder.ts`.
+2. Add its encoding in `src/otlp.ts`.
+3. Pass free values through `identifier` or `code`, so nothing from a record reaches an attribute.
+4. When the audit event you need does not exist, emit it where the framework emits its other audit events. That is `packages/runtime/src/application/audit.ts`, or `runAuditRecord` in `packages/agents` for runs.
+5. List the new event's kind in `auditEventKinds`.
 
 ## Checks
 
-```sh
-bun test plugins/telemetry
-```
+1. Extend `test/telemetry.test.ts` with the new metric, and keep its leak check passing.
+2. Run the tests:
 
-Extend `test/telemetry.test.ts` with the new metric and keep its leak check passing. A run against a real collector and backend is by-hand evidence for `docs/implementation-status.md`. The `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) covers the rest.
+   ```sh
+   bun test plugins/telemetry
+   ```
+
+3. Record a run against a real collector and backend as by-hand evidence in [implementation status](../../../../docs/implementation-status.md#telemetry).
+4. Follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) for the rest.

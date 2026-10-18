@@ -1,55 +1,59 @@
 # @agent-native/fleet-agent
 
-The site side of a fleet. A site's authority composes this plugin to report its health to a fleet application, forward its audit log there, stage the releases the fleet assigns, and optionally let the fleet relay remote-access requests to the site's own API. Every connection is outbound, through the network port's `fleet` destination, so the site needs no inbound rule.
+The site side of a [fleet](../../docs/glossary.md#fleet). A site's [authority](../../docs/glossary.md#authority) composes this plugin to report its health to a fleet application, forward its [audit log](../../docs/glossary.md#audit-log) there and stage the releases the fleet assigns. The plugin can also let the fleet relay remote-access requests to the site's own HTTP API. Every connection is outbound through the network port's `fleet` [destination](../../docs/glossary.md#destination), so the site needs no inbound rule. [Hosting](../../docs/hosting.md#fleet) explains the fleet protocol, the agent's cycle, the relay and the fleet application.
 
-Layer: plugins (`plugins/*`). Server only. [Fleet agent](../../docs/primitives.md#fleet-agent) in the primitives index.
+## Layer
 
-## The protocol
+Plugins (`plugins/*`). Server only, except `contracts` and `plugin-manifest`.
 
-`@agent-native/fleet-agent/contracts` holds the operations a fleet application serves to its sites, as `fleetSiteModule`. A fleet composes the module, implements its handlers and enrolls sites with the [device-link plugin](../device-link/README.md) (kind `field-sync`, with `fleetSiteOperationIds` as the sync operations), so each site calls them as its own principal `device:<id>` and the fleet answers only about that site.
+## Primitives
 
-| Operation | Kind | What the site does with it |
-| --- | --- | --- |
-| `fleet.site.report` | command | sends application, instance, outbox counts by target, audit head and staged release |
-| `fleet.site.desired` | query | reads the release it should run |
-| `fleet.audit.cursor` | query | asks where the fleet's copy of its audit log ends |
-| `fleet.audit.ingest` | command | sends the events after that, as the JSON lines of its local log, 100 at a time |
-| `fleet.relay.take` | command | takes the oldest remote-access request waiting for it |
-| `fleet.relay.answer` | command | returns the site API's response to that request |
+- [Fleet agent](../../docs/primitives.md#fleet-agent): `createFleetAgentPlugin`, `fleetAgentPlugin`, `fleetAgentPluginManifest` and the protocol module `fleetSiteModule`.
 
-A release is the signed bundle manifest and signature (`packages/bundle`); each file is the fleet blob `sha256:<file sha256>`, attached to a resource the site may read.
-
-## Wiring a site
-
-Compose the plugin after the site plugin, the network plugin and (for audit forwarding) the audit plugin. The site policy binds the `fleet` destination to the fleet's https origin and the `fleet-releases` folder to a directory; both are optional, and the site runs without them.
-
-| Setting | Environment | Meaning |
-| --- | --- | --- |
-| `fleet-enrollment-code` | `AGENT_NATIVE_FLEET_ENROLLMENT_CODE` | one-use code from the fleet, exchanged for the site credential on the first cycle |
-| `fleet-trust` | `AGENT_NATIVE_FLEET_TRUST` | release signing keys (`key.pub.json` or an array); absent, releases are not staged |
-| `fleet-relay` | `AGENT_NATIVE_FLEET_RELAY` | `on` forwards remote-access requests; default off |
-
-The credential is kept in the platform's secret store when it has one, otherwise in `<workspace>/fleet-agent/credential` with mode 0600. `createFleetAgentPlugin({ intervalMs, relayMs })` sets the cycle (one minute) and the relay poll (two seconds). The service at `services['fleet-agent']` offers `status()`, `sync()` and `relay()`.
-
-## Contents
+## Entrypoints
 
 | Import | Runs in | Contents |
 | --- | --- | --- |
-| `@agent-native/fleet-agent/contracts` | browser-safe | the protocol operations, `fleetSiteModule`, `fleetSiteOperationIds`, the report, release and relay schemas, `fleetLinkComponent` |
-| `@agent-native/fleet-agent/plugin-manifest` | browser-safe | `fleetAgentPluginManifest`: the destination, the folder and the settings |
-| `@agent-native/fleet-agent/plugin` | server | `createFleetAgentPlugin`, `fleetAgentPlugin`, the service and status types |
-| `@agent-native/fleet-agent/testing` | server (tests) | `fleetNetworkFixture`: a network plugin whose `fleet` destination goes through a function the test supplies |
+| `@agent-native/fleet-agent` | server | The `contracts`, `plugin-manifest` and `plugin` exports. |
+| `@agent-native/fleet-agent/contracts` | browser-safe | The protocol capabilities, `fleetSiteModule`, `fleetSiteOperationIds`, the report, release and relay schemas, `fleetLinkComponent`. |
+| `@agent-native/fleet-agent/plugin-manifest` | browser-safe | `fleetAgentPluginManifest`: the destination, the folder and the settings. |
+| `@agent-native/fleet-agent/plugin` | server | `createFleetAgentPlugin`, `fleetAgentPlugin`, the service and status types. |
+| `@agent-native/fleet-agent/testing` | server (tests) | `fleetNetworkFixture`: a network plugin whose `fleet` destination goes through a test's function. |
+
+The package exports every source file through `./*`. The other files, `audit`, `credential`, `link`, `relay`, `releases` and `report`, are used only inside the package.
+
+A fleet composes `fleetSiteModule`, implements its handlers and enrolls sites with the [device-link plugin](../device-link/README.md). Each site is a `field-sync` device whose sync capabilities are `fleetSiteOperationIds`.
+
+### Settings
+
+Compose the plugin after the site plugin, the network plugin and, for audit forwarding, the audit plugin. The [site policy](../../docs/glossary.md#site-policy) binds the `fleet` destination to the fleet's https origin and the `fleet-releases` folder to a directory. Both bindings are optional, and the site runs without them.
+
+| Setting | Environment | Meaning |
+| --- | --- | --- |
+| `fleet-enrollment-code` | `AGENT_NATIVE_FLEET_ENROLLMENT_CODE` | One-use code from the fleet, exchanged for the site credential on the first cycle. |
+| `fleet-trust` | `AGENT_NATIVE_FLEET_TRUST` | Release signing keys (`key.pub.json` or an array). Without them, releases are not staged. |
+| `fleet-relay` | `AGENT_NATIVE_FLEET_RELAY` | `on` forwards remote-access requests. The default is off. |
+
+`createFleetAgentPlugin({ intervalMs, relayMs })` sets the cycle and the relay poll, one minute and two seconds by default. The service at `services['fleet-agent']` offers `status()`, `sync()` and `relay()`.
 
 ## Trust boundary
 
-- **Nothing waits on the fleet.** The plugin writes nothing to the workspace. A cycle that fails records the reason in `status().lastError` and the next cycle tries again, so the site keeps committing and delivering while the fleet is unreachable. Cycles run one at a time, and only one enrollment runs at once, because the code works once.
-- **Reports carry counts, not records.** The outbox is read with the host's trusted identity (`pendingEffects`), and only counts per target leave the site.
-- **Audit forwarding keeps no state.** The fleet says where its copy ends, so a lost reply or a restart sends the same events again and the fleet accepts each sequence once. Events go unchanged, so the fleet can check the hash chain.
-- **Releases are verified before they appear.** Each file is checked against the signed manifest as it arrives, the whole bundle is verified with `verifyBundle` against `fleet-trust`, and only then is the temporary directory renamed into `fleet-releases/<release id>`. Activation stays with the operator's `site install`; the authority never replaces itself.
-- **The relay holds no authority.** It forwards a request to the host's own listener under `/api/v1/` only, passes an allow-list of headers each way (never `cookie` in, never `set-cookie` out), adds no credential and never follows a redirect. A relayed request reaches an operation only with a session the site issued, which the site's identity port and policy check like any other caller's; the site's fleet credential opens nothing on the site. `scripts/boundary-rules.ts` lists `src/relay.ts` as the one fetch outside the egress guard, because its only target is the host itself.
-- **The fleet credential goes only to the fleet.** It is sent through the network port's `fleet` client, which resolves every path against the bound origin, with redirects refused.
+[Hosting](../../docs/hosting.md#fleet-agent) describes each guarantee below in full.
 
-Limits: the relay polls instead of holding a stream open, and handles one request at a time with bodies up to 1 MiB. A fleet that loses a site's credential re-enrolls it with a new code; there is no rotation yet.
+- **Fleet outages.** The plugin writes nothing to the workspace. A failed cycle records its reason in `status().lastError`, and the site keeps committing and delivering while the fleet is unreachable.
+- **Reports.** The plugin reads the outbox with the host's trusted identity (`pendingEffects`). Only [effect](../../docs/glossary.md#effect) counts per target leave the site.
+- **Audit forwarding.** The site keeps no forwarding state and sends events unchanged, so the fleet can check the hash chain.
+- **Releases.** Each file is checked against the signed manifest as it arrives, and the whole bundle is verified with `verifyBundle` against `fleet-trust`. Only then is the temporary directory renamed into `fleet-releases/<release id>`.
+- **Activation.** Activation stays with the site operator's `site install`. The authority never replaces itself.
+- **Relay.** The relay forwards a request to the host's own listener under `/api/v1/` only and adds no credential. A relayed request reaches a [capability](../../docs/glossary.md#capability) only with a [session](../../docs/glossary.md#session) the site issued ([hosting](../../docs/hosting.md#relay)).
+- **Relay exemption.** `scripts/boundary-rules.ts` lists `src/relay.ts` as a reviewed exemption from the [egress guard](../../docs/glossary.md#egress-guard), because its only target is the host itself.
+- **Fleet credential.** The plugin sends the credential only through the network port's `fleet` client, which resolves every path against the bound origin and refuses redirects. The credential is kept in the platform's secret store when it has one, and otherwise in `<workspace>/fleet-agent/credential` with mode 0600.
+
+The relay polls instead of holding a stream open, and handles one request at a time with bodies up to 1 MiB. The credential is not rotated, so a fleet that loses it re-enrolls the site with a new code.
+
+## Dependencies
+
+Framework: `@agent-native/bundle`, `@agent-native/contracts`, `@agent-native/event-log`, `@agent-native/host` and `@agent-native/kernel`. External: `zod`.
 
 ## Tests
 
@@ -57,7 +61,16 @@ Limits: the relay polls instead of holding a stream open, and handles one reques
 bun test plugins/fleet-agent
 ```
 
-`test/fleet-agent.test.ts` starts a fixture fleet (device-link plus `fleetSiteModule`) and a site (site, audit and this plugin, with a network fixture that can go offline, drop a reply or corrupt a download) on loopback. It covers enrollment and outbox reports without payloads, a site with no code, audit forwarding with a lost reply, a site that keeps committing while the fleet is unreachable and then reports the backlog, a release changed in transit or at the fleet that never reaches the folder, and a relay that answers 403 without a credential or with the fleet credential and 200 with a session the site issued. The upgrade test installs version 1 of the site with `site install`, runs it with two effects queued for an unreachable system of record, stages the 2.0.0 release the fleet assigns, and has the installed release's binary run `site install` on the staged folder. The new binary migrates the workspace before `current` switches; the effects stay pending with the contract version 1 recorded, and version 2 then queues its own. Its releases run `test/site-cli.ts`.
+`test/fleet-agent.test.ts` starts a fixture fleet and a site on loopback. The fleet composes device link and `fleetSiteModule`. The site composes the site and audit plugins and this plugin, with a network fixture that can go offline, drop a reply or corrupt a download. The test covers:
+
+- enrollment, and outbox reports without payloads;
+- a site with no code;
+- audit forwarding with a lost reply;
+- a site that keeps committing while the fleet is unreachable, then reports the backlog;
+- a release changed in transit or at the fleet, which never reaches the folder;
+- a relay that answers 403 without a credential or with the fleet credential, and 200 with a session the site issued.
+
+The upgrade test installs version 1 of the site with `site install` and runs it with two effects queued for an unreachable [system of record](../../docs/glossary.md#system-of-record). It stages the 2.0.0 release the fleet assigns. The installed release's binary then runs `site install` on the staged folder. The new binary migrates the workspace before `current` switches. The effects stay pending with contract version 1 recorded, and version 2 then queues its own. The test's releases run `test/site-cli.ts`.
 
 ## Skills
 

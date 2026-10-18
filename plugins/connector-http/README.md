@@ -1,12 +1,27 @@
 # @agent-native/connector-http
 
-A generic REST system of record behind the network port. The application describes the system as data: how an effect becomes a request, which statuses are business rejections and where their code and message are, how to look a request up by key, and where the change feed is.
+This [connector](../../docs/glossary.md#connector) reaches a generic REST [system of record](../../docs/glossary.md#system-of-record) through the network port. The application describes the system as data: the request for each effect, the rejection statuses with their code and message, the lookup by key and the change feed.
 
-Layer: plugins (`plugins/*`). Server only. [Connector](../../docs/primitives.md#connector) in the primitives index.
+## Layer
 
-## Wiring an application
+Plugin layer, as a connector library without plugin entrypoints. Server only. It trusts the [site policy](../../docs/glossary.md#site-policy) to bind the address and credentials, and treats response bodies as input.
 
-- **Manifest:** declare the system's network destination (`egress`, with its scope, data classes and availability) and name it in the target's operations, as for any outbox target.
+## Primitives
+
+- [Connector](../../docs/primitives.md#connector): `httpTargetPort`, `readPointer`.
+
+## Entrypoints
+
+| Import | Runs in | Contents |
+| --- | --- | --- |
+| `@agent-native/connector-http` | server | `httpTargetPort`, `readPointer` and their types. |
+| `@agent-native/connector-http/testing` | server (tests) | `FakeRestSystem`, a loopback REST server. |
+
+`FakeRestSystem` has keyed orders, a 422 rejection, lookup by key, a paged change feed and injected failures.
+
+### Application wiring
+
+- **Manifest:** declare the system's network [destination](../../docs/glossary.md#destination) as `egress`, with its scope, data classes and availability. Name it in the target's capabilities, as for any outbox target.
 - **`connect`:** build `httpTargetPort({ target, network: context.network, destination, request, idempotencyHeader?, rejections, lookup?, feed? })` and pass it to the target integration.
 
 ```ts
@@ -25,26 +40,29 @@ httpTargetPort({
 
 The `externalRef`, `items`, `cursor` and `more` fields are JSON pointers (RFC 6901) into the response body. A rule's `code` and `message` are pointers when they start with `/`, and literal text otherwise.
 
-## Contents
+### Outcomes
 
-| Import | Runs in | Contents |
-| --- | --- | --- |
-| `@agent-native/connector-http` | server | `httpTargetPort`, `readPointer` and their types |
-| `@agent-native/connector-http/testing` | server (tests) | `FakeRestSystem`: a loopback REST server with keyed orders, a 422 rejection, lookup by key, a paged change feed and injected failures |
+- A 2xx is accepted, or pending when its status is in `pendingStatus`.
+- A status that a rejection rule lists is rejected with the code and message the rule points at, so a rejection is business data.
+- Anything else is a transient failure that the [dispatcher](../../docs/glossary.md#dispatcher) retries. That includes a dropped connection, a body cut off and a timeout (`timeoutMs`, 30 seconds by default).
 
-Outcomes:
-
-- a 2xx is accepted, or pending when its status is in `pendingStatus`;
-- a status a rejection rule lists is rejected with the code and message it points at, so a rejection is business data;
-- anything else, a dropped connection, a timeout (`timeoutMs`, default 30 s) or a body cut off, is a transient failure the dispatcher retries.
-
-The port needs an idempotency header, a lookup, or both. With a header the system deduplicates a resend, and the port describes itself as idempotent. With only a lookup the dispatcher asks before every resend; a lookup that answers 404 means the request never arrived, and `pendingWhen` marks a found record that has not been decided.
+The port needs an idempotency header, a lookup, or both. With a header, the system deduplicates a resend, and the port describes itself as idempotent. With only a lookup, the dispatcher asks before every resend. A lookup that answers 404 means the request never arrived, and `pendingWhen` marks a found record that has not been decided.
 
 ## Trust boundary
 
-Every request goes through `network.client(destination).fetch`, so the egress guard sees it and the site policy decides the address and credentials. The port never reads a credential. Response bodies are input: rejection codes and messages are cut to 100 and 500 characters, and the feed's `map` and the sync command's input schema decide what an item may change.
+Every request goes through `network.client(destination).fetch`, so the [egress guard](../../docs/glossary.md#egress-guard) sees it and the site policy decides the address and credentials. The port never reads a credential.
 
-Limits: JSON bodies only; no pagination other than a cursor in the body; no retry-after handling beyond the dispatcher's backoff.
+Response bodies are input. Rejection codes and messages are cut to 100 and 500 characters. The feed's `map` and the sync command's input schema decide what an item may change.
+
+Limits:
+
+- JSON bodies only;
+- no pagination other than a cursor in the body;
+- no retry-after handling beyond the dispatcher's backoff.
+
+## Dependencies
+
+Framework: `@agent-native/integration`, `@agent-native/kernel` (`plugin`) and `@agent-native/runtime`. The tests use `@agent-native/testing/connectors`. No external packages.
 
 ## Tests
 
@@ -52,7 +70,14 @@ Limits: JSON bodies only; no pagination other than a cursor in the body; no retr
 bun test plugins/connector-http
 ```
 
-`test/connector-http.test.ts` runs the shared connector conformance suite against `FakeRestSystem` twice, deduplicating by header and by lookup only; the suite's inbound checks exercise the change feed. It also covers rejection mapping, unlisted statuses and an unreachable system as transient, the refusal of a target with neither header nor lookup, requests reaching only the declared destination, pending statuses and pending lookup bodies, and pointer escapes.
+`test/connector-http.test.ts` runs the shared connector conformance suite against `FakeRestSystem` twice: deduplicating by header, and by lookup only. The suite's inbound checks exercise the change feed. The file also covers:
+
+- rejection mapping;
+- unlisted statuses and an unreachable system as transient;
+- the refusal of a target with neither header nor lookup;
+- requests reaching only the declared destination;
+- pending statuses and pending lookup bodies;
+- pointer escapes.
 
 ## Skills
 

@@ -5,32 +5,55 @@ description: Bridge station software (vendor HMI, test bench, homebrew MES clien
 
 # Bridge a station screen
 
-The station software is a system of record reached through its screen. A model may read the screen or propose targets; deterministic code acts and verifies. The [operator workstation pattern](../../../../docs/operator-workstations.md) explains the design, the [package README](../../README.md) lists the parts, and `examples/line-station` is the worked example.
+Station software that has no API is a [system of record](../../../../docs/glossary.md#system-of-record) the application reaches through its station screen. A model may read the screen or propose an on-screen target; deterministic code acts and verifies. [Operator workstations](../../../../docs/operator-workstations.md) explains the design, the [package README](../../README.md) lists the parts, and `examples/line-station` is the worked example.
 
 ## Before writing
 
-- Prefer a deterministic source. If the station software has an automation interface (COM, OPC UA, a vendor export), use the automation route below instead of the screen. Accessibility comes before OCR or vision.
-- List the screens, the fields, the procedures with their hazard class, and the regions no procedure may touch (emergency-stop reset, interlock override, manual jog).
-- The bridge never operates safety functions, and this is not a safety-rated system.
+- Prefer a deterministic source. When the station software has an automation interface, such as COM, OPC UA or a vendor export, follow the automation route below instead of the screen.
+- Among screen sources, prefer accessibility to OCR or vision.
+- List the screens, the fields and the [procedures](../../../../docs/glossary.md#procedure) with their [hazard class](../../../../docs/glossary.md#hazard-class).
+- List the regions no procedure may touch: emergency-stop reset, interlock override, manual jog.
+- The bridge never operates safety functions. It is not a safety-rated system.
 
 ## Steps
 
-1. **Model the target.** Commands record desired state and enqueue an effect on target `legacy-hmi:<station>`. The screen connector (`createStationConnector`) is the outbox port; readback of the desired value is acceptance. Its delivery uses the convergent delivery in `packages/integration` (the `connect-system-of-record` skill, `packages/integration/skills/connect-system-of-record/SKILL.md`).
-2. **Report what the screen shows** through an observer (`createStationObserver`) that submits an ingest command under `station-bridge:<station>`. Keep provenance (extractor, model, confidence, frame digest). An uncertain reading becomes an attention item for a person, never a silent value.
-3. **Put site particulars in a versioned `StationProfile`** (`examples/line-station/station-profile.json`): screens by anchors, fields, forbidden regions, procedures with preconditions, readback, hazard class and rerun safety. `validateProfile` rejects steps that target forbidden regions or unknown fields.
-4. **Gate actuation.** Default to `monitor-only`. Starting procedures that need a person, reconciling held effects and taking over the screen are person-only commands; deny them to agent runs and grants. Never give the computer-use agent catalog write tools beyond ingest and settle under its own integration principal.
-5. **Choose an extractor**: `createAccessibilityExtractor`, `createWorkerExtractor` (a JSON-lines worker started through the process port), `createOpenAiCompatibleVisionExtractor` on loopback, or `createFixtureExtractor` for CI.
-6. **Build the station screen** from the operator registry (`packages/operator-ui`; see the `build-screens` skill, `packages/frame/skills/build-screens/SKILL.md`) and scanners from `packages/devices` (the `add-scanner-input` skill, `packages/devices/skills/add-scanner-input/SKILL.md`).
-7. **Shared seats.** Where operators share a station, compose `plugins/station-sign-in` so each operator signs in by badge and PIN and acts with their own authority.
+### Screen route
 
-## Automation route
+1. Make each command record the desired state and enqueue an outbox [effect](../../../../docs/glossary.md#effect) on the target `legacy-hmi:<station>`.
+2. Deliver those effects with the screen connector, `createStationConnector`, which implements the system-of-record port. It uses the convergent delivery in `packages/integration`, so a readback of the desired value is acceptance. The `connect-system-of-record` skill (`packages/integration/skills/connect-system-of-record/SKILL.md`) covers that side.
+3. Report what the screen shows through an observer, `createStationObserver`, that submits an ingest command under `station-bridge:<station>`.
+4. Keep each reading's provenance: extractor, model, confidence and frame digest.
+5. Turn an uncertain reading into an attention item for a person. It never becomes a silent value.
+6. Put the site particulars in a versioned [station profile](../../../../docs/glossary.md#station-profile), `StationProfile`, as in `examples/line-station/station-profile.json`. It holds screens by anchors, fields, forbidden regions, and procedures with preconditions, readback, hazard class and rerun safety. `validateProfile` rejects steps that target forbidden regions or unknown fields.
+7. Set the [bridge mode](../../../../docs/glossary.md#bridge-mode) to `monitor-only` by default.
+8. Make starting procedures that need a person, reconciling held effects and taking over the screen person-only commands. Deny them to agent runs and grants.
+9. Give the computer-use agent no catalog write tools beyond ingest and settle, under its own [integration principal](../../../../docs/glossary.md#integration-principal).
+10. Choose an [extractor](../../../../docs/glossary.md#extractor):
+    - `createAccessibilityExtractor`;
+    - `createWorkerExtractor`, a JSON-lines worker started through the process port;
+    - `createOpenAiCompatibleVisionExtractor` on loopback;
+    - `createFixtureExtractor` for CI.
+11. Build the station's screen from the operator registry in `packages/operator-ui`, following the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`).
+12. Add scanners from `packages/devices` with the `add-scanner-input` skill (`packages/devices/skills/add-scanner-input/SKILL.md`).
+13. Where operators share a station, compose `plugins/station-sign-in`. Each operator then signs in by badge and PIN and acts as their own [principal](../../../../docs/glossary.md#principal).
 
-A station whose software has an automation interface is reached through a driver instead of its screen. The driver's contract carries the same fields and procedures, with the same preconditions, readback and hazard classes, and its bridge runs as the same station principal with the same grant and target. Handlers, contracts and screens do not change with the route. Its `control` field replaces the screen's local input check. `examples/line-station` configures each station on one route; its C# driver reaches a COM server (`examples/line-station/drivers/automation`). Write the driver with the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`) and read [hardware drivers](../../../../docs/hardware-drivers.md#examples).
+### Automation route
+
+A station whose software has an automation interface is reached through a [driver](../../../../docs/glossary.md#driver) instead of its screen. Handlers, contracts and screens stay the same on either route. [Operator workstations](../../../../docs/operator-workstations.md#automation-route) explains the route.
+
+1. Give the driver's contract the same fields and procedures, with the same preconditions, readback and hazard classes.
+2. Run its bridge as the same station principal, with the same grant and target.
+3. Use the contract's `control` field in place of the screen's local input check.
+4. Configure each station on one route, as `examples/line-station` does. Its C# driver reaches a COM server (`examples/line-station/drivers/automation`).
+5. Write the driver with the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`), and read the [hardware drivers examples](../../../../docs/hardware-drivers.md#examples).
 
 ## Checks
 
-- Gate every profile or perception change with the golden-frame check on labeled frames: `cd examples/line-station && bun run station:golden` (`scripts/station-golden.ts`). Without a configured model it replays recorded expectations and checks only the wiring. The example's `station:record-golden` script re-records frames from the fake HMI.
-- Add a composed conformance test (surface parity, lane separation) and a browser test against a separate fake HMI process (`examples/line-station/e2e/station.pw.ts`).
+1. Gate every profile or perception change with the [golden check](../../../../docs/glossary.md#golden-check) on labeled frames: `cd examples/line-station && bun run station:golden` (`scripts/station-golden.ts`). Without a configured model it replays recorded expectations and checks only the wiring.
+2. Re-record frames from the fake HMI with the example's `station:record-golden` script.
+3. Add a composed conformance test for surface parity and lane separation.
+4. Add a browser test against a separate fake HMI process (`examples/line-station/e2e/station.pw.ts`).
+5. Run the tests:
 
 ```sh
 bun test packages/station packages/observation
@@ -38,4 +61,4 @@ bun test examples/line-station
 bunx playwright test examples/line-station/e2e
 ```
 
-Report deterministic, browser, device and live-model evidence separately, in the [implementation status](../../../../docs/implementation-status.md#operator-workstation-bridge). None of them implies a live computer-use driver or real hardware.
+Report deterministic, browser, device and live-model evidence separately in [implementation status](../../../../docs/implementation-status.md#operator-workstation-bridge). None of them implies a live computer-use driver or real hardware.

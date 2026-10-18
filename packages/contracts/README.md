@@ -1,50 +1,66 @@
 # @agent-native/contracts
 
-Capabilities, modules and the composed catalog, as plain browser-safe data. Everything else in the framework reads these values: the runtime executes them, the surface adapters expose them, the generators describe them and the frontend binds them. Contracts carry schemas, permissions, UI bindings and declared requirements. They never carry handlers.
+This package holds [capabilities](../../docs/glossary.md#capability), [modules](../../docs/glossary.md#module) and the composed [catalog](../../docs/glossary.md#catalog) as plain browser-safe data. The runtime executes these values, the [surface](../../docs/glossary.md#surface) adapters expose them, the [generators](../../docs/glossary.md#generator) describe them and the [screens](../../docs/glossary.md#screen) bind them. Contracts carry schemas, permissions, UI bindings and declared requirements, and never handlers.
 
-Layer: framework (`packages/*`). Domain-neutral; a domain defines its capabilities with this package in its own `contracts.ts`.
+## Layer
+
+Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with this package in its own `contracts.ts`. Contracts are trusted code that describe untrusted input.
 
 ## Primitives
 
-- [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `jsonValueSchema` (any JSON value, the one recursive schema the portability check accepts), `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`.
+- [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`, and `jsonValueSchema`. `jsonValueSchema` accepts any JSON value and is the one recursive schema the portability check accepts.
 - [Module](../../docs/primitives.md#module): `defineModule`, `CapabilityModule`.
 - [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`.
-- [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, the catalog checks `checkAgent` and `catalogAgents`, and `agentInstructions`, the text a run's model starts with (for a proposing agent, each command it may propose with its input schema). Harnesses and surfaces build an operation's tool schema with `operationToolSchema` (or `toolEnvelopeSchema` and `expectedRevisionsSchema`), which moves a recursive input's `$defs` to the envelope's root so llama.cpp and strict MCP clients resolve them.
-- [Command](../../docs/primitives.md#command): the caller-safe error envelope (`ApplicationError`, `ErrorCode`, `errorEnvelope`).
+- [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, and the catalog checks `checkAgent` and `catalogAgents`. `agentInstructions` is the text a run's model starts with, and for a proposing agent it lists each command the agent may propose with its input schema.
+- Tool schemas: harnesses and surfaces build a capability's tool schema with `operationToolSchema`, or with `toolEnvelopeSchema` and `expectedRevisionsSchema`. These move a recursive input's `$defs` to the envelope's root, so llama.cpp and strict MCP clients resolve them.
+- [Command](../../docs/primitives.md#command): the caller-safe error envelope, `ApplicationError`, `ErrorCode` and `errorEnvelope`.
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`, `destinationsForRead`.
-- [Remote query](../../docs/primitives.md#remote-query): the result shape every remote query returns (`remoteResultSchema`, `RemoteResult`, `remoteSourceStatusSchema`, `RemoteSourceStatus`) and its opaque page cursor (`remoteCursorSchema`).
+- [Remote query](../../docs/primitives.md#remote-query): the result shape every remote query returns, with `remoteResultSchema`, `RemoteResult`, `remoteSourceStatusSchema` and `RemoteSourceStatus`. Its opaque page cursor is `remoteCursorSchema`.
 - [Data provider](../../docs/primitives.md#data-provider): `defineDataProvider`, `DataProvider`, `DataProviderSpec`.
 - [Membership](../../docs/primitives.md#membership): `defineMembership`, `Membership`, `MembershipSpec`, `SetMemberInput`, `SetMemberOutput`.
 - [Target](../../docs/primitives.md#target): `defineTarget`, `Target`, `TargetSpec`, `SyncBatch`, `effectOutcomeSchema`, `EffectOutcomeInput`, `deliveryStatusSchema`, `rejectionSchema`, `deliveryShape`.
-- [Proposal](../../docs/primitives.md#proposal): `proposalOperations` under fixed `proposal.*` IDs, `proposalSchema` (`Proposal`), `proposalStatusSchema` (`ProposalStatus`) and the `proposals` collection.
-- [Reconciliation](../../docs/primitives.md#reconciliation): `reconciliationOperations` (`reconciliation.list` and `reconciliation.resolve`), `heldEffectSchema` (`HeldEffect`) and `reconciliationDecisionSchema` (`ReconciliationDecision`).
+- [Proposal](../../docs/primitives.md#proposal): `proposalOperations` under fixed `proposal.*` IDs, `proposalSchema` with `Proposal`, `proposalStatusSchema` with `ProposalStatus`, and the `proposals` collection.
+- [Reconciliation](../../docs/primitives.md#reconciliation): `reconciliationOperations` for `reconciliation.list` and `reconciliation.resolve`, `heldEffectSchema` with `HeldEffect`, and `reconciliationDecisionSchema` with `ReconciliationDecision`.
 - [Collection](../../docs/primitives.md#collection): `defineCollection`, `Collection`, `collectionGet`, `collectionList`, `listFilters`, `listSearches`, `recordKeySchema`, `MAX_PAGE`, and the `CollectionPage` output shape.
-- [Blob store](../../docs/primitives.md#blob-store): `BlobRef`, `blobRefSchema`, `isBlobRef`, `BlobLimits` (a command's `blobs`), `blobFits`, `assertBlobLimits`, `maxBlobBytes`, `blobDigestPattern`, `mediaTypePattern`.
-- [Event log](../../docs/primitives.md#audit-log): the audit envelope and port (`EventLogPort`, `AuditEvent`, `auditEventKinds`, `failClosedAuditMode`).
-- [OS handler](../../docs/primitives.md#os-handler): `OsHandler`, `OsTarget`, `OsDeclarations` (a module's or component's `os`), `CatalogOs`, `osRequestFields` and the path and template syntax (`linkPathSegments`, `linkPathShape`, `templatePlaceholders`, `isWholePlaceholder`).
-- [OS action](../../docs/primitives.md#os-action): `OsAction`, `CatalogOsAction` and `osActionTargets`, the outbox targets notify actions carry.
-- [Shell port](../../docs/primitives.md#shell-port): the values that cross between adapters, the host's shell routes, the port and the frame (`OsPlatform`, `osPlatforms`, `RawOsRequest`, `OsDelivery`, `OsProvenance`, `OsRefusal`, `OsRequestOutcome`, `OsActionRequest`, `OsInstruction`, `OsActionOutcome`, `OsActionResult`).
+- [Blob store](../../docs/primitives.md#blob-store): `BlobRef`, `blobRefSchema`, `isBlobRef`, `blobFits`, `assertBlobLimits`, `maxBlobBytes`, `blobDigestPattern`, `mediaTypePattern`, and `BlobLimits`, a command's `blobs`.
+- [Audit log](../../docs/primitives.md#audit-log): the audit envelope and port, `EventLogPort`, `AuditEvent`, `auditEventKinds` and `failClosedAuditMode`.
+- [OS handler](../../docs/primitives.md#os-handler): `OsHandler`, `OsTarget`, `CatalogOs`, `osRequestFields`, and `OsDeclarations`, a module's or component's `os`. The path and template syntax is `linkPathSegments`, `linkPathShape`, `templatePlaceholders` and `isWholePlaceholder`.
+- [OS action](../../docs/primitives.md#os-action): `OsAction`, `CatalogOsAction`, and `osActionTargets`, the outbox targets that notify actions carry.
+- [Shell port](../../docs/primitives.md#shell-port): the values that cross between adapters, the host's shell routes, the port and the frame. They are `OsPlatform`, `osPlatforms`, `RawOsRequest`, `OsDelivery`, `OsProvenance`, `OsRefusal`, `OsRequestOutcome`, `OsActionRequest`, `OsInstruction`, `OsActionOutcome` and `OsActionResult`.
 
-The worked example is [`examples/project-tasks/contracts.ts`](../../examples/project-tasks/contracts.ts). [Capability authoring](../../docs/capability-authoring.md) walks through adding an operation.
+The worked example is [`examples/project-tasks/contracts.ts`](../../examples/project-tasks/contracts.ts). [Capability authoring](../../docs/capability-authoring.md) walks through adding a capability.
 
 ## Entrypoints
 
-| Import                      | Runs in            | Contents                                                                                                                                                                                                       |
-| --------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@agent-native/contracts`   | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers.                                                                                                           |
-| `@agent-native/contracts/*` | browser and server | One source file: `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit`, `data-provider`, `collection`, `membership`, `target`, `blob`, `os`, `os-catalog`, `os-templates` or `os-wire`. |
+| Import | Runs in | Contents |
+| --- | --- | --- |
+| `@agent-native/contracts` | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers. |
+| `@agent-native/contracts/*` | browser and server | One source file, listed below. |
+
+The source files are `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit`, `data-provider`, `collection`, `membership`, `target`, `agent`, `agent-instructions`, `proposal`, `reconciliation`, `blob`, `os`, `os-catalog`, `os-templates` and `os-wire`.
 
 ## Trust boundary
 
-Contracts are trusted code but describe untrusted input. `jsonSchema` validation rejects input it would have to strip or transform, and wire values must be JSON. `buildCatalog` fails before startup on duplicate IDs, missing or cyclic dependencies, missing UI declarations, unresolved workflow references, colliding MCP names, blob limits on a query or outside 1 byte to 256 MiB, OS declarations that break the rules in `os-catalog.ts`, and requirement errors (an outbox target without a queuing destination or queuing notify action, a process naming an undeclared destination, a remote query whose target no destination `reads`). A declaration grants nothing by itself: a site policy binds it and the egress guard enforces it.
+`jsonSchema` validation rejects input it would have to strip or transform. Wire values must be JSON.
 
-An OS handler describes requests from any application or web page on the device, so its params and templates are validated again when a request arrives; the catalog only proves the declaration is coherent.
+`buildCatalog` fails before startup on:
+
+- duplicate IDs, and missing or cyclic dependencies;
+- missing UI declarations and unresolved workflow references;
+- colliding MCP names;
+- blob limits on a query, or outside 1 byte to 256 MiB;
+- OS declarations that break the rules in `os-catalog.ts`;
+- requirement errors.
+
+The requirement errors are an outbox target without a queuing destination or queuing notify action, a process naming an undeclared destination, and a remote query whose target no destination `reads`. A declaration grants nothing by itself. A [site policy](../../docs/glossary.md#site-policy) binds it, and the [egress guard](../../docs/glossary.md#egress-guard) enforces it.
+
+An OS handler describes requests from any application or web page on the device. Its params and templates are therefore validated again when a request arrives. The catalog only proves that the declaration is coherent.
 
 Audit events carry references and digests. Input values appear only for the fields a capability lists in `audit.fields`.
 
 ## Dependencies
 
-External: `zod`. No framework packages. This package must stay importable by a browser and by the generators: `bun run check:boundaries` rejects host runtimes, provider SDKs and server-only framework packages here.
+External: `zod`. No framework packages. This package must stay importable by a browser and by the generators. `bun run check:boundaries` rejects host runtimes, provider SDKs and server-only framework packages here.
 
 ## Tests
 
@@ -52,13 +68,11 @@ External: `zod`. No framework packages. This package must stay importable by a b
 bun test packages/contracts
 ```
 
-`test/data-provider.test.ts` covers data providers: literal IDs and types survive, both queries declare `remote`, search pages with a cursor the provider cannot redefine, and a provider without a destination that reads its target fails composition.
-
-`test/agent.test.ts` covers agent definitions in the catalog: sorted with their module, and refused for unknown or repeated operations, unbounded budgets, malformed scopes and a direct agent on a command without a UI binding; and the instructions a proposing agent reads. `test/tool-envelope.test.ts` resolves every `$ref` of a wrapped recursive schema from its root, and offers `expectedRevisions` to commands other than `proposal.submit` only. `test/contracts.test.ts` rejects an operation without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
-
-`test/os.test.ts` covers OS declarations: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
-
-`test/contracts.test.ts` rejects an operation without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
+- `test/data-provider.test.ts`: literal IDs and types survive, and both queries declare `remote`. Search pages with a cursor the provider cannot redefine, and a provider without a destination that reads its target fails composition.
+- `test/agent.test.ts`: agent definitions are sorted with their module in the catalog, and a proposing agent's instructions are checked. Definitions are refused for unknown or repeated capabilities, unbounded budgets, malformed scopes, and a direct agent on a command without a UI binding.
+- `test/tool-envelope.test.ts`: every `$ref` of a wrapped recursive schema resolves from its root, and only commands other than `proposal.submit` are offered `expectedRevisions`.
+- `test/contracts.test.ts`: rejects a capability without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
+- `test/os.test.ts`: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
 
 ## Skills
 

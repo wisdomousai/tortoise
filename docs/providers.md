@@ -1,64 +1,104 @@
 # Providers and account connections
 
-The application runtime stays the only authority over business data. A harness gets the catalog's tool definitions and a tool port. It cannot choose who it acts as, grant itself access, or replace the captured resource context. Tool calls take the same path as HTTP, CLI and MCP calls, so new behavior belongs in the catalog, not in provider-specific code. Runs are described in [agent harnesses](agents.md).
+This page covers provider accounts and their configuration, the credential vault, local models and the model server, and live probes. It is for integrators who connect a provider account or a local model to an application. [Agents](agents.md) explains harnesses, runs, proposals, triggers, standing grants and model entries.
 
-A harness streams text, progress, tool and native-session events. A run succeeds only when the adapter has validated the provider's terminal result and every tracked tool call has finished. Native session IDs are kept for resuming. Credentials and prompts never go into run records.
+## Concepts
 
-## Adapters
+This page is the home for the [credential vault](glossary.md#credential-vault).
 
-| Harness         | Runtime                                      | Funding chosen by the host | Native resume | Questions and approvals                                    |
-| --------------- | -------------------------------------------- | -------------------------- | ------------- | ---------------------------------------------------------- |
-| `deterministic` | A local declarative fixture                  | None                       | No            | Both, with timeouts                                        |
-| `codex`         | The pinned Codex app-server over JSON-RPC    | A ChatGPT plan profile     | Thread ID     | Native questions; shell and file approvals always declined |
-| `claude`        | The Claude Agent SDK and a pinned executable | An Anthropic API key       | Session ID    | Neither                                                    |
-| `ai-sdk`        | AI SDK streaming with application tools      | An OpenAI API key          | No            | Neither                                                    |
-| `local`         | AI SDK chat completions on a loopback server | None                       | No            | Neither                                                    |
+## Provider harnesses
 
-Each adapter is limited to application tools. Codex runs with shell, edit and search disabled, a read-only sandbox, and every command or file approval declined. Its protocol version is pinned, because dynamic tools are still experimental. Claude sees only the application's MCP tools, with no built-in tools and no ambient settings. AI SDK rejects string model aliases, so an ambient gateway credential cannot be picked up. A product that adds shell or file tools defines its own authorization boundary.
+A [harness](glossary.md#harness) reaches business data only through the application's tools, which pass through the [authority](glossary.md#authority) like any other caller ([agents](agents.md#application-tools)). Provider credentials pay for inference and give no access to a workspace. New behavior therefore belongs in the catalog instead of in provider-specific code.
 
-Native executables and provider home directories are absolute paths owned by the host. A provider process gets an allowlisted environment plus the credentials injected explicitly for it. It never inherits API keys, developer CLI configuration or the developer's `PATH`. The desktop build compiles the Claude SDK into the service, so no separate Node runtime is needed ([desktop](desktop.md)).
+| Harness         | Funding chosen by the host | Native resume | Questions and approvals                                    |
+| --------------- | -------------------------- | ------------- | ---------------------------------------------------------- |
+| `deterministic` | None                       | No            | Both, with timeouts                                        |
+| `codex`         | A ChatGPT plan profile     | Thread ID     | Native questions; shell and file approvals always declined |
+| `claude`        | An Anthropic API key       | Session ID    | Neither                                                    |
+| `ai-sdk`        | An OpenAI API key          | No            | Neither                                                    |
+| `local`         | None                       | No            | Neither                                                    |
 
-## Local models
+Each adapter is limited to application tools. Codex runs the app-server with shell, edit and search disabled and a read-only sandbox. Its protocol version is pinned because its dynamic tools are still experimental. Claude sees only the application's MCP tools, with no built-in tools and no settings sources. The AI SDK adapter refuses a string model alias, so it cannot pick up an ambient gateway credential.
 
-The `local` harness runs an OpenAI-compatible server on the same host, such as llama.cpp's `llama-server`, Ollama or vLLM. The deployment configures the model ID the server lists at `/v1/models` and, optionally, the weights digest. Every run record keeps both, so work a local agent did names the model that did it. The digest is the configured value; the harness does not check it against the served weights.
+A run succeeds only when the adapter has validated the provider's terminal result and every tracked tool call has finished. Native thread and session IDs are kept for resuming, and run records hold neither credentials nor prompts. A product that adds shell or file tools defines its own authorization boundary.
 
-The harness has no address of its own. Its requests go through the network port's `local-inference` destination, which is declared with loopback scope. The site policy binds it, for example to `http://127.0.0.1:11434` for Ollama, and the egress guard refuses a binding or a resolved address that leaves the host. Isolated sites can bind it, because it is loopback. Without a binding, the harness reports itself unavailable.
+## Provider processes
 
-An agent definition's model requirement decides which harnesses may run it. `local` admits the local harness and harnesses with no model (the deterministic fixture and jobs). `remote` admits provider harnesses. `any` admits all. A harness that does not say where it sends prompts counts as remote, so a new adapter cannot run a `local` agent by omission. Triggers choose their agent's harness this way. The host's run panel does not offer the local harness yet.
+The Codex and Claude executables come from the bundled runtime manifest. Before a run, the host checks every packaged file's digest and the executable bit, and it never uses an executable found on `PATH`. Each run gets its own working directory and each conversation its own home directory, readable only by the owner. A provider process gets an allowlisted environment plus the credentials injected for it, and no API keys, developer CLI configuration or developer `PATH`.
+
+The desktop build compiles the Claude SDK into the host, so no separate Node runtime is needed ([desktop](desktop.md#packaged-resources)). Native adapters close their child processes as a whole process tree on completion and cancellation. This manages lifetime and is no sandbox against a hostile executable. Process-tree behavior on Windows and Linux needs those platforms' smoke tests.
+
+## Provider configuration
+
+The provider adapters declare their [destinations](glossary.md#destination) as [host components](glossary.md#host-component) in `packages/agents/src/requirements.ts`, and the [site policy](glossary.md#site-policy) binds them. Every destination is optional and unavailable offline. Without a binding, a model run reports why it cannot start.
+
+Only the local [owner](glossary.md#owner), acting without a [delegated grant](glossary.md#grant), manages provider access. The host rechecks that the owner's [session](glossary.md#session) is still live after each awaited step.
 
 ## ChatGPT connection
 
-The connection follows the documented dynamic public-client flow. The authority starts its loopback callback before it begins sign-in.
+The connection follows the documented dynamic public-client flow. The authority starts its loopback callback before it begins sign-in. The account screen opens sign-in in the system browser through a declared [OS action](glossary.md#os-action).
 
 - **Enrollment.** A new enrollment registers with the application name and an opaque host ID kept in the OS vault. A returning profile uses its issued client ID.
 - **Each attempt** lives five minutes and uses one-time state, a nonce and PKCE.
-- **The callback** checks the state, the exact loopback target and the client ID. It exchanges the code, then verifies the ID token's signature, issuer, audience, expiry and nonce on the server. A returning sign-in must match the stored subject.
-- **Authorization URLs** are never logged, and they carry no ID-token hint, so tokens never reach the renderer.
-- **Inference** needs both the `resource.invoke` and `chatgpt.tokens.use.direct` scopes. A verified identity without them is kept as a disabled profile. A model list is not evidence that inference or billing works.
+- **The session** that began an attempt must stay live through the code exchange. A profile connected after it was revoked is logged out again.
+- **The callback** checks the state, the exact loopback target and the client ID. A returning sign-in must match the stored subject.
+- **Token verification** runs on the server after the code exchange and checks the ID token's signature, issuer, audience, expiry and nonce.
+- **Authorization URLs** are never logged and carry no ID-token hint, so no stored token reaches browser code.
+- **Inference** needs both the `resource.invoke` and `chatgpt.tokens.use.direct` scopes. A verified identity without them is kept as a disabled profile.
 
-Profile listing and status return safe metadata only. Credentials are available only inside the authority, and never for disconnected, ungranted or expired profiles; they are never exposed to the renderer. Token refresh is serialized through the whole rotating write. One owner per credential namespace: the service uses a vault namespace per workspace under its workspace lock, and any host that shares profiles across processes needs a single refresh owner.
+Profile listing and status return metadata without tokens. Only the authority reads a profile's tokens, and it refuses for a profile that is disconnected, lacks the inference scopes or has expired. The host refreshes tokens within a minute of expiry, and the whole rotating refresh write runs serialized. A model list is not evidence that inference or billing works.
 
-Logout removes access, refresh and ID tokens locally and attempts revocation at the provider. It reports honestly when revocation could not be confirmed, and no local token remains as a fallback.
+Logout removes the access, refresh and ID tokens locally and keeps the registration. It then attempts revocation at the provider and reports whether revocation was confirmed. No local token remains as a fallback.
 
-A generic OIDC connection is available for explicitly enrolled providers. It never reuses ChatGPT's bootstrap client, and it never trusts an unverified token.
+A generic OIDC connection exists for explicitly enrolled providers, with a client ID from the host's configuration instead of ChatGPT's bootstrap client. It verifies every ID token before trusting it.
 
-## Credential storage
+## API keys
 
-The OS credential vault runs in the authority, independently of Electron. It uses Keychain on macOS, the credential store on Windows, and Secret Service on Linux, which needs a desktop D-Bus session. A locked, denied or missing store is an error. It never falls back to files, the database, environment variables or a test vault. A keyring may show its own unlock prompt during an explicit account action, but startup and status checks never probe it. The packaged build embeds the native addon instead of loading it dynamically. The in-memory vault exists for tests only.
+The Claude and AI SDK adapters run on an API key the owner enters, which the host saves in the credential vault. A run may use the key only after the owner saved or loaded it in the running host. Disconnecting removes it from the vault. An API-key run does not fall back to ChatGPT plan credentials.
 
-## Run limits
+A run captures the selected profile and model, or the API-key account, when it starts, and a later selection does not change them. Before the provider runs, the host checks again that the profile or key is still loaded.
 
-- **Tool calls.** Each tool call gets an idempotency key scoped to its run. Duplicate callbacks share one result, and reusing a call ID with different arguments fails.
-- **Questions and approvals.** Each has one request ID, accepts one answer, and times out after five minutes by default.
-- **Output** is bounded and redacted for known secret patterns, including across streamed chunks.
+## Credential vault
+
+The OS credential vault runs in the authority and does not depend on Electron. It uses Keychain on macOS, the credential store on Windows, and Secret Service on Linux, which needs a desktop D-Bus session. A locked, denied or missing store is an error. The vault does not fall back to files, the database, environment variables or a test vault.
+
+The host uses one vault namespace per workspace, under the workspace's lock. A deployment that shares profiles across processes needs a single refresh owner for each namespace. A keyring may show its own unlock prompt during an explicit account action, but startup and status checks never probe it. The packaged build embeds the native addon instead of loading it dynamically. The in-memory vault exists for tests only.
+
+## Local models
+
+The `local` harness runs AI SDK chat completions against an OpenAI-compatible server on the same host, such as llama.cpp's `llama-server`, Ollama or vLLM. The deployment configures the model ID the server lists at `/v1/models` and, optionally, the weights digest. The harness is available only while the server lists that model. Every run record keeps the model ID and the digest, so work a local agent did names the model that did it.
+
+The harness has no address of its own. Its requests go through the network port's `local-inference` destination, which is declared with loopback scope. The site policy binds it, for example to `http://127.0.0.1:11434` for Ollama. The [egress guard](glossary.md#egress-guard) refuses a binding or a resolved address that leaves the host, so isolated sites can bind it. Without a binding, the harness reports itself unavailable.
+
+An agent definition's model requirement decides which harnesses may run it:
+
+- **local** admits harnesses that keep prompts on this host.
+- **remote** admits provider harnesses.
+- **any** admits every harness.
+
+The deterministic fixture uses no model and meets every requirement. A harness that does not say where it sends prompts counts as remote, so a new adapter cannot run a local agent by omission.
+
+For a server the deployment runs itself, the harness records the configured digest as unverified and does not check it against the served weights. The [model server plugin](../plugins/model-server/README.md) starts llama.cpp `llama-server` or vLLM through the [process port](glossary.md#process-port), on the address the site policy binds to `local-inference`. It hashes the weights before every start, and its harness records the measured digests as verified. [Agents](agents.md#local-models) covers model entries and the fine-tune gate.
+
+## Run supervision
+
+The run supervisor bounds every provider's runs the same way ([agents](agents.md#runs)):
+
+- **Tool calls.** Duplicate callbacks for one call ID share one result. Reusing a call ID with different arguments fails.
+- **Questions and approvals.** At most one is pending per run, and each has one request ID. Each accepts one answer and times out after five minutes by default.
 - **History.** A run keeps its recent events. A stale cursor or a slow subscriber gets an explicit reset.
 - **Storage failure.** A failed run-store write aborts the run instead of reporting success.
 
-Native adapters close their child processes on completion and cancellation, as a whole process tree. This manages lifetime; it is not a sandbox against a hostile executable. Process-tree behavior on Windows and Linux needs those platforms' smoke tests.
+## Use
 
-## Verification
+Run the deterministic tests:
 
-Deterministic tests send no credentials or records over the network. They cover:
+```sh
+bun run test:harness
+bun test packages/host/test/providers.test.ts
+```
+
+They send no credentials or records over the network and cover:
 
 - the sign-in flow against a local signed OIDC server;
 - replay and persistence failures and timeouts;
@@ -66,11 +106,30 @@ Deterministic tests send no credentials or records over the network. They cover:
 - JSON-RPC errors and cancellation of process trees;
 - the real Claude SDK MCP bridge and a mocked AI SDK stream.
 
-An opt-in live probe sends one synthetic prompt and a read-only tool through a chosen adapter. It runs only with explicit permission, model and credentials supplied through a secure environment, and it is not part of normal checks. A passing fixture or packaged startup proves nothing about live consent, billing, entitlement or quality.
+The opt-in live probe sends one synthetic prompt and a read-only tool through the Codex, Claude or AI SDK adapter. It runs only with explicit permission, with the model and credentials from a secure environment, and is not part of normal checks.
 
-A new adapter documents its runtime version, credential source, tool boundary, success rule, cancellation and resume storage. It adds fixtures for success, partial failure and tool rejection. Platform and live checks are run separately, and skipped ones are recorded as skipped.
+```sh
+AGENT_LIVE_ALLOWED=1 bun packages/agents/scripts/live-smoke.ts claude
+```
 
-## References
+A passing fixture or packaged startup does not show that live consent, billing, entitlement or model quality work.
+
+A new adapter documents its runtime version, credential source, tool boundary, success rule, cancellation and resume storage. It adds fixtures for success, partial failure and tool rejection. Platform and live checks run separately, and skipped ones are recorded as skipped.
+
+## Limits
+
+- The web frame's accounts panel offers the deterministic, Codex, Claude and AI SDK harnesses. It does not offer the local harness.
+- Only tests use the generic OIDC connection.
+- The model server does not manage Ollama, which keeps models in its own store, so an Ollama run is unverified.
+
+## Related pages
+
+- [Agents](agents.md): harnesses, runs, model entries and the fine-tune gate.
+- [Desktop](desktop.md): packaged runtimes and the credential addon.
+- [Security and compliance](security-and-compliance.md): the site policy and the egress guard.
+- [Implementation status](implementation-status.md#agents-and-providers): live runs.
+
+Provider documentation:
 
 - [Codex app-server protocol](https://developers.openai.com/codex/app-server/)
 - [ChatGPT dynamic registration and sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in)

@@ -1,49 +1,89 @@
 # @agent-native/mobile-shell
 
-The starter's mobile app: one Expo project for Android and iOS. It opens the configured mobile application's authority on the device and renders its native screens in the native frame. The application runs offline with its own workspace (embedded mode). A tablet paired with a hub opens the hub's own screens (attached mode) through the [hub-link](../../plugins/hub-link/README.md) plugin's screens; see the [mobile guide](../../docs/mobile.md).
+The starter's Expo project for Android and iOS. It opens the configured application's [authority](../../docs/glossary.md#authority) on the device and renders the application's native [screens](../../docs/glossary.md#screen) in the native frame. The application runs offline with its own [workspace](../../docs/glossary.md#workspace) in [embedded mode](../../docs/glossary.md#embedded-mode), and a tablet paired with a [hub](../../docs/glossary.md#hub) opens the hub's own screens in [attached mode](../../docs/glossary.md#attached-mode).
 
-Layer: starter (`apps/*`). Like `apps/web`, it never names content: app identity and the application come from `app.config.json`.
+## Layer
+
+[starter](../../docs/glossary.md#starter) (`apps/*`). Like `apps/web`, it never names content: the product identity and the application come from `app.config.json`. Attached mode runs through the screens of the [hub-link](../../plugins/hub-link/README.md) [host plugin](../../docs/glossary.md#host-plugin). The [mobile host](../../docs/mobile.md) guide covers the modes and pairing.
 
 ## Primitives
 
 - [Starter](../../docs/primitives.md#starter): the mobile half of the starter.
 - [Native frame](../../docs/primitives.md#native-frame): `App` renders `NativeFrame` over the authority's direct transport.
-- [Host platform](../../docs/primitives.md#host-platform): `authority`, the app's one `openMobileAuthority` on `expoPlatform()`, shared with the background task.
+- [Host platform](../../docs/primitives.md#host-platform): `authority` is the one `openMobileAuthority` call on `expoPlatform()`, shared with the background task.
 
 ## Entrypoints
 
-This workspace exports nothing; it is bundled by Metro and built by Expo.
+This package exports nothing. Metro bundles it and Expo builds it.
 
-| File                                 | Purpose                                                                                                                                      |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`app.config.ts`](app.config.ts)     | Expo configuration from `app.config.json`: display name, slug, `appId` as the iOS bundle identifier and Android package, config plugins.     |
-| [`metro.config.js`](metro.config.js) | Expo's Metro config with Uniwind, the generated entry and `.js` imports of TypeScript siblings.                                              |
-| [`global.css`](global.css)           | Tailwind, Uniwind, the native theme and the starter's palette for light and dark appearance.                                                 |
-| [`index.ts`](index.ts)               | Installs the Web globals first, defines the background delivery task at module scope and registers `App`.                                    |
-| [`src/app.tsx`](src/app.tsx)         | `App`: opens the authority, follows the app state and renders `NativeFrame`, or the reason it cannot open. `authority()` is the shared open. |
-| [`fixture/`](fixture)                | A notes application that targets mobile, for the starter's own checks. No example is involved.                                               |
+| File | Runs in | Holds |
+| --- | --- | --- |
+| [`app.config.ts`](app.config.ts) | Node, build time | Expo configuration from `app.config.json`: display name, slug, `appId` as iOS bundle identifier and Android package, config plugins. |
+| [`metro.config.js`](metro.config.js) | Node, build time | Expo's Metro config with Uniwind, the generated entry and `.js` imports of TypeScript siblings. |
+| [`global.css`](global.css) | build time | Tailwind, Uniwind, the native theme and the starter's palette for light and dark appearance. |
+| [`index.ts`](index.ts) | Hermes | Installs the Web globals first, defines the background delivery task at module scope, registers `App`. |
+| [`src/app.tsx`](src/app.tsx) | Hermes | `App`, which renders `NativeFrame` or the reason it cannot open, and `authority()`, the shared open. |
+| [`fixture/`](fixture) | Hermes | A notes application that targets mobile, for the starter's own checks; no example is involved. |
 
-`bun run mobile:prepare` (`scripts/mobile-entry.ts`) writes `generated/entry.ts`, which imports the application's `application` and `screens-native` entrypoints. The starter imports it as `virtual:agent-native/mobile-entry`, and Metro maps that name to the file, as the web frame's Vite plugin does with `virtual:agent-native/screens`. The application is `targets.mobile.application` in `app.config.json`, else the starter's `application`; `AGENT_NATIVE_MOBILE_APPLICATION` overrides both for one developer's build. Preparing fails when the application's manifest does not list `mobile` in its targets.
+`App` opens the authority, follows React Native's `AppState` and renders `NativeFrame`. `ios/` and `android/` are generated by `expo prebuild` (continuous native generation). They are git-ignored, as are `.expo/` and `generated/`.
 
-Workspace sources import TypeScript siblings as `./name.js`, the form Node's ESM resolution and TypeScript expect. Metro looks for a `.js` file, so `metro.config.js` retries a relative `.js` import without the extension.
+### Generated entry
 
-`ios/` and `android/` are generated by `expo prebuild` (continuous native generation) and git-ignored, as are `.expo/` and `generated/`.
+`bun run mobile:prepare` runs `scripts/mobile-entry.ts`, which writes `generated/entry.ts`. The entry imports the application's `application` and `screens-native` entrypoints. The starter imports it as `virtual:agent-native/mobile-entry`, and Metro maps that name to the file. The web frame's Vite plugin does the same with `virtual:agent-native/screens`.
 
-Every dependency except `expo`, `react` and `react-native` is declared in the root `package.json`, so Expo autolinking cannot discover native modules from this manifest's `dependencies`. `expo.autolinking.searchPaths` points it at the root `node_modules` instead. Workspace plugins are found there through the root's `workspace:*` links, so a plugin that ships an Expo module (`expo-module.config.json` plus `android/` or `ios/`) is linked without listing it here. Autolinking links every Expo module installed at the root, whether or not the hosted application composes its plugin; an unused module costs binary size, not behaviour. `expo prebuild` insists on finding `expo`, `react` and `react-native` in this manifest, so they are pinned here to the root's exact versions and `mobile:prebuild` passes `--skip-dependency-update` for them.
+The application is `targets.mobile.application` in `app.config.json`, else the starter's `application`. `AGENT_NATIVE_MOBILE_APPLICATION` overrides both for one developer's build. Preparing fails when the application's manifest does not list `mobile` in its targets.
 
-`mobile:prepare` also writes `generated/native.json`: the Expo config plugin of each composed plugin that names one, with the options `{ application: { id, title }, settings }`, where `settings` are the keys and descriptions every composed plugin declares. Then come the application's own `expoPlugins` from its manifest, such as `expo-camera` with its permission text, with the options it gives. `app.config.ts` appends them all to `plugins`, after `expo-background-task`. The starter never imports a plugin, so the fixture composes none; an application that composes `@agent-native/managed-config` gets the Android restrictions schema at prebuild.
+Packages of this repository import TypeScript siblings as `./name.js`, the form that Node's ECMAScript module resolution and TypeScript expect. Metro looks for a `.js` file, so `metro.config.js` retries a relative `.js` import without the extension.
 
-It also writes `os`, the application's OS registrations from its OS declarations: the URL scheme (`app.config.json`'s `scheme`, else `appId`), Android intent filters, on iOS the associated domains and document types, and the config plugins `app.config.ts` appends to `plugins`: for share handlers `expo-sharing` (an Android SEND filter and an iOS share extension), for notify actions `expo-notifications`, for intent handlers `@agent-native/mobile/intent-filters`, which writes their actions and categories with the names declared, and for shortcut handlers `@agent-native/mobile/shortcuts`, which writes static Android app shortcuts. Verified links are registered only for the hosts in `AGENT_NATIVE_OS_LINK_HOSTS`. `app.config.ts` applies them to the Expo configuration. The generated entry carries the scheme and the settings the composed plugins declare (`os-scheme`, `os-link-hosts`), and `src/app.tsx` connects the OS bindings to the authority once and passes the deliveries to `NativeFrame`. For verified links, `bun scripts/os-associations.ts --team-id <id> --sha256-cert <fingerprint> [--out dist/well-known]` writes `apple-app-site-association` and `assetlinks.json` for the deployment to serve on each link host.
+### Autolinking
+
+The root `package.json` declares every dependency except `expo`, `react` and `react-native`. Expo autolinking therefore cannot discover native modules from this manifest's `dependencies`. `expo.autolinking.searchPaths` points it at the root `node_modules` instead. Plugins of this repository are found there through the root's `workspace:*` links. A plugin that ships an Expo module (`expo-module.config.json` plus `android/` or `ios/`) is linked without being listed here.
+
+Autolinking links every Expo module installed at the root, whether or not the hosted application composes its plugin. An unused module costs binary size and changes no behavior. `expo prebuild` requires `expo`, `react` and `react-native` in this manifest. They are pinned here to the root's exact versions, and `mobile:prebuild` passes `--skip-dependency-update` for them.
+
+### Native configuration
+
+`mobile:prepare` also writes `generated/native.json`. It lists the Expo config plugin of each composed plugin that names one, with the options `{ application: { id, title }, settings }`. The `settings` are the keys and descriptions every composed plugin declares. The application's own `expoPlugins` from its manifest follow with their options, such as `expo-camera` with its permission text. `app.config.ts` appends them all to `plugins`, after `expo-background-task`.
+
+The starter never imports a plugin, so the fixture composes none. An application that composes `@agent-native/managed-config` gets the Android restrictions schema at prebuild.
+
+### OS registrations
+
+`native.json` also holds `os`, the registrations generated from the application's OS declarations:
+
+- the URL scheme: `scheme` in `app.config.json`, else `appId`;
+- Android intent filters;
+- on iOS, the associated domains and document types;
+- the config plugins that `app.config.ts` appends to `plugins`.
+
+The config plugins follow the declared [OS handlers](../../docs/glossary.md#os-handler) and [OS actions](../../docs/glossary.md#os-action):
+
+- share handlers add `expo-sharing`, with an Android SEND filter and an iOS share extension;
+- notify actions add `expo-notifications`;
+- intent handlers add `@agent-native/mobile/intent-filters`, which writes their actions and categories with the declared names;
+- shortcut handlers add `@agent-native/mobile/shortcuts`, which writes static Android app shortcuts.
+
+Verified links are registered only for the hosts in `AGENT_NATIVE_OS_LINK_HOSTS`. `app.config.ts` applies the registrations to the Expo configuration. The generated entry carries the scheme and the settings the composed plugins declare (`os-scheme`, `os-link-hosts`). `src/app.tsx` connects the OS bindings to the authority once and passes the deliveries to `NativeFrame`.
+
+For verified links, this command writes `apple-app-site-association` and `assetlinks.json` for each link host to serve:
+
+```sh
+bun scripts/os-associations.ts --team-id <id> --sha256-cert <fingerprint> [--out dist/well-known]
+```
 
 ## Trust boundary
 
-Code here runs on Hermes, not Bun or Node: it must not import `node:*`, `bun:*` or host-only modules. `app.config.ts` and `metro.config.js` are the exceptions; they run in Node at build time and read only `app.config.json` and the generated entry. The React Native sources are type-checked by `tsconfig.native.json` without Bun or Node types; the root `tsconfig.json` excludes them because React Native's global declarations conflict with Node's.
+Code here runs on Hermes, not Bun or Node. It must not import `node:*`, `bun:*` or host-only modules. `app.config.ts` and `metro.config.js` are the exceptions: they run in Node at build time and read only `app.config.json` and the files in `generated/`. `tsconfig.native.json` type-checks the React Native sources without Bun or Node types. The root `tsconfig.json` excludes them, because React Native's global declarations conflict with Node's.
 
-The app is the workspace's only writer. The screens and the background task share one authority through `authority()`, because ownership refuses a second one and the OS can start the runtime for the task before a screen mounts. The screens act as the device's owner. A link or file another app opens this one with is untrusted and attributed to the owner; it only opens a screen or prefills a form, and the person confirms. Integration loops run while the app is in the foreground; in the background the OS decides when the delivery task runs, and registering it fails quietly where background tasks are unavailable.
+The mobile host is the workspace's only writer. The screens and the background task share one authority through `authority()`. Ownership refuses a second authority, and the OS can start the runtime for the task before a screen mounts. The screens act as the device's [owner](../../docs/glossary.md#owner).
+
+A link or file that another program opens the application with is untrusted and attributed to the owner. It only opens a screen or prefills a form, and the [person](../../docs/glossary.md#person) confirms.
+
+Integration loops run while the application is in the foreground. In the background, the OS decides when the delivery task runs. Registering the task fails quietly where background tasks are unavailable.
 
 ## Dependencies
 
-Framework: `@agent-native/mobile`, `@agent-native/frame-native`, `@agent-native/kernel` (types). External: `expo`, `react`, `react-native` (also pinned in this manifest for `expo prebuild`), `uniwind`, `expo-background-task` (config plugin). The fixture adds `@agent-native/contracts`, `@agent-native/runtime`, `@tanstack/react-query` and `lucide-react-native`. It must never import `examples/*`.
+Framework: `@agent-native/mobile`, `@agent-native/frame-native`, `@agent-native/kernel` (types). External: `expo`, `react`, `react-native` (also pinned in this manifest for `expo prebuild`), `uniwind`, and `expo-background-task` as a config plugin. The fixture adds `@agent-native/contracts`, `@agent-native/runtime`, `@tanstack/react-query`, `lucide-react-native` and `zod`. The package must never import `examples/*`.
 
 ## Tests
 
@@ -53,4 +93,10 @@ bun run typecheck
 bun run check:mobile-bundle
 ```
 
-`test/entry.test.ts` covers the mobile target in `app.config.json` (its own application, the fallback, the override, refused misspellings) and the generated entry and native plugin list, including the refusal of an application that does not target mobile, and the OS registrations and settings written for an application whose OS plugin targets mobile. `check:mobile-bundle` prepares the fixture and runs `expo export --platform android` into `dist/mobile-bundle-check`, which fails when Metro cannot resolve an import or Uniwind cannot compile a class. It is not part of `bun run check`. Device tests run on demand and do not exist yet.
+- `test/entry.test.ts`: the mobile target in `app.config.json` (its own application, the fallback, the override, refused misspellings), the generated entry and the native plugin list. It also covers refusing an application that does not target mobile, and the OS registrations and settings written for an application whose OS plugin targets mobile.
+
+`check:mobile-bundle` prepares the fixture and runs `expo export --platform android` into `dist/mobile-bundle-check`. It fails when Metro cannot resolve an import or Uniwind cannot compile a class. It is not part of `bun run check`. Device tests run on demand, and none exist yet.
+
+## Skills
+
+- [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md): mobile targets, native plugins and screens, and pairing with a hub.

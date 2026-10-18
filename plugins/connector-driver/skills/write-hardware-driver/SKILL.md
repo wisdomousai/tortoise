@@ -5,33 +5,56 @@ description: Observe or control equipment from an agent-native application throu
 
 # Write a hardware driver
 
-A driver is an executable in whatever language suits the equipment. The host starts it as a child process through the process port and speaks JSON-RPC over stdin and stdout. Driver actions are outbox targets and driver state becomes observations, so commands, handlers, screens and agents work as they do for any other system of record. [Hardware drivers](../../../../docs/hardware-drivers.md) holds the design, the protocol and the gate; the [connector-driver README](../../README.md) holds the API.
+A [driver](../../../../docs/glossary.md#driver) is an executable in whatever language suits the equipment. The host starts it as a child process through the [process port](../../../../docs/glossary.md#process-port) and speaks JSON-RPC over stdin and stdout. Driver actions are delivered as outbox effects on a target, and driver state becomes [observations](../../../../docs/glossary.md#observation). Commands, handlers, screens and agents then work as they do for any other system of record. [Hardware drivers](../../../../docs/hardware-drivers.md) holds the design, the protocol and the gate, and the [connector-driver README](../../README.md) holds the API.
 
 ## Before writing
 
-- Drivers never operate safety functions, and the framework is not real-time. A timing-critical loop stays inside the driver or the controller below it and is one action to the framework. High-rate data stays in the driver or goes to a historian.
-- Prefer a deterministic route. A station whose software has an automation interface is reached through a driver; one reachable only through its screen uses the `bridge-station-screen` skill (`packages/station/skills/bridge-station-screen/SKILL.md`).
-- Choose each action's delivery mode from what the equipment can prove ([delivery modes](../../../../docs/hardware-drivers.md#delivery-modes)): `idempotent` when the driver can deduplicate by effect ID, `convergent` when a readback shows the result, `once` with a journal otherwise. Give each action a hazard class; the bridge mode defaults to `monitor-only`, which refuses every action.
+- Drivers never operate safety functions.
+- The framework is not real-time. A timing-critical loop stays inside the driver or the controller below it, and is one action to the framework.
+- High-rate data stays in the driver or goes to a historian.
+- Prefer a deterministic route. A station whose software has an automation interface is reached through a driver. A station reachable only through its screen uses the `bridge-station-screen` skill (`packages/station/skills/bridge-station-screen/SKILL.md`).
+- Choose each action's [delivery mode](../../../../docs/hardware-drivers.md#delivery-modes) from what the equipment can prove:
+  - `idempotent` when the driver can deduplicate by effect ID;
+  - `convergent` when a readback shows the result;
+  - `once` with a journal otherwise.
+- Give each action a [hazard class](../../../../docs/glossary.md#hazard-class). The [bridge mode](../../../../docs/glossary.md#bridge-mode) defaults to `monitor-only`, which refuses every action.
 
 ## Steps
 
-1. **Contract.** Write it in the application with `defineDriverContract`: state fields with units and stable reads, actions with input schema, mode, hazard, timeout, preconditions and readback, events with a maximum rate, the `control` field and the process.
-2. **Wire the application** as in [Wiring an application](../../README.md#wiring-an-application): `driverPluginManifest(contracts)` in the manifest, `processPlugin` and `createDriverPlugin({ contracts })` in the application definition, `driverScreens` in the screens, and in `connect` a `createDriverIntegration` per driver with a `defineTarget` target named after the contract. Events that should become records go through `createDriverEventIngest`.
-3. **Contract file and stub.** Run `app driver contract <id> --out <id>.json` (in a checkout, `bun run cli driver contract <id> --out <id>.json`), then the SDK's stub generator. The digest is written into the driver, and the handshake refuses a driver built against another contract.
-4. **Driver.** Follow the SDK README's "Writing a driver": [Python](../../../../sdks/driver-python/README.md#writing-a-driver) for serial instruments and scripting, [.NET](../../../../sdks/driver-dotnet/README.md#writing-a-driver) for COM automation on an STA thread and a `win-x86` build for a 32-bit COM server. The SDKs gate by mode and presence again inside the driver.
-5. **Check it** with `app driver check <id> -- <executable>`. The check never invokes an action, so it is safe against connected equipment.
-6. **Ship and bind.** Build a self-contained executable (PyInstaller or Nuitka, .NET single-file) and bind its process ID to the absolute path and hash in the site policy. `app driver list` prints the process IDs and contract digests to bind. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+1. Write the [driver contract](../../../../docs/glossary.md#driver-contract) in the application with `defineDriverContract`. It holds:
+   - state fields with units and stable reads;
+   - actions with input schema, mode, hazard, timeout, preconditions and readback;
+   - events with a maximum rate;
+   - the `control` field and the process.
+2. Wire the application as in [Wiring an application](../../README.md#wiring-an-application):
+   - `driverPluginManifest(contracts)` in the manifest;
+   - `processPlugin` and `createDriverPlugin({ contracts })` in the application definition;
+   - `driverScreens` in the screens.
+3. In `connect`, add a `createDriverIntegration` per driver, with a `defineTarget` target named after the contract.
+4. Route events that should become records through `createDriverEventIngest`.
+5. Write the contract file with `app driver contract <id> --out <id>.json`. In a checkout, run `bun run cli driver contract <id> --out <id>.json`.
+6. Run the SDK's stub generator on that file. The digest is written into the driver, and the handshake refuses a driver built against another contract.
+7. Write the driver as the SDK README's "Writing a driver" describes. The SDKs gate by mode and presence again inside the driver.
+   - [Python](../../../../sdks/driver-python/README.md#writing-a-driver) suits serial instruments and scripting.
+   - [.NET](../../../../sdks/driver-dotnet/README.md#writing-a-driver) suits COM automation on an STA thread, with a `win-x86` build for a 32-bit COM server.
+8. Check the driver with `app driver check <id> -- <executable>`. The check never invokes an action, so it is safe against connected equipment.
+9. Build a self-contained executable with PyInstaller, Nuitka or a .NET single-file build.
+10. Print the process IDs and contract digests to bind with `app driver list`.
+11. Bind the driver's process ID to the executable's absolute path and hash in the site policy. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
 
-`examples/quality-inspection` reads a measuring instrument with a Python driver (observe only), and `examples/line-station` loads recipes through a .NET driver as a convergent action (actuate).
+`examples/quality-inspection` reads a measuring instrument with a Python driver, observe only. `examples/line-station` loads recipes through a .NET driver as a convergent action, in actuate mode.
 
 ## Checks
 
-```sh
-bun test plugins/connector-driver plugins/process
-bun test sdks/driver-python sdks/driver-dotnet   # need python3 and dotnet on PATH; skipped otherwise
-bun test examples/<app>
-```
+1. Run the tests. The SDK tests need `python3` and `dotnet` on `PATH` and are skipped otherwise.
 
-Test the application's wiring with `createFakeDriver` from `@agent-native/connector-driver/testing`, which injects faults in process. A new SDK proves itself with `checkDriver` and `chamberConformance` against its simulated chamber as a real child process.
+   ```sh
+   bun test plugins/connector-driver plugins/process
+   bun test sdks/driver-python sdks/driver-dotnet
+   bun test examples/<app>
+   ```
 
-A kind of equipment counts as supported only once it has run against real hardware or its real software. Record that run, its platform and what was not shown in [implementation status](../../../../docs/implementation-status.md#hardware-drivers); simulator and pseudo-terminal runs are recorded as such.
+2. Test the application's wiring with `createFakeDriver` from `@agent-native/connector-driver/testing`, which injects faults in process.
+3. Prove a new SDK with `checkDriver` and `chamberConformance` against its simulated chamber, run as a real child process.
+4. Record a run against real hardware or its real software in [implementation status](../../../../docs/implementation-status.md#hardware-drivers), with its platform and what it did not show. A kind of equipment counts as supported only after such a run.
+5. Record simulator and pseudo-terminal runs as such.

@@ -1,17 +1,19 @@
 # @agent-native/process
 
-The process host plugin. It provides the kernel's process port: it starts the child processes that modules and host components declare, with the executable, arguments, working directory, pin and environment variables that the site policy binds under `processes`. Server code that needs a child (a perception worker, a hardware driver) asks the port by process ID and never names an executable itself.
+The process [host plugin](../../docs/glossary.md#host-plugin). It provides the kernel's [process port](../../docs/glossary.md#process-port), which starts the child processes that modules and host components declare. Each start uses the executable, arguments, working directory, pin and environment variables that the [site policy](../../docs/glossary.md#site-policy) binds under `processes`. Server code that needs a child, such as a perception worker or a hardware driver, asks the port by process ID and never names an executable itself.
 
-Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`.
+## Layer
+
+Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`. The plugin trusts the site policy as the only source of executables, and the site plugin to have validated it.
 
 ## Primitives
 
-- [Host plugin](../../docs/primitives.md#host-plugin): `processPlugin`, `processPluginManifest`, `openProcesses`. `processPlugin` requires `site` and provides the `processes` port; it is written only against `@agent-native/host/plugin`.
+- [Host plugin](../../docs/primitives.md#host-plugin): `processPlugin`, `processPluginManifest`, `openProcesses`. `processPlugin` requires `site` and provides the `processes` port. It is written only against `@agent-native/host/plugin`.
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): a process declares `secrets`, the environment variable names it needs, and no values.
 - [Site policy](../../docs/primitives.md#site-policy): the `processes` section binds each declared process to an absolute executable, or disables it.
 - [Egress guard](../../docs/primitives.md#egress-guard): a process that declares destinations gets the network port's `childEnvironment`, which points it at the loopback proxy.
-- [Event log](../../docs/primitives.md#audit-log): every start, refusal and exit is a `child.started`, `child.refused` or `child.exited` record.
-- [Process port](../../docs/primitives.md#process-port): the port this plugin provides. [Hardware drivers](../../docs/hardware-drivers.md) are its main user.
+- [Audit log](../../docs/primitives.md#audit-log): every start, refusal and exit is a `child.started`, `child.refused` or `child.exited` record.
+- [Process port](../../docs/primitives.md#process-port): the port this plugin provides. [Hardware drivers](../../docs/hardware-drivers.md) use it most.
 
 ## Entrypoints
 
@@ -23,11 +25,11 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 | `@agent-native/process/plugin`          | server only        | `processPlugin`, for `defineApplication({ plugins })`.                       |
 | `@agent-native/process/open`            | server only        | `openProcesses`, the port over the resolved policy.                          |
 
-`decide.ts` holds availability and the environment; `spawn.ts` is the only file that starts or kills a process, and the boundary check's one exemption for this plugin.
+`decide.ts` holds availability and the environment. `spawn.ts` is the only file that starts or kills a process. It is the boundary check's one exemption for this plugin.
 
-Callers on Bun type the result with `bunProcesses(ports.processes)` from `@agent-native/host/plugin`, which returns the child's streams and a `terminate` that stops its whole tree. Applications get the port in `connect` as `processes`.
+Callers on Bun type the result with `bunProcesses(ports.processes)` from `@agent-native/host/plugin`. It returns the child's streams and a `terminate` that stops the child's whole tree. Applications get the port in `connect` as `processes`.
 
-`spawn(id, { inputs })` passes data on inherited descriptors 3, 4 and up, each ending after its bytes, for a launcher that reads a filter or a file by descriptor (the [execution host](../execution-host/README.md) gives bubblewrap its options, seccomp filter and files this way). POSIX only; on Windows a start with inputs is UNAVAILABLE.
+`spawn(id, { inputs })` passes data on inherited descriptors 3, 4 and up, each ending after its bytes. It serves a launcher that reads a filter or a file by descriptor. The [execution host](../execution-host/README.md) gives bubblewrap its options, seccomp filter and files this way. Inputs work on POSIX only; on Windows, a start with inputs is `UNAVAILABLE`.
 
 What the plugin does at each lifecycle hook:
 
@@ -39,17 +41,38 @@ What the plugin does at each lifecycle hook:
 
 ## Trust boundary
 
-The executable comes only from the site policy. The policy refuses a relative executable or working directory, a binding for an undeclared process, and an unbound required process. Each start rechecks availability in this order: declared, not disabled, bound, secrets storable, network confinable. A pinned executable is hashed before every start, and a mismatch is FORBIDDEN. The child is started without a shell. It has its own process group on POSIX, so `terminate` reaches its descendants: SIGTERM, then SIGKILL after two seconds. On Windows, `taskkill /T` stops the tree.
+### Executable
 
-A child does not inherit the host's environment. It gets the platform basics (`SystemRoot`, `WINDIR`, `TEMP`, `TMP`, `TMPDIR`, `LANG`, `LC_ALL`), then the binding's `env`, then the proxy variables if it declares destinations, then its declared secrets from the plugin's secret store under `<process>.<NAME>`. The policy cannot set the proxy variables, loader variables (`PATH`, `LD_PRELOAD`, `DYLD_*`, `NODE_OPTIONS`, `PYTHONPATH` and similar) or a declared secret's name. A missing secret is UNAVAILABLE and names the variable, never the value.
+The executable comes only from the site policy. The policy refuses a relative executable or working directory, a binding for an undeclared process, and an unbound required process. Each start rechecks availability in this order:
 
-A process that declares destinations runs only under a serving host, where the network plugin runs the proxy. With a fail-closed event log, a start that cannot be recorded is stopped again and rejected.
+1. declared;
+2. not disabled;
+3. bound;
+4. secrets storable;
+5. network confinable.
 
-Gaps:
+A pinned executable is hashed before every start, and a mismatch is `FORBIDDEN`. The child starts without a shell. On POSIX it has its own process group, so `terminate` reaches its descendants: SIGTERM, then SIGKILL after two seconds. On Windows, `taskkill /T` stops the tree.
+
+### Environment
+
+A child does not inherit the host's environment. It gets, in order:
+
+1. the platform basics: `SystemRoot`, `WINDIR`, `TEMP`, `TMP`, `TMPDIR`, `LANG` and `LC_ALL`;
+2. the binding's `env`;
+3. the proxy variables, if it declares destinations;
+4. its declared secrets from the plugin's secret store, under `<process>.<NAME>`.
+
+The policy cannot set the proxy variables, a declared secret's name, or loader variables such as `PATH`, `LD_PRELOAD`, `DYLD_*`, `NODE_OPTIONS` and `PYTHONPATH`. A missing secret is `UNAVAILABLE`, and the error names the variable, never the value.
+
+### Network and audit
+
+A process that declares destinations runs only under a serving host, where the network plugin runs the proxy. With a fail-closed [audit log](../../docs/glossary.md#audit-log), a start that cannot be recorded is stopped again and rejected.
+
+### Known gaps
 
 - The Bun platform has no secret store, so a process that declares secrets is unavailable there.
-- Without network destinations a child is not confined by this plugin. It can still open sockets unless the deployment applies the network plugin's exported rules or an OS sandbox.
-- Resource limits (memory, CPU, file handles) are the deployment's; the plugin sets none. The execution host sets them for its sandboxes.
+- This plugin does not confine a child without network destinations. The child can still open sockets unless the deployment applies the network plugin's exported rules or an OS sandbox.
+- Resource limits on memory, CPU and file handles are the deployment's, and the plugin sets none. The execution host sets them for its sandboxes.
 
 ## Dependencies
 
@@ -72,7 +95,7 @@ bun test plugins/process packages/kernel/test/processes.test.ts
 - secrets refused without a secret store;
 - abort and close stopping the tree.
 
-The kernel suite covers the refusing default and two providers refused at composition. The station's perception tests run the worker protocol over an injected start.
+`packages/kernel/test/processes.test.ts` covers the refusing default and two providers refused at composition. The station's perception tests run the worker protocol over an injected start.
 
 ## Skills
 

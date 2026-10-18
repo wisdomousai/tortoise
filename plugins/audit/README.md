@@ -1,49 +1,58 @@
 # @agent-native/audit
 
-The audit host plugin. It opens the hash-chained event log in the site policy's audit mode, under a writer lock, and provides it as the host's event-log port. The runtime and the network plugin's guard record into it. It forwards the log off the host when the policy names a collector. It attests the running executable, catalog and policy before the first request, and resolves commands a crash left open. `audit verify` checks a log, or a copy taken off the host, without opening a workspace.
+This [host plugin](../../docs/glossary.md#host-plugin) keeps the host's [audit log](../../docs/glossary.md#audit-log). It opens the hash-chained log in the [site policy](../../docs/glossary.md#site-policy)'s audit mode, forwards it off the host when the policy names a collector, and attests what runs before the first request. `audit verify` checks a log, or a copy taken off the host, without opening a [workspace](../../docs/glossary.md#workspace).
 
-Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`.
+## Layer
+
+Plugin layer, shipped with the framework. Server only, except `plugin-manifest`. It trusts the site policy and the `audit-log` launcher setting, and never reads [caller](../../docs/glossary.md#caller) input.
 
 ## Primitives
 
-- [Event log](../../docs/primitives.md#audit-log): `auditPlugin`, `auditPluginManifest`, `auditCollectorComponent`, `openAudit`, `auditServiceOf`, `AuditService`, `auditCommand`, `auditCliCommand`, `auditUsage`, `AUDIT_INVALID_EXIT_CODE`.
+- [Audit log](../../docs/primitives.md#audit-log): `auditPlugin`, `auditPluginManifest`, `auditCollectorComponent`, `openAudit`, `auditServiceOf`, `AuditService`, `auditCommand`, `auditCliCommand`, `auditUsage`, `AUDIT_INVALID_EXIT_CODE`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `auditPlugin` requires `site`. It is written only against `@agent-native/host/plugin` and reaches its collector through the composed network port.
 
-The [architecture](../../docs/architecture.md#host-plugins) explains why audit and network reach each other only through ports. [Security and compliance](../../docs/security-and-compliance.md) describes the controls for operators.
+[Architecture](../../docs/architecture.md#host-plugins) explains why audit and network reach each other only through ports. [Security and compliance](../../docs/security-and-compliance.md#audit-log) describes the audit controls for site operators.
 
 ## Entrypoints
 
-| Import                                | Runs in            | Contents                                                                          |
-| ------------------------------------- | ------------------ | --------------------------------------------------------------------------------- |
-| `@agent-native/audit`                 | server only        | The exports listed under Primitives.                                              |
-| `@agent-native/audit/*`               | server only        | One source file each. Only `plugin-manifest` is browser-safe.                     |
-| `@agent-native/audit/plugin-manifest` | browser and server | `auditPluginManifest`: the `audit-collector` destination and `audit-log` setting. |
-| `@agent-native/audit/plugin`          | server only        | `auditPlugin`, for `defineApplication({ plugins })`.                              |
-| `@agent-native/audit/open`            | server only        | `openAudit`, and `auditServiceOf` for plugins that read the log.                  |
-| `@agent-native/audit/cli`             | server only        | `audit verify` and `AUDIT_INVALID_EXIT_CODE`.                                     |
+| Import | Runs in | Contents |
+| --- | --- | --- |
+| `@agent-native/audit` | server only | The exports listed under Primitives. |
+| `@agent-native/audit/*` | server only | One source file each. Only `plugin-manifest` is browser-safe. |
+| `@agent-native/audit/plugin-manifest` | browser and server | `auditPluginManifest`: the `audit-collector` destination and the `audit-log` setting. |
+| `@agent-native/audit/plugin` | server only | `auditPlugin`, for `defineApplication({ plugins })`. |
+| `@agent-native/audit/open` | server only | `openAudit`, and `auditServiceOf` for plugins that read the log. |
+| `@agent-native/audit/cli` | server only | `audit verify` and `AUDIT_INVALID_EXIT_CODE`. |
 
-`audit-channel` (log and forwarder), `syslog`, `attestation` and `executable-digest` are used only inside the package.
+Only the package itself imports `audit-channel` (the log and forwarder), `syslog`, `attestation` and `executable-digest`.
 
-What the plugin does at each lifecycle hook:
+### Lifecycle hooks
 
-| Hook       | Effect                                                                                                                          |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `open`     | Opens the log in the policy's audit mode, wraps it in a forwarder when `audit.forwardTo` is set, and provides it as `eventLog`. |
-| `ready`    | Records `config.loaded` and `policy.loaded`, then resolves `command.accepted` events without an outcome.                        |
-| `describe` | `{ log, mode }` for the `listening` record.                                                                                     |
-| `close`    | Flushes the forwarder, then closes the sink and the log. The network plugin, opened earlier, is still open for the final flush. |
+| Hook | Effect |
+| --- | --- |
+| `open` | Opens the log under its writer lock in the policy's audit mode, and provides it as `eventLog`. |
+| `ready` | Records `config.loaded` and `policy.loaded`, then resolves `command.accepted` events without an outcome. |
+| `describe` | Returns `{ log, mode }` for the `listening` record. |
+| `close` | Flushes the forwarder, then closes the sink and the log. |
+
+When `audit.forwardTo` is set, `open` wraps the log in a forwarder. The runtime and the network plugin's guard record into the port. The network plugin opened earlier, so it is still open for the final flush.
 
 ## Trust boundary
 
-The `audit-log` setting (`--audit-log` / `AGENT_NATIVE_AUDIT_LOG`) is a trusted launcher input, and the plugin never reads caller input. In required audit mode, a command whose `command.accepted` append fails rolls back. That guarantee lives in the runtime; this plugin only provides the port. The forwarder's connection goes through the composed network port, so it is declared, bound and recorded like any other. Without the network plugin it is refused, and the forwarder counts the failure.
+The `audit-log` setting (`--audit-log` or `AGENT_NATIVE_AUDIT_LOG`) is a trusted launcher input. In required audit mode, a command whose `command.accepted` append fails rolls back. The runtime makes that guarantee; this plugin only provides the port.
 
-The service (`services.audit`) gives later plugins the log directory, writer head, forwarder statistics and attested digests, never credentials. It is trusted code like the plugin itself.
+The forwarder connects through the composed network port, so its connection is declared, bound and recorded like any other. Without the network plugin the connection is refused, and the forwarder counts the failure.
 
-Gaps: removing the newest events is detectable only against an anchor or a forwarded copy. No off-host collector has been exercised.
+The [plugin service](../../docs/glossary.md#plugin-service) `services.audit` gives later plugins the log directory, the writer head, forwarder statistics and the attested digests. It carries no credentials. It is trusted code like the plugin.
+
+Limits:
+
+- removing the newest events is detectable only against an anchor or a forwarded copy;
+- no off-host collector has been exercised.
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/event-log`, `@agent-native/adapters/cli`, `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`) and `@agent-native/site` (the policy whose audit mode it applies). No external packages.
+Framework: `@agent-native/contracts`, `@agent-native/event-log`, `@agent-native/adapters/cli`, `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`) and `@agent-native/site`, whose policy sets the audit mode. No external packages.
 
 ## Tests
 
@@ -52,11 +61,13 @@ bun test examples/project-tasks/test/security.test.ts examples/quality-inspectio
 bun run test:sandbox
 ```
 
-The plugin is exercised through applications that compose it:
+The package has no tests of its own. Applications that compose it exercise it:
 
-- the project-tasks suite covers attestation, auditing over every channel, fail-closed rollback and crash recovery;
-- the quality-inspection suite covers `audit verify` and tamper detection;
-- the sandbox test verifies the compiled binary's chain.
+- `examples/project-tasks/test/security.test.ts` covers attestation, audit records over HTTP and the embedded authority, the writer lock and crash recovery;
+- `examples/quality-inspection/test/security.test.ts` covers `audit verify` and tamper detection;
+- `examples/quality-inspection/test/sandbox.test.ts`, run by `test:sandbox`, verifies the compiled binary's chain.
+
+`packages/runtime/test/audit.test.ts` covers the fail-closed rollback in required mode.
 
 ## Skills
 

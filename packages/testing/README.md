@@ -1,8 +1,10 @@
 # @agent-native/testing
 
-Shared test machinery for the framework's central claim: the same operation behaves the same on every surface. A behavioral scenario runs against a `ScenarioDriver`, and the same scenario runs through the direct, HTTP, CLI and MCP drivers, whose results and structured errors must agree. The UI-binding helpers check that every operation that claims a UI binding is referenced by a screen of its application. Agent scenarios judge an agent definition's runs by their receipts and proposals.
+Shared test machinery for the framework's claim that a [capability](../../docs/glossary.md#capability) behaves the same on every [surface](../../docs/glossary.md#surface). A [behavioral scenario](../../docs/glossary.md#behavioral-scenario) runs against a `ScenarioDriver`, and `assertEquivalent` compares the outcomes of two runs. The [UI-binding](../../docs/glossary.md#ui-binding) helpers check that every capability claiming a UI binding is referenced by a [screen](../../docs/glossary.md#screen) of its application. [Agent scenarios](../../docs/glossary.md#agent-scenario) judge an agent definition's runs by their [receipts](../../docs/glossary.md#receipt) and [proposals](../../docs/glossary.md#proposal).
 
-Layer: framework (`packages/*`). Test code; production code never imports it.
+## Layer
+
+Framework (`packages/*`). Test code; production code does not import it. Scenarios trust the test to supply the [execution context](../../docs/glossary.md#execution-context), as a host would.
 
 ## Primitives
 
@@ -13,68 +15,108 @@ Layer: framework (`packages/*`). Test code; production code never imports it.
 
 ## Entrypoints
 
-| Import                              | Runs in        | Contents                                                                                    |
-| ----------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
-| `@agent-native/testing`             | server (tests) | `scenarios` and `agent-scenarios`.                                                          |
-| `@agent-native/testing/*`           | server (tests) | One source file: `scenarios`, `agent-scenarios`, `activation`, `ui-bindings`, `connectors`, `storage` or `postgres`. |
-| `@agent-native/testing/scenarios`   | server (tests) | `ScenarioDriver`, `BehavioralScenario`, `directDriver`, `runScenarios`, `assertEquivalent`. |
-| `@agent-native/testing/activation` | server (tests) | `gateModel`, `scenariosDigest`: the activation gate for a local model. |
+| Import                                  | Runs in        | Contents                                                                                       |
+| --------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------- |
+| `@agent-native/testing`                 | server (tests) | `scenarios`, `agent-scenarios` and `activation`.                                               |
+| `@agent-native/testing/*`               | server (tests) | One source file: `scenarios`, `agent-scenarios`, `activation`, `ui-bindings`, `connectors`, `storage` or `postgres`. |
+| `@agent-native/testing/scenarios`       | server (tests) | `ScenarioDriver`, `BehavioralScenario`, `directDriver`, `runScenarios`, `assertEquivalent`.    |
+| `@agent-native/testing/activation`      | server (tests) | `gateModel`, `scenariosDigest`: the activation gate for a local model.                         |
 | `@agent-native/testing/agent-scenarios` | server (tests) | `AgentScenario`, `runAgentScenario`, `runAgentScenarios`, `assertAgentScenarios`, `scenarioRegressions`, `containsValue`, `liveScenariosRequested`. |
-| `@agent-native/testing/ui-bindings` | server (tests) | `referencedCapabilities`, `unboundOperations`: static scan of an application's screens.     |
-| `@agent-native/testing/connectors`  | server (tests) | `connectorConformance`, `ConnectorHarness`, `conformanceEffect`: the connector contract.    |
-| `@agent-native/testing/storage`     | server (tests) | `storageConformance`, `StorageHarness`: the cases any `Storage` adapter must pass.          |
-| `@agent-native/testing/postgres`    | server (tests) | `pgliteDriver`: Postgres compiled to WebAssembly behind `PgDriver`, for tests without a server. |
+| `@agent-native/testing/ui-bindings`     | server (tests) | `referencedCapabilities`, `unboundOperations`: a static scan of an application's screens.      |
+| `@agent-native/testing/connectors`      | server (tests) | `connectorConformance`, `ConnectorHarness`, `conformanceEffect`: the connector contract.       |
+| `@agent-native/testing/storage`         | server (tests) | `storageConformance`, `StorageHarness`: the cases any `Storage` adapter must pass.             |
+| `@agent-native/testing/postgres`        | server (tests) | `pgliteDriver`: Postgres compiled to WebAssembly behind `PgDriver`, for tests without a server. |
 
-Each example uses both: `examples/<name>/test/conformance.test.ts` runs its scenarios through every driver, and `examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty.
+### Behavioral scenarios and UI bindings
 
-`connectorConformance(setup)` checks any `SystemOfRecordPort` (a system-of-record client, a screen bridge, a hardware driver) the way the dispatcher uses it. Each case gets a fresh `ConnectorHarness` from `setup`: the port, a way to make effects the target applies or refuses, how often the target applied an effect, and optional hooks to fail a delivery, lose a reply or add an item for `pull`. The cases:
+A `ScenarioDriver` sends commands and queries for one transport. The package ships `directDriver`, which calls the application's `invokeRaw` and `queryRaw`. `runScenarios` runs a list of scenarios on one driver. `assertEquivalent` compares two outcomes as canonical JSON.
+
+Every example's `examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty. Five examples also have a `test/conformance.test.ts` that reads the same result through the authority, HTTP, the CLI and MCP. Those tests call the surfaces directly and do not use this package.
+
+### Connector conformance
+
+`connectorConformance(setup)` checks any `SystemOfRecordPort` the way the [dispatcher](../../docs/glossary.md#dispatcher) uses it. The port may be a [system-of-record](../../docs/glossary.md#system-of-record) client, a screen bridge or a hardware driver. Each case gets a fresh `ConnectorHarness` from `setup`, which holds:
+
+- the port;
+- a way to make effects the target applies or refuses;
+- how often the target applied an effect;
+- optional hooks to fail a delivery, lose a reply or add an item for `pull`.
+
+The cases:
 
 - the target is named, and a target without idempotent delivery has a lookup;
 - an effect is applied once and a retry does not apply it again, through lookup when delivery is not idempotent;
 - a refusal is returned as a rejection with a code and a message, and nothing is applied;
 - a cancelled delivery fails and applies nothing;
 - a transient failure throws something other than `DeliveryUncertain`, applies nothing, and the retry delivers;
-- a lost reply is either `DeliveryUncertain` or found again on retry, never applied twice;
+- a lost reply is either `DeliveryUncertain` or found again on retry, and is not applied twice;
 - `pull` resumes from its last cursor without repeating items.
 
-A case returns `{ passed: true }`, or `{ skipped: reason }` when its hook is missing, and throws a message naming the broken rule. It runs under any test runner; a connector's own command line can run it too.
+A case returns `{ passed: true }`, or `{ skipped: reason }` when its hook is missing. A broken case throws a message naming the broken rule. The cases run under any test runner, and a connector's own command line can run them too.
 
-`storageConformance(harness)` checks any `Storage` the way the kernel uses it. Each case opens a fresh database from the harness, and a second `open` on it is what a restart sees:
+### Storage conformance
+
+`storageConformance(harness)` checks any `Storage` the way the kernel uses it. Each case opens a fresh database from the harness, and a second `open` on it is what a restart sees. The cases:
 
 - a commit stores state, journal, revisions and receipts together, and a reopen sees them;
 - a transaction that throws commits nothing, before and after a reopen;
-- a reader's mutation never reaches the next read or transaction;
-- the initial state factory's object is never handed to a transaction;
+- a reader's mutation does not reach the next read or transaction;
+- no transaction receives the initial state factory's object;
 - concurrent transactions on one workspace run one after another;
 - workspaces are independent;
 - a removed record stays removed, and a stored `__proto__` key stays data;
 - outbox effects and blob references are stored with the commit.
 
-## Agent scenarios
+### Agent scenarios
 
-An `AgentScenario` names an agent definition, the task a person gives it, who issues the run, the records it starts on, fixture `setup` commands and what must come out:
+An `AgentScenario` names an agent definition, the task a person gives it, who issues the run, the records it starts on and fixture `setup` commands. It states what must come out:
 
-- `commits`: every command the run committed other than proposals, in order, each with a subset of its input. A commit not listed fails the scenario.
-- `proposals`: every `proposal.submit` the run made, by the proposed operation, a subset of its input and its record.
-- `refused`: calls the application must have refused, with the error code.
-- `outcome`: whether the run succeeded or failed.
-- `check(result, application)`: anything further, such as a record read afterwards.
+- **`commits`**: every command the run committed other than proposals, in order, each with a subset of its input. A commit not listed fails the scenario.
+- **`proposals`**: every `proposal.submit` the run made, by the proposed capability's operation ID, a subset of its input and its record.
+- **`refused`**: calls the application must have refused, with the error code.
+- **`outcome`**: whether the run succeeded or failed.
+- **`check(result, application)`**: anything further, such as a record read afterwards.
 
-`runAgentScenario(scenario, { application, harness })` commits the setup, starts the run in a run supervisor under `agentGrant` of the issuer with the definition's budgets and model requirement, offers the tools the grant names in the `{ input, expectedRevisions }` envelope, and records every call with its receipt or refusal. The text the run produced is never read. It returns `{ passed, failures, calls, commits, proposals, state }` instead of throwing, so `scenarioRegressions(candidate, baseline)` can list the scenarios a new model fails that the current one passes. `assertAgentScenarios` throws with every failure, for a test.
+`runAgentScenario(scenario, { application, harness })`:
 
-With the deterministic harness the prompt is the scenario's `script`; with any other harness it is the definition's instructions followed by the task. CI runs the deterministic harness only. A run against a model happens only when a test is given a configured harness and `AGENT_SCENARIOS=live` is set (`liveScenariosRequested()`); no credential is looked up. Scenarios in a list share one application, each starting from the state the previous one left. A harness the supervisor refuses (a model requirement or named model it does not meet) fails the scenario with state `refused`. `result.model` is the model identity the run recorded.
+1. commits the setup;
+2. starts the run in a run supervisor under `agentGrant` of the issuer, with the definition's budgets and model requirement;
+3. offers the tools the grant names, in the `{ input, expectedRevisions }` envelope;
+4. records every call with its receipt or refusal.
 
-`gateModel({ entry, candidate, baseline?, scenarios, application })` is the activation gate for a local model: it runs the scenarios on the candidate harness, which must serve `entry`, and on the baseline when one is given, each on a fresh application from `application()`. It returns a `ModelActivation` with the entry's digests, the digest of what the scenarios ask (`scenariosDigest`), each result and the regressions against the baseline. It passes only when every scenario passes.
+The text the run produced is not read. The function returns `{ passed, failures, calls, commits, proposals, state }` instead of throwing. `scenarioRegressions(candidate, baseline)` then lists the scenarios a new model fails that the current one passes. `assertAgentScenarios` throws with every failure, for a test.
+
+With the deterministic [harness](../../docs/glossary.md#harness), the prompt is the scenario's `script`. With any other harness, it is the definition's instructions followed by the task. CI runs the deterministic harness only. A run against a model happens only when a test is given a configured harness and `AGENT_SCENARIOS=live` is set (`liveScenariosRequested()`). No credential is looked up.
+
+Scenarios in a list share one application, each starting from the state the previous one left. A harness the supervisor refuses fails the scenario with state `refused`; the supervisor refuses a harness that does not meet a model requirement or named model. `result.model` is the model identity the run recorded.
+
+### Model gate
+
+`gateModel({ entry, candidate, baseline?, scenarios, application })` is the activation gate for a local model. It runs the scenarios on the candidate harness, which must serve `entry`, and on the baseline when one is given. Each run uses a fresh application from `application()`. It returns a `ModelActivation` with:
+
+- the entry's digests;
+- the digest of what the scenarios ask (`scenariosDigest`);
+- each result and the regressions against the baseline.
+
+The gate passes only when every scenario passes.
 
 ## Trust boundary
 
-Scenarios receive the `ExecutionContext` from the test, which stands in for the trusted host; they must never derive it from operation input. An agent scenario's tools take authority from the run's context only, never from the call, as the host's run tools do. `assertEquivalent` compares canonical JSON, so key order cannot hide or fake a difference.
+Scenarios receive the `ExecutionContext` from the test, which stands in for the trusted host. They must not derive it from capability input. An agent scenario's tools take authority from the run's context only, never from the call, as the host's run tools do. `assertEquivalent` compares canonical JSON, so key order cannot hide or fake a difference.
 
-`unboundOperations` proves that a screen names a capability (`<contracts import>.<key>` in a `.tsx` file), not that a control renders it. Browser specs cover the reference screens, not every operation.
+`unboundOperations` proves that a screen names a capability (`<contracts import>.<key>` in a `.tsx` file). It does not prove that a control renders it. Browser specs cover the reference screens, not every capability.
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime` (types and `agentGrant`), `@agent-native/agents` (the run supervisor, for `agent-scenarios`), `@agent-native/integration` (the port and its errors, for `connectors`), `@agent-native/adapters` (the `PgDriver` type, for `postgres`). External: `@electric-sql/pglite`. Framework tests must never import an example; content imports this package, not the other way round.
+Framework:
+
+- `@agent-native/contracts`;
+- `@agent-native/runtime`: types and `agentGrant`;
+- `@agent-native/agents`: the run supervisor, for `agent-scenarios`;
+- `@agent-native/integration`: the port and its errors, for `connectors`;
+- `@agent-native/adapters`: the `PgDriver` type, for `postgres`.
+
+External: `@electric-sql/pglite`. Framework tests must not import an example. Content imports this package, not the other way round.
 
 ## Tests
 
@@ -83,9 +125,26 @@ bun test packages/testing
 bun run test:conformance
 ```
 
-`test/storage.test.ts` runs the storage cases against the memory, SQLite and Postgres (PGlite) storages, and against a Postgres server when `STORAGE_POSTGRES_URL` names one. `test/postgres-lease.test.ts` races two hosts for one workspace lease: one wins, a takeover after expiry gets a larger fence, and the old holder's commit and renewal are refused; the same cases run against the server.
+- `test/storage.test.ts`: the storage cases against the memory, SQLite and Postgres (PGlite) storages, and against a Postgres server when `STORAGE_POSTGRES_URL` names one.
+- `test/postgres-lease.test.ts`:
+  - two hosts race for one workspace lease: one wins, a takeover after expiry gets a larger fence, and the old holder's commit and renewal are refused;
+  - a lease is renewed while held, and released for the next host without waiting;
+  - a second storage's commit invalidates the first one's cached snapshot;
+  - the same cases run against the server.
+- `test/connectors.test.ts`: the connector cases against a conforming in-memory target, and against flawed ones (duplicates on retry, refusals thrown, abort ignored). Each flawed target fails with the rule it breaks.
+- `test/agent-scenarios.test.ts`: agent scenarios over a lots fixture, with the deterministic harness and a scripted model harness:
+  - a proposal judged as passing;
+  - a direct write and a proposal outside the selection refused;
+  - extra commits and a wrong outcome failing;
+  - the model's prompt, tools and budget, and regressions;
+  - the model gate passing, failing with a regression and refusing a harness that serves another entry.
 
-`test/connectors.test.ts` runs the connector cases against a conforming in-memory target. It also runs them against flawed ones (duplicates on retry, refusals thrown, abort ignored), and each fails with the rule it breaks. `test/agent-scenarios.test.ts` runs agent scenarios over a lots fixture with the deterministic harness and a scripted model harness: a proposal judged as passing, a direct write and a proposal outside the selection refused, extra commits and a wrong outcome failing, the model's prompt, tools and budget, regressions, and the model gate passing, failing with a regression and refusing a harness that serves another entry. `plugins/model-server` runs the gate against a managed server. `examples/receiving/test/agent-scenarios.test.ts` runs the discrepancy agent's scenarios. The behavioral scenario and UI-binding helpers have no suite of their own; they are exercised by the conformance and UI-binding tests of every example. Together they check that every operation behaves the same on every surface and that every operation claiming a UI binding is referenced by a screen.
+Elsewhere:
+
+- `plugins/model-server` runs the gate against a managed server.
+- `examples/receiving/test/agent-scenarios.test.ts` runs the discrepancy agent's scenarios.
+- The behavioral scenario helpers have no suite of their own. `examples/project-tasks/test/storage-conformance.test.ts` and the scenario tests of the webhook, device-link, hub-link, station-sign-in and compliance plugins exercise them.
+- The UI-binding helpers are exercised by the UI-binding test of every example.
 
 ## Skills
 

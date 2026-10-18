@@ -5,25 +5,30 @@ description: Run an agent-native application's authority on a server, with its w
 
 # Run a hosted authority
 
-A hosted authority is the same host on another platform: `hostedPlatform` keeps the workspace in a shared Postgres database and makes ownership a lease with a fencing token, so a replacement instance can take over and a paused old one commits nothing more. Contracts and handlers do not change. The [host README](../../README.md#trust-boundary) states what the lease guarantees; the [ledger](../../../../docs/implementation-status.md#hosted-authority) lists what is not built.
+A [hosted authority](../../../../docs/glossary.md#hosted-authority) is the same [host](../../../../docs/glossary.md#host) on another [host platform](../../../../docs/glossary.md#host-platform). `hostedPlatform` keeps the [workspace](../../../../docs/glossary.md#workspace) in a shared Postgres database and makes ownership a [workspace lease](../../../../docs/glossary.md#workspace-lease) with a fencing token. A replacement instance can take over, and a paused old one commits nothing more. Contracts and handlers do not change. [Hosting](../../../../docs/hosting.md#hosted-authority) explains the lease, the [host README](../../README.md#trust-boundary) states what it guarantees, and the [ledger](../../../../docs/implementation-status.md#hosted-authority) lists what is not built.
 
 ## Before writing
 
-- Check the application can be hosted: a `site`-scoped destination, a device, an exchange folder or a station process pins it to a site, and the generated security manifest (`bun run generate`) shows its placement.
+- Check that the application can be hosted. A `site`-scoped destination, a device, an exchange folder or a station process pins it to a [site](../../../../docs/glossary.md#site). The generated security manifest (`bun run generate`) shows its placement.
 - Decide the instance layout. One process serves one workspace. Several workspaces run one instance each, behind a router that sends each workspace's requests to its instance.
-- The instance's local directory (`--workspace`) still holds blobs, agent run history, the audit log and the plugins' files. Put it on a volume that follows the instance, or accept that a takeover on another machine starts without them.
+- Decide where the instance's local directory (`--workspace`) lives. It still holds blobs, agent run history, the [audit log](../../../../docs/glossary.md#audit-log) and the plugins' files. Put it on a volume that follows the instance, or accept that a takeover on another machine starts without them.
 
 ## Steps
 
-1. **Provide the database**: a Postgres 15 or newer database the instance can create tables in. Its URL with credentials goes in `AGENT_NATIVE_DATABASE_URL`, from the deployment's secret store, never a flag or a policy file.
-2. **Start the instance** with `app serve --workspace <dir> --hosted-workspace <name> --port <n>`. `<name>` is the workspace's key in the database; every instance of one workspace uses the same name. A second instance is refused with `CONFLICT` while the lease is held.
-3. **Supervise it**: an instance that loses its lease exits with code 1 and logs a `lease-lost` record on stderr. Restart it; it waits for no one, but is refused until the lease expires (30 seconds without renewal) or is released.
-4. **Put ingress and identity in front** with the site plugin's policy, as for a site (the `deploy-to-site` skill, `plugins/site/skills/deploy-to-site/SKILL.md`): a `tls` listener with the public certificate, and `identity: external` with `workforce` naming the OpenID Connect provider, so people sign in with the workforce account and no local owner session exists.
-5. **Back up** with the database's own tools (`pg_dump`, point-in-time recovery). The CLI's `backup`, `restore`, `migrate`, `sync`, `drain` and `--embedded` verbs open a local workspace only.
+### Hosted instance
 
-## A new storage adapter
+1. Provide a Postgres 15 or newer database the instance can create tables in.
+2. Put the database URL with its credentials in `AGENT_NATIVE_DATABASE_URL`, from the deployment's secret store. Never put it in a flag or a policy file.
+3. Start the instance with `app serve --workspace <dir> --hosted-workspace <name> --port <n>`. `<name>` is the workspace's key in the database, and every instance of one workspace uses the same name. A second instance is refused with `CONFLICT` while the lease is held.
+4. Supervise the instance and restart it when it exits. An instance that loses its lease logs a `lease-lost` record on stderr and exits with code 1. A restarted instance does not wait for the lease. It is refused until the lease expires after 30 seconds without renewal, or is released.
+5. Set a `tls` listener with the public certificate in the site plugin's policy, as for a site. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) has the policy steps.
+6. Set `identity: external` in the same policy, with `workforce` naming the OpenID Connect provider. People sign in with the workforce account, and no local owner session exists.
+7. Back up with the database's own tools, such as `pg_dump` or point-in-time recovery. The CLI's `backup`, `restore`, `migrate`, `sync`, `drain` and `--embedded` verbs open a local workspace only.
 
-Implement `Storage<State>` (`transact`, `read`) and prove it with `storageConformance(harness)` from `@agent-native/testing/storage`, as `packages/testing/test/storage.test.ts` does for memory, SQLite and Postgres. A Postgres-compatible service can reuse `PostgresStorage` with its own `PgDriver`.
+### Storage adapter
+
+1. Implement `Storage<State>` with `transact` and `read`. A Postgres-compatible database can reuse `PostgresStorage` with its own `PgDriver`.
+2. Prove it with `storageConformance(harness)` from `@agent-native/testing/storage`, as `packages/testing/test/storage.test.ts` does for memory, SQLite and Postgres. [Adapters](../../../../docs/adapters.md#storage) describes the [storage](../../../../docs/glossary.md#storage) port.
 
 ## Checks
 
