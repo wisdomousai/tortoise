@@ -1,14 +1,14 @@
 # Overview
 
-The framework builds applications that run at the [point of work](glossary.md#point-of-work): on a workstation PC, a site server or a phone next to the equipment. An application takes input from operators, scanners, instruments, plant signals and station software, and commits each change to a local [workspace](glossary.md#workspace). The application delivers the changes to the [systems of record](glossary.md#system-of-record) that own the enterprise data, such as an ERP, an MES or a quality system. Each [capability](glossary.md#capability) is declared once and reached from the application's screens, HTTP, MCP and the CLI. The repository is a reference architecture: the [framework](glossary.md#framework), [host plugins](glossary.md#host-plugin), a [starter](glossary.md#starter) and eight [examples](glossary.md#example).
+The framework builds applications that run at the [point of work](glossary.md#point-of-work): on a workstation PC, a site server or a phone next to the equipment. An application takes input from operators, scanners, instruments, plant signals and workstation applications, and commits each change to a local [workspace](glossary.md#workspace). The application delivers the changes to the [systems of record](glossary.md#system-of-record) that own the enterprise data, such as an ERP, an MES or a quality system. Each [capability](glossary.md#capability) is declared once and reached from the application's screens, HTTP, MCP and the CLI. The repository is a reference architecture: the [framework](glossary.md#framework), [host plugins](glossary.md#host-plugin), a [starter](glossary.md#starter) and eight [examples](glossary.md#example).
 
 ## Concepts
 
-Terms: [point of work](glossary.md#point-of-work), [working set](glossary.md#working-set), [operator](glossary.md#operator), [workstation](glossary.md#workstation), [target](glossary.md#target), [outbox effect](glossary.md#effect) and [site policy](glossary.md#site-policy).
+Terms: [point of work](glossary.md#point-of-work), [working set](glossary.md#working-set), [operator](glossary.md#operator), [workstation](glossary.md#workstation), [target](glossary.md#target), [outbox effect](glossary.md#effect) and [deployment policy](glossary.md#deployment-policy).
 
 ## Data ownership
 
-The system of record is authoritative for master data and for the postings it accepts. The application holds a working set: copies of the records a task needs, kept current by [inbound sync](glossary.md#inbound-sync). The application also holds the records it captured, its pending effects and their outcomes. Observed station state is held as copies with provenance ([operator workstations](operator-workstations.md#data-ownership)). No transaction spans the application and a system of record.
+The system of record is authoritative for master data and for the postings it accepts. The application holds a working set: copies of the records a task needs, kept current by [inbound sync](glossary.md#inbound-sync). The application also holds the records it captured, its pending effects and their outcomes. Observed workstation state is held as copies with provenance ([operator workstations](operator-workstations.md#data-ownership)). No transaction spans the application and a system of record.
 
 ## Request path
 
@@ -18,7 +18,7 @@ The diagram shows three paths through the code: a command and its delivery, inbo
 
 A command takes this path:
 
-1. An input arrives: a press on a screen, a scan, a driver reading or a reading of a workstation application's screen.
+1. An operator presses a button, a scanner reads a code, a driver reports a reading, or an observer reads a workstation application's screen.
 2. A surface validates the input and derives the principal, the workspace and the grant from the session.
 3. The runtime runs the handler and authorizes the operation, object and fields inside the transaction.
 4. State, revisions, the receipt, journal entries and the outbox effect commit together, and the caller receives the receipt.

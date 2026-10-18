@@ -67,7 +67,7 @@ export const paths: readonly RequestPath[] = [
         lane: 'world',
         title: 'Input',
         summary:
-          'An operator presses a control, a scanner reads a code, a driver reports a reading or an observer reads the station screen.',
+          'An operator presses a control, a scanner reads a code, a driver reports a reading or an observer reads a workstation application's screen.',
         doc: 'point-of-work-input',
         sources: [
           'packages/devices/src',
@@ -164,7 +164,7 @@ export const paths: readonly RequestPath[] = [
         lane: 'delivery',
         title: 'Connector',
         summary:
-          'The connector reaches the system of record through the network port, an exchange folder, a driver process or the station screen.',
+          'The connector reaches the system of record through the network port, an exchange folder, a driver process or a workstation application's screen.',
         doc: 'systems-of-record#connectors',
         sources: [
           'plugins/connector-http/src',
@@ -434,7 +434,7 @@ export const properties: readonly Property[] = [
   },
   {
     property: 'A workstation application is not driven while the operator holds the seat.',
-    mechanism: 'The station controller checks the bridge mode, hazard class and seat.',
+    mechanism: 'The workstation controller checks the bridge mode, hazard class and seat.',
     doc: 'operator-workstations#seat',
     tests: [
       {
@@ -563,7 +563,7 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
     sources: ['examples/quality-inspection/fake-sor.ts', 'examples/quality-inspection/drivers'],
   },
   'line-station': {
-    input: 'The station screen through an observer, scanners, and an automation driver.',
+    input: 'A workstation application's screen through an observer, scanners, and an automation driver.',
     record: 'A homebrew MES for orders and stops, and the workstation application through its screen.',
     sources: [
       'examples/line-station/fake-mes.ts',
