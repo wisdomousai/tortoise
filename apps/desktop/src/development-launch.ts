@@ -4,7 +4,7 @@ import { isAbsolute } from 'node:path';
  * How `bun run dev` starts the desktop window from this checkout.
  *
  * Purpose: open the same Electron shell as a packaged build without staging native
- * runtimes or a compiled service. The window still attaches to a workspace authority
+ * runtimes or a compiled service. The window still attaches to a workspace instance
  * or starts one; Bun runs `apps/service` from source.
  *
  * Trust boundary: this path exists only when Electron reports the app is unpackaged

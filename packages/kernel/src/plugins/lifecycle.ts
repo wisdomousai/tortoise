@@ -16,7 +16,7 @@ export type PluginPlatform = Pick<
 export interface OpenPluginsOptions {
   readonly platform: PluginPlatform;
   readonly workspacePath: string;
-  readonly component: 'authority' | 'embedded';
+  readonly component: 'host' | 'embedded';
   readonly instance: string;
   readonly serving: boolean;
   readonly settings?: PluginSettings;

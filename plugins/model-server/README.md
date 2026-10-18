@@ -1,6 +1,6 @@
 # @agent-native/model-server
 
-The model server plugin runs a local model for agents that require one. It hashes the weights it is given and refuses to start when a digest differs from the [model entry](../../docs/glossary.md#model-entry), or when a fine-tune has no passing activation. It starts llama.cpp `llama-server` or vLLM through the [process port](../../docs/glossary.md#process-port), listening on the address the [site policy](../../docs/glossary.md#site-policy) binds to `local-inference`. The [harness](../../docs/glossary.md#harness) it returns records the measured digests on every run. [Agents](../../docs/agents.md#local-models) explains model entries, proposal datasets and the gate.
+The model server plugin runs a local model for agents that require one. It hashes the weights it is given and refuses to start when a digest differs from the [model entry](../../docs/glossary.md#model-entry), or when a fine-tune has no passing activation. It starts llama.cpp `llama-server` or vLLM through the [process port](../../docs/glossary.md#process-port), listening on the address the [site policy](../../docs/glossary.md#site-policy) binds to `local-inference`. The [harness](../../docs/glossary.md#harness) it returns records the measured digests on every run. [Agents](../../docs/agents.md#local-models) explains model entries, approval datasets and the gate.
 
 ## Layer
 
@@ -99,7 +99,7 @@ A harness for an externally run server records the digests it was given with `ve
 bun test plugins/model-server
 ```
 
-`test/model-server.test.ts` serves a notes fixture application with the site, network, process and model server plugins. It starts `test/fixtures/llama-server.ts` through the process port, a stand-in that takes llama-server's flags and answers with a proposal tool call. It covers:
+`test/model-server.test.ts` serves a notes fixture application with the site, network, process and model server plugins. It starts `test/fixtures/llama-server.ts` through the process port, a stand-in that takes llama-server's flags and answers with an approval request tool call. It covers:
 
 - weights that differ from the entry, refused with the reason given by the harness;
 - a fine-tune without an activation, with a failing one and with one for another adapter, each refused;
@@ -108,7 +108,7 @@ bun test plugins/model-server
 - a harness serving another entry, refused for an agent that names its model;
 - the directory digest, and each runtime's arguments.
 
-`test/live.test.ts` runs only when `LOCAL_MODEL_GGUF` names a GGUF file. The plugin then starts the real llama.cpp `llama-server` (`LLAMA_SERVER`, or the one on `PATH`) on those weights and measures them. It runs a proposing agent's scenario on the server from a plain-language task. `LOCAL_MODEL_LICENSE` names the weights' license, Apache-2.0 when unset.
+`test/live.test.ts` runs only when `LOCAL_MODEL_GGUF` names a GGUF file. The plugin then starts the real llama.cpp `llama-server` (`LLAMA_SERVER`, or the one on `PATH`) on those weights and measures them. It runs a requesting agent's scenario on the server from a plain-language task. `LOCAL_MODEL_LICENSE` names the weights' license, Apache-2.0 when unset.
 
 ```sh
 LOCAL_MODEL_GGUF=~/models/gemma-4-E4B-it-Q4_0.gguf bun test plugins/model-server/test/live.test.ts

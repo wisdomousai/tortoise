@@ -1,4 +1,4 @@
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import { defineHostPlugin } from '@agent-native/kernel/plugin';
 import { createHubLinkState, hubLinkHandlers, hubLinkPolicy, type HubLinkState } from './handlers';
 import { hubNetworkPort } from './network';
@@ -8,7 +8,7 @@ import { hubLinkPluginManifest } from './plugin-manifest';
 export type { HubLinkService } from './pairing';
 export type { Pairing } from './handlers';
 
-/** The pairing service of an open authority, for the plugin screen. */
+/** The pairing service of an open instance, for the plugin screen. */
 export const hubLinkServiceOf = (services: Readonly<Record<string, unknown>>) =>
   services['hub-link'] as HubLinkService | undefined;
 

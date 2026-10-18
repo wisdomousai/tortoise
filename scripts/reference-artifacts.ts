@@ -110,7 +110,7 @@ export function artifacts(manifest: ApplicationManifest) {
                 },
               },
             },
-            '403': { description: 'Current authority does not permit operation' },
+            '403': { description: 'Grants and policy do not permit the operation' },
             '409': { description: 'Revision or idempotency conflict' },
           },
         },
@@ -157,7 +157,7 @@ export function artifacts(manifest: ApplicationManifest) {
     [
       'application-skill/SKILL.md',
       '---\nname: use-application\ndescription: Operate this application through its registered MCP capabilities, inspect scoped data, and apply authorized business commands. Use when asked to work in the connected application.\n---\n\n# Use the application\n\nRead the `app://contract` MCP resource and discover current tools before acting. Identity and delegation come from the host; never supply roles or principals in tool arguments. Query the current object and revision before changing it.\n\nQuery tools take `{ "input": ... }`. Commands take `{ "input": ..., "idempotencyKey": "unique-request-id", "expectedRevisions": { "type:id": 1 } }`. Keep the same key and exact request when retrying after a lost response. A conflict requires a new query and deliberate reconciliation. A successful command receipt proves committed work; streamed agent text does not.\n\n' +
-        `## From a shell\n\nThe same operations are subcommands of the \`${program}\` binary. Run \`${program} help\` and \`${program} help <command>\` for generated flags; \`help\`, \`schema\` and \`workflows\` work without an authority. Add \`--embedded --workspace <dir>\` to run in-process in a sandbox, or attach to a running authority with \`--connection <file>\`; your identity comes from that file or the launcher's grant file, never from flags. Pass \`--key <id>\` on commands and reuse it when retrying, \`--dry-run\` to validate first, and \`--output text\` for tables. Branch on the exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, 6 idempotency conflict, 7 cancelled, 8 unavailable (for example the audit log in fail-closed mode). Before a sandbox is discarded, \`${program} drain\` must exit 0; 75 means captured work has not reached the system of record yet.\n\n` +
+        `## From a shell\n\nThe same operations are subcommands of the \`${program}\` binary. Run \`${program} help\` and \`${program} help <command>\` for generated flags; \`help\`, \`schema\` and \`workflows\` work without an instance. Add \`--embedded --workspace <dir>\` to run in-process in a sandbox, or attach to a running instance with \`--connection <file>\`; your identity comes from that file or the launcher's grant file, never from flags. Pass \`--key <id>\` on commands and reuse it when retrying, \`--dry-run\` to validate first, and \`--output text\` for tables. Branch on the exit status: 0 ok, 2 invalid input, 3 not found, 4 forbidden, 5 conflict, 6 idempotency conflict, 7 cancelled, 8 unavailable (for example the audit log in fail-closed mode). Before a sandbox is discarded, \`${program} drain\` must exit 0; 75 means captured work has not reached the system of record yet.\n\n` +
         agentSkillSection(catalog) +
         catalog.workflows
           .map(

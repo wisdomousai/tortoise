@@ -1,6 +1,6 @@
 # Providers and account connections
 
-Provider accounts and their configuration, the credential vault, local models and the model server, and live probes. [Agents](agents.md) explains harnesses, runs, proposals, triggers, standing grants and model entries.
+Provider accounts and their configuration, the credential vault, local models and the model server, and live probes. [Agents](agents.md) explains harnesses, runs, approval requests, triggers, standing grants and model entries.
 
 ## Concepts
 
@@ -8,7 +8,7 @@ Terms: the [credential vault](glossary.md#credential-vault).
 
 ## Provider harnesses
 
-A [harness](glossary.md#harness) reaches business data only through the application's tools, which pass through the [authority](glossary.md#authority) like any other caller ([agents](agents.md#application-tools)). Provider credentials pay for inference and give no access to a workspace. New behavior therefore belongs in the catalog instead of in provider-specific code.
+A [harness](glossary.md#harness) reaches business data only through the application's tools, which pass through the [instance](glossary.md#instance) like any other caller ([agents](agents.md#application-tools)). Provider credentials pay for inference and give no access to a workspace. New behavior therefore belongs in the catalog instead of in provider-specific code.
 
 | Harness         | Funding chosen by the host | Native resume | Questions and approvals                                    |
 | --------------- | -------------------------- | ------------- | ---------------------------------------------------------- |
@@ -36,7 +36,7 @@ Only the local [owner](glossary.md#owner), acting without a [delegated grant](gl
 
 ## ChatGPT connection
 
-The connection follows the documented dynamic public-client flow. The authority starts its loopback callback before it begins sign-in. The account screen opens sign-in in the system browser through a declared [OS action](glossary.md#os-action).
+The connection follows the documented dynamic public-client flow. The instance starts its loopback callback before it begins sign-in. The account screen opens sign-in in the system browser through a declared [OS action](glossary.md#os-action).
 
 - **Enrollment.** A new enrollment registers with the application name and an opaque host ID kept in the OS vault. A returning profile uses its issued client ID.
 - **Each attempt** lives five minutes and uses one-time state, a nonce and PKCE.
@@ -46,7 +46,7 @@ The connection follows the documented dynamic public-client flow. The authority 
 - **Authorization URLs** are never logged and carry no ID-token hint, so no stored token reaches browser code.
 - **Inference** needs both the `resource.invoke` and `chatgpt.tokens.use.direct` scopes. A verified identity without them is kept as a disabled profile.
 
-Profile listing and status return metadata without tokens. Only the authority reads a profile's tokens, and it refuses for a profile that is disconnected, lacks the inference scopes or has expired. The host refreshes tokens within a minute of expiry, and the whole rotating refresh write runs serialized. A model list is not evidence that inference or billing works.
+Profile listing and status return metadata without tokens. Only the instance reads a profile's tokens, and it refuses for a profile that is disconnected, lacks the inference scopes or has expired. The host refreshes tokens within a minute of expiry, and the whole rotating refresh write runs serialized. A model list is not evidence that inference or billing works.
 
 Logout removes the access, refresh and ID tokens locally and keeps the registration. It then attempts revocation at the provider and reports whether revocation was confirmed. No local token remains as a fallback.
 
@@ -60,7 +60,7 @@ A run captures the selected profile and model, or the API-key account, when it s
 
 ## Credential vault
 
-The OS credential vault runs in the authority and does not depend on Electron. It uses Keychain on macOS, the credential store on Windows, and Secret Service on Linux, which needs a desktop D-Bus session. A locked, denied or missing store is an error. The vault does not fall back to files, the database, environment variables or a test vault.
+The OS credential vault runs in the instance and does not depend on Electron. It uses Keychain on macOS, the credential store on Windows, and Secret Service on Linux, which needs a desktop D-Bus session. A locked, denied or missing store is an error. The vault does not fall back to files, the database, environment variables or a test vault.
 
 The host uses one vault namespace per workspace, under the workspace's lock. A deployment that shares profiles across processes needs a single refresh owner for each namespace. A keyring may show its own unlock prompt during an explicit account action, but startup and status checks never probe it. The packaged build embeds the native addon instead of loading it dynamically. The in-memory vault exists for tests only.
 

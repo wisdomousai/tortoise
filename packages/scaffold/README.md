@@ -69,10 +69,10 @@ With `--published` or `--registry <url>`, `new` leaves the framework source out 
 
 ### Generated parts
 
-`add agent` writes an agent definition that reads the collection and proposes `<type>.update`. Its agent scenarios are played by the deterministic harness. The first agent also adds:
+`add agent` writes an agent definition that reads the collection and requests approval for `<type>.update`. Its agent scenarios are played by the deterministic harness. The first agent also adds:
 
-- the proposal capabilities, with their handlers, rules and state;
-- a Proposals screen where a person accepts or rejects.
+- the approval request capabilities, with their handlers, rules and state;
+- a Approval requests screen where a person approves or rejects.
 
 `add target` also lists the target's destination as disabled in `apps/desktop/site-policy.json`. `site check` then passes until someone binds the destination to the system of record's URL.
 

@@ -52,7 +52,7 @@ function setup() {
   /** Run the expiry job once as `as`, the way the automation plugin calls it. */
   const expire = (as: ExecutionContext) =>
     expireJob(() => clock)({
-      trigger: 'expire-proposals',
+      trigger: 'expire-approval-requests',
       signal: new AbortController().signal,
       query: (operation, input) => app.queryRaw({ operation, input }, as) as never,
       command: (operation, input) => command(operation, input, as) as never,
@@ -78,25 +78,25 @@ const classifyJam = (stopId: string) => ({
   baseRevisions: { [`stop:${stopId}`]: 0 },
 });
 
-describe('stop explainer proposals', () => {
-  test('the explainer proposes; an operator accepts and the stop is classified as the operator', async () => {
+describe('stop explainer approvals', () => {
+  test('the explainer requests approval; an operator approves and the stop is classified as the operator', async () => {
     const { command, query } = setup();
     const agent = explainer(olga);
-    // The run reads and proposes but cannot classify, at its station only.
+    // The run reads and requests approval but cannot classify, at its station only.
     await expect(
       command('line.stop.classify', { stopId: 's1', reason: 'JAM' }, agent),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    await command('proposal.submit', classifyJam('s1'), agent);
+    await command('approval.request', classifyJam('s1'), agent);
     expect(
-      (await query('proposal.list', { status: 'open', resource: 'stop:s1' }, vic)).items,
+      (await query('approval.list', { status: 'pending', resource: 'stop:s1' }, vic)).items,
     ).toHaveLength(1);
-    // A viewer sees the proposal but may not decide it; the delegated run may not accept it.
+    // A viewer sees the approval request but may not decide it; the delegated run may not approve it.
     for (const context of [vic, agent])
-      await expect(command('proposal.accept', { id: 'p1' }, context)).rejects.toMatchObject({
+      await expect(command('approval.approve', { id: 'p1' }, context)).rejects.toMatchObject({
         code: 'FORBIDDEN',
       });
-    const accepted = await command('proposal.accept', { id: 'p1' }, olga);
-    expect(accepted.continuation).toMatchObject({
+    const approved = await command('approval.approve', { id: 'p1' }, olga);
+    expect(approved.continuation).toMatchObject({
       operation: 'line.stop.classify',
       result: { reason: 'JAM', sync: 'pending' },
     });
@@ -106,54 +106,54 @@ describe('stop explainer proposals', () => {
     });
   });
 
-  test('a run proposes and sees proposals only at stations where its starter works', async () => {
+  test('a run requests approval and sees approvals only at stations where its starter works', async () => {
     const { command, query } = setup();
     await expect(
-      command('proposal.submit', classifyJam('s2'), explainer(olga)),
+      command('approval.request', classifyJam('s2'), explainer(olga)),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    await command('proposal.submit', classifyJam('s2'), explainer(sam));
-    expect((await query('proposal.list', {}, explainer(olga))).total).toBe(0);
-    expect((await query('proposal.list', {}, olga)).total).toBe(0);
-    expect((await query('proposal.list', {}, sam)).total).toBe(1);
-    await expect(query('proposal.get', { id: 'p1' }, olga)).rejects.toMatchObject({
+    await command('approval.request', classifyJam('s2'), explainer(sam));
+    expect((await query('approval.list', {}, explainer(olga))).total).toBe(0);
+    expect((await query('approval.list', {}, olga)).total).toBe(0);
+    expect((await query('approval.list', {}, sam)).total).toBe(1);
+    await expect(query('approval.get', { id: 'p1' }, olga)).rejects.toMatchObject({
       code: 'NOT_FOUND',
     });
   });
 
-  test('a stop classified since the proposal conflicts; a demoted operator is refused', async () => {
+  test('a stop classified since the approval conflicts; a demoted operator is refused', async () => {
     const { command, query } = setup();
     const agent = explainer(sam);
-    await command('proposal.submit', classifyJam('s1'), agent);
-    await command('proposal.submit', { ...classifyJam('s1'), rationale: 'Second look.' }, agent);
+    await command('approval.request', classifyJam('s1'), agent);
+    await command('approval.request', { ...classifyJam('s1'), rationale: 'Second look.' }, agent);
     await command(
       'line.station.set-member',
       { station: 'line-1', principalId: 'olga', role: 'viewer' },
       sam,
     );
-    await expect(command('proposal.accept', { id: 'p1' }, olga)).rejects.toMatchObject({
+    await expect(command('approval.approve', { id: 'p1' }, olga)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
     await command('line.stop.classify', { stopId: 's1', reason: 'JAM' }, sam);
-    await expect(command('proposal.accept', { id: 'p2' }, sam)).rejects.toMatchObject({
+    await expect(command('approval.approve', { id: 'p2' }, sam)).rejects.toMatchObject({
       code: 'CONFLICT',
     });
     // Both stay open; the clock is fixed, so they are listed in ID order.
     expect(
-      (await query('proposal.list', { status: 'open' }, sam)).items.map((item: any) => item.id),
+      (await query('approval.list', { status: 'pending' }, sam)).items.map((item: any) => item.id),
     ).toEqual(['p1', 'p2']);
   });
 
-  test('the expiry job closes only expired proposals at the stations of the person who enabled it', async () => {
+  test('the expiry job closes only expired approvals at the stations of the person who enabled it', async () => {
     const { command, query, expire, advance } = setup();
-    await command('proposal.submit', classifyJam('s1'), explainer(sam));
-    await command('proposal.submit', classifyJam('s2'), explainer(sam));
+    await command('approval.request', classifyJam('s1'), explainer(sam));
+    await command('approval.request', classifyJam('s2'), explainer(sam));
     await expire(olga);
-    expect((await query('proposal.list', { status: 'open' }, sam)).total).toBe(2);
+    expect((await query('approval.list', { status: 'pending' }, sam)).total).toBe(2);
     advance(24 * 60 * 60 * 1000);
-    // Olga works only at line-1, so her run closes only the proposal there.
+    // Olga works only at line-1, so her run closes only the approval request there.
     await expire(olga);
     expect(
-      (await query('proposal.list', { status: 'open' }, sam)).items.map((item: any) => item.id),
+      (await query('approval.list', { status: 'pending' }, sam)).items.map((item: any) => item.id),
     ).toEqual(['p2']);
   });
 });

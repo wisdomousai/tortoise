@@ -188,7 +188,7 @@ export class ChatGptAccountConnection {
       return safeProfile(profile);
     });
   }
-  /** Authority only; even opaque token introspection must not reach the renderer. */
+  /** Instance only; even opaque token introspection must not reach the renderer. */
   async credentials(profileId: string): Promise<ChatGptCredentials> {
     return this.serial(async () => {
       const profile = await readProfile(this.vault, profileId);

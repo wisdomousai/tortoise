@@ -13,7 +13,7 @@ flowchart LR
   Callers --> Surface[Surface adapters]
   Surface --> Command
   Surface --> Query
-  subgraph Authority
+  subgraph Instance
     Command --> Store[(Storage: state, receipts, journal, outbox)]
     Query --> Store
   end
@@ -53,9 +53,9 @@ _A pure transformation from the catalog to a reference document. Nothing generat
 
 implemented · [`scripts/generate.ts`](../scripts/generate.ts) [`scripts/reference-artifacts.ts`](../scripts/reference-artifacts.ts)
 
-### Authority
+### Instance
 
-_The one running instance that owns a workspace and executes its commands and queries._
+_One application opened on one workspace, and while open its only writer. It executes the workspace's commands and queries._
 
 implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/kernel`](../packages/kernel/README.md) [`packages/adapters`](../packages/adapters/README.md)
 
@@ -97,7 +97,7 @@ implemented · [`packages/contracts`](../packages/contracts/README.md) [`package
 
 ### Storage
 
-_The port for the authority's transactional state. The memory, SQLite and Postgres adapters pass one conformance suite. The mobile host platform uses a snapshot adapter that keeps one JSON document per workspace._
+_The port for the instance's transactional state. The memory, SQLite and Postgres adapters pass one conformance suite. The mobile host platform uses a snapshot adapter that keeps one JSON document per workspace._
 
 implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/adapters`](../packages/adapters/README.md) [`packages/testing`](../packages/testing/README.md)
 
@@ -127,7 +127,7 @@ implemented · [`packages/kernel`](../packages/kernel/README.md) [`packages/host
 
 ### Host
 
-_The domain-neutral process that opens an authority for one application definition on a host platform._
+_The domain-neutral process that opens an instance for one application definition on a host platform._
 
 implemented · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`packages/mobile`](../packages/mobile/README.md)
 
@@ -145,7 +145,7 @@ partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](.
 
 ### Workspace lease
 
-_One authority's hold on a workspace kept in a shared database, with a fencing token that every commit checks. A stalled holder cannot overwrite the instance that took the workspace over._
+_One instance's hold on a workspace kept in a shared database, with a fencing token that every commit checks. A stalled holder cannot overwrite the instance that took the workspace over._
 
 implemented · [`packages/adapters`](../packages/adapters/README.md) [`packages/host`](../packages/host/README.md)
 
@@ -171,7 +171,7 @@ implemented · [`apps/service`](../apps/service/README.md) [`apps/web`](../apps/
 
 ### Surface adapter
 
-_The adapter that maps one surface onto the authority's raw command and query entry points._
+_The adapter that maps one surface onto the instance's raw command and query entry points._
 
 implemented · [`packages/adapters`](../packages/adapters/README.md)
 
@@ -205,15 +205,15 @@ _A model the model server may serve, named by the digests of its base weights, i
 
 implemented · [`packages/agents`](../packages/agents/README.md) [`plugins/model-server`](../plugins/model-server/README.md) [`packages/testing`](../packages/testing/README.md)
 
-### Proposal
+### Approval request
 
-_A command one caller proposes and another accepts. The accepted command runs under the accepter's own grants and policy._
+_A command that one caller, usually an agent run, asks a person to approve before it runs. The approved command runs under the approver's own grants and policy._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/operator-ui`](../packages/operator-ui/README.md)
 
-### Proposal dataset
+### Approval dataset
 
-_The proposals people accepted, rejected or let expire, exported as training data with redaction and a digest._
+_The approval requests people approved, rejected or let expire, exported as training data with redaction and a digest._
 
 implemented · [`packages/runtime`](../packages/runtime/README.md)
 
@@ -317,7 +317,7 @@ implemented · [`packages/observation`](../packages/observation/README.md) [`pac
 
 ### Gated actuator
 
-_A connector in which a model may propose screen actions and deterministic code executes and verifies them._
+_A connector in which a model may suggest screen actions and deterministic code executes and verifies them._
 
 implemented · [`packages/station`](../packages/station/README.md) [`packages/integration`](../packages/integration/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md)
 
@@ -439,7 +439,7 @@ implemented · [`packages/testing`](../packages/testing/README.md)
 
 ### Agent scenario
 
-_A test of an agent definition on a task and fixture state, judged by the commands the run committed and the proposals it submitted instead of by its text._
+_A test of an agent definition on a task and fixture state, judged by the commands the run committed and the approval requests it submitted instead of by its text._
 
 implemented · [`packages/testing`](../packages/testing/README.md)
 

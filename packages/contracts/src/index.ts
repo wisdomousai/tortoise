@@ -11,7 +11,7 @@ export * from './membership';
 export * from './target';
 export * from './agent';
 export * from './agent-instructions';
-export * from './proposal';
+export * from './approval';
 export * from './reconciliation';
 export * from './blob';
 export * from './os';

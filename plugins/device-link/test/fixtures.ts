@@ -14,7 +14,7 @@ import {
 } from '@agent-native/contracts';
 import { createPeerPort, createTargetIntegration } from '@agent-native/integration';
 import { defineApplication } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import { defineManifest } from '@agent-native/kernel/manifest';
 import type { SecretStore } from '@agent-native/kernel/platform';
 import { createMobilePlatform } from '@agent-native/mobile';

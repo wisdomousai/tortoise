@@ -6,8 +6,8 @@ import {
   defineCapability,
   defineModule,
   jsonSchema,
-  proposalOperations,
-  type Proposal,
+  approvalOperations,
+  type ApprovalRequest,
 } from '@agent-native/contracts';
 import { createMemoryEventLog } from '@agent-native/event-log';
 import { defaultPorts } from '@agent-native/host';
@@ -19,7 +19,7 @@ import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
 import {
   createMemoryStorage,
   own,
-  proposalHandlers,
+  approvalHandlers,
   put,
   type AuthorizationPort,
   type ExecutionContext,
@@ -75,28 +75,28 @@ const lotChecker = defineAgent({
   output: 'direct',
   budgets: { turns: 2, toolCalls: 2, wallTimeMs: 10_000 },
 });
-// An agent on a local model that reads a received lot and proposes its inspection.
+// An agent on a local model that reads a received lot and requests approval for its inspection.
 const lotReviewer = defineAgent({
   id: 'lot.reviewer',
   title: 'Lot reviewer',
   instructions:
-    'Read the received lot with lot.get, then propose lot.inspect for it. Both take the lot’s own id, which is the part after `lot:` in its resource: `l1` for `lot:l1`.',
+    'Read the received lot with lot.get, then request approval for lot.inspect for it. Both take the lot’s own id, which is the part after `lot:` in its resource: `l1` for `lot:l1`.',
   operations: ['lot.get', 'lot.inspect'],
   model: 'local',
-  output: 'propose',
+  output: 'request-approval',
   // Long enough for a real local model that reasons before each call (test/live.test.ts).
   budgets: { turns: 4, toolCalls: 4, wallTimeMs: 180_000 },
 });
 const lotsModule = defineModule({
   id: 'lots',
-  capabilities: [lotReceive, lotInspect, lotGet, roleSet, ...Object.values(proposalOperations)],
+  capabilities: [lotReceive, lotInspect, lotGet, roleSet, ...Object.values(approvalOperations)],
   agents: [lotChecker, lotReviewer],
 });
 
 interface Lots {
   roles: Record<string, 'inspector' | 'viewer'>;
   lots: Record<string, { id: string; inspections: number }>;
-  proposals: Record<string, Proposal>;
+  approvals: Record<string, ApprovalRequest>;
 }
 type Ctx = HandlerContext<{ lots: Lots }, unknown>;
 const handlers = [
@@ -128,8 +128,8 @@ const handlers = [
       return {};
     },
   },
-  ...proposalHandlers<{ lots: Lots }, unknown>({
-    store: (state) => state.lots.proposals,
+  ...approvalHandlers<{ lots: Lots }, unknown>({
+    store: (state) => state.lots.approvals,
     commands: [lotReceive, lotInspect],
     visible: () => true,
     newId: () => crypto.randomUUID(),
@@ -167,7 +167,7 @@ export const checkOnReceive = defineTrigger({
 export const reviewOnReceive = defineTrigger({
   id: 'review-on-receive',
   title: 'Review received lots',
-  prompt: 'A lot was received. Read it and propose its inspection.',
+  prompt: 'A lot was received. Read it and request approval for its inspection.',
   on: { event: { resourceType: 'lot', operations: ['lot.receive'], types: ['created'] } },
   run: { agent: 'lot.reviewer' },
 });
@@ -221,7 +221,7 @@ export function lotsApplication(
       lots: {
         roles: { ann: 'inspector', vic: 'viewer' },
         lots: { l0: { id: 'l0', inspections: 0 } },
-        proposals: {},
+        approvals: {},
       },
     }),
     handlers: handlers as never,

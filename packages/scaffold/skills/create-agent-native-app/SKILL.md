@@ -5,7 +5,7 @@ description: Create a new agent-native application from this framework with `bun
 
 # Create an agent-native application
 
-The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets and proposing agents. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead. [The setup reference](references/new-application.md) has the commands and what the export contains, and [getting started](../../../../docs/getting-started.md#new-application) shows a first run.
+The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets and requesting agents. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead. [The setup reference](references/new-application.md) has the commands and what the export contains, and [getting started](../../../../docs/getting-started.md#new-application) shows a first run.
 
 ## Before writing
 
@@ -51,7 +51,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | Share targets, shortcuts, intents, notifications | `packages/shell/skills/add-os-integration/SKILL.md` |
 | The phone or tablet host, native plugins, pairing | `packages/mobile/skills/extend-mobile-host/SKILL.md` |
 | Site policy, signed bundles, install on a machine | `plugins/site/skills/deploy-to-site/SKILL.md` |
-| A hosted instance with its workspace in Postgres | `packages/host/skills/run-a-hosted-authority/SKILL.md` |
+| A hosted instance with its workspace in Postgres | `packages/host/skills/run-a-hosted-instance/SKILL.md` |
 | A site that reports to a fleet, or the fleet it reports to | `plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md` |
 | Metrics and traces in an observability backend | `plugins/telemetry/skills/export-telemetry/SKILL.md` |
 | Which checks to run and how to report them | `packages/testing/skills/check-a-change/SKILL.md` |

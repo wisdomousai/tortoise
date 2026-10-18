@@ -76,7 +76,7 @@ The hub decides again on every record, as `device:<id>` and within the [device l
 
 Hub-link holds the device credential in the platform's secret store (Keystore or Keychain). The photos are stored as blobs in the application's sandbox and stay after delivery. Managed configuration is trusted as the fleet administrator's.
 
-A scan is input under the owner's authority, like typing. It only searches and opens a screen.
+A scan is input under the owner's instance, like typing. It only searches and opens a screen.
 
 ## Dependencies
 
@@ -99,7 +99,7 @@ bun test examples/asset-survey-field
 bun run typecheck
 ```
 
-`test/pipeline.test.ts` runs the hub on loopback (`startHost`). It runs the field application on the mobile platform with Bun's SQLite and files (`openMobileAuthority`).
+`test/pipeline.test.ts` runs the hub on loopback (`startHost`). It runs the field application on the mobile platform with Bun's SQLite and files (`openMobileInstance`).
 
 - The first test runs the full survey:
   1. The phone pairs from managed configuration.
@@ -131,7 +131,7 @@ Paths in this table are relative to `examples/asset-survey-field`.
 | Mechanism | Code | Proof |
 | --- | --- | --- |
 | [Application](../../docs/primitives.md#application) that targets mobile | `manifest.ts`: `fieldManifest` with `targets: ['mobile']` | `defineManifest` checks plugin platforms when a test loads the manifest; `apps/mobile/test/entry.test.ts` tests the `mobile:prepare` refusal |
-| Embedded authority on the mobile [host platform](../../docs/primitives.md#host-platform) | `field-application.ts`: `createFieldApplication`; `apps/mobile` opens it with `openMobileAuthority` | `openPhone` in `test/pipeline.test.ts` |
+| Embedded instance on the mobile [host platform](../../docs/primitives.md#host-platform) | `field-application.ts`: `createFieldApplication`; `apps/mobile` opens it with `openMobileInstance` | `openPhone` in `test/pipeline.test.ts` |
 | Field [module](../../docs/primitives.md#module) | `contracts.ts`: `fieldModule`, `fieldOperations` | Both tests in `test/pipeline.test.ts` |
 | Browser-safe [capability](../../docs/primitives.md#capability) schemas shared with the hub | `contracts.ts` imports `@agent-native/asset-survey/contracts/schemas` | First pipeline test: the hub's `capture.ingest` accepts the field payload |
 | [Target](../../docs/primitives.md#target) with settle, sync and status | `contracts.ts`: `hubTarget`; `handlers.ts`: `targetHandlers` | `field.hub.status` counts in both pipeline tests |
@@ -172,7 +172,7 @@ Paths in this table are relative to `examples/asset-survey-field`.
 5. `applyBatch` in `handlers.ts` overwrites each assignment with the hub's copy, including its `returned` flag. The sync handler then stores the new watermark and the sync time.
 6. Live queries that depend on `assignment` refetch, so the Assignments screen shows the new work.
 
-The phone runs this pass every 5 seconds while the application is in the foreground. The test drives it with `phone.authority.integrations.sync()`.
+The phone runs this pass every 5 seconds while the application is in the foreground. The test drives it with `phone.instance.integrations.sync()`.
 
 ## Capture flow
 
@@ -254,7 +254,7 @@ The phone runs this pass every 5 seconds while the application is in the foregro
 22. On the hub, write the ingest command so that a repeated delivery of the same device-generated ID returns the first result. A different capture under the same ID conflicts.
 23. On the hub, compose `createDeviceLinkPlugin({ syncOperations })` with the feed, ingest and return capabilities.
 24. On the hub, add a policy lane for `device:` principals that admits only those capabilities. [Asset survey](../asset-survey/README.md) describes the hub's lane.
-25. Write a pipeline test that starts the hub with `startHost` and opens the phone with `openMobileAuthority` over `createMobilePlatform`. Give the platform `bunSqlDriver`, `createFileBlobStore` and an in-memory secret store, as `test/pipeline.test.ts` does.
+25. Write a pipeline test that starts the hub with `startHost` and opens the phone with `openMobileInstance` over `createMobilePlatform`. Give the platform `bunSqlDriver`, `createFileBlobStore` and an in-memory secret store, as `test/pipeline.test.ts` does.
 26. In that test, compose `createManagedConfigPlugin(() => values)` so the phone pairs from settings. Drive delivery with `dispatcher.runOnce(undefined, { ignoreBackoff: true })` and the feed with `integrations.sync()`.
 27. Write a UI binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`. Pass the hub-link screen directory because hub-link routes its own pairing screen, and pass `deploymentComponents(manifest)` because hub-link declares the `hub` destination.
 28. Run the checks that pass in a single-example export, following [check-a-change](../../packages/testing/skills/check-a-change/SKILL.md). `bun run check` fails there for the reasons under [Limits](#limits).

@@ -1,6 +1,6 @@
 # Authorization
 
-The [authority](glossary.md#authority) decides who may run which [capability](glossary.md#capability) on which records, and checks it inside the transaction.
+The [instance](glossary.md#instance) decides who may run which [capability](glossary.md#capability) on which records, and checks it inside the transaction.
 
 ## Concepts
 
@@ -8,7 +8,7 @@ Terms: the [principal](glossary.md#principal), the [container](glossary.md#conta
 
 ## Execution context
 
-Every command and query reaches the authority with an [execution context](glossary.md#execution-context) that the host derives from the [session](glossary.md#session). The screens, HTTP, MCP, the CLI and agent tools reach the same handlers and policy. Capability input cannot choose the principal, workspace, roles or grant. The local reference host starts as the [local owner](glossary.md#owner), and test hosts can create isolated sessions.
+Every command and query reaches the instance with an [execution context](glossary.md#execution-context) that the host derives from the [session](glossary.md#session). The screens, HTTP, MCP, the CLI and agent tools reach the same handlers and policy. Capability input cannot choose the principal, workspace, roles or grant. The local reference host starts as the [local owner](glossary.md#owner), and test hosts can create isolated sessions.
 
 Authentication, authorization, provider funding and approval are separate. A provider account grants no workspace access. An approval never permits an operation the policy denies.
 
@@ -48,7 +48,7 @@ A list is scoped to what the caller may see before it is filtered, sorted, paged
 
 Effective access is the principal's current policy intersected with the grant. A grant can limit operations, resource IDs and lifetime, and can be bound to a principal, workspace and run. An [agent run](glossary.md#agent-run) keeps the grant it started with, and tool arguments cannot change it.
 
-A grant scoped to resources may change only those records. Its `creates` list lets it add records of a named type, which a run cannot name before they exist. A proposing agent on a selection gets `creates: ['proposal']`, and the [proposal](glossary.md#proposal) submit command refuses a proposal outside the selection.
+A grant scoped to resources may change only those records. Its `creates` list lets it add records of a named type, which a run cannot name before they exist. A requesting agent on a selection gets `creates: ['approval-request']`, and `approval.request` refuses an [approval request](glossary.md#approval-request) outside the selection.
 
 A retry with the same [idempotency key](glossary.md#idempotency-key) returns the stored [receipt](glossary.md#receipt) after current authorization and projection, without running the handler again. A revoked record or a newly restricted field therefore cannot be recovered through an old receipt.
 
@@ -72,7 +72,7 @@ UI intents are bounded, expire, are offered until acknowledged, and end as accep
 
 ## Process boundary
 
-The authority owns the [workspace](glossary.md#workspace). Other processes attach through its protected [connection file](glossary.md#connection-file) and never open a second writable copy. An exclusive OS lock guards the workspace, including through path aliases, and a crash releases it (`packages/adapters/src/ownership.test.ts`). Another process running as the same OS user is not sandboxed. [Architecture](architecture.md#authorities-and-hosts) describes embedded and attached modes.
+The instance owns the [workspace](glossary.md#workspace). Other processes attach through its protected [connection file](glossary.md#connection-file) and never open a second writable copy. An exclusive OS lock guards the workspace, including through path aliases, and a crash releases it (`packages/adapters/src/ownership.test.ts`). Another process running as the same OS user is not sandboxed. [Architecture](architecture.md#instances-and-hosts) describes embedded and attached modes.
 
 ## CASL adapter
 

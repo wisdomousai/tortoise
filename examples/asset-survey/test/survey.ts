@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { BlobRef } from '@agent-native/contracts';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import type { PluginSettings } from '@agent-native/kernel/plugins/settings';
 import type { ExecutionContext } from '@agent-native/runtime';
 import { createAssetSurveyApplication } from '../application';
@@ -39,7 +39,7 @@ afterEach(async () => {
 export async function open(settings?: PluginSettings) {
   const workspacePath = await mkdtemp(join(tmpdir(), 'agent-native-survey-'));
   let eam!: FakeEam;
-  const authority = await openEmbeddedAuthority(
+  const instance = await openEmbeddedInstance(
     createAssetSurveyApplication({
       members: { owner: 'manager', rita: 'reviewer', vic: 'viewer' },
       onConnect: (ports) => {
@@ -49,8 +49,8 @@ export async function open(settings?: PluginSettings) {
     { workspacePath, ...(settings ? { settings } : {}) },
   );
   cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
-  cleanup.push(() => authority.close());
-  const { application, integrations } = authority;
+  cleanup.push(() => instance.close());
+  const { application, integrations } = instance;
   let key = 0;
   const query = async <T = Record<string, unknown>>(
     operation: string,

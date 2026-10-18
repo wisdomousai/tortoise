@@ -75,7 +75,7 @@ function directBlobs(
 }
 
 /**
- * In-process transport for an embedded authority (stdio MCP or a one-shot CLI in a sandbox).
+ * In-process transport for an embedded instance (stdio MCP or a one-shot CLI in a sandbox).
  * The launcher fixes `context` once; nothing a caller passes per request can change identity or
  * delegation, and a per-request signal only adds cancellation to the launcher's. Results match the
  * HTTP transport, except cursors are readable journal positions because no network session exists

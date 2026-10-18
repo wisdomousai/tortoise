@@ -72,7 +72,7 @@ async function health(endpoint: string) {
   }
 }
 
-test('packaged Electron uses its bundled authority with no runtime on PATH, reacts to external writes and reopens persisted data', async () => {
+test('packaged Electron uses its bundled instance with no runtime on PATH, reacts to external writes and reopens persisted data', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'native desktop acceptance '));
   const workspace = join(directory, 'workspace with spaces');
   let app: ElectronApplication | undefined;
@@ -112,11 +112,11 @@ test('packaged Electron uses its bundled authority with no runtime on PATH, reac
         process: typeof (globalThis as { process?: unknown }).process,
       })),
     ).toEqual({ require: 'undefined', process: 'undefined' });
-    const authority = await connection(workspace);
-    const tasks = await call(authority, 'task.list', {});
+    const instance = await connection(workspace);
+    const tasks = await call(instance, 'task.list', {});
     const task = tasks.data.items[0] as { id: string; revision: number };
     await call(
-      authority,
+      instance,
       'task.update',
       { id: task.id, title: 'External HTTP update in native window' },
       { key: 'native-external', revisions: { [`task:${task.id}`]: task.revision } },
@@ -127,8 +127,8 @@ test('packaged Electron uses its bundled authority with no runtime on PATH, reac
     await page.screenshot({ path: test.info().outputPath('native-desktop.png'), fullPage: true });
     await app.close();
     app = undefined;
-    await expect.poll(() => health(authority.endpoint), { timeout: 10_000 }).toBe(false);
-    // A successful fresh authority start proves that the earlier owned service released its OS lock.
+    await expect.poll(() => health(instance.endpoint), { timeout: 10_000 }).toBe(false);
+    // A successful fresh instance start proves that the earlier owned service released its OS lock.
     app = await launch(workspace);
     const reopened = await app.firstWindow();
     await expect(reopened.getByRole('heading', { name: 'Native acceptance' })).toBeVisible();
@@ -144,7 +144,7 @@ test('packaged Electron uses its bundled authority with no runtime on PATH, reac
 });
 
 test('closing an attached native frontend leaves the pre-existing bundled service running', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'native attached authority '));
+  const directory = await mkdtemp(join(tmpdir(), 'native attached instance '));
   const workspace = join(directory, 'attached workspace with spaces');
   await mkdir(workspace);
   const resources =
@@ -174,7 +174,7 @@ test('closing an attached native frontend leaves the pre-existing bundled servic
       let buffer = '';
       let errors = '';
       const timer = setTimeout(
-        () => reject(new Error(`Bundled authority startup timed out: ${errors}`)),
+        () => reject(new Error(`Bundled instance startup timed out: ${errors}`)),
         30_000,
       );
       child.stdout.on('data', (data) => {
@@ -201,21 +201,21 @@ test('closing an attached native frontend leaves the pre-existing bundled servic
       });
       child.once('exit', (code) => {
         clearTimeout(timer);
-        reject(new Error(`Bundled authority exited (${code}): ${errors}`));
+        reject(new Error(`Bundled instance exited (${code}): ${errors}`));
       });
     });
     const endpoint = await ready;
     app = await launch(workspace);
     const page = await app.firstWindow();
-    await page.getByLabel('New project').fill('Attached authority');
+    await page.getByLabel('New project').fill('Attached instance');
     await page.getByRole('button', { name: 'Create project', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Attached authority' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Attached instance' })).toBeVisible();
     await app.close();
     app = undefined;
     expect(child!.exitCode).toBeNull();
     expect(await health(endpoint)).toBe(true);
     const projects = await call(await connection(workspace), 'project.list', {});
-    expect(projects.data.items[0].name).toBe('Attached authority');
+    expect(projects.data.items[0].name).toBe('Attached instance');
   } finally {
     await app?.close();
     if (child && child.exitCode === null) {

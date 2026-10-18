@@ -4,7 +4,7 @@ import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
 import { acquireWorkspaceLease, type WorkspaceLease } from '@agent-native/adapters/postgres-lease';
 import { PostgresStorage, type PgDriver } from '@agent-native/adapters/postgres-storage';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import type { HostPlatform, PlatformOwnership } from '@agent-native/kernel/platform';
 import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
 import { JOURNAL_RETENTION, bunPlatform, type ServingPlatform } from './bun';
@@ -12,7 +12,7 @@ import { JOURNAL_RETENTION, bunPlatform, type ServingPlatform } from './bun';
 export interface HostedPlatformOptions {
   /** The shared database; its owner closes it after the host. */
   readonly database: PgDriver;
-  /** The workspace's name in the database. One authority holds its lease at a time. */
+  /** The workspace's name in the database. One instance holds its lease at a time. */
   readonly workspace: string;
   /** Lease length; renewed every third of it. 30 seconds by default. */
   readonly leaseMs?: number;
@@ -21,7 +21,7 @@ export interface HostedPlatformOptions {
 }
 
 /**
- * The Bun platform with its workspace in a shared Postgres database, for a hosted authority that
+ * The Bun platform with its workspace in a shared Postgres database, for a hosted instance that
  * another instance can take over. Ownership is the workspace's lease, renewed in the background,
  * plus the OS lock on the local directory, which still holds the run history, the blobs and the
  * plugins' local files. Every commit checks the lease's fence inside its transaction, so an
@@ -29,7 +29,7 @@ export interface HostedPlatformOptions {
  * before it notices.
  *
  * One instance serves one workspace. Serving many workspaces from one process is not built: the
- * kernel's authority, its plugins and their ports are per workspace, so a hosted deployment runs
+ * kernel's instance, its plugins and their ports are per workspace, so a hosted deployment runs
  * one instance per workspace behind a router, and the lease makes a failover safe.
  */
 export function hostedPlatform(options: HostedPlatformOptions): ServingPlatform {

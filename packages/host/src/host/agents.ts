@@ -4,18 +4,18 @@ import { createRunSupervisor, runAuditRecord } from '@agent-native/agents/superv
 import { childEnvironment } from '../plugin';
 import { createProviderAccess } from '../providers';
 import { createAgentTools } from './agent-tools';
-import type { Authority } from './authority';
+import type { Instance } from './instance';
 import type { CleanupStack, StartHostOptions, WorkspaceOwnership } from './options';
 
 /** Provider access and the run supervisor, whose tools execute as the run's captured context. */
 export async function startAgents(
-  authority: Authority,
+  instance: Instance,
   options: StartHostOptions,
   ownership: WorkspaceOwnership,
   host: { readonly sessions: Sessions; readonly origin: () => string },
   cleanup: CleanupStack,
 ) {
-  const { ports, application } = authority;
+  const { ports, application } = instance;
   const providers = await createProviderAccess({
     workspacePath: ownership.canonicalPath,
     origin: host.origin,
@@ -30,7 +30,7 @@ export async function startAgents(
   cleanup.push(() => providers.close());
   const supervisor: ReturnType<typeof createRunSupervisor> = createRunSupervisor({
     harnesses: [new DeterministicHarness(), ...providers.harnesses, ...(options.harnesses ?? [])],
-    store: authority.runStore,
+    store: instance.runStore,
     tools: createAgentTools(application, (id) => supervisor.get(id)),
     // Run starts and ends go to the audit log after the fact. A log that cannot write never
     // stops a run: the audit mode's fail-closed settings cover commands, queries and egress.

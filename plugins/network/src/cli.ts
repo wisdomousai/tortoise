@@ -12,7 +12,7 @@ import { networkRules } from './rules';
 
 export const networkUsage = (
   program: string,
-) => `Network (offline; no authority or workspace needed):
+) => `Network (offline; no instance or workspace needed):
   ${program} network export [--site file] --format ${exportFormats.join('|')}
       [--resolver ip]... [--user name] [--executable path] [--workspace dir] [--audit-log dir]
       [--image ref] [--out file]                  OS, orchestrator and service rules from the policy

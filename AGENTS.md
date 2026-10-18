@@ -17,7 +17,7 @@ The layers are **framework** `packages/*`, **plugins** `plugins/*`, **starter** 
 These protect data and security; `bun run check` and the conformance suites test them.
 
 - Contracts are browser-safe. Handlers, React components, scenarios and provider code live in separate entrypoints.
-- Every business write goes through the authority, never from a transport or harness.
+- Every change to the application's records is a command executed by the instance. A transport or harness never writes records itself.
 - Authorize the operation, object and fields inside the transaction. Filter rows before paging or counting. Recheck delegated grants and event access.
 - Server code reaches the network only through the network port, and starts child processes only through the process port.
 - MCP, API, schema and reference docs are generated from the catalog when they are served or built. Nothing generated is committed; `bun run generate` writes the reference to `dist/reference/` for reading.
@@ -54,7 +54,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Run agent tools in a sandbox: bubblewrap, grants, egress | [run-agent-tools-in-a-sandbox](plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) |
 | Serve a local or fine-tuned model: entries, digests, datasets, the gate | [serve-a-local-model](plugins/model-server/skills/serve-a-local-model/SKILL.md) |
 | Deploy to a site: policy, signed bundles, install | [deploy-to-site](plugins/site/skills/deploy-to-site/SKILL.md) |
-| Run a hosted authority: Postgres storage, the workspace lease, TLS and workforce sign-in | [run-a-hosted-authority](packages/host/skills/run-a-hosted-authority/SKILL.md) |
+| Run a hosted instance: Postgres storage, the workspace lease, TLS and workforce sign-in | [run-a-hosted-instance](packages/host/skills/run-a-hosted-instance/SKILL.md) |
 | Connect a site to a fleet: enrollment, reports, audit forwarding, release staging, relay | [connect-a-site-to-a-fleet](plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) |
 | Export OpenTelemetry metrics and traces | [export-telemetry](plugins/telemetry/skills/export-telemetry/SKILL.md) |
 

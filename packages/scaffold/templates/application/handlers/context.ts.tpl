@@ -6,7 +6,7 @@ import type { AppState } from '../domain';
 export interface Services {
   /** Record keys; random UUIDs when omitted. */
   newId?: () => string;
-  /** Authority clock for timestamps. */
+  /** Instance clock for timestamps. */
   now?: () => number;
 }
 export type Context = HandlerContext<AppState, Services>;

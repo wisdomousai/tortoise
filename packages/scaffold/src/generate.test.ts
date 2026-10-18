@@ -132,7 +132,7 @@ test('add extends the application at its markers and refuses to overwrite a part
   expect(await read(join(app, 'screens.tsx'))).toContain(
     "{ path: 'ledger', component: LedgerScreen }",
   );
-  // The first agent brings the proposal operations and screen; a second adds only itself.
+  // The first agent brings the approval request operations and screen; a second adds only itself.
   const closer = await scaffoldAdd(
     { kind: 'agent', name: 'closer', collection: 'note' },
     { root: target },
@@ -140,20 +140,20 @@ test('add extends the application at its markers and refuses to overwrite a part
   expect(closer.written).toEqual(
     expect.arrayContaining([
       'contracts/closer-agent.ts',
-      'handlers/proposals.ts',
-      'ui/proposals.tsx',
+      'handlers/approvals.ts',
+      'ui/approvals.tsx',
     ]),
   );
   const second = await scaffoldAdd(
     { kind: 'agent', name: 'reviewer', collection: 'site' },
     { root: target },
   );
-  expect(second.written).not.toContain('handlers/proposals.ts');
+  expect(second.written).not.toContain('handlers/approvals.ts');
   const withAgents = await read(join(app, 'contracts.ts'));
-  expect(withAgents.match(/\.\.\.proposalOperations,/g)).toHaveLength(1);
+  expect(withAgents.match(/\.\.\.approvalOperations,/g)).toHaveLength(1);
   for (const key of ['closerAgent,', 'reviewerAgent,']) expect(withAgents).toContain(key);
   expect(await read(join(app, 'policy.ts'))).toContain(
-    '[operations.proposalAccept.id]: { person: true },',
+    '[operations.approvalApprove.id]: { person: true },',
   );
   await expect(scaffoldAdd({ kind: 'collection', name: 'site' }, { root: target })).rejects.toThrow(
     'Refusing to overwrite contracts/site.ts',

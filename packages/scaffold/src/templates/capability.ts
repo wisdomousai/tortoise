@@ -55,7 +55,7 @@ function behavioralTest(app: AppNames, spec: CapabilitySpec, slug: Names) {
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import { create${app.app.pascal}Application } from '../application';
 
 const owner = { workspaceId: 'local', principalId: 'owner' };
@@ -67,13 +67,13 @@ afterEach(async () => {
 
 test('${spec.id} is ${command ? 'for editors only' : 'open to members'}', async () => {
   const workspacePath = await mkdtemp(join(tmpdir(), '${app.app.kebab}-${slug.kebab}-'));
-  const authority = await openEmbeddedAuthority(
+  const instance = await openEmbeddedInstance(
     create${app.app.pascal}Application({ members: { viewer: 'viewer' } }),
     { workspacePath },
   );
   cleanup.push(() => rm(workspacePath, { recursive: true, force: true }));
-  cleanup.push(() => authority.close());
-  const app = authority.application;
+  cleanup.push(() => instance.close());
+  const app = instance.application;
   await expect(${call('owner', 'owner')}).resolves.toBeDefined();
   ${viewer}
 });

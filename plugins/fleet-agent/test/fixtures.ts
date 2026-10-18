@@ -14,7 +14,7 @@ import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
 import { createDeviceLinkPlugin } from '@agent-native/device-link/plugin';
 import { deviceLinkPluginManifest } from '@agent-native/device-link/plugin-manifest';
 import { defineApplication } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import { defineManifest } from '@agent-native/kernel/manifest';
 import type { HostPlugin } from '@agent-native/kernel/plugin';
 import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';

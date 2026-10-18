@@ -27,7 +27,7 @@ const catalog = buildCatalog([
       operation('lot.list', 'query'),
       operation('lot.get', 'query'),
       operation('lot.release', 'command'),
-      operation('proposal.submit', 'command'),
+      operation('approval.request', 'command'),
     ],
     agents: [
       defineAgent({
@@ -46,7 +46,7 @@ const catalog = buildCatalog([
         instructions: 'Suggest which lots to release.',
         operations: ['lot.list', 'lot.release'],
         model: 'any',
-        output: 'propose',
+        output: 'request-approval',
         budgets,
       }),
     ],
@@ -91,11 +91,11 @@ test('an agent grant never widens the issuer grant', () => {
   expect(agentGrant(catalog, 'lot.releaser', person, { now: 0 }).resources).toEqual([]);
 });
 
-test('a proposing agent runs its queries and records proposals instead of its commands', () => {
+test('a requesting agent runs its queries and records approvals instead of its commands', () => {
   const grant = agentGrant(catalog, 'lot.advisor', person, { now: 0 });
-  expect(grant.operations).toEqual(['lot.list', 'proposal.submit']);
+  expect(grant.operations).toEqual(['lot.list', 'approval.request']);
   expect(grant.resources).toBeUndefined();
-  // Not scoped to resources, so it needs no `creates` to record its proposals.
+  // Not scoped to resources, so it needs no `creates` to record its approval requests.
   expect(grant.creates).toBeUndefined();
 });
 

@@ -11,7 +11,7 @@ import { accumulateEgress, assessPosture, postureMarkdown } from './posture';
 
 export const complianceUsage = (
   program: string,
-) => `Compliance (offline; no authority or workspace needed):
+) => `Compliance (offline; no instance or workspace needed):
   ${program} compliance report --log dir [--site file] [--format markdown|json] [--out file]
       posture, destinations and recent denials from a log (exit ${AUDIT_INVALID_EXIT_CODE} if failing)
 `;

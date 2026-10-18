@@ -174,7 +174,7 @@ function ChatGptProfilePicker({
   );
 }
 
-/** A provider API key, stored by the authority; the field is cleared once it is sent. */
+/** A provider API key, stored by the instance; the field is cleared once it is sent. */
 function ApiKeyAccount({ busy, work, onSelect }: { busy: boolean; work: Work; onSelect: Select }) {
   const [apiProvider, setApiProvider] = useState<'claude' | 'ai-sdk'>('claude');
   const [key, setKey] = useState('');

@@ -26,7 +26,7 @@ const pick = (headers: Iterable<[string, string]>, allowed: ReadonlySet<string>)
  * Forward one remote-access request to this host's own API and describe the response. The relay
  * adds no credential: a request reaches an operation only with a session the site itself issued,
  * which its own identity port and policy check like any other caller's. The fleet credential is
- * never attached, so whoever controls the fleet holds no authority on the site through it.
+ * never attached, so whoever controls the fleet gains no access to the site through it.
  *
  * Trust boundary: `origin` is the host's own listener from `PluginStartContext.origin`, and the
  * path is confined to `/api/v1/` by the protocol schema, so the relay reaches nothing else.

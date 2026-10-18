@@ -11,7 +11,7 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 - [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`, and `jsonValueSchema`. `jsonValueSchema` accepts any JSON value and is the one recursive schema the portability check accepts.
 - [Module](../../docs/primitives.md#module): `defineModule`, `CapabilityModule`.
 - [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`.
-- [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, and the catalog checks `checkAgent` and `catalogAgents`. `agentInstructions` is the text a run's model starts with, and for a proposing agent it lists each command the agent may propose with its input schema.
+- [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, and the catalog checks `checkAgent` and `catalogAgents`. `agentInstructions` is the text a run's model starts with, and for a requesting agent it lists each command the agent may request approval for with its input schema.
 - Tool schemas: harnesses and surfaces build a capability's tool schema with `operationToolSchema`, or with `toolEnvelopeSchema` and `expectedRevisionsSchema`. These move a recursive input's `$defs` to the envelope's root, so llama.cpp and strict MCP clients resolve them.
 - [Command](../../docs/primitives.md#command): the caller-safe error envelope, `ApplicationError`, `ErrorCode` and `errorEnvelope`.
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`, `destinationsForRead`.
@@ -19,7 +19,7 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 - [Data provider](../../docs/primitives.md#data-provider): `defineDataProvider`, `DataProvider`, `DataProviderSpec`.
 - [Membership](../../docs/primitives.md#membership): `defineMembership`, `Membership`, `MembershipSpec`, `SetMemberInput`, `SetMemberOutput`.
 - [Target](../../docs/primitives.md#target): `defineTarget`, `Target`, `TargetSpec`, `SyncBatch`, `effectOutcomeSchema`, `EffectOutcomeInput`, `deliveryStatusSchema`, `rejectionSchema`, `deliveryShape`.
-- [Proposal](../../docs/primitives.md#proposal): `proposalOperations` under fixed `proposal.*` IDs, `proposalSchema` with `Proposal`, `proposalStatusSchema` with `ProposalStatus`, and the `proposals` collection.
+- [Approval request](../../docs/primitives.md#approval-request): `approvalOperations` under fixed `approval.*` IDs, `approvalRequestSchema` with `Approval request`, `approvalStatusSchema` with `ApprovalStatus`, and the `approval requests` collection.
 - [Reconciliation](../../docs/primitives.md#reconciliation): `reconciliationOperations` for `reconciliation.list` and `reconciliation.resolve`, `heldEffectSchema` with `HeldEffect`, and `reconciliationDecisionSchema` with `ReconciliationDecision`.
 - [Collection](../../docs/primitives.md#collection): `defineCollection`, `Collection`, `collectionGet`, `collectionList`, `listFilters`, `listSearches`, `recordKeySchema`, `MAX_PAGE`, and the `CollectionPage` output shape.
 - [Blob store](../../docs/primitives.md#blob-store): `BlobRef`, `blobRefSchema`, `isBlobRef`, `blobFits`, `assertBlobLimits`, `maxBlobBytes`, `blobDigestPattern`, `mediaTypePattern`, and `BlobLimits`, a command's `blobs`.
@@ -37,7 +37,7 @@ The worked example is [`examples/project-tasks/contracts.ts`](../../examples/pro
 | `@agent-native/contracts` | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers. |
 | `@agent-native/contracts/*` | browser and server | One source file, listed below. |
 
-The source files are `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit`, `data-provider`, `collection`, `membership`, `target`, `agent`, `agent-instructions`, `proposal`, `reconciliation`, `blob`, `os`, `os-catalog`, `os-templates` and `os-wire`.
+The source files are `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit`, `data-provider`, `collection`, `membership`, `target`, `agent`, `agent-instructions`, `approval`, `reconciliation`, `blob`, `os`, `os-catalog`, `os-templates` and `os-wire`.
 
 ## Trust boundary
 
@@ -69,8 +69,8 @@ bun test packages/contracts
 ```
 
 - `test/data-provider.test.ts`: literal IDs and types survive, and both queries declare `remote`. Search pages with a cursor the provider cannot redefine, and a provider without a destination that reads its target fails composition.
-- `test/agent.test.ts`: agent definitions are sorted with their module in the catalog, and a proposing agent's instructions are checked. Definitions are refused for unknown or repeated capabilities, unbounded budgets, malformed scopes, and a direct agent on a command without a UI binding.
-- `test/tool-envelope.test.ts`: every `$ref` of a wrapped recursive schema resolves from its root, and only commands other than `proposal.submit` are offered `expectedRevisions`.
+- `test/agent.test.ts`: agent definitions are sorted with their module in the catalog, and a requesting agent's instructions are checked. Definitions are refused for unknown or repeated capabilities, unbounded budgets, malformed scopes, and a direct agent on a command without a UI binding.
+- `test/tool-envelope.test.ts`: every `$ref` of a wrapped recursive schema resolves from its root, and only commands other than `approval.request` are offered `expectedRevisions`.
 - `test/contracts.test.ts`: rejects a capability without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
 - `test/os.test.ts`: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
 

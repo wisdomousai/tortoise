@@ -41,7 +41,7 @@ The token is 32 random bytes in base64url. Failed exchanges are limited to ten p
 
 ## Trust boundary
 
-The enrollment route runs before the session check, so anyone who reaches the listener can reach it. The route only redeems a code, through the [authority](../../docs/glossary.md#authority), as the local [owner](../../docs/glossary.md#owner) narrowed to the redeem and resolve capabilities. The plugin gets that context when the host starts listening, and before then the route answers `UNAVAILABLE`. One message covers an unknown, an expired and a used code.
+The enrollment route runs before the session check, so anyone who reaches the listener can reach it. The route only redeems a code, through the [instance](../../docs/glossary.md#instance), as the local [owner](../../docs/glossary.md#owner) narrowed to the redeem and resolve capabilities. The plugin gets that context when the host starts listening, and before then the route answers `UNAVAILABLE`. One message covers an unknown, an expired and a used code.
 
 The hub stores SHA-256 digests of codes and tokens, never the values. The redeemed code stays in the redeem command's stored [receipt](../../docs/glossary.md#receipt), which is harmless once the code is used. The [audit log](../../docs/glossary.md#audit-log) records none of the redeem input.
 

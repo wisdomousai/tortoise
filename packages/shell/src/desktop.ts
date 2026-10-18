@@ -14,8 +14,8 @@ import { fileHandlerFor, fileRequest } from './local-files';
 import { replyRequest, shellNotification, type ShellNotification } from './notifications';
 
 /**
- * How a desktop shell reaches its authority, as the session the window also uses. Each call
- * resolves `undefined` when the authority composes no plugin that provides the shell port.
+ * How a desktop shell reaches its instance, as the session the window also uses. Each call
+ * resolves `undefined` when the instance composes no plugin that provides the shell port.
  */
 export interface DesktopShellClient {
   declarations(): Promise<CatalogOs | undefined>;
@@ -24,11 +24,11 @@ export interface DesktopShellClient {
   /** The next relayed instruction, `null` when the wait ended without one. */
   next(signal: AbortSignal): Promise<{ id: string; instruction: OsInstruction } | null | undefined>;
   answer(id: string, result: OsActionResult): Promise<void>;
-  /** Store a blob payload in the blob store; `undefined` when the authority keeps no blobs. */
+  /** Store a blob payload in the blob store; `undefined` when the instance keeps no blobs. */
   upload(bytes: Uint8Array, mediaType: string): Promise<BlobRef | undefined>;
 }
 
-/** The OS calls a desktop shell makes. Paths come from the authority, which resolved them. */
+/** The OS calls a desktop shell makes. Paths come from the instance, which resolved them. */
 export interface DesktopShellDependencies {
   readonly platform: OsPlatform;
   readonly client: DesktopShellClient;
@@ -60,7 +60,7 @@ export interface DesktopShellDependencies {
   readonly retryMs?: number;
 }
 
-/** OS input that arrived before the authority was reachable; the oldest is dropped beyond this. */
+/** OS input that arrived before the instance was reachable; the oldest is dropped beyond this. */
 const bufferLimit = 16;
 
 /** Run one relayed instruction; an open URL is checked against the declarations again. */
@@ -103,7 +103,7 @@ async function runInstruction(
   }
 }
 
-/** Poll for relayed instructions until stopped or the authority has no shell port. */
+/** Poll for relayed instructions until stopped or the instance has no shell port. */
 async function relay(
   dependencies: DesktopShellDependencies,
   actions: () => CatalogOs['actions'],
@@ -131,9 +131,9 @@ async function relay(
 
 /**
  * The desktop shell adapter, independent of Electron: it submits links and files the OS opened
- * the application with (a blob payload uploaded first), performs the actions the authority relays to it, and checks URLs the
+ * the application with (a blob payload uploaded first), performs the actions the instance relays to it, and checks URLs the
  * window asks to open against the declared open actions. Input is buffered until `connect`.
- * The caller supplies the OS calls and the authority client, so this file reaches neither.
+ * The caller supplies the OS calls and the instance client, so this file reaches neither.
  */
 export function createDesktopShell(dependencies: DesktopShellDependencies) {
   const { client, report = () => undefined } = dependencies;
@@ -183,7 +183,7 @@ export function createDesktopShell(dependencies: DesktopShellDependencies) {
     /**
      * A URL the window asked to open. Only one a declared open action builds is opened, and then
      * as the action, so the shell port audits it, applies the site's disabled list and its rate.
-     * An authority without the shell port leaves the check here; the URL is rebuilt from the
+     * An instance without the shell port leaves the check here; the URL is rebuilt from the
      * declaration either way.
      */
     async openFromPage(url: string) {

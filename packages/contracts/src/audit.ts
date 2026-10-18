@@ -6,7 +6,7 @@ import type { JsonObject } from './json';
  *
  * Events carry references and digests, never business payloads: input values appear only for
  * fields a capability lists in `audit.fields`, and egress events never contain bodies. A log is
- * evidence about the authority; it does not replace the committed journal or receipts.
+ * evidence about the instance; it does not replace the committed journal or receipts.
  */
 
 /** Which surface carried the request. Derived by the host, never supplied by the caller. */

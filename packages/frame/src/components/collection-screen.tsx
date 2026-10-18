@@ -54,7 +54,7 @@ function Value({ name, value }: { name: string; value: unknown }) {
  * A collection's list screen: a server-paged table over its generated `list` query, a search box
  * when the list declares one, and a form for its create command. Columns come from the record
  * schema, and a `sync` field renders as delivery state. Replace it with a purpose-built screen
- * one route at a time; the authority still scopes, filters and counts before paging.
+ * one route at a time; the instance still scopes, filters and counts before paging.
  */
 export function CollectionScreen({
   title,
@@ -127,7 +127,7 @@ export function CollectionScreen({
 /**
  * One record of a collection: its fields from the generated `get` query and a form for its
  * update command with the record's key fixed. A record the caller may not see is `NOT_FOUND`
- * from the authority and shows as unavailable.
+ * from the instance and shows as unavailable.
  */
 export function RecordScreen({
   title,

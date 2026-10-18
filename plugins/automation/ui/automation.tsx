@@ -92,7 +92,7 @@ function GrantControls({
 /**
  * Triggers (`automation.trigger.list`) with their standing grants. Enabling issues a grant as
  * the signed-in person for a week; every run then acts as them. Renew and revoke apply to the
- * grant they issued, and the authority refuses anyone else's.
+ * grant they issued, and the instance refuses anyone else's.
  */
 function Triggers() {
   const triggers = useQuery(live.liveQueryOptions(automationOperations.triggerList, {}));

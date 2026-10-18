@@ -57,7 +57,7 @@ async function site() {
     const port = await freePort();
     const policy = join(directory, `site-policy-${++hosts}.json`);
     const call = {
-      name: toolName('proposal.submit'),
+      name: toolName('approval.request'),
       arguments: {
         input: {
           operation: 'note.add',
@@ -107,21 +107,21 @@ async function site() {
   return { directory, entry, files, open };
 }
 
-const proposes: AgentScenario = {
+const requestsNote: AgentScenario = {
   name: 'suggests a note',
   agent: 'note.suggester',
   task: 'Suggest a note about the supplier.',
   issuer: person,
   expect: {
     commits: [],
-    proposals: [{ operation: 'note.add', input: { id: 'n1' } }],
+    approvals: [{ operation: 'note.add', input: { id: 'n1' } }],
     outcome: 'succeeded',
   },
 };
 const expectsOther: AgentScenario = {
-  ...proposes,
+  ...requestsNote,
   name: 'suggests a different note',
-  expect: { ...proposes.expect, proposals: [{ operation: 'note.add', input: { id: 'n2' } }] },
+  expect: { ...requestsNote.expect, approvals: [{ operation: 'note.add', input: { id: 'n2' } }] },
 };
 
 describe('a managed model server', () => {
@@ -181,7 +181,7 @@ describe('a managed model server', () => {
       passed: false,
       results: [{ scenario: 'suggests a different note', passed: false }],
     });
-    const { activation } = await gate([proposes]);
+    const { activation } = await gate([requestsNote]);
     expect(activation).toMatchObject({
       entry: ENTRY,
       base: share.entry.base.digest,
@@ -195,7 +195,7 @@ describe('a managed model server', () => {
 
     const served = await share.open({ activation });
     expect(served.models.status().state).toBe('ready');
-    const result = await runAgentScenario(proposes, {
+    const result = await runAgentScenario(requestsNote, {
       application: served.host.application,
       harness: served.models.harness,
     });
@@ -215,7 +215,7 @@ describe('a managed model server', () => {
   test('a harness serving another entry is refused for an agent that names its model', async () => {
     const share = await site();
     const { models, host } = await share.open({ evaluation: true });
-    const other = { ...proposes, agent: 'note.suggester' };
+    const other = { ...requestsNote, agent: 'note.suggester' };
     const result = await runAgentScenario(other, {
       application: host.application,
       harness: {

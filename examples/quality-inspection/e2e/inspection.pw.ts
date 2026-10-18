@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startService } from '../../../tests/e2e/service';
 
-/** Read committed lot state through the same authority API the screen uses. */
+/** Read committed lot state through the same instance API the screen uses. */
 async function lot(page: Page, origin: string, id: string) {
   const response = await page.request.post(`${origin}/api/v1/queries/inspection.lot.get`, {
     headers: { Origin: origin },

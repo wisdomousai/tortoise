@@ -12,7 +12,7 @@ import { ENTRY, notesApplication, person } from './fixture';
 /**
  * A live run, skipped unless LOCAL_MODEL_GGUF names a GGUF file: the plugin starts the real
  * llama.cpp `llama-server` (LLAMA_SERVER, or the one on PATH) through the process port, measures
- * the weights, and the proposing agent runs on it. An instruction-tuned model with tool calls is
+ * the weights, and the requesting agent runs on it. An instruction-tuned model with tool calls is
  * enough, for example Gemma 4 E4B-it Q4_0. LOCAL_MODEL_LICENSE names the weights' license
  * (Apache-2.0 when unset).
  */
@@ -34,20 +34,20 @@ async function freePort() {
   return port;
 }
 
-const proposes: AgentScenario = {
-  name: 'proposes a note on a real model',
+const requestsNote: AgentScenario = {
+  name: 'requests approval for a note on a real model',
   agent: 'note.suggester',
-  task: 'Propose adding a note with id n1 that says "Call the supplier".',
+  task: 'Request approval for adding a note with id n1 that says "Call the supplier".',
   issuer: person,
   expect: {
     commits: [],
-    proposals: [{ operation: 'note.add', input: { id: 'n1', text: 'Call the supplier' } }],
+    approvals: [{ operation: 'note.add', input: { id: 'n1', text: 'Call the supplier' } }],
     outcome: 'succeeded',
   },
 };
 
 live(
-  'llama-server starts on measured weights and the proposing agent proposes on it',
+  'llama-server starts on measured weights and the requesting agent requests approval on it',
   async () => {
     const directory = await mkdtemp(join(tmpdir(), 'model-server-live-'));
     cleanup.push(() => rm(directory, { recursive: true, force: true }));
@@ -99,7 +99,7 @@ live(
     }
     expect(models.status()).toMatchObject({ state: 'ready' });
 
-    const result = await runAgentScenario(proposes, {
+    const result = await runAgentScenario(requestsNote, {
       application: host.application,
       harness: models.harness,
     });

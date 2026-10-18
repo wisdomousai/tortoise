@@ -100,7 +100,7 @@ The install verbs trust only what verifies against `--trust`. The copy in the re
 
 The service account name is restricted to a plain account name, because it goes into shell commands and unit files. `site status` exits 1 when the active release no longer verifies. `uninstall` keeps the workspace and the audit log unless `--purge` is given.
 
-`install/native.ts` is the plugin's one exemption from the process rule in `check:boundaries`. It runs only in these site operator verbs, never inside an authority.
+`install/native.ts` is the plugin's one exemption from the process rule in `check:boundaries`. It runs only in these site operator verbs, never inside an instance.
 
 ### Known gaps
 
@@ -119,7 +119,7 @@ Framework:
 - `@agent-native/contracts` and `@agent-native/runtime` (types);
 - `@agent-native/adapters`: `cli`, and `row-storage` for the schema version an install migrates to;
 - `@agent-native/host`: `plugin`, `plugin-manifest`, `manifest` and `components`;
-- `@agent-native/kernel/authority` (`LOCAL_WORKSPACE`);
+- `@agent-native/kernel/instance` (`LOCAL_WORKSPACE`);
 - `@agent-native/agents/oidc` (ID-token verification);
 - `@agent-native/bundle`, for bundle verification, admission and the trusted key and approval types.
 

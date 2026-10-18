@@ -48,7 +48,7 @@ function startOrder(
     payload: {
       recipe: order.recipe,
       order: order.id,
-      // Authority-derived: this command is person-only, so the caller is at the station.
+      // Instance-derived: this command is person-only, so the caller is at the station.
       presence: { confirmedBy: ctx.context.principalId },
     } as JsonValue,
   });

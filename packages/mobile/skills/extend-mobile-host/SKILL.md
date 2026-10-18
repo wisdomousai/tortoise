@@ -5,7 +5,7 @@ description: Run an agent-native application on Android or iOS, or extend what i
 
 # Extend the mobile host
 
-The Expo project in `apps/mobile` runs one [application](../../../../docs/glossary.md#application)'s [authority](../../../../docs/glossary.md#authority) on the device. It uses the same [kernel](../../../../docs/glossary.md#kernel) and runtime as the desktop host and has its own [workspace](../../../../docs/glossary.md#workspace). The application, its plugins and its native screens come from `app.config.json` through a generated entry, so the starter names no content. [Mobile host](../../../../docs/mobile.md) describes the modes, pairing and the trust boundary. `examples/asset-survey-field` is the worked reference for a field application paired with a [hub](../../../../docs/glossary.md#hub).
+The Expo project in `apps/mobile` runs one [application](../../../../docs/glossary.md#application)'s [instance](../../../../docs/glossary.md#instance) on the device. It uses the same [kernel](../../../../docs/glossary.md#kernel) and runtime as the desktop host and has its own [workspace](../../../../docs/glossary.md#workspace). The application, its plugins and its native screens come from `app.config.json` through a generated entry, so the starter names no content. [Mobile host](../../../../docs/mobile.md) describes the modes, pairing and the trust boundary. `examples/asset-survey-field` is the worked reference for a field application paired with a [hub](../../../../docs/glossary.md#hub).
 
 ## Before writing
 
@@ -52,4 +52,4 @@ bun test plugins/device-link examples/asset-survey-field
 bun run check:mobile-bundle   # Metro bundle of the starter's fixture; not part of bun run check
 ```
 
-Bun tests run the mobile authority on Bun's SQLite and files with fake device bindings. Kotlin and Swift compile only in a native build, and device, emulator and simulator runs are on demand. Record each such run in the [implementation status](../../../../docs/implementation-status.md#mobile), separately from the Bun tests.
+Bun tests run the mobile instance on Bun's SQLite and files with fake device bindings. Kotlin and Swift compile only in a native build, and device, emulator and simulator runs are on demand. Record each such run in the [implementation status](../../../../docs/implementation-status.md#mobile), separately from the Bun tests.

@@ -31,7 +31,7 @@ const routeComponent = (screen: ScreenRoute) => {
 /**
  * Code-based routes from the application's screens keep the registry explicit: each route names
  * the capabilities it binds, which is what the generated contract's `ui.binding` points to.
- * Hash history: the local authority serves a flat static directory without SPA fallbacks, and
+ * Hash history: the local instance serves a flat static directory without SPA fallbacks, and
  * Electron loads the same build; deep links still work on reload.
  */
 /**

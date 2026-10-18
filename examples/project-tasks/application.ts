@@ -42,11 +42,11 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
       const slice = (
         'projects' in value ? value : (value.projectTasks ?? createProjectTaskState(ownerId))
       ) as ProjectTaskState;
-      // Workspaces from before proposals or reminders get empty slices for them.
+      // Workspaces from before approval requests or reminders get empty slices for them.
       return {
         projectTasks: {
           ...slice,
-          proposals: slice.proposals ?? {},
+          approvals: slice.approvals ?? {},
           reminderEffects: slice.reminderEffects ?? {},
         },
       };
@@ -59,7 +59,7 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
       authorizationRoute(
         'projectTasks',
         projectTasksModule,
-        ['project', 'task', 'proposal'],
+        ['project', 'task', 'approval-request'],
         projectTaskPolicy,
       ),
     ]),

@@ -109,7 +109,7 @@ The upload is staged under the shell's own session. The [blob](../../docs/glossa
 
 The store sweeps the blob when nothing attaches it. The matcher refuses a blob whose media type the handler does not declare, or that differs from the type the request reports. A file therefore cannot match as one type and be stored as another.
 
-A relayed open is checked against the declarations again before it runs. The adapter hands the declarations to `launchers` once it has read them. A launcher that fails to register is reported, and the adapter keeps running. The adapter runs a share action only when its caller supplies a share menu, which the desktop starter does on macOS. It runs a notify action only when its caller supplies `notify`. The buttons stay in memory, and a chosen one submits its reply. The [authority](../../docs/glossary.md#authority) checks the nonce; the adapter does not.
+A relayed open is checked against the declarations again before it runs. The adapter hands the declarations to `launchers` once it has read them. A launcher that fails to register is reported, and the adapter keeps running. The adapter runs a share action only when its caller supplies a share menu, which the desktop starter does on macOS. It runs a notify action only when its caller supplies `notify`. The buttons stay in memory, and a chosen one submits its reply. The [instance](../../docs/glossary.md#instance) checks the nonce; the adapter does not.
 
 ### Browser landing and shortcuts
 

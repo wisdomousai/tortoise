@@ -80,7 +80,7 @@ export async function openThread(
           inputSchema: definition.inputSchema,
         })),
         developerInstructions:
-          'Use only the application tools supplied by this host. Do not access shell or files. Application tool results are the authority for business changes.',
+          'Use only the application tools supplied by this host. Do not access shell or files. Application tool results are the instance for business changes.',
       });
   return nativeId(thread, 'thread');
 }

@@ -50,7 +50,7 @@ function Pager({
 }
 
 /**
- * Table over a server-scoped, server-paginated capability result. The authority filters and
+ * Table over a server-scoped, server-paginated capability result. The instance filters and
  * counts before paginating, so `count` is the number of rows this principal may see; the table
  * never paginates or filters client-side over a partial set.
  */

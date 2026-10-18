@@ -11,9 +11,7 @@ import { checkDriver } from './testing/check';
 
 const usage = (message: string) => new ApplicationError('INVALID_INPUT', message);
 
-export const driverUsage = (
-  program: string,
-) => `Drivers (offline; no authority or workspace needed):
+export const driverUsage = (program: string) => `Drivers (offline; no instance or workspace needed):
   ${program} driver list
       each declared driver: the process ID to bind in the site policy, its contract digest,
       and its actions with delivery mode and hazard class

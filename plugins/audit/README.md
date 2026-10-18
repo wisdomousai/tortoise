@@ -63,7 +63,7 @@ bun run test:sandbox
 
 The package has no tests of its own. Applications that compose it exercise it:
 
-- `examples/project-tasks/test/security.test.ts` covers attestation, audit records over HTTP and the embedded authority, the writer lock and crash recovery;
+- `examples/project-tasks/test/security.test.ts` covers attestation, audit records over HTTP and the embedded instance, the writer lock and crash recovery;
 - `examples/quality-inspection/test/security.test.ts` covers `audit verify` and tamper detection;
 - `examples/quality-inspection/test/sandbox.test.ts`, run by `test:sandbox`, verifies the compiled binary's chain.
 

@@ -54,7 +54,7 @@ async function backlog(host: PluginStartContext): Promise<BacklogPoint[]> {
 }
 
 /**
- * OpenTelemetry metrics and traces for an authority, posted as OTLP/HTTP JSON to the
+ * OpenTelemetry metrics and traces for an instance, posted as OTLP/HTTP JSON to the
  * `telemetry` destination through the network port, so the egress guard binds, limits and logs
  * every export. The plugin follows the audit plugin's log from its head at start and the
  * outbox, and exports only operation IDs, outbox targets, harness IDs, outcomes, error codes,

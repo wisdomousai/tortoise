@@ -23,7 +23,7 @@ const headers = z.record(z.string().max(64), z.string().max(8192));
 
 export const siteReportSchema = z.strictObject({
   application: id,
-  /** The authority instance that reported; changes on every restart. */
+  /** The instance that reported; changes on every restart. */
   instance: id,
   at: count,
   /** The outbox by target, as `drain` accounts for it. */

@@ -8,7 +8,7 @@ import { SQLiteStorage } from '@agent-native/adapters/sqlite';
 import type { StateMigrations } from '@agent-native/kernel/migrations';
 import { defineApplication } from '../src/application';
 import { createCli } from '../src/cli';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedAuthority } from '../src/embedded';
+import { LOCAL_OWNER, LOCAL_WORKSPACE, openEmbeddedInstance } from '../src/embedded';
 import { defineManifest } from '../src/manifest';
 
 const bump = defineCapability({
@@ -95,15 +95,15 @@ async function bumpWith(
   workspacePath: string,
   key: string,
 ) {
-  const authority = await openEmbeddedAuthority(definition, { workspacePath });
+  const instance = await openEmbeddedInstance(definition, { workspacePath });
   try {
-    const receipt = await authority.application.invokeRaw(
+    const receipt = await instance.application.invokeRaw(
       { operation: 'counter.bump', input: {}, idempotencyKey: key },
       { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER },
     );
     return (receipt.result as { value: number }).value;
   } finally {
-    await authority.close();
+    await instance.close();
   }
 }
 

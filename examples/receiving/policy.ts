@@ -15,9 +15,9 @@ const editor: OperationRule<AppState, Role> = {
  * Workspace policy. Only members pass the caller gate; integration principals hold no role and
  * act only in their own lanes. An operation this policy does not list is denied.
  *
- * Any member may propose; the agent proposes under the delegated grant of the member who started
- * it. Accepting runs the proposed command under the accepter, so its own editor rule applies
- * again. Deciding a proposal needs a person, and so does saying whether the ERP applied a held
+ * Any member may request approval; the agent requests approval under the delegated grant of the member who started
+ * it. Approving runs the requested command under the approver, so its own editor rule applies
+ * again. Deciding an approval request needs a person, and so does saying whether the ERP applied a held
  * receipt.
  */
 export const appPolicy = definePolicy<AppState, Role>({
@@ -33,21 +33,21 @@ export const appPolicy = definePolicy<AppState, Role>({
     [operations.deliveryClassify.id]: editor,
     ...targetRules(erpTarget),
     [operations.erpSend.id]: editor,
-    [operations.proposalSubmit.id]: {},
-    [operations.proposalAccept.id]: { person: true },
-    [operations.proposalReject.id]: { ...editor, person: true },
-    [operations.proposalExpire.id]: {},
-    [operations.proposalList.id]: 'open',
-    [operations.proposalGet.id]: 'open',
+    [operations.approvalRequest.id]: {},
+    [operations.approvalApprove.id]: { person: true },
+    [operations.approvalReject.id]: { ...editor, person: true },
+    [operations.approvalExpire.id]: {},
+    [operations.approvalList.id]: 'open',
+    [operations.approvalGet.id]: 'open',
     [operations.reconciliationList.id]: 'open',
     [operations.reconciliationResolve.id]: { ...editor, person: true },
     // scaffold:rules
   },
   events: {
-    // Feed, delivery and proposal state is visible to every member.
+    // Feed, delivery and approval request state is visible to every member.
     sync: () => true,
     delivery: () => true,
-    proposal: () => true,
+    'approval-request': () => true,
     // scaffold:events
   },
 });

@@ -23,7 +23,7 @@ export function windowsServiceXml(layout: InstallLayout, executable: string): st
 <service>
   <id>${escape(layout.service)}</id>
   <name>${escape(layout.service)}</name>
-  <description>agent-native local authority</description>
+  <description>agent-native local host</description>
   <executable>${escape(executable)}</executable>
   <arguments>${escape(args)}</arguments>
   <onfailure action="restart" delay="5 sec" />

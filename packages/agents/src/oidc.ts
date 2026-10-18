@@ -242,7 +242,7 @@ export class OidcAccountConnection {
     await this.vault.set(this.account, JSON.stringify(tokens));
     return { subject: tokens.subject, scopes, expiresAt: tokens.expiresAt };
   }
-  /** Authority-only token retrieval. Never expose this method over renderer IPC/API. */
+  /** Instance-only token retrieval. Never expose this method over renderer IPC/API. */
   async credentials(): Promise<ProviderTokens | undefined> {
     const stored = await this.vault.get(this.account);
     if (!stored) return undefined;

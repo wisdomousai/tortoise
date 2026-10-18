@@ -8,7 +8,7 @@ import {
 
 /** Where an application is delivered: the desktop window, a browser, or the mobile app. */
 export type ApplicationTarget = 'desktop' | 'web' | 'mobile';
-/** The platforms that host an authority for each target. */
+/** The platforms that host an instance for each target. */
 export const targetPlatforms: Readonly<Record<ApplicationTarget, readonly PlatformId[]>> = {
   desktop: ['bun'],
   web: ['bun'],

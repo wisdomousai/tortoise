@@ -16,7 +16,7 @@ export interface Receipt<T> {
    * the local commit only; delivery and acceptance are reported later through the effect state.
    */
   effects?: readonly string[];
-  /** The command this one ran in the same transaction (a proposal's command), with its result. */
+  /** The command this one ran in the same transaction (an approval request's command), with its result. */
   continuation?: { operation: string; result: unknown };
 }
 export interface ChangeBatch {
@@ -30,7 +30,7 @@ export interface CommandOptions {
   expectedRevisions?: Readonly<Record<string, number>>;
   signal?: AbortSignal;
 }
-/** A blob reference as the authority returns it; see `BlobRef` in the contracts. */
+/** A blob reference as the instance returns it; see `BlobRef` in the contracts. */
 export interface BlobReference {
   readonly digest: string;
   readonly size: number;
@@ -51,6 +51,6 @@ export interface Transport {
   query<T>(operation: string, input: unknown, signal?: AbortSignal): Promise<Snapshot<T>>;
   command<T>(operation: string, input: unknown, options?: CommandOptions): Promise<Receipt<T>>;
   events(cursor: Cursor, signal: AbortSignal): AsyncIterable<ChangeBatch>;
-  /** Present when the authority keeps blobs. */
+  /** Present when the instance keeps blobs. */
   readonly blobs?: BlobTransport;
 }

@@ -82,7 +82,7 @@ function toolDefinitions(application: HostedApplication, operations: ReadonlySet
 }
 
 /**
- * Tools over the application for trigger runs. Authority comes from the context the loop
+ * Tools over the application for trigger runs. Instance comes from the context the loop
  * registered for the run ID, never from the call. Keys arrive prefixed with the run ID.
  */
 function createRunTools(
@@ -94,7 +94,7 @@ function createRunTools(
     definitions: toolDefinitions(application, agentOperations),
     async execute(operation, body, call) {
       const context = contexts.get(call.runId);
-      if (!context) throw new ApplicationError('FORBIDDEN', 'Run authority unavailable');
+      if (!context) throw new ApplicationError('FORBIDDEN', 'Run instance unavailable');
       const { input, expectedRevisions } = (body ?? {}) as {
         input?: unknown;
         expectedRevisions?: Record<string, number>;

@@ -7,9 +7,9 @@ import {
 } from '@agent-native/runtime';
 import type { ProjectTaskState, Role, Task } from './domain';
 import { createScopedAbility, matchesScope } from '@agent-native/adapters/casl';
-import { operations as taskOperations, proposalOperations } from './contracts';
+import { operations as taskOperations, approvalOperations } from './contracts';
 
-const operations = { ...taskOperations, ...proposalOperations };
+const operations = { ...taskOperations, ...approvalOperations };
 
 export function projectRole(
   state: ProjectTaskState,
@@ -126,41 +126,43 @@ const onTask = (container: Rule['container']): Rule => ({
 });
 const projectEvent = { container: (id: string) => id };
 
-/** The project a resource belongs to: a project, a task (or its tombstone) or a proposal. */
+/** The project a resource belongs to: a project, a task (or its tombstone) or an approval request. */
 export function projectOfResource(state: ProjectTaskState, resource: string): string | undefined {
   const separator = resource.indexOf(':');
   const type = resource.slice(0, separator);
   const id = resource.slice(separator + 1);
   if (type === 'project') return own(state.projects, id) ? id : undefined;
   if (type === 'task') return own(state.tasks, id)?.projectId ?? own(state.deletedTasks, id);
-  if (type === 'proposal') {
-    const about = own(state.proposals, id)?.resource;
-    return about && !about.startsWith('proposal:') ? projectOfResource(state, about) : undefined;
+  if (type === 'approval-request') {
+    const about = own(state.approvals, id)?.resource;
+    return about && !about.startsWith('approval-request:')
+      ? projectOfResource(state, about)
+      : undefined;
   }
   return undefined;
 }
-const proposalProject: Rule['container'] = (input, state) =>
-  projectOfResource(state, `proposal:${String(input.id)}`);
+const approvalProject: Rule['container'] = (input, state) =>
+  projectOfResource(state, `approval-request:${String(input.id)}`);
 /**
- * Any project member may propose and accept; accepting also passes the proposed task command's
- * own rule under the accepter, so a viewer's acceptance is refused there. Deciding needs a
+ * Any project member may request approval and approve; approving also passes the requested task command's
+ * own rule under the approver, so a viewer's approval is refused there. Deciding needs a
  * person. Rejecting needs a role that could have made the change.
  */
-const proposalRules = {
-  [operations.proposalSubmit.id]: {
+const approvalRules = {
+  [operations.approvalRequest.id]: {
     container: (input, state) =>
       typeof input.resource === 'string' ? projectOfResource(state, input.resource) : undefined,
   },
-  [operations.proposalAccept.id]: { container: proposalProject, person: true },
-  [operations.proposalReject.id]: {
-    container: proposalProject,
+  [operations.approvalApprove.id]: { container: approvalProject, person: true },
+  [operations.approvalReject.id]: {
+    container: approvalProject,
     roles: ['owner', 'editor'],
     person: true,
   },
-  [operations.proposalExpire.id]: { container: proposalProject },
+  [operations.approvalExpire.id]: { container: approvalProject },
   // Handlers scope these to the caller's projects before filtering and counting.
-  [operations.proposalList.id]: 'open',
-  [operations.proposalGet.id]: 'open',
+  [operations.approvalList.id]: 'open',
+  [operations.approvalGet.id]: 'open',
 } satisfies Record<string, Rule | 'open'>;
 
 /**
@@ -191,14 +193,16 @@ export const projectTaskPolicy = definePolicy<ProjectTaskState, Role>({
     },
     // Deletes have no proposed object; authorize their original project and retained tombstone.
     [operations.taskDelete.id]: { ...onTask(taskProject), commit: 'previous' },
-    ...proposalRules,
+    ...approvalRules,
   },
   events: {
     project: projectEvent,
     task: {
       container: (id, state) => own(state.tasks, id)?.projectId ?? own(state.deletedTasks, id),
     },
-    proposal: { container: (id, state) => projectOfResource(state, `proposal:${id}`) },
+    'approval-request': {
+      container: (id, state) => projectOfResource(state, `approval-request:${id}`),
+    },
   },
   projectOutput: ({ state, context, output }) => projectOutput(state, context, output),
 });

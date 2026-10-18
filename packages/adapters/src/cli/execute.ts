@@ -24,7 +24,7 @@ export function execute(
 
 /**
  * Validate against the published input schema and the caller's coarse availability without
- * executing. Advisory only: the authority re-validates and authorizes the object at commit time.
+ * executing. Advisory only: the instance re-validates and authorizes the object at commit time.
  */
 export function validateOnly(operation: CatalogOperation, input: unknown) {
   const availability = (operation as CatalogOperation & { availability?: string }).availability;

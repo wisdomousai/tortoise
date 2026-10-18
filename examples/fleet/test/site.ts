@@ -16,12 +16,12 @@ import { fleetNetworkFixture } from '@agent-native/fleet-agent/testing';
 import { defineApplication } from '@agent-native/host/application';
 import { startHost } from '@agent-native/host/host';
 import { defineManifest } from '@agent-native/host/manifest';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import { createHandlerFactory } from '@agent-native/runtime';
 import { sitePlugin } from '@agent-native/site/plugin';
 import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 
-/** A plant's authority: notes that queue an effect for an ERP nothing here delivers to. */
+/** A plant's instance: notes that queue an effect for an ERP nothing here delivers to. */
 const noteAdd = defineCapability({
   id: 'notes.add',
   kind: 'command',

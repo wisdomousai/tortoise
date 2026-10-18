@@ -61,12 +61,12 @@ test('an agent naming an unknown operation fails the catalog', () => {
   );
 });
 
-test('a direct agent may only run commands that have a UI binding; a proposing one may name any', () => {
+test('a direct agent may only run commands that have a UI binding; a requesting one may name any', () => {
   expect(() => catalogWith(agent({ operations: ['lot.recompute'] }))).toThrow(
     'Direct agent lot.reviewer runs lot.recompute, which has no UI binding',
   );
   expect(
-    catalogWith(agent({ operations: ['lot.recompute'], output: 'propose' })).agents,
+    catalogWith(agent({ operations: ['lot.recompute'], output: 'request-approval' })).agents,
   ).toHaveLength(1);
 });
 
@@ -102,20 +102,24 @@ test('defineAgent freezes the definition and its operations', () => {
   expect(Object.isFrozen(defined.operations)).toBe(true);
 });
 
-test('a proposing agent reads the commands it may propose with their inputs; a direct one its instructions', () => {
+test('a requesting agent reads the commands it may request approval for with their inputs; a direct one its instructions', () => {
   const catalog = catalogWith(
     agent({ id: 'lot.direct' }),
-    agent({ id: 'lot.proposer', output: 'propose', operations: ['lot.list', 'lot.recompute'] }),
+    agent({
+      id: 'lot.requester',
+      output: 'request-approval',
+      operations: ['lot.list', 'lot.recompute'],
+    }),
   );
   expect(agentInstructions(catalog, 'lot.direct')).toBe(agent().instructions);
-  const text = agentInstructions(catalog, 'lot.proposer');
+  const text = agentInstructions(catalog, 'lot.requester');
   expect(text.startsWith(agent().instructions)).toBe(true);
-  expect(text).toContain('call proposal.submit with `operation`');
+  expect(text).toContain('call approval.request with `operation`');
   expect(text).toContain('- `lot.recompute`: ');
   expect(text).toContain(
     'Input schema: {"additionalProperties":false,"properties":{},"type":"object"}',
   );
-  // Queries are tools of their own, so they are not listed as proposable.
+  // Queries are tools of their own, so they are not listed as commands to request approval for.
   expect(text).not.toContain('`lot.list`');
   expect(() => agentInstructions(catalog, 'lot.missing')).toThrow('Unknown agent lot.missing');
 });

@@ -50,7 +50,7 @@ const module = defineModule({
   workflows: [{ id: 'inspect', operations: ['qa.lot.list'], text: '# Inspect\n\nSteps.' }],
 });
 
-/** Records what the CLI would send; the authority itself is out of scope for parsing tests. */
+/** Records what the CLI would send; the instance itself is out of scope for parsing tests. */
 function fakeClient(catalog: Catalog = buildCatalog([module])) {
   const calls: { kind: string; operation: string; input: unknown; options?: unknown }[] = [];
   const client: CliClient = {
@@ -144,7 +144,7 @@ describe('catalog command line', () => {
     );
   });
 
-  test('malformed arguments fail as INVALID_INPUT before reaching the authority', async () => {
+  test('malformed arguments fail as INVALID_INPUT before reaching the instance', async () => {
     const { client, calls } = fakeClient();
     for (const args of [
       ['qa', 'result', 'record', '--sample', '1.5'],

@@ -10,7 +10,7 @@ import {
 import type { AnyApplicationDefinition } from './application';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from './embedded';
 import { startAgents } from './host/agents';
-import { openAuthority, type Authority } from './host/authority';
+import { openInstance, type Instance } from './host/instance';
 import { issueAgentConnection, writeConnectionFile } from './host/connection-files';
 import {
   createCleanupStack,
@@ -27,7 +27,7 @@ export type { StartHostOptions } from './host/options';
 
 /** Everything `close` stops, in the order it stops them. */
 interface Running {
-  readonly authority: Authority;
+  readonly instance: Instance;
   readonly agents: Awaited<ReturnType<typeof startAgents>>;
   readonly server: { stop(force?: boolean): void };
   readonly ownership: WorkspaceOwnership;
@@ -42,9 +42,9 @@ interface Running {
  * own, and remembers where it was presented so every recheck asks the same plugin hook.
  */
 const pluginCredential =
-  (authority: Authority): TokenAuthenticator =>
+  (instance: Instance): TokenAuthenticator =>
   async (token, via) => {
-    const context = await authority.plugins.authenticate(token, via);
+    const context = await instance.plugins.authenticate(token, via);
     return (
       context && { token, context, expiresAt: Number.POSITIVE_INFINITY, credential: token, via }
     );
@@ -56,20 +56,20 @@ function createClose(running: () => Running) {
   return async function closeHost() {
     if (stopped) return;
     stopped = true;
-    const { authority, agents, server, ownership } = running();
+    const { instance, agents, server, ownership } = running();
     for (const run of await agents.supervisor.list())
       if (!['succeeded', 'failed', 'cancelled', 'interrupted'].includes(run.state))
         await agents.supervisor.cancel(run.id);
     server.stop(true);
-    await Promise.all(authority.observers.map((observer) => observer.stop()));
-    await authority.integrations.stop();
+    await Promise.all(instance.observers.map((observer) => observer.stop()));
+    await instance.integrations.stop();
     agents.providers.close();
-    await authority.storage.close();
-    authority.runStore.close();
+    await instance.storage.close();
+    instance.runStore.close();
     const { connectionFile, agentConnectionPath } = running();
     if (connectionFile) await unlink(connectionFile).catch(() => {});
     if (agentConnectionPath) await unlink(agentConnectionPath).catch(() => {});
-    await authority.plugins.close();
+    await instance.plugins.close();
     await ownership.release();
   };
 }
@@ -105,11 +105,11 @@ async function publishConnections(
  * Start the plugins' background work, then the application's integration loops and observers
  * unless the caller drives those. Plugin observers stop with the application's.
  */
-async function startBackground(authority: Authority, options: StartHostOptions, origin: string) {
+async function startBackground(instance: Instance, options: StartHostOptions, origin: string) {
   const onError = (scope: string, error: unknown) => console.error(`${scope}:`, error);
-  authority.observers.push(
-    ...(await authority.plugins.start({
-      application: authority.application,
+  instance.observers.push(
+    ...(await instance.plugins.start({
+      application: instance.application,
       workspaceId: LOCAL_WORKSPACE,
       origin,
       delegate: (grant) => ({
@@ -121,11 +121,11 @@ async function startBackground(authority: Authority, options: StartHostOptions, 
     })),
   );
   if (options.integration === false) return;
-  authority.integrations.start(options.integration);
-  if (authority.connections.observe)
-    authority.observers.push(
+  instance.integrations.start(options.integration);
+  if (instance.connections.observe)
+    instance.observers.push(
       // A failed observation pass is retried; its details stay in the host log.
-      ...(await authority.connections.observe(onError)),
+      ...(await instance.connections.observe(onError)),
     );
 }
 
@@ -134,12 +134,12 @@ async function startBackground(authority: Authority, options: StartHostOptions, 
  * shell port and the relay through which an adapter in another process attaches to it.
  */
 function uiRoutes(
-  authority: Authority,
+  instance: Instance,
   definition: AnyApplicationDefinition,
   sessions: Sessions,
   cleanup: ReturnType<typeof createCleanupStack>,
 ) {
-  const { application, ports } = authority;
+  const { application, ports } = instance;
   const selectable = definition.selectableResources ?? {};
   const shellRelay = createShellRelay(
     () => ports.shell,
@@ -157,7 +157,7 @@ function uiRoutes(
 }
 
 /**
- * One local authority owns the workspace and hosts exactly one application. Browser,
+ * One local instance owns the workspace and hosts exactly one application. Browser,
  * native and process clients attach via authenticated HTTP. The application's integrations and
  * observers come from its own `connect`; the host names no system of record and no station.
  *
@@ -171,18 +171,18 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
   const ownership = await (options.platform ?? bunPlatform).acquireOwnership(options.workspacePath);
   const cleanup = createCleanupStack(() => ownership.release());
   try {
-    const authority = await openAuthority(definition, options, ownership, cleanup);
-    const { application, ports } = authority;
+    const instance = await openInstance(definition, options, ownership, cleanup);
+    const { application, ports } = instance;
     const sessions = new Sessions();
     let origin = '';
     const agents = await startAgents(
-      authority,
+      instance,
       options,
       ownership,
       { sessions, origin: () => origin },
       cleanup,
     );
-    const ownerSession: HostSession | undefined = authority.localOwner
+    const ownerSession: HostSession | undefined = instance.localOwner
       ? sessions.create(
           { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER },
           365 * 86_400_000,
@@ -191,7 +191,7 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
     let running: Running | undefined;
     const close = createClose(() => running!);
     const routes: HostRouteContext = {
-      ...uiRoutes(authority, definition, sessions, cleanup),
+      ...uiRoutes(instance, definition, sessions, cleanup),
       ...agents,
       harnesses: options.harnesses,
       shutdown: { ownerSession, instance: ownership.instance, close },
@@ -204,11 +204,11 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       publicRoute: async (request) =>
         (await agents.providers.callback(request)) ??
         (await serveOsLanding(options.webRoot, request)) ??
-        authority.plugins.publicRoute(request),
-      authenticateToken: pluginCredential(authority),
+        instance.plugins.publicRoute(request),
+      authenticateToken: pluginCredential(instance),
       extra: async (request, session) =>
         (await routeHostRequest(request, session, routes)) ??
-        authority.plugins.route(request, { ...session.context, channel: 'http' }),
+        instance.plugins.route(request, { ...session.context, channel: 'http' }),
       static: (path) => serveStatic(options.webRoot, path),
     });
     const { server, origin: listening } = ports.ingress.listen(options.port, handler);
@@ -216,14 +216,14 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       server.stop(true);
     });
     origin = listening;
-    running = { authority, agents, server, ownership };
+    running = { instance, agents, server, ownership };
     await ownership.publish(origin);
     const { connectionFile, agentSession } = await publishConnections(
       { sessions, ownerSession, origin, running },
       options,
       cleanup,
     );
-    await startBackground(authority, options, origin);
+    await startBackground(instance, options, origin);
     return {
       url: origin,
       workspacePath: ownership.canonicalPath,
@@ -234,11 +234,11 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       sessions,
       application,
       /** Services the plugins expose, keyed by plugin id. */
-      services: authority.plugins.services,
+      services: instance.plugins.services,
       /** Facts each plugin reports for the `listening` record, keyed by plugin id. */
-      plugins: authority.plugins.describe(),
+      plugins: instance.plugins.describe(),
       supervisor: agents.supervisor,
-      integrations: authority.integrations,
+      integrations: instance.integrations,
       close,
     };
   } catch (error) {

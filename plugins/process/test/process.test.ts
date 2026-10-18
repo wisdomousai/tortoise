@@ -83,7 +83,7 @@ async function open(processes: Record<string, unknown>) {
   );
   return openPlugins(definition, {
     workspacePath: directory,
-    component: 'authority',
+    component: 'host',
     instance: 'test',
     serving: true,
     settings: { 'site-policy': path },

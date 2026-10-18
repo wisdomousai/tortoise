@@ -5,7 +5,7 @@ import type { LineState } from '../domain';
 
 export interface LineServices {
   newId?: () => string;
-  /** Authority clock for freshness, stops and confirmations. */
+  /** Instance clock for freshness, stops and confirmations. */
   now?: () => number;
 }
 export type Context = HandlerContext<LineState, LineServices>;

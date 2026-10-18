@@ -6,17 +6,17 @@ import type { HostPlatform, PlatformOwnership } from './platform';
 import { openPlugins } from './plugins/lifecycle';
 import type { PluginSettings } from './plugins/settings';
 
-/** The single workspace a local authority serves. */
+/** The single workspace a local instance serves. */
 export const LOCAL_WORKSPACE = 'local';
-/** The principal a local authority starts as; it owns the workspace it creates. */
+/** The principal a local instance starts as; it owns the workspace it creates. */
 export const LOCAL_OWNER = 'owner';
 
-export interface OpenAuthorityOptions {
+export interface OpenInstanceOptions {
   readonly platform: HostPlatform;
   /** Held by the caller, which acquired it from the same platform and releases it after `close`. */
   readonly ownership: PlatformOwnership;
-  /** Audit source component: `authority` for a serving host, `embedded` in-process. */
-  readonly component: 'authority' | 'embedded';
+  /** Audit source component: `host` for a serving host, `embedded` in-process. */
+  readonly component: 'host' | 'embedded';
   /** True for a serving host, which may start background work and child processes. */
   readonly serving: boolean;
   readonly settings?: PluginSettings;
@@ -31,7 +31,7 @@ export interface OpenAuthorityOptions {
 }
 
 /**
- * Open one workspace's authority on any platform, in the order its guarantees need:
+ * Open one workspace's instance on any platform, in the order its guarantees need:
  *
  * 0. The JavaScript host must have every required global (see `installGlobals`).
  * 1. Plugins, and so the ports. One that refuses (an unusable policy, an unwritable audit log, a
@@ -43,7 +43,7 @@ export interface OpenAuthorityOptions {
  * 4. Every plugin's `ready` hook (attestation, crash recovery), before any integration pass or
  *    request, so no new command reuses a cursor a recovery compares against.
  * 5. The application's integrations, built but not started; the caller starts them.
- * 6. A serving authority sweeps unreferenced blobs once. A failed sweep leaves them for the next
+ * 6. A serving instance sweeps unreferenced blobs once. A failed sweep leaves them for the next
  *    start and never removes a referenced blob, so it does not stop startup.
  *
  * On failure everything opened here is closed again, newest first; the caller still holds and
@@ -51,9 +51,9 @@ export interface OpenAuthorityOptions {
  * that might still audit outlives the audit log. A serving host that interleaves its own
  * resources can instead close the returned parts itself in that order.
  */
-export async function openAuthority(
+export async function openInstance(
   definition: AnyApplicationDefinition,
-  options: OpenAuthorityOptions,
+  options: OpenInstanceOptions,
 ) {
   assertGlobals();
   const { platform, ownership } = options;
@@ -122,4 +122,4 @@ export async function openAuthority(
     throw error;
   }
 }
-export type Authority = Awaited<ReturnType<typeof openAuthority>>;
+export type Instance = Awaited<ReturnType<typeof openInstance>>;

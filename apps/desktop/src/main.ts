@@ -42,7 +42,7 @@ const workspacePath = () =>
     ? resolve(process.env.AGENT_NATIVE_WORKSPACE)
     : resolve(app.getPath('userData'), 'workspace');
 
-/** Attach to or start the authority: from this checkout in development, else the verified runtime. */
+/** Attach to or start the instance: from this checkout in development, else the verified runtime. */
 async function startService(workspace: string): Promise<ServiceHandle> {
   // Bun runs the service from this checkout. Digest checks stay on the packaged stage.
   if (developmentDesktop)
@@ -87,7 +87,7 @@ function restrictedSession(origin: string) {
   const uiSession = session.fromPartition('application-window');
   uiSession.setPermissionCheckHandler(() => false);
   uiSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
-  // Renderer egress: network requests may reach only the local authority. CSP says the same
+  // Renderer egress: network requests may reach only the local instance. CSP says the same
   // for page content; this also covers requests CSP does not govern. Provider sign-in runs in
   // the user's browser (below), so the window itself never contacts the internet.
   uiSession.webRequest.onBeforeRequest((details, callback) => {
@@ -179,11 +179,11 @@ else {
       // The connection token is the window's session, so OS requests reach this window.
       osShell
         .connect(service.endpoint, service.token, showWindow)
-        .catch(() => console.warn('[os] The authority shell API is unreachable'));
+        .catch(() => console.warn('[os] The instance shell API is unreachable'));
       service.child?.once('exit', () => {
         if (!quitting)
           dialog.showErrorBox(
-            'Local authority stopped',
+            'Local host stopped',
             'The local workspace service stopped. Close and reopen the application to recover; unfinished agent runs will be marked interrupted.',
           );
       });

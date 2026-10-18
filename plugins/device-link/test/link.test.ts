@@ -2,9 +2,9 @@ import { afterEach, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import { startHost } from '@agent-native/host/host';
-import { openMobileAuthority, type MobileAuthority } from '@agent-native/mobile';
+import { openMobileInstance, type MobileInstance } from '@agent-native/mobile';
 import { enrollPath as deviceEnrollPath } from '@agent-native/hub-link/contracts';
 import { hubLinkServiceOf } from '@agent-native/hub-link/plugin';
 import { enrollPath } from '../src/contracts';
@@ -78,26 +78,26 @@ async function openField() {
   }) as typeof fetch;
   const secrets = memorySecrets();
   const { platform, cleanup } = devicePlatform(secrets);
-  const field = await openMobileAuthority(fieldApplication({ fetch: fieldFetch }), { platform });
+  const field = await openMobileInstance(fieldApplication({ fetch: fieldFetch }), { platform });
   cleanups.push(async () => {
     await field.close();
     cleanup();
   });
   // The keystore holds one entry, the device credential.
   const token = () => [...secrets.values.values()][0]!;
-  return { field, link, token, pairing: hubLinkServiceOf(field.authority.services)! };
+  return { field, link, token, pairing: hubLinkServiceOf(field.instance.services)! };
 }
 
-const deliver = (field: MobileAuthority) =>
-  field.authority.integrations.target('hub').dispatcher.runOnce(undefined, { ignoreBackoff: true });
-const effects = (field: MobileAuthority) =>
-  field.authority.application.pendingEffects(field.context, { target: 'hub' });
-const captures = async (field: MobileAuthority) =>
+const deliver = (field: MobileInstance) =>
+  field.instance.integrations.target('hub').dispatcher.runOnce(undefined, { ignoreBackoff: true });
+const effects = (field: MobileInstance) =>
+  field.instance.application.pendingEffects(field.context, { target: 'hub' });
+const captures = async (field: MobileInstance) =>
   (await field.transport.query('capture.list', {})).data as {
     captures: { id: string; sync: string; code?: string }[];
     assignments: string[];
   };
-async function capture(field: MobileAuthority, id: string, note = 'nameplate') {
+async function capture(field: MobileInstance, id: string, note = 'nameplate') {
   const photo = await field.transport.blobs!.put(jpeg, 'image/jpeg');
   await field.transport.command('capture.record', { id, note, photo }, { idempotencyKey: id });
   return photo;
@@ -161,7 +161,7 @@ test('a paired phone delivers captures with photos exactly once, and reads the a
 
   // Assignments flow the other way through the hub's feed.
   await command('assignments.add', { title: 'Nameplates under =G1' });
-  await field.authority.integrations.sync();
+  await field.instance.integrations.sync();
   expect((await captures(field)).assignments).toEqual(['Nameplates under =G1']);
 });
 

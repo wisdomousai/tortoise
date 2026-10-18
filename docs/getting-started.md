@@ -4,9 +4,9 @@ Run the examples, use an [application](glossary.md#application) through the CLI 
 
 ## Workspace ownership
 
-Only one [authority](glossary.md#authority) may own a [workspace](glossary.md#workspace). The desktop window starts that authority, or attaches to one that is already running. Closing a window that started the authority stops it. Closing an attached window leaves the existing authority running.
+Only one [instance](glossary.md#instance) may own a [workspace](glossary.md#workspace). The desktop window starts that instance, or attaches to one that is already running. Closing a window that started the instance stops it. Closing an attached window leaves the existing instance running.
 
-The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attached mode](glossary.md#attached-mode), through its [connection file](glossary.md#connection-file). The CLI's `--embedded` flag puts a capability call or the CLI's own MCP verb in [embedded mode](glossary.md#embedded-mode), which opens the workspace in the CLI's process. An embedded call fails with `CONFLICT` while a live authority owns the workspace. Embedded calls and the CLI's workspace verbs for sync, drain, backup, restore and migrate open a local workspace only, so a [hosted authority](hosting.md#hosted-authority) is always reached attached. [Architecture](architecture.md#embedded-and-attached-modes) explains both modes.
+The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attached mode](glossary.md#attached-mode), through its [connection file](glossary.md#connection-file). The CLI's `--embedded` flag puts a capability call or the CLI's own MCP verb in [embedded mode](glossary.md#embedded-mode), which opens the workspace in the CLI's process. An embedded call fails with `CONFLICT` while a live instance owns the workspace. Embedded calls and the CLI's workspace verbs for sync, drain, backup, restore and migrate open a local workspace only, so a [hosted instance](hosting.md#hosted-instance) is always reached attached. [Architecture](architecture.md#embedded-and-attached-modes) explains both modes.
 
 ## First run
 
@@ -151,7 +151,7 @@ The new directory must not exist. The generated application in `examples/<name>`
 - `collection`: its contract, handlers, policy rules, default screens and test.
 - `capability`: its contract, handler, policy rule and behavioral test.
 - `target`: a [target](glossary.md#target) with its contract, handlers, policy lane, an in-memory fake [connector](glossary.md#connector), a status screen and a test. Its network destination is listed as disabled in `apps/desktop/site-policy.json` until the site policy binds it.
-- `agent`: an [agent definition](glossary.md#agent-definition) that proposes, with a test. The first agent also adds the [proposal](glossary.md#proposal) capabilities and a screen of open proposals.
+- `agent`: an [agent definition](glossary.md#agent-definition) that requests approval, with a test. The first agent also adds the [approval request](glossary.md#approval-request) capabilities and a screen of pending approval requests.
 
 With `--registry <url>`, the new application installs the framework packages from that registry at the repository's framework version instead of copying their source; `--published` uses npm's registry. No lockfile is exported in that case, so the first install runs without the frozen-lockfile flag and writes it. To try this before anything is published, serve the packages on loopback:
 
@@ -171,9 +171,9 @@ The scaffold does not install global agent configuration or invent a domain from
 
 ## Related pages
 
-- [Architecture](architecture.md): layers, surfaces, authorities and hosts.
+- [Architecture](architecture.md): layers, surfaces, instances and hosts.
 - [Systems of record](systems-of-record.md): the CLI verbs, grant files and exit codes.
 - [Desktop](desktop.md): the Electron window and packaging.
 - [Mobile](mobile.md): running an application on a phone or tablet.
-- [Hosting](hosting.md): the hosted authority and the fleet.
+- [Hosting](hosting.md): the hosted instance and the fleet.
 - [Development and testing](development-and-testing.md): the checks to run after a change.

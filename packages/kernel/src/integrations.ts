@@ -3,7 +3,7 @@ import { hostContext, type ApplicationConnections, type HostedApplication } from
 
 /**
  * Every system-of-record integration an application declares, built once so the HTTP host and the
- * embedded CLI authority deliver and sync the same targets. `drain` accounts for the whole outbox,
+ * embedded CLI instance deliver and sync the same targets. `drain` accounts for the whole outbox,
  * including targets with no dispatcher in this process, such as station screens that only a
  * running host's observer drives.
  */

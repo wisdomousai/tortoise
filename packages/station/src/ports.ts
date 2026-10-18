@@ -93,7 +93,7 @@ export type StepTarget =
   | { readonly describe: string };
 
 /**
- * Finds where a step's target is on the current frame. It only proposes coordinates: the
+ * Finds where a step's target is on the current frame. It only suggests coordinates: the
  * controller checks them against forbidden regions and the expected screen before acting, so a
  * driver (scripted, cloud or local computer-use model) can never act on its own.
  */

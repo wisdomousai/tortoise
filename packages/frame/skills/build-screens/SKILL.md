@@ -12,11 +12,11 @@ description: Build or change the web screens of an agent-native application or h
 - Start from a [UI registry](../../../../docs/glossary.md#ui-registry) item before writing a component. The items live in `packages/frame/src/components`:
   - `collection-screen` builds list and record screens from a collection's generated capabilities;
   - `capability-form` renders any command;
-  - `live-data-table` pages after the authority scopes rows.
+  - `live-data-table` pages after the instance scopes rows.
 - For gloved or high-frequency input, use the `operator` registry (`packages/operator-ui`) and read [point-of-work input](../../../../docs/point-of-work-input.md).
 - `examples/quality-inspection/ui/capture-station.tsx` is the pattern for repeated entry. `examples/line-station/ui/station.tsx` composes a full station's screen.
 - Each command a screen issues needs a matching `ui.binding` on its capability, its [UI binding](../../../../docs/glossary.md#ui-binding). The `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`) covers it.
-- The authority's content security policy rejects inline scripts and injected styles. Use components that render native elements, such as `ui/native-dialog`, instead of ones that inject styles at runtime.
+- The instance's content security policy rejects inline scripts and injected styles. Use components that render native elements, such as `ui/native-dialog`, instead of ones that inject styles at runtime.
 - Browser files must not import server modules.
 
 ## Steps
@@ -31,7 +31,7 @@ description: Build or change the web screens of an agent-native application or h
 8. Change a registry item in its source. For the operator registry, edit `packages/operator-ui/registry.manifest.ts` and run `bun run build:registry:operator`.
 9. Never hand-edit the generated `registry.json` or `src/styles/operator.css`.
 10. Rebuild the frame registry with `bun run build:registry`.
-11. For framework capabilities, wrap the registry screen in an application screen that passes the capabilities and a `describe` label, as `examples/receiving/ui/reconcile.tsx` does. `proposal-review` takes `proposalOperations`, and `reconciliation-review` takes `reconciliationOperations`.
+11. For framework capabilities, wrap the registry screen in an application screen that passes the capabilities and a `describe` label, as `examples/receiving/ui/reconcile.tsx` does. `approval-review` takes `approvalOperations`, and `reconciliation-review` takes `reconciliationOperations`.
 12. Change the starter's look in `apps/web`. A file at the same `src/` path as a frame file replaces it.
 13. Add stock primitives to `apps/web` with `shadcn add`. Keep domain screens in the application, never in the starter.
 14. For native screens, use `defineNativeScreens` from `packages/frame-native` and follow the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).

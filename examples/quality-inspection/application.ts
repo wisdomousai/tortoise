@@ -94,7 +94,7 @@ export function createInstrumentIngest(options: {
 
 /**
  * The quality-inspection application. `systemOfRecord` is the quality system port; without one,
- * every authority gets its own demo fake configured from the environment.
+ * every instance gets its own demo fake configured from the environment.
  */
 export function createQualityInspectionApplication(
   options: { systemOfRecord?: SystemOfRecordPort<QualityItem>; services?: QualityServices } = {},

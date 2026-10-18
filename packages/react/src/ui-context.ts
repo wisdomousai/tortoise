@@ -6,12 +6,12 @@ export interface UiContext {
   selectedResources: readonly string[];
   observedRevisions: Readonly<Record<string, number>>;
 }
-/** UI context is an explicit immutable target snapshot, never ambient authority. */
+/** UI context is an explicit immutable target snapshot, never ambient instance. */
 export function captureUiContext(context: UiContext): UiContext {
   return structuredClone(context);
 }
 
-/** Host-independent session routing. No durable business writes occur through intents. */
+/** Host-independent session routing. Intents never change records. */
 export class UiSessions {
   private sessions = new Map<
     string,

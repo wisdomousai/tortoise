@@ -32,7 +32,7 @@ export function nftables(rules: RuleSet, options: ExportOptions): string {
     '  }',
     '}',
     ...(rules.ingress.listen === 'loopback'
-      ? ['# Ingress: the authority listens on loopback only; no inbound rule is needed.']
+      ? ['# Ingress: the instance listens on loopback only; no inbound rule is needed.']
       : [
           `# Ingress: ${rules.ingress.listen} listener on port ${rules.ingress.port ?? 'unset'}; open it in your host input policy to the clients that hold certificates.`,
         ]),

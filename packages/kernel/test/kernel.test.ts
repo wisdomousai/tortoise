@@ -10,7 +10,7 @@ import {
 } from '@agent-native/contracts';
 import type { AuthorizationPort } from '@agent-native/runtime';
 import { defineApplication } from '../src/application';
-import { LOCAL_OWNER, LOCAL_WORKSPACE, openAuthority } from '../src/authority';
+import { LOCAL_OWNER, LOCAL_WORKSPACE, openInstance } from '../src/instance';
 import { defineManifest } from '../src/manifest';
 import { defineHostPlugin, type HostPlugin, type PluginInstance } from '../src/plugin';
 import { definePluginManifest, type PlatformId, type PluginSetting } from '../src/plugin-manifest';
@@ -115,50 +115,50 @@ async function open(
 ) {
   const ownership = await fake.platform.acquireOwnership('/workspace');
   try {
-    const authority = await openAuthority(definition, {
+    const instance = await openInstance(definition, {
       platform: fake.platform,
       ownership,
       component: 'embedded',
       serving: false,
       ...extra,
     });
-    return { authority, ownership };
+    return { instance, ownership };
   } catch (error) {
     await ownership.release();
     throw error;
   }
 }
 
-test('an authority opens on a platform without Node or Bun and keeps state across reopen', async () => {
+test('an instance opens on a platform without Node or Bun and keeps state across reopen', async () => {
   const fake = fakePlatform();
   const calls: string[] = [];
   const definition = application([plugin('field', { platforms: ['android', 'ios'], calls })]);
   const first = await open(definition, fake);
-  const receipt = await first.authority.application.invokeRaw(
+  const receipt = await first.instance.application.invokeRaw(
     { operation: 'tally.bump', input: {}, idempotencyKey: 'bump-1' },
     owner,
   );
   expect(receipt.result).toEqual({ count: 1 });
   // One writer: the workspace cannot be owned twice while open.
   await expect(fake.platform.acquireOwnership('/workspace')).rejects.toThrow('owned');
-  await first.authority.close();
+  await first.instance.close();
   await first.ownership.release();
   expect(calls).toEqual(['open field {}', 'close field']);
   expect(fake.events).toEqual(['open storage /workspace', 'close storage /workspace']);
 
   const second = await open(definition, fake);
-  const read = await second.authority.application.queryRaw(
+  const read = await second.instance.application.queryRaw(
     { operation: 'tally.get', input: {} },
     owner,
   );
   expect(read.data).toEqual({ count: 1 });
   // The runtime's catalog lists only what this platform's host declares, here nothing.
-  expect(second.authority.application.discover(owner).requirements.network).toEqual([]);
-  await second.authority.close();
+  expect(second.instance.application.discover(owner).requirements.network).toEqual([]);
+  await second.instance.close();
   await second.ownership.release();
 });
 
-test('a serving authority sweeps blobs nothing references once it is open', async () => {
+test('a serving instance sweeps blobs nothing references once it is open', async () => {
   let stored = Date.now() - 2 * 3_600_000;
   const fake = fakePlatform({ blobClock: () => stored });
   const ownership = await fake.platform.acquireOwnership('/workspace');
@@ -168,7 +168,7 @@ test('a serving authority sweeps blobs nothing references once it is open', asyn
   stored = Date.now();
   const fresh = `sha256:${'b'.repeat(64)}`;
   await blobs.put(fresh, new Uint8Array([2]));
-  const embedded = await openAuthority(application(), {
+  const embedded = await openInstance(application(), {
     platform: fake.platform,
     ownership,
     component: 'embedded',
@@ -176,10 +176,10 @@ test('a serving authority sweeps blobs nothing references once it is open', asyn
   });
   await embedded.close();
   expect(await blobs.list()).toEqual([old, fresh]);
-  const serving = await openAuthority(application(), {
+  const serving = await openInstance(application(), {
     platform: fake.platform,
     ownership,
-    component: 'authority',
+    component: 'host',
     serving: true,
   });
   expect(await blobs.list()).toEqual([fresh]);
@@ -201,8 +201,8 @@ test('a plugin is refused on a platform it does not list; no platforms means Bun
   expect(android.events).toEqual([]);
   expect(android.held.size).toBe(0);
   const bun = fakePlatform({ id: 'bun' });
-  const { authority, ownership } = await open(application([plugin('desktop-only')]), bun);
-  await authority.close();
+  const { instance, ownership } = await open(application([plugin('desktop-only')]), bun);
+  await instance.close();
   await ownership.release();
 });
 
@@ -240,11 +240,11 @@ test('requirements the platform cannot meet are refused before any plugin opens'
   }
   // The same deployment opens where the capability exists.
   const capable = fakePlatform({ capabilities: ['sockets'] });
-  const { authority, ownership } = await open(
+  const { instance, ownership } = await open(
     application([plugin('needy', { platforms: ['android'], requirements: cases[0]![0] })]),
     capable,
   );
-  await authority.close();
+  await instance.close();
   await ownership.release();
 });
 
@@ -280,7 +280,7 @@ test('settings providers supply other plugins settings before any plugin opens',
     'open managed {}',
     'open link {"hub-url":"https://hub"}',
   ]);
-  await opened.authority.close();
+  await opened.instance.close();
 
   // A development build lets the launcher override them.
   calls.length = 0;
@@ -293,7 +293,7 @@ test('settings providers supply other plugins settings before any plugin opens',
     },
   );
   expect(calls).toContain('open link {"hub-url":"https://launcher"}');
-  await opened.authority.close();
+  await opened.instance.close();
 
   // A provided key no plugin declares is refused like a launcher one.
   calls.length = 0;
@@ -338,7 +338,7 @@ test('a failing ready hook closes storage and plugins; the caller keeps ownershi
   });
   const ownership = await fake.platform.acquireOwnership('/workspace');
   await expect(
-    openAuthority(application([failing]), {
+    openInstance(application([failing]), {
       platform: fake.platform,
       ownership,
       component: 'embedded',
@@ -352,10 +352,10 @@ test('a failing ready hook closes storage and plugins; the caller keeps ownershi
 });
 
 test('a platform without a listener refuses listening unless a plugin provides ingress', async () => {
-  const { authority, ownership } = await open(application(), fakePlatform());
-  expect(() => authority.ports.ingress.listen(0, () => new Response())).toThrow(ApplicationError);
-  expect(authority.ports.network.socket).toBeDefined();
-  await authority.close();
+  const { instance, ownership } = await open(application(), fakePlatform());
+  expect(() => instance.ports.ingress.listen(0, () => new Response())).toThrow(ApplicationError);
+  expect(instance.ports.network.socket).toBeDefined();
+  await instance.close();
   await ownership.release();
 });
 

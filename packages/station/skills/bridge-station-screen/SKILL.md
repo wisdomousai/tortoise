@@ -5,7 +5,7 @@ description: Bridge station software (vendor HMI, test bench, homebrew MES clien
 
 # Bridge a station screen
 
-Station software that has no API is a [system of record](../../../../docs/glossary.md#system-of-record) the application reaches through its station screen. A model may read the screen or propose an on-screen target; deterministic code acts and verifies. [Operator workstations](../../../../docs/operator-workstations.md) explains the design, the [package README](../../README.md) lists the parts, and `examples/line-station` is the worked example.
+Station software that has no API is a [system of record](../../../../docs/glossary.md#system-of-record) the application reaches through its station screen. A model may read the screen or suggest an on-screen target; deterministic code acts and verifies. [Operator workstations](../../../../docs/operator-workstations.md) explains the design, the [package README](../../README.md) lists the parts, and `examples/line-station` is the worked example.
 
 ## Before writing
 

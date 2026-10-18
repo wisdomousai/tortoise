@@ -12,7 +12,7 @@ import type { SurveyNode, SurveyState } from '../domain';
 
 export interface SurveyServices {
   newId?: () => string;
-  /** Authority clock for creation, receipt and filing times. */
+  /** Instance clock for creation, receipt and filing times. */
   now?: () => number;
 }
 export type Context = HandlerContext<SurveyState, SurveyServices>;

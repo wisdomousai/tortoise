@@ -1,6 +1,6 @@
 # @agent-native/desktop
 
-The starter's Electron window for the configured [application](../../docs/glossary.md#application). It attaches to the [authority](../../docs/glossary.md#authority) already serving the [workspace](../../docs/glossary.md#workspace), or starts `apps/service` as a sidecar and stops it again when the window closes. [Desktop](../../docs/desktop.md) covers the lifecycle and the native build.
+The starter's Electron window for the configured [application](../../docs/glossary.md#application). It attaches to the [instance](../../docs/glossary.md#instance) already serving the [workspace](../../docs/glossary.md#workspace), or starts `apps/service` as a sidecar and stops it again when the window closes. [Desktop](../../docs/desktop.md) covers the lifecycle and the native build.
 
 ## Layer
 
@@ -19,7 +19,7 @@ This package exports nothing; Electron runs it.
 
 | File | Runs in | Holds |
 | --- | --- | --- |
-| [`src/main.ts`](src/main.ts) | Electron main | Single-instance lock, runtime verification, authority attach or start, the hardened window. |
+| [`src/main.ts`](src/main.ts) | Electron main | Single-instance lock, runtime verification, instance attach or start, the hardened window. |
 | [`src/service-lifecycle.ts`](src/service-lifecycle.ts) | Electron main | `ensureService`: attach first, else start the sidecar and let its workspace lock arbitrate. |
 | [`src/development-launch.ts`](src/development-launch.ts) | Electron main | The source launch behind `bun run dev`, honored only when Electron reports an unpackaged build. |
 | [`src/os-shell.ts`](src/os-shell.ts) | Electron main | OS input and relayed OS actions, wired to the framework's desktop shell adapter. |
@@ -42,11 +42,11 @@ bun run package:desktop <target>
 
 ## Trust boundary
 
-The renderer runs sandboxed, with context isolation, no Node integration and web security on. Permission requests are denied and webviews are refused. Navigation and redirects away from the authority's origin are blocked, and the renderer opens no windows. No inter-process communication (IPC) transport, provider secret, filesystem or native call crosses the preload bridge. Account connection goes through the authenticated local authority.
+The renderer runs sandboxed, with context isolation, no Node integration and web security on. Permission requests are denied and webviews are refused. Navigation and redirects away from the instance's origin are blocked, and the renderer opens no windows. No inter-process communication (IPC) transport, provider secret, filesystem or native call crosses the preload bridge. Account connection goes through the authenticated local instance.
 
 A URL the renderer asks to open leaves only when a declared [OS action](../../docs/glossary.md#os-action) builds it. An example is the PKCE account-authorization URL of the `openai.authorize` action. The URL opens in the system browser, so provider sign-in never runs inside the window. With the `plugins/os` [host plugin](../../docs/glossary.md#host-plugin) composed, main performs the open as that action, so it is audited and the site can disable it. Without the plugin, main rebuilds the URL from the declaration and opens it without an audit record.
 
-Main owns only the exact child it launched and stops only that child. Closing an attached window leaves an existing authority running. Workspace, port, web root, runtime manifest and site policy are applied after any developer environment, so a launch cannot override them. A packaged process ignores the development flag and keeps the digest checks. Changed native bytes, path traversal and links in native packages are refused.
+Main owns only the exact child it launched and stops only that child. Closing an attached window leaves an existing instance running. Workspace, port, web root, runtime manifest and site policy are applied after any developer environment, so a launch cannot override them. A packaged process ignores the development flag and keeps the digest checks. Changed native bytes, path traversal and links in native packages are refused.
 
 `scripts/boundary-rules.ts` lists two reviewed [egress guard](../../docs/glossary.md#egress-guard) exemptions in this package. `src/service-lifecycle.ts` starts the loopback sidecar. `src/os-shell.ts` calls the shell API of that sidecar.
 

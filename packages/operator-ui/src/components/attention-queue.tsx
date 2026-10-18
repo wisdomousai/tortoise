@@ -16,17 +16,17 @@ export interface AttentionItem {
   readonly id: string;
   /**
    * `reading`: a value read below its confidence threshold. `question`: an agent asks the
-   * operator. `reconcile`: the outcome of a screen action could not be confirmed. `proposal`: an
-   * agent proposes a command; accepting runs it as the operator, so give it the accept and
-   * reject choices of a proposal (`proposalChoices`).
+   * operator. `reconcile`: the outcome of a screen action could not be confirmed. `approval`: an
+   * agent requests approval for a command; approving runs it as the operator, so give it the
+   * approve and reject choices of an approval request (`approvalChoices`).
    */
-  readonly kind: 'reading' | 'question' | 'reconcile' | 'proposal';
+  readonly kind: 'reading' | 'question' | 'reconcile' | 'approval';
   readonly title: React.ReactNode;
   readonly detail?: React.ReactNode;
   /** The value the system believes, shown large so the operator can compare with the machine. */
   readonly proposed?: React.ReactNode;
   readonly confidence?: number;
-  /** Where the proposal came from (extractor, model, agent), for the operator's judgment. */
+  /** Where the value came from (extractor, model, agent), for the operator's judgment. */
   readonly source?: React.ReactNode;
   readonly choices: readonly AttentionChoice[];
 }
@@ -35,21 +35,21 @@ const kindLabel: Record<AttentionItem['kind'], string> = {
   reading: 'Check reading',
   question: 'Question',
   reconcile: 'Confirm outcome',
-  proposal: 'Agent proposal',
+  approval: 'Approval request',
 };
 
 /**
- * The choices of an agent proposal: accept in one tap (`hold` for a command that changes machine
- * behavior or cannot be undone) and reject. Resolve `accept` and `reject` to the application's
- * `proposal.accept` and `proposal.reject` commands.
+ * The choices of an approval request: approve in one tap (`hold` for a command that changes
+ * machine behavior or cannot be undone) and reject. Resolve `approve` and `reject` to the application's
+ * `approval.approve` and `approval.reject` commands.
  */
-export const proposalChoices = (hold = false): readonly AttentionChoice[] => [
-  { value: 'accept', label: 'Accept', tone: 'positive', hold },
+export const approvalChoices = (hold = false): readonly AttentionChoice[] => [
+  { value: 'approve', label: 'Approve', tone: 'positive', hold },
   { value: 'reject', label: 'Reject', tone: 'neutral' },
 ];
 
 /** The value the system believes, with where it came from and how sure it is. */
-function Proposal({ item }: { item: AttentionItem }) {
+function ProposedValue({ item }: { item: AttentionItem }) {
   return (
     <div className="rounded-lg bg-muted px-4 py-3">
       <p className="font-mono text-(length:--operator-text-xl) font-semibold tabular-nums">
@@ -98,7 +98,7 @@ function Choices({
 }
 
 /**
- * Items that need a person: uncertain readings, agent questions and proposals, and unconfirmed
+ * Items that need a person: uncertain readings, agent questions and approval requests, and unconfirmed
  * screen actions.
  * Nothing in the queue is promoted to fact until the operator picks a choice; the caller turns
  * the choice into a catalog command and keeps the item pending until the command commits.
@@ -155,7 +155,7 @@ function AttentionQueue({
           )}
         </CardHeader>
         <CardContent className="space-y-(--operator-gap)">
-          {current.proposed !== undefined && <Proposal item={current} />}
+          {current.proposed !== undefined && <ProposedValue item={current} />}
           <Choices item={current} pending={pending} onResolve={onResolve} />
         </CardContent>
       </Card>

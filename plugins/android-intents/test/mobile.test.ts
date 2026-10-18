@@ -9,17 +9,17 @@ import type { OsDelivery } from '@agent-native/contracts';
 import {
   connectMobileShell,
   createMobilePlatform,
-  openMobileAuthority,
-  type MobileAuthority,
+  openMobileInstance,
+  type MobileInstance,
   type MobileOsBindings,
 } from '@agent-native/mobile';
 import type { AndroidIntent, IntentListening } from '@agent-native/shell/intents';
 import { createAction, notesApplication, scheme } from './fixture';
 
 const sandboxes: string[] = [];
-const opened: MobileAuthority[] = [];
+const opened: MobileInstance[] = [];
 afterEach(async () => {
-  for (const authority of opened.splice(0)) await authority.close();
+  for (const instance of opened.splice(0)) await instance.close();
   for (const sandbox of sandboxes.splice(0)) rmSync(sandbox, { recursive: true, force: true });
 });
 
@@ -37,7 +37,7 @@ async function until(condition: () => boolean) {
 async function open(application: AnyApplicationDefinition, platform: 'android' | 'ios') {
   const sandbox = mkdtempSync(join(tmpdir(), 'intents-mobile-'));
   sandboxes.push(sandbox);
-  const authority = await openMobileAuthority(application, {
+  const instance = await openMobileInstance(application, {
     platform: createMobilePlatform({
       id: platform,
       openDatabase: (name) => bunSqlDriver(join(sandbox, name)),
@@ -45,8 +45,8 @@ async function open(application: AnyApplicationDefinition, platform: 'android' |
     }),
     settings: { 'os-scheme': scheme },
   });
-  opened.push(authority);
-  return authority;
+  opened.push(instance);
+  return instance;
 }
 
 /** The device, faked: the native module's launching intent, later intents and started ones. */
@@ -85,14 +85,14 @@ function device(launched?: unknown) {
 
 test('an intent with a declared action prefills the form; others are dropped', async () => {
   const application = notesApplication();
-  const authority = await open(application, 'android');
+  const instance = await open(application, 'android');
   const fake = device({
     action: createAction,
     categories: ['android.intent.category.DEFAULT'],
     data: 'https://example.com/list/4',
     extras: { title: 'Groceries' },
   });
-  const connection = connectMobileShell(authority, application, fake.bindings);
+  const connection = connectMobileShell(instance, application, fake.bindings);
   const shown: OsDelivery[] = [];
   connection.deliveries.subscribe((delivery) => shown.push(delivery));
   await until(() => shown.length === 1);
@@ -124,11 +124,11 @@ test('an intent with a declared action prefills the form; others are dropped', a
 
 test('an intent action starts the declared package with the checked extras', async () => {
   const application = notesApplication();
-  const authority = await open(application, 'android');
+  const instance = await open(application, 'android');
   const fake = device();
-  const connection = connectMobileShell(authority, application, fake.bindings);
+  const connection = connectMobileShell(instance, application, fake.bindings);
   const perform = (params: unknown) =>
-    authority.authority.ports.shell.perform(authority.context, {
+    instance.instance.ports.shell.perform(instance.context, {
       action: 'notes.scan',
       params: params as never,
     });
@@ -157,16 +157,16 @@ test('an intent action starts the declared package with the checked extras', asy
 
 test('without the native module, intents neither arrive nor start', async () => {
   const application = notesApplication();
-  const authority = await open(application, 'ios');
+  const instance = await open(application, 'ios');
   const { intents: _intents, startIntent: _start, ...bindings } = device().bindings;
   const reports: string[] = [];
-  const connection = connectMobileShell(authority, application, {
+  const connection = connectMobileShell(instance, application, {
     ...bindings,
     platform: 'ios',
     report: (message) => void reports.push(message),
   });
   expect(
-    await authority.authority.ports.shell.perform(authority.context, {
+    await instance.instance.ports.shell.perform(instance.context, {
       action: 'notes.scan',
       params: { prompt: 'Receipt', copies: 1 },
     }),
@@ -178,10 +178,10 @@ test('without the native module, intents neither arrive nor start', async () => 
 
 test('an Android build without the module says so', async () => {
   const application = notesApplication();
-  const authority = await open(application, 'android');
+  const instance = await open(application, 'android');
   const { intents: _intents, ...bindings } = device().bindings;
   const reports: string[] = [];
-  const connection = connectMobileShell(authority, application, {
+  const connection = connectMobileShell(instance, application, {
     ...bindings,
     report: (message) => void reports.push(message),
   });

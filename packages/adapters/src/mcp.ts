@@ -101,7 +101,7 @@ function agentText(catalog: Catalog, agent: CatalogAgent): string {
   const tools = agent.operations.map(
     (id) => catalog.operations.find((operation) => operation.id === id)?.mcpName ?? id,
   );
-  // A proposing agent's instructions list the commands it may propose and their inputs.
+  // A requesting agent's instructions list the commands it may request approval for and their inputs.
   const body =
     agent.output === 'direct'
       ? `${agent.instructions}\n\nYou run these commands yourself.`
@@ -146,7 +146,7 @@ async function readResource(client: McpClient, uri: string) {
   return { contents: [{ uri, mimeType: 'text/markdown', text: workflow.text }] };
 }
 
-/** Real MCP protocol server. All tool calls attach to the same HTTP authority as the frontend. */
+/** Real MCP protocol server. All tool calls attach to the same HTTP instance as the frontend. */
 export function createMcpServer(client: McpClient) {
   const server = new Server(
     { name: 'agent-native-application', version: '0.1.0' },

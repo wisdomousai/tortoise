@@ -45,7 +45,7 @@ function workflows(catalog: Awaited<ReturnType<CliClient['catalog']>>, id: strin
 }
 
 /**
- * Testable CLI dispatcher over any transport. The authority decides identity and authorization;
+ * Testable CLI dispatcher over any transport. The instance decides identity and authorization;
  * this layer only maps arguments to the catalog. JSON output is the default, one value per run.
  */
 export async function runCli(

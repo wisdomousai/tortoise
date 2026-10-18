@@ -17,7 +17,7 @@ export interface FleetOptions {
 /**
  * The Fleet application: sites enroll through the device-link plugin as `field-sync` devices and
  * call the fleet protocol as their own principal. It has no outbox target and no site-pinned
- * requirement, so it runs on a site host or as a hosted authority alike.
+ * requirement, so it runs on a site host or as a hosted instance alike.
  */
 export function createFleetApplication(options: FleetOptions = {}) {
   return defineApplication<AppState, Services>({

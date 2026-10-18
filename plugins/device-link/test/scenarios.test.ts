@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import { createApplicationRuntime } from '@agent-native/host/application';
 import { createMemoryStorage } from '@agent-native/runtime';
 import {

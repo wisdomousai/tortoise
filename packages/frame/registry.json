@@ -7,7 +7,7 @@
       "name": "session",
       "type": "registry:lib",
       "title": "Session bindings",
-      "description": "One authenticated transport, typed client, TanStack Query client and live invalidation bindings for the local authority.",
+      "description": "One authenticated transport, typed client, TanStack Query client and live invalidation bindings for the local instance.",
       "dependencies": [
         "@tanstack/react-query",
         "@agent-native/react",
@@ -112,15 +112,15 @@
       ]
     },
     {
-      "name": "proposal-review",
+      "name": "approval-review",
       "type": "registry:component",
-      "title": "Proposal review",
-      "description": "Open proposals, live, with what each would run and why; Accept runs the command as the signed-in person and Reject closes it.",
+      "title": "ApprovalRequest review",
+      "description": "Pending approvals, live, with what each would run and why; Approve runs the command as the signed-in person and Reject closes it.",
       "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
       "registryDependencies": ["badge", "button", "@agent-native/session"],
       "files": [
         {
-          "path": "src/components/proposal-review.tsx",
+          "path": "src/components/approval-review.tsx",
           "type": "registry:component"
         }
       ]
@@ -192,7 +192,7 @@
       "name": "ui-session",
       "type": "registry:lib",
       "title": "UI session",
-      "description": "Registers the screen's selection with the authority so an agent run captures what the person sees, and receives intents the agent sends back.",
+      "description": "Registers the screen's selection with the instance so an agent run captures what the person sees, and receives intents the agent sends back.",
       "dependencies": ["@agent-native/react"],
       "files": [
         {
@@ -251,7 +251,7 @@
       "name": "accounts",
       "type": "registry:component",
       "title": "Provider accounts",
-      "description": "Connects agent provider accounts through the authority; the browser only ever sees safe metadata.",
+      "description": "Connects agent provider accounts through the instance; the browser only ever sees safe metadata.",
       "registryDependencies": [
         "badge",
         "button",

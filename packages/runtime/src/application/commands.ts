@@ -16,7 +16,7 @@ import { replayContinuation, runContinuation } from './continuation.js';
 import { authorize, project, type Kernel } from './kernel.js';
 
 type Report = (effects: Effect[], replay: boolean) => void;
-/** A retry returns the stored receipt, reprojected for the caller's current authority. */
+/** A retry returns the stored receipt, reprojected for the caller's current grants. */
 async function replay<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,

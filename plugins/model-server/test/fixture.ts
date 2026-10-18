@@ -4,8 +4,8 @@ import {
   defineCapability,
   defineModule,
   jsonSchema,
-  proposalOperations,
-  type Proposal,
+  approvalOperations,
+  type ApprovalRequest,
 } from '@agent-native/contracts';
 import { defineApplication } from '@agent-native/host/application';
 import { defineManifest } from '@agent-native/host/manifest';
@@ -14,7 +14,7 @@ import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
 import { processPlugin } from '@agent-native/process/plugin';
 import { processPluginManifest } from '@agent-native/process/plugin-manifest';
 import {
-  proposalHandlers,
+  approvalHandlers,
   put,
   type ExecutionContext,
   type HandlerContext,
@@ -25,7 +25,7 @@ import { modelServer } from '../src/contracts';
 import { createModelServer, type ModelServerOptions } from '../src/plugin';
 import { modelServerPluginManifest } from '../src/plugin-manifest';
 
-// A fixture application: notes, and an agent that proposes notes on the fine-tuned model only.
+// A fixture application: notes, and an agent that requests approval for notes on the fine-tuned model only.
 const noteSchema = z.strictObject({ id: z.string(), text: z.string() });
 export const noteAdd = defineCapability({
   id: 'note.add',
@@ -46,16 +46,16 @@ export const noteList = defineCapability({
 export const ENTRY = 'notes-tuned';
 const notesModule = defineModule({
   id: 'notes',
-  capabilities: [noteAdd, noteList, ...Object.values(proposalOperations)],
+  capabilities: [noteAdd, noteList, ...Object.values(approvalOperations)],
   agents: [
     defineAgent({
       id: 'note.suggester',
       title: 'Note suggester',
-      instructions: 'Propose one note.',
+      instructions: 'Request approval for one note.',
       operations: ['note.list', 'note.add'],
       model: 'local',
       models: [ENTRY],
-      output: 'propose',
+      output: 'request-approval',
       // A local model that reasons before it calls a tool takes tens of seconds per turn on a laptop.
       budgets: { turns: 4, toolCalls: 4, wallTimeMs: 120_000 },
     }),
@@ -65,7 +65,7 @@ const notesModule = defineModule({
 interface State {
   notes: {
     notes: Record<string, { id: string; text: string }>;
-    proposals: Record<string, Proposal>;
+    approvals: Record<string, ApprovalRequest>;
   };
 }
 type Ctx = HandlerContext<State, unknown>;
@@ -83,8 +83,8 @@ const handlers = [
     capability: noteList,
     handle: (_: object, ctx: Ctx) => ({ items: Object.values(ctx.state.notes.notes) }),
   },
-  ...proposalHandlers<State, unknown>({
-    store: (state) => state.notes.proposals,
+  ...approvalHandlers<State, unknown>({
+    store: (state) => state.notes.approvals,
     commands: [noteAdd],
     visible: () => true,
     newId: () => `p${++ids}`,
@@ -109,7 +109,7 @@ export function notesApplication(options: ModelServerOptions) {
         modelServerPluginManifest,
       ],
     }),
-    createState: () => ({ notes: { notes: {}, proposals: {} } }),
+    createState: () => ({ notes: { notes: {}, approvals: {} } }),
     handlers: handlers as never,
     authorization: {
       authorize: ({ context }) => ({ allowed: context.principalId === 'ann' }),

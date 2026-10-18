@@ -3,7 +3,7 @@
 # NOT ENFORCED: vendor-api (api.vendor.example) has no addresses in the site policy; it stays blocked here.
 # IPAddressAllow restricts addresses, not ports; pair it with the nftables export for ports.
 [Unit]
-Description=agent-native local authority
+Description=agent-native local host
 After=network-online.target
 Wants=network-online.target
 

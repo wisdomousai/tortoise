@@ -156,7 +156,7 @@ A refusal is an `UNAVAILABLE` error, which is HTTP 503 and CLI exit 8, and the a
 
 `check:boundaries` fails when server code uses network, socket or process APIs directly instead of the guard. `scripts/boundary-rules.ts` lists each reviewed exemption with its reason, among them the harness launches in `packages/agents`. A stale exemption fails the check.
 
-The desktop window lets its renderer reach only the local authority ([desktop](desktop.md)). The [telemetry plugin](../plugins/telemetry/README.md) exports through the guard to a collector on the same machine, and that collector holds any vendor credential ([architecture](architecture.md#telemetry)). The fleet agent connects only outbound, through its `fleet` destination ([hosting](hosting.md#fleet)).
+The desktop window lets its renderer reach only the local instance ([desktop](desktop.md)). The [telemetry plugin](../plugins/telemetry/README.md) exports through the guard to a collector on the same machine, and that collector holds any vendor credential ([architecture](architecture.md#telemetry)). The fleet agent connects only outbound, through its `fleet` destination ([hosting](hosting.md#fleet)).
 
 ### Generated rules
 
@@ -187,7 +187,7 @@ Two relays are the sandbox's only way out. One reaches the host API with a token
 
 ### Local models
 
-The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start. It refuses files that differ from the [model entry](glossary.md#model-entry), and a fine-tune without a passing activation for its exact digests. Its runs record the measured digests with `verified: true`, so an auditor can trace a proposal to the base weights, the adapter and the dataset. A harness for a model server run outside the host records the digests it was given as unverified. The [proposal dataset](glossary.md#proposal-dataset) export applies redaction before its digest, so only what the exporting caller may see leaves the host for training. [Agents](agents.md) describes local models.
+The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start. It refuses files that differ from the [model entry](glossary.md#model-entry), and a fine-tune without a passing activation for its exact digests. Its runs record the measured digests with `verified: true`, so an auditor can trace an approval request to the base weights, the adapter and the dataset. A harness for a model server run outside the host records the digests it was given as unverified. The [approval dataset](glossary.md#approval-dataset) export applies redaction before its digest, so only what the exporting caller may see leaves the host for training. [Agents](agents.md) describes local models.
 
 ## Audit log
 
@@ -232,7 +232,7 @@ The security manifest's `summary.site` lists what pins the application to the si
 
 ## Checks
 
-Each plugin adds its own CLI verb, so an application has the verbs of the plugins it composes. The verbs run offline, with no authority or workspace. Here `app` stands for the application's CLI:
+Each plugin adds its own CLI verb, so an application has the verbs of the plugins it composes. The verbs run offline, with no instance or workspace. Here `app` stands for the application's CLI:
 
 ```sh
 app site check --site site-policy.json                # exit 2 on any error finding
@@ -272,7 +272,7 @@ A site connected to a fleet keeps working while the fleet is unreachable ([hosti
 ## Related pages
 
 - [Architecture](architecture.md): host plugins, ports and the invariants.
-- [Hosting](hosting.md): the hosted authority, workforce sign-in in a deployment, and the fleet.
+- [Hosting](hosting.md): the hosted instance, workforce sign-in in a deployment, and the fleet.
 - [Systems of record](systems-of-record.md): targets, outbox effects and CLI exit codes.
 - [Agents](agents.md): agent runs, harnesses and local models.
 - [Desktop](desktop.md) and [mobile](mobile.md): the desktop window and paired devices.

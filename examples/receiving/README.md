@@ -1,8 +1,8 @@
 # @agent-native/receiving
 
-`receiving` handles goods receiving against an ERP that is reached only through shared folders. The ERP exports advance shipping notices as CSV into an inbox folder, and each line becomes a delivery line. A receiver counts it, gives a reason when the count differs or accepts the reason an agent proposes, and posts the goods receipt.
+`receiving` handles goods receiving against an ERP that is reached only through shared folders. The ERP exports advance shipping notices as CSV into an inbox folder, and each line becomes a delivery line. A receiver counts it, gives a reason when the count differs or approves the reason an agent suggests, and posts the goods receipt.
 
-The receipt is written as one CSV file into the ERP's drop folder, and the ERP answers with a receipt file that settles it. The example demonstrates a [system of record](../../docs/systems-of-record.md) reached through [exchange folders](../../docs/glossary.md#exchange-folder), and [proposals](../../docs/agents.md#proposals) from an agent.
+The receipt is written as one CSV file into the ERP's drop folder, and the ERP answers with a receipt file that settles it. The example demonstrates a [system of record](../../docs/systems-of-record.md) reached through [exchange folders](../../docs/glossary.md#exchange-folder), and [approval requests](../../docs/agents.md#approval-requests) from an agent.
 
 ## Layer
 
@@ -15,7 +15,7 @@ The example is one [application](../../docs/primitives.md#application). It uses:
 - a [collection](../../docs/primitives.md#collection) of delivery lines, with generated reads and the default list and record screens;
 - a [policy](../../docs/primitives.md#policy) built with `definePolicy`;
 - the ERP as a [target](../../docs/primitives.md#target) whose [connector](../../docs/primitives.md#connector) is `fileTargetPort` from [`connector-files`](../../plugins/connector-files/README.md). It runs over three exchange folders, declared as [requirements](../../docs/primitives.md#requirement-declaration) and bound by the [site policy](../../docs/primitives.md#site-policy);
-- an [agent definition](../../docs/primitives.md#agent-definition), `receiving.discrepancy`, whose [proposals](../../docs/primitives.md#proposal) a person accepts or rejects;
+- an [agent definition](../../docs/primitives.md#agent-definition), `receiving.discrepancy`, whose [approval requests](../../docs/primitives.md#approval-request) a person approves or rejects;
 - [reconciliation](../../docs/primitives.md#reconciliation) of goods receipts the ERP left unclear, through `reconciliationOperations` and the Held receipts screen.
 
 The manifest and the application list the `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance plugin's screens.
@@ -26,7 +26,7 @@ The manifest and the application list the `site`, `network`, `audit` and `compli
 | --- | --- | --- |
 | `@agent-native/receiving/manifest` | browser and server | Default export: `defineManifest` with ID `receiving`, its module and the ERP exchange folders. |
 | `@agent-native/receiving/application` | server only | Default export: the application. |
-| `@agent-native/receiving/screens` | browser | Default export: `defineScreens` with the delivery list, the line screen, proposals, held receipts and the ERP status. |
+| `@agent-native/receiving/screens` | browser | Default export: `defineScreens` with the delivery list, the line screen, approval requests, held receipts and the ERP status. |
 | `@agent-native/receiving/*` | see file | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `erp-port`. |
 
 `createReceivingApplication` takes services, members, an ERP port and the notice quiet period. Lines marked `// scaffold:<list>` are where `scaffold add` inserts capabilities, handlers, rules and routes.
@@ -66,7 +66,7 @@ Until the folders are bound, no notice is imported and posted receipts wait in t
 
 Only workspace members pass the policy's caller gate. Editors count, classify and post, and viewers read. The [integration principal](../../docs/glossary.md#integration-principal) `erp-integration` holds no role and acts only in the ERP target's [policy lane](../../docs/glossary.md#policy-lane).
 
-Any member may propose. The agent proposes under the grant of the member who started it, and that grant leaves out `delivery.classify` itself. Accepting runs the proposed command under the accepter, so only an editor's acceptance commits, and deciding needs a person.
+Any member may request approval. The agent requests approval under the grant of the member who started it, and that grant leaves out `delivery.classify` itself. Approving runs the requested command under the approver, so only an editor's approval commits, and deciding needs a person.
 
 Notice rows are input. A row that does not fit the line schema fails the import, so a malformed export is reported instead of half applied. A later export never overwrites a notice line that someone has counted.
 
@@ -81,15 +81,15 @@ bun test examples/receiving
 bunx playwright test examples/receiving
 ```
 
-- `test/receiving.test.ts` runs an embedded authority with a site policy that binds the folders to temporary directories, and `FakeFileConsumer` playing the ERP. It covers:
+- `test/receiving.test.ts` runs an embedded instance with a site policy that binds the folders to temporary directories, and `FakeFileConsumer` playing the ERP. It covers:
   - notice import;
-  - the agent's grant refusing a direct classification, and a viewer's acceptance being refused;
+  - the agent's grant refusing a direct classification, and a viewer's approval being refused;
   - posting with a pending upstream, and settling from the receipt;
   - an unbound drop folder holding the receipt until a restarted host binds it;
   - an unreadable receipt held until an editor says the ERP booked it, with a viewer refused;
   - a rejected receipt reopening the line;
   - corrected notices and a malformed export.
-- `test/agent-scenarios.test.ts` judges the discrepancy agent with [agent scenarios](../../docs/glossary.md#agent-scenario) on the deterministic harness. The agent proposes classifications and never commits them.
+- `test/agent-scenarios.test.ts` judges the discrepancy agent with [agent scenarios](../../docs/glossary.md#agent-scenario) on the deterministic harness. The agent requests approval for classifications and never commits them.
 - `test/conformance.test.ts` imports a notice through a served host and counts over HTTP. It reads one list directly, over HTTP, the CLI and MCP.
 - `test/ui-bindings.test.ts` checks that every bound capability is referenced by a screen.
 - `e2e/receiving.pw.ts` has two tests against the real host with a site policy:
@@ -112,11 +112,11 @@ Paths in this table are relative to the example directory, except those under `p
 | [Site policy](../../docs/primitives.md#site-policy) folder bindings | `sitePluginManifest` in `manifest.ts`; `sitePlugin` in `application.ts` | `test/receiving.test.ts`: the unbound drop folder test; [`e2e/receiving.pw.ts`](e2e/receiving.pw.ts) |
 | [Inbound sync](../../docs/primitives.md#inbound-sync) of notices | `erp-port.ts` (`feed`); `handlers/erp-target.ts` (`applyBatch`) | `test/receiving.test.ts`: the corrected notice and malformed export test |
 | [Reconciliation](../../docs/primitives.md#reconciliation) of held goods receipts | `contracts.ts` (`reconciliationOperations`); `handlers/reconciliation.ts`; `ui/reconcile.tsx` | `test/receiving.test.ts`: the unreadable receipt file test; the second test in `e2e/receiving.pw.ts` |
-| [Agent definition](../../docs/primitives.md#agent-definition) with `output: 'propose'` | `contracts.ts` (`receiving.discrepancy`) | [`test/agent-scenarios.test.ts`](test/agent-scenarios.test.ts) |
-| [Proposal](../../docs/primitives.md#proposal) accepted under the accepter | `handlers/proposals.ts`; `ui/delivery.tsx`; `ui/proposals.tsx` | `test/receiving.test.ts`: the agent grant and viewer acceptance checks |
+| [Agent definition](../../docs/primitives.md#agent-definition) with `output: 'request-approval'` | `contracts.ts` (`receiving.discrepancy`) | [`test/agent-scenarios.test.ts`](test/agent-scenarios.test.ts) |
+| [Approval request](../../docs/primitives.md#approval-request) approved under the approver | `handlers/approvals.ts`; `ui/delivery.tsx`; `ui/approvals.tsx` | `test/receiving.test.ts`: the agent grant and viewer approval checks |
 | [Agent scenario](../../docs/primitives.md#agent-scenario) on the deterministic harness | `test/agent-scenarios.test.ts` (`runAgentScenarios`) | The same file |
-| [Surface adapter](../../docs/primitives.md#surface-adapter) parity | Generated from the catalog; no example code | `test/conformance.test.ts`: authority, HTTP, CLI and MCP read one list |
-| [UI registry](../../docs/primitives.md#ui-registry) screens and [capability bindings](../../docs/primitives.md#capability-binding) | `ui/delivery.tsx`; `ui/proposals.tsx`; `ui/reconcile.tsx` | `test/ui-bindings.test.ts`, `e2e/receiving.pw.ts` |
+| [Surface adapter](../../docs/primitives.md#surface-adapter) parity | Generated from the catalog; no example code | `test/conformance.test.ts`: instance, HTTP, CLI and MCP read one list |
+| [UI registry](../../docs/primitives.md#ui-registry) screens and [capability bindings](../../docs/primitives.md#capability-binding) | `ui/delivery.tsx`; `ui/approvals.tsx`; `ui/reconcile.tsx` | `test/ui-bindings.test.ts`, `e2e/receiving.pw.ts` |
 | [Live query](../../docs/primitives.md#journal-and-live-query) of target status | `ui/erp-target.tsx` (`live.liveQueryOptions`) | `e2e/receiving.pw.ts`: the ERP screen shows the goods receipt accepted |
 
 ## Structure
@@ -130,10 +130,10 @@ Paths in this table are relative to the example directory, except those under `p
 | `domain.ts` | Roles, the state shape, `createState`, `upgradeState` and the `discrepant` check. |
 | `policy.ts` | The policy: caller gate, editor rule, person-only rules, the ERP lane and event visibility. |
 | `server.ts` | `createHandlers`, which lists every handler group, and the policy export. |
-| `handlers/` | One file per group: delivery lines, the ERP target, proposals and reconciliation; `context.ts` binds handlers to the state and services. |
+| `handlers/` | One file per group: delivery lines, the ERP target, approval requests and reconciliation; `context.ts` binds handlers to the state and services. |
 | `erp-port.ts` | The ERP connector: CSV encoding of goods receipts and CSV mapping of notice rows. |
 | `application.ts` | `createReceivingApplication`, which composes plugins and connects the ERP target to the folder port. |
-| `screens.tsx`, `ui/` | The screen definitions, the line screen, the proposals, Held receipts and ERP status screens. |
+| `screens.tsx`, `ui/` | The screen definitions, the line screen, the approval requests, Held receipts and ERP status screens. |
 | `test/`, `e2e/` | Behavioral, agent scenario, cross-surface and UI binding tests, and the Playwright spec. |
 
 ## Notice import flow
@@ -149,8 +149,8 @@ Paths in this table are relative to the example directory, except those under `p
 ## Goods receipt flow
 
 1. An editor records a count with `delivery.receive`. A count equal to the expected quantity clears the reason and note, and a posted line conflicts.
-2. A line whose count differs from the notice needs a reason. An editor sets it with `delivery.classify`, or accepts a proposal for it.
-3. The agent runs under a grant built by `agentGrant`, which holds its queries and proposal submission but not the classify command. Accepting a proposal runs the classify command under the accepter, so the editor rule refuses a viewer.
+2. A line whose count differs from the notice needs a reason. An editor sets it with `delivery.classify`, or approves an approval request for it.
+3. The agent runs under a grant built by `agentGrant`, which holds its queries and approval request submission but not the classify command. Approving an approval request runs the classify command under the approver, so the editor rule refuses a viewer.
 4. An editor posts the line with `erp.send`. The handler in `handlers/erp-target.ts` refuses an uncounted line, a discrepancy without a reason, and a line whose posting is pending or accepted.
 5. The handler enqueues an effect of type `goods-receipt.post` on the line's resource, in the same transaction as the line. It sets the line to posted and stores the effect ID with a pending delivery state.
 6. After the commit, the [dispatcher](../../docs/primitives.md#dispatcher) calls the connector's deliver method. The encode callback in `erp-port.ts` turns the payload into one CSV row, written as a file named after the effect ID in the drop folder.
@@ -161,7 +161,7 @@ Paths in this table are relative to the example directory, except those under `p
 
 ## Implementation steps
 
-The steps build an application equivalent to the example. The example itself was generated with the scaffold's new, add target and add capability commands. Its agent and reconciliation were written by hand. The steps use `add agent` for the agent, which generates the same proposal parts.
+The steps build an application equivalent to the example. The example itself was generated with the scaffold's new, add target and add capability commands. Its agent and reconciliation were written by hand. The steps use `add agent` for the agent, which generates the same approval request parts.
 
 Run `scaffold new` from the framework checkout's root, and every later command from the new checkout's root unless a step names another directory. Steps 7 to 39 edit files, and the application typechecks again once they are all done.
 
@@ -191,7 +191,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
    bun run scaffold add capability delivery.classify --kind command --description "Give the reason a counted quantity differs from the expected one. Editors only."
    ```
 
-5. Add the proposing agent, which the scaffold writes to `contracts/discrepancy-agent.ts` together with the proposal capabilities and a Proposals screen. Its agent ID is `receiving.discrepancy`.
+5. Add the requesting agent, which the scaffold writes to `contracts/discrepancy-agent.ts` together with the approval request capabilities and an Approval requests screen. Its agent ID is `receiving.discrepancy`.
 
    ```sh
    bun run scaffold add agent discrepancy --collection delivery
@@ -204,7 +204,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
    bun run generate
    ```
 
-7. In `contracts/discrepancy-agent.ts`, give the agent the delivery queries, the classify command, the proposal list and instructions to propose discrepancy reasons.
+7. In `contracts/discrepancy-agent.ts`, give the agent the delivery queries, the classify command, the approval request list and instructions to request approval for discrepancy reasons.
 8. Move both generated commands into the collection's operations object and handler list, as the example does, and delete their generated contract and handler files. Remove their contract imports and operations-map entries from `contracts.ts`, and their handler imports and handler groups from the server entrypoint.
 9. In `contracts/delivery.ts`, replace the generated item schema with the notice fields, the count, the reason, the note, the status and the arrival time. Set the status values to expected, counted and posted, and add a posting field that holds the effect ID and the fields of `deliveryShape`.
 10. Remove the generated create and update commands from `contracts/delivery.ts`, together with their two policy rules and their two handlers. The agent stopped naming the update command in step 7, so the catalog still builds.
@@ -230,14 +230,14 @@ Run `scaffold new` from the framework checkout's root, and every later command f
 27. List the reconciliation handler group in `server.ts`, and spread the framework's reconciliation capabilities into the operations map.
 28. Give the reconciliation list query the open rule, and the resolve command the editor rule with `person: true`.
 29. In `ui/delivery.tsx`, drop the create form from the list screen and replace the generated record screen with a line screen. The [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md) covers the screen steps.
-30. Put the count, reason and send forms and the proposal review on the line screen, and remove the send form from the ERP screen.
+30. Put the count, reason and send forms and the approval request review on the line screen, and remove the send form from the ERP screen.
 31. Add a Held receipts screen with the reconciliation review, and register its route, navigation item and capability screen prefix in `screens.tsx`.
 32. Rewrite the generated conformance test on the model of `test/conformance.test.ts`. That test opens the application with a quiet period of 0, binds the notice folder, writes a notice, syncs and counts.
 33. Pass the manifest's components to the UI binding test, as `test/ui-bindings.test.ts` does. Without them the catalog refuses the ERP target, which then has no declared network destination, folder or process.
 34. In the generated target test, keep the case that refuses a viewer's send and a person's sync, and drop the other case. Change the file's open helper so it builds the application without the fake and without the `erp` option.
 35. Replace the generated collection, capability and agent tests with a behavioral test like `test/receiving.test.ts` and agent scenarios like the example's. The generated tests use the create command or empty inputs.
-36. Open the application in those tests with `openEmbeddedAuthority`, a quiet period of 0 and a site policy setting that binds the three folders to temporary directories.
-37. Play the ERP with `FakeFileConsumer` from the connector's testing entrypoint. Run each delivery pass with `runOnce` on the ERP target's dispatcher from the authority's integrations, with backoff ignored.
+36. Open the application in those tests with `openEmbeddedInstance`, a quiet period of 0 and a site policy setting that binds the three folders to temporary directories.
+37. Play the ERP with `FakeFileConsumer` from the connector's testing entrypoint. Run each delivery pass with `runOnce` on the ERP target's dispatcher from the instance's integrations, with backoff ignored.
 38. Replace the generated default screens spec with a spec like `e2e/receiving.pw.ts`. Keep the package name that the generated spec passes to `startService`, because the example's spec names the example's own package.
 39. Rewrite the generated `README.md` with the entrypoints, exchange folders, trust boundary and tests, as the example's README does.
 40. Run the focused checks, then the full check. The [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md) says which to report.
@@ -280,7 +280,7 @@ Without the folder bindings the host starts, imports no notices and keeps posted
 - **Malformed exports.** A row that fails the line schema fails the whole pass, so notice import stops until the ERP replaces or removes that file.
 - **Counted lines.** A corrected notice does not change a line that someone has counted, so the receiver does not see a later change to `expected` on that line.
 - **Repeat postings.** A posted line refuses further counts and reasons until its goods receipt is rejected, by the ERP or by a reconciliation decision.
-- **Visibility.** Every member sees every line, proposal and held goods receipt, and roles apply to the whole workspace with no container scoping.
+- **Visibility.** Every member sees every line, approval request and held goods receipt, and roles apply to the whole workspace with no container scoping.
 - **Integration lane.** No example test checks that a person is refused the ERP's sync and settle capabilities.
 - **No agents marker.** The example's `contracts.ts` has no agents marker, so the scaffold cannot add an agent to it.
 

@@ -20,7 +20,7 @@ export interface DelegationGrant {
   readonly resources?: readonly string[];
   /**
    * Record types a resource-scoped grant may create new records of, outside `resources`: a run
-   * cannot name a record before it exists, such as the proposal a proposing agent submits. Only a
+   * cannot name a record before it exists, such as the approval request a requesting agent submits. Only a
    * record with no revision yet counts; changing an existing one still needs `resources`.
    */
   readonly creates?: readonly string[];
@@ -195,7 +195,7 @@ export interface HandlerContext<State, Services> {
   releaseEffect(id: string): Effect;
   /**
    * After this handler returns, run one more command in the same transaction as the same caller,
-   * for example the command a proposal proposed. It passes the whole command pipeline (grant,
+   * for example the command of an approval request. It passes the whole command pipeline (grant,
    * invoke authorization, `expectedRevisions` as preconditions, its handler, output projection,
    * commit authorization and audit), so it can never do what the caller could not do directly.
    * Both commit together or neither does. Commands only; once per command; a continued command

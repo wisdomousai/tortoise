@@ -40,7 +40,7 @@ const catalog = buildCatalog([
         instructions: 'Suggest which lots to release.',
         operations: ['lot.list', 'lot.release'],
         model: 'any',
-        output: 'propose',
+        output: 'request-approval',
         budgets: { turns: 4, toolCalls: 10, wallTimeMs: 30_000 },
       }),
     ],
@@ -66,8 +66,8 @@ test('each agent definition is a readable MCP resource with its tools and budget
     const text = (read.contents[0] as { text: string }).text;
     expect(text).toContain('# Lot advisor');
     expect(text).toContain('Suggest which lots to release.');
-    // A proposing agent reads the commands it may propose, with their inputs.
-    expect(text).toContain('call proposal.submit');
+    // A requesting agent reads the commands it may request approval for, with their inputs.
+    expect(text).toContain('call approval.request');
     expect(text).toContain('- `lot.release`: Release a lot.');
     expect(text).toContain('Tools: `lot_list`, `lot_release`.');
     expect(text).toContain('4 turns, 10 tool calls, 30 seconds');

@@ -74,7 +74,7 @@ const plant = defineHostComponent({
       destination('audit-collector', { protocol: 'tcp', dataClasses: ['audit-event'] }),
       destination('local-model', { scope: 'loopback', protocol: 'http', dataClasses: [] }),
       destination('station-screen', { dataClasses: ['screen-frame'] }),
-      destination('authority-http', {
+      destination('host-http', {
         direction: 'ingress',
         scope: 'loopback',
         protocol: 'http',
@@ -117,7 +117,7 @@ describe('generated compliance artifacts', () => {
       ingress: 1,
       internet: ['vendor-api'],
       site: ['audit-collector', 'mes-api', 'scanner', 'station-screen'],
-      required: ['authority-http', 'mes-api'],
+      required: ['host-http', 'mes-api'],
       dataClasses: ['audit-event', 'record', 'screen-frame'],
     });
     const markdown = dataFlowsMarkdown(manifest);
@@ -321,7 +321,7 @@ describe('posture', () => {
     const state = Object.fromEntries(posture.destinations.map((item) => [item.id, item.state]));
     expect(state).toEqual({
       'audit-collector': 'bound',
-      'authority-http': 'local',
+      'host-http': 'local',
       'local-model': 'bound',
       'mes-api': 'bound',
       'station-screen': 'disabled',

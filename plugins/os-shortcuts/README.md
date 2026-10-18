@@ -4,7 +4,7 @@ The OS shortcuts [host plugin](../../docs/glossary.md#host-plugin). It serves th
 
 ## Layer
 
-Plugins (`plugins/*`), shipped with the framework. The plugin runs in the [authority](../../docs/glossary.md#authority) on every platform and brings no native code. It relies on the OS plugin for every check on a shortcut request.
+Plugins (`plugins/*`), shipped with the framework. The plugin runs in the [instance](../../docs/glossary.md#instance) on every platform and brings no native code. It relies on the OS plugin for every check on a shortcut request.
 
 ## Primitives
 
@@ -48,7 +48,7 @@ Framework: `@agent-native/kernel` (`plugin`, `plugin-manifest`). Plugin: `@agent
 bun test plugins/os-shortcuts
 ```
 
-`test/shortcuts.test.ts` runs a fixture notes application on the mobile authority. It covers:
+`test/shortcuts.test.ts` runs a fixture notes application on the mobile instance. It covers:
 
 - the shortcut link a launcher opens, prefilling the form with its provenance;
 - an undeclared shortcut and a shortcut link with more in it, both refused;

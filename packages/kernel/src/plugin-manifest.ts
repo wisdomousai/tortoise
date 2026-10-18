@@ -1,6 +1,6 @@
 import type { CapabilityModule, HostComponent } from '@agent-native/contracts';
 
-/** The JavaScript hosts an authority runs on: Bun on desktops and servers, Hermes on phones. */
+/** The JavaScript hosts an instance runs on: Bun on desktops and servers, Hermes on phones. */
 export type PlatformId = 'bun' | 'android' | 'ios';
 export const platformIds: readonly PlatformId[] = ['bun', 'android', 'ios'];
 

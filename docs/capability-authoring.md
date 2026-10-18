@@ -88,7 +88,7 @@ export const listNotes = collectionList(noteRecords, {
 
 ## Composition
 
-Add the module to the application's [manifest](glossary.md#manifest) and the handler to its [application definition](glossary.md#application-definition). The host builds the [authority](glossary.md#authority) from that definition, so no host or starter file changes. Tests compose the same definition directly.
+Add the module to the application's [manifest](glossary.md#manifest) and the handler to its [application definition](glossary.md#application-definition). The host builds the [instance](glossary.md#instance) from that definition, so no host or starter file changes. Tests compose the same definition directly.
 
 Write the policy rule for the operation, the object, current and proposed fields, and the [grant](glossary.md#grant) scope; [authorization](authorization.md) explains where each check runs. [State and reactivity](state-and-reactivity.md) lists the steps of a command.
 
@@ -116,7 +116,7 @@ A [trigger](glossary.md#trigger) runs a job or an agent definition on a committe
 
 ## Scenarios
 
-Write a behavioral scenario for each capability: permitted and denied access, a stale revision, a replayed [idempotency key](glossary.md#idempotency-key) and the change visible to another caller. [`packages/testing`](../packages/testing/README.md) runs it against the authority directly. `examples/project-tasks/test/transport-conformance.test.ts` checks the same behavior over HTTP, the CLI and MCP. When an agent definition gains or loses a capability, update its [agent scenarios](glossary.md#agent-scenario).
+Write a behavioral scenario for each capability: permitted and denied access, a stale revision, a replayed [idempotency key](glossary.md#idempotency-key) and the change visible to another caller. [`packages/testing`](../packages/testing/README.md) runs it against the instance directly. `examples/project-tasks/test/transport-conformance.test.ts` checks the same behavior over HTTP, the CLI and MCP. When an agent definition gains or loses a capability, update its [agent scenarios](glossary.md#agent-scenario).
 
 ## Use
 

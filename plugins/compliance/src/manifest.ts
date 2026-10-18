@@ -150,11 +150,7 @@ const node = (id: string) => id.replace(/[^A-Za-z0-9_]/g, '_');
 /** The Mermaid flowchart: destinations grouped by scope, then flows and child processes. */
 function flowDiagram(manifest: SecurityManifest): string[] {
   const scopes = ['loopback', 'site', 'internet'] as const;
-  const lines = [
-    '```mermaid',
-    'flowchart LR',
-    `  app["${manifest.application} (local authority)"]`,
-  ];
+  const lines = ['```mermaid', 'flowchart LR', `  app["${manifest.application} (local instance)"]`];
   for (const scope of scopes) {
     const members = manifest.network.filter((item) => item.scope === scope);
     if (!members.length) continue;

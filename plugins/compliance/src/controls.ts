@@ -286,7 +286,7 @@ export const controls: readonly Control[] = [
     id: 'AN-MON-01',
     title: 'Continuous posture monitoring',
     implementation:
-      'The running authority re-checks policy findings, chain integrity, forwarding health and denied egress on startup and on an interval, records `posture.checked`, and serves the result to authorized auditors through the compliance capabilities.',
+      'The running instance re-checks policy findings, chain integrity, forwarding health and denied egress on startup and on an interval, records `posture.checked`, and serves the result to authorized auditors through the compliance capabilities.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.8.16'],

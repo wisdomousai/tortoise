@@ -13,7 +13,7 @@ import { startHost } from '@agent-native/host/host';
 import { auditServiceOf } from '@agent-native/audit';
 import { networkServiceOf } from '@agent-native/network';
 import { siteServiceOf } from '@agent-native/site';
-import { openEmbeddedAuthority } from '@agent-native/host/embedded';
+import { openEmbeddedInstance } from '@agent-native/host/embedded';
 import projectTasks from '../application';
 
 // The site, network and audit plugins are generic; project-tasks is only the fixture application.
@@ -98,7 +98,7 @@ test('startup resolves a command accepted before a crash', async () => {
     // Simulate a crash between the in-transaction `accepted` and the post-commit outcome.
     const log = await openJsonlEventLog({
       directory: auditLog,
-      source: { component: 'authority', instance: 'crashed' },
+      source: { component: 'host', instance: 'crashed' },
     });
     await log.append([
       {
@@ -166,27 +166,27 @@ test('provider egress is denied unless the site policy binds it', async () => {
   });
 });
 
-test('the embedded authority shares the audit log and its writer lock', async () => {
+test('the embedded instance shares the audit log and its writer lock', async () => {
   await withWorkspace(async (directory) => {
     const auditLog = join(directory, 'audit');
-    const authority = await openEmbeddedAuthority(projectTasks, {
+    const instance = await openEmbeddedInstance(projectTasks, {
       workspacePath: join(directory, 'workspace'),
       settings: { 'audit-log': auditLog },
     });
     try {
-      // A second workspace cannot write into a log another authority holds open.
+      // A second workspace cannot write into a log another instance holds open.
       await expect(
-        openEmbeddedAuthority(projectTasks, {
+        openEmbeddedInstance(projectTasks, {
           workspacePath: join(directory, 'other'),
           settings: { 'audit-log': auditLog },
         }),
       ).rejects.toThrow(/Event log is open in another process/);
-      await authority.application.invokeRaw(
+      await instance.application.invokeRaw(
         { operation: 'project.create', input: { name: 'Embedded' } },
         { workspaceId: 'local', principalId: 'owner', channel: 'cli' },
       );
     } finally {
-      await authority.close();
+      await instance.close();
     }
     const committed = (await readEvents(auditLog, { kinds: ['command.committed'] })).filter(
       (event) => event.operation === 'project.create',

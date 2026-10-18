@@ -17,9 +17,9 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Measured.** On an M-series laptop, 20 one-record commits on 20,000 records of about 5 MB in total. Row storage took 26–30 ms per commit, and one document took 46–52 ms.
 
-**Live.** A [triggered](glossary.md#trigger) agent has proposed on a real local model, and a person accepted ([agents and providers](#agents-and-providers)).
+**Live.** A [triggered](glossary.md#trigger) agent has requested approval on a real local model, and a person approved ([agents and providers](#agents-and-providers)).
 
-**Not shown.** No host route starts an [agent run](glossary.md#agent-run) from an [agent definition](glossary.md#agent-definition). The line-station proposal tile and the frame's proposal review have no browser test.
+**Not shown.** No host route starts an [agent run](glossary.md#agent-run) from an [agent definition](glossary.md#agent-definition). The line-station approval request tile and the frame's approval request review have no browser test.
 
 **Limits.**
 
@@ -28,7 +28,7 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 - The phone's snapshot storage has neither rows nor retention.
 - No encryption at rest.
 
-### Hosted authority
+### Hosted instance
 
 **By hand.** On 18 October 2026, on macOS arm64, against a throwaway Postgres 17.6 container. The container used the `supabase/postgres` image, with a password set for the run.
 
@@ -39,7 +39,7 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Not shown.**
 
-- No [hosted authority](glossary.md#hosted-authority) has run behind a public TLS listener with workforce OIDC sign-in.
+- No [hosted instance](glossary.md#hosted-instance) has run behind a public TLS listener with workforce OIDC sign-in.
 - None has run under a real orchestrator, or on Linux.
 - No commit from a paused holder has been caught by the fence in a live run. The resumed instance's renewal found the loss first, and the tests cover the fence.
 
@@ -157,21 +157,21 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Local models, live.** On 18 October 2026, on an Apple M3 laptop with macOS 26.7.1. The server was llama.cpp `llama-server` 0.7.0, Homebrew build 11669. The model was Gemma 4 E4B-it Q4_0 from `ggml-org/gemma-4-E4B-it-GGUF`: Apache-2.0, 4,590,807,392 bytes, measured `sha256:a555b900214b477d8880e7832e0b8925e139b0159640036b09fe472b6f2097f2`.
 
-`plugins/model-server/test/live.test.ts` passed 5 times in 5. The plugin started the real server through the [process port](glossary.md#process-port), measured the weights and served the `note.suggester` agent. Given the task "Propose adding a note with id n1 that says "Call the supplier"", the model proposed `note.add` with that input. The run recorded the [model entry](glossary.md#model-entry), the measured digest and `verified: true`. Each run took 22–31 seconds, including the server start.
+`plugins/model-server/test/live.test.ts` passed 5 times in 5. The plugin started the real server through the [process port](glossary.md#process-port), measured the weights and served the `note.suggester` agent. Given the task "Request approval for adding a note with id n1 that says "Call the supplier"", the model requested approval for `note.add` with that input. The run recorded the [model entry](glossary.md#model-entry), the measured digest and `verified: true`. Each run took 22–31 seconds, including the server start.
 
-`plugins/automation/test/live.test.ts` passed 3 times in 3. A received lot started the `lot.reviewer` run through its trigger and [standing grant](glossary.md#standing-grant). The model read the lot, then proposed `lot.inspect` for `l1`. A viewer's accept was refused, and an inspector's accept committed the inspection. Each run took 41–68 seconds.
+`plugins/automation/test/live.test.ts` passed 3 times in 3. A received lot started the `lot.reviewer` run through its trigger and [standing grant](glossary.md#standing-grant). The model read the lot, then requested approval for `lot.inspect` on `l1`. A viewer's approval was refused, and an inspector's approval committed the inspection. Each run took 41–68 seconds.
 
 The runs found these defects, now fixed and covered by deterministic tests:
 
 - A tool envelope nested a recursive input schema's `$defs`, so llama.cpp refused the tool (`cannot resolve $ref`). `toolEnvelopeSchema` moves them to the root.
-- A proposing agent's model was never told which commands it may propose or their inputs. A trigger run's prompt left out the agent's instructions. Both now start with `agentInstructions`.
+- A requesting agent's model was never told which commands it may request approval for or their inputs. A trigger run's prompt left out the agent's instructions. Both now start with `agentInstructions`.
 - An application refusal or a malformed call ended an AI SDK run. The model now reads the error and may correct the call.
-- `expectedRevisions` was offered on queries and `proposal.submit`, where it means nothing, and models filled it with invented keys.
+- `expectedRevisions` was offered on queries and `approval.request`, where it means nothing, and models filled it with invented keys.
 - The egress guard's 30-second request timeout cut off a model that reasons before it answers. A destination binding now takes `timeoutMs`.
 
 Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these fixes, and was not rerun after them. No vLLM and no fine-tune has run. Weights are not yet delivered as bundle artifacts.
 
-**Agent scenarios, live.** Gemma 4 E4B-it Q4_0 on llama-server 0.7.0 passed the model server's `proposes a note on a real model`, described above. The [agent scenarios](glossary.md#agent-scenario) in `packages/testing` and `examples/receiving` have passed with the deterministic harness only.
+**Agent scenarios, live.** Gemma 4 E4B-it Q4_0 on llama-server 0.7.0 passed the model server's `requests approval for a note on a real model`, described above. The [agent scenarios](glossary.md#agent-scenario) in `packages/testing` and `examples/receiving` have passed with the deterministic harness only.
 
 ### Execution host
 
@@ -353,7 +353,7 @@ Control mappings are indicative. They are not a certification.
 - The packages are MIT licensed, but publishing to a public registry needs an account for it.
 - The packages publish TypeScript source, and only Bun and Vite have consumed them.
 - An example export still copies the framework.
-- An authority hosts one application.
+- An instance hosts one application.
 
 ## Known defects
 
@@ -379,6 +379,6 @@ These were fixed by inspection only and have no regression test:
 
 - managed cloud hosting: the hosted platform runs on any server with Postgres, and no provider is targeted;
 - multi-device synchronization;
-- more than one application per authority;
+- more than one application per instance;
 - package publication;
 - signed distribution.

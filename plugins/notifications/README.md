@@ -54,7 +54,7 @@ The payload holds:
 Each platform shows the notification as follows:
 
 - **Electron main** uses `Notification`, with action buttons on macOS and Windows.
-- **The phone** uses `expo-notifications`. The mobile authority registers one category per set of buttons and keeps the buttons in the notification's data, so a reply still works after the application was stopped.
+- **The phone** uses `expo-notifications`. The mobile instance registers one category per set of buttons and keeps the buttons in the notification's data, so a reply still works after the application was stopped.
 - **A browser** shows nothing. Without a service worker it has no action buttons, and the effect waits.
 
 ## Trust boundary
@@ -71,7 +71,7 @@ Continuations are fixed when the effect commits, so a reply can choose only betw
 
 `notification.reply.get` and `notification.redeem` are allowed only on the `shell` [channel](../../docs/glossary.md#channel). The consumer sets that channel and no surface does, so no screen, agent run or MCP client can call them. `notification.issue` is allowed only for the [owner](../../docs/glossary.md#owner) acting under a delegated grant, which is the dispatcher. The dispatcher runs as the owner narrowed to `notification.issue` and the target's settle command. A compromised adapter can therefore drive no other command.
 
-The enqueuing command decides who may be notified, because the payload's `principal` is whatever that command wrote. Notification titles and bodies leave the authority for the OS's notification center and lock screen, so declare their data classes on the action. Text replies are not passed on, and the `text` of a reply is ignored.
+The enqueuing command decides who may be notified, because the payload's `principal` is whatever that command wrote. Notification titles and bodies leave the instance for the OS's notification center and lock screen, so declare their data classes on the action. Text replies are not passed on, and the `text` of a reply is ignored.
 
 ## Dependencies
 
@@ -90,7 +90,7 @@ The enqueuing command decides who may be notified, because the payload's `princi
 bun test plugins/notifications
 ```
 
-`test/mobile.test.ts` runs a fixture reminders application on the mobile authority, with Bun bindings for the phone. It covers:
+`test/mobile.test.ts` runs a fixture reminders application on the mobile instance, with Bun bindings for the phone. It covers:
 
 - a reminder made before the phone attached, which waits and then shows with only the buttons the effect offers;
 - a button the notification did not offer, or a forged nonce, which does nothing;

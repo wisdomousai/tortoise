@@ -6,7 +6,7 @@ import { auditServiceOf } from '@agent-native/audit';
 import { readEvents } from '@agent-native/event-log';
 import { startHost } from '@agent-native/host/host';
 import { hostContext } from '@agent-native/kernel/application';
-import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import type { TelemetryService } from '../src/plugin';
 import { startCollector, telemetryApplication, type Received } from './fixtures';
 
@@ -196,7 +196,7 @@ test('a collector that is down loses no counts, and spans wait in a bounded buff
   expect(spansOf(collector.received)).toHaveLength(8);
 });
 
-test('without a bound collector the authority keeps working and reports why nothing is exported', async () => {
+test('without a bound collector the instance keeps working and reports why nothing is exported', async () => {
   const { telemetry, command } = await start();
   await command('note.add', { text: SECRET });
   await telemetry.flush();

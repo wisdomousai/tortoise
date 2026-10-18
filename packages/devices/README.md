@@ -34,7 +34,7 @@ These modules are portable and run in React Native as well: `scanner/decode`, `s
 
 ### Scan input
 
-A scan is input data and grants no authority. Sources are registered explicitly, and nothing is discovered. Web Serial, WebHID and camera access start inside `start`, which must run from a gesture by the person at the screen. Vendor SDKs stay in the host process behind `HostScannerBridge`. The renderer receives decoded text only, and the preload bridge never exposes the SDK.
+A scan is input data and grants no permission. Sources are registered explicitly, and nothing is discovered. Web Serial, WebHID and camera access start inside `start`, which must run from a gesture by the person at the screen. Vendor SDKs stay in the host process behind `HostScannerBridge`. The renderer receives decoded text only, and the preload bridge never exposes the SDK.
 
 ### Configuration
 

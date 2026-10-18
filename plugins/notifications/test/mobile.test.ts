@@ -7,17 +7,17 @@ import { bunSqlDriver } from '@agent-native/adapters/sqlite';
 import {
   connectMobileShell,
   createMobilePlatform,
-  openMobileAuthority,
-  type MobileAuthority,
+  openMobileInstance,
+  type MobileInstance,
   type MobileOsBindings,
 } from '@agent-native/mobile';
 import type { ShellNotification } from '@agent-native/shell/notifications';
 import { notifyAction, remindersApplication } from './fixture';
 
 const sandboxes: string[] = [];
-const opened: MobileAuthority[] = [];
+const opened: MobileInstance[] = [];
 afterEach(async () => {
-  for (const authority of opened.splice(0)) await authority.close();
+  for (const instance of opened.splice(0)) await instance.close();
   for (const sandbox of sandboxes.splice(0)) rmSync(sandbox, { recursive: true, force: true });
 });
 
@@ -36,7 +36,7 @@ async function open(
 ) {
   const sandbox = mkdtempSync(join(tmpdir(), 'notifications-'));
   sandboxes.push(sandbox);
-  const authority = await openMobileAuthority(application, {
+  const instance = await openMobileInstance(application, {
     platform: createMobilePlatform({
       id: 'ios',
       openDatabase: (name) => bunSqlDriver(join(sandbox, name)),
@@ -44,18 +44,17 @@ async function open(
     }),
     settings: { 'os-scheme': 'dev.example.reminders', ...settings },
   });
-  opened.push(authority);
-  const { application: hosted } = authority.authority;
+  opened.push(instance);
+  const { application: hosted } = instance.instance;
   const call = (operation: string, input: unknown, key = crypto.randomUUID()) =>
-    hosted.invokeRaw({ operation, input, idempotencyKey: key }, authority.context);
+    hosted.invokeRaw({ operation, input, idempotencyKey: key }, instance.context);
   const reminders = async () =>
     (
-      (await hosted.queryRaw({ operation: 'reminder.list', input: {} }, authority.context))
-        .data as {
+      (await hosted.queryRaw({ operation: 'reminder.list', input: {} }, instance.context)).data as {
         reminders: { id: string; done: boolean; completions: number; sync: string }[];
       }
     ).reminders;
-  return { authority, call, reminders };
+  return { instance, call, reminders };
 }
 
 /** The phone, faked: notifications it shows, and the buttons a person chooses on them. */
@@ -82,15 +81,15 @@ function device() {
 
 test('a reminder waits for the phone, shows with its button, and its reply completes it once', async () => {
   const application = remindersApplication();
-  const { authority, call, reminders } = await open(application);
-  authority.foreground();
+  const { instance, call, reminders } = await open(application);
+  instance.foreground();
   await call('reminder.create', { title: 'Buy milk' });
   // No adapter is attached yet: the effect stays pending and nothing is issued.
   await Bun.sleep(50);
   expect((await reminders())[0]).toMatchObject({ sync: 'pending' });
 
   const phone = device();
-  const connection = connectMobileShell(authority, application, phone.bindings);
+  const connection = connectMobileShell(instance, application, phone.bindings);
   await until(async () => (await reminders())[0]?.sync === 'accepted');
   expect(phone.shown).toHaveLength(1);
   const [notification] = phone.shown;
@@ -120,22 +119,22 @@ test('a reminder waits for the phone, shows with its button, and its reply compl
 test('only the notified principal can reply, only through the shell, and only before expiry', async () => {
   let now = 1_000_000;
   const application = remindersApplication({ now: () => now, replyTtlMs: 60_000 });
-  const { authority, call, reminders } = await open(application);
+  const { instance, call, reminders } = await open(application);
   const phone = device();
-  const connection = connectMobileShell(authority, application, phone.bindings);
-  authority.foreground();
+  const connection = connectMobileShell(instance, application, phone.bindings);
+  instance.foreground();
   await call('reminder.create', { title: 'One' });
   await call('reminder.create', { title: 'Two' });
   await until(() => phone.shown.length === 2);
   const [one, two] = phone.shown.map((shown) => shown.buttons[0]!);
   const reply = (button: typeof one, principalId = 'owner') =>
-    authority.authority.ports.shell.receive(
+    instance.instance.ports.shell.receive(
       { workspaceId: 'local', principalId },
       { kind: 'reply', handler: button!.handler, nonce: button!.nonce, action: button!.id },
       'ios',
     );
 
-  // Someone else on the same authority presents the owner's nonce: consumed, but nothing runs.
+  // Someone else on the same instance presents the owner's nonce: consumed, but nothing runs.
   expect(await reply(one, 'visitor')).toEqual({ status: 'consumed', handler: 'reminder.reply' });
   // The commands the consumer uses refuse every other channel, so no page or agent can call them.
   await expect(
@@ -163,23 +162,23 @@ test('a payload the action does not declare, or a disabled action, settles as re
             replies: { archive: { operation: 'reminder.complete', input: { id: reminder } } },
           },
   });
-  const { authority, call, reminders } = await open(application);
+  const { instance, call, reminders } = await open(application);
   const phone = device();
-  const connection = connectMobileShell(authority, application, phone.bindings);
-  authority.foreground();
+  const connection = connectMobileShell(instance, application, phone.bindings);
+  instance.foreground();
   await call('reminder.create', { title: 'A' });
   await call('reminder.create', { title: 'B' });
   await until(async () => (await reminders()).every((item) => item.sync === 'rejected'));
   expect(phone.shown).toEqual([]);
   connection.close();
-  // One authority per workspace in a process: close this one before opening the next.
+  // One instance per workspace in a process: close this one before opening the next.
   await opened.pop()!.close();
 
   const disabled = remindersApplication();
   const second = await open(disabled, { 'os-disabled': 'reminders.notify' });
   const other = device();
-  const otherConnection = connectMobileShell(second.authority, disabled, other.bindings);
-  second.authority.foreground();
+  const otherConnection = connectMobileShell(second.instance, disabled, other.bindings);
+  second.instance.foreground();
   await second.call('reminder.create', { title: 'C' });
   await until(async () => (await second.reminders())[0]?.sync === 'rejected');
   expect(other.shown).toEqual([]);

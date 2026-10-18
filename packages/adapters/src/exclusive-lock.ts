@@ -2,7 +2,7 @@ import type { SqlDriver } from './sql-driver';
 
 export class WorkspaceOwnedError extends Error {
   constructor(readonly canonicalPath: string) {
-    super('Workspace already has a live authority');
+    super('Workspace already has a live instance');
     this.name = 'WorkspaceOwnedError';
   }
 }

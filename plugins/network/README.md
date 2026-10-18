@@ -58,7 +58,7 @@ Provider SDKs get a fetch routed by origin, and TCP transports get a scoped sock
 
 The plugin reads the site plugin's resolved policy. It never reads caller input or settings of its own. The guard records each decision into the composed audit log port. It reads that port on each call, because the plugin that provides it, normally `audit`, opens later.
 
-Without an audit log provider, decisions go unrecorded and never block. With one in fail-closed mode, a connection that cannot be recorded is refused. `childEnvironment` points a declared process at the loopback proxy, which is limited to that process's declared destinations. An embedded authority does not start the proxy, so children are refused there.
+Without an audit log provider, decisions go unrecorded and never block. With one in fail-closed mode, a connection that cannot be recorded is refused. `childEnvironment` points a declared process at the loopback proxy, which is limited to that process's declared destinations. An embedded instance does not start the proxy, so children are refused there.
 
 Rule exports are default-deny and carry the policy digest. They list each bound destination they could not enforce by address, instead of widening it. Like startup, they refuse a policy with error findings.
 

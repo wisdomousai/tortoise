@@ -2,7 +2,7 @@
   "name": "@agent-native/mobile",
   "version": "0.1.0",
   "type": "module",
-  "description": "The mobile host platform: workspace ownership, snapshot storage and blobs on Android and iOS, and an embedded authority for the app's screens.",
+  "description": "The mobile host platform: workspace ownership, snapshot storage and blobs on Android and iOS, and an embedded instance for the app's screens.",
   "license": "MIT",
   "repository": {
     "type": "git",

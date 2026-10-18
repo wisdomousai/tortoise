@@ -28,7 +28,7 @@ Plugins (`plugins/*`). Runs on Android, iOS and Bun; `src/` is portable source.
 
 The application names the outbox [target](../../docs/glossary.md#target) `hub` for [effects](../../docs/glossary.md#effect) meant for the hub. The destination component declares it with `offline: 'queue'`, so records queue while the device is unpaired or offline.
 
-Device management can set `hub-url` and `enrollment-code` (environment `AGENT_NATIVE_HUB_URL` and `AGENT_NATIVE_ENROLLMENT_CODE`). When both are set and the device is not paired, the plugin pairs in the background once the [authority](../../docs/glossary.md#authority) is ready. A failure is recorded as the pairing error, and startup continues. Otherwise a person pairs on the screen, which calls the service through the native frame's [plugin services](../../docs/glossary.md#plugin-service).
+Device management can set `hub-url` and `enrollment-code` (environment `AGENT_NATIVE_HUB_URL` and `AGENT_NATIVE_ENROLLMENT_CODE`). When both are set and the device is not paired, the plugin pairs in the background once the [instance](../../docs/glossary.md#instance) is ready. A failure is recorded as the pairing error, and startup continues. Otherwise a person pairs on the screen, which calls the service through the native frame's [plugin services](../../docs/glossary.md#plugin-service).
 
 `enrollPath` repeats the hub's route because this plugin never imports `device-link`. The device-link tests check that the two agree.
 
@@ -66,7 +66,7 @@ The tablet acts as the person who enrolled it, so a shared tablet has no per-per
 
 - Framework:
   - `@agent-native/contracts` and `@agent-native/runtime`;
-  - `@agent-native/kernel`: `plugin`, `plugin-manifest`, `application`, `authority` and `platform`;
+  - `@agent-native/kernel`: `plugin`, `plugin-manifest`, `application`, `instance` and `platform`;
   - `@agent-native/frame-native`, for the screens.
 - External: `zod`; for the screens, `react`, `react-native`, `react-native-webview`, `@tanstack/react-query` and `lucide-react-native`.
 - The secret store comes from the platform, which is `@agent-native/mobile/expo` on a device.

@@ -2,15 +2,15 @@ import { WorkspaceOwnedError } from './exclusive-lock';
 import type { PgDriver, PgQuery } from './postgres/driver';
 import { openPgSchema } from './postgres/schema';
 
-/** A commit found that another authority took the workspace over, or that the lease expired. */
+/** A commit found that another instance took the workspace over, or that the lease expired. */
 export class WorkspaceLeaseLostError extends Error {
   constructor(readonly workspace: string) {
-    super('Workspace lease lost: this authority no longer owns the workspace');
+    super('Workspace lease lost: this instance no longer owns the workspace');
     this.name = 'WorkspaceLeaseLostError';
   }
 }
 
-/** One authority's hold on a workspace in a shared database, with its fencing token. */
+/** One instance's hold on a workspace in a shared database, with its fencing token. */
 export interface WorkspaceLease {
   readonly workspace: string;
   readonly holder: string;
@@ -18,7 +18,7 @@ export interface WorkspaceLease {
   readonly fence: number;
   /** Extend the expiry; throws `WorkspaceLeaseLostError` when the lease is gone. */
   renew(): Promise<void>;
-  /** Expire the lease now, so the next authority need not wait for it. Idempotent. */
+  /** Expire the lease now, so the next instance need not wait for it. Idempotent. */
   release(): Promise<void>;
   /**
    * Inside a commit's transaction: throw `WorkspaceLeaseLostError` unless this lease is still
@@ -31,7 +31,7 @@ export interface WorkspaceLease {
 export interface LeaseOptions {
   /** How long the lease lasts without a renewal; 30 seconds by default. */
   readonly ttlMs?: number;
-  /** Names this authority instance in the lease row; a new UUID by default. */
+  /** Names this instance in the lease row; a new UUID by default. */
   readonly holder?: string;
 }
 

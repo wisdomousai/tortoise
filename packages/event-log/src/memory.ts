@@ -24,7 +24,7 @@ export interface MemoryEventLog extends EventLogPort {
 export function createMemoryEventLog(options: MemoryEventLogOptions = {}): MemoryEventLog {
   const events: AuditEvent[] = [];
   let head: ChainHead = genesisHead;
-  const source = options.source ?? { component: 'authority', instance: 'memory' };
+  const source = options.source ?? { component: 'host', instance: 'memory' };
   const now = options.now ?? Date.now;
   const exclusive = serialized();
   return {

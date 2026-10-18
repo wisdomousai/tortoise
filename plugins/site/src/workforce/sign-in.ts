@@ -7,7 +7,7 @@ import {
 } from 'jose';
 import { verifyOidcIdentity } from '@agent-native/agents/oidc';
 import type { SitePolicy } from '../policy';
-import { LOCAL_WORKSPACE } from '@agent-native/kernel/authority';
+import { LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import type { ExecutionContext } from '@agent-native/runtime';
 import { discover, providerJson, type DestinationFetch, type ProviderMetadata } from './discovery';
 

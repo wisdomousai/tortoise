@@ -81,7 +81,7 @@ export interface CapabilityFormOptions<C extends AnyCapability, Values> {
  * A TanStack Form bound to one command capability.
  *
  * Guarantees:
- * - Input is validated with the capability's own schema (the same one the authority enforces),
+ * - Input is validated with the capability's own schema (the same one the instance enforces),
  *   via Standard Schema, before any request.
  * - The idempotency key is minted when the form opens and reused for every retry until the
  *   command commits, so double taps, scanner double-sends and retries after a lost response
@@ -92,7 +92,7 @@ export interface CapabilityFormOptions<C extends AnyCapability, Values> {
  *   form has that field; other failures, including CONFLICT, become a form error and the draft
  *   is kept.
  *
- * The authority still authorizes and validates; nothing here is a security boundary.
+ * The instance still authorizes and validates; nothing here is a security boundary.
  */
 export function useCapabilityForm<C extends AnyCapability, Values extends object>(
   transport: Transport,

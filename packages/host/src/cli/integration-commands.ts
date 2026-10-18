@@ -1,6 +1,6 @@
 import { PENDING_EXIT_CODE, takeFlag } from '@agent-native/adapters/cli';
 import type { AnyApplicationDefinition } from '../application';
-import { openEmbeddedAuthority, type EmbeddedAuthority } from '../embedded';
+import { openEmbeddedInstance, type EmbeddedInstance } from '../embedded';
 import type { PluginSettings } from '../plugins/settings';
 import { finite, rejectRemaining, report, settingsOf, workspaceOf } from './args';
 
@@ -8,13 +8,13 @@ async function withEmbedded<T>(
   definition: AnyApplicationDefinition,
   workspacePath: string,
   settings: PluginSettings,
-  use: (authority: EmbeddedAuthority) => Promise<T>,
+  use: (instance: EmbeddedInstance) => Promise<T>,
 ): Promise<T> {
-  const authority = await openEmbeddedAuthority(definition, { workspacePath, settings });
+  const instance = await openEmbeddedInstance(definition, { workspacePath, settings });
   try {
-    return await use(authority);
+    return await use(instance);
   } finally {
-    await authority.close();
+    await instance.close();
   }
 }
 

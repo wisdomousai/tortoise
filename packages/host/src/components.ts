@@ -10,13 +10,13 @@ import type { ApplicationManifest } from '@agent-native/kernel/manifest';
  * The generic host's own requirement: its listener. Pure data; every application the host runs
  * inherits it. Plugins declare their own in their manifests.
  */
-export const authorityComponent = defineHostComponent({
-  id: 'authority',
-  description: 'Local authority service: HTTP/SSE API and MCP attach.',
+export const hostComponent = defineHostComponent({
+  id: 'host',
+  description: 'Local host: HTTP/SSE API and MCP attach.',
   requirements: {
     network: [
       {
-        id: 'authority-http',
+        id: 'host-http',
         purpose: 'Serve the frontend, API, events and attach connections.',
         direction: 'ingress',
         scope: 'loopback',
@@ -29,7 +29,7 @@ export const authorityComponent = defineHostComponent({
 });
 
 /** Components the Bun host composes into every application: itself and the agent providers. */
-export const hostComponents = [authorityComponent, ...providerComponents] as const;
+export const hostComponents = [hostComponent, ...providerComponents] as const;
 
 /**
  * The catalog of one deployment on the Bun host: the application's modules plus the host's

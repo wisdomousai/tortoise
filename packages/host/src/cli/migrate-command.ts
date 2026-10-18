@@ -5,7 +5,7 @@ import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
 import { SQLiteStorage, bunSqlDriver } from '@agent-native/adapters/sqlite';
 import { restoreBackup, verifyBackup } from '@agent-native/adapters/workspace-backup';
 import { stateUpgrade } from '@agent-native/kernel/state-upgrade';
-import { LOCAL_OWNER } from '@agent-native/kernel/authority';
+import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import type { StateVersions } from '@agent-native/runtime';
 import type { AnyApplicationDefinition } from '../application';
 import { WORKSPACE_DATABASE, workspaceDatabase } from '../platform/bun';

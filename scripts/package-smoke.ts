@@ -67,7 +67,7 @@ export async function smokeStage(stage: string) {
     });
     try {
       if (!service.owned)
-        throw new Error('Fresh smoke workspace unexpectedly attached to another authority');
+        throw new Error('Fresh smoke workspace unexpectedly attached to another instance');
       const response = await fetch(service.endpoint, {
         signal: AbortSignal.timeout(5000),
         redirect: 'error',

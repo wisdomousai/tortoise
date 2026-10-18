@@ -33,7 +33,7 @@ export interface LineStationBridgeOptions {
   readonly transport: ScreenTransport;
   readonly extractors: readonly Extractor[];
   readonly profile?: StationProfile;
-  /** Scripted by default; a computer-use driver only proposes targets and passes the same gate. */
+  /** Scripted by default; a computer-use driver only suggests targets and passes the same gate. */
   readonly driver?: ComputerUseDriver;
   readonly heartbeatMs?: number;
   readonly pollMs?: number;

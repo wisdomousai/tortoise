@@ -9,7 +9,7 @@ import { defineApplication } from '@agent-native/kernel/application';
 import { defineManifest } from '@agent-native/kernel/manifest';
 import { defineHostPlugin } from '@agent-native/kernel/plugin';
 import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
-import { createMobilePlatform, openMobileAuthority } from '@agent-native/mobile';
+import { createMobilePlatform, openMobileInstance } from '@agent-native/mobile';
 import { createManagedConfigPlugin, type ManagedValues } from '../src/managed-config';
 import { managedConfigPluginManifest } from '../src/plugin-manifest';
 
@@ -63,9 +63,9 @@ test('managed values become settings and win over the launcher outside developme
   const seen: Record<string, string>[] = [];
   const managed = { 'hub-url': 'https://hub.site.example' };
   const options = { platform: platform(), settings: { 'hub-url': 'https://launcher.example' } };
-  await (await openMobileAuthority(field(managed, seen), options)).close();
+  await (await openMobileInstance(field(managed, seen), options)).close();
   await (
-    await openMobileAuthority(field(managed, seen), { ...options, launcherSettingsWin: true })
+    await openMobileInstance(field(managed, seen), { ...options, launcherSettingsWin: true })
   ).close();
   expect(seen).toEqual([
     { 'hub-url': 'https://hub.site.example' },
@@ -75,12 +75,12 @@ test('managed values become settings and win over the launcher outside developme
 
 test('a managed key nothing reads, or a value that is not text, refuses startup', async () => {
   await expect(
-    openMobileAuthority(field({ 'hub-adress': 'https://typo.example' }, []), {
+    openMobileInstance(field({ 'hub-adress': 'https://typo.example' }, []), {
       platform: platform(),
     }),
   ).rejects.toThrow('Managed configuration sets "hub-adress", which no composed plugin reads');
   await expect(
-    openMobileAuthority(field({ 'hub-url': null }, []), { platform: platform() }),
+    openMobileInstance(field({ 'hub-url': null }, []), { platform: platform() }),
   ).rejects.toThrow('Managed configuration sets "hub-url" to a value that is not text');
 });
 

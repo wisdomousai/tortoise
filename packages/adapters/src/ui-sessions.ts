@@ -35,7 +35,7 @@ interface Entry {
 export interface UiSessionPorts {
   /** Consult the live host registry, so revoking a credential also revokes UI routing. */
   isActive(token: string): boolean;
-  /** Resolve selected IDs inside the authority and authorize their read queries. */
+  /** Resolve selected IDs inside the instance and authorize their read queries. */
   validateContext(context: ExecutionContext, value: UiContextInput): Promise<void>;
   /** Authorize resource intents and validate referenced operation IDs; never mutate business data. */
   validateIntent(context: ExecutionContext, intent: UiIntent): Promise<void>;
@@ -83,7 +83,7 @@ function validateShape(value: UiContextInput): void {
     );
 }
 
-/** Ephemeral UI routing. IDs confer no authority; every access requires its original live host session. */
+/** Ephemeral UI routing. IDs grant no access; every access requires its original live host session. */
 export class UiSessionStore {
   private readonly entries = new Map<string, Entry>();
   constructor(private readonly ports: UiSessionPorts) {}

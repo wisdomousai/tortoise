@@ -41,9 +41,9 @@ A run ID names the grant and the event cursor or slot, as in `auto:<grant>:event
 
 An agent run uses the first available harness that meets the agent's model requirement. When none does, the run fails with `UNAVAILABLE`. The plugin refuses to open when no harness it was given meets an agent trigger's model requirement. The model sees only the capabilities that agent triggers may call.
 
-The prompt starts with `agentInstructions`: the definition's instructions and, for a proposing agent, each command it may propose with its input schema. The trigger's prompt and what started the run follow.
+The prompt starts with `agentInstructions`: the definition's instructions and, for a requesting agent, each command it may request approval for with its input schema. The trigger's prompt and what started the run follow.
 
-`line-station` composes the plugin to close proposals nobody accepted in time.
+`line-station` composes the plugin to close approval requests nobody approved in time.
 
 ## Trust boundary
 
@@ -53,7 +53,7 @@ Only a person issues, renews or revokes a grant, and only their own; no run and 
 
 `automation.progress.record` is allowed only for a context with the issuer's principal and a run ID under that grant. Only the in-process loop creates such a context.
 
-The plugin reaches nothing outside the [authority](../../docs/glossary.md#authority) except the local model. It calls the model only through the network port's `local-inference` destination. The [site policy](../../docs/glossary.md#site-policy) binds that destination to a loopback address, and the guard refuses any other.
+The plugin reaches nothing outside the [instance](../../docs/glossary.md#instance) except the local model. It calls the model only through the network port's `local-inference` destination. The [site policy](../../docs/glossary.md#site-policy) binds that destination to a loopback address, and the guard refuses any other.
 
 Limits:
 
@@ -86,7 +86,7 @@ bun test plugins/automation
   - refusal at open of unknown capabilities, jobs or agents, schedules under a minute, and runs that would start themselves;
   - an agent trigger skipping a remote harness for a local one, and failing with `UNAVAILABLE` when no harness qualifies.
 - `test/host.test.ts`: a serving host runs an enabled trigger and resumes from recorded progress after a restart. The screen references every bound capability, and a local model is reached only through the network port.
-- `test/local-proposal.test.ts`: on a serving host with the site and network plugins, a received lot starts a proposing agent's run on a local model. The model sees only the lot query and `proposal.submit`. The proposal names the issuer, the run and the model and changes nothing. A viewer's accept is refused and leaves it open, and an inspector's accept commits the inspection as the inspector.
+- `test/local-approval.test.ts`: on a serving host with the site and network plugins, a received lot starts a requesting agent's run on a local model. The model sees only the lot query and `approval.request`. The approval request names the issuer, the run and the model and changes nothing. A viewer's approve is refused and leaves it pending, and an inspector's approve commits the inspection as the inspector.
 - `test/live.test.ts`: the same flow on a real model, run only when `LOCAL_MODEL_GGUF` names a GGUF file. The test starts llama.cpp `llama-server` itself and binds `local-inference` to it with a five-minute `timeoutMs`.
 
 ## Skills

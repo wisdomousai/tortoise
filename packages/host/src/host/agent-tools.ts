@@ -14,7 +14,7 @@ function toolDefinitions(application: HostedApplication) {
 
 /**
  * The context a tool call executes under. This snapshot was captured from the authenticated
- * session, never from prompt/tool arguments. Delegating a run can narrow authority but cannot
+ * session, never from prompt/tool arguments. Delegating a run can narrow instance but cannot
  * restore absent grants.
  */
 function runContext(
@@ -42,7 +42,7 @@ function runContext(
 
 /**
  * Harness tools over the application. `runOf` reads the supervisor's run, whose context the host
- * captured when the run started; a tool call can never supply its own authority.
+ * captured when the run started; a tool call can never supply its own grants.
  */
 export function createAgentTools(
   application: HostedApplication,
@@ -57,7 +57,7 @@ export function createAgentTools(
         typeof run.context.principalId !== 'string' ||
         typeof run.context.workspaceId !== 'string'
       )
-        throw new ApplicationError('FORBIDDEN', 'Run authority unavailable');
+        throw new ApplicationError('FORBIDDEN', 'Run instance unavailable');
       const body = input as { input?: unknown; expectedRevisions?: Record<string, number> };
       if (!body || typeof body !== 'object' || !('input' in body))
         throw new ApplicationError('INVALID_INPUT', 'Tool requires an input envelope');

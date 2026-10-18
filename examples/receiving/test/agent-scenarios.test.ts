@@ -3,12 +3,12 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { deterministicHarness } from '@agent-native/agents';
-import { openEmbeddedAuthority } from '@agent-native/host';
+import { openEmbeddedInstance } from '@agent-native/host';
 import { runAgentScenarios, type AgentScenario } from '@agent-native/testing/agent-scenarios';
 import { createReceivingApplication } from '../application';
 import { erpFolders } from '../contracts/erp-target';
 
-// The discrepancy agent judged by what it commits and proposes. The deterministic harness plays
+// The discrepancy agent judged by what it commits and what it requests approval for. The deterministic harness plays
 // a scripted run; the same scenarios run against a model only when a test is given a configured
 // harness and `AGENT_SCENARIOS=live`, never in `bun run check`.
 const owner = { workspaceId: 'local', principalId: 'owner' };
@@ -19,7 +19,7 @@ const notice = [
 ].join('\n');
 
 let directory: string;
-let authority: Awaited<ReturnType<typeof openEmbeddedAuthority>>;
+let instance: Awaited<ReturnType<typeof openEmbeddedInstance>>;
 beforeAll(async () => {
   directory = await mkdtemp(join(tmpdir(), 'receiving-agent-'));
   const folders = Object.fromEntries(
@@ -31,15 +31,15 @@ beforeAll(async () => {
     policy,
     JSON.stringify({ profile: 'desktop-local', audit: { mode: 'best-effort' }, folders }),
   );
-  authority = await openEmbeddedAuthority(
+  instance = await openEmbeddedInstance(
     createReceivingApplication({ quietMs: 0, services: { now: () => 1_000 } }),
     { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
   );
   await writeFile(join(directory, 'share', erpFolders.inbox, 'asn-1001.csv'), notice);
-  await authority.integrations.sync();
+  await instance.integrations.sync();
 });
 afterAll(async () => {
-  await authority?.close();
+  await instance?.close();
   await rm(directory, { recursive: true, force: true });
 });
 
@@ -50,7 +50,7 @@ const counted = (id: string, count: number, key: string) => ({
 });
 const scenarios: AgentScenario[] = [
   {
-    name: 'a short count is proposed as short, and the line is not classified until accepted',
+    name: 'approval is requested to classify a short count as short, and the line is not classified until approved',
     agent: 'receiving.discrepancy',
     task: 'Classify the discrepancies in today’s deliveries.',
     issuer: owner,
@@ -60,7 +60,7 @@ const scenarios: AgentScenario[] = [
         { operation: 'delivery.list', input: { status: 'counted' } },
         { operation: 'delivery.get', input: { id: 'ASN-1001-2' } },
         {
-          operation: 'proposal.submit',
+          operation: 'approval.request',
           input: {
             operation: 'delivery.classify',
             input: { id: 'ASN-1001-2', reason: 'short', note: 'One carton of 60 missing' },
@@ -72,7 +72,7 @@ const scenarios: AgentScenario[] = [
     },
     expect: {
       commits: [],
-      proposals: [
+      approvals: [
         {
           operation: 'delivery.classify',
           input: { id: 'ASN-1001-2', reason: 'short' },
@@ -90,7 +90,7 @@ const scenarios: AgentScenario[] = [
     },
   },
   {
-    name: 'classifying directly is refused: the agent only proposes',
+    name: 'classifying directly is refused: the agent only requests approval',
     agent: 'receiving.discrepancy',
     task: 'Classify ASN-1001-2.',
     issuer: owner,
@@ -105,9 +105,9 @@ const scenarios: AgentScenario[] = [
   },
 ];
 
-test('the discrepancy agent proposes classifications and never commits them', async () => {
+test('the discrepancy agent requests approval for classifications and never commits them', async () => {
   const results = await runAgentScenarios(scenarios, {
-    application: authority.application,
+    application: instance.application,
     harness: deterministicHarness,
   });
   expect(results.map((result) => [result.scenario, result.failures])).toEqual(

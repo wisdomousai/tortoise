@@ -67,7 +67,7 @@ const portableTypes = [
 
 /**
  * Any JSON value. Recursive, so it is the one lazy schema the portability check accepts: JSON
- * Schema carries it exactly as a `$ref`. Use it for opaque JSON such as a proposed command input.
+ * Schema carries it exactly as a `$ref`. Use it for opaque JSON such as a requested command input.
  */
 export const jsonValueSchema = z.json();
 
@@ -178,7 +178,7 @@ export const expectedRevisionsSchema: JsonObject = {
 /**
  * The tool schema an agent harness offers for one operation: the operation's input in the
  * envelope and, for a command, the optional `expectedRevisions`. A query checks no revisions,
- * and `proposal.submit` creates a record and carries the revisions it rests on in its input
+ * and `approval.request` creates a record and carries the revisions it rests on in its input
  * (`baseRevisions`), so neither is offered them; models given both fill the wrong one.
  */
 export function operationToolSchema(operation: {
@@ -186,7 +186,7 @@ export function operationToolSchema(operation: {
   readonly kind: 'command' | 'query';
   readonly inputSchema: JsonObject;
 }): JsonObject {
-  return operation.kind === 'command' && operation.id !== 'proposal.submit'
+  return operation.kind === 'command' && operation.id !== 'approval.request'
     ? toolEnvelopeSchema(operation.inputSchema, { expectedRevisions: expectedRevisionsSchema })
     : toolEnvelopeSchema(operation.inputSchema);
 }

@@ -14,10 +14,12 @@ export function stationOfResource(state: LineState, resource: string): string | 
   if (type === 'count') return own(state.counts, id)?.station;
   if (type === 'attention') return own(state.attention, id)?.station;
   if (type === 'order') return own(state.orders, id)?.station;
-  // A proposal belongs to the station of the record it is about.
-  if (type === 'proposal') {
-    const about = own(state.proposals, id)?.resource;
-    return about && !about.startsWith('proposal:') ? stationOfResource(state, about) : undefined;
+  // An approval request belongs to the station of the record it is about.
+  if (type === 'approval-request') {
+    const about = own(state.approvals, id)?.resource;
+    return about && !about.startsWith('approval-request:')
+      ? stationOfResource(state, about)
+      : undefined;
   }
   return undefined;
 }
@@ -39,14 +41,14 @@ const atStation = (
   },
   roles,
 });
-const proposalStation = (input: Record<string, unknown>, state: LineState) =>
-  stationOfResource(state, `proposal:${String(input.id)}`);
+const approvalStation = (input: Record<string, unknown>, state: LineState) =>
+  stationOfResource(state, `approval-request:${String(input.id)}`);
 const named = (input: Record<string, unknown>) =>
   typeof input.station === 'string' ? input.station : undefined;
 /**
  * Commands that stand for a person at the station: starting an order (hazard: the machine loads
  * a recipe), verifying what the screen shows, reconciling an interrupted procedure and taking or
- * handing back the screen. Delegated agent runs may read, propose and classify, never these.
+ * handing back the screen. Delegated agent runs may read, request approval and classify, never these.
  */
 const person = (rule: Rule): Rule => ({ ...rule, person: true, reason: 'PERSON_AT_STATION' });
 const stationEvent = (type: string) => ({
@@ -102,22 +104,22 @@ export const linePolicy = definePolicy<LineState, StationRole>({
       atStation((input, state) => own(state.attention, String(input.attentionId))?.station),
     ),
     [operations.bridgeSetMode.id]: atStation(named, ['supervisor']),
-    // A proposal is about a record at one station; submitting needs a role there, and deciding
-    // needs a person with an operating role there. Accepting then also passes the proposed
-    // command's own rule, under the accepter.
-    [operations.proposalSubmit.id]: atStation((input, state) =>
+    // An approval request is about a record at one station; submitting needs a role there, and deciding
+    // needs a person with an operating role there. Approving then also passes the requested
+    // command's own rule, under the approver.
+    [operations.approvalRequest.id]: atStation((input, state) =>
       typeof input.resource === 'string' ? stationOfResource(state, input.resource) : undefined,
     ),
-    [operations.proposalAccept.id]: person(atStation(proposalStation)),
-    [operations.proposalReject.id]: person(atStation(proposalStation)),
-    [operations.proposalExpire.id]: atStation(proposalStation, [
+    [operations.approvalApprove.id]: person(atStation(approvalStation)),
+    [operations.approvalReject.id]: person(atStation(approvalStation)),
+    [operations.approvalExpire.id]: atStation(approvalStation, [
       'operator',
       'supervisor',
       'viewer',
     ]),
-    // Handlers scope these to proposals at the caller's stations before filtering and counting.
-    [operations.proposalList.id]: 'open',
-    [operations.proposalGet.id]: 'open',
+    // Handlers scope these to approval requests at the caller's stations before filtering and counting.
+    [operations.approvalList.id]: 'open',
+    [operations.approvalGet.id]: 'open',
     [operations.stationSetMember.id]: {
       ...membershipRule(stationMembership),
       grant: (input) => `station:${String(input.station)}`,
@@ -130,7 +132,7 @@ export const linePolicy = definePolicy<LineState, StationRole>({
     count: stationEvent('count'),
     attention: stationEvent('attention'),
     order: stationEvent('order'),
-    proposal: stationEvent('proposal'),
+    'approval-request': stationEvent('approval-request'),
     // MES master-data changes are visible to anyone who works at some station.
     sync: (id, state, context) =>
       id === mesTarget.target &&

@@ -1,6 +1,6 @@
 /**
  * The portable host kernel: application and plugin composition, the kernel's ports and opening
- * an authority on a `HostPlatform`. It uses no Node, Bun or React Native API, so the Bun host and
+ * an instance on a `HostPlatform`. It uses no Node, Bun or React Native API, so the Bun host and
  * the mobile host share it. Browser code imports only `manifest` and `plugin-manifest`.
  */
 export {
@@ -57,10 +57,10 @@ export { openPlugins, type OpenedPlugins, type PluginPlatform } from './plugins/
 export {
   LOCAL_OWNER,
   LOCAL_WORKSPACE,
-  openAuthority,
-  type Authority,
-  type OpenAuthorityOptions,
-} from './authority';
+  openInstance,
+  type Instance,
+  type OpenInstanceOptions,
+} from './instance';
 export { assertGlobals, installGlobals, missingGlobals, type RequiredGlobal } from './globals';
 export { noShell, type ShellAdapter, type ShellPort } from './shell';
 export { noFolders, type BoundFolder, type FolderPort } from './folders';

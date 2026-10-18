@@ -1,6 +1,6 @@
 # @agent-native/runtime
 
-The [authority](../../docs/glossary.md#authority): one transactional runtime per [workspace](../../docs/glossary.md#workspace) that authorizes and executes [commands](../../docs/glossary.md#command) and [queries](../../docs/glossary.md#query) from a composed [catalog](../../docs/glossary.md#catalog). A command commits state, revisions, its idempotency [receipt](../../docs/glossary.md#receipt), [journal](../../docs/glossary.md#journal) entries and [outbox effects](../../docs/glossary.md#effect) in one transaction, and nothing commits when any part fails. A query reads one authorized [snapshot](../../docs/glossary.md#snapshot) and returns a [cursor](../../docs/glossary.md#cursor) that a [caller](../../docs/glossary.md#caller) can follow.
+The [instance](../../docs/glossary.md#instance): one transactional runtime per [workspace](../../docs/glossary.md#workspace) that authorizes and executes [commands](../../docs/glossary.md#command) and [queries](../../docs/glossary.md#query) from a composed [catalog](../../docs/glossary.md#catalog). A command commits state, revisions, its idempotency [receipt](../../docs/glossary.md#receipt), [journal](../../docs/glossary.md#journal) entries and [outbox effects](../../docs/glossary.md#effect) in one transaction, and nothing commits when any part fails. A query reads one authorized [snapshot](../../docs/glossary.md#snapshot) and returns a [cursor](../../docs/glossary.md#cursor) that a [caller](../../docs/glossary.md#caller) can follow.
 
 ## Layer
 
@@ -8,7 +8,7 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 
 ## Primitives
 
-- [Authority](../../docs/primitives.md#authority): `createApplication`, `ApplicationOptions`.
+- [Instance](../../docs/primitives.md#instance): `createApplication`, `ApplicationOptions`.
 - [Module](../../docs/primitives.md#module): `sliceHandlers`, `composeAuthorization` and `authorizationRoute` compose independently authored [modules](../../docs/glossary.md#module) into one state and policy.
 - [Command](../../docs/primitives.md#command): `createHandlerFactory`, `HandlerContext` (with `continueWith`), `CommandReceipt` (with `continuation`), `StoredReceipt`.
 - [Query](../../docs/primitives.md#query): `QueryResult`.
@@ -16,8 +16,8 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceAnswer`, and the `sources` and `remoteDeadlineMs` options.
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
 - [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed [grant](../../docs/glossary.md#grant).
-- [Proposal](../../docs/primitives.md#proposal): `proposalHandlers` (`ProposalOptions`) serve the proposal capabilities over the application's `proposals` slice. Accepting continues with the proposed command as the accepter.
-- [Proposal dataset](../../docs/primitives.md#proposal-dataset): `exportProposalDataset` reads the closed proposals a caller may see through `proposal.list` and applies the `DatasetRedaction`. It returns the rows with their `sha256:` digest (`datasetDigest`), which a fine-tuned model entry names.
+- [Approval request](../../docs/primitives.md#approval-request): `approvalHandlers` (`ApprovalOptions`) serve the approval request capabilities over the application's `approval requests` slice. Approving continues with the requested command as the approver.
+- [Approval dataset](../../docs/primitives.md#approval-dataset): `exportApprovalDataset` reads the closed approval requests a caller may see through `approval.list` and applies the `DatasetRedaction`. It returns the rows with their `sha256:` digest (`datasetDigest`), which a fine-tuned model entry names.
 - [Policy](../../docs/primitives.md#policy): the `AuthorizationPort` (`AuthorizationRequest`, `Decision`), and `definePolicy` with `PolicySpec`, `OperationRule`, `IntegrationLane`, `EventRule`, `Access` and `isDelegated`.
 - [Membership](../../docs/primitives.md#membership): `membershipHandler`, `membershipRule`, `roleIn`, `MembershipStore`.
 - [Storage](../../docs/primitives.md#storage): the `Storage` port, `WorkspaceSnapshot`, `createMemoryStorage`, `createWorkspaceSnapshot`.
@@ -44,7 +44,7 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 | `@agent-native/runtime`   | server only | `createApplication`, the handler factory, memory storage, composition and all types. |
 | `@agent-native/runtime/*` | server only | One source file from `src/`, listed below.                                 |
 
-The source files are `types`, `compose`, `state-equality`, `application`, `memory-storage`, `memory-blob-store`, `collection`, `policy`, `membership`, `agent-grant`, `proposal`, `proposal-dataset`, `reconciliation` and `effect-phase`.
+The source files are `types`, `compose`, `state-equality`, `application`, `memory-storage`, `memory-blob-store`, `collection`, `policy`, `membership`, `agent-grant`, `approval`, `approval-dataset`, `reconciliation` and `effect-phase`.
 
 `src/application/` holds the parts `createApplication` wires together. Import them only from inside the package. Each part takes the shared `Kernel` object (registry, ports, clocks, audit trail, context guard) instead of closing over it:
 
@@ -107,13 +107,13 @@ bun test packages/runtime
 - `test/policy.test.ts`:
   - the fixed decision order of `definePolicy`: lanes, caller gate, person-only, grant resources, container roles, both snapshots or the previous one at commit, event types;
   - `set-member` refusing non-managers, self-changes and reserved principals.
-- `test/agent-grant.test.ts`: an agent's grant stays within the issuer's capabilities, resources and expiry. It leaves a proposing agent's commands out and is bound to the issuer and run.
-- `test/proposal.test.ts`:
-  - accepting runs the command once as the accepter and replays its continuation;
-  - an agent grant, a viewer and a demoted accepter are refused, and a changed record conflicts, each leaving the proposal open;
-  - invalid submissions, expiry and nested proposals are refused;
-  - a resource-scoped run creates its proposal through `creates`, but cannot propose for, or close, a record outside its resources;
-  - the dataset export holds only decided proposals the caller may see;
+- `test/agent-grant.test.ts`: an agent's grant stays within the issuer's capabilities, resources and expiry. It leaves a requesting agent's commands out and is bound to the issuer and run.
+- `test/approval.test.ts`:
+  - approving runs the command once as the approver and replays its continuation;
+  - an agent grant, a viewer and a demoted approver are refused, and a changed record conflicts, each leaving the approval request pending;
+  - invalid submissions, expiry and nested approval requests are refused;
+  - a resource-scoped run creates its approval request through `creates`, but cannot request approval for, or close, a record outside its resources;
+  - the dataset export holds only decided approval requests the caller may see;
   - the export applies field, rationale and reason redaction before the digest, and gives the same digest for the same rows.
 - `test/collection.test.ts`: generated lists scope before filters, counts and pages; a hidden record reads as missing; writes declare their resource and conflict on a stale revision.
 - `test/audit.test.ts`: a failed required append rolls the commit back; crash recovery.

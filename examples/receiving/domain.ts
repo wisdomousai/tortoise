@@ -1,4 +1,4 @@
-import type { Proposal } from '@agent-native/contracts';
+import type { ApprovalRequest } from '@agent-native/contracts';
 import type { Delivery } from './contracts/delivery';
 // scaffold:imports
 
@@ -18,8 +18,8 @@ export interface AppState {
   /** Feed positions by target. */
   sync: Record<string, Cursor>;
   deliveries: Record<string, Delivery>;
-  /** Proposed commands, such as a discrepancy reason an agent suggests, awaiting a person. */
-  proposals: Record<string, Proposal>;
+  /** Requested commands, such as a discrepancy reason an agent suggests, awaiting a person. */
+  approvals: Record<string, ApprovalRequest>;
   // scaffold:state
 }
 
@@ -32,7 +32,7 @@ export function createState(ownerId: string, members: Record<string, Role> = {})
       // scaffold:sync
     },
     deliveries: {},
-    proposals: {},
+    approvals: {},
     // scaffold:initial
   };
 }

@@ -12,7 +12,7 @@ Content (`examples/*`). Domain code, screens, the demonstration job and tests li
 
 The example is one [application](../../docs/primitives.md#application). It composes:
 
-- a [module](../../docs/primitives.md#module) of fourteen [capabilities](../../docs/primitives.md#capability) (`project.*`, `task.*` and `task-reminders.effect.settle`) and the six [proposal](../../docs/primitives.md#proposal) capabilities. The plugins add `compliance.*` and `webhook.*`.
+- a [module](../../docs/primitives.md#module) of fourteen [capabilities](../../docs/primitives.md#capability) (`project.*`, `task.*` and `task-reminders.effect.settle`) and the six [approval request](../../docs/primitives.md#approval-request) capabilities. The plugins add `compliance.*` and `webhook.*`.
 - the `site`, `network`, `audit`, `compliance`, [`os`](../../plugins/os/README.md), [`share-target`](../../plugins/share-target/README.md), [`notifications`](../../plugins/notifications/README.md) and [`os-shortcuts`](../../plugins/os-shortcuts/README.md) [host plugins](../../docs/primitives.md#host-plugin). The manifest and the application list them, and the screens list those that have screens. The example plugin [`webhook`](../../plugins/webhook/README.md) comes after them.
 - [OS handlers](../../docs/primitives.md#os-handler) in `os.ts`, listed under [OS requests](#os-requests).
 - an [OS action](../../docs/primitives.md#os-action), `task.reminder`. `task.remind` queues an [outbox effect](../../docs/primitives.md#outbox-effect) to `task-reminders`, which the notifications plugin shows on the desktop or phone. Its Mark done reply (`task.reminder-reply`) runs `task.set-status` to done. `task-reminders.effect.settle` records on the task whether the reminder was shown.
@@ -20,7 +20,7 @@ The example is one [application](../../docs/primitives.md#application). It compo
 - a CASL [policy](../../docs/primitives.md#policy) with row scopes (`taskReadScope`) and an owner-only protected field.
 - [live queries](../../docs/primitives.md#journal-and-live-query) through the frame's session bindings in its screen, so changes from any caller appear without a refresh.
 - the deterministic [agent run](../../docs/primitives.md#agent-run) harness behind **Create tasks from brief**.
-- the `project.planner` [agent definition](../../docs/primitives.md#agent-definition), which proposes tasks and status changes about `project:<id>` or `task:<id>`. The **Proposals** screen (the frame's `proposal-review`) accepts them as the signed-in member, and the task rules then apply to that member.
+- the `project.planner` [agent definition](../../docs/primitives.md#agent-definition), which requests approval for tasks and status changes about `project:<id>` or `task:<id>`. The **Approval requests** screen (the frame's `approval-review`) approves them as the signed-in member, and the task rules then apply to that member.
 
 `bun run generate` writes the capability reference to `dist/reference/project-tasks/operations.md`, with every capability's schema, permission and CLI form.
 
@@ -60,10 +60,10 @@ The job uses stable revision-bound [idempotency keys](../../docs/glossary.md#ide
 
 ## Trust boundary
 
-The [application definition](../../docs/glossary.md#application-definition) is trusted code that runs inside the [authority](../../docs/glossary.md#authority).
+The [application definition](../../docs/glossary.md#application-definition) is trusted code that runs inside the [instance](../../docs/glossary.md#instance).
 
 - Every capability authorizes against current state. Roles come from project membership and never from input.
-- Membership capabilities may name a target principal and role. Those inputs never change the caller's authority.
+- Membership capabilities may name a target principal and role. Those inputs never change the caller's instance.
 - Task reads are scoped before filtering, pagination and counts.
 - `privateNote` is projected away for non-owners.
 - Mutations take `expectedRevisions`, so concurrent edits conflict instead of overwriting.
@@ -91,7 +91,7 @@ bunx playwright test examples/project-tasks/e2e
 
 - `domain.test.ts`: the role matrix, scoped counts and pages, and protected fields.
 - `test/transport-conformance.test.ts`: the same scenarios agree directly, over HTTP, through a CLI subprocess and over MCP.
-- `test/proposal-surfaces.test.ts`: accepting a proposal runs its command once as the accepter, directly, over HTTP, the CLI and MCP. A viewer's acceptance is refused on each.
+- `test/approval-surfaces.test.ts`: approving an approval request runs its command once as the approver, directly, over HTTP, the CLI and MCP. A viewer's approval is refused on each.
 - `test/storage-conformance.test.ts`: memory and SQLite storage commit state, receipts and outbox identically.
 - `test/security-conformance.test.ts`: grants constrain rows, replay and events, and interruptions cannot commit or leak.
 - `test/hardening.test.ts`: hardened sites admit only expiring launcher grants, and mTLS still requires a session token.
@@ -125,9 +125,9 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | [Surface adapters](../../docs/primitives.md#surface-adapter) for direct calls, HTTP, the CLI and MCP | Generated from the catalog; no example code | `test/transport-conformance.test.ts` |
 | Memory and SQLite [storage](../../docs/primitives.md#storage) | No example code; the host or the test supplies the adapter | `test/storage-conformance.test.ts` |
 | [Journal and live query](../../docs/primitives.md#journal-and-live-query) | `dependencies` in `contracts.ts`; `live.liveQueryOptions` in `ui/` | `test/direct-transport.test.ts`; `test/host.test.ts`: "SSE resets after revocation…" and "HTTP projections agree across sessions…"; `e2e/workspace.pw.ts` |
-| [Proposal](../../docs/primitives.md#proposal) operations and review screen | `handlers/proposals.ts`; `proposalRules` in `policy.ts`; `ui/proposals.tsx` | `test/proposal-surfaces.test.ts` |
-| [Agent definition](../../docs/primitives.md#agent-definition) that proposes | `contracts.ts`: `project.planner` | No test in this example |
-| [Agent run](../../docs/primitives.md#agent-run) with [UI session context](../../docs/primitives.md#ui-session-context) | `ui/projects/agent-panel.tsx`; `selectableResources` in `application.ts` | `test/host.test.ts`: "real host preserves delegated authority…"; `test/ui-sessions.test.ts`; `e2e/workspace.pw.ts` |
+| [Approval request](../../docs/primitives.md#approval-request) operations and review screen | `handlers/approvals.ts`; `approvalRules` in `policy.ts`; `ui/approvals.tsx` | `test/approval-surfaces.test.ts` |
+| [Agent definition](../../docs/primitives.md#agent-definition) that requests approval | `contracts.ts`: `project.planner` | No test in this example |
+| [Agent run](../../docs/primitives.md#agent-run) with [UI session context](../../docs/primitives.md#ui-session-context) | `ui/projects/agent-panel.tsx`; `selectableResources` in `application.ts` | `test/host.test.ts`: "real host preserves delegated instance…"; `test/ui-sessions.test.ts`; `e2e/workspace.pw.ts` |
 | [Blob store](../../docs/primitives.md#blob-store) references with limits | `attachments.ts`; `handlers/tasks.ts` | `test/os.test.ts`: "an image is staged…" |
 | [Outbox effect](../../docs/primitives.md#outbox-effect) and its settle command | `task.remind`, `task-reminders.effect.settle` in `handlers/tasks.ts` | `test/os.test.ts`: "a reminder waits for the desktop…" |
 | [Dispatcher](../../docs/primitives.md#dispatcher) for the reminder target | `plugins/notifications/src/open.ts`: `createEffectDispatcher`, one per notify target | `test/os.test.ts`: "a reminder waits for the desktop…" |
@@ -138,7 +138,7 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | [Egress guard](../../docs/primitives.md#egress-guard) | The network plugin in `application.ts` | `test/security.test.ts`: "provider egress is denied unless the site policy binds it" |
 | [Host plugin](../../docs/primitives.md#host-plugin) composition, with a third-party plugin | Plugin lists in `manifest.ts`, `application.ts`, `screens.tsx` | `e2e/workspace.pw.ts`, which counts the plugins' MCP tools; `test/ui-bindings.test.ts` |
 | Exclusive workspace ownership through the [host platform](../../docs/primitives.md#host-platform) | `packages/host/src/platform/bun.ts`: `bunPlatform`; no example code | `packages/adapters/src/ownership.test.ts`; `test/security.test.ts`: "…refuses startup and releases the workspace" for release after a refused start |
-| [Workspace lease](../../docs/primitives.md#workspace-lease) on the hosted platform | No example code; `serve --hosted-workspace` | No test here; one by-hand run in the [implementation status](../../docs/implementation-status.md#hosted-authority) |
+| [Workspace lease](../../docs/primitives.md#workspace-lease) on the hosted platform | No example code; `serve --hosted-workspace` | No test here; one by-hand run in the [implementation status](../../docs/implementation-status.md#hosted-instance) |
 | [Capability binding](../../docs/primitives.md#capability-binding) coverage | `screens.tsx` and `ui/` | `test/ui-bindings.test.ts` |
 | Background job as an ordinary caller | `job.ts` | No test and no recorded run |
 | Host session, origin and launch checks, with this example as fixture | Framework code in `packages/adapters` and `packages/host` | `test/host.test.ts` |
@@ -150,14 +150,14 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | `manifest.ts` | Browser-safe identity: id, title, the module and the plugin manifests in order. |
 | `application.ts` | Application definition: state slice, upgrade, handlers, authorization route, selectable resources, plugins. |
 | `screens.tsx` | Routes, navigation, capability screens, resource paths, the project sidebar and plugin screens. |
-| `contracts.ts` | The fourteen capabilities, the proposal operations, one workflow, the planner agent and the module's OS declarations. |
+| `contracts.ts` | The fourteen capabilities, the approval request operations, one workflow, the planner agent and the module's OS declarations. |
 | `domain.ts` | State types and the empty slice, with tombstones for deleted tasks. |
 | `policy.ts` | Project roles, the CASL ability, command, query and event rules, output projection. |
 | `server.ts`, `server/context.ts` | The handler list, lookups, paging and the revision-carrying result shape. |
-| `handlers/` | Projects and membership, tasks and reminders, proposals. |
+| `handlers/` | Projects and membership, tasks and reminders, approval requests. |
 | `os.ts`, `attachments.ts` | OS declarations and the blob limits a task's file must meet. |
 | `job.ts` | The demonstration job, which calls the host over HTTP. |
-| `ui/projects.tsx`, `ui/proposals.tsx` | The screens the routes name: projects, one project, proposals and the open-proposal count. |
+| `ui/projects.tsx`, `ui/approvals.tsx` | The screens the routes name: projects, one project, approval requests and the pending approval request count. |
 | `ui/projects/` | One file per screen part: sidebar, project screen, task row, prefilled task, agent panel. |
 | `domain.test.ts`, `test/`, `e2e/` | Policy, conformance, host and OS tests; Playwright specs. |
 
@@ -225,10 +225,10 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
    ```
 
    The command writes these parts.
-   - **Agent definition:** `contracts/planner-agent.ts`, which lists and reads tasks and proposes `task.update`, with the propose output mode.
-   - **Proposal operations:** added to the contracts by the first agent only, with `handlers/proposals.ts` built on `proposalHandlers`.
-   - **Proposal rules and state:** a proposal entry in the state, a rule for each proposal command and query with accept and reject limited to a person, and a proposal event rule.
-   - **Proposals screen:** `ui/proposals.tsx`, with its route and navigation entry.
+   - **Agent definition:** `contracts/planner-agent.ts`, which lists and reads tasks and requests approval for `task.update`, with the `request-approval` output mode.
+   - **Approval request operations:** added to the contracts by the first agent only, with `handlers/approvals.ts` built on `approvalHandlers`.
+   - **Approval request rules and state:** an approval request entry in the state, a rule for each approval request command and query with approve and reject limited to a person, and an approval request event rule.
+   - **Approval requests screen:** `ui/approvals.tsx`, with its route and navigation entry.
    - **Agent scenario test:** `test/planner-agent.test.ts`, which plays scenarios with `runAgentScenarios`.
 
 6. Format and regenerate after the add commands, and again after any later one. Run this in the new directory.
@@ -241,13 +241,13 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 7. Edit the files the scaffold wrote for the new domain. They already hold keyed records, ID and clock services, and the application definition.
    - **Record schemas:** `contracts/<type>.ts`, one file per record type, capability and agent; `contracts.ts` only spreads them.
    - **Handlers:** `handlers/<type>.ts`, one file per part, and `handlers/context.ts`.
-   - **Default screens:** `ui/<type>.tsx`, one file per record type, and `ui/proposals.tsx`.
+   - **Default screens:** `ui/<type>.tsx`, one file per record type, and `ui/approvals.tsx`.
    - **Composition:** `domain.ts`, `policy.ts`, `server.ts`, `application.ts`, `manifest.ts` and `screens.tsx`.
 8. Link tasks to projects in `contracts/task.ts`: add `projectId` to the task schema, the create input and the list's `filters`. Set it in the create handler.
 9. Replace the workspace `members` map in `domain.ts` with a member map on each project, and store the workspace owner's ID in the state. Then change `policy.ts` as follows.
    - Remove the `caller` gate and the `editor` rule.
    - Pass `definePolicy` a `roleOf` option that returns the caller's role in a container, as `projectRole` does in the example.
-   - Give every rule a `container` and `roles`, including the generated proposal rules. The runtime consults the option only for a rule with a container, and an open rule admits any principal once the gate is gone.
+   - Give every rule a `container` and `roles`, including the generated approval request rules. The runtime consults the option only for a rule with a container, and an open rule admits any principal once the gate is gone.
 10. Keep a tombstone that maps each deleted record to its container, as `deletedTasks` does. Replays and event checks resolve the container from it.
 11. Shape each contract with `defineCapability`. A generated capability starts with empty input and output, the application as resource type and a headless UI exception; give it these parts.
     - **ID:** stable and dotted, such as `task.remind`.
@@ -319,7 +319,7 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 
 ## Limits
 
-- **Planner agent.** No test runs the `project.planner` definition, and the agent panel starts runs by harness and prompt only. Proposals from this agent are unproven; the proposal test covers proposals a viewer submits.
+- **Planner agent.** No test runs the `project.planner` definition, and the agent panel starts runs by harness and prompt only. Approval requests from this agent are unproven; the approval request test covers approval requests a viewer submits.
 - **State migrations.** Without numbered migrations the workspace has no state version. The upgrade step must accept every older shape on each load, and the staged `migrate` command has no step to apply.
 - **Membership.** The handler fixes only the workspace owner's entry, so a project owner can remove or demote another project owner. The commit-phase check refuses a change to the caller's own owner role.
 - **People directory.** The access form takes a principal ID as free text. The owner must know the ID; nothing lists the people who could be added.

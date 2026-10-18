@@ -8,17 +8,17 @@ import type { OsDelivery } from '@agent-native/contracts';
 import {
   connectMobileShell,
   createMobilePlatform,
-  openMobileAuthority,
-  type MobileAuthority,
+  openMobileInstance,
+  type MobileInstance,
   type MobileOsBindings,
 } from '@agent-native/mobile';
 import type { MobileShare } from '@agent-native/shell/mobile';
 import { notesApplication, scheme } from './fixture';
 
 const sandboxes: string[] = [];
-const opened: MobileAuthority[] = [];
+const opened: MobileInstance[] = [];
 afterEach(async () => {
-  for (const authority of opened.splice(0)) await authority.close();
+  for (const instance of opened.splice(0)) await instance.close();
   for (const sandbox of sandboxes.splice(0)) rmSync(sandbox, { recursive: true, force: true });
 });
 
@@ -37,7 +37,7 @@ test('items another app shared prefill the form; a share action opens the share 
   const sandbox = mkdtempSync(join(tmpdir(), 'share-mobile-'));
   sandboxes.push(sandbox);
   const application = notesApplication();
-  const authority = await openMobileAuthority(application, {
+  const instance = await openMobileInstance(application, {
     platform: createMobilePlatform({
       id: 'android',
       openDatabase: (name) => bunSqlDriver(join(sandbox, name)),
@@ -45,7 +45,7 @@ test('items another app shared prefill the form; a share action opens the share 
     }),
     settings: { 'os-scheme': scheme },
   });
-  opened.push(authority);
+  opened.push(instance);
 
   // The device, faked: `expo-sharing` opens the app with `<scheme>://expo-sharing` and holds
   // the items until they are taken.
@@ -79,7 +79,7 @@ test('items another app shared prefill the form; a share action opens the share 
     },
     share: async (content) => void sheets.push(content),
   };
-  const connection = connectMobileShell(authority, application, bindings);
+  const connection = connectMobileShell(instance, application, bindings);
   const shown: OsDelivery[] = [];
   connection.deliveries.subscribe((delivery) => shown.push(delivery));
   const send = (uri: string) => listeners.forEach((listener) => listener(uri));
@@ -112,7 +112,7 @@ test('items another app shared prefill the form; a share action opens the share 
   expect(shown).toHaveLength(2);
 
   expect(
-    await authority.authority.ports.shell.perform(authority.context, {
+    await instance.instance.ports.shell.perform(instance.context, {
       action: 'notes.share',
       params: { text: 'Buy milk', url: 'https://example.com/n/1' },
     }),

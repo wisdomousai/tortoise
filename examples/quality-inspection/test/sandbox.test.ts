@@ -7,7 +7,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 /**
  * Sandbox-first scenario: an agent drives the application over stdio MCP with an in-process
- * authority, then teardown drains the outbox. By default this runs the CLI from source; set
+ * instance, then teardown drains the outbox. By default this runs the CLI from source; set
  * SANDBOX_BINARY=1 (`bun run test:sandbox`) to compile the single binary and run that instead,
  * with an empty environment, as a sandbox image would.
  */
@@ -90,7 +90,7 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
     const tools = (await agent.listTools()).tools.map((tool) => tool.name);
     expect(tools).toContain('inspection_result_record');
 
-    // The grant narrows the owner's authority: integration-only commands stay out of reach.
+    // The grant narrows the owner's instance: integration-only commands stay out of reach.
     const forbidden = await agent.callTool({
       name: 'inspection_sync_status',
       arguments: { input: {} },
@@ -288,6 +288,6 @@ test('serve issues a grant-bound connection for an agent running as another OS u
     server.kill('SIGTERM');
     await server.exited;
   }
-  // Credentials do not outlive the authority.
+  // Credentials do not outlive the instance.
   expect(await Bun.file(agentConnection).exists()).toBe(false);
 }, 60_000);

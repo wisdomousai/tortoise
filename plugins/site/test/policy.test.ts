@@ -253,7 +253,7 @@ describe('site policy', () => {
     try {
       await writeFile(join(directory, 'server.pem'), certificate);
       const path = join(directory, 'policy.json');
-      const ingress = { listen: 'mtls', host: 'authority.plant', port: 8443 };
+      const ingress = { listen: 'mtls', host: 'instance.plant', port: 8443 };
       await writeFile(
         path,
         JSON.stringify({

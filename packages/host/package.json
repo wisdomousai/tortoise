@@ -2,7 +2,7 @@
   "name": "@agent-native/host",
   "version": "0.1.0",
   "type": "module",
-  "description": "Generic local authority: hosts one application definition over HTTP, MCP and CLI.",
+  "description": "Generic local instance: hosts one application definition over HTTP, MCP and CLI.",
   "license": "MIT",
   "repository": {
     "type": "git",

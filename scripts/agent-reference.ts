@@ -3,7 +3,7 @@ import type { Catalog, CatalogAgent } from '@agent-native/contracts';
 const output = (agent: CatalogAgent) =>
   agent.output === 'direct'
     ? 'runs its commands itself'
-    : 'proposes its commands for a person or allowed caller to accept';
+    : 'submits its commands as approval requests for a person or allowed caller to approve';
 
 const model = { local: 'on this host', remote: 'at a model provider', any: 'locally or remotely' };
 
@@ -35,5 +35,5 @@ export function agentsOf(catalog: Catalog, operation: string): string {
 /** The application skill's section listing agents, so an agent client knows its own role. */
 export function agentSkillSection(catalog: Catalog): string {
   if (!catalog.agents.length) return '';
-  return `## Agents\n\nWhen you run as one of these agents, call only its operations; the host refuses the rest. A proposing agent's commands are recorded as proposals, not applied. Each agent's instructions are the \`app://agents/<id>\` MCP resource.\n\n${catalog.agents.map((agent) => `- \`${agent.id}\`: ${agent.title} (${agent.output}).`).join('\n')}\n\n`;
+  return `## Agents\n\nWhen you run as one of these agents, call only its operations; the host refuses the rest. A requesting agent's commands are recorded as approval requests, not applied. Each agent's instructions are the \`app://agents/<id>\` MCP resource.\n\n${catalog.agents.map((agent) => `- \`${agent.id}\`: ${agent.title} (${agent.output}).`).join('\n')}\n\n`;
 }

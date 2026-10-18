@@ -7,7 +7,7 @@ import type { HostedApplication } from '../application';
 
 /**
  * Selected resources must name a selectable kind whose read query the caller may run, and the
- * observed revision may not be ahead of the authority.
+ * observed revision may not be ahead of the instance.
  */
 async function validateResources(
   application: HostedApplication,
@@ -26,7 +26,7 @@ async function validateResources(
     const snapshot = await application.queryRaw({ operation, input: { id } }, context);
     const revision = (snapshot.data as { revision: number }).revision;
     if ((input.observedRevisions[resource] ?? 0) > revision)
-      throw new ApplicationError('CONFLICT', 'Observed revision is ahead of authority');
+      throw new ApplicationError('CONFLICT', 'Observed revision is ahead of instance');
   }
 }
 

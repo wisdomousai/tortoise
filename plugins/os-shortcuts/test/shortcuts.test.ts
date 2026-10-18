@@ -8,24 +8,24 @@ import type { AnyApplicationDefinition } from '@agent-native/kernel/application'
 import {
   connectMobileShell,
   createMobilePlatform,
-  openMobileAuthority,
-  type MobileAuthority,
+  openMobileInstance,
+  type MobileInstance,
 } from '@agent-native/mobile';
 import type { OsDelivery } from '@agent-native/contracts';
 import { shortcutLink } from '@agent-native/shell/shortcuts';
 import { notesApplication, scheme } from './fixture';
 
 const sandboxes: string[] = [];
-const opened: MobileAuthority[] = [];
+const opened: MobileInstance[] = [];
 afterEach(async () => {
-  for (const authority of opened.splice(0)) await authority.close();
+  for (const instance of opened.splice(0)) await instance.close();
   for (const sandbox of sandboxes.splice(0)) rmSync(sandbox, { recursive: true, force: true });
 });
 
 async function open(application: AnyApplicationDefinition) {
   const sandbox = mkdtempSync(join(tmpdir(), 'shortcuts-'));
   sandboxes.push(sandbox);
-  const authority = await openMobileAuthority(application, {
+  const instance = await openMobileInstance(application, {
     platform: createMobilePlatform({
       id: 'android',
       openDatabase: (name) => bunSqlDriver(join(sandbox, name)),
@@ -33,8 +33,8 @@ async function open(application: AnyApplicationDefinition) {
     }),
     settings: { 'os-scheme': scheme },
   });
-  opened.push(authority);
-  return authority;
+  opened.push(instance);
+  return instance;
 }
 
 /** Wait until `condition` holds, polling; fails the test after two seconds. */
@@ -48,10 +48,10 @@ async function until(condition: () => boolean) {
 
 test('a shortcut link, as a launcher opens it, prefills the form with its provenance', async () => {
   const application = notesApplication();
-  const authority = await open(application);
+  const instance = await open(application);
   const listeners = new Set<(uri: string) => void>();
   const reports: string[] = [];
-  const connection = connectMobileShell(authority, application, {
+  const connection = connectMobileShell(instance, application, {
     platform: 'android',
     scheme,
     // An Android app shortcut is a VIEW intent with the link, which `Linking` reports.

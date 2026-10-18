@@ -7,7 +7,7 @@ import type { AnyApplicationDefinition } from '../application';
 import { LOCAL_WORKSPACE } from '../embedded';
 import { finite, rejectRemaining, settingsOf, workspaceOf } from './args';
 
-/** `serve`: host the authority until the process is stopped. */
+/** `serve`: host the instance until the process is stopped. */
 export async function serveCommand(definition: AnyApplicationDefinition, args: string[]) {
   const workspacePath = workspaceOf(args);
   const settings = settingsOf(definition.manifest, args);
@@ -42,7 +42,7 @@ export async function serveCommand(definition: AnyApplicationDefinition, args: s
       : {}),
   }).catch((error: unknown) => {
     if (error instanceof WorkspaceOwnedError)
-      throw new ApplicationError('CONFLICT', 'Another live authority owns this workspace');
+      throw new ApplicationError('CONFLICT', 'Another live instance owns this workspace');
     throw error;
   });
   return new Promise<number>(() => {});

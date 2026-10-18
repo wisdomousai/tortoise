@@ -1,6 +1,6 @@
 # @agent-native/testing
 
-Shared test machinery for the framework's claim that a [capability](../../docs/glossary.md#capability) behaves the same on every [surface](../../docs/glossary.md#surface). A [behavioral scenario](../../docs/glossary.md#behavioral-scenario) runs against a `ScenarioDriver`, and `assertEquivalent` compares the outcomes of two runs. The [UI-binding](../../docs/glossary.md#ui-binding) helpers check that every capability claiming a UI binding is referenced by a [screen](../../docs/glossary.md#screen) of its application. [Agent scenarios](../../docs/glossary.md#agent-scenario) judge an agent definition's runs by their [receipts](../../docs/glossary.md#receipt) and [proposals](../../docs/glossary.md#proposal).
+Shared test machinery for the framework's claim that a [capability](../../docs/glossary.md#capability) behaves the same on every [surface](../../docs/glossary.md#surface). A [behavioral scenario](../../docs/glossary.md#behavioral-scenario) runs against a `ScenarioDriver`, and `assertEquivalent` compares the outcomes of two runs. The [UI-binding](../../docs/glossary.md#ui-binding) helpers check that every capability claiming a UI binding is referenced by a [screen](../../docs/glossary.md#screen) of its application. [Agent scenarios](../../docs/glossary.md#agent-scenario) judge an agent definition's runs by their [receipts](../../docs/glossary.md#receipt) and [approval requests](../../docs/glossary.md#approval-request).
 
 ## Layer
 
@@ -31,7 +31,7 @@ Framework (`packages/*`). Test code; production code does not import it. Scenari
 
 A `ScenarioDriver` sends commands and queries for one transport. The package ships `directDriver`, which calls the application's `invokeRaw` and `queryRaw`. `runScenarios` runs a list of scenarios on one driver. `assertEquivalent` compares two outcomes as canonical JSON.
 
-Every example's `examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty. Five examples also have a `test/conformance.test.ts` that reads the same result through the authority, HTTP, the CLI and MCP. Those tests call the surfaces directly and do not use this package.
+Every example's `examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty. Five examples also have a `test/conformance.test.ts` that reads the same result through the instance, HTTP, the CLI and MCP. Those tests call the surfaces directly and do not use this package.
 
 ### Connector conformance
 
@@ -71,8 +71,8 @@ A case returns `{ passed: true }`, or `{ skipped: reason }` when its hook is mis
 
 An `AgentScenario` names an agent definition, the task a person gives it, who issues the run, the records it starts on and fixture `setup` commands. It states what must come out:
 
-- **`commits`**: every command the run committed other than proposals, in order, each with a subset of its input. A commit not listed fails the scenario.
-- **`proposals`**: every `proposal.submit` the run made, by the proposed capability's operation ID, a subset of its input and its record.
+- **`commits`**: every command the run committed other than approval requests, in order, each with a subset of its input. A commit not listed fails the scenario.
+- **`approvals`**: every `approval.request` the run made, by the requested capability's operation ID, a subset of its input and its record.
 - **`refused`**: calls the application must have refused, with the error code.
 - **`outcome`**: whether the run succeeded or failed.
 - **`check(result, application)`**: anything further, such as a record read afterwards.
@@ -84,7 +84,7 @@ An `AgentScenario` names an agent definition, the task a person gives it, who is
 3. offers the tools the grant names, in the `{ input, expectedRevisions }` envelope;
 4. records every call with its receipt or refusal.
 
-The text the run produced is not read. The function returns `{ passed, failures, calls, commits, proposals, state }` instead of throwing. `scenarioRegressions(candidate, baseline)` then lists the scenarios a new model fails that the current one passes. `assertAgentScenarios` throws with every failure, for a test.
+The text the run produced is not read. The function returns `{ passed, failures, calls, commits, approvals, state }` instead of throwing. `scenarioRegressions(candidate, baseline)` then lists the scenarios a new model fails that the current one passes. `assertAgentScenarios` throws with every failure, for a test.
 
 With the deterministic [harness](../../docs/glossary.md#harness), the prompt is the scenario's `script`. With any other harness, it is the definition's instructions followed by the task. CI runs the deterministic harness only. A run against a model happens only when a test is given a configured harness and `AGENT_SCENARIOS=live` is set (`liveScenariosRequested()`). No credential is looked up.
 
@@ -102,7 +102,7 @@ The gate passes only when every scenario passes.
 
 ## Trust boundary
 
-Scenarios receive the `ExecutionContext` from the test, which stands in for the trusted host. They must not derive it from capability input. An agent scenario's tools take authority from the run's context only, never from the call, as the host's run tools do. `assertEquivalent` compares canonical JSON, so key order cannot hide or fake a difference.
+Scenarios receive the `ExecutionContext` from the test, which stands in for the trusted host. They must not derive it from capability input. An agent scenario's tools take their grants from the run's context only, never from the call, as the host's run tools do. `assertEquivalent` compares canonical JSON, so key order cannot hide or fake a difference.
 
 `unboundOperations` proves that a screen names a capability (`<contracts import>.<key>` in a `.tsx` file). It does not prove that a control renders it. Browser specs cover the reference screens, not every capability.
 
@@ -133,8 +133,8 @@ bun run test:conformance
   - the same cases run against the server.
 - `test/connectors.test.ts`: the connector cases against a conforming in-memory target, and against flawed ones (duplicates on retry, refusals thrown, abort ignored). Each flawed target fails with the rule it breaks.
 - `test/agent-scenarios.test.ts`: agent scenarios over a lots fixture, with the deterministic harness and a scripted model harness:
-  - a proposal judged as passing;
-  - a direct write and a proposal outside the selection refused;
+  - an approval request judged as passing;
+  - a direct write and an approval request outside the selection refused;
   - extra commits and a wrong outcome failing;
   - the model's prompt, tools and budget, and regressions;
   - the model gate passing, failing with a regression and refusing a harness that serves another entry.

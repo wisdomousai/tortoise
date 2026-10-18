@@ -17,7 +17,7 @@ export type PlatformCapability = 'sockets' | 'child-process' | 'ingress' | 'fold
 export interface PlatformOwnership {
   /** The workspace location after resolving aliases; plugins and storage use this one. */
   readonly canonicalPath: string;
-  /** Unique per acquisition; names this authority instance in audit records. */
+  /** Unique per acquisition; names this instance in audit records. */
   readonly instance: string;
   release(): Promise<void>;
 }
@@ -55,7 +55,7 @@ export interface HostPlatform {
   readonly shell?: ShellAdapter;
   /**
    * Exclusive ownership of `workspacePath`, so one writer exists per workspace across processes.
-   * Rejects when another live authority owns it.
+   * Rejects when another live instance owns it.
    */
   acquireOwnership(workspacePath: string): Promise<PlatformOwnership>;
   /** The workspace's snapshot storage. A new workspace starts from the definition's state. */

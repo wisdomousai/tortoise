@@ -6,7 +6,7 @@ import type { HostRoute, HostRouteContext } from './types';
 
 /**
  * Candidate validation may await multiple reads. Fence the entire batch against local policy
- * changes and enqueue under the authority's serialized read boundary: when authorization changed
+ * changes and enqueue under the instance's serialized read boundary: when authorization changed
  * while the candidates were validated, the caller gets an empty list and polls again.
  */
 export async function fencedCandidates(

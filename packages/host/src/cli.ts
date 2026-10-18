@@ -18,7 +18,7 @@ const pluginSettingsUsage = (manifest: ApplicationManifest) => {
     : '';
 };
 
-const authorityUsage = (program: string, manifest: ApplicationManifest) => `Authority:
+const instanceUsage = (program: string, manifest: ApplicationManifest) => `Instance:
   ${program} serve [--workspace dir] [--port n] [--web-root dir] [--grant-file f --grant-connection out]
       [--hosted-workspace name]   keep the workspace in Postgres (AGENT_NATIVE_DATABASE_URL) under a lease
   ${program} mcp [--connection file] | mcp --embedded --grant-file f [--workspace dir]
@@ -28,7 +28,7 @@ const authorityUsage = (program: string, manifest: ApplicationManifest) => `Auth
   ${program} restore [--workspace dir] --from file  replace the workspace with a verified backup; the host must be stopped
   ${program} migrate [--workspace dir] [--dry-run]  migrate a copy of the workspace state, check it, then switch; the host must be stopped
 ${pluginSettingsUsage(manifest)}
-Operations run against a live authority (--connection or AGENT_NATIVE_CONNECTION), or in-process
+Operations run against a live instance (--connection or AGENT_NATIVE_CONNECTION), or in-process
 with --embedded [--workspace dir] [--grant-file f]. help, list, schema and workflows work offline.
 `;
 
@@ -38,7 +38,7 @@ with --embedded [--workspace dir] [--grant-file f]. help, list, schema and workf
  * printed as a JSON error envelope with the matching exit code.
  *
  * Trust boundary: identity comes from the launcher, never from operation arguments. Attached
- * calls use the session in a connection file written by the authority. Embedded calls use a
+ * calls use the session in a connection file written by the instance. Embedded calls use a
  * grant file prepared by the orchestrator; without one, an embedded call acts as the local
  * workspace owner, which is only appropriate for a human operator on their own machine.
  */
@@ -63,7 +63,7 @@ export function createCli(definition: AnyApplicationDefinition, options: { progr
       }
       if (verb === undefined || (verb === 'help' && args.length === 1) || verb === '--help') {
         const usages = commands.map((command) => command.usage(program) + '\n');
-        process.stdout.write([authorityUsage(program, definition.manifest), ...usages].join('\n'));
+        process.stdout.write([instanceUsage(program, definition.manifest), ...usages].join('\n'));
         return await operationCommand(definition, program, ['help']);
       }
       return await operationCommand(definition, program, args);

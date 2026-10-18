@@ -170,7 +170,7 @@ async function issueCertificates(directory: string) {
     if ((await child.exited) !== 0)
       throw new Error(`openssl ${args[0]}: ${await new Response(child.stderr).text()}`);
   };
-  const authority = async (name: string) =>
+  const instance = async (name: string) =>
     openssl(
       'req',
       '-x509',
@@ -218,8 +218,8 @@ async function issueCertificates(directory: string) {
       `${name}.ext`,
     );
   };
-  await authority('site-ca');
-  await authority('rogue-ca');
+  await instance('site-ca');
+  await instance('rogue-ca');
   await leaf('server', 'site-ca', 'subjectAltName=DNS:localhost\nextendedKeyUsage=serverAuth\n');
   await leaf('client', 'site-ca', 'extendedKeyUsage=clientAuth\n');
   await leaf('intruder', 'rogue-ca', 'extendedKeyUsage=clientAuth\n');

@@ -10,9 +10,9 @@ Framework (`packages/*`). Browser code. Trust-relevant behavior stays in the cat
 
 - [UI registry](../../docs/primitives.md#ui-registry):
   - the theme `operator-theme` and the library `numeric-entry`;
-  - the components `operator-surface`, `operator-station`, `big-action`, `numeric-pad`, `tile-picker`, `scan-prompt`, `scanner-setup`, `status-strip`, `attention-queue` (with `proposalChoices`) and `takeover-button`;
+  - the components `operator-surface`, `operator-station`, `big-action`, `numeric-pad`, `tile-picker`, `scan-prompt`, `scanner-setup`, `status-strip`, `attention-queue` (with `approvalChoices`) and `takeover-button`;
   - the hooks `use-press-and-hold`, `use-tap-guard`, `use-operator-keys`, `use-scanner`, `use-feedback` and `use-idle-return`.
-- [Proposal](../../docs/primitives.md#proposal): the attention queue's `proposal` kind and `proposalChoices` give an agent's [proposal](../../docs/glossary.md#proposal) a one-tap Accept and a Reject. The station resolves them to `proposal.accept` and `proposal.reject`.
+- [Approval request](../../docs/primitives.md#approval-request): the attention queue's `approval request` kind and `approvalChoices` give an agent's [approval request](../../docs/glossary.md#approval-request) a one-tap Approve and a Reject. The station resolves them to `approval.approve` and `approval.reject`.
 
 [Point-of-work input](../../docs/point-of-work-input.md) and [operator workstations](../../docs/operator-workstations.md) explain the interaction rules. [`examples/line-station/ui/station.tsx`](../../examples/line-station/ui/station.tsx) composes a station [screen](../../docs/glossary.md#screen) from these parts.
 

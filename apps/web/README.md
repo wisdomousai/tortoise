@@ -34,7 +34,7 @@ bun run build:web:examples
 
 ## Trust boundary
 
-The local [authority](../../docs/glossary.md#authority) serves the web build from a flat directory under a strict Content Security Policy (CSP), with no inline scripts or styles. Electron loads the same files unchanged. Output names are flat and routing uses hash history for that reason. The [session](../../docs/glossary.md#session) is an HttpOnly cookie obtained from the one-time launch credential through the [launch exchange](../../docs/glossary.md#launch-exchange). Script state holds no session credential.
+The local [instance](../../docs/glossary.md#instance) serves the web build from a flat directory under a strict Content Security Policy (CSP), with no inline scripts or styles. Electron loads the same files unchanged. Output names are flat and routing uses hash history for that reason. The [session](../../docs/glossary.md#session) is an HttpOnly cookie obtained from the one-time launch credential through the [launch exchange](../../docs/glossary.md#launch-exchange). Script state holds no session credential.
 
 Browser code must not import host-only modules or Node built-ins. The browser-boundary plugin fails the build when it does.
 

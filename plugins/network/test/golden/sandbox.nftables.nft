@@ -19,4 +19,4 @@ table inet agent_native {
     counter log prefix "agent-native-egress-deny " drop
   }
 }
-# Ingress: the authority listens on loopback only; no inbound rule is needed.
+# Ingress: the instance listens on loopback only; no inbound rule is needed.

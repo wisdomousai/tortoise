@@ -1,6 +1,6 @@
 ---
 name: serve-a-local-model
-description: Serve a local base or fine-tuned model to agents with measured digests, export proposal decisions as a training dataset, and gate a new model on agent scenarios before it serves. Use when an agent must run on a model on this host, when adding or replacing a model entry or LoRA adapter, when preparing fine-tuning data from accepted and rejected proposals, or when binding llama-server or vLLM in a site policy. Covers plugins/model-server, the model entries in packages/agents, exportProposalDataset in packages/runtime and gateModel in packages/testing.
+description: Serve a local base or fine-tuned model to agents with measured digests, export approval request decisions as a training dataset, and gate a new model on agent scenarios before it serves. Use when an agent must run on a model on this host, when adding or replacing a model entry or LoRA adapter, when preparing fine-tuning data from approved and rejected approval requests, or when binding llama-server or vLLM in a site policy. Covers plugins/model-server, the model entries in packages/agents, exportApprovalDataset in packages/runtime and gateModel in packages/testing.
 ---
 
 # Serve a local model
@@ -30,7 +30,7 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 8. Bind the process to the server executable, pinned, with the arguments that make it listen there: `--host 127.0.0.1 --port <port>`. The plugin adds the load arguments.
 9. Give that binding a `timeoutMs` of a few minutes. A model that reasons before it answers outlasts the egress guard's default of 30 seconds.
 10. Size the agent's `wallTimeMs` budget the same way.
-11. Export training data with `exportProposalDataset(application, context, { operations, redact })` from `@agent-native/runtime`. The [proposal dataset](../../../../docs/glossary.md#proposal-dataset) holds only decided proposals the caller may see.
+11. Export training data with `exportApprovalDataset(application, context, { operations, redact })` from `@agent-native/runtime`. The [approval dataset](../../../../docs/glossary.md#approval-dataset) holds only decided approval requests the caller may see.
 12. Redact free-text fields that can carry personal data, and the rationale and rejection reason, as the deployment requires.
 13. Put the dataset's `digest` into the adapter's `dataset`. Training happens outside the host with the deployment's own tooling.
 14. Before the model serves, start the server with `evaluation: true`.

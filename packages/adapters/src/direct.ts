@@ -6,7 +6,7 @@ export { createDirectTransport } from './direct-transport';
 
 /**
  * Read a delegation the launcher grants to an embedded agent surface. The file is trusted
- * configuration written by the orchestrator, not by the agent; the authority still applies
+ * configuration written by the orchestrator, not by the agent; the instance still applies
  * domain policy for `principalId`, and the grant can only narrow it. Fails closed on any
  * malformed field, an unknown workspace or an expired grant.
  */

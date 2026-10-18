@@ -1,6 +1,6 @@
 # @agent-native/kernel
 
-The [kernel](../../docs/glossary.md#kernel): the portable part of the host. It composes an [application definition](../../docs/glossary.md#application-definition) and its plugins, resolves the kernel's ports and opens one workspace's [authority](../../docs/glossary.md#authority) on a `HostPlatform`. It uses no Node, Bun or React Native API, so the Bun host in [`@agent-native/host`](../host/README.md) and the mobile host share it. Everything that needs the machine comes from the platform the starter passes in: workspace ownership, storage, a listener, sockets and child processes.
+The [kernel](../../docs/glossary.md#kernel): the portable part of the host. It composes an [application definition](../../docs/glossary.md#application-definition) and its plugins, resolves the kernel's ports and opens one workspace's [instance](../../docs/glossary.md#instance) on a `HostPlatform`. It uses no Node, Bun or React Native API, so the Bun host in [`@agent-native/host`](../host/README.md) and the mobile host share it. Everything that needs the machine comes from the platform the starter passes in: workspace ownership, storage, a listener, sockets and child processes.
 
 ## Layer
 
@@ -9,13 +9,13 @@ Framework (`packages/*`). `@agent-native/host` re-exports the definition helpers
 ## Primitives
 
 - [Application](../../docs/primitives.md#application): `defineManifest`, `ApplicationManifest`, `ApplicationTarget`, `targetPlatforms`, `defineApplication`, `ApplicationDefinition`, `AnyApplicationDefinition`, `ApplicationConnections`, `ConnectContext`, `HostedApplication`, `Observer`, `createApplicationRuntime`, `hostContext`.
-- [Host](../../docs/primitives.md#host): `openAuthority`, `OpenAuthorityOptions`, `Authority`, `LOCAL_WORKSPACE`, `LOCAL_OWNER`, `combineIntegrations`, `Integrations`, `deploymentCatalog`, `deploymentComponents`, `deploymentRequirements`.
+- [Host](../../docs/primitives.md#host): `openInstance`, `OpenInstanceOptions`, `Instance`, `LOCAL_WORKSPACE`, `LOCAL_OWNER`, `combineIntegrations`, `Integrations`, `deploymentCatalog`, `deploymentComponents`, `deploymentRequirements`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `PluginManifest`, `PluginModules`, `PluginSetting`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `CredentialSource`, `PluginOpenContext`, `PluginStartContext`, `SettingsProviderContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `noIngress`, `resolvePorts`, `isolatedNetwork`, `latePorts`, `openPlugins`, `OpenedPlugins`, `PluginPlatform`, `PluginSettings`, `assertClaimed`, `settingsFor`, `mergeSettings`.
 - [Shell port](../../docs/primitives.md#shell-port): `ShellPort`, `ShellAdapter`, `noShell` (the default, which refuses every call), `HostPorts.shell`, and `HostPlatform.shell`, the adapter a platform that runs the OS in-process supplies.
 - [Process port](../../docs/primitives.md#process-port): `ProcessPort`, `ProcessAvailability`, `ProcessSpawnOptions`, `noProcesses`, `HostPorts.processes` and `ConnectContext.processes`. The default `noProcesses` reports every process unavailable and rejects every start.
 - [Exchange folder](../../docs/glossary.md#exchange-folder): `FolderPort`, `BoundFolder`, `noFolders` and `HostPorts.folders`. Under the default `noFolders`, every folder is unavailable until a plugin binds folders.
 - [State migration](../../docs/primitives.md#state-migration): `StateMigrations`, `MigrationStep`, `checkMigrations`, `currentVersion`, `migrateSlice`, `stateUpgrade`, `ApplicationDefinition.migrations` and `HostPlugin.state.migrations`. Details under [State migrations](#state-migrations).
-- [Blob store](../../docs/primitives.md#blob-store): `HostPlatform.openBlobs` gives each authority its workspace's store. A serving authority sweeps unreferenced blobs when it opens.
+- [Blob store](../../docs/primitives.md#blob-store): `HostPlatform.openBlobs` gives each instance its workspace's store. A serving instance sweeps unreferenced blobs when it opens.
 - [Host platform](../../docs/primitives.md#host-platform): `HostPlatform`, `PlatformId`, `platformIds`, `PlatformCapability`, `PlatformOwnership`, `assertPlatformSupports`, `installGlobals`, `assertGlobals`, `missingGlobals`, `RequiredGlobal`, `SecretStore`, `scopedSecrets`.
 
 The kernel never starts a process. A plugin such as `@agent-native/process` provides the process port, and `spawn` returns the platform's handle as `unknown`.
@@ -37,14 +37,14 @@ The kernel never starts a process. A plugin such as `@agent-native/process` prov
 | `@agent-native/kernel/integrations`    | any host | `combineIntegrations`: one delivery and sync loop over the application's connections.                                                                                                                            |
 | `@agent-native/kernel/components`      | any host | `deploymentComponents`, `deploymentCatalog`, `deploymentRequirements`, each taking the platform's own components.                                                                                                |
 | `@agent-native/kernel/platform`        | any host | `HostPlatform`, `PlatformOwnership`, `PlatformCapability`, `assertPlatformSupports`, `SecretStore`, `scopedSecrets`.                                                                                             |
-| `@agent-native/kernel/authority`       | any host | `openAuthority`, `LOCAL_WORKSPACE`, `LOCAL_OWNER`.                                                                                                                                                               |
+| `@agent-native/kernel/instance`       | any host | `openInstance`, `LOCAL_WORKSPACE`, `LOCAL_OWNER`.                                                                                                                                                               |
 | `@agent-native/kernel/globals`         | any host | `installGlobals`, `assertGlobals`, `missingGlobals`.                                                                                                                                                             |
 | `@agent-native/kernel/migrations`      | any host | `StateMigrations`, `MigrationStep`, `checkMigrations`, `currentVersion`, `migrateSlice`.                                                                                                                         |
 | `@agent-native/kernel/state-upgrade`   | any host | `stateUpgrade`: the storage upgrade for a composed definition.                                                                                                                                                   |
 
 `plugins/compose`, `plugins/ports`, `plugins/settings` and `plugins/lifecycle` are importable by path for the host's wrappers; prefer the root export.
 
-The Bun host adds what needs Bun: `loopbackIngress`, `readPluginSettings`, the Bun-typed `socket` and `childEnvironment`, and `bunPlatform` in `packages/host/src/platform/bun.ts`. `openEmbeddedAuthority` and `startHost` both call `openAuthority` with that platform.
+The Bun host adds what needs Bun: `loopbackIngress`, `readPluginSettings`, the Bun-typed `socket` and `childEnvironment`, and `bunPlatform` in `packages/host/src/platform/bun.ts`. `openEmbeddedInstance` and `startHost` both call `openInstance` with that platform.
 
 ## Trust boundary
 
@@ -87,7 +87,7 @@ The opened plugins try each hook in composition order and use the first answer. 
 
 ### Listener and ownership
 
-The kernel binds no listener of its own. The default ingress is the platform's, and without one every `listen` fails with `UNAVAILABLE`. `openAuthority` does not acquire or release ownership. The caller acquires it from the same platform and releases it after `close`. On a failed open the kernel closes what it opened and leaves the ownership with the caller.
+The kernel binds no listener of its own. The default ingress is the platform's, and without one every `listen` fails with `UNAVAILABLE`. `openInstance` does not acquire or release ownership. The caller acquires it from the same platform and releases it after `close`. On a failed open the kernel closes what it opened and leaves the ownership with the caller.
 
 ## Dependencies
 
@@ -102,7 +102,7 @@ bun test packages/kernel
 bun run test:portable
 ```
 
-- `test/kernel.test.ts` opens authorities on the in-memory platform in `test/fake-platform.ts`, which uses no Node or Bun API.
+- `test/kernel.test.ts` opens instances on the in-memory platform in `test/fake-platform.ts`, which uses no Node or Bun API.
   - state persisted across reopen, and a plugin refused on the wrong platform;
   - capability refusals for sockets, child processes and ingress;
   - settings providers: precedence, `launcherSettingsWin`, unclaimed keys and duplicate providers;
