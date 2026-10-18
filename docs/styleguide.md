@@ -1,21 +1,38 @@
 # Documentation styleguide
 
-Rules for prose in this repository: guides in `docs/`, the root README, `AGENTS.md`, package READMEs and skills. Coding agents follow them too. A reviewer applies them; nothing enforces them mechanically.
+Rules for prose in this repository: guides in `docs/`, the root README, `AGENTS.md`, package READMEs and skills. Nothing enforces the rules mechanically.
 
-## Readers
+## Base style
 
-The table assigns each page a reader. A page writes for that reader without naming them: it states what the software is and does, never who reads the page or why. A page never refers to itself: no "This page explains", "This guide covers" or "the sections below". Call the repository the repository or the project, never "this checkout", and give every "it" or "they" a clear subject.
+The [Google developer documentation style guide](https://developers.google.com/style) is the base style for all prose in the repository. It governs voice, tone, word choice, grammar, punctuation, capitalization, lists, tables, code in text and link text wherever the sections below are silent.
 
-| Reader | Wants | Pages |
-| --- | --- | --- |
-| Evaluator | Whether the framework fits a problem | Home, getting started, architecture |
-| Integrator | How to connect a system, device or site | Systems of record, operator workstations, point-of-work input, hardware drivers, agents, hosting, security, plugin READMEs |
-| Contributor | How a package works and how it is tested | Package READMEs, development and testing |
-| Coding agent | The steps for one task | Skills, `AGENTS.md` |
+The repository departs from the Google guide in these points, and the sections below take precedence:
+
+- **Subject.** Sentences describe what the software does, with a component, file, command or role as the subject. The second person "you" appears only in procedures, as the implied subject of an imperative.
+- **Dashes.** No em-dashes.
+- **Terms.** The [glossary](glossary.md) overrides the Google word list for every term it defines.
+- **Page shapes.** Guides, references, package READMEs, skills and the ledger keep the section orders under [Page types](#page-types).
+
+## Voice
+
+The subject of a sentence is a component, a file, a command, or a role the software names: operator, caller, principal, local owner.
+
+- A page states what the software is and does. It does not name an audience, and it does not say why the page exists.
+- A page never refers to itself. Delete "This page explains", "This guide covers" and "the sections below".
+- Call the repository the repository or the project, never "this checkout".
+- A procedure is a numbered list of imperatives: Run, Set, Open. The imperative names no addressee.
+- Link a skill by name. Do not write "Coding agents follow".
+
+## Pronouns
+
+- Repeat the subject when the last mention is two sentences back.
+- they, them, and their take a plural noun as the subject of the same sentence. "The adapters reject sparse arrays."
+- they, them, their, themselves, someone, and whoever do not refer to a person. Repeat the role.
+- "Person" names a human principal, as distinct from an agent, a device, or the integration principal.
 
 ## Page types
 
-Every page has one of the types below and keeps that type's section order. A reader who knows the type knows where to look. The root README is the site home, and `AGENTS.md` holds the project instructions; both keep the sections they have.
+Every page has one of the types below and keeps that type's section order. The root README is the site home. `AGENTS.md` holds the project instructions. Both keep the current sections.
 
 ### Guide
 
@@ -24,7 +41,7 @@ A guide in `docs/` explains one topic. Sections, in order, each present when it 
 1. First paragraph: what the subject is and does, stated directly.
 2. Concepts: optional. One line, `Terms:` followed by links to the [glossary](glossary.md) entries for the terms the page defines, with no definitions. Other terms link to the glossary at their first use in the text.
 3. Mechanism: how the code does it, in the order a request or a record travels.
-4. Use: what a reader does to apply it, with commands.
+4. Use: the commands that apply the mechanism.
 5. Limits: what the code does not do at all. A caveat about one mechanism stays with that mechanism.
 6. Related pages.
 
@@ -47,7 +64,7 @@ A README describes one package, plugin, app, example or SDK. "Package" on this p
 
 ### Skill
 
-A skill is a task guide for a coding agent. It keeps its frontmatter and these sections: a first paragraph, then "Before writing", "Steps" and "Checks". These section names are fixed across skills. Steps are numbered, imperative and one action each. A skill links to the guide for the explanation instead of repeating it.
+A skill is a task guide. It keeps its frontmatter and these sections: a first paragraph, then "Before writing", "Steps" and "Checks". These section names are fixed across skills. Steps are numbered, imperative and one action each. A skill links to the guide for the explanation instead of repeating it.
 
 ### Ledger
 
@@ -58,7 +75,7 @@ A skill is a task guide for a coding agent. It keeps its frontmatter and these s
 - One idea per sentence. Target 20 words; 35 is the limit.
 - At most one clause introduced by because, so, which, when, if, although or while. A sentence with two ", so" clauses is split.
 - No em-dashes. One parenthetical per sentence at most, never nested.
-- The subject is the thing that acts: the dispatcher, the host, the command. Avoid "it" when the referent is two sentences back.
+- The subject is the component, file, command or role that acts. Pronouns follow [Pronouns](#pronouns).
 - No fragments for emphasis. No sentence that ends in "or nothing"; say what fails instead.
 
 Before:
@@ -74,7 +91,7 @@ After:
 - The first sentence states the point. The rest support it.
 - Five sentences at most.
 - A paragraph explains one thing. Two topics are two paragraphs.
-- Short sentences do not mean more words. A page states each fact once and does not restate the glossary. A rewrite that grows past the original by more than a third has added facts or repeated itself; a reviewer checks which.
+- Short sentences do not mean more words. A page states each fact once and does not restate the glossary. A rewrite that grows past the original by more than a third has added facts or repeated itself. The diff shows which.
 
 ## Lists and tables
 
@@ -129,23 +146,22 @@ After:
 
 ## Claims
 
-- Every behavioral statement is true of the code on the branch. A reviewer must be able to find it in a handler, a port, a test or a check.
-- When a reader would want to verify, name the test file or the check that proves it.
+- Every behavioral statement is true of the code on the branch. The statement names a handler, a port, a test or a check.
+- Name the test file or the check that proves the statement.
 - The status words `implemented`, `partial` and `proposed` appear as a status label only in [primitives](primitives.md), the [ledger](implementation-status.md) and a package README's Primitives section.
 - The code is described in the present tense: write "the dispatcher retries" instead of "will retry". Planned work belongs in the ledger's gaps.
 
-## Rhetoric
+## Banned constructions
 
-### Patterns to delete
+One fact per sentence: subject, verb, object. A condition is its own sentence. Replace a banned sentence with the behavior. Do not add a paragraph, and do not grow the page.
 
-| Pattern | Instead |
-| --- | --- |
-| Counting lead-in: a sentence that starts with a number word and a noun such as choices, parts or layers | List the items. |
-| Enumerated model: a model, design or pattern said to have a number of parts | Use headings or a list. |
-| Lead-ins, intensifiers and asides | Delete them. |
-| Judgment words | Name the guarantee or delete. |
-| Decorative words | Name the thing. |
-| A sentence that ends in a question mark | State the answer. |
+Delete:
+
+- a sentence that starts with a number word and a noun such as choices, parts or layers, and list the items;
+- a design said to have a number of parts, and use a heading or a list;
+- a sentence that ends in a question mark, and state the fact;
+- an aphorism, a slogan, or a sentence whose work is a contrast, and state what does the work;
+- a scene or a motive, including "suits", "often", "proves nothing", "neither", and "looks enforced while it is ignored".
 
 The exact phrases, matched without regard to case:
 
@@ -157,40 +173,11 @@ robust, powerful, elegant, leverage, delve, tapestry, journey, first-class,
 out of the box, ", or nothing", never stands in for
 ```
 
-### Reviewer patterns
-
-A reviewer looks for these:
-
-| Pattern | Instead |
-| --- | --- |
-| Aphorism | State the rule. |
-| Contrast flourish | Say what does the work. |
-| Compressed riddle | Say what the reader cannot conclude, and why. |
-| Sales lede | Start with what the reader will do. |
-| Paired absolutes, such as a never and an always in one sentence | State each rule on its own. |
-| Slogan or tagline | Use a plain noun phrase. |
-
-Before:
-
-> Neither topology isolates anything by itself. The boundary is the container or user separation, the egress policy and the delegated grant that the deployment provides.
-
-After:
-
-> Neither the embedded nor the attached topology isolates the agent. Isolation comes from the deployment: a container or a separate OS user, the egress policy and the delegated grant.
-
-Before:
-
-> A lapsed claim proves nothing about the target.
-
-After:
-
-> A lapsed claim does not tell the new worker whether the target received the effect.
-
 ## Code and commands
 
 - Commands go in fenced `sh` blocks, one command per line. State the directory when it is not the repository root.
 - A fenced block has a language tag.
-- In guide prose, a code identifier such as a function, type or option appears only when the reader has to go to it. Use at most one per sentence and two per paragraph, and describe the rest in words.
+- In guide prose, a code identifier such as a function, type or option appears only when the sentence points at that identifier. Use at most one per sentence and two per paragraph, and describe the rest in words.
 - Paths and commands do not count as identifiers. READMEs and skills name identifiers freely in tables and steps.
 - A file path is relative to the repository root unless the page says otherwise.
 - A configuration fragment says which file it belongs in. A complete example lives in one place and is linked.
