@@ -110,7 +110,7 @@ bunx playwright test examples/project-tasks/e2e
 
 ## Demonstrated mechanisms
 
-Example paths are relative to `examples/project-tasks`. Framework paths start at the checkout root.
+Example paths are relative to `examples/project-tasks`. Framework paths start at the repository root.
 
 | Mechanism | Code | Proof |
 | --- | --- | --- |

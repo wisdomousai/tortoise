@@ -1,6 +1,6 @@
 # Development and testing
 
-This page is for contributors. It covers installing the repository, the checks a change must pass, and the focused test and build scripts. It also covers browser, desktop and station runs, [framework releases](glossary.md#framework-release), provider checks and continuous integration. [Architecture](architecture.md) describes the layers, and [capability authoring](capability-authoring.md) describes how to add behavior.
+This page covers installing the repository, the checks a change must pass, and the focused test and build scripts. It also covers browser, desktop and station runs, [framework releases](glossary.md#framework-release), provider checks and continuous integration. [Architecture](architecture.md) describes the layers, and [capability authoring](capability-authoring.md) describes how to add behavior.
 
 ## Setup
 

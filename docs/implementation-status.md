@@ -1,6 +1,6 @@
 # Implementation status
 
-This ledger records what has run outside `bun run check`, and what has not been shown at all. Evaluators and integrators read it to see what has been tried beyond the test suites. The test suites define deterministic behavior; read the tests for it. The ledger describes the current source, and git holds the history. No public release has been made.
+This ledger records what has run outside `bun run check`, and what has not been shown at all. The test suites define deterministic behavior; read the tests for it. The ledger describes the current source, and git holds the history. No public release has been made.
 
 Each entry names its kind of evidence. One kind never counts as evidence of another.
 

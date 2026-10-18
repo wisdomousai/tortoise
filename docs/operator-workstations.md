@@ -1,6 +1,6 @@
 # Operator workstations
 
-This page explains how an [application](glossary.md#application) observes and drives [station](glossary.md#station) software through its [station screen](glossary.md#screen). It is for integrators whose machines sit behind a vendor HMI, a test-bench program, a measurement application or a homebrew MES client. Coding agents follow the [bridge-station-screen](../packages/station/skills/bridge-station-screen/SKILL.md) skill. The example is [`examples/line-station`](../examples/line-station/README.md).
+This page explains how an [application](glossary.md#application) observes and drives [station](glossary.md#station) software through its [station screen](glossary.md#screen). Coding agents follow the [bridge-station-screen](../packages/station/skills/bridge-station-screen/SKILL.md) skill. The example is [`examples/line-station`](../examples/line-station/README.md).
 
 Station software rarely has a usable API, is often validated or under warranty, and must not be modified. Where its only stable interface is its station screen, the application treats it as a [system of record](systems-of-record.md) reached through that screen. Software with an automation interface, such as COM, a local RPC service, files or a decodable network protocol, is reached through a [driver](hardware-drivers.md) instead, as [Automation route](#automation-route) describes.
 

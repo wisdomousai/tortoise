@@ -1,6 +1,6 @@
 # Hardware drivers
 
-This page explains how an application observes and controls equipment through a driver process. It is for integrators who connect an instrument, a controller or station software, and for authors of a driver SDK. The API is in the [connector-driver README](../plugins/connector-driver/README.md) and the [process plugin README](../plugins/process/README.md).
+This page explains how an application observes and controls equipment through a driver process. A driver connects an instrument, a controller or station software. The API is in the [connector-driver README](../plugins/connector-driver/README.md) and the [process plugin README](../plugins/process/README.md).
 
 ## Concepts
 

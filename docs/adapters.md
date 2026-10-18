@@ -1,6 +1,6 @@
 # Adapters
 
-This page describes the framework's ports and their reference adapters: storage, and the HTTP, MCP and CLI surfaces. It is for integrators who replace an adapter or host the catalog elsewhere, and for contributors who change one.
+This page describes the framework's ports and their reference adapters: storage, and the HTTP, MCP and CLI surfaces.
 
 ## Concepts
 

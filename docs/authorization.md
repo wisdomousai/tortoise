@@ -1,6 +1,6 @@
 # Authorization
 
-This page explains who may run which [capability](glossary.md#capability) on which records, and where the [authority](glossary.md#authority) checks it. It is for integrators who write a policy and for reviewers of the authorization invariants.
+This page explains who may run which [capability](glossary.md#capability) on which records, and where the [authority](glossary.md#authority) checks it.
 
 ## Concepts
 

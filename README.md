@@ -1,6 +1,6 @@
 # Agent-native desktop starter
 
-This checkout holds a TypeScript [framework](docs/glossary.md#framework), [host plugins](docs/glossary.md#host-plugin), a [starter](docs/glossary.md#starter) and [examples](docs/glossary.md#example). They build applications that people and AI agents operate together, often on or next to the machines where work happens. An application captures work locally and delivers it to the [systems of record](docs/systems-of-record.md) that own enterprise data. An evaluator reads this page to decide whether the framework fits a problem.
+A TypeScript [framework](docs/glossary.md#framework) for applications that people and AI agents operate together, often on or next to the machines where work happens. An application captures work locally and delivers it to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES. The repository contains the framework, [host plugins](docs/glossary.md#host-plugin), a [starter](docs/glossary.md#starter) and eight [examples](docs/glossary.md#example).
 
 ## Capabilities and surfaces
 
@@ -14,7 +14,7 @@ The Bun [host](docs/glossary.md#host) keeps the [workspace](docs/glossary.md#wor
 
 ## Layers and packages
 
-The checkout has these layers:
+The repository has these layers:
 
 - the framework in `packages/*`;
 - host plugins in `plugins/*`;

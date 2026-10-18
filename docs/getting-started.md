@@ -1,6 +1,6 @@
 # Getting started
 
-This guide runs the examples, uses an [application](glossary.md#application) through the CLI and MCP, and creates another application with the [scaffold](glossary.md#scaffold). It is for an evaluator who has read the [README](../README.md) and wants to run the [framework](glossary.md#framework). Commands run from the checkout root unless a block says otherwise.
+This guide runs the examples, uses an [application](glossary.md#application) through the CLI and MCP, and creates another application with the [scaffold](glossary.md#scaffold)../README.md) and wants to run the [framework](glossary.md#framework). Commands run from the repository root unless a block says otherwise.
 
 ## Workspace ownership
 
@@ -127,7 +127,7 @@ bun run generate
 
 ## New application
 
-`scaffold new` exports the [starter](glossary.md#starter) and the framework source with a generated application as the only content. Run it from this checkout, then work in the new directory:
+`scaffold new` exports the [starter](glossary.md#starter) and the framework source with a generated application as the only content. Run it from the root of this repository, then work in the new directory:
 
 ```sh
 bun run scaffold new /path/to/new-app --name new-app --display-name "New App" --collection note
@@ -153,7 +153,7 @@ The new directory must not exist. The generated application in `examples/<name>`
 - `target`: a [target](glossary.md#target) with its contract, handlers, policy lane, an in-memory fake [connector](glossary.md#connector), a status screen and a test. Its network destination is listed as disabled in `apps/desktop/site-policy.json` until the site policy binds it.
 - `agent`: an [agent definition](glossary.md#agent-definition) that proposes, with a test. The first agent also adds the [proposal](glossary.md#proposal) capabilities and a screen of open proposals.
 
-With `--registry <url>`, the new application installs the framework packages from that registry at this checkout's version instead of copying their source; `--published` uses npm's registry. No lockfile is exported in that case, so the first install runs without the frozen-lockfile flag and writes it. To try this before anything is published, serve the packages on loopback:
+With `--registry <url>`, the new application installs the framework packages from that registry at the repository's framework version instead of copying their source; `--published` uses npm's registry. No lockfile is exported in that case, so the first install runs without the frozen-lockfile flag and writes it. To try this before anything is published, serve the packages on loopback:
 
 ```sh
 bun run release:serve

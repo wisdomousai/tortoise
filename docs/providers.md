@@ -1,6 +1,6 @@
 # Providers and account connections
 
-This page covers provider accounts and their configuration, the credential vault, local models and the model server, and live probes. It is for integrators who connect a provider account or a local model to an application. [Agents](agents.md) explains harnesses, runs, proposals, triggers, standing grants and model entries.
+This page covers provider accounts and their configuration, the credential vault, local models and the model server, and live probes. [Agents](agents.md) explains harnesses, runs, proposals, triggers, standing grants and model entries.
 
 ## Concepts
 

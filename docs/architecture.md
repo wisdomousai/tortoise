@@ -1,6 +1,6 @@
 # Architecture
 
-This page is for evaluators who want to know whether the [framework](glossary.md#framework) fits a problem. It describes the layers, the [surfaces](glossary.md#surface), the request flow, authorities and hosts, host plugins, [storage](glossary.md#storage) and the invariants the checks test. [Primitives](primitives.md) lists the building blocks and where they live.
+This page describes the [framework](glossary.md#framework): the layers, the [surfaces](glossary.md#surface), the request flow, authorities and hosts, host plugins, [storage](glossary.md#storage) and the invariants the checks test. [Primitives](primitives.md) lists the building blocks and where they live.
 
 The project is a TypeScript reference, to read, run and export, for applications that people and AI agents operate together, often on or next to the machines where work happens. A typical application records events locally and delivers them to a [system of record](glossary.md#system-of-record) such as an ERP, a quality system or an MES.
 

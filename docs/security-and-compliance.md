@@ -1,6 +1,6 @@
 # Security and compliance
 
-This guide is for integrators who admit an application into a restricted network. It covers what the application may reach, how the host enforces that, how actions are recorded, and how an auditor checks the result. An auditor can check before deployment and while the application runs. Each control is a [host plugin](glossary.md#host-plugin), and [architecture](architecture.md#host-plugins) explains how plugins compose.
+This guide covers admitting an application into a restricted network. It describes what the application may reach, how the host enforces that, how actions are recorded, and how an auditor checks the result. An auditor can check before deployment and while the application runs. Each control is a [host plugin](glossary.md#host-plugin), and [architecture](architecture.md#host-plugins) explains how plugins compose.
 
 ## Concepts
 

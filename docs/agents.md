@@ -1,6 +1,6 @@
 # Agents
 
-This page explains how agents act on an application: harnesses and agent runs, the tools a run calls, agent definitions, proposals, triggers and standing grants, local models and evaluation. It is for integrators who let a model or an unattended job work on an application's records. [Providers](providers.md) covers provider accounts, funding and the local harness.
+This page explains how agents act on an application: harnesses and agent runs, the tools a run calls, agent definitions, proposals, triggers and standing grants, local models and evaluation. [Providers](providers.md) covers provider accounts, funding and the local harness.
 
 ## Concepts
 

@@ -1,10 +1,10 @@
 # Documentation styleguide
 
-This page is for anyone who writes or reviews prose in this repository: guides in `docs/`, the root README, `AGENTS.md`, package READMEs and skills. Coding agents follow it too. A reviewer applies it; nothing enforces it mechanically.
+This page sets the rules for prose in this repository: guides in `docs/`, the root README, `AGENTS.md`, package READMEs and skills. Coding agents follow it too. A reviewer applies it; nothing enforces it mechanically.
 
 ## Readers
 
-Each page names its reader in its first paragraph.
+The table assigns each page a reader. A page writes for that reader without naming them: it states what the software is and does, never who reads the page or why. Call the repository the repository or the project, never "this checkout", and give every "it" or "they" a clear subject.
 
 | Reader | Wants | Pages |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ Every page has one of the types below and keeps that type's section order. A rea
 
 A guide in `docs/` explains one topic. Sections, in order, each present when it applies:
 
-1. First paragraph: what the page covers and who reads it.
+1. First paragraph: what the subject is and does, and what the page covers.
 2. Concepts: optional. One sentence that links the terms the page is the home for to the [glossary](glossary.md), with no definitions. Other terms link to the glossary at their first use in the text.
 3. Mechanism: how the code does it, in the order a request or a record travels.
 4. Use: what a reader does to apply it, with commands.

@@ -192,7 +192,7 @@ The phone runs this pass every 5 seconds while the application is in the foregro
 
 ## Implementation steps
 
-1. Export the field application and the hub it imports into a new directory outside this checkout, following [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md).
+1. Export the field application and the hub it imports into a new directory outside the framework repository, following [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md).
 
    ```sh
    bun run scaffold ../field-survey --name field-survey --example asset-survey-field

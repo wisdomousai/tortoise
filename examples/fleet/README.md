@@ -217,7 +217,7 @@ bun test examples/fleet
 
 These steps build a new application with `scaffold new` and add the fleet's parts in an order in which the application starts after each step. The kernel refuses a capability without a handler, and device-link refuses a sync operation ID that the catalog lacks. So each capability gets its handler in the same step, before device-link names it.
 
-1. Generate the application from this checkout's root, as the [create-agent-native-app skill](../../packages/scaffold/skills/create-agent-native-app/SKILL.md) describes. The target directory must not exist yet. The command writes the application to `examples/<app-name>` of the new checkout, with one collection.
+1. Generate the application from the framework repository's root, as the [create-agent-native-app skill](../../packages/scaffold/skills/create-agent-native-app/SKILL.md) describes. The target directory must not exist yet. The command writes the application to `examples/<app-name>` of the new directory, with one collection.
 
    ```sh
    bun run scaffold new /absolute/path/to/absent-target --name <app-name> --collection <first-record-type>

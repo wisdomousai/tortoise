@@ -1,6 +1,6 @@
 # Systems of record
 
-This page explains how an [application](glossary.md#application) delivers what it captures to a system of record, and how it reads that system's data. It is for integrators who connect an ERP, MES, QMS, CRM, EAM or a peer [host](glossary.md#host). Coding agents follow the [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md) skill.
+This page explains how an [application](glossary.md#application) delivers what it captures to a system of record, and how it reads that system's data.md#host). Coding agents follow the [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md) skill.
 
 ## Concepts
 

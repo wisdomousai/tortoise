@@ -135,7 +135,7 @@ bunx playwright test examples/quality-inspection/e2e
 
 ## Demonstrated mechanisms
 
-Paths under the packages and scripts directories are relative to the checkout root. The others are relative to `examples/quality-inspection`. Test names are quoted from the test files.
+Paths under the packages and scripts directories are relative to the repository root. The others are relative to `examples/quality-inspection`. Test names are quoted from the test files.
 
 | Mechanism | Code | Proof |
 | --- | --- | --- |
@@ -189,7 +189,7 @@ Paths under the packages and scripts directories are relative to the checkout ro
 | `drivers/instrument/` | The Python driver, its generated contract stub, a pseudo-terminal instrument simulator and Python unit tests. |
 | `site-policy.sandbox.json` | A site policy under the `sandbox` hardening profile, read by the security test. |
 | `domain.test.ts`, `test/` | Bun tests, and the shared instrument fixture in `test/instrument-fixture.ts`. |
-| `e2e/` | Playwright specs against a host started by `tests/e2e/service.ts` in the checkout root. |
+| `e2e/` | Playwright specs against a host started by `tests/e2e/service.ts` in the repository root. |
 
 ## Capture flow
 
@@ -231,7 +231,7 @@ The [Measuring instrument](#measuring-instrument) section describes what the ins
 
 ## Implementation steps
 
-Steps that cite a file of an existing example give its path from the framework checkout root. A bare file name such as `contracts.ts` is a file of the application being built.
+Steps that cite a file of an existing example give its path from the framework repository root. A bare file name such as `contracts.ts` is a file of the application being built.
 
 ### Setup
 
