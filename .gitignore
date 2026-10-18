@@ -24,3 +24,7 @@ apps/mobile/generated/
 # The root LICENSE, copied into a package only while it is packed
 packages/*/LICENSE
 plugins/*/LICENSE
+
+# Solution files an IDE writes when it opens the repo root; each .NET workspace keeps its own .slnx
+/*.sln
+/*.slnx

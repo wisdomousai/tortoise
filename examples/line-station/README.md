@@ -53,7 +53,7 @@ The driver in `drivers/automation/` is written with the .NET SDK (`sdks/driver-d
 - `ComStation` binds the vendor's automation server late by ProgID (`STATION_AUTOMATION_PROGID`) on the SDK's handler thread, a single-threaded apartment on Windows. The member names in it are this reference's assumption; map them to the real object model there.
 - `SimulatedStation` keeps a station in `STATION_AUTOMATION_SIM_DIR`, for the demo and the tests.
 
-`StationAutomationContract.cs` is generated from the contract; the header of `Program.cs` has the commands. The route starts only when configured (`createLineStationApplication({ automation })`, or `STATION_ROUTE=automation` in the demo) and only with a site-policy binding for the `station-automation-driver` process. Bind the published driver executable and set one of the two variables in the binding's environment. A host serves one station on this route, because the driver runs on the station PC.
+`StationAutomationContract.cs` is generated from the contract; the header of `Program.cs` has the commands. `StationAutomation.slnx` opens the driver and the SDK project it references in an IDE. The route starts only when configured (`createLineStationApplication({ automation })`, or `STATION_ROUTE=automation` in the demo) and only with a site-policy binding for the `station-automation-driver` process. Bind the published driver executable and set one of the two variables in the binding's environment. A host serves one station on this route, because the driver runs on the station PC.
 
 ## Trust boundary
 

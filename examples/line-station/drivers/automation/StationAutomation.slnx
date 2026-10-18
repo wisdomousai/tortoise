@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="StationAutomation.csproj" />
+  <Project Path="../../../../sdks/driver-dotnet/src/AgentNative.Driver/AgentNative.Driver.csproj" />
+</Solution>
