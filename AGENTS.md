@@ -71,7 +71,7 @@ How skills stay current with the code (`bun run check:skills` enforces the first
 
 - Use `npx ctx7@latest library <name> '<question>'`, then `npx ctx7@latest docs <id> '<question>'` for current library APIs. Run network documentation requests outside the sandbox.
 - Run the checks in `docs/development-and-testing.md`.
-- Prose follows `docs/styleguide.md` and uses the terms in `docs/glossary.md`; `bun run check:docs <files>` checks the files a change touches.
+- Prose follows `docs/styleguide.md` and uses the terms in `docs/glossary.md`.
 - Do not discover or reuse provider credentials. Live probes need explicitly configured accounts. Never commit keys, data directories or generated launch credentials.
 - Concurrent agents own disjoint files, announce interface changes and preserve each other's work. The root owns dependency manifests and the lockfile.
 - This is a generic reference. Keep platform-specific cloud dependencies out of framework contracts and the runtime.

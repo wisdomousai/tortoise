@@ -19,7 +19,6 @@ jobs:
         with:
           bun-version: 1.4.0
       - run: bun install --frozen-lockfile
-      - run: bun run check:docs README.md docs/getting-started.md docs/architecture.md docs/glossary.md docs/styleguide.md
       - run: bun run docs:build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

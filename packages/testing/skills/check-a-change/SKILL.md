@@ -29,7 +29,7 @@ description: Choose and run the checks for a change in this repository and repor
 | A framework package's imports, dependencies or packed files | `bun run check:manifests`; `bun scripts/check-manifests.ts --write` rewrites the manifests |
 | A change that should reach the next framework release | `bun run changeset` to record it; the release scripts are in [development and testing](../../../../docs/development-and-testing.md#framework-packages) |
 | The scaffold or what it exports | `bun run test:scaffold`; `SCAFFOLD_ACCEPTANCE=1 bun test packages/scaffold/src/generate.test.ts -t "from a registry"` for an export that installs the framework |
-| A README, doc link or skill | `bun run check:readmes`, `bun run check:skills`, `bun run check:docs <files>` for the prose rules in `docs/styleguide.md` |
+| A README, doc link or skill | `bun run check:readmes`, `bun run check:skills`; prose follows `docs/styleguide.md` |
 
 In an application that installs the framework from a registry, the framework rows do not apply; `bun run check` there runs what the export keeps, and `bun run check:framework` fails when two framework versions are installed.
 

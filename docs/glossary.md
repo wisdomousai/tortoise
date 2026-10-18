@@ -7,7 +7,7 @@ Rules for the entries:
 - One term per concept. The term on this page is the one every page uses.
 - A term that has several meanings in everyday use is qualified: "hardening profile", "station profile", "OS user".
 - Code identifiers are not terms. A page names the concept and then the identifier in backticks when the reader needs it.
-- A `Do not use:` line lists the words the term replaces. `bun run check:docs` reports an unqualified entry wherever it appears in prose or a table cell. An entry with a qualifier in parentheses, such as `page (for a screen)`, is guidance for the reviewer, because the bare word has other correct senses.
+- A `Do not use:` line lists the words the term replaces. An entry with a qualifier in parentheses, such as `page (for a screen)`, bans only that sense, because the bare word has other correct senses.
 - Protocol, file-format and product names keep their own form. These abbreviations also stay abbreviated:
   - interfaces and protocols: CLI, MCP, API, UI, HTTP, SSE, TLS, mTLS, OIDC, PKCE, OPC UA, MQTT, OTLP;
   - data and identifiers: JSON, SQL, URL, ID, PIN, GS1;

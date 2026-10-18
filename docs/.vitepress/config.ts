@@ -1,7 +1,6 @@
 /**
  * The documentation site. The source directory is the repository root, so a guide's relative link
- * to a workspace README or a skill resolves the same way it does on GitHub. Only the corpus that
- * `scripts/check-docs.ts` checks is built: the guides, the root README and AGENTS.md, every
+ * to a workspace README or a skill resolves the same way it does on GitHub. The site holds the guides, the root README and AGENTS.md, every
  * workspace README and every skill. `bun run docs:build` writes `dist/docs`.
  */
 import { existsSync, statSync } from 'node:fs';

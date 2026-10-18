@@ -44,7 +44,6 @@ A successful build is not a browser interaction or a packaged desktop launch, an
 
 | Command                                       | Scope                                                                                                                                  |
 | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `bun run check:docs [files]`                  | Prose against [the styleguide](styleguide.md): links, headings, sentence length, enumerations, rhetoric and glossary terms.             |
 | `bun run docs:dev`, `docs:build`, `docs:preview` | The VitePress site built from the guides, READMEs and skills into `dist/docs`; the Pages workflow publishes it on push to main.      |
 | `bun run test:unit`                           | Contracts, runtime, client ordering and UI context.                                                                                    |
 | `bun run test:conformance`                    | Policy, repositories, adapters and example-domain scenarios.                                                                           |

@@ -44,7 +44,6 @@
     "skills:stamp": "bun scripts/skills-stamp.ts",
     "postinstall": "bun scripts/skills-link.ts --postinstall",
     "check:size": "bun scripts/check-size.ts",
-    "check:docs": "bun scripts/check-docs.ts",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",

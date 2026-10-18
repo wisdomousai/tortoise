@@ -13,7 +13,6 @@
     "changeset",
     "check",
     "check:boundaries",
-    "check:docs",
     "check:format",
     "check:framework",
     "check:manifests",

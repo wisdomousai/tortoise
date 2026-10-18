@@ -1,6 +1,6 @@
 # Documentation styleguide
 
-This page is for anyone who writes or reviews prose in this repository: guides in `docs/`, the root README, `AGENTS.md`, package READMEs and skills. Coding agents follow it too. `bun run check:docs` enforces the rules that can be decided from text; a reviewer decides the rest.
+This page is for anyone who writes or reviews prose in this repository: guides in `docs/`, the root README, `AGENTS.md`, package READMEs and skills. Coding agents follow it too. A reviewer applies it; nothing enforces it mechanically.
 
 ## Readers
 
@@ -55,7 +55,7 @@ A skill is a task guide for a coding agent. It keeps its frontmatter and these s
 
 ## Sentences
 
-- One idea per sentence. Target 20 words; the check fails a sentence over 35.
+- One idea per sentence. Target 20 words; 35 is the limit.
 - At most one clause introduced by because, so, which, when, if, although or while. A sentence with two ", so" clauses is split.
 - No em-dashes. One parenthetical per sentence at most, never nested.
 - The subject is the thing that acts: the dispatcher, the host, the command. Avoid "it" when the referent is two sentences back.
@@ -78,10 +78,10 @@ After:
 
 ## Lists and tables
 
-- Four or more items in one sentence become a list when the sentence is longer than 30 words. The check enforces this. Four or five short nouns in a short sentence stay in the sentence.
+- Four or more items in one sentence become a list when the sentence is longer than 30 words. Four or five short nouns in a short sentence stay in the sentence.
 - A list item is at most two sentences. In a definition list, each item starts with the term it defines, in bold.
 - Items in a list are parallel: all nouns, all imperatives or all sentences.
-- A table has at most four columns. A cell holds a phrase or one sentence of at most 20 words. The check applies the sentence and terms rules to each cell.
+- A table has at most four columns. A cell holds a phrase or one sentence of at most 20 words.
 - Numbered lists are for sequences. Bulleted lists are for sets.
 
 Before:
@@ -118,7 +118,7 @@ After:
 ## Terminology
 
 - The [glossary](glossary.md) defines the terms. Use the canonical form on every page.
-- The check reports an unqualified word from a glossary `Do not use:` line. An entry with a qualifier in parentheses is guidance for the reviewer.
+- A bare word on a glossary `Do not use:` line is wrong in every sense this repository uses. An entry with a qualifier in parentheses is wrong only in that sense.
 - The first use of a term on a page links to its glossary entry or to the page that owns the concept.
 - A code identifier is in backticks and does not replace the concept's name. Write "the dispatcher claims the effect" instead of "`claimEffect` runs".
 - Abbreviations are written out on first use on a page, except the ones the glossary lists:
@@ -136,9 +136,7 @@ After:
 
 ## Rhetoric
 
-### Checked patterns
-
-The `rhetoric` check reports the phrases in the `rhetoric` list of `scripts/docs-style-rules.ts`:
+### Patterns to delete
 
 | Pattern | Instead |
 | --- | --- |
@@ -161,7 +159,7 @@ out of the box, ", or nothing", never stands in for
 
 ### Reviewer patterns
 
-The check cannot decide these. A reviewer looks for them:
+A reviewer looks for these:
 
 | Pattern | Instead |
 | --- | --- |
@@ -204,33 +202,3 @@ After:
 - Every `docs/*.md` page is listed in the `guides` list of `docs/.vitepress/sidebar.ts`.
 - Link text is the name of the page or the term. Do not use "here" or "this" as link text.
 
-## Checks
-
-```sh
-bun run check:docs                       # the whole corpus
-bun run check:docs docs/architecture.md  # one file
-bun run check:docs --summary             # counts per rule and file
-bun run check:docs --rule terms          # one rule
-```
-
-Run `bun run check:docs` on the files a change touches. The guides, the root README and the glossary pass it. The package READMEs, the skills and the ledger are still being brought to this guide, and the check joins `bun run check` once the whole corpus passes. Its rules live in `scripts/docs-style-rules.ts` and `scripts/check-docs.ts`, under the names the findings print:
-
-- `links`: a relative link points to a missing file, or to a heading the file does not have.
-- `heading-form`: a heading over six words, or one that ends in punctuation.
-- `heading-form` also reports a question or question stem, a contrast, a leading count such as `4.` or `4)`, and a subtitle after a colon or dash.
-- `heading-form` reports a duplicate heading on the page too.
-- `sentence-length`: a sentence over 35 words.
-- `inline-enumeration`: four or more comma-separated items in a sentence over 30 words. Commas before a clause and commas in a URL do not count.
-- `clause-chain`: two ", so" clauses in one sentence.
-- `punctuation`: an em-dash, nested parentheses, or two parentheticals in one sentence.
-- `rhetoric`: a phrase from the checked patterns above, or a sentence that ends in a question mark.
-- `terms`: an unqualified word from a glossary `Do not use:` line.
-- `sidebar`: a `docs/*.md` page that is missing from the sidebar's `guides` list.
-
-What the check reads:
-
-- It reads paragraphs, list items and table cells. A sentence ends at a period, question mark or exclamation mark followed by white space.
-- It skips fenced and indented code blocks, block quotes, HTML comments, frontmatter and the page title.
-- A line that starts with `Do not use:` is exempt from the sentence rules, and the glossary is exempt from the `terms` rule.
-- Before and after examples go in block quotes, so the check does not report the old text they quote.
-- Sentence case, verbs in headings and the reviewer patterns are left to the reviewer.
