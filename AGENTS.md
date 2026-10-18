@@ -4,10 +4,10 @@
 
 ## Layers
 
-Four layers: **framework** `packages/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
+The layers are **framework** `packages/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
 
 - The framework and the starter name no domain and import no plugin or example. The starter hosts the one application named in `app.config.json`.
-- An example is an application with `manifest` (browser-safe), `application` (server) and `screens` (browser) entrypoints. Its domain code, fakes, screens and tests stay in the example; framework tests never import one.
+- An example is an application with a browser-safe `manifest` entrypoint, a server `application` entrypoint and a browser `screens` entrypoint. Its domain code, fakes, screens and tests stay in the example; framework tests never import one.
 - A cross-cutting concern (site policy, network, audit, compliance) is a host plugin in `plugins/<name>`, with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. A plugin imports the framework and the plugins it requires, reaches the network, ingress, identity and audit log through kernel ports, and writes only through its own commands.
 - Generic host or frame behavior goes in the framework, so a forked starter keeps receiving it.
 - A driver SDK in `sdks/<language>` implements the driver protocol that `plugins/connector-driver` defines, and proves itself against that plugin's reference contract. Nothing else imports an SDK, so the host depends on no driver language, and an SDK imports no application.
@@ -17,7 +17,7 @@ Four layers: **framework** `packages/*`, **plugins** `plugins/*`, **starter** `a
 These protect data and security; `bun run check` and the conformance suites test them.
 
 - Contracts are browser-safe. Handlers, React components, scenarios and provider code live in separate entrypoints.
-- Every business write goes through the application runtime, never from a transport or harness.
+- Every business write goes through the authority, never from a transport or harness.
 - Authorize the operation, object and fields inside the transaction. Filter rows before paging or counting. Recheck delegated grants and event access.
 - Server code reaches the network only through the network port, and starts child processes only through the process port.
 - MCP, API, schema and reference docs are generated from the catalog when they are served or built. Nothing generated is committed; `bun run generate` writes the reference to `dist/reference/` for reading.
@@ -35,7 +35,7 @@ Design on engineering merits. The rest of this section is advice; depart from it
 
 ## Skills
 
-Skills are task guides for coding agents. Each lives in the workspace whose extension points it describes, in `<workspace>/skills/<name>/`, so it ships in that package and an application that installs the framework from a registry gets it from `node_modules`. An application's own skills go in its workspace or in a root `skills/<name>/`. `bun install` links them into `.claude/skills/` (Claude Code) and `.agents/skills/` (Codex) through the root `postinstall`; after adding or renaming a skill, run `bun run skills:link`. The links are not committed.
+Skills are task guides for coding agents. Each lives in the workspace whose extension points it describes, in `<workspace>/skills/<name>/`, so it ships in that package and an application that installs the framework from a registry gets it from `node_modules`. An application's own skills go in its workspace or in a root `skills/<name>/`. `bun install` links them into `.claude/skills/` for Claude Code and `.agents/skills/` for Codex through the root `postinstall`; after adding or renaming a skill, run `bun run skills:link`. The links are not committed.
 
 | Task | Skill |
 | --- | --- |
@@ -71,6 +71,7 @@ How skills stay current with the code (`bun run check:skills` enforces the first
 
 - Use `npx ctx7@latest library <name> '<question>'`, then `npx ctx7@latest docs <id> '<question>'` for current library APIs. Run network documentation requests outside the sandbox.
 - Run the checks in `docs/development-and-testing.md`.
+- Prose follows `docs/styleguide.md` and uses the terms in `docs/glossary.md`; `bun run check:docs <files>` checks the files a change touches.
 - Do not discover or reuse provider credentials. Live probes need explicitly configured accounts. Never commit keys, data directories or generated launch credentials.
 - Concurrent agents own disjoint files, announce interface changes and preserve each other's work. The root owns dependency manifests and the lockfile.
 - This is a generic reference. Keep platform-specific cloud dependencies out of framework contracts and the runtime.
