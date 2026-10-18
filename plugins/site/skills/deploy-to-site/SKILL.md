@@ -10,7 +10,7 @@ A site policy is deployment data that binds what the application declares (desti
 ## Before writing
 
 - Declarations come first. A destination, exchange folder, device or process the policy binds must be declared by a module or plugin; `bun run generate` writes the security manifest and data flows to `dist/reference/<id>/`, which list what the policy has to bind.
-- Pick the profile from where the host runs: `desktop-local`, `site-hub` (paired devices over the site network), `sandbox` or `zero-trust`. The [profiles table](../../../../docs/security-and-compliance.md#profiles) gives each floor.
+- Pick the profile from where the host runs: `desktop-local`, `site-hub` (paired devices over the site network), `sandbox` or `zero-trust`. The [profiles table](../../../../docs/security-and-compliance.md#hardening-profiles) gives each floor.
 - The site issues and renews certificates; the host only reads them and warns 30 days before expiry. A secret never goes into the policy or a process environment by hand.
 
 ## Steps

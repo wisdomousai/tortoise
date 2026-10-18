@@ -24,7 +24,7 @@ Layer: framework (`packages/*`). Feature state is opaque to the runtime; domains
 - [Worker claims](../../docs/primitives.md#worker-claims): `EffectClaim`, the host-only `claimEffect` (`ClaimResult`) and `recordAttempt` (`AttemptRecord`, with `fence` and `upstream`), and the `dispatch` authorization phase checked before the first claim.
 - [Reconciliation](../../docs/primitives.md#reconciliation): `effectPhase` and `EffectPhase`, the states an effect passes through and the transitions the outbox allows; `reconciliationHandlers` (`ReconciliationOptions`) serve the reconciliation operations: the held effects of every target a caller may see, and a person's decision, which settles or releases the effect and calls the domain's `onResolved` in the same transaction.
 - [Blob store](../../docs/primitives.md#blob-store): the `BlobStore` port (`StoredBlob`), `BlobRecord`, `createMemoryBlobStore`, `attach` and `detach` on `HandlerContext`, `canReadResource` on the `AuthorizationPort`, the `blobStore` and `blobGraceMs` options, and `putBlob`, `readBlob`, `readEffectBlob` and `sweepBlobs` on the application.
-- [Event log](../../docs/primitives.md#event-log): the runtime appends `command.accepted` inside the transaction and resolves commands a crash left open.
+- [Event log](../../docs/primitives.md#audit-log): the runtime appends `command.accepted` inside the transaction and resolves commands a crash left open.
 
 Read [architecture](../../docs/architecture.md), [authorization](../../docs/authorization.md) and [state and reactivity](../../docs/state-and-reactivity.md) for the mechanism.
 

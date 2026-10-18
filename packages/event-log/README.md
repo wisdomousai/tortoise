@@ -6,7 +6,7 @@ Layer: framework (`packages/*`). Server only as a whole; the `chain`, `memory` a
 
 ## Primitives
 
-- [Event log](../../docs/primitives.md#event-log): `createMemoryEventLog`, `openJsonlEventLog`, `verifyEventLog`, `unresolvedCommands`, `readEvents`, `forwardingEventLog`.
+- [Event log](../../docs/primitives.md#audit-log): `createMemoryEventLog`, `openJsonlEventLog`, `verifyEventLog`, `unresolvedCommands`, `readEvents`, `forwardingEventLog`.
 
 [Security and compliance](../../docs/security-and-compliance.md) covers audit modes and verification. The [`@agent-native/audit`](../../plugins/audit/README.md) plugin opens this log and provides it as the host's event-log port.
 

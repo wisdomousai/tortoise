@@ -9,7 +9,7 @@ Layer: framework (`packages/*`). Server only, except `requirements`. Domain-neut
 - [Observation](../../docs/primitives.md#observation): `createStationObserver`, `stationBridgeComponent`. The readings, the stability gate and the observer loop come from `@agent-native/observation`; `StabilityGate`, `Reading`, `ModelIdentity` and the other reading types are re-exported, and `Extractor` is its extractor over screen captures.
 - [Gated actuator](../../docs/primitives.md#gated-actuator): `ComputerUseDriver`, `ScreenTransport`, `BridgeControl`, `createScriptedDriver`, `createPlaywrightTransport`. The controller's delivery order, stable confirmation, interruption rule and lookup come from the convergent delivery in `@agent-native/integration`; the screen gate (bridge mode, seat, expected screen, forbidden regions, step budget) stays here.
 - [Connector](../../docs/primitives.md#connector): `createStationConnector` implements the system-of-record port for a screen.
-- [Profile](../../docs/primitives.md#profile): `StationProfile`, `stationProfileSchema`, `validateProfile`, `parseProfile`.
+- [Profile](../../docs/primitives.md#station-and-scanner-profiles): `StationProfile`, `stationProfileSchema`, `validateProfile`, `parseProfile`.
 - [Golden check](../../docs/primitives.md#golden-check): `runGolden`, `GoldenReport`.
 
 The [operator workstation pattern](../../docs/operator-workstations.md) explains the design.

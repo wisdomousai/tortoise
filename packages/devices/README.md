@@ -7,8 +7,8 @@ Layer: framework (`packages/*`). Scanner logic and the capability module are bro
 ## Primitives
 
 - [Input source](../../docs/primitives.md#input-source): `ScannerSource`, `ScanEvent`, `decodeScan`, `calibrate`, `createScanRouter`, `createWedgeSource`, `createSerialSource`, `createHidPosSource`, `createCameraSource`, `scannerDevicesComponent`.
-- [Profile](../../docs/primitives.md#profile): `ScannerProfile`, `scannerProfileSchema`, `ScanRoute`.
-- [Configuration module](../../docs/primitives.md#configuration-module): `deviceConfigModule`, `createDeviceHandlers`.
+- [Profile](../../docs/primitives.md#station-and-scanner-profiles): `ScannerProfile`, `scannerProfileSchema`, `ScanRoute`.
+- [Configuration module](../../docs/primitives.md#device-configuration-module): `deviceConfigModule`, `createDeviceHandlers`.
 
 [Point-of-work input](../../docs/point-of-work-input.md) explains wedge layouts, GS1 and calibration. The setup screen and scanner hook ship in [`@agent-native/operator-ui`](../operator-ui/README.md).
 

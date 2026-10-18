@@ -1,93 +1,42 @@
 # Agent-native desktop starter
 
-A TypeScript reference for applications that people and AI agents operate together, often on or next to the machines where work happens. An application captures work locally and delivers it to the systems of record that own enterprise data.
+This checkout holds a TypeScript [framework](docs/glossary.md#framework), [host plugins](docs/glossary.md#host-plugin), a [starter](docs/glossary.md#starter) and [examples](docs/glossary.md#example). They build applications that people and AI agents operate together, often on or next to the machines where work happens. An application captures work locally and delivers it to the [systems of record](docs/systems-of-record.md) that own enterprise data. An evaluator reads this page to decide whether the framework fits a problem.
 
-Each operation is defined once as a capability. The composed catalog drives HTTP, MCP, the CLI, typed React calls and the generated reference docs, and a change made through any of them reaches every open view through the same journal. The host runs on Bun with SQLite storage and serves a React frontend; Electron wraps it on the desktop, and an Expo app runs an application on Android and iOS.
+## Capabilities and surfaces
 
-Where to read next:
+Each [command](docs/glossary.md#command) or [query](docs/glossary.md#query) is declared once as a [capability](docs/glossary.md#capability). The composed [catalog](docs/glossary.md#catalog) drives HTTP, MCP, the CLI and typed React calls from the [screens](docs/glossary.md#screen). Each of these is a [surface](docs/glossary.md#surface). The [generators](docs/glossary.md#generator) read the same catalog to write the reference documents.
 
-- [Overview](docs/architecture.md): layout, the capability model, command execution, ports and delivery.
-- [Architecture](docs/architecture.md): layers, the kernel and the invariants the checks test.
-- [Systems of record](docs/systems-of-record.md): outbox, inbound sync, live search and the CLI, as the `quality-inspection` and `crm-capture` examples use them.
-- [Operator workstations](docs/operator-workstations.md): station software reached through its screen, as `line-station` uses it, with [point-of-work input](docs/point-of-work-input.md) for scanners and glove-sized screens.
-- [Mobile host](docs/mobile.md): the Expo app, embedded and attached modes, pairing with a hub, and the device's trust boundary, as `asset-survey-field` uses them.
-- [Security and compliance](docs/security-and-compliance.md): declared egress under a site policy, hardening profiles, the audit log and the generated audit bundle.
-- [Implementation status](docs/implementation-status.md): what has been run, what has not, and the [known defects](docs/implementation-status.md#known-defects).
+People, agents, scripts and devices call the same capabilities with the same validation and authorization. A change committed through any surface reaches every open screen through the [journal](docs/glossary.md#journal).
 
-## Run the example
+## Hosts
 
-Prerequisite: Bun 1.4.0 or a compatible newer version. Dependencies are pinned in `bun.lock`.
+The Bun [host](docs/glossary.md#host) keeps the [workspace](docs/glossary.md#workspace) in SQLite by default and serves the React screens. Electron wraps it on the desktop. The mobile host, built with Expo, runs an [application](docs/glossary.md#application) on Android and iOS.
+
+## Layers and packages
+
+The checkout has these layers:
+
+- the framework in `packages/*`;
+- host plugins in `plugins/*`;
+- the starter in `apps/*`, which hosts the one application named in `app.config.json`;
+- the examples in `examples/*`.
+
+Driver SDKs for other languages sit beside them in `sdks/*`. [Architecture](docs/architecture.md#packages) lists the framework packages, and its [examples](docs/architecture.md#examples) section lists the eight examples. `bun run check:readmes` checks that every package, plugin, app, example and SDK has a README titled with its package name and that its links work. Each README states its trust boundary and how to run its tests.
+
+## First run
+
+Install Bun 1.4.0, the version `package.json` pins. Dependencies are pinned in `bun.lock`.
 
 ```sh
 bun install --frozen-lockfile
 bun run dev
 ```
 
-The desktop window opens. The service also prints a `launchUrl` for a browser; that launch credential is single-use and expires after one minute. The service stores workspace data in `.workspace/` by default; set `WORKSPACE_PATH` to use another directory and `PORT=0` to select an available port. `bun run dev:web` serves the browser without opening the window.
+The desktop window opens on `project-tasks`, the application `app.config.json` names. Create a project, add a task, then choose **Create tasks from brief**. A deterministic [harness](docs/glossary.md#harness) turns each line of the brief into a command and needs no provider account.
 
-Create a project, add a task, then use **Create tasks from brief**. This deterministic harness turns each line into a command and needs no provider account. The task list updates when commands commit. Editing a task preserves its draft if another client changes the committed record.
+[Getting started](docs/getting-started.md) continues with the browser, the other examples, the CLI and MCP.
 
-Open **Inspection** for the system-of-record example. Lots arrive from a deterministic mock quality system; choose a lot and capture values with the keyboard (Enter records and advances). Each result is forwarded through the outbox, and its quality-system reference or rejection appears without a refresh. Set `DEMO_QUALITY_LOCKED_LOTS=4000002` to see a rejection, then resolve it under **Synchronization**.
-
-Only one authority may own a workspace. The desktop window starts that authority, or attaches to one that is already running. Closing a window that started the authority stops it; closing an attached window leaves the existing authority running. The MCP bridge and CLI attach to the service, or run the authority in-process with `--embedded` when no service owns the workspace.
-
-## Use the same app through tools
-
-Set the path printed as `connectionFile` by the host. This file is a local credential; keep it private.
-
-```sh
-export AGENT_NATIVE_CONNECTION="$(pwd)/.workspace/.connection.json"
-bun run cli list
-bun run cli project create --name Launch --key create-launch
-bun run cli project list
-bun run mcp
-```
-
-Every operation is also a generated subcommand with typed flags, for example `bun run cli inspection lot list --output text` or `bun run cli help inspection result record`. `bun run build:cli` compiles the same CLI into one executable at `dist/bin/<name>` for sandbox images: `mcp --embedded --grant-file <file>` serves an agent without a network listener, and `drain` exits non-zero while captured results have not reached the system of record. See the [system-of-record reference](docs/systems-of-record.md).
-
-`bun run mcp` speaks MCP over stdio. Configure an MCP client to run that command with the connection-file environment variable. Commands take an `input` object, an `idempotencyKey` and optional `expectedRevisions`; query tools take `input`. Execution identity and effective authority come from trusted host context, never tool arguments. Membership operations may name a target principal and role; those inputs do not change the caller's authority. Provider credentials stay outside business inputs.
-
-## Create another app
-
-```sh
-bun run scaffold new /path/to/new-app --name new-app --display-name "New App" --collection note
-cd /path/to/new-app
-bun install --frozen-lockfile
-bun run scaffold add capability note.archive --kind command --description "Archive a note. Editors only."
-bun run scaffold add target ledger --collection note
-bun run format && bun run generate
-bun run dev
-```
-
-The target must not exist. `scaffold new` exports the starter and the framework source with a generated application in `examples/<name>` as the only content: one collection with default list and record screens, the site, network, audit and compliance plugins and its tests. `scaffold add collection|capability|target` generates a part's contract, handlers, policy rule, screens and behavioral test into it. With `--registry <url>` (or `--published` for npm's registry) the new application installs the framework packages at this checkout's version instead of copying their source; `bun run release:serve` serves them on loopback to try it before anything is published. `bun run scaffold /path/to/new-app --name new-app` without `new` exports the examples instead, or one of them as the hosted application with `--example <name>`. Both write a versioned file-hash manifest. A coding agent then shapes the generated parts into the requested domain using the [setup skill](packages/scaffold/skills/create-agent-native-app/SKILL.md) and [capability authoring guide](docs/capability-authoring.md). The other task skills live next to the workspace they describe and are listed in [AGENTS.md](AGENTS.md#skills); `bun install` links them for Claude Code and Codex, and `bun run check:skills` fails when the code they describe changes without a skill review. The scaffold does not install global agent configuration or invent a domain from the application name.
-
-## Architecture and extension points
-
-Each package's README covers its primitives, entrypoints, trust boundary, dependencies and tests.
-
-| Package                                                                                                                                                                                                                                    | Responsibility                                                                                                                                                                    |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`packages/contracts`](packages/contracts/README.md)                                                                                                                                                                                       | Portable schemas, capability descriptors, requirements and catalog validation                                                                                                     |
-| [`packages/runtime`](packages/runtime/README.md)                                                                                                                                                                                           | Authorization, transactions, revisions, receipts, journal and outbox                                                                                                              |
-| [`packages/host`](packages/host/README.md), [`packages/frame`](packages/frame/README.md)                                                                                                                                                   | Generic authority host and web frame for one configured application                                                                                                               |
-| [`packages/adapters`](packages/adapters/README.md)                                                                                                                                                                                         | CASL, SQLite, host ownership, HTTP/SSE, MCP, CLI and UI sessions                                                                                                                  |
-| [`packages/client`](packages/client/README.md), [`packages/react`](packages/react/README.md)                                                                                                                                               | Typed bindings, live queries, cache fences, forms and capture helpers                                                                                                             |
-| [`packages/agents`](packages/agents/README.md)                                                                                                                                                                                             | Run supervision, Codex, Claude, AI SDK and protected account flows                                                                                                                |
-| [`packages/integration`](packages/integration/README.md)                                                                                                                                                                                   | Outbox dispatcher, connectors and inbound sync for systems of record                                                                                                              |
-| [`packages/station`](packages/station/README.md)                                                                                                                                                                                           | Screen bridge to station software: observation, gated actuation, golden check                                                                                                     |
-| [`packages/devices`](packages/devices/README.md), [`packages/operator-ui`](packages/operator-ui/README.md)                                                                                                                                 | Scanner input and configuration; the operator shadcn registry                                                                                                                     |
-| [`packages/event-log`](packages/event-log/README.md)                                                                                                                                       | The hash-chained audit log                                                                                                                          |
-| [`plugins/site`](plugins/site/README.md), [`plugins/network`](plugins/network/README.md), [`plugins/audit`](plugins/audit/README.md), [`plugins/compliance`](plugins/compliance/README.md), [`plugins/webhook`](plugins/webhook/README.md) | Host plugins: site policy and identity; egress guard, mTLS and rule exports; audit log; auditor queries, posture, evidence and the Compliance screen; an example webhook notifier |
-| [`packages/testing`](packages/testing/README.md)                                                                                                                                                                                           | Shared scenarios and UI-binding checks                                                                                                                                            |
-| [`packages/scaffold`](packages/scaffold/README.md)                                                                                                                                                                                         | Deterministic source export, and generated applications and parts                                                                                                                 |
-| [`apps/service`](apps/service/README.md), [`apps/web`](apps/web/README.md), [`apps/desktop`](apps/desktop/README.md)                                                                                                                       | The starter: service, web root and Electron shell                                                                                                                                 |
-| [`examples/project-tasks`](examples/project-tasks/README.md), [`examples/quality-inspection`](examples/quality-inspection/README.md), [`examples/line-station`](examples/line-station/README.md)                                           | Applications: manifest, application definition, screens and tests                                                                                                                 |
-
-The runtime treats feature state as opaque. The reference SQLite adapter serializes a complete JSON snapshot, including receipts and journal, in one transaction. Storage adapters can map the snapshot to existing tables; handlers receive materialized state. Large applications may need a different unit-of-work adapter and transaction-bound repository design rather than loading the whole workspace. The framework does not impose an ORM or cloud platform.
-
-Start with the [primitives](docs/primitives.md): a capability catalog over a logical CQRS authority, where people, agents, scripts and devices use the same commands and queries. They are kept current with the code. Then read the [architecture](docs/architecture.md), [interaction contract](docs/interaction-contract.md), [authorization](docs/authorization.md), [reactivity](docs/state-and-reactivity.md), [adapter guide](docs/adapters.md) and [harness guide](docs/agents.md). `bun run generate` writes each application's operation reference, OpenAPI and agent skill to `dist/reference/<id>/`.
-
-## Verification and delivery
+## Verification
 
 ```sh
 bun run check
@@ -95,8 +44,31 @@ bun run test:e2e
 bun run test:scaffold
 ```
 
-See [development and testing](docs/development-and-testing.md) for the full standalone acceptance flag and platform checks. [Implementation status](docs/implementation-status.md) distinguishes local checks from live provider and native OS evidence.
+[Development and testing](docs/development-and-testing.md) lists the full standalone scaffold acceptance run and the platform checks. [Implementation status](docs/implementation-status.md) separates local checks from live provider and native OS evidence.
 
-The framework includes current ChatGPT-plan connection code, Claude API-key execution and AI SDK execution. Provider account access, funding and workspace authority are separate. Live login/inference, provider eligibility and signed platform distribution require their own checks; deterministic protocol tests do not establish those results. See [provider details](docs/providers.md).
+The framework includes ChatGPT plan connection code, Claude execution with an API key and AI SDK execution. Provider credentials pay for inference and give no access to a workspace. Live sign-in and inference, provider eligibility and signed platform distribution each need their own check. Deterministic protocol tests do not establish those results. [Providers](docs/providers.md) has the details.
 
-This is a local-first reference. Multi-device synchronization, remote multi-tenant hosting, signed releases and package publication are outside this implementation.
+## Scope
+
+The framework is local-first. A [hosted authority](docs/hosting.md#hosted-authority) keeps its workspace in a shared Postgres database under a [workspace lease](docs/glossary.md#workspace-lease). Managed cloud hosting, multi-device synchronization, more than one application per authority, publication to a public registry and signed distribution are outside the framework.
+
+Each [storage](docs/glossary.md#storage) transaction receives the whole workspace state in memory, and the CPU time of a commit grows with that state (`packages/adapters/src/row-storage.ts`). A large application may need a storage design that does not load the whole workspace. The storage port imposes no record model on module state. [Architecture](docs/architecture.md#storage) describes the storage adapters.
+
+## Guides
+
+- [Getting started](docs/getting-started.md): run the examples, use them through the CLI and MCP, and create another application.
+- [Architecture](docs/architecture.md): layers, surfaces, request flow, authorities and hosts, host plugins, storage and the invariants the checks test.
+- [Primitives](docs/primitives.md): the building blocks, their status and where they live.
+- [Glossary](docs/glossary.md): the terms every page uses.
+- [Capability authoring](docs/capability-authoring.md), [interaction contract](docs/interaction-contract.md), [authorization](docs/authorization.md) and [state and reactivity](docs/state-and-reactivity.md): writing a capability and what callers can rely on.
+- [Adapters](docs/adapters.md): the ports and their reference adapters.
+- [Systems of record](docs/systems-of-record.md): outbox, inbound sync, remote queries and the CLI, as `quality-inspection`, `crm-capture` and `receiving` use them.
+- [Operator workstations](docs/operator-workstations.md): station software reached through its screen, as `line-station` uses it.
+- [Point-of-work input](docs/point-of-work-input.md): scanners and glove-sized screens.
+- [Hardware drivers](docs/hardware-drivers.md): equipment reached through a driver process.
+- [Agents](docs/agents.md) and [providers](docs/providers.md): agent runs, harnesses and provider accounts.
+- [Hosting](docs/hosting.md): the hosted authority and the fleet.
+- [Desktop](docs/desktop.md): the Electron window, its packaged resources and the build.
+- [Mobile](docs/mobile.md): the mobile host, pairing with a hub and the device's trust boundary.
+- [Security and compliance](docs/security-and-compliance.md): declared egress under a site policy, hardening profiles, the audit log and the compliance bundle.
+- [Implementation status](docs/implementation-status.md): what has been run, what has not, and the [known defects](docs/implementation-status.md#known-defects).

@@ -12,7 +12,7 @@ Layer: plugins (`plugins/*`). Server only, except `plugin-manifest` and `contrac
 - [Egress guard](../../docs/primitives.md#egress-guard): a sandbox that declares destinations gets the CONNECT proxy, with the per-process credential the network port issues.
 - [Execution context](../../docs/primitives.md#execution-context): a task's context must carry a delegation grant; the run's token ends when the grant or the run ends.
 - [Host plugin](../../docs/primitives.md#host-plugin): the plugin's `authenticate` hook answers for the tokens it issued.
-- [Event log](../../docs/primitives.md#event-log): `sandbox.started` and `sandbox.exited` records with the run's principal and run ID.
+- [Event log](../../docs/primitives.md#audit-log): `sandbox.started` and `sandbox.exited` records with the run's principal and run ID.
 
 ## Wiring an application
 

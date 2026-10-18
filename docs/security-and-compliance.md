@@ -1,35 +1,50 @@
 # Security and compliance
 
-This guide is for teams admitting the application into a restricted network. It covers what the application may reach, how that is enforced, how its actions are recorded, and how an auditor checks all of it, both before deployment and while it runs. Each control is a host plugin; [architecture](architecture.md#plugins) explains how plugins compose.
+This guide is for integrators who admit an application into a restricted network. It covers what the application may reach, how the host enforces that, how actions are recorded, and how an auditor checks the result. An auditor can check before deployment and while the application runs. Each control is a [host plugin](glossary.md#host-plugin), and [architecture](architecture.md#host-plugins) explains how plugins compose.
 
-Three choices shape the design. Reach is declared in the catalog rather than left to an OS sandbox alone, because a sandbox is not portable, is invisible to reviewers and gives the application nothing to check. The audit record of a command is written inside its transaction, because a log written afterwards allows commits that were never recorded. Firewall and service rules are generated from the same declarations, because hand-written rules drift from the code.
+## Concepts
 
-The model has four parts:
+This page is the home for [requirement declarations](glossary.md#requirement-declaration), [destinations](glossary.md#destination), [exchange folders](glossary.md#exchange-folder), the [site policy](glossary.md#site-policy), [hardening profiles](glossary.md#hardening-profile), the [egress guard](glossary.md#egress-guard), the [audit log](glossary.md#audit-log) and the [compliance bundle](glossary.md#compliance-bundle).
 
-1. **Declare.** Code states everything it may need: network destinations, devices and child processes.
-2. **Bind.** A per-site policy opens only what that site allows. Without a policy, nothing off the host is reachable.
-3. **Enforce.** An in-process guard refuses everything else, and generated OS and orchestrator rules add a second layer.
-4. **Record.** A hash-chained event log records business actions, denials and connections. By default it fails closed.
+## Controls and plugins
 
-The host is closed by default, and [host plugins](primitives.md#host-plugin) provide each part. The examples compose all four framework plugins:
+The controls apply in this order:
 
-| Plugin       | Provides                                                                            | CLI                 |
-| ------------ | ----------------------------------------------------------------------------------- | ------------------- |
-| `site`       | The site policy, profile floors and identity                                        | `site check`        |
-| `network`    | The egress guard, the proxy for child processes, mTLS ingress and exported OS rules | `network export`    |
-| `audit`      | The event log, forwarding, startup attestation and crash recovery                   | `audit verify`      |
-| `compliance` | Auditor queries, the posture monitor, the Compliance screen and the evidence bundle | `compliance report` |
+1. **Declare.** Modules, host components and plugins state what they need outside the process: destinations, exchange folders, devices and child processes.
+2. **Bind.** A site policy opens only what one [site](glossary.md#site) allows. Without a policy, nothing off the host is reachable.
+3. **Enforce.** The egress guard refuses everything else in process. Generated OS and orchestrator rules add a second layer.
+4. **Record.** The audit log records business actions, denials and connections in one hash chain.
 
-Leaving a plugin out leaves its part closed: without `network` nothing leaves the host, and without `audit` there is no log. Configuration that would go unenforced refuses to start. That covers a setting no composed plugin reads, and a policy that asks for bindings, mTLS or an audit trail without the plugin that enforces it. Environment variables are read only for settings that a composed plugin declares, so a stray one is ignored rather than refused. The service's `listening` record lists the plugins in force.
+Most examples compose the four plugins below, and the [examples table](architecture.md#examples) names the plugins of each.
 
-## 1. Declarations
+| Plugin | Provides | CLI verb |
+| --- | --- | --- |
+| `site` | The site policy, the hardening profile floors, identity and exchange folders | `site check` |
+| `network` | The egress guard, the proxy for child processes, TLS and mTLS ingress, and exported OS rules | `network export` |
+| `audit` | The audit log, forwarding, startup attestation and crash recovery | `audit verify` |
+| `compliance` | Auditor queries, the posture monitor and the Compliance screen | `compliance report` |
 
-Capability modules, host components and plugins declare their requirements, and an application adds the components it brings, such as a screen bridge or device drivers. The deployment catalog composes them all:
+Leaving a plugin out keeps its part closed. Without `network`, nothing leaves the host. Without `audit`, the kernel's audit log port keeps no log.
+
+Startup refuses configuration that no composed plugin would enforce:
+
+- a setting that no composed plugin declares;
+- a policy that binds destinations, without the network plugin;
+- a policy that selects a TLS or mTLS listener, without a plugin that provides ingress;
+- a policy that asks for a fail-closed or forwarded audit log, without the audit plugin.
+
+The host reads environment variables only for settings that a composed plugin declares, so it ignores a stray variable. It refuses a command-line flag that no plugin declares. The host's `listening` record lists the plugins in force. `packages/host/test/plugins.test.ts` and `plugins/network/test/network.test.ts` cover these refusals.
+
+## Declarations
+
+Modules, host components and plugins declare their requirements as data, and an application adds the host components it brings, such as a screen bridge or device drivers. The catalog composes them all. Reach is declared in the catalog because an OS sandbox alone is not portable, reviewers cannot read it, and it gives the application nothing to check.
+
+The audit plugin declares its collector in `plugins/audit/src/plugin-manifest.ts`:
 
 ```ts
-defineHostComponent({
+export const auditCollectorComponent = defineHostComponent({
   id: 'audit',
-  description: 'Forwards audit events off the host as RFC 5424 syslog.',
+  description: 'Audit plugin: forwards audit events off the host as RFC 5424 syslog.',
   requirements: {
     network: [
       {
@@ -43,23 +58,25 @@ defineHostComponent({
         offline: 'degrade', // queue | degrade | unavailable
       },
     ],
-    devices: [],
-    processes: [],
   },
 });
 ```
 
-- **Fixed hosts.** A declaration names a host only for fixed vendor endpoints. The site policy names site systems.
-- **Outbox targets.** An outbox target needs a declared destination that queues while offline.
+Building the catalog applies these rules (`packages/contracts/src/requirements.ts`):
+
+- **Fixed hosts.** A declaration names a host only for a fixed vendor endpoint. The site policy names site systems.
+- **Outbox targets.** Every [target](glossary.md#target) travels over a declared destination, exchange folder or child process. A destination that carries [outbox effects](glossary.md#effect) must queue while offline.
 - **Child processes.** A child process lists the only destinations it may reach.
-- **Exchange folders.** A folder another system reads or writes (a file drop, receipts, result exports) is declared by ID with its access (`read`, `write` or `read-write`), data classes and the outbox targets it carries. Code reaches it only through the folder port, so a module never names a path.
-- **Audit fields.** A capability lists the input fields that are safe to record in plain text. All other input is recorded as a digest.
+- **Exchange folders.** A folder that another system reads or writes is declared by ID with its access (`read`, `write` or `read-write`), data classes and outbox targets. Code reaches a folder only through the folder port, so a module never names a path.
+- **Audit fields.** A capability lists the input fields that are safe to record in plain text. The audit log records the rest of the input as a digest.
 
-The composed declarations appear in each application's generated contract and security manifest.
+Each application's generated contract and security manifest list the composed declarations.
 
-## 2. Site policy
+## Site policy
 
-A site policy is deployment data, validated against the composed declarations. Check one with `app site check --site <file>`.
+A site policy is deployment data for one site, validated against the composed declarations. The host reads it from `--site-policy` or `AGENT_NATIVE_SITE_POLICY`. Check one with `app site check --site <file>`, which reports the same findings that refuse startup.
+
+A policy file under the `sandbox` profile:
 
 ```json
 {
@@ -67,6 +84,7 @@ A site policy is deployment data, validated against the composed declarations. C
   "mode": "connected",
   "destinations": {
     "mes-api": { "url": "https://mes.plant.local:8443", "addresses": ["10.20.0.15/32"] },
+    "audit-collector": { "url": "tcp://10.20.0.40:6514", "addresses": ["10.20.0.40/32"], "tls": true },
     "openai-api": { "disabled": true, "reason": "No cloud inference on the line." }
   },
   "audit": { "mode": "fail-closed", "forwardTo": "audit-collector" },
@@ -75,126 +93,187 @@ A site policy is deployment data, validated against the composed declarations. C
 }
 ```
 
-- **Bindings** name declared destinations and match their protocol, host and port.
-- **`addresses`** (CIDRs) let the guard check DNS answers, which defeats DNS rebinding, and the firewall exports need them. A binding without addresses gets a warning, and its scope is never widened.
-- **`ca`** replaces the trust store for a destination, and **`certificatePins`** pin server certificates.
-- **`timeoutMs`** replaces the guard's per-request timeout of 30 seconds for one destination, from 1 second to an hour. A local model server that reasons before it answers needs minutes.
-- **`folders`** binds each declared folder ID to an absolute directory (POSIX, a Windows drive path or a UNC share), or disables it with a reason. Two folders cannot share a directory, an undeclared or unbound required folder is an error, and a bound directory that does not exist is a warning, since a share may be mounted later. A disabled or unbound folder is unavailable through the folder port.
-- **Connected mode** requires every required destination to be bound or explicitly disabled. Each closed destination is listed with its offline consequence.
+- **Bindings** name declared destinations and must match their protocol, host and port.
+- **`addresses`** are CIDRs. They let the guard check DNS answers, which defeats DNS rebinding, and the rule exports need them. A binding without addresses gets a warning, and the exports keep it blocked instead of widening it.
+- **`ca`** replaces the trust store for one destination, and **`certificatePins`** pin its server certificates.
+- **`timeoutMs`** replaces the guard's 30-second request timeout for one destination, from 1 second to an hour. A local model server that reasons before it answers needs minutes.
+- **`folders`** binds each declared folder ID to an absolute directory or disables it with a reason. The directory can be a POSIX path, a Windows drive path or a UNC share. A disabled or unbound folder is unavailable through the folder port.
+- **Connected mode** requires every required destination to be bound or explicitly disabled. The findings list each closed destination with its offline consequence.
 
-The `quality-inspection` example ships a complete sandbox policy. The desktop build ships one that binds only provider endpoints.
+Folder bindings have their own findings. Two folders cannot share a directory. An undeclared folder, or a required folder left unbound, is an error. A bound directory that does not exist is a warning, because a share may be mounted later.
 
-### Profiles
+`examples/quality-inspection/site-policy.sandbox.json` is a complete sandbox policy. The desktop build ships `apps/desktop/site-policy.json`, which binds only provider endpoints.
 
-A profile is a floor: startup refuses a policy below it, and `site check` reports the same findings.
+### Hardening profiles
 
-| Floor                      | desktop-local       | site-hub                             | sandbox                              | zero-trust                                     |
-| -------------------------- | ------------------- | ------------------------------------ | ------------------------------------ | ---------------------------------------------- |
-| Network default            | isolated            | isolated                             | isolated                             | isolated                                       |
-| Plain HTTP/WS off the host | allowed if declared | refused                              | refused                              | refused; TLS with a CA bundle or pins required |
-| Ingress                    | loopback only       | loopback, TLS or mTLS                | loopback, TLS or mTLS                | loopback, or mTLS                              |
-| Identity                   | local owner         | local owner, launcher grant          | launcher grant or external           | external only                                  |
-| Audit log                  | configurable        | fail-closed                          | fail-closed                          | fail-closed and forwarded off the host         |
-| Delegated grants           | as issued           | expire within `grants.maxTtlSeconds` | expire within `grants.maxTtlSeconds` | as sandbox, at most one hour                   |
+A hardening profile is a floor. Startup refuses a policy below its floor (`plugins/site/src/policy/floors.ts`).
 
-`site-hub` is for a hub that paired phones and tablets reach over the site network: the sandbox's floors, with the person running the hub as the local owner. Devices authenticate with the credentials the [device-link plugin](../plugins/device-link/README.md) issues.
+| Floor | desktop-local | site-hub and sandbox | zero-trust |
+| --- | --- | --- | --- |
+| Network default | Isolated | Isolated | Isolated |
+| Plain HTTP or WebSocket off the host | Allowed if declared | Refused | Refused; TLS with a CA bundle or pins |
+| Ingress | Loopback only | Loopback, TLS or mTLS | Loopback or mTLS |
+| Identity | Any | site-hub: any; sandbox: launcher grant or external | External only |
+| Audit log | Fail-closed or best-effort | Fail-closed | Fail-closed and forwarded off the host |
+| Delegated grants | Within `grants.maxTtlSeconds` when set | `grants.maxTtlSeconds` required | At most one hour |
 
-The identity settings:
+`site-hub` is for a [hub](glossary.md#hub) that paired phones and tablets reach over the site network. It has the sandbox's floors, except that the person running the hub may act as the local [owner](glossary.md#owner). Devices authenticate with the credentials that the [device-link plugin](../plugins/device-link/README.md) issues.
 
-- **`grant-file`:** the host issues no local-owner session and writes no owner credential. Only a launcher grant within the maximum lifetime is admitted, including for embedded CLI and MCP calls.
-- **`external`:** people sign in with the workforce identity provider named in `workforce` (OpenID Connect, authorization code with PKCE). Its issuer must be on the origin bound to the `workforce-idp` destination. The host issues the local owner no session, and embedded calls need a launcher grant. It never falls back to the local owner. See the [site plugin](../plugins/site/README.md#trust-boundary).
+### Identity
 
-**TLS and mTLS.** The listener binds the configured address with the site's certificate. With `mtls` it admits only clients whose certificate chains to `clientCa`; with `tls` any client on the network completes the handshake, and a policy that sets `clientCa` on a `tls` listener is refused, since nothing would check it. Either way every API call still needs a session token or a device credential. Certificate paths resolve next to the policy file.
+The policy's `identity` is `local-owner`, `grant-file` or `external`:
 
-**Certificate expiry.** The site issues and renews its own certificates; the host only reads them. At startup it reads the listener certificate, the client CA and each destination's CA bundle, never the key. It refuses a listener certificate outside its validity window, a CA bundle with no valid certificate, and a file with no readable PEM certificate. A certificate within 30 days of expiry, or an expired one in a bundle that still holds a valid one, is a warning. The posture monitor judges validity again on every check, so a certificate that expires while the host runs turns the `certificates` check to `fail`.
+- **`local-owner`:** the host admits the trusted local owner and issues it a session.
+- **`grant-file`:** the host issues no local owner session and writes no owner credential. It admits only a launcher's [delegated grant](glossary.md#grant) within the maximum lifetime, including for embedded CLI and MCP calls.
+- **`external`:** people sign in through [workforce sign-in](glossary.md#workforce-sign-in) with the OpenID Connect provider named in `workforce`, using the authorization code flow with PKCE. The provider's issuer must be on the origin bound to the `workforce-idp` destination. The host issues the local owner no session, and embedded calls need a launcher grant.
 
-## 3. Enforcement
+Under `external`, the host never falls back to the local owner. The [site plugin's trust boundary](../plugins/site/README.md#trust-boundary) describes the sign-in flow. `examples/project-tasks/test/hardening.test.ts` covers the identity floors.
 
-**In-process guard.** Every outbound connection of the host and its plugins passes through it:
+### Ingress and certificates
 
-- **Destination requests:** a fetch scoped to each destination allows only the bound scheme, host and port. It checks every redirect hop and the resolved addresses, applies CA and pin settings, and caps response size and time.
-- **Provider SDKs:** they get a fetch routed by origin, which explains each refusal.
-- **TCP transports:** they get a scoped socket.
-- **Child processes:** declared children reach the network through a loopback CONNECT proxy that tunnels only to their declared destinations.
+A TLS listener binds the policy's host name and fixed port with the site's certificate. With `mtls`, it admits only clients whose certificate chains to `clientCa`. With `tls`, any client on the network completes the handshake. A policy that sets `clientCa` on a `tls` listener is refused, because nothing would check it. Either way, every API call still needs a session token or a device credential.
 
-A refusal is an `UNAVAILABLE` error (HTTP 503, CLI exit 8) and is recorded as `egress.denied`. The desktop shell applies the same declarations to renderer requests.
+Certificate paths resolve next to the policy file. The site issues and renews its own certificates, and the host only reads them. At startup it reads the listener certificate, the client CA and each destination's CA bundle, never the key. Startup refuses:
 
-`check:boundaries` fails when server code uses network, socket or process APIs directly instead of the guard. The few reviewed exemptions carry reasons, and a stale exemption fails the check.
+- a listener certificate outside its validity window;
+- a CA bundle with no valid certificate;
+- a file with no readable PEM certificate.
 
-**Generated rules** cover what the guard cannot see: a child that ignores proxy settings, a dependency that opens its own socket, or a compromised process. Generate them with `app network export --site <file> --format <format> [--resolver ip]...`. Every format denies by default, carries the policy digest, and lists any binding it could not enforce.
+A certificate within 30 days of expiry is a warning. So is an expired certificate in a bundle that still holds a valid one. The posture monitor judges validity again on every check, so a certificate that expires while the host runs turns the `certificates` check to `fail`.
 
-| Format              | Enforces                                                                                                                               |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `nftables`          | Egress for the service's OS user, by address and port; DNS only to the given resolvers.                                                |
-| `windows-firewall`  | Program-scoped rules. Block rules win on Windows, so the export blocks the complement of what is allowed.                              |
-| `systemd`           | A hardened unit: deny all addresses except those allowed, read-only system, private devices and temp, no capabilities, syscall filter. |
-| `k8s-networkpolicy` | Egress and ingress for the pod.                                                                                                        |
-| `k8s-pod`           | Non-root, read-only root filesystem, no capabilities, default seccomp.                                                                 |
-| `compose`           | Container hardening only; Compose cannot filter by destination, and the file says so.                                                  |
-| `json`              | The neutral rule set, for other tools.                                                                                                 |
+## Egress
 
-Rules are exported, never applied; applying them is a deployment step. They are verified as text and have not been loaded into a real firewall or cluster here.
+### Egress guard
 
-**Sandboxes for agent tools.** The [execution host plugin](../plugins/execution-host/README.md) runs the tools an agent uses in Linux bubblewrap sandboxes, started through the process port, so the site policy binds and pins bubblewrap. Each sandbox has new namespaces, a root holding only the declared tools and named paths, a seccomp filter that denies mounting, namespace creation, ptrace and kernel loading, and a network namespace with loopback only. Two relays are its only way out: to the host API, with a token bound to the run's grant, and to the egress proxy, for the destinations the sandbox declares. Revoking the token or reaching the grant's expiry stops the next call. macOS and Windows have no backend yet.
+Every outbound connection of the host and its plugins passes through the egress guard:
 
-**Local models.** The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start and refuses files that differ from the model entry, and a fine-tune that has no passing activation for its exact digests. Runs record the measured digests with `verified: true`, so an auditor can trace a proposal to the base weights, the adapter and the dataset digest. The dataset export reads proposals as the exporting caller and applies redaction before the digest, so only what that caller may see, minus the redacted fields, leaves the host for training.
+- **Destination clients.** A fetch scoped to one destination allows only the bound scheme, host and port. It checks every redirect hop and the resolved addresses, applies the CA and pin settings, and caps response size and time.
+- **Provider SDKs.** They get a fetch routed by origin, which explains each refusal.
+- **TCP transports.** They get a scoped socket.
+- **Child processes.** Declared children reach the network through a loopback CONNECT proxy. The proxy identifies each child by a per-process credential and tunnels only to its declared destinations.
 
-## 4. Event log
+A refusal is an `UNAVAILABLE` error, which is HTTP 503 and CLI exit 8, and the audit log records it as `egress.denied`. The guard records an allowed connection before it opens. With a fail-closed audit log, a connection that cannot be recorded does not open. `plugins/network/test/guard.test.ts` covers the redirect, address, cap and proxy checks.
 
-The runtime records commands, queries, denials, outbox transitions, sync passes, guard decisions, runs and host startup. Connections and business actions share one chain. Each event carries the actor (principal, run, grant and channel), the operation, a safe reason code, correlation IDs, an input digest and allow-listed fields only.
+`check:boundaries` fails when server code uses network, socket or process APIs directly instead of the guard. `scripts/boundary-rules.ts` lists each reviewed exemption with its reason, among them the harness launches in `packages/agents`. A stale exemption fails the check.
 
-The file log chains events with SHA-256 across rotated segments and writes checkpoints. It syncs every append, keeps files private to the owner, and allows one writer per directory. It lives in the workspace unless the `audit-log` setting moves it.
+The desktop window lets its renderer reach only the local authority ([desktop](desktop.md)). The [telemetry plugin](../plugins/telemetry/README.md) exports through the guard to a collector on the same machine, and that collector holds any vendor credential ([architecture](architecture.md#telemetry)). The fleet agent connects only outbound, through its `fleet` destination ([hosting](hosting.md#fleet)).
 
-- **Fail-closed ordering.** A command's acceptance is recorded inside its transaction, after final authorization. If the record fails, nothing commits. If the process dies before the commit is recorded, startup resolves the open entry against the receipts. A site can trade this for availability with `best-effort`; sandbox and zero-trust refuse that setting.
-- **Attestation.** Before the first request, startup records the executable, catalog and policy digests and the policy's findings, so an auditor can match a running instance to its SBOM and manifest.
-- **Forwarding.** `audit.forwardTo` sends events to a bound collector as RFC 5424 syslog. The connection goes through the guard like any other. Without the network plugin it is refused, and the forwarder counts the failure.
+### Generated rules
 
-## 5. Compliance bundle
+Generated rules cover what the guard cannot see: a child that ignores proxy settings, a dependency that opens its own socket, or a compromised process. Hand-written rules drift from the code, so `network export` renders them from the same declarations and policy. Every format denies by default, carries the policy digest, and lists any binding it could not enforce.
 
-`bun run generate` writes these files for each application to `dist/reference/<id>/`, and the shared control catalog to `dist/reference/`. They are not committed. `bun run bundle create` writes the security manifest and the contract from the catalog into each signed site bundle.
+| Format | Enforces |
+| --- | --- |
+| `nftables` | Egress for the host's OS user, by address and port, with DNS only to the given resolvers. |
+| `windows-firewall` | Program-scoped rules. Windows applies block rules first, so the export blocks the complement of what is allowed. |
+| `systemd` | A hardened unit: allowed addresses only, read-only system, private devices and temp, no capabilities, a syscall filter. |
+| `k8s-networkpolicy` | Egress and ingress for the pod. |
+| `k8s-pod` | Non-root, read-only root filesystem, no capabilities, default seccomp. |
+| `compose` | Container hardening only. Compose cannot filter by destination, and the file says so. |
+| `json` | The neutral rule set, for other tools. |
 
-| File                           | Contents                                                                                                                                                                  |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `security-manifest.json`       | Every declared destination, device and process with its owner, every operation whose effects leave the host, and in `summary.site` what pins the application to the site. |
-| `data-flows.md`                | A diagram and tables of the same, with the data classes that go where.                                                                                                    |
-| `controls.json`, `controls.md` | Controls mapped to ISO/IEC 27001:2022 Annex A, NIST SP 800-53 r5, NIST CSF 2.0 and IEC 62443-4-2, each with evidence: tests, artifacts and event kinds.                   |
+The export does not apply the rules; applying them is a deployment step. The tests compare the exports with golden files in `plugins/network/test/golden`. No export has been loaded into a real firewall or cluster here.
 
-The SBOM is not committed. `bun run bundle create` writes `sbom.cdx.json` into each signed site bundle: CycloneDX 1.6 from the lockfile at build time, with declared destinations as services with trust zones and data flows.
+### Agent tool sandboxes
 
-The control mappings are indicative. Certification still needs the organization's own scope and the licensed standard text.
+The [execution host](glossary.md#execution-host) runs the tools an agent uses in Linux bubblewrap sandboxes. It starts each sandbox through the [process port](glossary.md#process-port), so the site policy binds and pins bubblewrap. Each sandbox has:
 
-## 6. Checking it
+- new namespaces;
+- a root that holds only the declared tools and named paths;
+- a seccomp filter that denies mounting, namespace creation, ptrace and kernel loading;
+- a network namespace with loopback only.
 
-Each plugin adds its own CLI verb, so an application has the verbs of the plugins it composes. They run offline, with no authority or workspace:
+Two relays are the sandbox's only way out. One reaches the host API with a token bound to the run's grant. The other reaches the egress proxy for the destinations the sandbox declares. Revoking the token or reaching the grant's expiry stops the next call. macOS and Windows have no backend.
+
+### Local models
+
+The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start. It refuses files that differ from the [model entry](glossary.md#model-entry), and a fine-tune without a passing activation for its exact digests. Its runs record the measured digests with `verified: true`, so an auditor can trace a proposal to the base weights, the adapter and the dataset. A harness for a model server run outside the host records the digests it was given as unverified. The [proposal dataset](glossary.md#proposal-dataset) export applies redaction before its digest, so only what the exporting caller may see leaves the host for training. [Agents](agents.md) describes local models.
+
+## Audit log
+
+The audit log records these events in one chain:
+
+- commands, queries and denials, from every channel, including the dispatcher and inbound sync;
+- outbox transitions;
+- guard decisions and child processes;
+- sessions, delegated grants and agent runs;
+- OS requests and actions;
+- host startup and posture checks.
+
+`packages/contracts/src/audit.ts` lists the event kinds. Each event carries the caller's principal, workspace, run and [channel](glossary.md#channel), the operation ID, a safe reason code and correlation IDs. It carries an input digest and only the input fields the capability allows.
+
+The kernel's audit log port keeps no log. Once `plugins/audit` is composed, the log runs in the policy's audit mode, which defaults to fail-closed. A supplied policy therefore needs the audit plugin unless it sets `best-effort`. The file log chains events with SHA-256 across rotated segments and writes checkpoints. It syncs every append, keeps its files private to the owner, and allows one writer per directory. It lives in the workspace unless the `audit-log` setting moves it.
+
+### Fail-closed ordering
+
+A command's acceptance is recorded inside its transaction, after final authorization. If that record fails, nothing commits. A record written after the commit would allow commits that were never recorded. In fail-closed mode, a query whose record fails returns no data, and a connection whose record fails does not open.
+
+If the process dies before the commit is recorded, startup resolves the open entry against the [receipts](glossary.md#receipt). A site can trade this for availability with `best-effort`, and every profile except `desktop-local` refuses that setting. `packages/runtime/test/audit.test.ts` covers the rollback, and `examples/project-tasks/test/security.test.ts` covers crash recovery.
+
+### Attestation and forwarding
+
+Before the first request, startup records the executable, catalog and policy digests and the policy's findings. An auditor can then match a running instance to its SBOM and security manifest.
+
+`audit.forwardTo` sends events to a bound collector as RFC 5424 syslog. The forwarder sends after the local append, through the guard like any other connection. Without the network plugin the connection is refused, and the forwarder counts the failure.
+
+## Compliance bundle
+
+`bun run generate` writes these files for each application to `dist/reference/<id>/`, and the shared control catalog to `dist/reference/`. Nothing generated is committed. `bun run bundle create` writes the security manifest and the contract into each signed [site bundle](glossary.md#site-bundle).
+
+| File | Contents |
+| --- | --- |
+| `security-manifest.json` | Each declared destination, device and process with its owner, and each operation whose effects leave the host. |
+| `data-flows.md` | A diagram and tables of the same, with the data classes that go where. |
+| `controls.json`, `controls.md` | Controls mapped to the frameworks listed below, each with tests, artifacts and event kinds as evidence. |
+
+The security manifest's `summary.site` lists what pins the application to the site. The controls map to ISO/IEC 27001:2022 Annex A, NIST SP 800-53 Rev. 5, NIST CSF 2.0 and IEC 62443-4-2. The mappings are indicative. Certification still needs the organization's own scope and the licensed standard text.
+
+`bun run bundle create` also writes `sbom.cdx.json` into each site bundle. It is CycloneDX 1.6, built from the lockfile at build time, with declared destinations as services with trust zones and data flows. No SBOM is committed.
+
+## Checks
+
+Each plugin adds its own CLI verb, so an application has the verbs of the plugins it composes. The verbs run offline, with no authority or workspace. Here `app` stands for the application's CLI:
 
 ```sh
 app site check --site site-policy.json                # exit 2 on any error finding
 app network export --site site-policy.json --format nftables --resolver 10.20.0.53
 app audit verify --log /var/lib/app/audit             # exit 10 if the chain is damaged
-app compliance report --log /var/lib/app/audit --site site-policy.json --format markdown
+app compliance report --log /var/lib/app/audit --site site-policy.json --format markdown   # exit 10 if failing
 ```
 
-While the application runs, a posture monitor re-verifies the chain on an interval and on demand. It summarizes egress per destination and never probes the network. Auditors read posture, events and chain status through ordinary read-only queries and the Compliance screen. A denial shows up there within seconds. Only listed auditors may read them, and a delegated grant must name the operation.
+[Systems of record](systems-of-record.md#exit-codes) lists every CLI exit code.
 
-## 7. Offline first
+While the application runs, a posture monitor re-verifies the chain on an interval and on demand. It summarizes egress per destination and never probes the network. Auditors read posture, events and chain status through ordinary read-only queries and the Compliance screen. The screen polls every five seconds, so a denial appears within seconds.
 
-With no site policy, the application is isolated:
+Only listed auditors may read the audit log; at creation the workspace owner is the only one. A delegated grant must name the operation. A grant limited to resources must also name `audit:log`.
+
+## Isolated operation
+
+With no site policy, the application runs isolated:
 
 - it listens on loopback only;
 - outbox targets queue visibly;
 - inference providers report themselves unavailable;
 - the deterministic harness keeps working.
 
-The telemetry plugin exports only catalog operation IDs, outbox target IDs, harness IDs, fixed states, error codes, counts and durations, with correlation, effect and run IDs as digests. It posts to a loopback collector through the egress guard, so each export is a bound, logged connection, and any vendor credential stays with the collector.
+A site connected to a fleet keeps working while the fleet is unreachable ([hosting](hosting.md#fleet)).
 
-A site that reports to a fleet stays offline first: the fleet-agent plugin writes nothing to the workspace, and a cycle that cannot reach the fleet records why and tries again later. Its remote-access relay forwards requests to the host's own API with an allow-list of headers and adds no credential, so a relayed caller needs a session the site issued, and the site's fleet credential opens nothing on the site. Releases from the fleet are verified against the site's own trusted keys before they appear in the staging folder.
-
-`bun run test:isolated` fails on any non-loopback connection from the test process. `bun run test:sandbox` runs the compiled binary in an empty environment, then checks its audit chain and that it attempted no egress.
+`bun run test:isolated` fails on any non-loopback connection from the test process. `bun run test:sandbox` runs the compiled binary in an empty environment. It then checks the audit chain and that the binary attempted no egress.
 
 ## Limits
 
-- The guard and proxy are in-process controls. Real containment needs the exported rules applied, or an OS sandbox; the execution host provides one for agent tools on Linux only.
-- A process running as the workspace owner can read the workspace and the log. Chaining detects edits but cannot stop deletion of the newest entries; off-host forwarding covers that.
-- Workforce sign-in is OpenID Connect only (no LDAP or SAML), and certificates are checked for expiry but never issued or rotated.
+- The guard and the proxy are in-process controls. Real containment needs the exported rules applied, or an OS sandbox. The execution host provides one for agent tools, on Linux only.
+- A process running as the workspace owner can read the workspace and the audit log. Chaining detects edits but cannot stop deletion of the newest entries; off-host forwarding covers that.
+- Workforce sign-in supports OpenID Connect only, with no LDAP or SAML.
+- The host checks certificates for expiry but never issues or rotates them.
 - The isolated-test trap does not cover child processes.
-- Devices are declared but not mediated, and the systemd export needs explicit allowances for declared devices.
+- Devices are declared but not mediated. The systemd export needs explicit allowances for declared devices.
+
+## Related pages
+
+- [Architecture](architecture.md): host plugins, ports and the invariants.
+- [Hosting](hosting.md): the hosted authority, workforce sign-in in a deployment, and the fleet.
+- [Systems of record](systems-of-record.md): targets, outbox effects and CLI exit codes.
+- [Agents](agents.md): agent runs, harnesses and local models.
+- [Desktop](desktop.md) and [mobile](mobile.md): the desktop window and paired devices.
+- [Implementation status](implementation-status.md): what has run by hand and the known gaps.

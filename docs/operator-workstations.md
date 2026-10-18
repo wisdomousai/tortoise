@@ -1,133 +1,219 @@
 # Operator workstations
 
-This pattern treats legacy station software as a screen-mediated authority. It extends the [system-of-record pattern](systems-of-record.md) to the point where work meets machines. On many shop floors, controller-level hardware sits behind proprietary station software: a vendor HMI, a test-bench program, a measurement application or a homebrew MES client. That software rarely has a usable API, is often validated or under warranty, and must not be modified. This pattern covers the case where the only stable interface is its screen. Where the software exposes an automation interface such as COM, a local RPC service, files or a decodable network protocol, the same ports apply with a different adapter: a [hardware driver](hardware-drivers.md) in its own process, as in [Automation route](#automation-route).
+This page explains how an [application](glossary.md#application) observes and drives [station](glossary.md#station) software through its [station screen](glossary.md#screen). It is for integrators whose machines sit behind a vendor HMI, a test-bench program, a measurement application or a homebrew MES client. Coding agents follow the [bridge-station-screen](../packages/station/skills/bridge-station-screen/SKILL.md) skill. The example is [`examples/line-station`](../examples/line-station/README.md).
 
-The goal is instrumentation on top of that stack. Monitor the station, let operators and agents act through the application's interaction contract, and reach the legacy software only through its screen, by way of a background computer-use agent that the application controls. The hardware stays behind the legacy software, which keeps all controller interaction.
+Station software rarely has a usable API, is often validated or under warranty, and must not be modified. Where its only stable interface is its station screen, the application treats it as a [system of record](systems-of-record.md) reached through that screen. Software with an automation interface, such as COM, a local RPC service, files or a decodable network protocol, is reached through a [driver](hardware-drivers.md) instead, as [Automation route](#automation-route) describes.
 
-The worked example is `examples/line-station`. Status and evidence are recorded at the end of this document and in the [implementation ledger](implementation-status.md).
+The application monitors the station and lets operators and agents act through its [catalog](glossary.md#catalog). A bridge the application controls is its only path to the station software, which keeps all interaction with the controller and the hardware.
 
-## Where the pattern sits
+## Concepts
+
+This page is the home for [station profiles](glossary.md#station-profile), [procedures](glossary.md#procedure), [bridge modes](glossary.md#bridge-mode), [hazard classes](glossary.md#hazard-class), the [seat](glossary.md#seat) and [station sign-in](glossary.md#station-sign-in).
+
+## Station software and the MES
 
 ```mermaid
 flowchart TB
-  ERP[(ERP)] --- MES[(MES: often homebrew, a system of record)]
+  ERP[(ERP)] --- MES[(MES, often homebrew: a system of record)]
   MES --- Station[Station software: vendor HMI, test bench, MES client]
-  Station --- PLC[PLC / controller]
+  Station --- PLC[PLC or controller]
   PLC --- HW[Machine hardware]
-  subgraph App[Task application: one authority, one catalog]
-    UI[Operator surface] --> Authority[Commands / queries / journal]
-    MCP[MCP / CLI / agents] --> Authority
+  subgraph App[Application: one authority, one catalog]
+    UI[Screens] --> Authority[Commands, queries, journal]
+    MCP[MCP, CLI, agents] --> Authority
     Authority --> Outbox[Outbox]
   end
   Outbox -->|API connector| MES
   MES -->|inbound sync| Authority
-  Outbox -->|screen connector: computer use| Station
-  Station -->|observer: accessibility, OCR, vision, audio| Authority
+  Outbox -->|station connector| Station
+  Station -->|station observer: accessibility tree, OCR, vision, audio| Authority
 ```
 
-The application wraps two levels:
+The MES is an ordinary system of record. It owns orders, recipes and reason catalogs, and it accepts confirmations. A homebrew MES is often reachable through a database, a file drop or a small HTTP service, and a [connector](glossary.md#connector) uses whichever exists.
 
-- **The MES** is an ordinary system of record. It owns orders, recipes and reason catalogs, and it accepts confirmations. Homebrew MES installations are often reachable through a database, file drop or small HTTP service. A connector implements the system-of-record port against whichever of those exists.
-- **The station software** is a screen-mediated authority. It owns the actual machine state, the recipe that is actually loaded, and the counters. The application reads these by observing the screen. It changes them only through declared procedures that a computer-use controller performs and then verifies by reading the screen back.
+The station software owns the actual machine state, the loaded recipe and the counters. The application reads them by observing the station screen. It changes them only through declared procedures, which the controller performs and then confirms by reading the station screen back.
 
 The application never talks to the PLC or the hardware. Safety functions remain with the machine and its builder.
 
-## Where the computer-use agent sits
+## Screen bridge
 
-The central decision is where the computer-use agent lives. It is **not** an application harness with catalog tools in front of the authority. It is a connector behind the outbox, on the same footing as an ERP API client:
+The screen bridge sits behind the [outbox](glossary.md#outbox), as a connector on the same footing as an ERP API client. It is not a [harness](glossary.md#harness) and holds no catalog tools. A request travels like this:
 
-- A person or agent issues a catalog command, such as starting an order. The handler validates the command, records the _desired_ state and enqueues an effect for target `legacy-hmi`, all in one transaction.
-- The station connector, another system-of-record connector, claims the effect outside any transaction. It runs the declared procedure on the station screen and reports an outcome through the domain's settle command.
-- The station observer, on the inbound side like inbound sync, reads the screen and submits readings through an ingest command. It never writes storage.
+1. A person or an agent submits a [command](glossary.md#command), such as starting an order. The handler validates it, records the desired state and enqueues an [outbox effect](glossary.md#effect) for the station's target, in one transaction.
+2. The [dispatcher](glossary.md#dispatcher) claims the effect outside any transaction and hands it to the station connector. The connector runs the declared procedure on the station screen, and the dispatcher settles the outcome through the domain's settle command.
+3. The station observer reads the station screen and submits readings through an ingest command. It never writes storage.
 
-Frontends, MCP clients and agents therefore keep one CQRS contract. They never address the computer-use agent, and the computer-use agent never holds business tools. Its integration principal can only ingest observations, settle station effects and read its control state. Removing the bridge leaves a monitoring-free but fully functional application. Adding a better computer-use model changes one driver, not the contract.
+Screens, MCP clients and agents never address the bridge, and the bridge holds no business capabilities. In `line-station`, each station's bridge runs as the [integration principal](glossary.md#integration-principal) `station-bridge:<station>`. Its [grant](glossary.md#grant) holds three capabilities:
 
-## Bridge modes
+| Capability | Use |
+| --- | --- |
+| `line.observation.ingest` | Submit what the station screen shows. |
+| `line.effect.settle` | Settle the station's effects, for target `legacy-hmi:<station>`. |
+| `line.control.get` | Read the bridge mode and the seat. |
 
-The pattern has three rungs, each worth deploying alone:
+The application runs without a bridge, and then has no observations. A different computer-use model replaces one computer-use driver and leaves the catalog unchanged.
 
-1. **Observe.** This is read-only instrumentation. Machine state, counters, alarms and the loaded recipe become authorized live projections with freshness and confidence. Stops are detected from observed state transitions. This rung carries most of the value, carries no actuation risk, and is the default bridge mode (`monitor-only`).
-2. **Annotate.** People and agents add meaning to observed events: stop reasons, scrap reasons, confirmation of counts. Each annotation is an ordinary command, forwarded to the MES through the outbox. An agent can propose an explanation from the alarm text and history; the operator confirms with one tap.
-3. **Actuate.** The bridge writes into the legacy GUI, for example to load the recipe for a scanned order. This rung requires bridge mode `actuate`, an explicit hazard class per procedure, the operator's hold-to-confirm for operator-present procedures, and readback verification.
+## Procedure delivery
 
-## Settling screen procedures
+Screen actions are not idempotent and can be interrupted. A station procedure therefore uses convergent delivery, one of the [delivery modes](hardware-drivers.md#delivery-modes) that hardware drivers define. The station connector handles an effect in this order:
 
-Screen actions are not idempotent and can be interrupted. The connector therefore treats acceptance as convergence:
+| Step | Rule |
+| --- | --- |
+| Payload check | A missing presence confirmation rejects with `PRECONDITION`; a missing input value with `INVALID_PAYLOAD`. |
+| Bridge state | While the bridge mode or the seat forbids the procedure, delivery fails transiently. |
+| Convergence | A readback that already matches is accepted without acting, so a redelivery after a lost settlement is harmless. |
+| Start screen | If the station screen is not the procedure's start screen, delivery fails transiently. |
+| Preconditions | Unreadable ones fail transiently. Unmet ones reject with `PRECONDITION`, and nothing was done. |
+| Steps | Each action passes the controller's gate. A stop before the first action is a transient failure. |
+| Readback | A match across the fields' stable reads accepts, with a readback digest as the external reference. |
+| Interruption | After the first action, a stop or failed readback redelivers a `rerunnable` procedure and holds any other effect. |
 
-| Step                | Rule                                                                                                                                                       |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Before any action   | Observe. If the readback already matches the desired state, settle `accepted` without acting. This makes a redelivery after a lost settlement harmless.    |
-| Preconditions       | If declared preconditions fail (for example, the machine is running), settle `rejected` with `PRECONDITION`. Nothing was done, so rejection is definitive. |
-| During the steps    | Each action passes the controller's policy gate. An unexpected screen, an alarm, operator input or a timeout aborts the run and is a transient failure.    |
-| After the steps     | Observe again. A matching readback settles `accepted`, with a readback digest as the external reference.                                                   |
-| Uncertain afterward | If the readback does not match, a procedure declared `rerunnable` is redelivered. Any other effect is **held** for operator reconciliation, never re-run.  |
+An unexpected screen such as an alarm popup, local input, a timeout or an exhausted step budget stops a procedure. An effect for a type with no procedure is rejected with `UNSUPPORTED`. `packages/station/test/controller.test.ts` tests this order.
 
-A held effect stays visible as "needs reconciliation". The operator states whether the change was applied, through a reconcile command. A lost reply is not a rejection, and an empty observation is not proof that nothing happened.
+A held effect never re-runs and stays visible as needing [reconciliation](glossary.md#reconciliation). The operator states through a reconcile command whether the change was applied. A lost reply does not reject the effect, and an empty observation does not prove that nothing happened. [Held effects](systems-of-record.md#held-effects) explains reconciliation.
 
-## Screen transport, driver and controller
+## Bridge modes and hazard classes
 
-"Any computer-use agent, as long as we control it" becomes a port split:
+Each station has a bridge mode:
 
-- A **screen transport** reaches the screen. It captures frames, optionally reads an accessibility tree, performs one action and reports local operator input where it can detect it. The reference transport drives a Playwright page. VNC, RDP, HDMI capture with USB HID injection (KVM-over-IP), and Windows UI Automation are adapter slots for sites where nothing may be installed on the vendor PC.
-- A **computer-use driver** only resolves a declared target to a screen location and, for future goal-directed drivers, proposes the next action. It never holds the mouse.
-- The **controller** executes every action itself, after a gate. The gate checks that the screen is the expected one, that the target is outside every forbidden region and inside the procedure's allowed set, that the step budget and timeout are not exceeded, that the bridge mode permits actuation and that the agent holds the seat.
+| Bridge mode | What the bridge may do |
+| --- | --- |
+| `monitor-only` | Observe only. This is the default. |
+| `assist` | Run procedures of hazard class `none`. |
+| `actuate` | Run every declared procedure. |
 
-The reference implementation ships a deterministic scripted driver that resolves targets from locators. A live computer-use model implements the same port later. Local models, such as open UI-grounding models, and cloud models can then be swapped without changing the gate.
+Each procedure declares a hazard class:
 
-### Seat
+| Hazard class | Meaning |
+| --- | --- |
+| `none` | No machine motion. |
+| `low` | Changes settings, with no motion. |
+| `operator-present` | The effect payload must carry a confirmation that a person is at the station. |
 
-The operator and the agent share one legacy screen. Exactly one holds it at a time: `operator`, `agent` or `idle`. The operator always preempts. The seat is recorded state, not a lease: it has no expiry and no fencing token, so a holder that disappears keeps it until someone changes it. The station UI's takeover command changes the desired seat in domain state, and the controller reads it through its control query. Where the transport detects local keyboard or mouse input, the controller aborts immediately and reports the seat as `operator`. An aborted procedure is uncertain and follows the reconciliation rules above.
+Driver actions use the same bridge modes and hazard classes, as the hardware drivers [gate](hardware-drivers.md#gate) describes. In `line-station`, only a supervisor at the station may change the bridge mode. A supervisor can pause actuation at any time, and pending effects then wait visibly.
 
-## Observation and local models
+## Deployment stages
 
-Prefer the most deterministic source available, in this order:
+Each stage is worth deploying alone:
 
-1. Vendor exports, log files, the station's own database, or an automation interface such as COM or local RPC, as a regular inbound connector or extractor where one exists.
-2. The accessibility tree of the legacy application (UI Automation on Windows). This is often available on old Win32 software and is exact.
+1. **Observe.** Machine state, counters, alarms and the loaded recipe become authorized live data with freshness and confidence, and stops are detected from state transitions. This stage has no actuation risk.
+2. **Annotate.** People and agents add meaning to observed events, such as stop reasons and count confirmations. Each annotation is an ordinary command, forwarded to the MES through the outbox.
+3. **Actuate.** The bridge writes into the station software, for example to load the recipe for a scanned order. The bridge mode must permit the procedure's hazard class.
+
+In `line-station`, the stop explainer agent proposes a stop reason from the alarm text and history. The station shows the [proposal](glossary.md#proposal), and the operator accepts it with one tap. Loading a recipe has hazard class `operator-present` and so needs actuate mode. The operator starts the order with a hold-to-confirm, and the command records them as the confirming person.
+
+## Controller gate
+
+The bridge splits the work across three ports:
+
+- **Screen transport:** captures frames, reads the accessibility tree where it can, performs one action, and reports local input at the station where it can detect it.
+- **Computer-use driver:** resolves a declared target to a point on the station screen. It never acts.
+- **Controller:** performs every action itself, after a gate.
+
+The gate runs before every click, key press and typed text. It checks:
+
+- the bridge mode and the seat, read again through the control query;
+- local input since the procedure started, where the transport reports it;
+- the expected station screen, on a fresh capture;
+- that the resolved point lies outside every forbidden region;
+- the procedure's step budget and timeout.
+
+A procedure performs only its declared steps and presses only keys from the station profile's allowed list. The reference transport drives a Playwright page. VNC, RDP, KVM-over-IP and Windows UI Automation fit the same port, for sites where nothing may be installed on the vendor PC. The reference computer-use driver is scripted and resolves targets from locators. A local UI-grounding model or a cloud model can implement that port without changing the gate.
+
+## Seat
+
+The operator and the bridge share one station screen. The seat records who holds it: `operator`, `agent` for the bridge, or `idle`. The bridge does not act while the operator holds the seat, and only a person can request it. The seat has no expiry and no fencing token, so a holder that disappears keeps it until someone changes it.
+
+The operator's takeover command changes the seat in the domain state, and the gate reads it before every action. Local input at the station stops a procedure at once, where the transport detects it. A procedure stopped after its first action follows the interruption rule in [Procedure delivery](#procedure-delivery).
+
+## Observation
+
+Each source of an [observation](glossary.md#observation) implements the [extractor](glossary.md#extractor) port. Prefer the most deterministic source available, in this order:
+
+1. Vendor exports, log files, the station's own database, or an automation interface such as COM or local RPC, read by an inbound connector or an extractor.
+2. The accessibility tree of the station software, such as UI Automation on Windows. Old Win32 software often has one, and it is exact.
 3. OCR and vision on screen pixels, through local models.
-4. Audio, for example classifying alarm horns or spoken notes.
+4. Audio, for example to classify alarm horns or spoken notes.
 
-Each source implements the extractor port. Every reading carries its value, confidence, extractor, model identity (`id`, `version`, `digest`), observation time and frame digest. A reading becomes current only after it is stable across a configured number of consecutive frames. A reading below the field's minimum confidence creates an attention item instead of silently updating state. The operator confirms or corrects it with a large button, and its provenance becomes `operator-verified`.
+Every reading carries its value, confidence, extractor, model identity, observation time and frame digest. A reading becomes current only after it agrees across the field's configured number of consecutive frames. A stable reading below the field's minimum confidence creates an attention item and does not update state. The operator confirms or corrects it with a large button, and its provenance becomes `operator-verified`.
 
-Local inference keeps frames on site. The reference adapters are:
+Local inference keeps frames on site. These [perception sources](glossary.md#perception-source) ship:
 
-- `accessibility`: deterministic, confidence 1.
-- `worker`: a JSON-lines subprocess protocol, so any local runtime can serve OCR, classifiers or audio models in any language.
-- `openai-compatible-vision`: a local vision-language model behind an OpenAI-compatible endpoint, for example Ollama, llama.cpp server or vLLM. Output is constrained to a JSON schema per field. The base URL must be loopback or explicitly allowlisted. Its confidence is agreement across reads, which is a heuristic and is documented as one.
+- **`accessibility`:** deterministic, with confidence 1 for a field it finds.
+- **`worker`:** a JSON-lines child process, so any local runtime in any language can serve OCR, classifiers or audio models.
+- **`openai-compatible-vision`:** a local vision model behind an OpenAI-compatible endpoint, such as Ollama, llama.cpp server or vLLM. Its output is checked against a JSON schema per field.
 
-### Station profiles
+A vision endpoint must be loopback or explicitly allowlisted. Its confidence is the agreement across repeated reads, which is a heuristic. `packages/station/test/observer.test.ts` and `packages/station/test/perception.test.ts` test these rules.
 
-Everything specific to one installation is versioned data, not code. A station profile names the application and its version pattern, identifies screens by anchors, maps fields to locators or regions and extractors, marks forbidden regions, and declares procedures with preconditions, steps, readback, hazard class and rerun safety. Profile validation rejects any procedure step that targets a forbidden region or an unknown field.
+## Station profiles
 
-When the vendor updates the HMI or a model changes, the golden-frame gate replays labeled frames through the profile's extractors. It reports per-field accuracy and confidence before the new version is activated.
+A station profile holds everything specific to one installation as versioned data. It names:
+
+- the station software and the versions it was validated against;
+- its screens, recognized by accessibility anchors or a classifier label;
+- its fields, each with a locator or region and an extractor;
+- the forbidden regions;
+- the procedures, each with preconditions, steps, readback, hazard class and whether it is rerunnable.
+
+Validation rejects a step that targets a forbidden region or an unknown field, as `packages/station/test/profile.test.ts` shows. A station profile is unrelated to a [scanner profile](point-of-work-input.md) and to a [hardening profile](glossary.md#hardening-profile).
+
+When the vendor updates the station software or a model changes, the [golden check](glossary.md#golden-check) replays labeled frames through the profile's extractors. It reports per-field accuracy and confidence. It fails on any confident wrong reading or misidentified screen.
 
 ## Automation route
 
-A station whose software has an automation interface can be reached through a driver instead of its screen. The driver's contract carries the fields the screen profile reads and the same procedures, with the same preconditions, readback and hazard classes. Its bridge runs as the same station principal with the same grant, target and control query. Observations and outbox effects look the same to the domain, so handlers, contracts and screens do not change with the route. The driver's `control` field takes the place of the screen's local input check. The bridge mode and the seat gate it as they gate the screen route.
+A station whose software has an automation interface can be reached through a driver instead of its station screen. The [driver contract](glossary.md#driver-contract) carries the fields the station profile reads and the same procedures, with the same preconditions, readback and hazard classes. Its bridge runs as the same station principal, with the same grant, target and control query. Observations and outbox effects look the same to the domain, so handlers, contracts and screens do not change with the route.
 
-`examples/line-station` configures each station on one route. Its automation driver is written in C# against the station software's COM server; see [hardware drivers](hardware-drivers.md#examples).
+The driver's `control` field takes the place of the station screen's local input check. The bridge mode and the seat gate the driver as they gate the station screen. `line-station` configures each station on one route. Its automation driver is written in C# against the station software's COM server, as the hardware drivers [examples](hardware-drivers.md#examples) describe.
 
-## Safety
+## Station sign-in
 
-- The bridge never operates safety functions. Profiles mark emergency-stop reset, interlock override, manual jog and similar controls as forbidden regions, and no procedure can target them.
-- Procedures declare a hazard class: `none`, `low` or `operator-present`. Operator-present procedures require a hold-to-confirm at the station by a person with the operator role.
-- The default bridge mode is `monitor-only`. A supervisor can pause actuation at any time; pending effects then wait visibly.
-- Machine guarding and safety remain the responsibility of the machine and its builder. This is not a safety-rated system. Regulated environments (GMP, 21 CFR Part 11 and similar) require deployment-specific validation.
+At a shared station, an operator scans a badge at a seat and enters a PIN of four to eight digits. They get a short-lived [session](glossary.md#session) of their own and act as themselves. The seat's screen keeps its own session, used only to sign people in. [`plugins/station-sign-in`](../plugins/station-sign-in/README.md) provides this on a serving Bun host.
 
-## Ownership
+A seat is the local owner or a principal listed in the `station-sign-in-seats` setting, such as a tablet's in [attached mode](glossary.md#attached-mode). The rules:
 
-| Data                                                                                       | Owner                                                                     |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Orders, recipes, reason catalogs, accepted confirmations                                   | MES (system of record), imported through inbound sync                     |
-| Actual machine state, loaded recipe, counters, alarms                                      | Station software; the application holds observed copies with provenance   |
-| Stops and their classification, count confirmations, operator verifications, desired state | Task application, forwarded to the MES or station through the outbox      |
-| Observation history                                                                        | Task application, bounded, with frame digests rather than retained frames |
-| Scanner and device profiles per station                                                    | Task application, through the reusable device configuration module        |
+- Only a seat's own session may sign people in, and never under a delegated grant. An agent at the seat cannot open a person's session.
+- A session lasts 15 minutes by default, and at most 720. Signing in at a seat ends the previous session there.
+- Five wrong PINs in a row lock the badge for fifteen minutes, even against the right PIN.
+- An unknown badge, a revoked badge and a wrong PIN get the same answer.
+- The badge value and the PIN reach only the plugin's routes and never a stored command input. State keeps digests of badge values and tokens, and a salted scrypt hash of the PIN.
+- Sign-out, expiry and badge revocation take effect at the operator's next request.
 
-## Point-of-work input
+Signing in does not move a seat that the bridge holds. The operator takes the station screen back with the takeover command. `plugins/station-sign-in/test/sign-in.test.ts` tests these rules.
 
-Operators wear gloves, stand at a distance and look at the machine, not the screen. The [point-of-work input guide](point-of-work-input.md) covers the glove-sized operator UI registry and the scanner kit: sources, calibration, decoding and layout correction.
+## Data ownership
 
-## Status
+| Data | Owner |
+| --- | --- |
+| Orders, recipes, reason catalogs, accepted confirmations | MES, imported through [inbound sync](glossary.md#inbound-sync). |
+| Actual machine state, loaded recipe, counters, alarms | Station software; the application holds observed copies with provenance. |
+| Stops and their classification, count confirmations, operator verifications, desired state | Application, forwarded to the MES or station through the outbox. |
+| Observation history | Application, bounded, with frame digests in place of retained frames. |
+| Scanner profiles and scan routes per station | Application, through the device configuration module. |
 
-The status table is maintained in the [implementation ledger](implementation-status.md#operator-workstation-bridge). It separates deterministic tests, browser checks, device checks and opt-in live local-model checks. No live computer-use driver is part of this reference.
+## Use
+
+```sh
+bun test packages/station
+bun test examples/line-station
+cd examples/line-station && bun run dev
+cd examples/line-station && bun run station:golden
+```
+
+`bun run dev` starts the fake HMI in the same process and bridges it. A host starts a bridge only when `STATION_HMI_URL` is set. [Development and testing](development-and-testing.md#station-bridge-demo-and-opt-in-perception) lists the variables that choose the station, the station profile and the perception source.
+
+## Limits
+
+- The bridge never operates safety functions. Station profiles mark emergency-stop reset, interlock override, manual jog and similar controls as forbidden regions, and no procedure can target them.
+- Machine guarding and safety remain the responsibility of the machine and its builder. Nothing here is safety-rated. Regulated environments, such as Good Manufacturing Practice (GMP) or 21 CFR Part 11, need validation for each deployment.
+- No live computer-use driver ships, and no VNC, RDP, KVM-over-IP or UI Automation transport.
+- The station observer reads frames from a screen transport only.
+- Activating a station profile does not require a passing golden check.
+- No physical badge reader has been tested, and no example's station screen signs people in.
+
+## Related pages
+
+- [Implementation status](implementation-status.md#operator-workstation-bridge): deterministic, browser, device and live local-model evidence, kept apart.
+- [Point-of-work input](point-of-work-input.md): scanners and the operator UI registry.
+- [Hardware drivers](hardware-drivers.md): delivery modes and the automation route's driver.
+- [Systems of record](systems-of-record.md): the outbox, settlement and held effects.
+- [`packages/station`](../packages/station/README.md) and [`plugins/station-sign-in`](../plugins/station-sign-in/README.md): the parts and their tests.

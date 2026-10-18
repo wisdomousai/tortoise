@@ -13,7 +13,7 @@ This is one [Application](../../docs/primitives.md#application). It uses:
 - the [Device link](../../docs/primitives.md#device-link) plugin to enroll sites as `field-sync` devices;
 - the [Fleet agent](../../docs/primitives.md#fleet-agent) protocol, `fleetSiteModule`, as its second module;
 - [Blob store](../../docs/primitives.md#blob-store) attachments for release files;
-- the hash chain of the [Event log](../../docs/primitives.md#event-log) to check forwarded audit events.
+- the hash chain of the [Event log](../../docs/primitives.md#audit-log) to check forwarded audit events.
 
 The `site`, `network`, `audit` and `device-link` [host plugins](../../docs/primitives.md#host-plugin) are listed in each entrypoint.
 

@@ -1,35 +1,78 @@
-# Adapter boundaries
+# Adapters
 
-Feature contracts never mention how the application is hosted or stored. Each external dependency enters through a port with stated guarantees, and the reference adapters are local: Bun, SQLite, loopback HTTP and stdio.
+This page describes the framework's ports and their reference adapters: storage, and the HTTP, MCP and CLI surfaces. It is for integrators who replace an adapter or host the catalog elsewhere, and for contributors who change one.
 
-| Port                 | Reference adapters                                       | What an adapter has to keep                                                                                                             |
-| -------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Transaction storage  | Clone-on-write memory; SQLite holding a JSON snapshot    | State, revisions, receipts and journal commit together or not at all; a read sees one consistent snapshot.                              |
-| Authorization        | A bounded CASL profile                                   | Operation, object and field checks; scope applied before paging; current access on replay and events; unsupported rules deny.           |
-| Identity and session | Local owner or launcher grant, depending on site policy  | Principal, workspace and grant come from trusted context, never from operation input.                                                   |
-| Transport            | Loopback HTTP/SSE; MCP over stdio; the CLI               | Dispatch through the runtime, keep the structured error envelope, validate origin and session, and deliver events under current access. |
-| Agent harness        | Deterministic fixture; Codex, Claude and AI SDK adapters | Provider types stay private; progress is not a commit; cancellation and recovery stay explicit.                                         |
-| Event log            | Memory; hash-chained JSONL with one locked writer        | Ordered, chained, synced appends; in required mode a failed append rolls the command back.                                              |
-| Egress               | In-process guard, scoped socket, CONNECT proxy           | Only declared, policy-bound destinations; redirects and DNS answers are checked; every decision is recorded.                            |
+## Concepts
+
+This page is the home for the [adapter](glossary.md#adapter), the [surface](glossary.md#surface) adapters and the [storage](glossary.md#storage) adapters.
+
+## Ports
+
+[Capabilities](glossary.md#capability) never mention how the application is hosted or stored. Each outside dependency enters through a port with stated guarantees. The reference adapters are local: Bun, SQLite, loopback HTTP and stdio.
+
+| Port | Reference adapters | What an adapter keeps |
+| --- | --- | --- |
+| Storage | Memory, SQLite, Postgres, snapshot | State, revisions, receipts and journal commit together, and a read sees one snapshot. |
+| Authorization | `definePolicy`; a bounded CASL profile | Operation, object and field checks, scope before paging, current access on replay and events, and denial of unsupported rules. |
+| Identity and session | Local owner, grant file or workforce sign-in, by the site policy | Principal, workspace and grant come from trusted context, never from capability input. |
+| Surfaces | Loopback HTTP and SSE; MCP over stdio; the CLI | Calls go through the authority with the error envelope, and events follow current access. |
+| Agent harness | Deterministic fixture; Codex, Claude, AI SDK and local model adapters | Provider types stay private, progress is not a commit, and cancellation and recovery stay explicit. |
+| Audit log | Memory; hash-chained JSONL with one locked writer | Appends are ordered, chained and synced; in required mode a failed append rolls back the command. |
+| Egress | In-process guard, scoped socket, CONNECT proxy | Only declared, bound destinations; redirects and DNS answers are checked and every decision is recorded. |
 
 ## Storage
 
-Storage offers two operations: a transaction and a read, each scoped to one workspace. The core treats feature state as opaque, cloneable data and keeps framework metadata beside it. The memory adapter isolates copies and serializes work per workspace. The SQLite adapter stores one row per record (a module slice, a collection, a record) inside explicit transactions and writes only the rows a commit changed. The Postgres adapter uses the same row layout and serializes commits to one workspace across hosts with an advisory lock; a workspace lease adds a fencing check to every commit. Neither is a set of per-table repositories.
+The storage port offers a transaction and a read, each scoped to one [workspace](glossary.md#workspace). A failed transaction commits nothing. The runtime treats module state as opaque, structured-clone data and keeps framework metadata beside it.
 
-A different database can back the same port if it gives the same atomicity: receipts and journal entries are written in the business transaction, never after it. `storageConformance` in `packages/testing` is the suite a new adapter passes; `pgliteDriver` runs the Postgres adapter in process for it. Run history is stored separately and is not a substitute for receipts.
+- **Memory**: isolates copies and serializes work per workspace. Tests use it.
+- **SQLite**: one row per record (module slice, collection, record), and per revision, receipt, effect and journal entry. A commit writes only the rows it changed, in one transaction.
+- **Postgres**: the same row layout. An advisory lock serializes commits to one workspace across hosts.
+- **Snapshot**: one JSON document per workspace. The mobile host uses it.
 
-## Systems of record are not storage
+SQLite converts an older one-document file when it opens it. The row layout is not a relational model of module state. On the hosted platform, a [workspace lease](glossary.md#workspace-lease) adds a fencing check to every Postgres commit ([hosting](hosting.md#workspace-lease-and-fence)).
 
-An external business API cannot join the local transaction. Model it as a connector instead. Commit a delivery intent locally, do the external work outside the transaction, and record the outcome through a trusted command. Identity and version mapping, idempotency, uncertain outcomes and reconciliation are part of that connector's contract. See the [system-of-record pattern](systems-of-record.md).
+Another database can back the port if it gives the same atomicity: receipts and journal entries are written in the business transaction, never after it. Agent run history is stored separately and does not replace receipts.
 
-## Authorization
+## Systems of record
 
-The CASL adapter accepts equality, membership and boolean conditions over registered scalar fields. Denials are part of the computed scope, and unsupported operators are rejected rather than ignored. Generated SQL parameterizes values and validates column names. Field restrictions also limit which filters and sorts a caller can use. A new condition operator needs agreement tests across object, memory and SQL evaluation before it is used.
+A [system of record](glossary.md#system-of-record) cannot join the local transaction, so it is not storage. A command commits an [outbox effect](glossary.md#effect), the dispatcher delivers it afterwards, and a trusted command records the outcome. Identity and version mapping, idempotency, held effects and reconciliation belong to the [connector](glossary.md#connector)'s contract. [Systems of record](systems-of-record.md) describes the pattern.
 
-Policy receives the trusted context, the capability, validated input, current state and, at commit, the previous state. It projects output to what the caller may see and decides whether an event reference may be delivered. The runtime checks grants (operation, expiry and binding) and changed-resource restrictions. A remote policy adapter documents its own revocation consistency; the local one does not promise atomic authorization across systems.
+## Surface adapters
 
-## Transports
+Each surface adapter calls the authority's command and query entry points with a context the host supplies. [Architecture](architecture.md#surfaces-and-identity) lists how each surface identifies its caller.
 
-HTTP cursors are encrypted strings bound to the caller. A restart changes the key, so clients take a fresh snapshot. Event delivery enqueues inside the storage read boundary, so a permission change cannot commit between the access check and the enqueue. A transport forwards events through that boundary, not as a batch it authorized earlier.
+### HTTP
 
-To move to another host, inject its identity, policy and storage, and keep the catalog and handlers. To add a transport, map requests onto the runtime's raw invoke and query and keep the error envelope, revisions and authorization state. No cloud adapter ships here; the ports make one a defined piece of work.
+The HTTP adapter checks the Host and Origin headers, and refuses a cross-origin browser write. A browser gets its session through the [launch exchange](glossary.md#launch-exchange). Errors return the error envelope with a matching status code.
+
+[Cursors](glossary.md#cursor) are encrypted and bound to the session. A restart changes the key, so a [live query](glossary.md#live-query) takes a fresh snapshot. The event stream rechecks the session before each pull and delivers one batch per pull. Each batch is authorized and enqueued inside the storage read boundary, so a permission change cannot commit between the access check and the enqueue. An adapter forwards events through that boundary, never as a batch it authorized earlier.
+
+### MCP
+
+The MCP bridge serves one tool per capability over stdio. A tool call accepts only the input, an idempotency key and expected revisions, so a model cannot set trusted context. A command requires the key. Every failure is a tool error with the error envelope.
+
+In [attached mode](glossary.md#attached-mode), the bridge reads the [connection file](glossary.md#connection-file) and calls the authority over loopback HTTP. In [embedded mode](glossary.md#embedded-mode), it runs the authority in process under a [grant file](glossary.md#grant-file), and cursors are plain journal positions because no network session exists.
+
+### CLI
+
+The CLI maps arguments onto the catalog; the authority decides identity and authorization. Output is JSON by default, one value per run. A failure prints the error envelope and exits with a code mapped from the error code ([exit codes](systems-of-record.md#exit-codes)).
+
+## Adapter replacement
+
+To move to another host, inject its identity, policy and storage, and keep the catalog and handlers. To add a surface, map requests onto the authority's raw command and query entry points (`packages/adapters/src/application-port.ts`), and keep the error envelope, revisions and authorization state. No adapter for a cloud provider ships; the ports make one a defined piece of work.
+
+A new storage adapter passes `storageConformance` from `packages/testing`, which checks atomicity, isolation and persistence. `pgliteDriver` runs the Postgres adapter in process for it.
+
+```sh
+bun test packages/testing/test/storage.test.ts
+bun test examples/project-tasks/test/transport-conformance.test.ts
+```
+
+The first runs the suite on the memory, SQLite and Postgres adapters. The second compares results and errors across the in-process, HTTP, CLI and MCP adapters.
+
+## Related pages
+
+- [Authorization](authorization.md): the policy port and the CASL adapter.
+- [Architecture](architecture.md#host-plugins): the kernel ports that host plugins provide.
+- [Security and compliance](security-and-compliance.md): the audit log and the egress guard.
+- [Agents](agents.md): harnesses.

@@ -10,7 +10,7 @@ Layer: plugins (`plugins/*`). Server only, except `plugin-manifest` and `contrac
 - [Process port](../../docs/primitives.md#process-port): the server is a declared process (`modelServer({ id, runtime })`), so the site policy binds and pins its executable and gives the arguments that set its listening address.
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): `modelServer` declares the process and no destinations; the address agents reach it on is `local-inference`, declared by the host's provider components.
 - [Agent run](../../docs/primitives.md#agent-run): `harness` is a `localHarness` for the entry, available only while the server is ready.
-- [Event log](../../docs/primitives.md#event-log): `model.started`, `model.refused` (with `DIGEST_MISMATCH`, `UNREADABLE`, `NOT_ACTIVATED`, `NOT_READY` or `UNAVAILABLE`) and `model.exited`, each with the entry and its digests.
+- [Event log](../../docs/primitives.md#audit-log): `model.started`, `model.refused` (with `DIGEST_MISMATCH`, `UNREADABLE`, `NOT_ACTIVATED`, `NOT_READY` or `UNAVAILABLE`) and `model.exited`, each with the entry and its digests.
 
 ## Wiring an application
 

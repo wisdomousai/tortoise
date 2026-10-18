@@ -1,6 +1,6 @@
 # Primitives
 
-The building blocks of the framework: a capability catalog over one authority per workspace, which people, agents, scripts and connectors all call through the same contract. Commands change state, queries read authorized snapshots, and the journal tells every view what changed.
+This page indexes the framework's building blocks for contributors and integrators. Each entry has a definition in italics, then a line with its status and its code locations. Entries are grouped by area, and [architecture](architecture.md) explains how the areas fit together.
 
 ```mermaid
 flowchart LR
@@ -25,7 +25,7 @@ flowchart LR
   External --> Observation --> Command
 ```
 
-Each entry has a one-line definition and a line `<status> · <locations>`. Status is `implemented`, `partial` or `proposed`. How a primitive works, its settings and its limits are in the README of each location; what has been run is in the [implementation ledger](implementation-status.md).
+The status is `implemented`, `partial` or `proposed`. Where a location is a package, plugin, app, example or SDK, its README explains how the primitive works, its settings and its limits. The [glossary](glossary.md) defines the terms, and the [implementation ledger](implementation-status.md) records what has been run.
 
 ## Core
 
@@ -33,323 +33,323 @@ Each entry has a one-line definition and a line `<status> · <locations>`. Statu
 
 _A named command or query, defined once as data._
 
-implemented · `packages/contracts`
+implemented · [`packages/contracts`](../packages/contracts/README.md)
 
 ### Module
 
-_The unit a domain contributes: capabilities, handlers, a state slice, a policy route, workflows and scenarios._
+_The unit a domain contributes to the catalog: capabilities, requirement declarations, OS declarations, workflows and agent definitions, declared with `defineModule`. The application definition or host plugin that composes it supplies the handlers, the state slice and the policy._
 
-implemented · `packages/contracts` `packages/runtime`
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md)
 
 ### Catalog
 
 _The composed, validated description of everything the application can do._
 
-implemented · `packages/contracts`
+implemented · [`packages/contracts`](../packages/contracts/README.md)
 
 ### Generator
 
-_A pure transformation from the catalog to a checked-in artifact._
+_A pure transformation from the catalog to a reference document. Nothing generated from the catalog is committed; `bun run generate` writes the documents to `dist/reference/`._
 
-implemented · `scripts`
+implemented · [`scripts/generate.ts`](../scripts/generate.ts) [`scripts/reference-artifacts.ts`](../scripts/reference-artifacts.ts)
 
 ### Authority
 
-_The single runtime that owns a workspace and executes its commands and queries._
+_The one running instance that owns a workspace and executes its commands and queries._
 
-implemented · `packages/runtime` `packages/adapters`
+implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/kernel`](../packages/kernel/README.md) [`packages/adapters`](../packages/adapters/README.md)
 
 ### Command
 
 _An authorized write, submitted the same way by every caller._
 
-implemented · `packages/runtime` `packages/contracts`
+implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/contracts`](../packages/contracts/README.md)
 
 ### Query
 
-_An authorized, side-effect-free read._
+_An authorized read that changes nothing._
 
-implemented · `packages/runtime`
+implemented · [`packages/runtime`](../packages/runtime/README.md)
 
 ### Collection
 
 _A typed set of records a module keeps in its state slice, with generated reads._
 
-implemented · `packages/contracts` `packages/runtime`
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md)
 
 ### Execution context
 
-_Who is calling, in which workspace, under which delegation grant._
+_Who is calling, in which workspace, under which grant, through which channel and with which cancellation signal, and for an agent, in which run. A trusted host supplies it; a surface never builds it from caller input._
 
-implemented · `packages/runtime` `packages/adapters`
+implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/adapters`](../packages/adapters/README.md)
 
 ### Policy
 
 _The port that decides operation, object, row and field access._
 
-implemented · `packages/runtime` `packages/adapters`
+implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/adapters`](../packages/adapters/README.md)
 
 ### Membership
 
 _Roles that people hold in a container: a project, plant or station._
 
-implemented · `packages/contracts` `packages/runtime`
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md)
 
 ### Storage
 
-_The port for the authority's transactional state, with memory, SQLite and Postgres adapters and a conformance suite every adapter passes._
+_The port for the authority's transactional state. The memory, SQLite and Postgres adapters pass one conformance suite. The mobile host platform uses a snapshot adapter that keeps one JSON document per workspace._
 
-implemented · `packages/runtime` `packages/adapters` `packages/testing`
+implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/adapters`](../packages/adapters/README.md) [`packages/testing`](../packages/testing/README.md)
 
 ### State migration
 
-_Numbered versions of an application's and each plugin's state, with the steps between them, stamped per workspace and applied to a checked copy before it replaces the database._
+_Numbered versions of an application's and each plugin's state, with the steps between them, stamped per workspace. Storage runs the steps when it loads a workspace; the `migrate` command runs them on a checked copy before it replaces the database._
 
-implemented · `packages/kernel/src/migrations.ts` `packages/kernel/src/state-upgrade.ts` `packages/host/src/cli/migrate-command.ts`
+implemented · [`packages/kernel/src/migrations.ts`](../packages/kernel/src/migrations.ts) [`packages/kernel/src/state-upgrade.ts`](../packages/kernel/src/state-upgrade.ts) [`packages/host/src/cli/migrate-command.ts`](../packages/host/src/cli/migrate-command.ts)
 
 ### Blob store
 
 _Content-addressed bytes, such as photos and documents, that commands reference from resources._
 
-partial · `packages/contracts` `packages/runtime` `packages/adapters` `packages/client` `packages/kernel`
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/adapters`](../packages/adapters/README.md) [`packages/client`](../packages/client/README.md) [`packages/kernel`](../packages/kernel/README.md)
 
 ### Journal and live query
 
-_The ordered record of committed changes, and the client machinery that follows it._
+_The ordered record of committed changes, and the client code that follows it._
 
-implemented · `packages/runtime` `packages/client` `packages/react`
+implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/client`](../packages/client/README.md) [`packages/react`](../packages/react/README.md)
 
 ### Application
 
-_One unit of content: the definition a host runs._
+_One unit of content that a host runs: its manifest, its application definition and its screens._
 
-implemented · `packages/kernel` `packages/host` `packages/frame`
+implemented · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`packages/frame`](../packages/frame/README.md)
 
 ### Host
 
-_The domain-neutral authority process that runs one application definition._
+_The domain-neutral process that opens an authority for one application definition on a host platform._
 
-implemented · `packages/kernel` `packages/host`
+implemented · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`packages/mobile`](../packages/mobile/README.md)
 
 ### Host plugin
 
 _A cross-cutting part an application composes: modules, a state slice, a policy, ports and lifecycle hooks._
 
-implemented · `packages/kernel` `packages/host` `packages/frame` `packages/mobile` `plugins/managed-config`
+implemented · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/mobile`](../packages/mobile/README.md) [`plugins/managed-config`](../plugins/managed-config/README.md)
 
 ### Host platform
 
-_What the kernel needs from the machine it runs on: workspace ownership, storage, the host's own components and its capabilities._
+_What the kernel needs from the machine it runs on: workspace ownership, storage and the host's own components. It also states which of sockets, child processes, ingress and folders the machine offers._
 
-partial · `packages/kernel` `packages/host` `packages/mobile`
+partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`packages/mobile`](../packages/mobile/README.md)
 
 ### Workspace lease
 
-_One authority's hold on a workspace kept in a shared database, with a fencing token every commit checks, so another instance can take the workspace over safely._
+_One authority's hold on a workspace kept in a shared database, with a fencing token that every commit checks. A stalled holder cannot overwrite the instance that took the workspace over._
 
-implemented · `packages/adapters` `packages/host`
+implemented · [`packages/adapters`](../packages/adapters/README.md) [`packages/host`](../packages/host/README.md)
 
 ### Web frame
 
-_The domain-neutral browser shell around one application's screens._
+_The domain-neutral browser UI around one application's screens._
 
-implemented · `packages/frame`
+implemented · [`packages/frame`](../packages/frame/README.md)
 
 ### Native frame
 
-_The domain-neutral React Native shell around one application's native screens._
+_The domain-neutral React Native UI around one application's native screens._
 
-partial · `packages/frame-native` `apps/mobile`
+partial · [`packages/frame-native`](../packages/frame-native/README.md) [`apps/mobile`](../apps/mobile/README.md)
 
 ### Starter
 
-_The thin application a team forks or generates and then owns._
+_The thin application host that an application's developers fork or generate and then own. It hosts the one application named in `app.config.json`._
 
-implemented · `apps/service` `apps/web` `apps/desktop` `app.config.json`
+implemented · [`apps/service`](../apps/service/README.md) [`apps/web`](../apps/web/README.md) [`apps/desktop`](../apps/desktop/README.md) [`apps/mobile`](../apps/mobile/README.md) [`app.config.json`](../app.config.json)
 
 ## Callers
 
 ### Surface adapter
 
-_Maps one surface onto the authority's raw command and query entry points._
+_The adapter that maps one surface onto the authority's raw command and query entry points._
 
-implemented · `packages/adapters`
+implemented · [`packages/adapters`](../packages/adapters/README.md)
 
 ### Capability binding
 
 _A UI control bound to a capability through the typed client._
 
-implemented · `packages/react`
+implemented · [`packages/react`](../packages/react/README.md)
 
 ### UI session context
 
 _What a person is looking at, captured for an agent, and the intents an agent can send back._
 
-implemented · `packages/adapters` `packages/react` `packages/agents`
+implemented · [`packages/adapters`](../packages/adapters/README.md) [`packages/react`](../packages/react/README.md) [`packages/agents`](../packages/agents/README.md)
 
 ### Agent run
 
-_An agent session acting as one more caller on the catalog._
+_An agent acting as one more caller on the catalog, under a grant narrowed from its issuer's._
 
-implemented · `packages/agents`
+implemented · [`packages/agents`](../packages/agents/README.md)
 
 ### Agent definition
 
-_A named agent in the catalog: its instructions, the operations it may call, its scope, model requirement, output mode and budgets._
+_A named agent in the catalog: its instructions, the capabilities it may call, the resource types it works on, its model requirement, its output mode and its budgets._
 
-implemented · `packages/contracts` `packages/runtime` `packages/agents` `packages/adapters`
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/agents`](../packages/agents/README.md) [`packages/adapters`](../packages/adapters/README.md)
 
 ### Model entry
 
-_A model this host may serve, named by the digests of its base weights, its adapter and the dataset the adapter was tuned on, served only after the files are measured and a fine-tune has passed its gate._
+_A model the model server may serve, named by the digests of its base weights, its adapter and the dataset the adapter was tuned on. The model server starts it only after the weights match their digests and a fine-tune has passed its gate._
 
-implemented · `packages/agents` `plugins/model-server` `packages/testing`
+implemented · [`packages/agents`](../packages/agents/README.md) [`plugins/model-server`](../plugins/model-server/README.md) [`packages/testing`](../packages/testing/README.md)
 
 ### Proposal
 
-_A command one caller proposes and another accepts under their own authority._
+_A command one caller proposes and another accepts. The accepted command runs under the accepter's own grants and policy._
 
-implemented · `packages/contracts` `packages/runtime` `packages/frame` `packages/operator-ui`
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/operator-ui`](../packages/operator-ui/README.md)
 
 ### Proposal dataset
 
 _The proposals people accepted, rejected or let expire, exported as training data with redaction and a digest._
 
-implemented · `packages/runtime`
+implemented · [`packages/runtime`](../packages/runtime/README.md)
 
 ### Trigger
 
 _Work that starts on a committed change or a schedule instead of a person's prompt._
 
-implemented · `plugins/automation`
+implemented · [`plugins/automation`](../plugins/automation/README.md)
 
 ### Standing grant
 
 _A person's recorded, expiring permission for a trigger to act as them._
 
-implemented · `plugins/automation`
+implemented · [`plugins/automation`](../plugins/automation/README.md)
 
 ### Input source
 
-_Device input normalized into events and routed to an intent without a model turn._
+_Device input normalized into events and routed to a command without a model turn._
 
-implemented · `packages/devices` `plugins/intent-scanner`
+implemented · [`packages/devices`](../packages/devices/README.md) [`plugins/intent-scanner`](../plugins/intent-scanner/README.md)
 
 ### OS handler
 
-_A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or reply, and where its requests go._
+_A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or notification reply, and where its requests go._
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/share-target` `plugins/notifications` `plugins/android-intents` `plugins/os-shortcuts` `packages/frame` `packages/frame-native` `packages/mobile` `plugins/compliance` `apps/desktop` `apps/mobile` `examples/project-tasks`
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/shell`](../packages/shell/README.md) [`plugins/os`](../plugins/os/README.md) [`plugins/share-target`](../plugins/share-target/README.md) [`plugins/notifications`](../plugins/notifications/README.md) [`plugins/android-intents`](../plugins/android-intents/README.md) [`plugins/os-shortcuts`](../plugins/os-shortcuts/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`packages/mobile`](../packages/mobile/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`apps/desktop`](../apps/desktop/README.md) [`apps/mobile`](../apps/mobile/README.md) [`examples/project-tasks`](../examples/project-tasks/README.md)
 
 ### OS action
 
 _A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it carries._
 
-partial · `packages/contracts` `packages/shell` `plugins/os` `plugins/share-target` `plugins/notifications` `plugins/android-intents` `plugins/compliance` `packages/agents` `apps/desktop` `packages/frame` `packages/mobile`
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/shell`](../packages/shell/README.md) [`plugins/os`](../plugins/os/README.md) [`plugins/share-target`](../plugins/share-target/README.md) [`plugins/notifications`](../plugins/notifications/README.md) [`plugins/android-intents`](../plugins/android-intents/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/agents`](../packages/agents/README.md) [`apps/desktop`](../apps/desktop/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/mobile`](../packages/mobile/README.md)
 
 ### Shell port
 
-_The kernel port that receives OS requests and performs OS actions; its default refuses both._
+_The kernel port that receives OS requests and performs OS actions. Its default refuses both._
 
-partial · `packages/kernel` `packages/host` `packages/adapters` `packages/shell` `packages/mobile` `plugins/os` `apps/desktop` `apps/mobile`
+partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`packages/adapters`](../packages/adapters/README.md) [`packages/shell`](../packages/shell/README.md) [`packages/mobile`](../packages/mobile/README.md) [`plugins/os`](../plugins/os/README.md) [`apps/desktop`](../apps/desktop/README.md) [`apps/mobile`](../apps/mobile/README.md)
 
 ### Process port
 
-_The kernel port that starts declared child processes from the site policy's bindings; its default refuses._
+_The kernel port that starts declared child processes from the site policy's bindings. Its default refuses._
 
-partial · `packages/kernel` `packages/host` `plugins/site` `plugins/process`
+partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`plugins/site`](../plugins/site/README.md) [`plugins/process`](../plugins/process/README.md)
 
 ### UI registry
 
 _Reusable screen parts published as registries over stock shadcn primitives._
 
-implemented · `packages/operator-ui` `packages/frame` `packages/frame-native` `plugins/compliance` `plugins/connector-driver`
+implemented · [`packages/operator-ui`](../packages/operator-ui/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md)
 
 ## Integrations
 
 ### Outbox effect
 
-_A durable intent to change another system, committed with the command that causes it._
+_A recorded intent to change another system, committed with the command that causes it._
 
-implemented · `packages/runtime`
+implemented · [`packages/runtime`](../packages/runtime/README.md)
 
 ### Connector
 
-_The port that delivers effects to one target and looks up their outcome._
+_The implementation of a target's port, `SystemOfRecordPort`. It delivers effects to one system of record and looks up their outcome._
 
-implemented · `packages/integration` `packages/station` `packages/testing` `plugins/connector-driver` `plugins/connector-files` `plugins/connector-http` `plugins/notifications`
+implemented · [`packages/integration`](../packages/integration/README.md) [`packages/station`](../packages/station/README.md) [`packages/testing`](../packages/testing/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/connector-files`](../plugins/connector-files/README.md) [`plugins/connector-http`](../plugins/connector-http/README.md) [`plugins/notifications`](../plugins/notifications/README.md)
 
 ### Dispatcher
 
-_The worker that delivers pending effects and settles them under a narrow integration principal._
+_The worker that delivers pending effects and settles them under the narrow integration principal._
 
-implemented · `packages/integration`
+implemented · [`packages/integration`](../packages/integration/README.md)
 
 ### Inbound sync
 
-_Imports upstream changes as ordinary commands._
+_Importing a system of record's changes as ordinary commands._
 
-implemented · `packages/integration`
+implemented · [`packages/integration`](../packages/integration/README.md)
 
 ### Target
 
-_A system of record declared once: its settle, feed and status operations, its principal's grant and its policy lane._
+_A system of record declared once: its settle, sync and status capabilities, the integration principal's grant and its policy lane._
 
-implemented · `packages/contracts` `packages/integration`
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md)
 
 ### Remote query
 
-_A query that reads another system at the moment someone asks, with the caller's own access, and stores nothing._
+_A query that reads another system at the moment someone asks and stores nothing. It acts with the caller's own credential, or with a service credential where the query declares that fallback._
 
-partial · `packages/contracts` `packages/runtime` `packages/integration` `packages/host` `packages/react` `examples/crm-capture`
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/host`](../packages/host/README.md) [`packages/react`](../packages/react/README.md) [`examples/crm-capture`](../examples/crm-capture/README.md)
 
 ### Data provider
 
 _One declaration of what a system of record can be searched for, which becomes ordinary catalog entries for every surface._
 
-partial · `packages/contracts` `packages/integration` `examples/crm-capture`
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md) [`examples/crm-capture`](../examples/crm-capture/README.md)
 
 ### Observation
 
 _A reading from a source that cannot be queried, submitted through an ingest command._
 
-implemented · `packages/observation` `packages/station` `plugins/connector-driver` `plugins/connector-mqtt` `plugins/connector-opcua`
+implemented · [`packages/observation`](../packages/observation/README.md) [`packages/station`](../packages/station/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md) [`plugins/connector-opcua`](../plugins/connector-opcua/README.md)
 
 ### Gated actuator
 
-_Lets a model propose screen actions while deterministic code executes and verifies them._
+_A connector in which a model may propose screen actions and deterministic code executes and verifies them._
 
-implemented · `packages/station` `packages/integration` `plugins/connector-driver`
+implemented · [`packages/station`](../packages/station/README.md) [`packages/integration`](../packages/integration/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md)
 
 ### Driver contract
 
-_A driver's state fields, actions with delivery mode and hazard class, and events, as data with a digest the driver must echo at its handshake._
+_A driver's state fields, its actions with delivery mode and hazard class, and its events, as data with a digest the driver must echo at its handshake._
 
-partial · `plugins/connector-driver` `examples/quality-inspection` `examples/line-station`
+partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`examples/quality-inspection`](../examples/quality-inspection/README.md) [`examples/line-station`](../examples/line-station/README.md)
 
 ### Driver process
 
-_A supervised child process that controls or reads equipment, speaking JSON-RPC over its stdio and started through the process port. Its events can enter as ingest commands._
+_A supervised child process that controls or reads equipment, speaking JSON-RPC over its standard streams and started through the process port. Its events can enter as ingest commands._
 
-partial · `plugins/connector-driver` `plugins/process` `examples/quality-inspection` `examples/line-station`
+partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/process`](../plugins/process/README.md) [`examples/quality-inspection`](../examples/quality-inspection/README.md) [`examples/line-station`](../examples/line-station/README.md)
 
 ### Driver SDK
 
-_A library in another language that answers the driver protocol for a driver author: mode gating, once-per-effect delivery with a journal, events and stubs generated from the contract. Each proves itself against the base's reference contract._
+_A library in another language that answers the driver protocol for a driver author: bridge-mode gating, once-per-effect delivery with a journal, events and stubs generated from the driver contract. Each SDK proves itself against the reference contract in `plugins/connector-driver`._
 
-partial · `sdks/driver-python` `sdks/driver-dotnet`
+partial · [`sdks/driver-python`](../sdks/driver-python/README.md) [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md)
 
 ### Reconciliation
 
 _A tracked state and procedure for outcomes no one can establish automatically._
 
-implemented · `packages/contracts` `packages/runtime` `packages/integration` `packages/frame` `examples/receiving` `examples/line-station`
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/frame`](../packages/frame/README.md) [`examples/receiving`](../examples/receiving/README.md) [`examples/line-station`](../examples/line-station/README.md)
 
 ### Worker claims
 
-_Attempt identities, expirations and fencing tokens so a stale worker cannot overwrite a newer outcome._
+_Attempt identities, expirations and fencing tokens, so a stale worker cannot overwrite a newer outcome._
 
-implemented · `packages/runtime` `packages/integration`
+implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md)
 
 ## Trust and configuration
 
@@ -357,122 +357,122 @@ implemented · `packages/runtime` `packages/integration`
 
 _The port for provider secrets._
 
-implemented · `packages/agents`
+implemented · [`packages/agents`](../packages/agents/README.md)
 
 ### Device link
 
-_Pairing a phone or tablet with a hub, and the credential it presents afterwards._
+_Pairing a phone or tablet with a hub, and the credential the device presents afterwards._
 
-partial · `plugins/device-link` `plugins/hub-link`
+partial · [`plugins/device-link`](../plugins/device-link/README.md) [`plugins/hub-link`](../plugins/hub-link/README.md)
 
 ### Requirement declaration
 
 _What a module or host component needs outside the process, as data: network destinations, exchange folders, devices and child processes, with the outbox targets each carries._
 
-implemented · `packages/contracts` `packages/kernel`
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/kernel`](../packages/kernel/README.md)
 
 ### Site policy
 
 _Deployment data that binds declared destinations to addresses and exchange folders to directories, and sets a hardening floor._
 
-implemented · `plugins/site`
+implemented · [`plugins/site`](../plugins/site/README.md)
 
 ### Workforce sign-in
 
 _People signing in to a serving host through the site's identity provider, under `identity: external`._
 
-partial · `plugins/site/src/workforce` `packages/kernel/src/plugin.ts` `packages/adapters/src/http`
+partial · [`plugins/site/src/workforce`](../plugins/site/src/workforce) [`packages/kernel/src/plugin.ts`](../packages/kernel/src/plugin.ts) [`packages/adapters/src/http`](../packages/adapters/src/http)
 
 ### Station sign-in
 
 _An operator signing in at a shared station seat by badge and PIN, for a short-lived session of their own._
 
-partial · `plugins/station-sign-in` `packages/kernel/src/plugin.ts`
+partial · [`plugins/station-sign-in`](../plugins/station-sign-in/README.md) [`packages/kernel/src/plugin.ts`](../packages/kernel/src/plugin.ts)
 
 ### Egress guard
 
-_The only path from server code, and from declared child processes, to the network._
+_The only path from server code, and from declared child processes, to the network. `bun run check:boundaries` fails a direct network call outside the reviewed exemptions in `scripts/boundary-rules.ts`._
 
-implemented · `plugins/network` `scripts`
+implemented · [`plugins/network`](../plugins/network/README.md) [`scripts/boundary-rules.ts`](../scripts/boundary-rules.ts)
 
-### Event log
+### Audit log
 
-_An injected, tamper-evident record of every command, query, denial, outbox transition, sync pass, connection and run._
+_An injected, tamper-evident record of every command, query, denial, outbox transition, session, egress connection and agent run._
 
-implemented · `packages/contracts` `packages/runtime` `packages/event-log` `plugins/audit`
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/event-log`](../packages/event-log/README.md) [`plugins/audit`](../plugins/audit/README.md)
 
 ### Execution host
 
 _An isolation boundary and credential broker for tools an agent runs._
 
-implemented · `plugins/execution-host` `plugins/process` `plugins/network`
+partial · [`plugins/execution-host`](../plugins/execution-host/README.md) [`plugins/process`](../plugins/process/README.md) [`plugins/network`](../plugins/network/README.md)
 
-### Profile
+### Station and scanner profiles
 
-_Versioned, schema-validated data describing one site._
+_Schema-validated data about one site's equipment. A station profile describes one kind of station software and is versioned; a scanner profile describes how one scanner at one station reaches the application._
 
-implemented · `packages/station` `packages/devices`
+implemented · [`packages/station`](../packages/station/README.md) [`packages/devices`](../packages/devices/README.md)
 
-### Configuration module
+### Device configuration module
 
-_A reusable capability module that makes site configuration an ordinary operation._
+_A reusable module that makes per-station device configuration, the scanner profiles and scan routes, ordinary commands and queries._
 
-implemented · `packages/devices`
+implemented · [`packages/devices`](../packages/devices/README.md)
 
 ### Golden check
 
-_Replays labeled inputs through a profile and its extractors, as a separate procedure run before a profile or model change is used._
+_A replay of labeled inputs through a station profile and its extractors, run before a station profile change or a model change is used._
 
-implemented · `packages/station`
+implemented · [`packages/station`](../packages/station/README.md)
 
 ### Compliance bundle
 
 _The evidence an auditor checks, generated from the catalog and site policy and re-checked while the application runs._
 
-implemented · `plugins/compliance` `packages/host`
+implemented · [`plugins/compliance`](../plugins/compliance/README.md) [`packages/host`](../packages/host/README.md)
 
 ### Behavioral scenario
 
-_A reusable test of one capability's allowed, denied, stale, replayed and visible behavior._
+_A named test of business behavior that runs unchanged through the direct, HTTP, CLI and MCP drivers, whose results must agree._
 
-implemented · `packages/testing`
+implemented · [`packages/testing`](../packages/testing/README.md)
 
 ### Agent scenario
 
-_A task, fixture state and an agent definition, judged by the commands the run committed and the proposals it submitted, not by what it said._
+_A test of an agent definition on a task and fixture state, judged by the commands the run committed and the proposals it submitted instead of by its text._
 
-implemented · `packages/testing`
+implemented · [`packages/testing`](../packages/testing/README.md)
 
 ### Scaffold
 
-_Exports the framework, the starter and content as a standalone application, or the starter and a new application over installed framework versions, and generates new applications and their parts._
+_The tool that exports the framework, the starter and content as a standalone application, or the starter and a new application over installed framework versions. It also generates new applications and their parts._
 
-implemented · `packages/scaffold`
+implemented · [`packages/scaffold`](../packages/scaffold/README.md)
 
 ### Framework release
 
 _The framework and plugin packages published together at one version, each with the dependencies its published files import, and a check that refuses an install with mixed versions._
 
-implemented · `scripts/release.ts` `scripts/check-manifests.ts` `scripts/local-registry.ts` `packages/scaffold/src/versions.ts` `.changeset`
+implemented · [`scripts/release.ts`](../scripts/release.ts) [`scripts/check-manifests.ts`](../scripts/check-manifests.ts) [`scripts/local-registry.ts`](../scripts/local-registry.ts) [`packages/scaffold/src/versions.ts`](../packages/scaffold/src/versions.ts) [`.changeset`](../.changeset)
 
 ### Task package
 
-_A signed, versioned package with declared requirements, staged activation and rollback._
+_A signed, versioned package with declared requirements and staged activation. A failed install step leaves the previous release current._
 
-partial · `packages/bundle` `scripts/bundle.ts` `plugins/site/src/install`
+partial · [`packages/bundle`](../packages/bundle/README.md) [`scripts/bundle.ts`](../scripts/bundle.ts) [`plugins/site/src/install`](../plugins/site/src/install)
 
 ### Fleet agent
 
 _A site's outbound-only link to a fleet: health reports with the outbox backlog by target, audit forwarding, verified release staging and a remote-access relay that adds no credential._
 
-partial · `plugins/fleet-agent`
+partial · [`plugins/fleet-agent`](../plugins/fleet-agent/README.md)
 
 ### Telemetry
 
-_OpenTelemetry metrics and traces of commands, outbox delivery, backlog by target and runs, derived from the audit log and the outbox and exported through the egress guard without record contents._
+_OpenTelemetry metrics and traces of commands, outbox delivery, backlog by target, and agent and job runs. They are derived from the audit log and the outbox and exported through the egress guard without record contents._
 
-partial · `plugins/telemetry`
+partial · [`plugins/telemetry`](../plugins/telemetry/README.md)
 
-## Adding or changing a primitive
+## New and changed entries
 
-Add an entry when a concept is domain-neutral and more than one application uses it; an adapter belongs with its port, and a concept only one example needs stays in that example. Prefer extending or extracting existing code. Keep the definition true across adapters and defaults, and put the details in the README.
+Add an entry when a concept is domain-neutral and more than one application uses it. An adapter belongs with its port, and a concept only one example needs stays in that example. Prefer extending or extracting existing code. Keep the definition true across adapters and defaults, and put the details in the README.

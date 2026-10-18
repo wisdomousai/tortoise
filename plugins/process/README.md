@@ -10,7 +10,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): a process declares `secrets`, the environment variable names it needs, and no values.
 - [Site policy](../../docs/primitives.md#site-policy): the `processes` section binds each declared process to an absolute executable, or disables it.
 - [Egress guard](../../docs/primitives.md#egress-guard): a process that declares destinations gets the network port's `childEnvironment`, which points it at the loopback proxy.
-- [Event log](../../docs/primitives.md#event-log): every start, refusal and exit is a `child.started`, `child.refused` or `child.exited` record.
+- [Event log](../../docs/primitives.md#audit-log): every start, refusal and exit is a `child.started`, `child.refused` or `child.exited` record.
 - [Process port](../../docs/primitives.md#process-port): the port this plugin provides. [Hardware drivers](../../docs/hardware-drivers.md) are its main user.
 
 ## Entrypoints
