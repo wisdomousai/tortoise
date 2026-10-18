@@ -108,7 +108,7 @@ test('HTTP boundary rejects spoofed Host, Origin, unauthenticated and cross-site
   expect((await handler(request('/api/v1/contract'))).status).toBe(403);
 });
 
-test('real host preserves delegated instance for runs and isolates runs across workspaces', async () => {
+test('real host preserves delegated grants for runs and isolates runs across workspaces', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-http-host-'));
   let projectId = '';
   const attempts: Harness = {

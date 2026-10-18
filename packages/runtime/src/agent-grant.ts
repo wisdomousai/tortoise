@@ -14,11 +14,11 @@ const intersect = (allowed: readonly string[], limit: readonly string[] | undefi
 
 /**
  * The delegation grant a run under an agent definition executes with. It only narrows the
- * issuer's own context: operations are the definition's within the issuer's grant (a proposing
- * agent gets its queries and `proposal.submit` when the catalog has it, never its commands),
+ * issuer's own context: operations are the definition's within the issuer's grant (a requesting
+ * agent gets its queries and `approval.request` when the catalog has it, never its commands),
  * resources are the run's starting resources of the definition's types within the issuer's
  * resources, and it expires at the earlier of the issuer's expiry and the definition's wall-time
- * budget. A resource-scoped proposing run may also create proposals (`creates`). It is bound to
+ * budget. A resource-scoped requesting run may also create approval requests (`creates`). It is bound to
  * the issuer's principal and workspace and to the run. Policy still authorizes every call; the
  * grant cannot widen it. Throws `NOT_FOUND` for an agent the catalog does not define.
  */
@@ -36,7 +36,7 @@ export function agentGrant(
       ? agent.operations
       : [
           ...agent.operations.filter((id) => kinds.get(id) === 'query'),
-          ...(kinds.has('proposal.submit') ? ['proposal.submit'] : []),
+          ...(kinds.has('approval.request') ? ['approval.request'] : []),
         ];
   const operations = intersect([...new Set(own)], issuer.grant?.operations);
   const types = agent.resourceTypes;
@@ -48,9 +48,10 @@ export function agentGrant(
   const resources = scoped
     ? intersect(scoped, issuer.grant?.resources)
     : issuer.grant?.resources && [...issuer.grant.resources];
-  // A scoped proposing run creates its proposals, which no resource list can name in advance;
-  // `proposal.submit` still checks that the proposed record is one the run was started on.
-  const creates = resources && operations.includes('proposal.submit') && agent.output === 'propose';
+  // A scoped requesting run creates its approval requests, which no resource list can name in advance;
+  // `approval.request` still checks that the requested record is one the run was started on.
+  const creates =
+    resources && operations.includes('approval.request') && agent.output === 'request-approval';
   const budgetEnd = options.now + agent.budgets.wallTimeMs;
   const expiresAt = Math.min(issuer.grant?.expiresAt ?? budgetEnd, budgetEnd);
   return {
@@ -59,7 +60,7 @@ export function agentGrant(
     principalId: issuer.principalId,
     workspaceId: issuer.workspaceId,
     ...(resources ? { resources } : {}),
-    ...(creates ? { creates: ['proposal'] } : {}),
+    ...(creates ? { creates: ['approval-request'] } : {}),
     ...(options.runId ? { runId: options.runId } : {}),
   };
 }

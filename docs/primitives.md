@@ -205,15 +205,15 @@ _A model the model server may serve, named by the digests of its base weights, i
 
 implemented · [`packages/agents`](../packages/agents/README.md) [`plugins/model-server`](../plugins/model-server/README.md) [`packages/testing`](../packages/testing/README.md)
 
-### Proposal
+### Approval request
 
-_A command one caller proposes and another accepts. The accepted command runs under the accepter's own grants and policy._
+_A command that one caller, usually an agent run, asks a person to approve before it runs. The approved command runs under the approver's own grants and policy._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/operator-ui`](../packages/operator-ui/README.md)
 
-### Proposal dataset
+### Approval dataset
 
-_The proposals people accepted, rejected or let expire, exported as training data with redaction and a digest._
+_The approval requests people approved, rejected or let expire, exported as training data with redaction and a digest._
 
 implemented · [`packages/runtime`](../packages/runtime/README.md)
 
@@ -317,7 +317,7 @@ implemented · [`packages/observation`](../packages/observation/README.md) [`pac
 
 ### Gated actuator
 
-_A connector in which a model may propose screen actions and deterministic code executes and verifies them._
+_A connector in which a model may suggest screen actions and deterministic code executes and verifies them._
 
 implemented · [`packages/station`](../packages/station/README.md) [`packages/integration`](../packages/integration/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md)
 
@@ -439,7 +439,7 @@ implemented · [`packages/testing`](../packages/testing/README.md)
 
 ### Agent scenario
 
-_A test of an agent definition on a task and fixture state, judged by the commands the run committed and the proposals it submitted instead of by its text._
+_A test of an agent definition on a task and fixture state, judged by the commands the run committed and the approval requests it submitted instead of by its text._
 
 implemented · [`packages/testing`](../packages/testing/README.md)
 

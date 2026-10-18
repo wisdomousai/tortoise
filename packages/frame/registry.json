@@ -112,15 +112,15 @@
       ]
     },
     {
-      "name": "proposal-review",
+      "name": "approval-review",
       "type": "registry:component",
-      "title": "Proposal review",
-      "description": "Open proposals, live, with what each would run and why; Accept runs the command as the signed-in person and Reject closes it.",
+      "title": "ApprovalRequest review",
+      "description": "Pending approvals, live, with what each would run and why; Approve runs the command as the signed-in person and Reject closes it.",
       "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
       "registryDependencies": ["badge", "button", "@agent-native/session"],
       "files": [
         {
-          "path": "src/components/proposal-review.tsx",
+          "path": "src/components/approval-review.tsx",
           "type": "registry:component"
         }
       ]

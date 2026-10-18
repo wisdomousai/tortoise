@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import {
   operationToolSchema,
-  proposalOperations,
+  approvalOperations,
   toolEnvelopeSchema,
   type JsonObject,
 } from '../src/index';
@@ -27,8 +27,8 @@ function unresolved(schema: JsonObject): string[] {
 }
 
 test("a recursive input schema's references resolve once it is wrapped in a tool envelope", () => {
-  const input = proposalOperations.proposalSubmit.input.jsonSchema;
-  // The proposed input is any JSON value, a recursive schema with its own definitions.
+  const input = approvalOperations.approvalRequest.input.jsonSchema;
+  // The requested input is any JSON value, a recursive schema with its own definitions.
   expect(Object.keys(input)).toContain('$defs');
   const nested = { type: 'object', properties: { input } } as JsonObject;
   expect(unresolved(nested).length).toBeGreaterThan(0);
@@ -44,7 +44,7 @@ test("a recursive input schema's references resolve once it is wrapped in a tool
   expect((envelope.properties as JsonObject).input).not.toHaveProperty('$defs');
 });
 
-test('a command tool offers expectedRevisions with a description; a query and proposal.submit do not', () => {
+test('a command tool offers expectedRevisions with a description; a query and approval.request do not', () => {
   const input = { type: 'object', properties: { id: { type: 'string' } } } as JsonObject;
   const command = operationToolSchema({ id: 'lot.release', kind: 'command', inputSchema: input });
   const query = operationToolSchema({ id: 'lot.get', kind: 'query', inputSchema: input });
@@ -54,9 +54,9 @@ test('a command tool offers expectedRevisions with a description; a query and pr
   });
   expect(Object.keys(query.properties as JsonObject)).toEqual(['input']);
   const submit = operationToolSchema({
-    id: 'proposal.submit',
+    id: 'approval.request',
     kind: 'command',
-    inputSchema: proposalOperations.proposalSubmit.input.jsonSchema,
+    inputSchema: approvalOperations.approvalRequest.input.jsonSchema,
   });
   expect(Object.keys(submit.properties as JsonObject)).toEqual(['input']);
 });

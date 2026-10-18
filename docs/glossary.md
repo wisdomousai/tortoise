@@ -33,7 +33,7 @@ Do not use: session (for an agent run), conversation (for an agent run), LLM run
 
 ### Agent scenario
 
-A test of an agent definition: a task, fixture state and the commits, proposals and refusals expected. It judges receipts, not the model's text. Lives in [`packages/testing`](../packages/testing/README.md).
+A test of an agent definition: a task, fixture state and the commits, approval requests and refusals expected. It judges receipts, not the model's text. Lives in [`packages/testing`](../packages/testing/README.md).
 
 ### Application
 
@@ -46,6 +46,16 @@ Do not use: app (in prose; `app` stays in file names and commands), feature (for
 The server entrypoint of an application, declared with `defineApplication` from [`packages/kernel`](../packages/kernel/README.md). It holds the manifest, state and its migrations, handlers, authorization and services. It also holds remote sources, plugins and the connections to systems of record. It is trusted code that runs with the host's privileges.
 
 Do not use: server definition, definition file.
+
+### Approval dataset
+
+The approval requests people approved, rejected or let expire, exported as training data. It holds only approval requests the exporting caller may see, and redaction is applied before its digest. A model entry names the dataset by that digest. Lives in [`packages/runtime`](../packages/runtime/README.md).
+
+### Approval request
+
+A command that one caller, usually an agent run, asks a person to approve before it runs. Approving runs the command once, in the same transaction, with the approver's own grants and policy; a refusal or conflict leaves the request pending. A requesting agent cannot commit. A request is pending, approved, rejected or expired. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [agents](agents.md).
+
+Do not use: proposal, suggestion (for an approval request).
 
 ### Attached mode
 
@@ -255,7 +265,7 @@ The framework and plugin packages published together at one version. `bun run ch
 
 ### Gated actuator
 
-A connector that acts on a screen or on equipment only after a deterministic gate: the bridge mode, the seat or local control, and a readback that confirms the result. A model may resolve a target or propose a step; it never acts itself. Lives in [`packages/station`](../packages/station/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
+A connector that acts on a screen or on equipment only after a deterministic gate: the bridge mode, the seat or local control, and a readback that confirms the result. A model may resolve a target or suggest a step; it never acts itself. Lives in [`packages/station`](../packages/station/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
 ### Generator
 
@@ -472,16 +482,6 @@ A declared sequence of screen steps in a station profile, run for one effect typ
 ### Process port
 
 The kernel port that starts declared child processes from the site policy's bindings. Its default refuses. Lives in [`plugins/process`](../plugins/process/README.md).
-
-### Proposal
-
-A command one caller proposes and another accepts. Acceptance runs the command once, in the same transaction, with the accepter's own grants and policy; a refusal leaves the proposal open. A proposing agent cannot commit. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [agents](agents.md).
-
-Do not use: suggestion (for a proposal), draft command, pending command, recommendation.
-
-### Proposal dataset
-
-The proposals people accepted, rejected or let expire, exported as training data. It holds only proposals the exporting caller may see, and redaction is applied before its digest. A model entry names the dataset by that digest. Lives in [`packages/runtime`](../packages/runtime/README.md).
 
 ### Query
 

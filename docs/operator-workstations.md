@@ -100,7 +100,7 @@ Each stage is worth deploying alone:
 2. **Annotate.** People and agents add meaning to observed events, such as stop reasons and count confirmations. Each annotation is an ordinary command, forwarded to the MES through the outbox.
 3. **Actuate.** The bridge writes into the station software, for example to load the recipe for a scanned order. The bridge mode must permit the procedure's hazard class.
 
-In `line-station`, the stop explainer agent proposes a stop reason from the alarm text and history. The station shows the [proposal](glossary.md#proposal), and the operator accepts it with one tap. Loading a recipe has hazard class `operator-present` and so needs actuate mode. The operator starts the order with a hold-to-confirm, and the command records them as the confirming person.
+In `line-station`, the stop explainer agent requests approval for a stop reason from the alarm text and history. The station shows the [approval request](glossary.md#approval-request), and the operator approves it with one tap. Loading a recipe has hazard class `operator-present` and so needs actuate mode. The operator starts the order with a hold-to-confirm, and the command records them as the confirming person.
 
 ## Controller gate
 

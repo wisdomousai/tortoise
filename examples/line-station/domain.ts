@@ -1,5 +1,5 @@
 import { own, put } from '@agent-native/runtime';
-import type { Proposal } from '@agent-native/contracts';
+import type { ApprovalRequest } from '@agent-native/contracts';
 
 /**
  * Line stations on top of a homebrew MES and screen-only station software.
@@ -144,8 +144,8 @@ export interface LineState {
   stops: Record<string, Stop>;
   counts: Record<string, CountReport>;
   attention: Record<string, AttentionItem>;
-  /** Proposed commands, usually stop reasons from the stop explainer, keyed by ID. */
-  proposals: Record<string, Proposal>;
+  /** Requested commands, usually stop reasons from the stop explainer, keyed by ID. */
+  approvals: Record<string, ApprovalRequest>;
   watermark?: string;
   lastSyncAt?: number;
 }
@@ -177,7 +177,7 @@ export function createLineState(
     stops: {},
     counts: {},
     attention: {},
-    proposals: {},
+    approvals: {},
   };
 }
 

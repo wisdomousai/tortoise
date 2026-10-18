@@ -213,7 +213,7 @@ Paths are relative to `examples/asset-survey`.
 
 ## Capture and extraction flow
 
-An extraction proposal is this example's record of the values a model read from one capture. It is not the framework's [proposal](../../docs/primitives.md#proposal).
+An extraction proposal is this example's record of the values a model read from one capture. It is not an [approval request](../../docs/primitives.md#approval-request).
 
 1. A manager adds nodes with `structure.node.create` in `handlers/structure.ts`. The handler checks each designation against its scheme in `contracts/schemes.ts` and refuses one that an active node of that scheme already holds.
 2. `assignment.create` stores the subtrees and capture kinds as a draft, and `assignment.dispatch` stores one device ID (`handlers/field.ts`). The Assignments screen offers the paired devices.

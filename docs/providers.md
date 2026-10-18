@@ -1,6 +1,6 @@
 # Providers and account connections
 
-Provider accounts and their configuration, the credential vault, local models and the model server, and live probes. [Agents](agents.md) explains harnesses, runs, proposals, triggers, standing grants and model entries.
+Provider accounts and their configuration, the credential vault, local models and the model server, and live probes. [Agents](agents.md) explains harnesses, runs, approval requests, triggers, standing grants and model entries.
 
 ## Concepts
 

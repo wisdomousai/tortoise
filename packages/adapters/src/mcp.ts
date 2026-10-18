@@ -101,7 +101,7 @@ function agentText(catalog: Catalog, agent: CatalogAgent): string {
   const tools = agent.operations.map(
     (id) => catalog.operations.find((operation) => operation.id === id)?.mcpName ?? id,
   );
-  // A proposing agent's instructions list the commands it may propose and their inputs.
+  // A requesting agent's instructions list the commands it may request approval for and their inputs.
   const body =
     agent.output === 'direct'
       ? `${agent.instructions}\n\nYou run these commands yourself.`

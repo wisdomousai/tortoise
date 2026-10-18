@@ -11,10 +11,10 @@ export type ModelRequirement = 'local' | 'remote' | 'any';
 
 /**
  * `direct`: the agent runs its commands itself, so each one must have a UI binding a person can
- * use to see and repeat the change. `propose`: the agent's commands become proposals a person
- * or allowed caller accepts with their own grants and policy; it runs queries directly.
+ * use to see and repeat the change. `request-approval`: the agent's commands become approval requests a person
+ * or allowed caller approves with their own grants and policy; it runs queries directly.
  */
-export type AgentOutput = 'direct' | 'propose';
+export type AgentOutput = 'direct' | 'request-approval';
 
 export interface AgentBudgets {
   /** Model turns per run; adapters that count turns stop there. */
@@ -105,8 +105,8 @@ export function checkAgent(
     if (!agent.models.length || agent.models.some((id) => !AGENT_ID.test(id) || id.length > 64))
       throw new Error(`Agent ${agent.id} models must be model entry IDs`);
   }
-  if (!['direct', 'propose'].includes(agent.output))
-    throw new Error(`Agent ${agent.id} output must be direct or propose`);
+  if (!['direct', 'request-approval'].includes(agent.output))
+    throw new Error(`Agent ${agent.id} output must be direct or request-approval`);
   if (agent.operations.length === 0) throw new Error(`Agent ${agent.id} has no operations`);
   if (new Set(agent.operations).size !== agent.operations.length)
     throw new Error(`Agent ${agent.id} lists an operation twice`);

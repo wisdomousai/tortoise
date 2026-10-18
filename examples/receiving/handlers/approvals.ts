@@ -1,16 +1,16 @@
-import { proposalHandlers as handlersOf } from '@agent-native/runtime';
+import { approvalHandlers as handlersOf } from '@agent-native/runtime';
 import { operations } from '../contracts';
 import type { AppState } from '../domain';
 import { newId, now, type Services } from './context';
 
 /**
- * Proposed delivery commands. Every member sees every proposal, as they see every line.
- * Accepting runs the proposed command under the accepter, so a viewer's acceptance is refused by
+ * Requested delivery commands. Every member sees every approval request, as they see every line.
+ * Approving runs the requested command under the approver, so a viewer's approval is refused by
  * the command's own editor rule.
  */
-export function proposalHandlers() {
+export function approvalHandlers() {
   return handlersOf<AppState, Services>({
-    store: (state) => state.proposals,
+    store: (state) => state.approvals,
     commands: Object.values(operations).filter((operation) => operation.kind === 'command'),
     visible: () => true,
     newId,

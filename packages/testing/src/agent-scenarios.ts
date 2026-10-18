@@ -16,7 +16,7 @@ import {
 
 /**
  * Agent scenarios: an agent definition, a task and fixture state, judged only by what the run
- * committed and proposed. Narration is never read, so the same scenario judges the deterministic
+ * committed and requested approval for. Narration is never read, so the same scenario judges the deterministic
  * harness in CI and a real model when one is explicitly configured.
  */
 
@@ -33,8 +33,8 @@ export interface ExpectedCommand {
   readonly input?: unknown;
 }
 
-/** A proposal expected to have been submitted: the command it proposes and its record. */
-export interface ExpectedProposal extends ExpectedCommand {
+/** An approval request expected to have been submitted: the command it requests approval for and its record. */
+export interface ExpectedApprovalRequest extends ExpectedCommand {
   readonly resource?: string;
 }
 
@@ -64,12 +64,12 @@ export interface AgentScenario {
   readonly script?: DeterministicScript;
   readonly expect: {
     /**
-     * Every command the run committed, in order, other than proposals. A commit not listed fails
+     * Every command the run committed, in order, other than approval requests. A commit not listed fails
      * the scenario, so an agent that writes more than it should is caught.
      */
     readonly commits?: readonly ExpectedCommand[];
-    /** Every proposal the run submitted, in order. */
-    readonly proposals?: readonly ExpectedProposal[];
+    /** Every approval request the run submitted, in order. */
+    readonly approvals?: readonly ExpectedApprovalRequest[];
     /** Calls that must have been refused, with the error code when given. */
     readonly refused?: readonly { readonly operation: string; readonly code?: string }[];
     /** How the run ended. Unchecked when absent. */
@@ -99,10 +99,10 @@ export interface AgentScenarioResult {
   /** The model the run recorded, with its digests, when the harness names one. */
   readonly model?: ModelIdentity;
   readonly calls: readonly AgentScenarioCall[];
-  /** Committed commands other than proposals, with their receipts. */
+  /** Committed commands other than approval requests, with their receipts. */
   readonly commits: readonly AgentScenarioCall[];
-  /** Inputs of the committed `proposal.submit` calls. */
-  readonly proposals: readonly {
+  /** Inputs of the committed `approval.request` calls. */
+  readonly approvals: readonly {
     readonly operation: string;
     readonly input: unknown;
     readonly resource?: string;
@@ -137,11 +137,11 @@ export function containsValue(actual: unknown, expected: unknown): boolean {
 
 const show = (value: unknown) => JSON.stringify(value);
 
-/** The ordered list check shared by commits and proposals: same length, each item contained. */
+/** The ordered list check shared by commits and approval requests: same length, each item contained. */
 function compareList(
   label: string,
   actual: readonly { operation: string; input: unknown; resource?: string }[],
-  expected: readonly ExpectedProposal[],
+  expected: readonly ExpectedApprovalRequest[],
   failures: string[],
 ) {
   if (actual.length !== expected.length)
@@ -168,9 +168,9 @@ function judge(
 ) {
   const failures: string[] = [];
   const committed = calls.filter((call) => call.outcome === 'committed');
-  const commits = committed.filter((call) => call.operation !== 'proposal.submit');
-  const proposals = committed
-    .filter((call) => call.operation === 'proposal.submit')
+  const commits = committed.filter((call) => call.operation !== 'approval.request');
+  const approvals = committed
+    .filter((call) => call.operation === 'approval.request')
     .map((call) => {
       const input = call.input as { operation: string; input: unknown; resource?: string };
       return {
@@ -181,7 +181,7 @@ function judge(
     });
   const { expect } = scenario;
   if (expect.commits) compareList('commits', commits, expect.commits, failures);
-  if (expect.proposals) compareList('proposals', proposals, expect.proposals, failures);
+  if (expect.approvals) compareList('approvals', approvals, expect.approvals, failures);
   for (const want of expect.refused ?? [])
     if (
       !calls.some(
@@ -198,7 +198,7 @@ function judge(
     failures.push(
       `Expected the run to have ${expect.outcome}, it ended ${state}${failure ? ` (${failure.code}: ${failure.message})` : ''}`,
     );
-  return { commits, proposals, failures };
+  return { commits, approvals, failures };
 }
 
 /**
@@ -273,7 +273,7 @@ function promptFor(scenario: AgentScenario, harness: Harness, instructions: stri
 
 /**
  * Run one scenario: commit its setup, start the agent's run under `agentGrant`, wait for it to
- * end, then judge the receipts and proposals. Never throws for a failed expectation; the result
+ * end, then judge the receipts and approval requests. Never throws for a failed expectation; the result
  * lists the failures, so a model gate can compare candidates.
  */
 export async function runAgentScenario(
@@ -332,7 +332,7 @@ export async function runAgentScenario(
       state: 'refused',
       calls,
       commits: [],
-      proposals: [],
+      approvals: [],
       failures,
       passed: false,
     };
@@ -362,7 +362,7 @@ export async function runAgentScenario(
   return {
     ...partial,
     commits: judged.commits,
-    proposals: judged.proposals,
+    approvals: judged.approvals,
     failures,
     passed: !failures.length,
   };

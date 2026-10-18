@@ -4,7 +4,7 @@ A bridge to [station](../../docs/glossary.md#station) software that can only be 
 
 ## Layer
 
-Framework (`packages/*`). Server only, except `requirements`. The package is domain-neutral: the domain [module](../../docs/glossary.md#module) declares the station screen and the outbox targets, as `examples/line-station` does. The package trusts the host's ports and treats model output as untrusted. A model may read the screen or propose targets; deterministic code acts and verifies. Nothing here writes application state directly.
+Framework (`packages/*`). Server only, except `requirements`. The package is domain-neutral: the domain [module](../../docs/glossary.md#module) declares the station screen and the outbox targets, as `examples/line-station` does. The package trusts the host's ports and treats model output as untrusted. A model may read the screen or suggest targets; deterministic code acts and verifies. Nothing here writes application state directly.
 
 ## Primitives
 

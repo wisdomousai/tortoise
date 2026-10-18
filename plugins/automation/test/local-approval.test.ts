@@ -6,7 +6,7 @@ import { toolName } from '@agent-native/agents/types';
 import { startHost } from '@agent-native/host/host';
 import { lotsApplication, person, reviewOnReceive } from './fixture';
 
-// An OpenAI-compatible model server on loopback. Its first answer proposes inspecting the lot
+// An OpenAI-compatible model server on loopback. Its first answer requests approval for inspecting the lot
 // named in the prompt; once the tool result is back it says done.
 const completions: { tools: string[]; prompt: string }[] = [];
 const chunk = (delta: unknown, finish: string | null = null) =>
@@ -44,7 +44,7 @@ async function answer(request: Request) {
               index: 0,
               id: 'call-1',
               type: 'function',
-              function: { name: toolName('proposal.submit'), arguments: JSON.stringify(call) },
+              function: { name: toolName('approval.request'), arguments: JSON.stringify(call) },
             },
           ],
         }),
@@ -65,7 +65,7 @@ async function until(check: () => Promise<boolean>) {
   throw new Error('Condition not reached');
 }
 
-test('a received lot starts a local-model run that proposes its inspection, and an inspector accepts it', async () => {
+test('a received lot starts a local-model run that requests approval for its inspection, and an inspector approves it', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'automation-local-'));
   const policy = join(directory, 'site-policy.json');
   await writeFile(
@@ -92,7 +92,7 @@ test('a received lot starts a local-model run that proposes its inspection, and 
   const app = host.application;
   const query = async (operation: string, input: unknown): Promise<any> =>
     (await app.queryRaw({ operation, input }, person('ann'))).data;
-  const open = async () => (await query('proposal.list', { status: 'open' })).items;
+  const open = async () => (await query('approval.list', { status: 'pending' })).items;
   try {
     await app.invokeRaw(
       {
@@ -110,40 +110,40 @@ test('a received lot starts a local-model run that proposes its inspection, and 
     await app.invokeRaw({ operation: 'lot.receive', input: { id: 'l1' } }, person('vic'));
     await until(async () => (await open()).length === 1);
 
-    // The run proposed under the grant's issuer and changed nothing.
-    const [proposal] = await open();
-    expect(proposal).toMatchObject({
+    // The run requested approval under the grant's issuer and changed nothing.
+    const [approval] = await open();
+    expect(approval).toMatchObject({
       operation: 'lot.inspect',
       input: { id: 'l1' },
       resource: 'lot:l1',
       model: 'qwen-local',
-      proposedBy: 'ann',
-      status: 'open',
+      requestedBy: 'ann',
+      status: 'pending',
     });
-    expect(proposal.runId).toBeString();
+    expect(approval.runId).toBeString();
     expect((await query('lot.get', { id: 'l1' })).inspections).toBe(0);
-    // The model saw the lot it was started on, could read it and propose, and never got the
+    // The model saw the lot it was started on, could read it and request approval, and never got the
     // command itself as a tool.
     expect(completions[0]!.prompt).toContain('lot:l1');
     expect(completions[0]!.tools.sort()).toEqual(
-      [toolName('lot.get'), toolName('proposal.submit')].sort(),
+      [toolName('lot.get'), toolName('approval.request')].sort(),
     );
 
-    // Accepting runs the command as the accepter: a viewer is refused and it stays open.
+    // Approving runs the command as the approver: a viewer is refused and it stays open.
     await expect(
       app.invokeRaw(
-        { operation: 'proposal.accept', input: { id: proposal.id }, idempotencyKey: 'by-vic' },
+        { operation: 'approval.approve', input: { id: approval.id }, idempotencyKey: 'by-vic' },
         person('vic'),
       ),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     expect(await open()).toHaveLength(1);
     await app.invokeRaw(
-      { operation: 'proposal.accept', input: { id: proposal.id }, idempotencyKey: 'by-ann' },
+      { operation: 'approval.approve', input: { id: approval.id }, idempotencyKey: 'by-ann' },
       person('ann'),
     );
     expect((await query('lot.get', { id: 'l1' })).inspections).toBe(1);
-    expect((await query('proposal.get', { id: proposal.id })) as object).toMatchObject({
-      status: 'accepted',
+    expect((await query('approval.get', { id: approval.id })) as object).toMatchObject({
+      status: 'approved',
       closedBy: 'ann',
     });
   } finally {

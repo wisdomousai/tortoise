@@ -97,7 +97,7 @@ export type HarnessInference = 'local' | 'remote' | 'none';
 
 /**
  * The model a harness runs, recorded on each run so its work names the model that did it. With
- * a model entry, the digests trace a proposal back through its run to the weights, the adapter
+ * a model entry, the digests trace an approval request back through its run to the weights, the adapter
  * and the dataset the adapter was tuned on.
  */
 export interface ModelIdentity {

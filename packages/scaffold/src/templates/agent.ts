@@ -10,33 +10,33 @@ const contract = (
 ) => `import { defineAgent } from '@agent-native/contracts';
 
 /**
- * The ${agent.words} agent: it reads ${many.words} and proposes ${one.kebab}.update for a person to
- * accept. It holds no write of its own, so nothing changes until someone accepts.
+ * The ${agent.words} agent: it reads ${many.words} and requests approval for ${one.kebab}.update for a person to
+ * approve. It holds no write of its own, so nothing changes until someone approves.
  */
 export const ${agent.camel}Agent = defineAgent({
   id: '${app.app.kebab}.${agent.kebab}',
   title: '${agent.title}',
   instructions:
-    'List open ${many.words} and read each one. When a ${one.words} is finished, propose ${one.kebab}.update with its id and status done, a short rationale, resource ${one.kebab}:<id> and the revision you read as baseRevisions. A person accepts or rejects each proposal. Never propose other commands.',
-  operations: ['${one.kebab}.list', '${one.kebab}.get', '${one.kebab}.update', 'proposal.list'],
+    'List open ${many.words} and read each one. When a ${one.words} is finished, request approval for ${one.kebab}.update with its id and status done, a short rationale, resource ${one.kebab}:<id> and the revision you read as baseRevisions. A person approves or rejects each request. Never request approval for other commands.',
+  operations: ['${one.kebab}.list', '${one.kebab}.get', '${one.kebab}.update', 'approval.list'],
   model: 'any',
-  output: 'propose',
+  output: 'request-approval',
   budgets: { turns: 8, toolCalls: 30, wallTimeMs: 180_000 },
 });
 `;
 
-const handlers = `import { proposalHandlers as handlersOf } from '@agent-native/runtime';
+const handlers = `import { approvalHandlers as handlersOf } from '@agent-native/runtime';
 import { operations } from '../contracts';
 import type { AppState } from '../domain';
 import { newId, now, type Services } from './context';
 
 /**
- * Proposed commands. Every member sees every proposal, as they see every record. Accepting runs
- * the proposed command under the accepter, so the command's own rule decides whether they may.
+ * Requested commands. Every member sees every approval request, as they see every record. Approving runs
+ * the requested command under the approver, so the command's own rule decides whether they may.
  */
-export function proposalHandlers() {
+export function approvalHandlers() {
   return handlersOf<AppState, Services>({
-    store: (state) => state.proposals,
+    store: (state) => state.approvals,
     commands: Object.values(operations).filter((operation) => operation.kind === 'command'),
     visible: () => true,
     newId,
@@ -45,20 +45,20 @@ export function proposalHandlers() {
 }
 `;
 
-const screen = `import { ProposalReview } from '@/components/proposal-review';
+const screen = `import { ApprovalReview } from '@/components/approval-review';
 import { operations } from '../contracts';
 
-/** Open proposals from every agent, each with Accept and Reject. */
-export function ProposalsScreen() {
+/** Pending approval requests from every agent, each with Approve and Reject. */
+export function ApprovalsScreen() {
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Proposals</h1>
-      <ProposalReview
-        title="Open proposals"
-        list={operations.proposalList}
-        accept={operations.proposalAccept}
-        reject={operations.proposalReject}
-        describe={(proposal) => \`\${proposal.resource ?? ''}: \${proposal.operation}\`}
+      <h1 className="text-xl font-semibold">Approvals</h1>
+      <ApprovalReview
+        title="Pending approvals"
+        list={operations.approvalList}
+        approve={operations.approvalApprove}
+        reject={operations.approvalReject}
+        describe={(approval) => \`\${approval.resource ?? ''}: \${approval.operation}\`}
       />
     </div>
   );
@@ -78,7 +78,7 @@ import { openEmbeddedInstance } from '@agent-native/host';
 import { runAgentScenarios, type AgentScenario } from '@agent-native/testing/agent-scenarios';
 import { create${app.app.pascal}Application } from '../application';
 
-// The ${agent.words} agent judged by what it commits and proposes. The deterministic harness
+// The ${agent.words} agent judged by what it commits and what it requests approval for. The deterministic harness
 // plays a scripted run; a model runs the same scenarios only when a test is given one.
 const owner = { workspaceId: 'local', principalId: 'owner' };
 let ids = 0;
@@ -100,7 +100,7 @@ afterAll(async () => {
 
 const scenarios: AgentScenario[] = [
   {
-    name: 'a finished ${one.words} is proposed as done, and stays open until a person accepts',
+    name: 'approval is requested to mark a finished ${one.words} done, and it stays open until a person approves',
     agent: '${app.app.kebab}.${agent.kebab}',
     task: 'Close the finished ${one.words}.',
     issuer: owner,
@@ -116,7 +116,7 @@ const scenarios: AgentScenario[] = [
         { operation: '${one.kebab}.list', input: { status: 'open' } },
         { operation: '${one.kebab}.get', input: { id: '${one.kebab}-1' } },
         {
-          operation: 'proposal.submit',
+          operation: 'approval.request',
           input: {
             operation: '${one.kebab}.update',
             input: { id: '${one.kebab}-1', status: 'done' },
@@ -128,7 +128,7 @@ const scenarios: AgentScenario[] = [
     },
     expect: {
       commits: [],
-      proposals: [{ operation: '${one.kebab}.update', input: { id: '${one.kebab}-1', status: 'done' } }],
+      approvals: [{ operation: '${one.kebab}.update', input: { id: '${one.kebab}-1', status: 'done' } }],
       outcome: 'succeeded',
     },
     async check(_result, application) {
@@ -140,7 +140,7 @@ const scenarios: AgentScenario[] = [
     },
   },
   {
-    name: 'updating directly is refused: the agent only proposes',
+    name: 'updating directly is refused: the agent only requests approval',
     agent: '${app.app.kebab}.${agent.kebab}',
     task: 'Close everything.',
     issuer: owner,
@@ -155,7 +155,7 @@ const scenarios: AgentScenario[] = [
   },
 ];
 
-test('the ${agent.words} agent proposes updates and never commits them', async () => {
+test('the ${agent.words} agent requests approval for updates and never commits them', async () => {
   const results = await runAgentScenarios(scenarios, {
     application: instance.application,
     harness: deterministicHarness,
@@ -165,26 +165,26 @@ test('the ${agent.words} agent proposes updates and never commits them', async (
   );
 });
 
-test('a person accepts a proposal, and the update commits as that person', async () => {
+test('a person approves an approval, and the update commits as that person', async () => {
   const app = instance.application;
   const created = await app.invokeRaw(
-    { operation: '${one.kebab}.create', input: { title: 'Accepted' }, idempotencyKey: 'create-accepted' },
+    { operation: '${one.kebab}.create', input: { title: 'Approved' }, idempotencyKey: 'create-approved' },
     owner,
   );
   const id = (created.result as { id: string }).id;
-  const proposed = await app.invokeRaw(
+  const requested = await app.invokeRaw(
     {
-      operation: 'proposal.submit',
+      operation: 'approval.request',
       input: { operation: '${one.kebab}.update', input: { id, status: 'done' }, rationale: 'Done.' },
-      idempotencyKey: 'propose-accepted',
+      idempotencyKey: 'request-approved',
     },
     owner,
   );
   await app.invokeRaw(
     {
-      operation: 'proposal.accept',
-      input: { id: (proposed.result as { id: string }).id },
-      idempotencyKey: 'accept-accepted',
+      operation: 'approval.approve',
+      input: { id: (requested.result as { id: string }).id },
+      idempotencyKey: 'approve-approved',
     },
     owner,
   );
@@ -194,8 +194,8 @@ test('a person accepts a proposal, and the update commits as that person', async
 `;
 
 /**
- * An agent that proposes updates to one collection. The first agent also adds the proposal
- * operations, their handlers, rules and state, and a screen listing open proposals.
+ * An agent that requests approval for updates to one collection. The first agent also adds the approval request
+ * operations, their handlers, rules and state, and a screen listing pending approval requests.
  */
 export function agent(app: AppNames, name: Names, one: Names, first: boolean): Generated {
   const many = plural(one);
@@ -209,41 +209,41 @@ export function agent(app: AppNames, name: Names, one: Names, first: boolean): G
       files,
       insertions: { 'contracts.ts': { imports: [agentImport], agents: [`${name.camel}Agent,`] } },
     };
-  const rule = (op: string, value: string) => `[operations.proposal${op}.id]: ${value},`;
+  const rule = (op: string, value: string) => `[operations.approval${op}.id]: ${value},`;
   return {
-    files: { ...files, 'handlers/proposals.ts': handlers, 'ui/proposals.tsx': screen },
+    files: { ...files, 'handlers/approvals.ts': handlers, 'ui/approvals.tsx': screen },
     insertions: {
       'contracts.ts': {
-        imports: [`import { proposalOperations } from '@agent-native/contracts';`, agentImport],
-        operations: ['...proposalOperations,'],
+        imports: [`import { approvalOperations } from '@agent-native/contracts';`, agentImport],
+        operations: ['...approvalOperations,'],
         agents: [`${name.camel}Agent,`],
       },
       'domain.ts': {
-        imports: [`import type { Proposal } from '@agent-native/contracts';`],
-        state: ['proposals: Record<string, Proposal>;'],
-        initial: ['proposals: {},'],
+        imports: [`import type { ApprovalRequest } from '@agent-native/contracts';`],
+        state: ['approvals: Record<string, ApprovalRequest>;'],
+        initial: ['approvals: {},'],
       },
       'policy.ts': {
-        // Agents submit; deciding a proposal needs a person.
+        // Agents request approval; deciding an approval request needs a person.
         rules: [
-          rule('Submit', '{}'),
-          rule('Accept', '{ person: true }'),
+          rule('Request', '{}'),
+          rule('Approve', '{ person: true }'),
           rule('Reject', '{ ...editor, person: true }'),
           rule('Expire', '{}'),
           rule('List', "'open'"),
           rule('Get', "'open'"),
         ],
-        events: ['proposal: () => true,'],
+        events: ["'approval-request': () => true,"],
       },
       'server.ts': {
-        imports: [`import { proposalHandlers } from './handlers/proposals';`],
-        handlers: ['...(proposalHandlers() as HandlerContribution<AppState, Services>[]),'],
+        imports: [`import { approvalHandlers } from './handlers/approvals';`],
+        handlers: ['...(approvalHandlers() as HandlerContribution<AppState, Services>[]),'],
       },
       'screens.tsx': {
-        imports: [`import { ProposalsScreen } from './ui/proposals';`],
-        routes: ["{ path: 'proposals', component: ProposalsScreen },"],
-        navigation: ["{ to: '/proposals', label: 'Proposals', icon: List },"],
-        'capability-screens': ["{ prefix: 'proposal.', to: '/proposals' },"],
+        imports: [`import { ApprovalsScreen } from './ui/approvals';`],
+        routes: ["{ path: 'approvals', component: ApprovalsScreen },"],
+        navigation: ["{ to: '/approvals', label: 'Approvals', icon: List },"],
+        'capability-screens': ["{ prefix: 'approval.', to: '/approvals' },"],
       },
     },
   };

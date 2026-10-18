@@ -17,7 +17,7 @@ export interface ModelEntry {
   readonly adapter?: {
     readonly kind: 'lora' | 'merged';
     readonly digest: string;
-    /** Digest of the dataset export it was trained on (`exportProposalDataset`). */
+    /** Digest of the dataset export it was trained on (`exportApprovalDataset`). */
     readonly dataset?: string;
   };
   /** The weights' license, as an SPDX ID or the license's name. */

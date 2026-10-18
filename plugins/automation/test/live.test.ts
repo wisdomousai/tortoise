@@ -7,10 +7,10 @@ import { startHost } from '@agent-native/host/host';
 import { lotsApplication, person, reviewOnReceive } from './fixture';
 
 /**
- * The live form of `local-proposal.test.ts`, skipped unless LOCAL_MODEL_GGUF names a GGUF file:
+ * The live form of `local-approval.test.ts`, skipped unless LOCAL_MODEL_GGUF names a GGUF file:
  * the test starts llama.cpp `llama-server` (LLAMA_SERVER, or the one on PATH) on those weights,
  * the site policy binds `local-inference` to it, and a received lot starts a run on the real
- * model. The person accepting is the only path to the command.
+ * model. The person approving is the only path to the command.
  */
 const weights = process.env.LOCAL_MODEL_GGUF;
 const executable = process.env.LLAMA_SERVER ?? Bun.which('llama-server');
@@ -37,7 +37,7 @@ async function until(check: () => Promise<boolean>, timeoutMs: number) {
 }
 
 live(
-  'a received lot starts a run on a real local model that proposes its inspection, and an inspector accepts it',
+  'a received lot starts a run on a real local model that requests approval for its inspection, and an inspector approves it',
   async () => {
     const port = await freePort();
     const server = Bun.spawn(
@@ -115,23 +115,23 @@ live(
     if (failures.length) console.log(JSON.stringify(failures, null, 2));
     expect(await trigger()).toMatchObject({ lastOutcome: 'succeeded', openFailures: 0 });
 
-    const [proposal] = (await query('proposal.list', { status: 'open' })).items;
-    console.log(JSON.stringify(proposal, null, 2));
-    expect(proposal).toMatchObject({
+    const [approval] = (await query('approval.list', { status: 'pending' })).items;
+    console.log(JSON.stringify(approval, null, 2));
+    expect(approval).toMatchObject({
       operation: 'lot.inspect',
       input: { id: 'l1' },
-      proposedBy: 'ann',
-      status: 'open',
+      requestedBy: 'ann',
+      status: 'pending',
     });
     expect((await query('lot.get', { id: 'l1' })).inspections).toBe(0);
     await expect(
       app.invokeRaw(
-        { operation: 'proposal.accept', input: { id: proposal.id }, idempotencyKey: 'by-vic' },
+        { operation: 'approval.approve', input: { id: approval.id }, idempotencyKey: 'by-vic' },
         person('vic'),
       ),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await app.invokeRaw(
-      { operation: 'proposal.accept', input: { id: proposal.id }, idempotencyKey: 'by-ann' },
+      { operation: 'approval.approve', input: { id: approval.id }, idempotencyKey: 'by-ann' },
       person('ann'),
     );
     expect((await query('lot.get', { id: 'l1' })).inspections).toBe(1);

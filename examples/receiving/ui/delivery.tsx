@@ -1,13 +1,13 @@
 import { useParams } from '@tanstack/react-router';
 import { CapabilityForm } from '@/components/capability-form';
 import { CollectionScreen, RecordScreen } from '@/components/collection-screen';
-import { ProposalReview } from '@/components/proposal-review';
+import { ApprovalReview } from '@/components/approval-review';
 import { operations } from '../contracts';
 
-export const reasonOf = (proposal: { operation: string; input: Record<string, unknown> }) =>
-  proposal.operation === 'delivery.classify'
-    ? `Reason: ${String(proposal.input.reason)}${proposal.input.note ? ` (${String(proposal.input.note)})` : ''}`
-    : proposal.operation;
+export const reasonOf = (approval: { operation: string; input: Record<string, unknown> }) =>
+  approval.operation === 'delivery.classify'
+    ? `Reason: ${String(approval.input.reason)}${approval.input.note ? ` (${String(approval.input.note)})` : ''}`
+    : approval.operation;
 
 /** One line: the default record view, then counting, the discrepancy reason and posting. */
 function DeliveryScreen() {
@@ -23,11 +23,11 @@ function DeliveryScreen() {
           submitLabel="Record count"
         />
       </section>
-      <ProposalReview
-        title="Proposed reason"
-        list={operations.proposalList}
-        accept={operations.proposalAccept}
-        reject={operations.proposalReject}
+      <ApprovalReview
+        title="Suggested reason"
+        list={operations.approvalList}
+        approve={operations.approvalApprove}
+        reject={operations.approvalReject}
         resource={`delivery:${id}`}
         describe={reasonOf}
       />

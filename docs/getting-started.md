@@ -151,7 +151,7 @@ The new directory must not exist. The generated application in `examples/<name>`
 - `collection`: its contract, handlers, policy rules, default screens and test.
 - `capability`: its contract, handler, policy rule and behavioral test.
 - `target`: a [target](glossary.md#target) with its contract, handlers, policy lane, an in-memory fake [connector](glossary.md#connector), a status screen and a test. Its network destination is listed as disabled in `apps/desktop/site-policy.json` until the site policy binds it.
-- `agent`: an [agent definition](glossary.md#agent-definition) that proposes, with a test. The first agent also adds the [proposal](glossary.md#proposal) capabilities and a screen of open proposals.
+- `agent`: an [agent definition](glossary.md#agent-definition) that requests approval, with a test. The first agent also adds the [approval request](glossary.md#approval-request) capabilities and a screen of pending approval requests.
 
 With `--registry <url>`, the new application installs the framework packages from that registry at the repository's framework version instead of copying their source; `--published` uses npm's registry. No lockfile is exported in that case, so the first install runs without the frozen-lockfile flag and writes it. To try this before anything is published, serve the packages on loopback:
 

@@ -12,7 +12,7 @@ import { erpExchange, erpFolders } from '../contracts/erp-target';
 
 const owner = { workspaceId: 'local', principalId: 'owner' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
-/** The discrepancy agent, run on the owner's behalf: it may read and propose, nothing else. */
+/** The discrepancy agent, run on the owner's behalf: it may read and request approval, nothing else. */
 const agent: ExecutionContext = {
   ...owner,
   runId: 'run-1',
@@ -97,7 +97,7 @@ async function site() {
 }
 
 describe('receiving through the ERP exchange folders', () => {
-  test('a notice becomes lines; a short count is classified by an accepted proposal and posted as a file the ERP settles', async () => {
+  test('a notice becomes lines; a short count is classified by an approved approval request and posted as a file the ERP settles', async () => {
     const share = await site();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
@@ -117,7 +117,7 @@ describe('receiving through the ERP exchange folders', () => {
       code: 'CONFLICT',
     });
 
-    // The agent may read and propose, but not classify the line itself.
+    // The agent may read and request approval, but not classify the line itself.
     await expect(
       host.command('delivery.classify', { id: 'ASN-1001-2', reason: 'short' }, agent),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
@@ -125,8 +125,8 @@ describe('receiving through the ERP exchange folders', () => {
       data: { counted: 540 },
     });
     const revision = counted.revisions['delivery:ASN-1001-2']!;
-    const proposal = await host.command(
-      'proposal.submit',
+    const approval = await host.command(
+      'approval.request',
       {
         operation: 'delivery.classify',
         input: { id: 'ASN-1001-2', reason: 'short', note: 'One carton of 60 missing' },
@@ -137,12 +137,12 @@ describe('receiving through the ERP exchange folders', () => {
       },
       agent,
     );
-    // A viewer cannot accept: the classify command's editor rule applies to the accepter.
-    const id = (proposal.result as { id: string }).id;
-    await expect(host.command('proposal.accept', { id }, viewer)).rejects.toMatchObject({
+    // A viewer cannot approve: the classify command's editor rule applies to the approver.
+    const id = (approval.result as { id: string }).id;
+    await expect(host.command('approval.approve', { id }, viewer)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
-    await host.command('proposal.accept', { id });
+    await host.command('approval.approve', { id });
     expect(await host.line('ASN-1001-2')).toMatchObject({
       reason: 'short',
       note: 'One carton of 60 missing',

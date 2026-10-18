@@ -7,15 +7,15 @@ import {
   type OutputOf,
   defineModule,
   jsonSchema,
-  proposalOperations,
-  type Proposal,
+  approvalOperations,
+  type ApprovalRequest,
 } from '@agent-native/contracts';
 import {
   createApplication,
   createMemoryStorage,
   definePolicy,
-  exportProposalDataset,
-  proposalHandlers,
+  exportApprovalDataset,
+  approvalHandlers,
   REDACTED,
   records,
   type ExecutionContext,
@@ -27,7 +27,7 @@ type Role = 'operator' | 'viewer';
 interface State {
   roles: Record<string, Role>;
   lots: Record<string, { id: string; status: 'held' | 'released' }>;
-  proposals: Record<string, Proposal>;
+  approvals: Record<string, ApprovalRequest>;
 }
 const lots = { type: 'lot', label: { one: 'Lot', many: 'Lots' } } as const;
 const fixture = { ui: { exception: 'test fixture' } } as const;
@@ -78,13 +78,13 @@ function setup() {
   const state: State = {
     roles: { ann: 'operator', vic: 'viewer' },
     lots: { l1: { id: 'l1', status: 'held' } },
-    proposals: {},
+    approvals: {},
   };
   const app = createApplication({
     modules: [
       defineModule({
         id: 'lots',
-        capabilities: [release, touch, getLot, revoke, ...Object.values(proposalOperations)],
+        capabilities: [release, touch, getLot, revoke, ...Object.values(approvalOperations)],
       }),
     ],
     storage: createMemoryStorage<State>(state),
@@ -96,16 +96,16 @@ function setup() {
         'lot.touch': 'open',
         'lot.get': 'open',
         'role.revoke': 'open',
-        'proposal.submit': 'open',
-        // Any member at a screen may accept; the proposed command's own rule decides the rest.
-        // A delegated run never accepts, even its own proposal.
-        'proposal.accept': { container: site, person: true },
-        'proposal.reject': { ...operatorOnly, person: true },
-        'proposal.expire': 'open',
-        'proposal.list': 'open',
-        'proposal.get': 'open',
+        'approval.request': 'open',
+        // Any member at a screen may approve; the requested command's own rule decides the rest.
+        // A delegated run never approves, even its own approval request.
+        'approval.approve': { container: site, person: true },
+        'approval.reject': { ...operatorOnly, person: true },
+        'approval.expire': 'open',
+        'approval.list': 'open',
+        'approval.get': 'open',
       },
-      events: { lot: () => true, proposal: () => true, role: () => true },
+      events: { lot: () => true, approval: () => true, role: () => true },
     }),
     handlers: [
       handler(release, (input, ctx) => {
@@ -122,10 +122,10 @@ function setup() {
         ctx.change(`role:${input.principalId}`, 'authorization.changed');
         return {};
       }),
-      ...proposalHandlers<State, {}>({
-        store: (state) => state.proposals,
+      ...approvalHandlers<State, {}>({
+        store: (state) => state.approvals,
         commands: [release, touch, revoke],
-        visible: (_proposal, ctx) => ctx.state.roles[ctx.context.principalId] !== undefined,
+        visible: (_approval, ctx) => ctx.state.roles[ctx.context.principalId] !== undefined,
         newId: () => `p${++ids}`,
         now: () => clock,
         ttlMs: 10_000,
@@ -138,18 +138,18 @@ function setup() {
         status: string;
       }
     ).status;
-  const proposal = async (id = 'p1') =>
-    (await app.queryRaw({ operation: 'proposal.get', input: { id } }, vic)).data as Proposal;
-  return { app, lot, proposal, advance: (ms: number) => (clock += ms) };
+  const approval = async (id = 'p1') =>
+    (await app.queryRaw({ operation: 'approval.get', input: { id } }, vic)).data as ApprovalRequest;
+  return { app, lot, approval, advance: (ms: number) => (clock += ms) };
 }
 
 const ann: ExecutionContext = { workspaceId: 'w', principalId: 'ann' };
 const vic: ExecutionContext = { workspaceId: 'w', principalId: 'vic' };
-// An agent run on Ann's behalf whose grant can propose but not release.
+// An agent run on Ann's behalf whose grant can request approval but not release.
 const annAgent: ExecutionContext = {
   ...ann,
   runId: 'run-1',
-  grant: { operations: ['proposal.submit', 'proposal.list'], principalId: 'ann', runId: 'run-1' },
+  grant: { operations: ['approval.request', 'approval.list'], principalId: 'ann', runId: 'run-1' },
 };
 let keys = 0;
 const invoke = (
@@ -159,10 +159,10 @@ const invoke = (
   context: ExecutionContext,
   idempotencyKey = `k${++keys}`,
 ) => app.invokeRaw({ operation, input, idempotencyKey }, context);
-const propose = (app: ReturnType<typeof setup>['app'], baseRevisions = { 'lot:l1': 0 }) =>
+const requestApproval = (app: ReturnType<typeof setup>['app'], baseRevisions = { 'lot:l1': 0 }) =>
   invoke(
     app,
-    'proposal.submit',
+    'approval.request',
     {
       operation: 'lot.release',
       input: { id: 'l1' },
@@ -175,92 +175,92 @@ const propose = (app: ReturnType<typeof setup>['app'], baseRevisions = { 'lot:l1
     annAgent,
   );
 
-describe('proposals', () => {
-  test('an agent proposes and a person accepts: the command runs as the accepter, once', async () => {
-    const { app, lot, proposal } = setup();
-    const submitted = await propose(app);
+describe('approvals', () => {
+  test('an agent requests approval and a person approves: the command runs as the approver, once', async () => {
+    const { app, lot, approval } = setup();
+    const submitted = await requestApproval(app);
     expect(submitted.result).toMatchObject({
       id: 'p1',
-      status: 'open',
-      proposedBy: 'ann',
+      status: 'pending',
+      requestedBy: 'ann',
       runId: 'run-1',
       expiresAt: 11_000,
     });
     expect(await lot()).toBe('held');
-    const accepted = await invoke(app, 'proposal.accept', { id: 'p1' }, ann, 'accept');
-    expect(accepted.result).toEqual({ id: 'p1', status: 'accepted', operation: 'lot.release' });
-    expect(accepted.continuation).toEqual({
+    const approved = await invoke(app, 'approval.approve', { id: 'p1' }, ann, 'approve');
+    expect(approved.result).toEqual({ id: 'p1', status: 'approved', operation: 'lot.release' });
+    expect(approved.continuation).toEqual({
       operation: 'lot.release',
       result: { id: 'l1', status: 'released' },
     });
-    expect(Object.keys(accepted.revisions).sort()).toEqual(['lot:l1', 'proposal:p1']);
-    const replayed = await invoke(app, 'proposal.accept', { id: 'p1' }, ann, 'accept');
-    expect(replayed.continuation).toEqual(accepted.continuation);
-    expect(replayed.cursor).toBe(accepted.cursor);
-    expect(await proposal()).toMatchObject({ status: 'accepted', closedBy: 'ann' });
+    expect(Object.keys(approved.revisions).sort()).toEqual(['approval-request:p1', 'lot:l1']);
+    const replayed = await invoke(app, 'approval.approve', { id: 'p1' }, ann, 'approve');
+    expect(replayed.continuation).toEqual(approved.continuation);
+    expect(replayed.cursor).toBe(approved.cursor);
+    expect(await approval()).toMatchObject({ status: 'approved', closedBy: 'ann' });
     expect(await lot()).toBe('released');
-    await expect(invoke(app, 'proposal.accept', { id: 'p1' }, ann)).rejects.toMatchObject({
+    await expect(invoke(app, 'approval.approve', { id: 'p1' }, ann)).rejects.toMatchObject({
       code: 'CONFLICT',
     });
   });
 
-  test('accepting never widens instance; a refusal leaves the proposal open', async () => {
-    const { app, lot, proposal } = setup();
-    await propose(app);
-    // The agent's grant lacks accept and the command, and the policy refuses delegated accepts.
-    await expect(invoke(app, 'proposal.accept', { id: 'p1' }, annAgent)).rejects.toMatchObject({
+  test('approving never widens a grant; a refusal leaves the approval pending', async () => {
+    const { app, lot, approval } = setup();
+    await requestApproval(app);
+    // The agent's grant lacks approve and the command, and the policy refuses delegated approves.
+    await expect(invoke(app, 'approval.approve', { id: 'p1' }, annAgent)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
-    await expect(invoke(app, 'proposal.accept', { id: 'p1' }, vic)).rejects.toMatchObject({
+    await expect(invoke(app, 'approval.approve', { id: 'p1' }, vic)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
-    // Vic may accept proposals but not release lots, so the release itself is refused. The same
-    // holds for Ann once she is demoted between the proposal and her acceptance.
+    // Vic may approve approval requests but not release lots, so the release itself is refused. The same
+    // holds for Ann once she is demoted between the approval request and her approval.
     await invoke(app, 'role.revoke', { principalId: 'ann' }, vic);
-    await expect(invoke(app, 'proposal.accept', { id: 'p1' }, ann)).rejects.toMatchObject({
+    await expect(invoke(app, 'approval.approve', { id: 'p1' }, ann)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
     expect(await lot()).toBe('held');
-    expect((await proposal()).status).toBe('open');
+    expect((await approval()).status).toBe('pending');
   });
 
-  test('a record changed since the proposer read it conflicts and the proposal stays open', async () => {
-    const { app, lot, proposal } = setup();
-    await propose(app);
+  test('a record changed since the requester read it conflicts and the approval stays open', async () => {
+    const { app, lot, approval } = setup();
+    await requestApproval(app);
     await invoke(app, 'lot.touch', { id: 'l1' }, vic);
-    await expect(invoke(app, 'proposal.accept', { id: 'p1' }, ann)).rejects.toMatchObject({
+    await expect(invoke(app, 'approval.approve', { id: 'p1' }, ann)).rejects.toMatchObject({
       code: 'CONFLICT',
     });
     expect(await lot()).toBe('held');
-    expect((await proposal()).status).toBe('open');
-    await invoke(app, 'proposal.reject', { id: 'p1', reason: 'Lot changed' }, ann);
-    expect(await proposal()).toMatchObject({ status: 'rejected', reason: 'Lot changed' });
+    expect((await approval()).status).toBe('pending');
+    await invoke(app, 'approval.reject', { id: 'p1', reason: 'Lot changed' }, ann);
+    expect(await approval()).toMatchObject({ status: 'rejected', reason: 'Lot changed' });
   });
 
-  test('only open, proposable commands with valid input are accepted for submission', async () => {
+  test('approval can be requested only for known commands with valid input, and not for approval operations', async () => {
     const { app } = setup();
     const submit = (operation: string, input: unknown) =>
-      invoke(app, 'proposal.submit', { operation, input, rationale: 'x' }, annAgent);
+      invoke(app, 'approval.request', { operation, input, rationale: 'x' }, annAgent);
     for (const [operation, input] of [
       ['lot.missing', { id: 'l1' }],
       ['lot.release', { id: 1 }],
-      ['proposal.accept', { id: 'p1' }],
+      ['approval.approve', { id: 'p1' }],
     ] as const)
       await expect(submit(operation, input)).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   });
 
-  test('a proposal expires: accepting conflicts and expire closes it only after its expiry', async () => {
-    const { app, proposal, advance } = setup();
-    await propose(app);
-    await expect(invoke(app, 'proposal.expire', { id: 'p1' }, vic)).rejects.toMatchObject({
+  test('an approval expires: approving conflicts and expire closes it only after its expiry', async () => {
+    const { app, approval, advance } = setup();
+    await requestApproval(app);
+    await expect(invoke(app, 'approval.expire', { id: 'p1' }, vic)).rejects.toMatchObject({
       code: 'CONFLICT',
     });
     advance(10_000);
-    await expect(invoke(app, 'proposal.accept', { id: 'p1' }, ann)).rejects.toMatchObject({
+    await expect(invoke(app, 'approval.approve', { id: 'p1' }, ann)).rejects.toMatchObject({
       code: 'CONFLICT',
     });
-    await invoke(app, 'proposal.expire', { id: 'p1' }, vic);
-    expect((await proposal()).status).toBe('expired');
+    await invoke(app, 'approval.expire', { id: 'p1' }, vic);
+    expect((await approval()).status).toBe('expired');
   });
 
   test('a continued command cannot continue again', async () => {
@@ -268,13 +268,13 @@ describe('proposals', () => {
     await expect(
       invoke(
         app,
-        'proposal.submit',
-        { operation: 'proposal.submit', input: {}, rationale: 'x' },
+        'approval.request',
+        { operation: 'approval.request', input: {}, rationale: 'x' },
         annAgent,
       ),
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   });
-  test('a resource-scoped run proposes for its records only, creating the proposal record', async () => {
+  test('a resource-scoped run requests approval for its records only, creating the approval record', async () => {
     const { app, advance } = setup();
     const scoped = (creates?: string[]): ExecutionContext => ({
       ...annAgent,
@@ -287,52 +287,52 @@ describe('proposals', () => {
     const submit = (resource: string, context: ExecutionContext) =>
       invoke(
         app,
-        'proposal.submit',
+        'approval.request',
         { operation: 'lot.release', input: { id: 'l1' }, rationale: 'Passed.', resource },
         context,
       );
-    // The new proposal record is outside the resource list; `creates` admits it.
+    // The new approval request record is outside the resource list; `creates` admits it.
     await expect(submit('lot:l1', scoped())).rejects.toMatchObject({
       message: 'Delegation does not permit changed resource',
     });
-    const { id } = (await submit('lot:l1', scoped(['proposal']))).result as { id: string };
-    await expect(submit('lot:l2', scoped(['proposal']))).rejects.toMatchObject({
+    const { id } = (await submit('lot:l1', scoped(['approval-request']))).result as { id: string };
+    await expect(submit('lot:l2', scoped(['approval-request']))).rejects.toMatchObject({
       code: 'FORBIDDEN',
-      message: 'Delegation does not permit the proposed resource',
+      message: 'Delegation does not permit the requested resource',
     });
-    // `creates` covers only records with no revision yet: an existing proposal stays out of reach.
+    // `creates` covers only records with no revision yet: an existing approval request stays out of reach.
     advance(20_000);
-    const expiring = scoped(['proposal']);
+    const expiring = scoped(['approval-request']);
     await expect(
       invoke(
         app,
-        'proposal.expire',
+        'approval.expire',
         { id },
-        { ...expiring, grant: { ...expiring.grant!, operations: ['proposal.expire'] } },
+        { ...expiring, grant: { ...expiring.grant!, operations: ['approval.expire'] } },
       ),
     ).rejects.toMatchObject({ message: 'Delegation does not permit changed resource' });
   });
 });
 
-describe('proposal dataset', () => {
-  test('exports decided proposals the caller may see, redacted before the digest', async () => {
+describe('approval dataset', () => {
+  test('exports decided approvals the caller may see, redacted before the digest', async () => {
     const { app } = setup();
-    await propose(app);
-    await propose(app);
-    await propose(app);
-    await invoke(app, 'proposal.accept', { id: 'p1' }, ann);
-    await invoke(app, 'proposal.reject', { id: 'p2', reason: 'Lot l1 failed retest' }, ann);
-    const full = await exportProposalDataset(app, ann);
-    // The open proposal p3 is undecided and left out.
+    await requestApproval(app);
+    await requestApproval(app);
+    await requestApproval(app);
+    await invoke(app, 'approval.approve', { id: 'p1' }, ann);
+    await invoke(app, 'approval.reject', { id: 'p2', reason: 'Lot l1 failed retest' }, ann);
+    const full = await exportApprovalDataset(app, ann);
+    // The pending approval request p3 is undecided and left out.
     expect(full.rows.map((row) => [row.id, row.outcome, row.reason])).toEqual([
-      ['p1', 'accepted', undefined],
+      ['p1', 'approved', undefined],
       ['p2', 'rejected', 'Lot l1 failed retest'],
     ]);
-    expect(full).toMatchObject({ format: 'agent-native/proposal-dataset@1', exportedBy: 'ann' });
+    expect(full).toMatchObject({ format: 'agent-native/approval-dataset@1', exportedBy: 'ann' });
     expect(full.digest).toMatch(/^sha256:[0-9a-f]{64}$/);
-    expect((await exportProposalDataset(app, ann)).digest).toBe(full.digest);
+    expect((await exportApprovalDataset(app, ann)).digest).toBe(full.digest);
 
-    const redacted = await exportProposalDataset(app, ann, {
+    const redacted = await exportApprovalDataset(app, ann, {
       redact: { fields: { 'lot.release': ['id'] }, rationale: true, reason: true },
     });
     expect(redacted.rows[1]).toMatchObject({
@@ -343,9 +343,9 @@ describe('proposal dataset', () => {
     expect(JSON.stringify(redacted.rows)).not.toContain('retest');
     expect(redacted.digest).not.toBe(full.digest);
 
-    // Someone who may not see the proposals exports none of them.
+    // Someone who may not see the approval requests exports none of them.
     const stranger = { workspaceId: 'w', principalId: 'zed' };
-    expect((await exportProposalDataset(app, stranger)).rows).toEqual([]);
-    expect((await exportProposalDataset(app, ann, { operations: ['lot.touch'] })).rows).toEqual([]);
+    expect((await exportApprovalDataset(app, stranger)).rows).toEqual([]);
+    expect((await exportApprovalDataset(app, ann, { operations: ['lot.touch'] })).rows).toEqual([]);
   });
 });

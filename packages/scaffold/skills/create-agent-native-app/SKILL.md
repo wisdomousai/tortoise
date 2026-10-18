@@ -5,7 +5,7 @@ description: Create a new agent-native application from this framework with `bun
 
 # Create an agent-native application
 
-The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets and proposing agents. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead. [The setup reference](references/new-application.md) has the commands and what the export contains, and [getting started](../../../../docs/getting-started.md#new-application) shows a first run.
+The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets and requesting agents. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead. [The setup reference](references/new-application.md) has the commands and what the export contains, and [getting started](../../../../docs/getting-started.md#new-application) shows a first run.
 
 ## Before writing
 

@@ -7,17 +7,17 @@ import {
   defineCapability,
   defineModule,
   jsonSchema,
-  proposalOperations,
+  approvalOperations,
   type AnyCapability,
   type InputOf,
   type OutputOf,
-  type Proposal,
+  type ApprovalRequest,
 } from '@agent-native/contracts';
 import {
   createApplication,
   createMemoryStorage,
   definePolicy,
-  proposalHandlers,
+  approvalHandlers,
   records,
   type ExecutionContext,
   type HandlerContext,
@@ -33,13 +33,13 @@ import {
 } from '../src/agent-scenarios';
 import { gateModel, scenariosDigest } from '../src/activation';
 
-// A fixture application: lots an operator releases, an advisor agent that proposes releases and
+// A fixture application: lots an operator releases, an advisor agent that requests approval for releases and
 // a releaser agent that releases directly, each scoped to the lots it was started on.
 type Role = 'operator' | 'viewer';
 interface State {
   roles: Record<string, Role>;
   lots: Record<string, { id: string; status: 'held' | 'released' }>;
-  proposals: Record<string, Proposal>;
+  approvals: Record<string, ApprovalRequest>;
 }
 const lots = { type: 'lot', label: { one: 'Lot', many: 'Lots' } } as const;
 const fixture = { ui: { exception: 'test fixture' } } as const;
@@ -71,16 +71,16 @@ const getLot = defineCapability({
 const budgets = { turns: 4, toolCalls: 5, wallTimeMs: 10_000 };
 const lotsModule = defineModule({
   id: 'lots',
-  capabilities: [release, hold, getLot, ...Object.values(proposalOperations)],
+  capabilities: [release, hold, getLot, ...Object.values(approvalOperations)],
   agents: [
     defineAgent({
       id: 'lot.advisor',
       title: 'Advisor',
-      instructions: 'Propose releasing a held lot whose checks passed.',
+      instructions: 'Request approval for releasing a held lot whose checks passed.',
       operations: ['lot.get', 'lot.release'],
       resourceTypes: ['lot'],
       model: 'any',
-      output: 'propose',
+      output: 'request-approval',
       budgets,
     }),
     defineAgent({
@@ -114,7 +114,7 @@ function application() {
     storage: createMemoryStorage<State>({
       roles: { ann: 'operator', vic: 'viewer' },
       lots: { l1: { id: 'l1', status: 'held' }, l2: { id: 'l2', status: 'held' } },
-      proposals: {},
+      approvals: {},
     }),
     services: {},
     authorization: definePolicy<State, Role>({
@@ -123,21 +123,21 @@ function application() {
         'lot.release': operator,
         'lot.hold': operator,
         'lot.get': 'open',
-        'proposal.submit': 'open',
-        'proposal.accept': { container: () => 'site', person: true },
-        'proposal.reject': { ...operator, person: true },
-        'proposal.expire': 'open',
-        'proposal.list': 'open',
-        'proposal.get': 'open',
+        'approval.request': 'open',
+        'approval.approve': { container: () => 'site', person: true },
+        'approval.reject': { ...operator, person: true },
+        'approval.expire': 'open',
+        'approval.list': 'open',
+        'approval.get': 'open',
       },
-      events: { lot: () => true, proposal: () => true },
+      events: { lot: () => true, approval: () => true },
     }),
     handlers: [
       handler(release, set('released')),
       handler(hold, set('held')),
       handler(getLot, (input, ctx) => ctx.state.lots[input.id]!),
-      ...proposalHandlers<State, {}>({
-        store: (state) => state.proposals,
+      ...approvalHandlers<State, {}>({
+        store: (state) => state.approvals,
         commands: [release],
         visible: () => true,
         newId: () => `p${++ids}`,
@@ -150,7 +150,7 @@ function application() {
 
 const ann: ExecutionContext = { workspaceId: 'w', principalId: 'ann' };
 const advise = (id: string) => ({
-  operation: 'proposal.submit',
+  operation: 'approval.request',
   input: {
     operation: 'lot.release',
     input: { id },
@@ -159,7 +159,7 @@ const advise = (id: string) => ({
   },
 });
 const advisorScenario: AgentScenario = {
-  name: 'advisor proposes releasing the selected lot',
+  name: 'advisor requests approval for releasing the selected lot',
   agent: 'lot.advisor',
   task: 'Lot l1 passed its checks.',
   issuer: ann,
@@ -167,7 +167,7 @@ const advisorScenario: AgentScenario = {
   script: { commands: [{ operation: 'lot.get', input: { id: 'l1' } }, advise('l1')] },
   expect: {
     commits: [],
-    proposals: [{ operation: 'lot.release', input: { id: 'l1' }, resource: 'lot:l1' }],
+    approvals: [{ operation: 'lot.release', input: { id: 'l1' }, resource: 'lot:l1' }],
     outcome: 'succeeded',
   },
   async check(_result, app) {
@@ -177,7 +177,7 @@ const advisorScenario: AgentScenario = {
 };
 
 describe('agent scenarios with the deterministic harness', () => {
-  test('a proposing agent passes when it proposes, and the record is unchanged', async () => {
+  test('a requesting agent passes when it requests approval, and the record is unchanged', async () => {
     const result = await runAgentScenario(advisorScenario, {
       application: application(),
       harness: deterministicHarness,
@@ -186,11 +186,11 @@ describe('agent scenarios with the deterministic harness', () => {
     expect(result).toMatchObject({ passed: true, state: 'succeeded', harness: 'deterministic' });
     expect(result.calls.map((call) => [call.operation, call.outcome])).toEqual([
       ['lot.get', 'read'],
-      ['proposal.submit', 'committed'],
+      ['approval.request', 'committed'],
     ]);
   });
 
-  test('a direct write by a proposing agent is refused, recorded and judged', async () => {
+  test('a direct write by a requesting agent is refused, recorded and judged', async () => {
     const result = await runAgentScenario(
       {
         ...advisorScenario,
@@ -214,19 +214,19 @@ describe('agent scenarios with the deterministic harness', () => {
     ]);
   });
 
-  test('a proposal for a record outside the selection is refused', async () => {
+  test('an approval for a record outside the selection is refused', async () => {
     const result = await runAgentScenario(
       {
         ...advisorScenario,
-        name: 'advisor proposes for another lot',
+        name: 'advisor requests approval for another lot',
         script: { commands: [advise('l2')] },
-        expect: { proposals: [], refused: [{ operation: 'proposal.submit', code: 'FORBIDDEN' }] },
+        expect: { approvals: [], refused: [{ operation: 'approval.request', code: 'FORBIDDEN' }] },
         check: undefined,
       },
       { application: application(), harness: deterministicHarness },
     );
     expect(result.failures).toEqual([]);
-    expect(result.calls[0]!.message).toBe('Delegation does not permit the proposed resource');
+    expect(result.calls[0]!.message).toBe('Delegation does not permit the requested resource');
   });
 
   test('commits beyond the expected ones, outside the selection or a wrong outcome fail it', async () => {
@@ -290,11 +290,11 @@ describe('agent scenarios with the deterministic harness', () => {
         )) as { data: { status: string } };
         if (lot.data.status === 'held')
           await turn.tools.execute(
-            'proposal.submit',
+            'approval.request',
             { input: advise('l1').input },
             { runId: turn.runId, signal: turn.signal, idempotencyKey: 'b' },
           );
-        yield { type: 'text', text: 'Proposed.' };
+        yield { type: 'text', text: 'Requested approval.' };
       },
     };
     const result = await runAgentScenario(advisorScenario, {
@@ -304,8 +304,8 @@ describe('agent scenarios with the deterministic harness', () => {
     expect(result.failures).toEqual([]);
     expect(seen).toEqual([
       {
-        prompt: expect.stringContaining('Propose releasing a held lot'),
-        tools: ['lot.get', 'proposal.submit'],
+        prompt: expect.stringContaining('Request approval for releasing a held lot'),
+        tools: ['approval.request', 'lot.get'],
         budget: budgets,
       },
     ]);
@@ -333,7 +333,7 @@ describe('agent scenarios with the deterministic harness', () => {
       license: 'MIT',
       contextTokens: 4096,
     };
-    // A scripted "model" that proposes when `good`, and does nothing otherwise.
+    // A scripted "model" that requests approval when `good`, and does nothing otherwise.
     const scripted = (good: boolean, served?: string): Harness => ({
       id: good ? 'good' : 'bad',
       features: { questions: false, approvals: false, resume: false },
@@ -343,7 +343,7 @@ describe('agent scenarios with the deterministic harness', () => {
       async *run(turn) {
         if (good)
           await turn.tools.execute(
-            'proposal.submit',
+            'approval.request',
             { input: advise('l1').input },
             { runId: turn.runId, signal: turn.signal, idempotencyKey: 'p' },
           );
@@ -360,7 +360,7 @@ describe('agent scenarios with the deterministic harness', () => {
       entry: 'lots-tuned',
       adapter: entry.adapter.digest,
       passed: false,
-      regressions: ['advisor proposes releasing the selected lot'],
+      regressions: ['advisor requests approval for releasing the selected lot'],
       baseline: 'lots-base',
       scenarios: scenariosDigest([advisorScenario]),
       at: 7,

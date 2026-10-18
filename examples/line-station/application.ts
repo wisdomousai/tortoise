@@ -124,7 +124,7 @@ const lineStationAuthorization = () =>
     authorizationRoute(
       'lineStation',
       lineStationModule,
-      ['station', 'stop', 'count', 'attention', 'order', 'counters', 'sync', 'proposal'],
+      ['station', 'stop', 'count', 'attention', 'order', 'counters', 'sync', 'approval-request'],
       linePolicy,
     ),
     // Device configuration follows station roles: supervisors administer, everyone else reads.
@@ -217,9 +217,9 @@ export function createLineStationApplication(
     upgradeState(state, ownerId) {
       const value = (state ?? {}) as Partial<LineStationState>;
       return {
-        // Workspaces from before proposals get an empty proposal slice.
+        // Workspaces from before approval requests get an empty approval request slice.
         lineStation: value.lineStation
-          ? { ...value.lineStation, proposals: value.lineStation.proposals ?? {} }
+          ? { ...value.lineStation, approvals: value.lineStation.approvals ?? {} }
           : freshLine(ownerId),
         devices: value.devices ?? createDeviceState(),
       };

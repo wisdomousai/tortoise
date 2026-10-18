@@ -10,7 +10,7 @@ import type { Project, ProjectTaskState, Task } from '../domain';
 /** Injected services; tests pass a deterministic `newId` and clock. */
 export interface ProjectTaskServices {
   newId?: () => string;
-  /** Clock for proposal expiry. */
+  /** Clock for approval request expiry. */
   now?: () => number;
 }
 /** What every handler receives: the transaction's state, trusted context and services. */

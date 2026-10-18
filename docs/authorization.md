@@ -48,7 +48,7 @@ A list is scoped to what the caller may see before it is filtered, sorted, paged
 
 Effective access is the principal's current policy intersected with the grant. A grant can limit operations, resource IDs and lifetime, and can be bound to a principal, workspace and run. An [agent run](glossary.md#agent-run) keeps the grant it started with, and tool arguments cannot change it.
 
-A grant scoped to resources may change only those records. Its `creates` list lets it add records of a named type, which a run cannot name before they exist. A proposing agent on a selection gets `creates: ['proposal']`, and the [proposal](glossary.md#proposal) submit command refuses a proposal outside the selection.
+A grant scoped to resources may change only those records. Its `creates` list lets it add records of a named type, which a run cannot name before they exist. A requesting agent on a selection gets `creates: ['approval-request']`, and `approval.request` refuses an [approval request](glossary.md#approval-request) outside the selection.
 
 A retry with the same [idempotency key](glossary.md#idempotency-key) returns the stored [receipt](glossary.md#receipt) after current authorization and projection, without running the handler again. A revoked record or a newly restricted field therefore cannot be recovered through an old receipt.
 

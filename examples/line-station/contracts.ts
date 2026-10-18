@@ -1,4 +1,4 @@
-import { defineAgent, defineModule, proposalOperations } from '@agent-native/contracts';
+import { defineAgent, defineModule, approvalOperations } from '@agent-native/contracts';
 import { commandOperations } from './contracts/commands';
 import { queryOperations } from './contracts/queries';
 
@@ -32,29 +32,29 @@ export { mesTarget } from './contracts/target';
 export const operations = {
   ...queryOperations,
   ...commandOperations,
-  ...proposalOperations,
+  ...approvalOperations,
 } as const;
 
 /**
- * Proposes a reason for an unclassified stop. Its run can read and propose, never classify: an
- * operator at the station accepts the proposal, which classifies the stop as that operator.
+ * Requests approval for a reason for an unclassified stop. Its run can read and request approval, never classify: an
+ * operator at the station approves the approval request, which classifies the stop as that operator.
  */
 export const stopExplainer = defineAgent({
   id: 'stop.explainer',
   title: 'Stop explainer',
   instructions:
-    'Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and propose line.stop.classify with the reason the alarm and history support. Put your evidence in the rationale, the stop as the resource (stop:<id>) and the stop revision you read as baseRevisions. If no reason fits, propose nothing and say so.',
+    'Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and request approval for line.stop.classify with the reason the alarm and history support. Put your evidence in the rationale, the stop as the resource (stop:<id>) and the stop revision you read as baseRevisions. If no reason fits, request nothing and say so.',
   operations: [
     'line.stop.list',
     'line.station.get',
     'line.reason.list',
     'line.stop.classify',
-    'proposal.list',
+    'approval.list',
   ],
   // Not resource-scoped: grant resources match exactly, so a run scoped to `station:<id>` could
-  // not create its proposal record. The starter's station roles bound the run instead.
+  // not create its approval request record. The starter's station roles bound the run instead.
   model: 'any',
-  output: 'propose',
+  output: 'request-approval',
   budgets: { turns: 12, toolCalls: 24, wallTimeMs: 120_000 },
 });
 
@@ -93,8 +93,8 @@ export const lineStationModule = defineModule({
   workflows: [
     {
       id: 'explain-stop',
-      operations: ['line.stop.list', 'line.station.get', 'line.reason.list', 'proposal.submit'],
-      text: 'Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and submit a proposal to classify it with the reason the alarm and history support, with your evidence as the rationale. The operator accepts or rejects it at the station; never classify a stop from a guess. If no reason fits, say so.',
+      operations: ['line.stop.list', 'line.station.get', 'line.reason.list', 'approval.request'],
+      text: 'Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and submit an approval to classify it with the reason the alarm and history support, with your evidence as the rationale. The operator accepts or rejects it at the station; never classify a stop from a guess. If no reason fits, say so.',
     },
     {
       id: 'shift-handover',

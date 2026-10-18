@@ -5,7 +5,7 @@ import { attentionHandlers } from './handlers/attention';
 import { integrationHandlers } from './handlers/integration';
 import { observationHandlers } from './handlers/observation';
 import { productionHandlers } from './handlers/production';
-import { proposalHandlers } from './handlers/proposals';
+import { approvalHandlers } from './handlers/approvals';
 import { queryHandlers } from './handlers/queries';
 import type { LineServices } from './server/context';
 
@@ -23,7 +23,7 @@ export function createLineHandlers(): HandlerContribution<LineState, LineService
     ...administrationHandlers(),
     ...observationHandlers(),
     ...integrationHandlers(),
-    ...proposalHandlers(),
+    ...approvalHandlers(),
   ];
 }
 export { lineStationModule } from './contracts';

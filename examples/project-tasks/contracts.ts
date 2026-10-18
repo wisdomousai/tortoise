@@ -6,11 +6,11 @@ import {
   defineCapability,
   defineModule,
   jsonSchema,
-  proposalOperations,
+  approvalOperations,
   type BlobLimits,
 } from '@agent-native/contracts';
 
-export { proposalOperations };
+export { approvalOperations };
 import { attachmentLimits } from './attachments';
 import { projectTasksOs } from './os';
 
@@ -234,7 +234,7 @@ export const operations = {
 } as const;
 export const projectTasksModule = defineModule({
   id: 'project-tasks',
-  capabilities: [...Object.values(operations), ...Object.values(proposalOperations)],
+  capabilities: [...Object.values(operations), ...Object.values(approvalOperations)],
   workflows: [
     {
       id: 'project-planning',
@@ -244,15 +244,15 @@ export const projectTasksModule = defineModule({
   ],
   agents: [
     // Not resource-scoped: grant resources match exactly, so a grant listing only the selected
-    // project would refuse the proposal records it creates. Project roles bound the run instead.
+    // project would refuse the approval request records it creates. Project roles bound the run instead.
     defineAgent({
       id: 'project.planner',
       title: 'Project planner',
       instructions:
-        'Break the selected project into concrete tasks. Read the project and its task list first, then propose task.create for each missing task (resource project:<id>) and task.set-status for tasks the brief says are done (resource task:<id>, with the task revision you read as baseRevisions). A person accepts or rejects each proposal. Never propose deleting tasks or changing members.',
-      operations: ['project.get', 'task.list', 'task.create', 'task.set-status', 'proposal.list'],
+        'Break the selected project into concrete tasks. Read the project and its task list first, then request approval for task.create for each missing task (resource project:<id>) and task.set-status for tasks the brief says are done (resource task:<id>, with the task revision you read as baseRevisions). A person approves or rejects each request. Never request approval for deleting tasks or changing members.',
+      operations: ['project.get', 'task.list', 'task.create', 'task.set-status', 'approval.list'],
       model: 'any',
-      output: 'propose',
+      output: 'request-approval',
       budgets: { turns: 12, toolCalls: 40, wallTimeMs: 300_000 },
     }),
   ],

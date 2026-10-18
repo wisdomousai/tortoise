@@ -145,7 +145,7 @@ The fake HMI shows its counters only as pixels, so reading them needs a [percept
 - **Client and UI context:** out-of-order responses, revocation during a refresh, stable captured targets and fenced updates.
 - **Integration:** effects commit only with their command. Delivery handles failure, rejection, lost settlement and targets that are not idempotent.
 - **Capture:** a scanner burst records exactly one result per sample.
-- **Agents:** [agent scenarios](glossary.md#agent-scenario) judge a run by its receipts and proposals, never its text. CI runs them with the deterministic harness; a live run needs a configured harness and `AGENT_SCENARIOS=live`, and is recorded apart.
+- **Agents:** [agent scenarios](glossary.md#agent-scenario) judge a run by its receipts and approval requests, never its text. CI runs them with the deterministic harness; a live run needs a configured harness and `AGENT_SCENARIOS=live`, and is recorded apart.
 - **Surfaces:** conformance runs the real HTTP, CLI and MCP adapters and compares results and error codes. A listed capability is no evidence that it can be invoked.
 
 ## Framework packages

@@ -187,7 +187,7 @@ Two relays are the sandbox's only way out. One reaches the host API with a token
 
 ### Local models
 
-The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start. It refuses files that differ from the [model entry](glossary.md#model-entry), and a fine-tune without a passing activation for its exact digests. Its runs record the measured digests with `verified: true`, so an auditor can trace a proposal to the base weights, the adapter and the dataset. A harness for a model server run outside the host records the digests it was given as unverified. The [proposal dataset](glossary.md#proposal-dataset) export applies redaction before its digest, so only what the exporting caller may see leaves the host for training. [Agents](agents.md) describes local models.
+The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start. It refuses files that differ from the [model entry](glossary.md#model-entry), and a fine-tune without a passing activation for its exact digests. Its runs record the measured digests with `verified: true`, so an auditor can trace an approval request to the base weights, the adapter and the dataset. A harness for a model server run outside the host records the digests it was given as unverified. The [approval dataset](glossary.md#approval-dataset) export applies redaction before its digest, so only what the exporting caller may see leaves the host for training. [Agents](agents.md) describes local models.
 
 ## Audit log
 

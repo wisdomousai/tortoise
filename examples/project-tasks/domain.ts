@@ -1,4 +1,4 @@
-import type { BlobRef, Proposal } from '@agent-native/contracts';
+import type { BlobRef, ApprovalRequest } from '@agent-native/contracts';
 
 export type Role = 'owner' | 'editor' | 'viewer';
 export interface Project {
@@ -24,8 +24,8 @@ export interface ProjectTaskState {
   projects: Record<string, Project>;
   tasks: Record<string, Task>;
   deletedTasks: Record<string, string>;
-  /** Proposed task commands, usually from the planner, keyed by ID. */
-  proposals: Record<string, Proposal>;
+  /** Requested task commands, usually from the planner, keyed by ID. */
+  approvals: Record<string, ApprovalRequest>;
   /** The task each queued reminder effect is about, until it settles. */
   reminderEffects: Record<string, string>;
 }
@@ -35,7 +35,7 @@ export function createProjectTaskState(ownerId = 'owner'): ProjectTaskState {
     projects: {},
     tasks: {},
     deletedTasks: {},
-    proposals: {},
+    approvals: {},
     reminderEffects: {},
   };
 }

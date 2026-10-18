@@ -14,7 +14,7 @@ import { RequestedRecipe } from './requested-recipe';
 import { StationBack, StationHeaderActions } from './station-header';
 import { StopReasons } from './stop-reasons';
 import { useAttention } from './use-attention';
-import { useProposals } from './use-proposals';
+import { useApprovalRequests } from './use-approval-requests';
 import { useStationCommands, type Run } from './use-station-commands';
 
 /**
@@ -73,7 +73,7 @@ function StationSurface({
   );
   const { correcting, correction, setCorrection, resolve, submit } = useAttention(attention, run);
   const { desired, currentStop: stop } = station;
-  const proposals = useProposals(stop?.id, run);
+  const approvals = useApprovalRequests(stop?.id, run);
   const classify = stop && (!stop.reason || stop.sync === 'rejected') && person;
   return (
     <OperatorStation
@@ -89,9 +89,9 @@ function StationSurface({
         />
       }
       banner={<MachineBanner station={station} />}
-      attention={[...proposals.items, ...toAttentionItems(attention)]}
+      attention={[...approvals.items, ...toAttentionItems(attention)]}
       onResolveAttention={
-        person ? (id, value) => proposals.resolve(id, value) || resolve(id, value) : undefined
+        person ? (id, value) => approvals.resolve(id, value) || resolve(id, value) : undefined
       }
       attentionPendingId={pending?.startsWith('attention:') ? pending.slice(10) : undefined}
       seat={person ? seatControl(station, pending, run) : undefined}
