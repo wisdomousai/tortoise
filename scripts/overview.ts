@@ -179,7 +179,7 @@ function checkTest(root: string, reference: curated.TestReference, where: string
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/** Checks that a guide and heading exist and returns the link title, such as "Agents: Proposals". */
+/** Checks that a guide and heading exist and returns the link title, such as "Agents: Approval requests". */
 function checkDoc(root: string, reference: curated.DocReference, where: string): string {
   const [page, anchor] = reference.split('#');
   const path = `docs/${page}.md`;
