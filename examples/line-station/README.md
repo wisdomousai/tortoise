@@ -2,6 +2,8 @@
 
 Operator workstations on a production line, where the machine software can only be read and driven through its screen, on top of a homebrew MES that owns orders and stop reasons. The station software owns machine state, the loaded recipe and counters; this application observes them through a station bridge, with provenance. It owns what happens at the station: stops and their classification, count confirmations, operator verifications, the desired recipe, the bridge mode and the seat. Records forwarded to the MES and recipe loads on the screen leave through the outbox.
 
+Technical documentation: [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
 Layer: content (`examples/*`). The fake MES ([`fake-mes.ts`](fake-mes.ts)) and the fake HMI ([`fake-hmi/`](fake-hmi/simulator.ts)) are demo and test fixtures that live here only.
 
 ## Primitives

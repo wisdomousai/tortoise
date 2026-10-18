@@ -2,6 +2,8 @@
 
 Goods receiving against an ERP that is reached only through shared folders. The ERP exports advance shipping notices as CSV into an inbox folder; each line becomes a delivery line. A receiver counts it, gives a reason when the count differs (or accepts the reason an agent proposes), and posts the goods receipt. The receipt is written as one CSV file into the ERP's drop folder, and the ERP answers with a receipt file that settles it.
 
+Technical documentation: [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
 Layer: content (`examples/*`). It was created with `scaffold new` and extended with `scaffold add target` and `scaffold add capability`, then written by hand on those parts. It has 783 lines of application source outside its tests, against 1,837 for `crm-capture`.
 
 ## Primitives

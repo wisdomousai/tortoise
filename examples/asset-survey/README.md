@@ -2,6 +2,8 @@
 
 The hub of a field survey of an industrial or power-grid site. A manager prepares the site structure under reference designations (IEC 81346, KKS, ANSI/IEEE C37.2 device numbers) and sends assignments to paired phones. The phones capture nameplates and equipment photos, often offline, and hand them back. A model reads the photos, a reviewer checks and accepts the values onto the structure, and a manager files the result into the enterprise asset management system (EAM), which accepts or refuses each filing.
 
+Technical documentation: [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
 Layer: content (`examples/*`). The default extractor and the EAM are demo fakes that live here: [`connectors/extractor.ts`](connectors/extractor.ts) reads text that [`connectors/nameplate-photo.ts`](connectors/nameplate-photo.ts) embeds in generated PNGs, and [`connectors/fake-eam.ts`](connectors/fake-eam.ts) is an in-memory asset register. [`connectors/model-extractor.ts`](connectors/model-extractor.ts) reads photos with a vision model instead, when explicitly configured. [`fixtures/nameplates`](fixtures/nameplates.ts) holds six generated photos of nameplates by fictional manufacturers (motor, pump, transformer, breaker, valve, compressor) with `ground-truth.json`, what each shows; the valve's serial and the compressor's model and power are hard to read on purpose. Each photo carries its values as a JPEG comment, which the demo extractor reads. The field app is a separate application that pairs with this hub; this package does not depend on it.
 
 ## Primitives

@@ -2,6 +2,8 @@
 
 Field sales capture against a CRM that stays the system of record. People and agents search the CRM live, as they type, with their own CRM access. Results are not stored. Picking one _adopts_ the account into the local working set, where it is kept current by the CRM's feed and can carry activities (calls, visits, notes) that go back to the CRM through the outbox. When the CRM is unreachable, search says so and everything already adopted keeps working.
 
+Technical documentation: [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
 Layer: content (`examples/*`). The fake CRM ([`fake-crm.ts`](fake-crm.ts), seeded from [`fake-crm/seed.ts`](fake-crm/seed.ts), paged by [`fake-crm/cursor.ts`](fake-crm/cursor.ts)) is a demo and test fixture that lives here only. Its records use Salesforce-style field names to show the mapping; nothing here talks to Salesforce.
 
 ## Primitives

@@ -1,0 +1,204 @@
+# Fleet
+
+The fleet example collects reports and audit events from paired on-site authorities, publishes signed releases to them by channel, and relays operators' requests to their APIs. This page is for someone building a similar application by hand or with a coding agent. The [README](README.md) lists the entrypoints, capabilities, trust boundary and tests.
+
+## Demonstrated mechanisms
+
+| Mechanism | Code | Proof |
+| --- | --- | --- |
+| [Application](../../docs/primitives.md#application) with manifest, application and screens entrypoints | `manifest.ts`, `application.ts` `createFleetApplication`, `screens.tsx` | `e2e/fleet.pw.ts` |
+| [Collection](../../docs/primitives.md#collection) records with generated list and record reads | `contracts/*.ts` `defineCollection`, `collectionList`, `collectionGet`; `collectionListHandler` and `records` in `handlers/*.ts` | `test/fleet.test.ts` |
+| A [module](../../docs/primitives.md#module) shared from a plugin package's contracts entrypoint | `manifest.ts` `modules: [fleetModule, fleetSiteModule]` | `test/fleet.test.ts`, "a site calls only the fleet protocol, about itself" |
+| [Device link](../../docs/primitives.md#device-link) `field-sync` pairing with the protocol capabilities as the device grant | `application.ts` `createDeviceLinkPlugin({ syncOperations: fleetSiteOperationIds })` | `test/fleet.test.ts` `startFleet`; `e2e/fleet.pw.ts` |
+| Integration lane in a declarative [policy](../../docs/primitives.md#policy) | `policy.ts` `appPolicy`, its `integrations` lane | `test/fleet.test.ts`, "a site calls only the fleet protocol, about itself" |
+| [Membership](../../docs/primitives.md#membership) caller gate and a person-only rule | `policy.ts` `caller`, `relayRequest` with `person: true` | `packages/runtime/test/policy.test.ts` (framework test only) |
+| Audit field allow-list on a capability | `contracts/relay.ts` `relayRequest` `audit.fields`; `contracts/releases.ts` `channelAssign` | `packages/runtime/test/audit.test.ts` (framework test only) |
+| [Blob store](../../docs/primitives.md#blob-store) files attached to a record and readable through it | `handlers/releases.ts` `ctx.attach`; `policy.ts` lane `events` | `test/fleet.test.ts`, "a release reaches the sites on its channel, verified, and no other release is readable" |
+| Bundle manifest check with the signature stored unchecked | `handlers/releases.ts` `parseBundleManifest` | `test/fleet.test.ts`, "a release whose blobs are not exactly its files is refused"; `e2e/fleet.pw.ts` publishes with a placeholder signature |
+| Hash chain check of a forwarded [audit log](../../docs/primitives.md#event-log) | `handlers/audit.ts` `breakIn` with `hashEvent` | `test/fleet.test.ts`, "forwarded audit events are verified, and a forged one stops collection visibly" |
+| Computed query bound to a [live query](../../docs/primitives.md#journal-and-live-query) | `handlers/sites.ts` `fleet.health`; its `dependencies` in `contracts/sites.ts`; `ui/health.tsx` `live.liveQueryOptions` | `test/fleet.test.ts` for the issues; `packages/react/src/bindings.test.ts` for the refetch (framework test only) |
+| Audit forwarding resumed from the fleet's cursor | `plugins/fleet-agent/src/audit.ts` `forwardAudit` queries `fleet.audit.cursor`; `handlers/audit.ts` skips sequences the fleet holds | `plugins/fleet-agent/test/fleet-agent.test.ts` (fixture fleet only) |
+| Stored fields hidden from reads | `handlers/relay.ts` `present` drops `outgoing` | `test/fleet.test.ts`, "through the relay only with a session the site issued" |
+| [Capability binding](../../docs/primitives.md#capability-binding) through registry screens | `ui/*.tsx` `CollectionScreen`, `RecordScreen`, `CapabilityForm` | `test/ui-bindings.test.ts`; `e2e/fleet.pw.ts` |
+| Plugin screens merged into the application | `screens.tsx` `plugins: [deviceLinkScreens]` | `e2e/fleet.pw.ts` |
+| Injected clock and record keys | `handlers/context.ts` `Services` | `test/fleet.test.ts`, the first test moves `clock.now` past 15 minutes; no test injects record keys |
+| Sites running the [fleet agent](../../docs/primitives.md#fleet-agent) against the fleet on loopback | `test/site.ts` `startPlant` with `fleetNetworkFixture` | `test/fleet.test.ts` |
+
+## Structure
+
+| Path | Holds |
+| --- | --- |
+| [manifest.ts](manifest.ts) | Browser-safe manifest with the fleet module, the protocol module and the site, network, audit and device-link plugins |
+| [application.ts](application.ts) | `createFleetApplication`: state, handlers, policy and plugins |
+| [screens.tsx](screens.tsx) | Routes, navigation, capability screens and the device-link screens |
+| [contracts.ts](contracts.ts) | `fleetModule` and the capabilities people call |
+| [contracts/sites.ts](contracts/sites.ts) | Site collection, `site.update` and `fleet.health` with its issue kinds |
+| [contracts/releases.ts](contracts/releases.ts) | Release and channel collections, `release.publish` and `channel.assign` |
+| [contracts/audit.ts](contracts/audit.ts) | Forwarded audit event collection and the per-site limit |
+| [contracts/relay.ts](contracts/relay.ts) | Relay request collection and `relay.request` |
+| [domain.ts](domain.ts) | `AppState`, roles, `siteIdOf` and `desiredRelease` |
+| [policy.ts](policy.ts) | `appPolicy`: the site lane, the membership gate and per-capability rules |
+| [server.ts](server.ts) | `createHandlers`, every handler including the protocol's |
+| [handlers/context.ts](handlers/context.ts) | `Services` and the `handler` binder |
+| [handlers/sites.ts](handlers/sites.ts) | Site reads and update, health, the report and desired-release handlers |
+| [handlers/releases.ts](handlers/releases.ts) | Release and channel reads, publish and channel assignment |
+| [handlers/audit.ts](handlers/audit.ts) | Audit event reads, the audit cursor and ingest |
+| [handlers/relay.ts](handlers/relay.ts) | Relay reads, the request, take and answer handlers |
+| [ui/health.tsx](ui/health.tsx) | Health screen |
+| [ui/sites.tsx](ui/sites.tsx) | Site list, and the site screen with the remote-access form |
+| [ui/releases.tsx](ui/releases.tsx) | Release and channel screens |
+| [ui/audit.tsx](ui/audit.tsx) | Audit event screens |
+| [ui/relay.tsx](ui/relay.tsx) | Relay request screens |
+| [test/site.ts](test/site.ts) | A fixture plant application with the real fleet-agent plugin |
+| [test/fleet.test.ts](test/fleet.test.ts) | Fleet and plants on loopback |
+| [e2e/fleet.pw.ts](e2e/fleet.pw.ts) | Browser spec against the real host |
+
+## Report and release flow
+
+1. An operator creates a `field-sync` enrollment code on the Devices screen, which runs `link.enrollment.create` from the device-link plugin.
+2. The site's fleet agent exchanges the code at `/api/v1/link/enroll` for a bearer credential. The device-link plugin resolves it on every request to the principal `device:<id>`, with a grant of the protocol capabilities.
+3. Each cycle the site submits `fleet.site.report`. The lane in [policy.ts](policy.ts) matches `device:` principals and admits only the protocol capabilities.
+4. The report handler in [handlers/sites.ts](handlers/sites.ts) takes the site ID from the principal. It inserts the site record on the first report and then overwrites its outbox counts, audit head and staged release.
+5. A build pipeline with an operator's session uploads each release file as a blob and calls `release.publish`. The handler in [handlers/releases.ts](handlers/releases.ts) parses the bundle manifest and requires exactly one blob per file, matched by digest and size.
+6. The handler inserts the release record and attaches each blob to the resource `release:<id>`. It stores the signature without checking it.
+7. An operator points a channel at the release with `channel.assign` and assigns the site to it with `site.update`. An unknown channel answers `NOT_FOUND`.
+8. When the site has trusted release keys set, it queries `fleet.site.desired`. The handler returns the release the site's channel assigns, through `desiredRelease` in [domain.ts](domain.ts).
+9. The site downloads each file from `/api/v1/blobs/sha256:<digest>`. The runtime serves a blob only when the caller may read a resource it is attached to, and the lane's `events` rule admits only the release the site's channel assigns.
+10. The site verifies every file and the signature against its trusted keys and stages the release ([releases.ts](../../plugins/fleet-agent/src/releases.ts)). Its next report carries the staged release ID.
+11. The `fleet.health` query computes each site's issues on every read, and the Health screen binds it as a live query. The issue kinds are these:
+    - **Stale.** No report for 15 minutes.
+    - **Held.** Effects held for reconciliation on the site.
+    - **Audit broken.** The forwarded audit chain failed a check.
+    - **Audit behind.** Forwarding lags the site's head by over 1,000 events.
+    - **Release drift.** The staged release differs from the one the site's channel assigns.
+
+## Audit forwarding flow
+
+1. The site's fleet agent queries `fleet.audit.cursor`. The handler in [handlers/audit.ts](handlers/audit.ts) returns the last sequence the fleet holds, and answers `NOT_FOUND` before the first report.
+2. The site reads its own audit log after that sequence and sends up to 100 JSON lines per `fleet.audit.ingest` call ([audit.ts](../../plugins/fleet-agent/src/audit.ts)). The idempotency key names the first and last sequence and the last hash.
+3. The ingest handler skips events at or below the fleet's head, so an overlapping batch stores each sequence once. After a lost reply, the next cycle queries the cursor again and sends only the events that follow it.
+4. For each following event it checks the sequence number, the link to the previous hash and the event's own hash with `hashEvent` from `@agent-native/event-log/chain`.
+5. Each event that passes becomes an audit event record keyed `<site>:<seq>`, and the site's head moves to it.
+6. The first event that fails stops the batch and writes the reason to the site's `auditBroken` field. The command still commits, so the break shows on the Health screen.
+7. While that field is set, every later ingest call returns the unchanged head.
+8. After storing a batch, the handler removes events older than the newest 1,000 for that site.
+
+## Remote access flow
+
+1. An operator submits `relay.request` from the site screen with a method, a path under `/api/v1/`, headers and a body. The policy rule requires the operator role and a person, so a delegated run is refused.
+2. The capability's `audit.fields` list puts the site, method and path in the audit log in plain text. For the other input fields the audit log records only their names, along with a digest of the whole input.
+3. The handler in [handlers/relay.ts](handlers/relay.ts) checks that the site exists and stores the request as `waiting`. The headers and the base64 body go in a field that reads never return.
+4. A site with `fleet-relay` set to `on` polls `fleet.relay.take`. The handler marks the oldest waiting request for the calling site as taken, drops its stored headers and body, and returns them with the request.
+5. The site forwards the request to its own API with an allow-list of headers and no added credential ([relay.ts](../../plugins/fleet-agent/src/relay.ts)). A request without a session the site issued answers 403.
+6. The site submits `fleet.relay.answer`. The handler answers `NOT_FOUND` for an unknown request and `CONFLICT` unless the calling site holds it as taken. Otherwise it records the status, headers and base64 body.
+7. After each answer, the handler removes the oldest answered requests beyond 200 in total. It never removes a waiting or taken request.
+
+## Implementation steps
+
+These steps build a new application with `scaffold new` and add the fleet's parts in an order in which the application starts after each step. The kernel refuses a capability without a handler, and device-link refuses a sync operation ID that the catalog lacks. So each capability gets its handler in the same step, before device-link names it.
+
+1. Generate the application from this checkout's root, as the [create-agent-native-app skill](../../packages/scaffold/skills/create-agent-native-app/SKILL.md) describes. The target directory must not exist yet. The command writes the application to `examples/<app-name>` of the new checkout, with one collection.
+
+   ```sh
+   bun run scaffold new /absolute/path/to/absent-target --name <app-name> --collection <first-record-type>
+   ```
+
+   Then install the pinned dependencies from the new checkout's root, where every later command runs. The install also links the skills for coding agents.
+
+   ```sh
+   cd /absolute/path/to/absent-target
+   bun install --frozen-lockfile
+   ```
+
+2. Declare the other records and the capabilities people call, each with its handler. Use `defineCollection`, `collectionList` and `collectionGet` for records, and `defineCapability` for commands. A capability without a screen states a `ui.exception`, as `release.publish` does. The scaffold writes the contract, handler, policy rule and test together at its markers. The [add-capability skill](../../packages/runtime/skills/add-capability/SKILL.md) covers each part.
+
+   ```sh
+   bun run scaffold add collection <next-record-type>
+   bun run scaffold add capability <dotted.operation-id> --kind command --description "<what it does, for whom>"
+   bun run format
+   bun run generate
+   ```
+
+3. Reshape what the scaffold generated and the fleet does not have. The [setup reference](../../packages/scaffold/skills/create-agent-native-app/references/new-application.md) describes the generated parts.
+   - **Records.** Each collection comes with create and update commands and title and status fields. Replace the fields, and drop the create command where records come from elsewhere, as sites come from reports.
+   - **Tests.** The conformance test, each collection's test and the default-screens Playwright spec call those create commands, so rewrite or remove them. Rewrite each generated capability test once its input is widened.
+   - **Role.** The generated role is `editor`. Rename it where the domain uses another name, as the fleet uses operator.
+   - **Compliance plugin.** The generated entrypoints compose it, and the fleet does not. Keep or remove it in all three entrypoints and in the UI-binding test.
+4. Add the protocol and its handlers together, as the fleet side of the [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) describes. Import `fleetSiteModule` and `fleetSiteOperations` from `@agent-native/fleet-agent/contracts`, list the module in the manifest's modules, and write one handler per entry of `fleetSiteOperations`.
+   - **Calling site.** Each handler derives the site ID from the calling principal, as `callingSite` does, and reads or writes only that site's records.
+   - **First report.** The report handler inserts the site on its first report, with its audit head at `AUDIT_GENESIS` from `@agent-native/contracts`.
+5. Write the publish handler. Validate the manifest with `parseBundleManifest` from `@agent-native/bundle/manifest`, match the uploaded blobs to its files, and attach them with `ctx.attach`. Declare `blobs` with the size limit and media type on the capability, so the upload route accepts the files.
+6. Write the audit ingest handler. Check each event with `hashEvent` from `@agent-native/event-log/chain` before storing it.
+7. Compose device-link in all three entrypoints. The [extend-mobile-host skill](../../packages/mobile/skills/extend-mobile-host/SKILL.md) covers device-link pairing.
+   - **Manifest.** `deviceLinkPluginManifest` from `@agent-native/device-link/plugin-manifest` in `plugins`.
+   - **Application.** `createDeviceLinkPlugin({ syncOperations: fleetSiteOperationIds })` from `@agent-native/device-link/plugin` in `plugins`.
+   - **Screens.** `deviceLinkScreens` from `@agent-native/device-link/plugin-screens` in the plugins of `defineScreens`.
+   - **UI-binding test.** Add the device-link plugin's `ui` directory to the directories the generated test scans. Without it the test fails on the device-link capabilities from this step on.
+8. Write the policy with `definePolicy`. Add an integration lane whose `is` matches `device:` principals, whose `operations` list is `fleetSiteOperationIds`, and whose `events` rule admits only the release the site may read. Mark each protocol capability `integration`, use `person: true` for remote access, and give the policy an `events` rule for each record type. [Authorization](../../docs/authorization.md) explains the order of the checks.
+9. List in `audit.fields` the input fields that are safe in plain text, and leave out headers, bodies and anything that carries a session.
+10. Build the screens with `defineScreens` and the registry items `CollectionScreen`, `RecordScreen` and `CapabilityForm`. Map each operation ID prefix to a screen in `capabilityScreens`. The [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md) covers routes and registry items.
+11. Write the behavior tests, as [test/site.ts](test/site.ts) and [test/fleet.test.ts](test/fleet.test.ts) do. The [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) covers testing a fleet against real sites.
+    - **Fleet.** Start it with `startHost` and a temporary site policy.
+    - **Enrollment.** Create a `field-sync` enrollment code for each site with `link.enrollment.create`, and pass it as the site's `fleet-enrollment-code` setting.
+    - **Sites.** Compose `createFleetAgentPlugin` and `fleetAgentPluginManifest`, with the manifest and plugin of `fleetNetworkFixture` in place of the network plugin. The site policy binds the `fleet-releases` folder, and `fleet-trust` is the path to the release signing key's public key file. Set `fleet-relay` to `on` for a relay test.
+    - **Cycles.** Drive each site with the agent service's `sync()` and `relay()`.
+12. Rewrite the generated Playwright spec under `e2e/` for the fleet's screens.
+13. Run these focused checks, then the full check. The [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md) says how to report them.
+
+    ```sh
+    bun run format
+    bun test examples/<app-name>
+    bun run generate
+    bun run test:conformance
+    bun run build
+    bunx playwright test examples/<app-name>/e2e
+    bun run check
+    ```
+
+14. Run the fleet on a site host with the [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md), or as a hosted authority with the [run-a-hosted-authority skill](../../packages/host/skills/run-a-hosted-authority/SKILL.md). The fleet declares no outbox target and no site-pinned requirement, so it runs on either.
+15. Connect each site with the [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md).
+    - **Plugins.** The site composes the site, network and audit plugins and `createFleetAgentPlugin`, and its manifest lists `fleetAgentPluginManifest`. Without the audit plugin it forwards no audit events.
+    - **Site policy.** It binds `destinations.fleet` to the fleet's https origin and the `fleet-releases` folder to a directory.
+    - **Settings.** `fleet-trust` is the path to the release signing key's public key file; without it the site stages no release. The site starts once with the enrollment code.
+
+To read a working copy instead, export this example unchanged. It stays under `examples/fleet`, and the steps above do not start from it.
+
+```sh
+bun run scaffold /absolute/path/to/absent-target --name <app-name> --example fleet
+```
+
+The example uses no fake system of record. Its tests replace the site's network plugin with `fleetNetworkFixture`, which routes the fleet destination to the fleet's loopback port. A deployed site composes the network plugin instead, which provides the `NetworkPort` from the bound destination in its site policy.
+
+To run the example locally, from `examples/fleet`:
+
+```sh
+bun run dev
+```
+
+## Limits
+
+- **Relay receipts.** The receipts of `relay.request` and `fleet.relay.take` keep the request headers for replays. A site session passed for remote access stays in the fleet's state, so pass short-lived sessions.
+- **Broken audit chain.** Collection stops at the first failed event and stays stopped. No capability inspects the break or resumes from the site's current head.
+- **Health thresholds.** The stale and audit-behind thresholds are constants in [handlers/sites.ts](handlers/sites.ts). They cannot be set per site or per deployment.
+- **Retention.** The fleet keeps the newest 1,000 audit events per site, and the site's own audit log keeps every event. After each answer, the fleet removes the oldest answered relay requests beyond 200 in total, and never a waiting or taken one.
+- **Missing removals.** No capability deletes a site, release or channel. Revoking a device stops its credential and leaves its site record.
+- **Release size.** A release has at most 1,000 files of up to 256 MiB each.
+- **Relay transport.** The site polls for relay requests every two seconds by default and forwards one at a time. Request bodies reach up to 1,000,000 characters and response bodies up to 1 MiB, with no event streams.
+- **Credentials.** A site credential is not rotated, and a lost one needs a new enrollment code.
+- **Downloads.** Staging downloads each release file whole without resuming.
+- **Devices screen wording.** The Devices screen calls a `field-sync` device a phone, as device-link names it.
+- **Evidence.** No site has reported across a real network behind an outbound-only firewall. No staged release has been activated by `site install` on a real machine ([implementation status](../../docs/implementation-status.md#fleet-agent)).
+
+## Related pages
+
+- [Fleet README](README.md)
+- [Fleet agent README](../../plugins/fleet-agent/README.md)
+- [Device link README](../../plugins/device-link/README.md)
+- [Architecture](../../docs/architecture.md)
+- [Security and compliance](../../docs/security-and-compliance.md)
+- [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md)
+- [run-a-hosted-authority skill](../../packages/host/skills/run-a-hosted-authority/SKILL.md)
+- [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md)
+- [Asset survey](../asset-survey/DOCUMENTATION.md), a hub that pairs field devices through device-link
+- [Asset survey field](../asset-survey-field/DOCUMENTATION.md), the paired field application
+- [Project tasks](../project-tasks/DOCUMENTATION.md), the smallest whole application

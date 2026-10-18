@@ -2,6 +2,8 @@
 
 The fleet that on-site authorities report to. Each site runs the [fleet-agent plugin](../../plugins/fleet-agent/README.md) and connects outbound only. It enrolls here with a one-use code, reports its outbox backlog by target, forwards its audit log, stages the signed release its channel assigns, and answers remote-access requests that operators relay to its own API. The fleet is an ordinary application: it has no outbox target and no site-pinned requirement, so it runs on a site host or as a [hosted authority](../../packages/host/skills/run-a-hosted-authority/SKILL.md).
 
+Technical documentation: [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
 Layer: content (`examples/*`). It has 1,236 lines of application source outside its tests.
 
 ## Primitives

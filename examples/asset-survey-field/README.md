@@ -2,6 +2,8 @@
 
 The field app of the [asset survey](../asset-survey/README.md). It runs on a phone or rugged handheld with its own workspace (embedded mode). It receives the assignments the hub dispatched to it, with each assignment's structure. Offline, it photographs nameplates and equipment, and it hands the captures back when it reaches the hub again.
 
+Technical documentation: [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
 Layer: content (`examples/*`). It reuses the hub's browser-safe contracts (`@agent-native/asset-survey/contracts/*`) for the capture input and the feed item, so both sides validate the same records. It never imports the hub's server code.
 
 ## Primitives

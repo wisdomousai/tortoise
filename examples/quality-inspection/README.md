@@ -2,6 +2,8 @@
 
 Quality inspection capture on top of an external quality system of record. The system of record owns inspection lots, specifications and code catalogs, which arrive through the integration principal's sync command. This application owns what is recorded at the moment of inspection: results, defects and usage decisions, each forwarded to the system of record through the outbox. Records are append-only; a correction supersedes a result instead of editing it. Inspectors, supervisors and viewers hold roles per plant.
 
+Technical documentation: [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
 Layer: content (`examples/*`). The demo quality system ([`fake-sor.ts`](fake-sor.ts)) lives here and is wired only by this application's `connect`.
 
 ## Primitives

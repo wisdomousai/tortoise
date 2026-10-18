@@ -2,6 +2,8 @@
 
 A local project and task workspace: the smallest application that exercises the whole kernel. People and agents create projects, manage members with owner, editor and viewer roles, and create, edit and complete tasks. Owners see a private note on each task that no one else can read, search or sort by. It is the starter's default application in `app.config.json`, and the home of the framework's cross-cutting conformance suites.
 
+Technical documentation: [`DOCUMENTATION.md`](DOCUMENTATION.md).
+
 Layer: content (`examples/*`). Domain code, screens, demo job and tests live here; nothing in `packages/*` or `apps/*` imports it.
 
 ## Primitives
