@@ -4,7 +4,7 @@ This plugin puts hardware [drivers](../../docs/glossary.md#driver) in any langua
 
 ## Layer
 
-[Host plugin](../../docs/glossary.md#host-plugin) layer. `contracts`, `plugin-manifest` and `plugin-screens` are browser-safe; everything else is server only. The equipment's own code runs in the driver process. A crash, a 32-bit COM server or a device permission therefore never touches the process that holds the workspace. The plugin trusts the executable the [site policy](../../docs/glossary.md#site-policy) binds, and still checks every answer it sends. [Hardware drivers](../../docs/hardware-drivers.md) explains the design and its limits.
+[Host plugin](../../docs/glossary.md#host-plugin) layer. `contracts`, `plugin-manifest` and `plugin-screens` are browser-safe; everything else is server only. The equipment's own code runs in the driver process. A crash, a 32-bit COM server or a device permission therefore never touches the process that holds the workspace. The plugin trusts the executable the [deployment policy](../../docs/glossary.md#deployment-policy) binds, and still checks every answer it sends. [Hardware drivers](../../docs/hardware-drivers.md) explains the design and its limits.
 
 ## Primitives
 
@@ -63,7 +63,7 @@ In `connect`:
 
 `examples/quality-inspection` wires a measuring instrument this way. It starts the instrument's driver only when `processes.availability` says the site binds it.
 
-The site policy binds each driver's process ID to an absolute executable, and optionally pins its hash. `app driver list` prints the process IDs and contract digests to bind.
+The deployment policy binds each driver's process ID to an absolute executable, and optionally pins its hash. `app driver list` prints the process IDs and contract digests to bind.
 
 ### Driver contract
 
@@ -110,7 +110,7 @@ If the readback does not show the result, the effect is held for a person. A dri
 
 The [integration principal](../../docs/glossary.md#integration-principal)'s grant names only the target's settle and status capabilities and the observer's ingest command. A misbehaving driver therefore cannot reach business commands. Only the workspace owner reads `driver.status.get`, and a resource-limited delegated grant must name `driver:status`.
 
-`driver check` starts an executable outside the site policy, through the process plugin's spawn with its base environment. Nothing the host holds reaches the driver. A driver that reads a variable gets it through a wrapper, such as `/usr/bin/env INSTRUMENT_PORT=/dev/ttyUSB0 <executable>`. The check never sends `action.invoke`, so it is safe against a connected unit.
+`driver check` starts an executable outside the deployment policy, through the process plugin's spawn with its base environment. Nothing the host holds reaches the driver. A driver that reads a variable gets it through a wrapper, such as `/usr/bin/env INSTRUMENT_PORT=/dev/ttyUSB0 <executable>`. The check never sends `action.invoke`, so it is safe against a connected unit.
 
 Limits:
 

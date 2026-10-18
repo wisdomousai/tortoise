@@ -24,7 +24,7 @@ When a renewal finds the lease gone, the host logs a `lease-lost` JSON record on
 
 ### Instance layout
 
-One instance serves one workspace, because the [kernel](glossary.md#kernel)'s authority, its plugins and their ports are per workspace. Several workspaces run one instance each, and a router sends each workspace's requests to its instance.
+One instance serves one workspace, because the [kernel](glossary.md#composition)'s authority, its plugins and their ports are per workspace. Several workspaces run one instance each, and a router sends each workspace's requests to its instance.
 
 The instance also takes the OS lock on its local directory (`--workspace`). That directory still holds [blobs](glossary.md#blob), agent run history, the [audit log](glossary.md#audit-log) and the plugins' local files. Put it on a volume that follows the instance, or a takeover on another machine starts without those files.
 
@@ -33,7 +33,7 @@ A site-scoped destination, a device, an exchange folder or a station process tie
 ### Instance setup
 
 1. Provide a Postgres 15 or newer database the instance can create tables in.
-2. Put the database URL, with its credentials, in `AGENT_NATIVE_DATABASE_URL` from the deployment's secret store. The host reads the URL only from this variable, so the credentials stay out of the process list and out of the site policy.
+2. Put the database URL, with its credentials, in `AGENT_NATIVE_DATABASE_URL` from the deployment's secret store. The host reads the URL only from this variable, so the credentials stay out of the process list and out of the deployment policy.
 3. Start the instance. `<name>` is the workspace's key in the database, and every instance of one workspace uses the same key:
 
    ```sh
@@ -41,7 +41,7 @@ A site-scoped destination, a device, an exchange folder or a station process tie
    ```
 
 4. Supervise the instance and restart it on exit code 1. A restarted instance exits with code 5 while another instance holds the lease (see [exit codes](systems-of-record.md#exit-codes)).
-5. In the [site policy](glossary.md#site-policy), set `ingress.listen` to `tls` with the public certificate and its key.
+5. In the [deployment policy](glossary.md#deployment-policy), set `ingress.listen` to `tls` with the public certificate and its key.
 6. In the same policy, set `identity: external`, name the OpenID Connect provider in `workforce`, and bind the `workforce-idp` destination to the provider's origin.
 7. Back up the database with its own tools, such as `pg_dump` or point-in-time recovery.
 
@@ -128,7 +128,7 @@ A relay request's headers and body are stored only while it waits, are never lis
 ### Site setup
 
 1. Compose `fleetAgentPluginManifest` in the manifest's plugins and `fleetAgentPlugin` in the application's plugins. Place them after the site and network plugins, and after the audit plugin when audit events are forwarded. Startup refuses an application without a provided network port.
-2. In the site policy, bind `destinations.fleet` to the fleet's https origin and `folders['fleet-releases']` to a writable directory. Without the destination the plugin reaches no fleet, and without the folder it stages no release, but the site runs.
+2. In the deployment policy, bind `destinations.fleet` to the fleet's https origin and `folders['fleet-releases']` to a writable directory. Without the destination the plugin reaches no fleet, and without the folder it stages no release, but the site runs.
 3. Create a `field-sync` enrollment on the fleet's Devices screen. The screen calls this kind a phone, as device link names it.
 4. Start the site once with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`. The plugin stores the credential, so later starts need no code.
 5. Set `fleet-trust` (`AGENT_NATIVE_FLEET_TRUST`) to the publisher's `key.pub.json` or an array of keys. Without it, no release is staged.
@@ -152,6 +152,6 @@ To test a fleet against real sites, compose `fleetNetworkFixture` from `@agent-n
 ## Related pages
 
 - [Architecture](architecture.md): authorities, hosts, host platforms and host plugins.
-- [Security and compliance](security-and-compliance.md): site policy, ingress, workforce sign-in and the audit log.
+- [Security and compliance](security-and-compliance.md): deployment policy, ingress, workforce sign-in and the audit log.
 - [Mobile](mobile.md): device link and pairing.
 - [Implementation status](implementation-status.md): the runs for the [hosted authority](implementation-status.md#hosted-authority) and the [fleet agent](implementation-status.md#fleet-agent).

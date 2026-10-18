@@ -6,22 +6,22 @@
  * resolved-path rule in `hostSourcePath`, so no plugin is named here.
  */
 export const forbiddenBrowserImport =
-  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|observation)(?:\/|$)|@agent-native\/station(?!\/requirements$)(?:\/|$)|@agent-native\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
+  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|observation)(?:\/|$)|@agent-native\/screen-bridge(?!\/requirements$)(?:\/|$)|@agent-native\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
 /**
  * Every plugin in `plugins/*` follows one layout: `plugin-manifest`, `plugin-screens`,
  * `contracts` and the `ui/` and `components/` folders are browser code, at the package root or
  * under `src/`; everything else is server code.
  */
 export const pluginBrowserSource =
-  /^plugins\/[^/]+\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
+  /^(?:plugins\/[^/]+|workstations\/sign-in)\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
 /** The browser-safe subpaths of a plugin package, for `@agent-native/<plugin>/<subpath>`. */
 export const pluginBrowserEntry = /^(?:plugin-manifest|plugin-screens|contracts)$/;
 /** Resolved source paths of server-only framework and plugin packages. */
 export const hostSourcePath =
-  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|observation)[\\/]src[\\/]|station[\\/]src[\\/](?!requirements\.ts$)|(?:host|kernel)[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?plugins[\\/][^\\/]+[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
+  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|observation)[\\/]src[\\/]|(?:host|kernel)[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$)|(?:^|[\\/])workstations[\\/]screen-bridge[\\/]src[\\/](?!requirements\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?(?:plugins[\\/][^\\/]+|workstations[\\/]sign-in)[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
 
 /**
- * Framework libraries the kernel (`packages/kernel`) and the Bun host (`packages/host`) must not
+ * Framework libraries the composition (`packages/kernel`) and the Bun host (`packages/host`) must not
  * import. The event log is used by the audit plugin; an import here would bring an audit concept
  * back into every application. Plugins themselves are a layer the framework never imports at all.
  */
@@ -30,7 +30,7 @@ export const kernelForbiddenImport =
 
 /**
  * Direct network and process APIs. Server code reaches other hosts only through
- * the network port, whose guard is in `plugins/network`, so every connection is declared, bound by the site policy and audited.
+ * the network port, whose guard is in `plugins/network`, so every connection is declared, bound by the deployment policy and audited.
  * A match outside `egressExemptions` fails `check:boundaries`.
  */
 export const directEgress: readonly { readonly api: string; readonly pattern: RegExp }[] = [
@@ -59,7 +59,7 @@ export const directEgress: readonly { readonly api: string; readonly pattern: Re
  * reaches only its own origin and cannot open sockets, so it is out of scope.
  */
 export const serverSource =
-  /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|plugins\/|examples\/)/;
+  /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|plugins\/|workstations\/|examples\/)/;
 export const browserSource =
   /^(?:packages\/(?:contracts|client|react|operator-ui|frame)\/|packages\/devices\/src\/(?!server\.ts$)|examples\/[^/]+\/(?:ui\/|screens\.tsx$))/;
 
@@ -86,7 +86,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
   'apps/desktop/src/os-shell.ts':
     'The desktop shell submits OS requests to and polls OS actions from its loopback authority.',
   'examples/line-station/station-bridge.ts':
-    'Launches Chromium for the station screen and reads simulator counters; to be routed through the station-screen destination.',
+    "Launches Chromium for the workstation application's screen and reads simulator counters; to be routed through the screen-bridge destination.",
   'plugins/site/src/install/native.ts':
     'Operator verbs only, never inside an authority: `site install` runs the release it placed (network export, migrate) and, with --apply, the OS service manager and firewall loader.',
   'plugins/execution-host/src/relay.ts':
@@ -101,9 +101,10 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     "The hosted platform's workspace database, opened before any plugin from the URL the launcher configures; it holds workspace state, as the local SQLite file does.",
   'plugins/process/src/spawn.ts':
     'Starts declared child processes from site-policy bindings with a built environment; the process port is the only caller.',
-  'packages/station/src/perception/openai-compatible-vision.ts':
+  'workstations/screen-bridge/src/perception/openai-compatible-vision.ts':
     'Falls back to global fetch when no fetch is injected; to be made required so the host passes the guard.',
-  'examples/line-station/fake-hmi/': 'Test fixture: the simulated station HMI and its recorder.',
+  'examples/line-station/fake-hmi/':
+    'Test fixture: the simulated workstation application and its recorder.',
   'plugins/fleet-agent/src/relay.ts':
     "Forwards a remote-access request from the fleet to the host's own listener (`PluginStartContext.origin`) under `/api/v1/` only, adding no credential and never following a redirect.",
   'plugins/hub-link/src/plugin.ts':

@@ -1,6 +1,6 @@
 ---
 name: serve-a-local-model
-description: Serve a local base or fine-tuned model to agents with measured digests, export proposal decisions as a training dataset, and gate a new model on agent scenarios before it serves. Use when an agent must run on a model on this host, when adding or replacing a model entry or LoRA adapter, when preparing fine-tuning data from accepted and rejected proposals, or when binding llama-server or vLLM in a site policy. Covers plugins/model-server, the model entries in packages/agents, exportProposalDataset in packages/runtime and gateModel in packages/testing.
+description: Serve a local base or fine-tuned model to agents with measured digests, export proposal decisions as a training dataset, and gate a new model on agent scenarios before it serves. Use when an agent must run on a model on this host, when adding or replacing a model entry or LoRA adapter, when preparing fine-tuning data from accepted and rejected proposals, or when binding llama-server or vLLM in a deployment policy. Covers plugins/model-server, the model entries in packages/agents, exportProposalDataset in packages/runtime and gateModel in packages/testing.
 ---
 
 # Serve a local model
@@ -26,7 +26,7 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 4. Add `modelServerPluginManifest` to the manifest, after the site, network and process manifests.
 5. Call `createModelServer({ process, runtime, entry, files, activation })`. Add its `plugin` to `plugins`.
 6. Give its `harness` to the automation plugin's `agentHarnesses`, or to whatever starts the runs.
-7. In the [site policy](../../../../docs/glossary.md#site-policy), bind `local-inference` to a loopback URL.
+7. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `local-inference` to a loopback URL.
 8. Bind the process to the server executable, pinned, with the arguments that make it listen there: `--host 127.0.0.1 --port <port>`. The plugin adds the load arguments.
 9. Give that binding a `timeoutMs` of a few minutes. A model that reasons before it answers outlasts the egress guard's default of 30 seconds.
 10. Size the agent's `wallTimeMs` budget the same way.

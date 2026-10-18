@@ -1,6 +1,6 @@
 # Point-of-work input
 
-[Operators](glossary.md#operator) give input at a [station](glossary.md#station) with gloves, at arm's length or further, while watching a machine. Coding agents follow the [add-scanner-input](../packages/devices/skills/add-scanner-input/SKILL.md) skill.
+[Operators](glossary.md#operator) give input at a [workstation](glossary.md#workstation). Scanner input is in the [add-scanner-input](../packages/devices/skills/add-scanner-input/SKILL.md) skill.
 
 Scanners and keypads do most of the input. Two domain-neutral kits support these screens:
 
@@ -19,7 +19,7 @@ The kit is built for these defaults. A screen can depart from them where its set
 
 - **No precision gestures.** Drag, double-tap, long text entry, small close buttons, hover-only affordances and swipes fail with gloves. Targets follow the operator size tokens, which are larger at glove density.
 - **Scanner and keypad first.** A task should work with a scanner, a numeric keypad or a pedal mapped to keys. Touch is the fallback, and typing is the last resort.
-- **One task at a time.** The screen shows who and where at the top, then station signals, the current task, what needs a person, and seat control. Nothing moves while someone is reaching for it.
+- **One task at a time.** The screen shows the operator and the station at the top, then station signals, the current task, what needs a person, and seat control. The layout stays fixed during a press.
 - **Hold to confirm.** Starting an order, confirming counts or reporting that a held procedure took effect takes a hold instead of a tap. The hold cancels when the finger slides off.
 - **Tap guard.** A tap guard ignores double taps, taps during scroll or layout shift, and taps while a request is pending.
 - **Icon plus text.** State is readable from 1 to 2 m, and color is never the only signal. Observed values show their age and confidence.
@@ -126,7 +126,7 @@ bun run check:registry:operator
 - `packages/operator-ui/test/primitives.test.ts`: numeric entry, the tap guard, key-burst filtering and registry drift.
 - `plugins/intent-scanner/test/source.test.ts`: the intent source over a fake receiver.
 
-`examples/line-station/e2e/station.pw.ts` covers the kit and the bound station screen in Chromium.
+`examples/line-station/e2e/station.pw.ts` covers the kit and the bound workstation screen in Chromium.
 
 ## Limits
 
@@ -139,6 +139,6 @@ A device type counts as supported only once it has been checked and recorded in 
 
 ## Related pages
 
-- [Operator workstations](operator-workstations.md): the station screen, the seat and station sign-in.
+- [Operator workstations](operator-workstations.md): the screen, the seat and workstation sign-in.
 - [Systems of record](systems-of-record.md): delivery state and held effects.
 - [`packages/devices`](../packages/devices/README.md), [`packages/operator-ui`](../packages/operator-ui/README.md) and [`plugins/intent-scanner`](../plugins/intent-scanner/README.md): entrypoints and tests.

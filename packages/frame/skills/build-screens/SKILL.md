@@ -1,6 +1,6 @@
 ---
 name: build-screens
-description: Build or change the web screens of an agent-native application or host plugin. Use when adding a route, list or record screen, form, capture or station screen, navigation item or capability screen; when pulling or changing an item of the agent-native or operator shadcn registry; or when replacing a frame file in the starter. Covers examples/<app>/screens.tsx, examples/<app>/ui, packages/frame, packages/react, packages/operator-ui and apps/web.
+description: Build or change the web screens of an agent-native application or host plugin. Use when adding a route, list or record screen, form, capture or workstation screen, navigation item or capability screen; when pulling or changing an item of the agent-native or operator shadcn registry; or when replacing a frame file in the starter. Covers examples/<app>/screens.tsx, examples/<app>/ui, packages/frame, packages/react, packages/operator-ui and apps/web.
 ---
 
 # Build screens

@@ -21,7 +21,7 @@ The host keeps the workspace in `.workspace/` by default. These environment vari
 
 `bun run dev:web` serves the browser without opening the window.
 
-In `project-tasks`, the task list updates when [commands](glossary.md#command) commit. A person editing a task keeps their draft when another [caller](glossary.md#caller) changes the committed record. `examples/project-tasks/e2e/workspace.pw.ts` checks both through MCP and the browser.
+In `project-tasks`, the task list updates when [commands](glossary.md#command) commit. The [caller](glossary.md#caller) editing a task keeps the caller's draft when another caller changes the committed record. `examples/project-tasks/e2e/workspace.pw.ts` checks both through MCP and the browser.
 
 ## Other examples
 
@@ -66,7 +66,7 @@ DEMO_QUALITY_LOCKED_LOTS=4000002 bun run dev
 
 ## Command line
 
-Unless a [site policy](glossary.md#site-policy) sets another identity, the host writes a connection file, `.connection.json`, in the workspace directory. Its startup message shows a CLI command with that path. The file holds a local credential with owner-only permissions; keep it private. The CLI and MCP bridge read its path from `AGENT_NATIVE_CONNECTION`.
+Unless a [deployment policy](glossary.md#deployment-policy) sets another identity, the host writes a connection file, `.connection.json`, in the workspace directory. Its startup message shows a CLI command with that path. The file holds a local credential with owner-only permissions; keep it private. The CLI and MCP bridge read its path from `AGENT_NATIVE_CONNECTION`.
 
 ```sh
 export AGENT_NATIVE_CONNECTION="$(pwd)/.workspace/.connection.json"
@@ -98,7 +98,7 @@ bun run cli help inspection result record
 - `mcp --embedded --grant-file <file>` serves the agent over MCP under the [grant](glossary.md#grant) in the file, without listening on the network.
 - `drain` delivers pending [outbox effects](glossary.md#effect) and exits with code 75 while any remain.
 
-An embedded call without a grant file acts as the local workspace [owner](glossary.md#owner) unless the site policy refuses the local owner. That suits only a person on their own machine. [Systems of record](systems-of-record.md) has the grant file, the other verbs and the exit codes.
+An embedded call without a grant file acts as the local workspace [owner](glossary.md#owner) unless the deployment policy refuses the local owner. [Systems of record](systems-of-record.md) has the grant file, the other verbs and the exit codes.
 
 ## MCP
 
@@ -150,7 +150,7 @@ The new directory must not exist. The generated application in `examples/<name>`
 
 - `collection`: its contract, handlers, policy rules, default screens and test.
 - `capability`: its contract, handler, policy rule and behavioral test.
-- `target`: a [target](glossary.md#target) with its contract, handlers, policy lane, an in-memory fake [connector](glossary.md#connector), a status screen and a test. Its network destination is listed as disabled in `apps/desktop/site-policy.json` until the site policy binds it.
+- `target`: a [target](glossary.md#target) with its contract, handlers, policy lane, an in-memory fake [connector](glossary.md#connector), a status screen and a test. Its network destination is listed as disabled in `apps/desktop/site-policy.json` until the deployment policy binds it.
 - `agent`: an [agent definition](glossary.md#agent-definition) that proposes, with a test. The first agent also adds the [proposal](glossary.md#proposal) capabilities and a screen of open proposals.
 
 With `--registry <url>`, the new application installs the framework packages from that registry at the repository's framework version instead of copying their source; `--published` uses npm's registry. No lockfile is exported in that case, so the first install runs without the frozen-lockfile flag and writes it. To try this before anything is published, serve the packages on loopback:

@@ -17,7 +17,7 @@ The Expo project in `apps/mobile` runs one application on Android and iOS. The a
 
 ## Host platform and storage
 
-The mobile [host platform](glossary.md#host-platform) runs the same kernel and runtime as the desktop host. It keeps secrets in the Keychain or Keystore, and the app lifecycle takes the place of a host process. It declares no capabilities: no raw sockets, no inbound listener and no child processes. A deployment that needs one refuses to start.
+The mobile [host platform](glossary.md#host-platform) runs the same composition and runtime as the desktop host. It keeps secrets in the Keychain or Keystore, and the app lifecycle takes the place of a host process. It declares no capabilities: no raw sockets, no inbound listener and no child processes. A deployment that needs one refuses to start.
 
 A workspace on a device is a name, not a path, so a configured value cannot address files outside the app sandbox. The snapshot [storage](glossary.md#storage) adapter keeps the workspace as one JSON document in `<name>.workspace.sqlite`. Blobs sit under `agent-native/<name>/blobs` in the document directory. Ownership is an exclusive transaction on `<name>.lock.sqlite`, held while the authority is open, and a second open is refused (`packages/mobile/src/platform.ts`).
 
@@ -50,7 +50,7 @@ Each side owns its workspace and is its only writer. There is no multi-master sy
 
 A `field-sync` device acts as `device:<id>`, within the capabilities the application grants it. An `attached` tablet acts as the person who enrolled it, narrowed to the capabilities chosen at enrollment.
 
-Over the LAN, the hub listens with TLS under a site policy whose [hardening profile](glossary.md#hardening-profile) allows it (`site-hub`, `sandbox`). The device must trust the site CA, which device management installs. An emulator reaches a development hub on loopback through `adb reverse`.
+Over the LAN, the hub listens with TLS under a deployment policy whose [hardening profile](glossary.md#hardening-profile) allows it (`site-hub`, `sandbox`). The device must trust the site CA, which device management installs. An emulator reaches a development hub on loopback through `adb reverse`.
 
 ## Trust boundary
 

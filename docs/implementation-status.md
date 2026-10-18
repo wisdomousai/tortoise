@@ -117,9 +117,9 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 ### Station sign-in
 
-**Shown, deterministic.** `plugins/station-sign-in/test/sign-in.test.ts` runs a station over HTTP and shows that:
+**Shown, deterministic.** `workstations/sign-in/test/sign-in.test.ts` runs a station over HTTP and shows that:
 
-- an operator signs in with badge and PIN and acts as themselves;
+- an operator signs in with badge and PIN and acts as that operator;
 - the lockout holds even against the right PIN;
 - a session expires;
 - a second sign-in at the [seat](glossary.md#seat) ends the first session;
@@ -205,7 +205,7 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 
 `connector-mqtt`'s observer ran against an amqtt 0.12.1 broker. A paho-mqtt 2.1.0 publisher encoded Sparkplug B with protobuf 7.36.2 from the Eclipse Tahu schema. A node birth, then data by alias, became the readings `temp` 72.25 and `count` -7, both `observed`.
 
-**Shown, browser.** `examples/receiving/e2e/receiving.pw.ts` on macOS, against the real host with a site policy binding the three ERP exchange folders to temporary directories:
+**Shown, browser.** `examples/receiving/e2e/receiving.pw.ts` on macOS, against the real host with a deployment policy binding the three ERP exchange folders to temporary directories:
 
 - the notice is imported from the inbox;
 - a line is counted, classified and posted, and the goods receipt file appears in the drop folder;
@@ -242,11 +242,11 @@ The kit's interaction tests also pass.
 
 ### Hardware drivers
 
-**Shown, browser.** `examples/quality-inspection/e2e/instrument.pw.ts` on macOS, against the real host with a site policy binding the Python instrument [driver](glossary.md#driver). The driver reads a simulated instrument over a pseudo-terminal pair, and the inspector uses the reading as a result. The spec is skipped where uv or a cached pyserial is missing.
+**Shown, browser.** `examples/quality-inspection/e2e/instrument.pw.ts` on macOS, against the real host with a deployment policy binding the Python instrument [driver](glossary.md#driver). The driver reads a simulated instrument over a pseudo-terminal pair, and the inspector uses the reading as a result. The spec is skipped where uv or a cached pyserial is missing.
 
 **Not shown.**
 
-- **Equipment:** no physical instrument, controller or station software has been connected. The instrument driver has run only against its pseudo-terminal simulator, and the station automation driver only against its simulated station.
+- **Equipment:** no physical instrument, controller or workstation application has been connected. The instrument driver has run only against its pseudo-terminal simulator, and the station automation driver only against its simulated station.
 - **Windows:** the .NET SDK's STA handler thread, COM interop and a `win-x86` build have not run. The line-station `ComStation` has never run, and its member names are an assumed object model rather than a real vendor's.
 - **Linux:** the Python and .NET driver tests have run only on macOS.
 - **Served automation route:** line-station's automation route has run only in tests that start the driver directly. A served host starting it through the process plugin from a site binding (`STATION_ROUTE=automation`) has not run.
@@ -258,13 +258,13 @@ The kit's interaction tests also pass.
 
 **Not shown.**
 
-- **Rules:** the exported rules are compared as text only. They were never loaded into nftables, Windows Firewall, systemd or a cluster.
+- **Rules:** the exported rules are compared as text only. The rules were never loaded into nftables, Windows Firewall, systemd or a cluster.
 - **Live traffic:** no off-host syslog collector, and no live provider traffic through the [egress guard](glossary.md#egress-guard).
 - **Zero trust:** it starts only with a workforce provider bound, and no real provider has been signed in to ([workforce sign-in](#workforce-sign-in)).
 - **Processes:** the agent harness launches still spawn directly instead of through the process port. Tree termination has not run on Windows.
 - **Secrets:** the Bun platform has no secret store, so processes that declare secrets are unavailable there.
 
-Control mappings are indicative. They are not a certification.
+Control mappings are indicative. The mappings are not a certification.
 
 ### Desktop
 
@@ -291,7 +291,7 @@ Control mappings are indicative. They are not a certification.
 **Not shown.**
 
 - **Pairing:** pairing has not run on a device, and the native pairing screen has not rendered. The device credential has not been stored in a real Keychain or Keystore. There is no QR pairing.
-- **Hub screens:** they have not been opened in a WebView on a device. The WebView settings are unverified: navigation refusal, no new windows, private cookie store and camera prompt.
+- **Hub screens:** the screens have not been opened in a WebView on a device. The WebView settings are unverified: navigation refusal, no new windows, private cookie store and camera prompt.
 - **Mobile platform:** it has not run on a device. The Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes.
 - **Native UI:** the native frame and components have not rendered.
 - **Native modules:** the plugins' Kotlin and Swift modules have not been compiled. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
@@ -370,7 +370,7 @@ These were fixed by inspection only and have no regression test:
 ## Planned improvements
 
 - Give each session an abort signal that fires on revocation and expiry, and combine it with the request's signal. This fixes the known defect.
-- Share event, receipt and cancellation adaptation between the HTTP and direct surface adapters. The known defect is one place where they still diverge.
+- Share event, receipt and cancellation adaptation between the HTTP and direct surface adapters. The known defect is one place where the adapters still diverge.
 - Extract a reusable draft model from capture and scanner setup: target, base revision, local values and conflict state.
 - Consolidate the repeated polling, delay-cancellation and credential-refresh lifecycles once their semantics settle.
 - Before a 1.0 version, replace the `./*` wildcard exports with explicit entrypoints. Today every source file of a package is a public entrypoint.

@@ -38,7 +38,7 @@ A tablet paired as `attached` opens the hub's own web build on the Hub screens t
 
 ## Trust boundary
 
-The credential is stored under `device-token` in the platform's secret store, scoped by the [kernel](../../docs/glossary.md#kernel) to this plugin and workspace. On a phone that store is the Keychain or Keystore through `expo-secure-store`, readable after first unlock and not migrated to another device. The credential is stored before the pairing is recorded, so a recorded pairing always has its credential. Unpairing deletes the credential first.
+The credential is stored under `device-token` in the platform's secret store, scoped by the [kernel](../../docs/glossary.md#composition) to this plugin and workspace. On a phone that store is the Keychain or Keystore through `expo-secure-store`, readable after first unlock and not migrated to another device. The credential is stored before the pairing is recorded, so a recorded pairing always has its credential. Unpairing deletes the credential first.
 
 The network port reaches only `hub`, and every other destination is unavailable on the device. The port enforces these rules:
 

@@ -30,7 +30,7 @@ The desktop build compiles the Claude SDK into the host, so no separate Node run
 
 ## Provider configuration
 
-The provider adapters declare their [destinations](glossary.md#destination) as [host components](glossary.md#host-component) in `packages/agents/src/requirements.ts`, and the [site policy](glossary.md#site-policy) binds them. Every destination is optional and unavailable offline. Without a binding, a model run reports why it cannot start.
+The provider adapters declare their [destinations](glossary.md#destination) as [host components](glossary.md#host-component) in `packages/agents/src/requirements.ts`, and the [deployment policy](glossary.md#deployment-policy) binds them. Every destination is optional and unavailable offline. Without a binding, a model run reports why it cannot start.
 
 Only the local [owner](glossary.md#owner), acting without a [delegated grant](glossary.md#grant), manages provider access. The host rechecks that the owner's [session](glossary.md#session) is still live after each awaited step.
 
@@ -68,7 +68,7 @@ The host uses one vault namespace per workspace, under the workspace's lock. A d
 
 The `local` harness runs AI SDK chat completions against an OpenAI-compatible server on the same host, such as llama.cpp's `llama-server`, Ollama or vLLM. The deployment configures the model ID the server lists at `/v1/models` and, optionally, the weights digest. The harness is available only while the server lists that model. Every run record keeps the model ID and the digest, so work a local agent did names the model that did it.
 
-The harness has no address of its own. Its requests go through the network port's `local-inference` destination, which is declared with loopback scope. The site policy binds it, for example to `http://127.0.0.1:11434` for Ollama. The [egress guard](glossary.md#egress-guard) refuses a binding or a resolved address that leaves the host, so isolated sites can bind it. Without a binding, the harness reports itself unavailable.
+The harness has no address of its own. Its requests go through the network port's `local-inference` destination, which is declared with loopback scope. The deployment policy binds it, for example to `http://127.0.0.1:11434` for Ollama. The [egress guard](glossary.md#egress-guard) refuses a binding or a resolved address that leaves the host, so isolated sites can bind it. Without a binding, the harness reports itself unavailable.
 
 An agent definition's model requirement decides which harnesses may run it:
 
@@ -78,7 +78,7 @@ An agent definition's model requirement decides which harnesses may run it:
 
 The deterministic fixture uses no model and meets every requirement. A harness that does not say where it sends prompts counts as remote, so a new adapter cannot run a local agent by omission.
 
-For a server the deployment runs itself, the harness records the configured digest as unverified and does not check it against the served weights. The [model server plugin](../plugins/model-server/README.md) starts llama.cpp `llama-server` or vLLM through the [process port](glossary.md#process-port), on the address the site policy binds to `local-inference`. It hashes the weights before every start, and its harness records the measured digests as verified. [Agents](agents.md#local-models) covers model entries and the fine-tune gate.
+For a server the deployment runs itself, the harness records the configured digest as unverified and does not check it against the served weights. The [model server plugin](../plugins/model-server/README.md) starts llama.cpp `llama-server` or vLLM through the [process port](glossary.md#process-port), on the address the deployment policy binds to `local-inference`. It hashes the weights before every start, and its harness records the measured digests as verified. [Agents](agents.md#local-models) covers model entries and the fine-tune gate.
 
 ## Run supervision
 
@@ -98,7 +98,7 @@ bun run test:harness
 bun test packages/host/test/providers.test.ts
 ```
 
-They send no credentials or records over the network and cover:
+The tests send no credentials or records over the network and cover:
 
 - the sign-in flow against a local signed OIDC server;
 - replay and persistence failures and timeouts;
@@ -126,7 +126,7 @@ A new adapter documents its runtime version, credential source, tool boundary, s
 
 - [Agents](agents.md): harnesses, runs, model entries and the fine-tune gate.
 - [Desktop](desktop.md): packaged runtimes and the credential addon.
-- [Security and compliance](security-and-compliance.md): the site policy and the egress guard.
+- [Security and compliance](security-and-compliance.md): the deployment policy and the egress guard.
 - [Implementation status](implementation-status.md#agents-and-providers): live runs.
 
 Provider documentation:

@@ -47,7 +47,7 @@ What each step catches:
 - **`check:size`**: code in a package `src/index.ts` other than re-exports. Files over 300 lines and functions over 80 lines are listed as hints and do not fail.
 - **`generate`**: a [catalog](glossary.md#catalog) that cannot be documented. It writes the reference to `dist/reference/<id>/`, which is not committed.
 - **`check:registry:operator`**: generated operator registry files that are out of date. `bun run build:registry:operator` regenerates them.
-- **`test:portable`**: kernel, runtime, client, integration and mobile platform code that works only because Bun supplies a Web global Hermes may lack. The suites run with those globals removed and the kernel's replacements installed.
+- **`test:portable`**: composition, runtime, client, integration and mobile platform code that works only because Bun supplies a Web global Hermes may lack. The suites run with those globals removed and the composition's replacements installed.
 - **`test:sandbox`**: a standalone binary that does not resolve. It compiles the quality-inspection CLI, runs it in an empty environment and verifies its [audit log](glossary.md#audit-log).
 - **`build`**: a web build or registry build that breaks for the configured application. It builds the web frame and the agent-native, operator, compliance, native and driver registries.
 
@@ -68,7 +68,7 @@ A successful build does not show a browser interaction or a packaged desktop lau
 | `bun run test:integration`          | Outbox dispatch and inbound sync against fake systems of record.                                |
 | `bun run test:isolated`             | The whole suite, failing on any non-loopback connection from the test process.                  |
 | `bun run test:e2e`                  | Browser acceptance with Playwright.                                                             |
-| `bun run test:execution-host:linux` | The execution host's bubblewrap tests in a Linux container. Needs Docker; they skip elsewhere.  |
+| `bun run test:execution-host:linux` | The execution host's bubblewrap tests in a Linux container. Needs Docker; the tests skip elsewhere.  |
 | `bun run test:package`              | Desktop packaging checks available on this platform.                                            |
 | `bun run test:scaffold`             | Deterministic export and its overwrite and privacy safeguards.                                  |
 | `bun run test:scaffold:full`        | With `SCAFFOLD_ACCEPTANCE=1`, a fresh export installs, typechecks, builds, tests and adds a capability. |
@@ -100,15 +100,15 @@ A successful build does not show a browser interaction or a packaged desktop lau
 
 Firewall exports are compared with golden files in the network plugin. Regenerate them with `UPDATE_GOLDEN=1 bun test plugins/network` and review the diff.
 
-The TLS and mTLS tests issue throwaway certificates with `openssl`. They are skipped where `openssl` is missing.
+The TLS and mTLS tests issue throwaway certificates with `openssl`. The tests are skipped where `openssl` is missing.
 
 The `test:service` tests bind loopback ports. A sandbox that blocks listening sockets reports `EADDRINUSE`, even for port zero.
 
-Subprocess tests use temporary workspaces and stop only the processes they started. They can time out under heavy machine load. Rerun them before treating a timeout as a regression.
+Subprocess tests use temporary workspaces and stop only the processes the tests started. The tests can time out under heavy machine load. Rerun the tests before treating a timeout as a regression.
 
 ## Browser and desktop
 
-Browser specs live with their application in `examples/<name>/e2e/`. They start a host through the shared e2e helper.
+Browser specs live with the application in `examples/<name>/e2e/`. The specs start a host through the shared e2e helper.
 
 Packaged desktop tests need a built application. Set `DESKTOP_EXECUTABLE` and run:
 
@@ -116,7 +116,7 @@ Packaged desktop tests need a built application. Set `DESKTOP_EXECUTABLE` and ru
 bunx playwright test tests/e2e/desktop.pw.ts
 ```
 
-Without `DESKTOP_EXECUTABLE` they skip. See [desktop](desktop.md).
+Without `DESKTOP_EXECUTABLE` the tests skip. See [desktop](desktop.md).
 
 ## Station bridge demo and opt-in perception
 
@@ -128,7 +128,7 @@ The fake HMI shows its counters only as pixels, so reading them needs a [percept
 | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `STATION_SIMULATOR=1`                                                                                     | Counters come from the simulator's ground truth. For demos and tests only.                                    |
 | `STATION_VISION_BASE_URL`, `STATION_VISION_MODEL`, `STATION_VISION_ALLOWED_HOSTS`, `STATION_VISION_READS` | A local OpenAI-compatible vision model, on loopback unless allowlisted. Confidence is agreement across reads. |
-| `STATION_PERCEPTION_WORKER=1`                                                                             | The `perception-worker` process the site policy binds under `processes`, started by the process plugin.       |
+| `STATION_PERCEPTION_WORKER=1`                                                                             | The `perception-worker` process the deployment policy binds under `processes`, started by the process plugin.       |
 | `STATION_ID`, `STATION_PROFILE`, `STATION_OBSERVE_MS`                                                     | Station ID, profile path and observation interval.                                                            |
 
 `bun run station:golden` in the example runs the [golden check](glossary.md#golden-check) on a profile or perception change. Without a model configured, it replays recorded expectations, which checks only the wiring. `STATION_GOLDEN_WORKER` names a worker command for the gate as a JSON array, started with an empty environment.
@@ -150,7 +150,7 @@ The fake HMI shows its counters only as pixels, so reading them needs a [percept
 
 ## Framework packages
 
-The packages in `packages/*` and `plugins/*` are published together at one version. Apps, examples and SDKs are private. Each package lists the dependencies its published files import. Framework packages appear as `workspace:*`, and React, React Native and Expo as peers. Packing replaces `workspace:*` with the exact shared version, so a consistent install has one copy of each.
+The packages in `packages/*`, `workstations/*` and `plugins/*` are published together at one version. Apps, examples and SDKs are private. Each package lists the dependencies its published files import. Framework packages appear as `workspace:*`, and React, React Native and Expo as peers. Packing replaces `workspace:*` with the exact shared version, so a consistent install has one copy of each.
 
 | Command                                    | What it does                                                                                            |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
@@ -166,7 +166,7 @@ The packages in `packages/*` and `plugins/*` are published together at one versi
 
 `release:publish` uses the named registry's configured credentials and never picks a registry itself. It accepts `--dry-run`, `--tag` and `--access`.
 
-The packages publish TypeScript source. They run under Bun and under bundlers that compile dependencies' TypeScript, such as Vite. The framework is MIT licensed. `check:manifests` copies the root `license` field into every package manifest, and `release:pack` puts the root `LICENSE` text in every tarball.
+The packages publish TypeScript source. The packages run under Bun and under bundlers that compile dependencies' TypeScript, such as Vite. The framework is MIT licensed. `check:manifests` copies the root `license` field into every package manifest, and `release:pack` puts the root `LICENSE` text in every tarball.
 
 A scaffolded export copies the framework packages in, so it needs neither published packages nor the original checkout. `scaffold new` with `--published` or `--registry <url>` installs the framework from a registry instead. This command exports one example as the hosted application:
 
@@ -176,7 +176,7 @@ bun run scaffold <target> --name <name> --example <example>
 
 ## Provider checks
 
-Fixture tests prove adapter behavior. They do not show login or inference. Provider checks are opt-in and use an explicitly configured account.
+Fixture tests prove adapter behavior. The tests do not show login or inference. Provider checks are opt-in and use an explicitly configured account.
 
 Never discover credentials from unrelated configuration, and never switch silently to a paid key. The in-memory vault is a test fixture and is not a fallback.
 

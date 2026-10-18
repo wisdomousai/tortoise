@@ -26,7 +26,7 @@ A fleet composes `fleetSiteModule`, implements its handlers and enrolls sites wi
 
 ### Settings
 
-Compose the plugin after the site plugin, the network plugin and, for audit forwarding, the audit plugin. The [site policy](../../docs/glossary.md#site-policy) binds the `fleet` destination to the fleet's https origin and the `fleet-releases` folder to a directory. Both bindings are optional, and the site runs without them.
+Compose the plugin after the site plugin, the network plugin and, for audit forwarding, the audit plugin. The [deployment policy](../../docs/glossary.md#deployment-policy) binds the `fleet` destination to the fleet's https origin and the `fleet-releases` folder to a directory. Both bindings are optional, and the site runs without them.
 
 | Setting | Environment | Meaning |
 | --- | --- | --- |

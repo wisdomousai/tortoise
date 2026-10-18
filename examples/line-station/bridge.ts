@@ -11,7 +11,7 @@ import {
   type Extractor,
   type ScreenTransport,
   type StationProfile,
-} from '@agent-native/station';
+} from '@agent-native/screen-bridge';
 import { operations } from './contracts';
 import { bridgePrincipal, hmiTarget } from './domain';
 // Imported, not read from disk: compiled binaries embed JSON imports but contain no source files.

@@ -330,7 +330,7 @@ Paths in this section are relative to the example directory unless they start wi
 40. Replace the account-list comparison in the generated `test/conformance.test.ts` with one search compared over the runtime, HTTP, the CLI and MCP. The generated comparison calls `account.create`, which step 8 removes (`examples/crm-capture/test/conformance.test.ts`).
 41. Replace the generated browser test `e2e/default-screens.pw.ts` with a spec for the search and account screens (`examples/crm-capture/e2e/search.pw.ts`). The generated UI-binding test scans the whole application directory, so it covers the new screens unchanged.
 42. Update the application's `README.md`: the trust boundary, the entrypoints and the tests. The generated text describes editors and viewers and the default-screens browser test.
-43. Bind `crm-api` to the CRM's URL in the site policy, as the [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md) describes.
+43. Bind `crm-api` to the CRM's URL in the deployment policy, as the [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md) describes.
 44. Run the focused checks, then the full check, as the [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md) describes.
 
     ```sh

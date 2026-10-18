@@ -11,14 +11,14 @@ Plugins (`plugins/*`). The plugin uses no private framework API, so it stands in
 - a `start` hook that runs a loop as a delegated caller;
 - a status [screen](../../docs/glossary.md#screen).
 
-It is not an application, so it has no `manifest`, `application` or `screens` entrypoint. It has the three plugin entrypoints an application lists instead. It trusts the kernel's network port to apply the [site policy](../../docs/glossary.md#site-policy).
+It is not an application, so it has no `manifest`, `application` or `screens` entrypoint. It has the three plugin entrypoints an application lists instead. It trusts the host's network port to apply the [deployment policy](../../docs/glossary.md#deployment-policy).
 
 ## Primitives
 
 The plugin is one [Host plugin](../../docs/primitives.md#host-plugin). It composes:
 
 - a [Module](../../docs/primitives.md#module) of two [capabilities](../../docs/primitives.md#capability): `webhook.status.get`, bound to the status screen, and `webhook.delivery.record`, written only by the loop and declared as a UI-binding exception;
-- a [Requirement declaration](../../docs/primitives.md#requirement-declaration): the `webhook-target` destination (HTTPS, site scope, `change-notification` data, queued while offline), which a [Site policy](../../docs/primitives.md#site-policy) must bind before anything leaves;
+- a [Requirement declaration](../../docs/primitives.md#requirement-declaration): the `webhook-target` destination (HTTPS, site scope, `change-notification` data, queued while offline), which a [Deployment policy](../../docs/primitives.md#deployment-policy) must bind before anything leaves;
 - its own [Policy](../../docs/primitives.md#policy) over its slice: only the principals in `readers` read the status or record deliveries, and it discloses none of its events.
 
 `readers` holds the workspace owner by default.
@@ -47,7 +47,7 @@ The cursor lives in the plugin's slice, so a restart resumes where delivery stop
 
 The loop is a [caller](../../docs/glossary.md#caller) like an agent run. It acts as the local owner, narrowed by a delegated [grant](../../docs/glossary.md#grant) to the observed capabilities and the plugin's own two. That grant also filters the journal the loop reads. The loop writes only through `webhook.delivery.record` and never touches application state. A post carries journal entries (operation ID, resource ID, revision) and no business data.
 
-The loop reaches the network only through `ports.network.client('webhook-target')`. Without the network plugin, the kernel refuses every post. With it, the [egress guard](../../docs/glossary.md#egress-guard) refuses until the site policy binds `webhook-target`. The loop records a repeated refusal once, as `lastError`.
+The loop reaches the network only through `ports.network.client('webhook-target')`. Without the network plugin, the composition refuses every post. With it, the [egress guard](../../docs/glossary.md#egress-guard) refuses until the deployment policy binds `webhook-target`. The loop records a repeated refusal once, as `lastError`.
 
 The plugin does not sign payloads and has no per-destination retry backoff. The interval is fixed.
 

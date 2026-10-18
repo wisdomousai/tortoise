@@ -6,7 +6,7 @@ import {
   type ExecutionContext,
 } from '@agent-native/runtime';
 import { createEffectDispatcher, createInboundSync } from '@agent-native/integration';
-import { createAccessibilityExtractor } from '@agent-native/station';
+import { createAccessibilityExtractor } from '@agent-native/screen-bridge';
 import { createLineStationBridge } from './bridge';
 import { FakeMes, toSyncInput } from './fake-mes';
 import { createSimulatorOcr, createSimulatorTransport } from './fake-hmi/memory';

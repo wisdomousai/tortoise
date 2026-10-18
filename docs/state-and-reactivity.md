@@ -37,7 +37,7 @@ Receipts and journal entries commit with the state, so a crash after commit but 
 
 ## Live queries
 
-A live query follows the journal from the cursor its query returned, so nothing is missed between the read and the follow. A journal entry carries the resource, type, revision and operation ID, never record contents. Delivery includes an entry only when the caller's grant and read policy allow it. Cursors are per-workspace integers. Over HTTP they become encrypted strings bound to the session, which clients pass back and never compare or construct.
+A live query follows the journal from the cursor its query returned, so nothing is missed between the read and the follow. A journal entry carries the resource, type, revision and operation ID, never record contents. Delivery includes an entry only when the caller's grant and read policy allow it. Cursors are per-workspace integers. Over HTTP each cursor becomes an encrypted string bound to the session. Clients pass the string back and do not compare or construct the string.
 
 The stream sends a reset instead of changes when:
 

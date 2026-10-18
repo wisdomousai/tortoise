@@ -1,15 +1,15 @@
 ---
 name: bridge-station-screen
-description: Bridge station software (vendor HMI, test bench, homebrew MES client) that has no API and must stay unmodified, so an application can observe it and drive declared procedures. Use when writing or changing a StationProfile, an extractor or perception source, a screen connector or observer, the golden-frame gate, or when choosing between the screen route and a driver's automation route. Covers packages/station, packages/observation and examples/line-station.
+description: Bridge a workstation application (vendor HMI, test-bench software, MES client) that has no API and must stay unmodified, so an application can observe it and drive declared procedures. Use when writing or changing a StationProfile, an extractor, a screen connector or the golden-frame gate, or when choosing the screen route or a driver. Covers workstations/screen-bridge, packages/observation and examples/line-station.
 ---
 
-# Bridge a station screen
+# Bridge a workstation application through its screen
 
-Station software that has no API is a [system of record](../../../../docs/glossary.md#system-of-record) the application reaches through its station screen. A model may read the screen or propose an on-screen target; deterministic code acts and verifies. [Operator workstations](../../../../docs/operator-workstations.md) explains the design, the [package README](../../README.md) lists the parts, and `examples/line-station` is the worked example.
+A [workstation application](../../../../docs/glossary.md#workstation-application) that has no API is a [system of record](../../../../docs/glossary.md#system-of-record) the application reaches through its screen. A model may read the screen or propose an on-screen target; deterministic code acts and verifies. [Operator workstations](../../../../docs/operator-workstations.md) explains the design, the [package README](../../README.md) lists the parts, and `examples/line-station` is the worked example.
 
 ## Before writing
 
-- Prefer a deterministic source. When the station software has an automation interface, such as COM, OPC UA or a vendor export, follow the automation route below instead of the screen.
+- Prefer a deterministic source. When the workstation application has an automation interface, such as COM, OPC UA or a vendor export, follow the automation route below instead of the screen.
 - Among screen sources, prefer accessibility to OCR or vision.
 - List the screens, the fields and the [procedures](../../../../docs/glossary.md#procedure) with their [hazard class](../../../../docs/glossary.md#hazard-class).
 - List the regions no procedure may touch: emergency-stop reset, interlock override, manual jog.
@@ -33,9 +33,9 @@ Station software that has no API is a [system of record](../../../../docs/glossa
     - `createWorkerExtractor`, a JSON-lines worker started through the process port;
     - `createOpenAiCompatibleVisionExtractor` on loopback;
     - `createFixtureExtractor` for CI.
-11. Build the station's screen from the operator registry in `packages/operator-ui`, following the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`).
+11. Build the workstation's screen from the operator registry in `packages/operator-ui`, following the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`).
 12. Add scanners from `packages/devices` with the `add-scanner-input` skill (`packages/devices/skills/add-scanner-input/SKILL.md`).
-13. Where operators share a station, compose `plugins/station-sign-in`. Each operator then signs in by badge and PIN and acts as their own [principal](../../../../docs/glossary.md#principal).
+13. Where operators share a workstation, compose `workstations/sign-in`. Each operator then signs in by badge and PIN and acts as their own [principal](../../../../docs/glossary.md#principal).
 
 ### Automation route
 
@@ -56,7 +56,7 @@ A station whose software has an automation interface is reached through a [drive
 5. Run the tests:
 
 ```sh
-bun test packages/station packages/observation
+bun test workstations/screen-bridge packages/observation
 bun test examples/line-station
 bunx playwright test examples/line-station/e2e
 ```

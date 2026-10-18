@@ -1,6 +1,6 @@
 # @agent-native/compliance
 
-This [host plugin](../../docs/glossary.md#host-plugin) produces the [compliance bundle](../../docs/glossary.md#compliance-bundle): the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. They are generated from the [catalog](../../docs/glossary.md#catalog) and the [site policy](../../docs/glossary.md#site-policy), and a serving host re-checks posture on an interval. Listed auditors read posture and the [audit log](../../docs/glossary.md#audit-log) through ordinary queries, and the CLI gains `compliance report`.
+This [host plugin](../../docs/glossary.md#host-plugin) produces the [compliance bundle](../../docs/glossary.md#compliance-bundle): the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. They are generated from the [catalog](../../docs/glossary.md#catalog) and the [deployment policy](../../docs/glossary.md#deployment-policy), and a serving host re-checks posture on an interval. Listed auditors read posture and the [audit log](../../docs/glossary.md#audit-log) through ordinary queries, and the CLI gains `compliance report`.
 
 ## Layer
 
@@ -74,4 +74,4 @@ bun test plugins/compliance
 
 ## Skills
 
-- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): site policy, signed bundles and install.
+- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.

@@ -59,7 +59,7 @@ bun run scaffold versions [<application-directory>]
 
 With `--published` or `--registry <url>`, `new` leaves the framework source out and depends on the framework packages at the checkout's version. The export:
 
-- leaves out `packages/*`, `plugins/*`, `sdks/*`, the lockfile and the release scripts;
+- leaves out `packages/*`, `workstations/*`, `plugins/*`, `sdks/*`, the lockfile and the release scripts;
 - makes the root manifest depend on every framework package at the checkout's framework version;
 - sets the `workspaces` field to `apps/*` and `examples/*`;
 - drops root scripts that test or release framework source, and removes them from chains such as `check`;

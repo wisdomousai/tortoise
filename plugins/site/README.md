@@ -1,6 +1,6 @@
 # @agent-native/site
 
-The site [host plugin](../../docs/glossary.md#host-plugin). It resolves the [site policy](../../docs/glossary.md#site-policy) against the composed [requirement declarations](../../docs/glossary.md#requirement-declaration) and refuses a policy below its [hardening profile](../../docs/glossary.md#hardening-profile) floor. It enforces the policy's identity floor and hands the resolved policy to the network, audit and compliance plugins. [Security and compliance](../../docs/security-and-compliance.md#site-policy) explains the site policy, the hardening profiles and the [audit log](../../docs/glossary.md#audit-log).
+The site [host plugin](../../docs/glossary.md#host-plugin). It resolves the [deployment policy](../../docs/glossary.md#deployment-policy) against the composed [requirement declarations](../../docs/glossary.md#requirement-declaration) and refuses a policy below its [hardening profile](../../docs/glossary.md#hardening-profile) floor. It enforces the policy's identity floor and hands the resolved policy to the network, audit and compliance plugins. [Security and compliance](../../docs/security-and-compliance.md#deployment-policy) explains the deployment policy, the hardening profiles and the [audit log](../../docs/glossary.md#audit-log).
 
 ## Layer
 
@@ -8,7 +8,7 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 
 ## Primitives
 
-- [Site policy](../../docs/primitives.md#site-policy): `sitePlugin`, `sitePluginManifest`, `openSite`, `siteServiceOf`, `SiteService`, `assertIdentity`, `portsNeeded`, `sitePolicyFor`, `policyErrors`, `siteCommand`, `siteCliCommand`, `siteUsage`, `POLICY_REJECTED_EXIT_CODE`.
+- [Deployment policy](../../docs/primitives.md#deployment-policy): `sitePlugin`, `sitePluginManifest`, `openSite`, `siteServiceOf`, `SiteService`, `assertIdentity`, `portsNeeded`, `sitePolicyFor`, `policyErrors`, `siteCommand`, `siteCliCommand`, `siteUsage`, `POLICY_REJECTED_EXIT_CODE`.
   - **Policy** (`policy`): `sitePolicySchema`, `SitePolicy`, `hardeningProfiles`, `loadSitePolicy`, `resolveSitePolicy`, `assertPolicyUsable`, `isolatedPolicy`, `ResolvedPolicy`, `PolicyFinding`. Problems are findings in the order they were found, and `assertPolicyUsable` refuses on any error.
   - **Processes**: `ProcessBinding`, `DeclaredProcess` and `ResolvedProcess` bind a declared process to an absolute executable, arguments, working directory, optional SHA-256 pin and environment. Findings refuse an undeclared or unbound required process, a relative path, and a variable the process plugin owns: proxy, loader or a declared secret.
   - **Certificates** (`policy/certificates`): `ResolvedPolicy.certificates` holds the validity of the listener certificate, the client CA and each destination CA bundle. `loadSitePolicy` reads them without the key. `judgeCertificates` gives `CERTIFICATE_EXPIRED`, `CERTIFICATE_NOT_YET_VALID` and `CERTIFICATE_EXPIRING` at a given time. Load reports them as findings, and adds `CERTIFICATE_INVALID` for a file with no readable PEM.
@@ -36,7 +36,7 @@ Data lives in `var/lib/agent-native/<app>`, outside every release, so switching 
 
 | Import                               | Runs in            | Contents                                                                                           |
 | ------------------------------------ | ------------------ | -------------------------------------------------------------------------------------------------- |
-| `@agent-native/site`                 | server only        | The exports on the first Site policy line under Primitives.                                        |
+| `@agent-native/site`                 | server only        | The exports on the first Deployment policy line under Primitives.                                        |
 | `@agent-native/site/*`               | server only        | One source file each. Only `plugin-manifest` is browser-safe.                                      |
 | `@agent-native/site/plugin-manifest` | browser and server | `sitePluginManifest`: the `site-policy` setting and the `workforce-idp` destination.               |
 | `@agent-native/site/plugin`          | server only        | `sitePlugin`, for `defineApplication({ plugins })`.                                                |
@@ -138,7 +138,7 @@ Applications that compose the plugin exercise it, because a policy only means so
 
 - the project-tasks suites cover isolated defaults, profile floors, identity and mTLS;
 - the network suite shows a connected policy refused without the network plugin;
-- the desktop test covers the shipped site policy.
+- the desktop test covers the shipped deployment policy.
 
 `test/install.test.ts` installs signed fixture bundles into a staged prefix. Their binaries run `test/fixtures/install-cli.ts`, an application composing this plugin and the network plugin. It covers:
 
@@ -170,4 +170,4 @@ With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the ins
 
 ## Skills
 
-- [deploy-to-site](skills/deploy-to-site/SKILL.md): writing and checking a site policy, building and installing a signed bundle, and exporting firewall rules.
+- [deploy-to-site](skills/deploy-to-site/SKILL.md): writing and checking a deployment policy, building and installing a signed bundle, and exporting firewall rules.

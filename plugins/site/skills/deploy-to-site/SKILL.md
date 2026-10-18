@@ -1,11 +1,11 @@
 ---
 name: deploy-to-site
-description: Prepare an agent-native application for a site, plant or customer machine. Use when writing or checking a site policy (profile, destination bindings, exchange folder bindings, TLS or mTLS ingress, identity, workforce sign-in, process bindings with path and hash), building and signing a site bundle, installing, checking or removing a release with site install, exporting firewall or orchestrator rules, or producing compliance evidence. Covers plugins/site, plugins/network, plugins/process, plugins/audit, plugins/compliance and packages/bundle.
+description: Prepare an agent-native application for a site, plant or customer machine. Use when writing or checking a deployment policy (profile, destination bindings, exchange folder bindings, TLS or mTLS ingress, identity, workforce sign-in, process bindings with path and hash), building and signing a site bundle, installing, checking or removing a release with site install, exporting firewall or orchestrator rules, or producing compliance evidence. Covers plugins/site, plugins/network, plugins/process, plugins/audit, plugins/compliance and packages/bundle.
 ---
 
 # Deploy to a site
 
-A [site policy](../../../../docs/glossary.md#site-policy) is deployment data. It binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its [hardening profile](../../../../docs/glossary.md#hardening-profile) floor. The network, process, audit and compliance plugins enforce it. [Security and compliance](../../../../docs/security-and-compliance.md) is the site operator's guide, and the [site plugin README](../../README.md) lists the API and the install order.
+A [deployment policy](../../../../docs/glossary.md#deployment-policy) is deployment data. It binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its [hardening profile](../../../../docs/glossary.md#hardening-profile) floor. The network, process, audit and compliance plugins enforce it. [Security and compliance](../../../../docs/security-and-compliance.md) is the site operator's guide, and the [site plugin README](../../README.md) lists the API and the install order.
 
 ## Before writing
 

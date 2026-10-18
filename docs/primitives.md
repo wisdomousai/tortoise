@@ -19,7 +19,7 @@ flowchart LR
   end
   Store --> Live[Journal and live query] --> Callers
   Store --> Outbox[Outbox effect] --> Dispatcher --> Connector
-  Connector --> External[(System of record or station screen)]
+  Connector --> External[(System of record or workstation application)]
   External --> Inbound[Inbound sync] --> Command
   Query -. remote query .-> External
   External --> Observation --> Command
@@ -139,7 +139,7 @@ implemented · [`packages/kernel`](../packages/kernel/README.md) [`packages/host
 
 ### Host platform
 
-_What the kernel needs from the machine it runs on: workspace ownership, storage and the host's own components. It also states which of sockets, child processes, ingress and folders the machine offers._
+_What the composition needs from the machine it runs on: workspace ownership, storage and the host's own components. It also states which of sockets, child processes, ingress and folders the machine offers._
 
 partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`packages/mobile`](../packages/mobile/README.md)
 
@@ -225,7 +225,7 @@ implemented · [`plugins/automation`](../plugins/automation/README.md)
 
 ### Standing grant
 
-_A person's recorded, expiring permission for a trigger to act as them._
+_A person's recorded, expiring permission for a trigger to act as that principal._
 
 implemented · [`plugins/automation`](../plugins/automation/README.md)
 
@@ -249,13 +249,13 @@ partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/sh
 
 ### Shell port
 
-_The kernel port that receives OS requests and performs OS actions. Its default refuses both._
+_The host port that receives OS requests and performs OS actions. Its default refuses both._
 
 partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`packages/adapters`](../packages/adapters/README.md) [`packages/shell`](../packages/shell/README.md) [`packages/mobile`](../packages/mobile/README.md) [`plugins/os`](../plugins/os/README.md) [`apps/desktop`](../apps/desktop/README.md) [`apps/mobile`](../apps/mobile/README.md)
 
 ### Process port
 
-_The kernel port that starts declared child processes from the site policy's bindings. Its default refuses._
+_The host port that starts declared child processes from the deployment policy's bindings. Its default refuses._
 
 partial · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`plugins/site`](../plugins/site/README.md) [`plugins/process`](../plugins/process/README.md)
 
@@ -277,7 +277,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md)
 
 _The implementation of a target's port, `SystemOfRecordPort`. It delivers effects to one system of record and looks up their outcome._
 
-implemented · [`packages/integration`](../packages/integration/README.md) [`packages/station`](../packages/station/README.md) [`packages/testing`](../packages/testing/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/connector-files`](../plugins/connector-files/README.md) [`plugins/connector-http`](../plugins/connector-http/README.md) [`plugins/notifications`](../plugins/notifications/README.md)
+implemented · [`packages/integration`](../packages/integration/README.md) [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`packages/testing`](../packages/testing/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/connector-files`](../plugins/connector-files/README.md) [`plugins/connector-http`](../plugins/connector-http/README.md) [`plugins/notifications`](../plugins/notifications/README.md)
 
 ### Dispatcher
 
@@ -299,7 +299,7 @@ implemented · [`packages/contracts`](../packages/contracts/README.md) [`package
 
 ### Remote query
 
-_A query that reads another system at the moment someone asks and stores nothing. It acts with the caller's own credential, or with a service credential where the query declares that fallback._
+_A query that reads another system when the caller runs the query, and stores nothing. The query acts with the caller's credential, or with a service credential where the query declares that fallback._
 
 partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/host`](../packages/host/README.md) [`packages/react`](../packages/react/README.md) [`examples/crm-capture`](../examples/crm-capture/README.md)
 
@@ -313,13 +313,13 @@ partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/in
 
 _A reading from a source that cannot be queried, submitted through an ingest command._
 
-implemented · [`packages/observation`](../packages/observation/README.md) [`packages/station`](../packages/station/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md) [`plugins/connector-opcua`](../plugins/connector-opcua/README.md)
+implemented · [`packages/observation`](../packages/observation/README.md) [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md) [`plugins/connector-opcua`](../plugins/connector-opcua/README.md)
 
 ### Gated actuator
 
 _A connector in which a model may propose screen actions and deterministic code executes and verifies them._
 
-implemented · [`packages/station`](../packages/station/README.md) [`packages/integration`](../packages/integration/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md)
+implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`packages/integration`](../packages/integration/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md)
 
 ### Driver contract
 
@@ -371,7 +371,7 @@ _What a module or host component needs outside the process, as data: network des
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/kernel`](../packages/kernel/README.md)
 
-### Site policy
+### Deployment policy
 
 _Deployment data that binds declared destinations to addresses and exchange folders to directories, and sets a hardening floor._
 
@@ -383,11 +383,11 @@ _People signing in to a serving host through the site's identity provider, under
 
 partial · [`plugins/site/src/workforce`](../plugins/site/src/workforce) [`packages/kernel/src/plugin.ts`](../packages/kernel/src/plugin.ts) [`packages/adapters/src/http`](../packages/adapters/src/http)
 
-### Station sign-in
+### Workstation sign-in
 
-_An operator signing in at a shared station seat by badge and PIN, for a short-lived session of their own._
+_An operator signing in at a shared workstation seat by badge and PIN, for a short-lived session issued to that operator._
 
-partial · [`plugins/station-sign-in`](../plugins/station-sign-in/README.md) [`packages/kernel/src/plugin.ts`](../packages/kernel/src/plugin.ts)
+partial · [`workstations/sign-in`](../workstations/sign-in/README.md) [`packages/kernel/src/plugin.ts`](../packages/kernel/src/plugin.ts)
 
 ### Egress guard
 
@@ -409,13 +409,13 @@ partial · [`plugins/execution-host`](../plugins/execution-host/README.md) [`plu
 
 ### Station and scanner profiles
 
-_Schema-validated data about one site's equipment. A station profile describes one kind of station software and is versioned; a scanner profile describes how one scanner at one station reaches the application._
+_Schema-validated data about one site's equipment. A station profile describes one kind of workstation application and is versioned; a scanner profile describes how one scanner at one workstation reaches the application._
 
-implemented · [`packages/station`](../packages/station/README.md) [`packages/devices`](../packages/devices/README.md)
+implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`packages/devices`](../packages/devices/README.md)
 
 ### Device configuration module
 
-_A reusable module that makes per-station device configuration, the scanner profiles and scan routes, ordinary commands and queries._
+_A reusable module that makes per-workstation device configuration, the scanner profiles and scan routes, ordinary commands and queries._
 
 implemented · [`packages/devices`](../packages/devices/README.md)
 
@@ -423,11 +423,11 @@ implemented · [`packages/devices`](../packages/devices/README.md)
 
 _A replay of labeled inputs through a station profile and its extractors, run before a station profile change or a model change is used._
 
-implemented · [`packages/station`](../packages/station/README.md)
+implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md)
 
 ### Compliance bundle
 
-_The evidence an auditor checks, generated from the catalog and site policy and re-checked while the application runs._
+_The evidence an auditor checks, generated from the catalog and deployment policy and re-checked while the application runs._
 
 implemented · [`plugins/compliance`](../plugins/compliance/README.md) [`packages/host`](../packages/host/README.md)
 
@@ -469,7 +469,7 @@ partial · [`plugins/fleet-agent`](../plugins/fleet-agent/README.md)
 
 ### Telemetry
 
-_OpenTelemetry metrics and traces of commands, outbox delivery, backlog by target, and agent and job runs. They are derived from the audit log and the outbox and exported through the egress guard without record contents._
+_OpenTelemetry metrics and traces of commands, outbox delivery, backlog by target, and agent and job runs, derived from the audit log and the outbox and exported through the egress guard without record contents._
 
 partial · [`plugins/telemetry`](../plugins/telemetry/README.md)
 

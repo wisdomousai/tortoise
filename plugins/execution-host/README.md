@@ -10,7 +10,7 @@ Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`. Li
 
 - [Execution host](../../docs/primitives.md#execution-host): `createExecutionHostPlugin`, its service `ExecutionHost` (`availability`, `start`, `run`) and `createExecutionHost`.
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): `executionSandbox({ id, description, network? })` declares one sandbox as a process whose executable is `bwrap`, with the [destinations](../../docs/glossary.md#destination) it may reach.
-- [Process port](../../docs/primitives.md#process-port): every sandbox starts through it. The [site policy](../../docs/glossary.md#site-policy) therefore binds and can pin the bwrap executable, and the start is audited like any child.
+- [Process port](../../docs/primitives.md#process-port): every sandbox starts through it. The [deployment policy](../../docs/glossary.md#deployment-policy) therefore binds and can pin the bwrap executable, and the start is audited like any child.
 - [Egress guard](../../docs/primitives.md#egress-guard): a sandbox that declares destinations gets the CONNECT proxy, with the per-process credential the network port issues.
 - [Execution context](../../docs/primitives.md#execution-context): a task's context must carry a delegated grant. The run's token ends when the grant or the run ends.
 - [Host plugin](../../docs/primitives.md#host-plugin): the plugin's `authenticate` hook answers for the tokens it issued.
@@ -37,7 +37,7 @@ Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`. Li
 
 1. List `executionSandbox({ id: 'agent-tools', description, network: ['model-api'] })` in the manifest's `components`. List `executionHostPluginManifest` after the site, network and process plugin manifests.
 2. Add `createExecutionHostPlugin({ tools: { bun: '/usr/local/bin/bun', git: '/usr/bin/git' } })` to `plugins`. Only these executables are mounted, and a task names one of them.
-3. Bind the sandbox in the site policy: `"processes": { "agent-tools": { "executable": "/usr/bin/bwrap", "sha256": "…" } }`.
+3. Bind the sandbox in the deployment policy: `"processes": { "agent-tools": { "executable": "/usr/bin/bwrap", "sha256": "…" } }`.
 4. From trusted host code, such as an agent run or a trigger job, take `services['execution-host']` and call `run({ sandbox, command, context, workdir?, readOnly?, env?, stdin?, limits?, signal? })`. `context` is who the sandbox acts as, usually from `agentGrant`.
 
 The result has the exit code or signal, and stdout and stderr up to the output limit. It also says whether the run timed out, was truncated or was cancelled. `start` returns the run with `revoke()` and `cancel()` before it ends.

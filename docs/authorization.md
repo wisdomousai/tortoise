@@ -56,7 +56,7 @@ Before the [dispatcher](glossary.md#dispatcher) first claims an [outbox effect](
 
 ## Revocation
 
-Membership changes serialize with business changes. An authorization event increments the authorization revision in the same commit. A grant's expiry and bindings and a run's cancellation are rechecked after every awaited step. A session revoked while its command waits is not, and the command still commits; the [ledger](implementation-status.md#known-defects) lists this defect. A remote policy system needs its own revocation contract, because the kernel promises no atomic revocation across systems.
+Membership changes serialize with business changes. An authorization event increments the authorization revision in the same commit. A grant's expiry and bindings and a run's cancellation are rechecked after every awaited step. A session revoked while its command waits is not, and the command still commits; the [ledger](implementation-status.md#known-defects) lists this defect. A remote policy system needs its own revocation contract, because the composition promises no atomic revocation across systems.
 
 ## Live updates
 

@@ -56,7 +56,7 @@ A case returns `{ passed: true }`, or `{ skipped: reason }` when its hook is mis
 
 ### Storage conformance
 
-`storageConformance(harness)` checks any `Storage` the way the kernel uses it. Each case opens a fresh database from the harness, and a second `open` on it is what a restart sees. The cases:
+`storageConformance(harness)` checks any `Storage` the way the composition uses it. Each case opens a fresh database from the harness, and a second `open` on it is what a restart sees. The cases:
 
 - a commit stores state, journal, revisions and receipts together, and a reopen sees them;
 - a transaction that throws commits nothing, before and after a reopen;

@@ -1,5 +1,5 @@
 /**
- * Packs and publishes the framework packages (`packages/*` and `plugins/*`) at their shared
+ * Packs and publishes the framework packages (`packages/*`, `workstations/*` and `plugins/*`) at their shared
  * version. Versions are bumped with changesets (`bun run release:version`), never here.
  *
  *   bun scripts/release.ts pack [--out <dir>]

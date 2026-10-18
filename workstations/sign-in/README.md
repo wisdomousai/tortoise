@@ -1,23 +1,23 @@
-# @agent-native/station-sign-in
+# @agent-native/workstation-sign-in
 
-The [station sign-in](../../docs/glossary.md#station-sign-in) [host plugin](../../docs/glossary.md#host-plugin). An [operator](../../docs/glossary.md#operator) scans their badge at a [seat](../../docs/glossary.md#seat), enters a PIN and gets a short-lived [session](../../docs/glossary.md#session) of their own. The seat's screen keeps its own session, which is used only to sign people in.
+The [workstation sign-in](../../docs/glossary.md#workstation-sign-in) [host plugin](../../docs/glossary.md#host-plugin). An [operator](../../docs/glossary.md#operator) scans their badge at a [seat](../../docs/glossary.md#seat), enters a PIN and gets a short-lived [session](../../docs/glossary.md#session) of their own. The seat's screen keeps its own session, which is used only to sign people in.
 
 ## Layer
 
-Plugins (`plugins/*`). The plugin runs on the Bun host only, because sign-in needs a serving host. The operator's session acts with the operator's own permissions under the application's [policy](../../docs/glossary.md#policy). The plugin trusts the seat's session only to sign people in.
+Workstation (`workstations/*`). The plugin runs on the Bun host only, because sign-in needs a serving host. The operator's session acts with the operator's own permissions under the application's [policy](../../docs/glossary.md#policy). The plugin trusts the seat's session only to sign people in.
 
 ## Primitives
 
-- [Station sign-in](../../docs/primitives.md#station-sign-in): the `station.*` [capabilities](../../docs/glossary.md#capability), the sign-in, sign-out and enrollment routes (`stationPaths`), and operator token resolution.
+- [Workstation sign-in](../../docs/primitives.md#workstation-sign-in): the `station.*` [capabilities](../../docs/glossary.md#capability), the sign-in, sign-out and enrollment routes (`stationPaths`), and operator token resolution.
 - [Host plugin](../../docs/primitives.md#host-plugin): `createStationSignInPlugin`, `stationSignInPlugin` and `stationSignInPluginManifest`. The plugin uses the authenticated-route and credential hooks of a serving host.
 
 ## Entrypoints
 
 | Import                                          | Runs in              | Contents                                                                                                       |
 | ----------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `@agent-native/station-sign-in/contracts`       | browser and any host | `stationSignInOperations`, `stationSignInModule`, `stationPaths`, `badgeSchema`, `operatorSessionSchema`.      |
-| `@agent-native/station-sign-in/plugin-manifest` | browser and any host | `stationSignInPluginManifest`, with the settings `station-sign-in-seats` and `station-sign-in-minutes`.        |
-| `@agent-native/station-sign-in/plugin`          | Bun host             | `createStationSignInPlugin({ now? })` and `stationSignInPlugin`, for `defineApplication({ plugins })`.         |
+| `@agent-native/workstation-sign-in/contracts`       | browser and any host | `stationSignInOperations`, `stationSignInModule`, `stationPaths`, `badgeSchema`, `operatorSessionSchema`.      |
+| `@agent-native/workstation-sign-in/plugin-manifest` | browser and any host | `stationSignInPluginManifest`, with the settings `station-sign-in-seats` and `station-sign-in-minutes`.        |
+| `@agent-native/workstation-sign-in/plugin`          | Bun host             | `createStationSignInPlugin({ now? })` and `stationSignInPlugin`, for `defineApplication({ plugins })`.         |
 
 ### Seat screen
 
@@ -53,7 +53,7 @@ A seat is the local owner or a principal listed in `station-sign-in-seats`, such
 ### Operator tokens
 
 - `station.session.resolve` looks up an operator token on every request. A sign-out, an expiry or a revoked badge applies at the next request.
-- The resolved context carries no grant and does not pass the identity port's admission. Like device credentials, operator sessions are for a host whose listener the site policy already admits.
+- The resolved context carries no grant and does not pass the identity port's admission. Like device credentials, operator sessions are for a host whose listener the deployment policy already admits.
 
 ### Audit records
 
@@ -74,7 +74,7 @@ Each attempt is a recorded command, with the badge ID, the seat and whether the 
 ## Tests
 
 ```sh
-bun test plugins/station-sign-in
+bun test workstations/sign-in
 ```
 
 `test/sign-in.test.ts` runs a fixture station application with `startHost` on loopback, with the owner's session as the seat. It shows that:
@@ -91,4 +91,4 @@ bun test plugins/station-sign-in
 
 ## Skills
 
-- [bridge-station-screen](../../packages/station/skills/bridge-station-screen/SKILL.md): station software reached through its screen.
+- [bridge-station-screen](../screen-bridge/skills/bridge-station-screen/SKILL.md): a workstation application reached through its screen.

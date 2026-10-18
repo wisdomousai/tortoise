@@ -14,7 +14,7 @@ Terms: the [adapter](glossary.md#adapter), the [surface](glossary.md#surface) ad
 | --- | --- | --- |
 | Storage | Memory, SQLite, Postgres, snapshot | State, revisions, receipts and journal commit together, and a read sees one snapshot. |
 | Authorization | `definePolicy`; a bounded CASL profile | Operation, object and field checks, scope before paging, current access on replay and events, and denial of unsupported rules. |
-| Identity and session | Local owner, grant file or workforce sign-in, by the site policy | Principal, workspace and grant come from trusted context, never from capability input. |
+| Identity and session | Local owner, grant file or workforce sign-in, by the deployment policy | Principal, workspace and grant come from trusted context, never from capability input. |
 | Surfaces | Loopback HTTP and SSE; MCP over stdio; the CLI | Calls go through the authority with the error envelope, and events follow current access. |
 | Agent harness | Deterministic fixture; Codex, Claude, AI SDK and local model adapters | Provider types stay private, progress is not a commit, and cancellation and recovery stay explicit. |
 | Audit log | Memory; hash-chained JSONL with one locked writer | Appends are ordered, chained and synced; in required mode a failed append rolls back the command. |
@@ -73,6 +73,6 @@ The first runs the suite on the memory, SQLite and Postgres adapters. The second
 ## Related pages
 
 - [Authorization](authorization.md): the policy port and the CASL adapter.
-- [Architecture](architecture.md#host-plugins): the kernel ports that host plugins provide.
+- [Architecture](architecture.md#host-plugins): the host ports that host plugins provide.
 - [Security and compliance](security-and-compliance.md): the audit log and the egress guard.
 - [Agents](agents.md): harnesses.

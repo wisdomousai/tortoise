@@ -11,7 +11,7 @@ import {
 } from '@agent-native/connector-driver/connect';
 import type { DriverSupervisor } from '@agent-native/connector-driver/supervisor';
 import type { DriverStateField } from '@agent-native/connector-driver/contracts';
-import type { BridgeControl } from '@agent-native/station';
+import type { BridgeControl } from '@agent-native/screen-bridge';
 import { operations } from './contracts';
 import { stationAutomationContract } from './contracts/automation';
 import { bridgePrincipal, hmiTarget } from './domain';

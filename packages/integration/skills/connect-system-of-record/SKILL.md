@@ -5,7 +5,7 @@ description: Connect an agent-native application to another system that keeps it
 
 # Connect a system of record
 
-The application owns its capture working set and its pending [outbox effects](../../../../docs/glossary.md#effect). The [system of record](../../../../docs/glossary.md#system-of-record) keeps ownership of its own records. A local [receipt](../../../../docs/glossary.md#receipt) proves the local commit, not acceptance by the [target](../../../../docs/glossary.md#target). [Systems of record](../../../../docs/systems-of-record.md) explains the design, and the [package README](../../README.md) lists every primitive. `examples/quality-inspection` is the worked outbox and sync example, and `examples/crm-capture` adds live search and adoption.
+The application owns its working set and its pending [outbox effects](../../../../docs/glossary.md#effect). The [system of record](../../../../docs/glossary.md#system-of-record) keeps ownership of its own records. A local [receipt](../../../../docs/glossary.md#receipt) proves the local commit, not acceptance by the [target](../../../../docs/glossary.md#target). [Systems of record](../../../../docs/systems-of-record.md) explains the design, and the [package README](../../README.md) lists every primitive. `examples/quality-inspection` is the worked outbox and sync example, and `examples/crm-capture` adds live search and adoption.
 
 ## Before writing
 
@@ -35,7 +35,7 @@ The application owns its capture working set and its pending [outbox effects](..
 10. Write a domain command of your own for a held effect only when the decision changes more than the effect and its record (`examples/line-station/handlers/attention.ts`).
 11. For live search, declare search and lookup queries with `defineDataProvider` (`examples/crm-capture/contracts/providers.ts`). Implement them with `implementDataProvider`, and back them with `createRemoteSource`, which resolves the caller's own credential first.
 12. Write adoption of a search result as a domain command that enqueues a follow effect.
-13. For a target that can only be observed and acted on, such as a screen or an instrument, use convergent delivery from `packages/integration/src/convergent/`. Follow the `bridge-station-screen` skill (`packages/station/skills/bridge-station-screen/SKILL.md`) or `write-hardware-driver` (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`).
+13. For a target that can only be observed and acted on, such as a screen or an instrument, use convergent delivery from `packages/integration/src/convergent/`. Follow the `bridge-station-screen` skill (`workstations/screen-bridge/skills/bridge-station-screen/SKILL.md`) or `write-hardware-driver` (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`).
 
 Never give the integration principal more than settle, sync and status. Never let a CLI or agent bypass application policy with broad upstream credentials.
 

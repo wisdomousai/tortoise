@@ -1,6 +1,6 @@
 # Agent-native desktop starter
 
-A TypeScript [framework](docs/glossary.md#framework) for applications that people and AI agents operate together, often on or next to the machines where work happens. An application captures work locally and delivers it to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES. The repository contains the framework, [host plugins](docs/glossary.md#host-plugin), a [starter](docs/glossary.md#starter) and eight [examples](docs/glossary.md#example).
+A TypeScript [framework](docs/glossary.md#framework) for an [application](docs/glossary.md#application) whose [commands](docs/glossary.md#command) and [queries](docs/glossary.md#query) are one [catalog](docs/glossary.md#catalog). Every [surface](docs/glossary.md#surface) calls that catalog. One [authority](docs/glossary.md#authority) commits the result. When another system owns records the application reads or changes, the application connects that system as a [system of record](docs/systems-of-record.md). The repository contains the framework, [workstation](docs/glossary.md#workstation) packages, [host plugins](docs/glossary.md#host-plugin), a [starter](docs/glossary.md#starter) and eight [examples](docs/glossary.md#example).
 
 ## Capabilities and surfaces
 
@@ -17,11 +17,12 @@ The Bun [host](docs/glossary.md#host) keeps the [workspace](docs/glossary.md#wor
 The repository has these layers:
 
 - the framework in `packages/*`;
+- workstation packages in `workstations/*`;
 - host plugins in `plugins/*`;
 - the starter in `apps/*`, which hosts the one application named in `app.config.json`;
 - the examples in `examples/*`.
 
-Driver SDKs for other languages sit beside them in `sdks/*`. [Architecture](docs/architecture.md#packages) lists the framework packages, and its [examples](docs/architecture.md#examples) section lists the eight examples. `bun run check:readmes` checks that every package, plugin, app, example and SDK has a README titled with its package name and that its links work. Each README states its trust boundary and how to run its tests.
+Driver SDKs for other languages sit in `sdks/*`, next to those layers. [Architecture](docs/architecture.md#packages) lists the framework packages, and its [examples](docs/architecture.md#examples) section lists the eight examples. `bun run check:readmes` checks that every package, workstation package, plugin, app, example and SDK has a README titled with its package name and that its links work. Each README states its trust boundary and how to run its tests.
 
 ## First run
 
@@ -56,19 +57,19 @@ Each [storage](docs/glossary.md#storage) transaction receives the whole workspac
 
 ## Guides
 
-- [Getting started](docs/getting-started.md): run the examples, use them through the CLI and MCP, and create another application.
+- [Getting started](docs/getting-started.md): run the examples, use the examples through the CLI and MCP, and create another application.
 - [Architecture](docs/architecture.md): layers, surfaces, request flow, authorities and hosts, host plugins, storage and the invariants the checks test.
-- [Primitives](docs/primitives.md): the building blocks, their status and where they live.
+- [Primitives](docs/primitives.md): the building blocks, the status of each, and the package of each one.
 - [Glossary](docs/glossary.md): the terms every page uses.
 - [Capability authoring](docs/capability-authoring.md), [interaction contract](docs/interaction-contract.md), [authorization](docs/authorization.md) and [state and reactivity](docs/state-and-reactivity.md): writing a capability and what callers can rely on.
 - [Adapters](docs/adapters.md): the ports and their reference adapters.
 - [Systems of record](docs/systems-of-record.md): outbox, inbound sync, remote queries and the CLI, as `quality-inspection`, `crm-capture` and `receiving` use them.
-- [Operator workstations](docs/operator-workstations.md): station software reached through its screen, as `line-station` uses it.
+- [Operator workstations](docs/operator-workstations.md): workstation application reached through its screen, as `line-station` uses it.
 - [Point-of-work input](docs/point-of-work-input.md): scanners and glove-sized screens.
 - [Hardware drivers](docs/hardware-drivers.md): equipment reached through a driver process.
 - [Agents](docs/agents.md) and [providers](docs/providers.md): agent runs, harnesses and provider accounts.
 - [Hosting](docs/hosting.md): the hosted authority and the fleet.
 - [Desktop](docs/desktop.md): the Electron window, its packaged resources and the build.
 - [Mobile](docs/mobile.md): the mobile host, pairing with a hub and the device's trust boundary.
-- [Security and compliance](docs/security-and-compliance.md): declared egress under a site policy, hardening profiles, the audit log and the compliance bundle.
+- [Security and compliance](docs/security-and-compliance.md): declared egress under a deployment policy, hardening profiles, the audit log and the compliance bundle.
 - [Implementation status](docs/implementation-status.md): what has been run, what has not, and the [known defects](docs/implementation-status.md#known-defects).

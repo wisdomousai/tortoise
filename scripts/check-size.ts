@@ -1,5 +1,5 @@
 /**
- * Reports long files and functions in `packages/*`, `plugins/*`, `apps/*` and `examples/*` as
+ * Reports long files and functions in `packages/*`, `workstations/*`, `plugins/*`, `apps/*` and `examples/*` as
  * hints for review; they never fail the check. It fails only when a package `src/index.ts` holds
  * anything but `export … from` re-exports, because importers rely on the entrypoint carrying no
  * code of its own. Reads files only; writes nothing.

@@ -4,7 +4,7 @@ This [connector](../../docs/glossary.md#connector) reaches a generic REST [syste
 
 ## Layer
 
-Plugin layer, as a connector library without plugin entrypoints. Server only. It trusts the [site policy](../../docs/glossary.md#site-policy) to bind the address and credentials, and treats response bodies as input.
+Plugin layer, as a connector library without plugin entrypoints. Server only. It trusts the [deployment policy](../../docs/glossary.md#deployment-policy) to bind the address and credentials, and treats response bodies as input.
 
 ## Primitives
 
@@ -50,7 +50,7 @@ The port needs an idempotency header, a lookup, or both. With a header, the syst
 
 ## Trust boundary
 
-Every request goes through `network.client(destination).fetch`, so the [egress guard](../../docs/glossary.md#egress-guard) sees it and the site policy decides the address and credentials. The port never reads a credential.
+Every request goes through `network.client(destination).fetch`, so the [egress guard](../../docs/glossary.md#egress-guard) sees it and the deployment policy decides the address and credentials. The port never reads a credential.
 
 Response bodies are input. Rejection codes and messages are cut to 100 and 500 characters. The feed's `map` and the sync command's input schema decide what an item may change.
 

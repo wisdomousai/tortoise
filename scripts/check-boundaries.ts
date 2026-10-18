@@ -59,13 +59,14 @@ const browserRoots = [
 // Content's browser entrypoints: contracts, the manifest, screens and their components.
 const browserContent =
   /^examples\/[^/]+\/(?:contracts\.ts|contracts\/|manifest\.ts|screens\.tsx|ui\/)/;
-// Layers by directory: framework `packages/*`, plugins `plugins/*`, shell `apps/*`,
-// content `examples/*`, and driver SDKs `sdks/*`.
+// Layers by directory: framework `packages/*`, workstations `workstations/*`, plugins `plugins/*`,
+// shell `apps/*`, content `examples/*`, and driver SDKs `sdks/*`.
 // Imports resolve through relative paths and workspace package names alike, so an alias such as
 // `@agent-native/line-station` cannot bypass a rule that a relative path would break.
-type Layer = 'framework' | 'plugin' | 'shell' | 'content' | 'sdk';
+type Layer = 'framework' | 'workstation' | 'plugin' | 'shell' | 'content' | 'sdk';
 const layerDirectories: Record<string, Layer> = {
   packages: 'framework',
+  workstations: 'workstation',
   plugins: 'plugin',
   apps: 'shell',
   examples: 'content',
@@ -97,6 +98,11 @@ for (const name of await readdir(resolve(root, 'node_modules/@agent-native')).ca
 function layerOfPath(path: string): Layer | undefined {
   return layerDirectories[relative(root, path).replaceAll('\\', '/').split('/')[0]!];
 }
+/** `workstations/<name>` or the same shape for the other layers. */
+function workspaceOf(path: string): string | undefined {
+  const [directory, name] = relative(root, path).replaceAll('\\', '/').split('/');
+  return directory && name ? `${directory}/${name}` : undefined;
+}
 function layerOfImport(file: string, dependency: string): Layer | undefined {
   if (dependency.startsWith('.')) return layerOfPath(resolve(file, '..', dependency));
   const [scope, name] = dependency.split('/');
@@ -107,7 +113,10 @@ function layerOfImport(file: string, dependency: string): Layer | undefined {
 function serverPluginEntry(dependency: string) {
   const [scope, name, ...rest] = dependency.split('/');
   const pkg = `${scope}/${name}`;
-  return packageLayers.get(pkg) === 'plugin' && !pluginBrowserEntry.test(rest.join('/'));
+  return (
+    (packageLayers.get(pkg) === 'plugin' || pkg === '@agent-native/workstation-sign-in') &&
+    !pluginBrowserEntry.test(rest.join('/'))
+  );
 }
 
 for (const file of all) {
@@ -121,14 +130,24 @@ for (const file of all) {
   for (const dependency of imports) {
     const from = layerOfPath(file);
     const to = layerOfImport(file, dependency);
-    if (from === 'framework' && (to === 'shell' || to === 'content' || to === 'plugin'))
+    if (
+      from === 'framework' &&
+      (to === 'shell' || to === 'content' || to === 'plugin' || to === 'workstation')
+    )
       errors.push(`${name}: framework imports ${to} ${dependency}`);
+    // A workstation package builds on the framework only. Imports inside the package are its own
+    // source. The framework, the starter and a host plugin do not import a workstation package.
+    if (from === 'workstation' && to && to !== 'framework') {
+      const target = dependency.startsWith('.') ? resolve(file, '..', dependency) : undefined;
+      if (!target || workspaceOf(file) !== workspaceOf(target))
+        errors.push(`${name}: workstation imports ${to} ${dependency}`);
+    }
     // A plugin builds on the framework and on plugins it requires; the application lists it, so
     // neither the starter nor the plugin reaches into an application or the starter.
-    if (from === 'plugin' && (to === 'shell' || to === 'content'))
+    if (from === 'plugin' && (to === 'shell' || to === 'content' || to === 'workstation'))
       errors.push(`${name}: plugin imports ${to} ${dependency}`);
-    if (from === 'shell' && to === 'plugin')
-      errors.push(`${name}: shell imports plugin ${dependency}; the application composes plugins`);
+    if (from === 'shell' && (to === 'plugin' || to === 'workstation'))
+      errors.push(`${name}: shell imports ${to} ${dependency}; the application composes it`);
     // The starter learns its content only from configuration; content implements framework
     // contracts and never reaches into the starter that happens to host it.
     if (from === 'shell' && to === 'content')

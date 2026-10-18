@@ -1,6 +1,6 @@
 # @agent-native/host
 
-The Bun [host](../../docs/glossary.md#host): the generic process that opens an [authority](../../docs/glossary.md#authority) for exactly one [application definition](../../docs/glossary.md#application-definition) supplied by content. It owns what an application should not rewrite: workspace ownership and storage, launch and sessions, HTTP and SSE, embedded MCP, the application CLI, agent run supervision, provider accounts, background delivery and observers. The host names no domain and no security concept. What crosses the process boundary goes through [kernel](../../docs/glossary.md#kernel) ports that deny by default, and the application's [host plugins](../../docs/glossary.md#host-plugin) provide more, such as `@agent-native/site`, `@agent-native/network` and `@agent-native/audit`.
+The Bun [host](../../docs/glossary.md#host): the generic process that opens an [authority](../../docs/glossary.md#authority) for exactly one [application definition](../../docs/glossary.md#application-definition) supplied by content. It owns what an application should not rewrite: workspace ownership and storage, launch and sessions, HTTP and SSE, embedded MCP, the application CLI, agent run supervision, provider accounts, background delivery and observers. The host names no domain and no security concept. What crosses the process boundary goes through [composition](../../docs/glossary.md#composition) ports that deny by default, and the application's [host plugins](../../docs/glossary.md#host-plugin) provide more, such as `@agent-native/site`, `@agent-native/network` and `@agent-native/audit`.
 
 ## Layer
 
@@ -18,7 +18,7 @@ Framework (`packages/*`). The starter's `apps/service` calls it. Content calls o
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus the host components that the generators read.
 
-Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/project-tasks/application.ts`](../../examples/project-tasks/application.ts). [Architecture](../../docs/architecture.md#layers) explains the layering and the [plugin kernel](../../docs/architecture.md#host-plugins).
+Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/project-tasks/application.ts`](../../examples/project-tasks/application.ts). [Architecture](../../docs/architecture.md#layers) explains the layering and the [host plugins](../../docs/architecture.md#host-plugins).
 
 ### Bun platform
 
@@ -47,18 +47,18 @@ That copy is for disaster recovery only. Restoring it would drop records committ
 | `@agent-native/host/*`                 | server only | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                                                           |
 | `@agent-native/host/manifest`          | browser     | `defineManifest`: an application's ID, title and modules. Imports no host code.                                                                                  |
 | `@agent-native/host/plugin-manifest`   | browser     | `definePluginManifest`, `PluginSetting`: a plugin's ID, modules, components and settings. Imports no host code.                                                  |
-| `@agent-native/host/plugin`            | server only | The kernel's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket`, `childEnvironment`, `BunProcessPort` and `bunProcesses`. |
+| `@agent-native/host/plugin`            | server only | The composition's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket`, `childEnvironment`, `BunProcessPort` and `bunProcesses`. |
 | `@agent-native/host/application`       | server only | `defineApplication`, `createApplicationRuntime`, `ConnectContext`, `Observer`.                                                                                   |
 | `@agent-native/host/config`            | server only | `app.config.json` reading, the URL scheme, and runtime resolution of the configured application (`loadApplication`, `loadManifest`).                             |
 | `@agent-native/host/mobile-target`     | build time  | `readMobileTarget`: the application the mobile starter hosts, from `targets.mobile` in `app.config.json`.                                                            |
 | `@agent-native/host/serve`             | server only | `serve`: run the HTTP authority until SIGINT or SIGTERM. The first stdout line is a `listening` JSON record.                                                     |
 | `@agent-native/host/cli`               | server only | `createCli`: catalog-derived CLI with `serve`, `mcp`, `drain`, `sync`, `backup`, `restore`, `migrate` and attached or `--embedded` authorities.                  |
-| `@agent-native/host/platform/bun`      | server only | `bunPlatform` and `workspaceStorage`: the kernel's host platform on Bun.                                                                                         |
+| `@agent-native/host/platform/bun`      | server only | `bunPlatform` and `workspaceStorage`: the composition's host platform on Bun.                                                                                         |
 | `@agent-native/host/platform/hosted`   | server only | `hostedPlatform`: the Bun platform with Postgres storage and a workspace lease, for an authority another instance can take over.                                 |
 | `@agent-native/host/embedded`          | server only | `openEmbeddedAuthority`, `workspaceStorage`, `LOCAL_OWNER`, `LOCAL_WORKSPACE`.                                                                                   |
 | `@agent-native/host/components`        | server only | The host's own declared requirements (listener, providers), `deploymentCatalog` and `deploymentRequirements`.                                                    |
 | `@agent-native/host/providers`         | server only | `createProviderAccess`: provider accounts, API-key funding and harness construction.                                                                             |
-| `@agent-native/host/runtime-manifest`  | server only | Digest checks for the packaged host executable, its shipped site policy and the bundled agent runtimes.                                                          |
+| `@agent-native/host/runtime-manifest`  | server only | Digest checks for the packaged host executable, its shipped deployment policy and the bundled agent runtimes.                                                          |
 | `@agent-native/host/optional-packages` | server only | Packages loaded only when an optional adapter is configured; standalone builds keep them external.                                                               |
 
 `host` and `integrations` are also importable by path; prefer the root export.
@@ -67,8 +67,8 @@ The larger entries are thin composers over folders of parts:
 
 - `src/host/`: `startHost`'s steps for the authority, agents, connection files and the cleanup stack, and its routes in `routes/` for shutdown, UI sessions and runs. It also holds the SQLite run store and the agent tool port.
 - `src/providers/`: shared `ProviderState`, owner scope and vault namespacing, profile selection, the verified native runtime, lazy harnesses, the provider account routes, the model catalog and the OAuth callback. Only `providers.ts` chooses the default `fetch`, as the egress-exempt file; the parts call it through the state.
-- `src/plugins/`: the Bun side of the kernel's plugin parts: `loopbackIngress` as the default ingress in `ports.ts`, `readPluginSettings` from the environment in `settings.ts` and `openPlugins` on `bunPlatform` in `lifecycle.ts`. Composition, port resolution and the lifecycle live in the kernel.
-- `src/platform/`: `bunPlatform`, which `embedded.ts` and `host/authority.ts` pass to the kernel's `openAuthority`, and `hostedPlatform`. Given `hostedPlatform` as `platform`, `startHost` uses it instead.
+- `src/plugins/`: the Bun side of the composition's plugin parts: `loopbackIngress` as the default ingress in `ports.ts`, `readPluginSettings` from the environment in `settings.ts` and `openPlugins` on `bunPlatform` in `lifecycle.ts`. Composition, port resolution and the lifecycle live in `@agent-native/kernel`.
+- `src/platform/`: `bunPlatform`, which `embedded.ts` and `host/authority.ts` pass to the composition's `openAuthority`, and `hostedPlatform`. Given `hostedPlatform` as `platform`, `startHost` uses it instead.
 - `src/cli/`: one module per command group (`serve`, `mcp`, `sync` and `drain`, `backup` and `restore`, `migrate`, capability calls) and shared argument parsing.
 
 ## Trust boundary
@@ -140,7 +140,7 @@ bun run test:service
 
 - `test/hosted-platform.test.ts`: two hosted instances on one PGlite database. One serves and the other is refused, a renewal keeps the lease past its first expiry, and after a close the next instance starts from the committed state.
 - `test/config.test.ts`: the URL scheme, its default from the application ID, and the refusal of reserved or malformed schemes.
-- `test/plugins.test.ts`: plugin composition and the kernel ports.
+- `test/plugins.test.ts`: plugin composition and the host ports.
   - manifest merge and collisions, list order and `requires`;
   - slices kept across upgrades, policy routing, open order and cleanup after a failed open;
   - duplicate ports, null defaults and claimed settings;

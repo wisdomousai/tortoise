@@ -34,7 +34,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | `examples/project-tasks` | the smallest whole application: capabilities, policy, OS handlers, agent definitions, a background job |
 | `examples/quality-inspection` | capture against a system of record through the outbox, and a measuring instrument through a Python driver |
 | `examples/crm-capture` | live search of a CRM and adoption of its records |
-| `examples/line-station` | an operator workstation over station software reached through its screen or a .NET driver |
+| `examples/line-station` | an operator workstation over workstation application reached through its screen or a .NET driver |
 | `examples/asset-survey` and `examples/asset-survey-field` | a hub with blob evidence and a paired mobile field application |
 
 | Task | Skill |
@@ -46,11 +46,11 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | Instruments and machines through a driver process | `plugins/connector-driver/skills/write-hardware-driver/SKILL.md` |
 | Tools an agent runs, confined in a sandbox | `plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md` |
 | A model on this host, base or fine-tuned | `plugins/model-server/skills/serve-a-local-model/SKILL.md` |
-| Station software with no API, through its screen | `packages/station/skills/bridge-station-screen/SKILL.md` |
+| A workstation application with no API, through its screen | `workstations/screen-bridge/skills/bridge-station-screen/SKILL.md` |
 | Barcode scanners and point-of-work input | `packages/devices/skills/add-scanner-input/SKILL.md` |
 | Share targets, shortcuts, intents, notifications | `packages/shell/skills/add-os-integration/SKILL.md` |
 | The phone or tablet host, native plugins, pairing | `packages/mobile/skills/extend-mobile-host/SKILL.md` |
-| Site policy, signed bundles, install on a machine | `plugins/site/skills/deploy-to-site/SKILL.md` |
+| Deployment policy, signed bundles, install on a machine | `plugins/site/skills/deploy-to-site/SKILL.md` |
 | A hosted instance with its workspace in Postgres | `packages/host/skills/run-a-hosted-authority/SKILL.md` |
 | A site that reports to a fleet, or the fleet it reports to | `plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md` |
 | Metrics and traces in an observability backend | `plugins/telemetry/skills/export-telemetry/SKILL.md` |

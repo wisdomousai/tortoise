@@ -4,7 +4,7 @@ import { prettierJson } from './json';
 
 /**
  * An export that installs the framework from a registry instead of vendoring it: the starter and
- * the content are copied, `packages/*`, `plugins/*` and `sdks/*` are not, the root depends on
+ * the content are copied, `packages/*`, `workstations/*`, `plugins/*` and `sdks/*` are not, the root depends on
  * every framework package at the checkout's framework version, and the starter's references to
  * framework files point into `node_modules`.
  */
@@ -18,7 +18,7 @@ export interface PublishedFramework {
 }
 
 /** Framework layers left out; driver SDKs are other languages' packages, not published here. */
-const frameworkDirectories = ['packages/', 'plugins/', 'sdks/'];
+const frameworkDirectories = ['packages/', 'workstations/', 'plugins/', 'sdks/'];
 
 /** Scripts that build, check or release framework source, which the export does not contain. */
 const frameworkScripts = new Set([
@@ -46,7 +46,7 @@ export async function publishedFramework(
 ): Promise<PublishedFramework> {
   const packages = new Map<string, string>();
   const versions = new Set<string>();
-  for (const layer of ['packages', 'plugins'])
+  for (const layer of ['packages', 'workstations', 'plugins'])
     for (const entry of await readdir(join(sourceRoot, layer)).catch(() => [])) {
       const manifest = await readFile(join(sourceRoot, layer, entry, 'package.json'), 'utf8')
         .then((text) => JSON.parse(text) as { name: string; version: string; private?: boolean })

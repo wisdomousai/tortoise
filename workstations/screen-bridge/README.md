@@ -1,10 +1,10 @@
-# @agent-native/station
+# @agent-native/screen-bridge
 
-A bridge to [station](../../docs/glossary.md#station) software that can only be read and driven through its screen. [Observations](../../docs/glossary.md#observation) enter the application through a domain ingest command (`createStationObserver`). Actions leave through the [outbox](../../docs/glossary.md#outbox) as a [system-of-record](../../docs/glossary.md#system-of-record) [connector](../../docs/glossary.md#connector) (`createStationConnector`). Inside the connector, a gated controller runs declared [procedures](../../docs/glossary.md#procedure) and accepts them only on stable readback.
+The [screen bridge](../../docs/glossary.md#screen-bridge) reads a [workstation application](../../docs/glossary.md#workstation-application) and drives it through its screen. [Observations](../../docs/glossary.md#observation) enter the application through a domain ingest command (`createStationObserver`). Actions leave through the [outbox](../../docs/glossary.md#outbox) as a [system-of-record](../../docs/glossary.md#system-of-record) [connector](../../docs/glossary.md#connector) (`createStationConnector`). Inside the connector, a gated controller runs declared [procedures](../../docs/glossary.md#procedure) and accepts them only on stable readback.
 
 ## Layer
 
-Framework (`packages/*`). Server only, except `requirements`. The package is domain-neutral: the domain [module](../../docs/glossary.md#module) declares the station screen and the outbox targets, as `examples/line-station` does. The package trusts the host's ports and treats model output as untrusted. A model may read the screen or propose targets; deterministic code acts and verifies. Nothing here writes application state directly.
+Workstation (`workstations/*`). Server only, except `requirements`. The domain [module](../../docs/glossary.md#module) declares the screen and the outbox targets, as `examples/line-station` does. The package trusts the host's ports and treats model output as untrusted. A model may read the screen or propose targets; deterministic code acts and verifies. Nothing here writes application state directly.
 
 ## Primitives
 
@@ -22,9 +22,9 @@ Framework (`packages/*`). Server only, except `requirements`. The package is dom
 
 | Import                               | Runs in            | Contents                                                                                                   |
 | ------------------------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------- |
-| `@agent-native/station`              | server only        | Ports, profiles, perception, observer, connector, scripted driver, golden check, extractors and transport. |
-| `@agent-native/station/*`            | see below          | One source file, such as `@agent-native/station/perception/worker`.                                        |
-| `@agent-native/station/requirements` | browser and server | `stationBridgeComponent`: vision endpoints and the perception worker as declared requirements. Loads nothing. |
+| `@agent-native/screen-bridge`              | server only        | Ports, profiles, perception, observer, connector, scripted driver, golden check, extractors and transport. |
+| `@agent-native/screen-bridge/*`            | see below          | One source file, such as `@agent-native/screen-bridge/perception/worker`.                                        |
+| `@agent-native/screen-bridge/requirements` | browser and server | `stationBridgeComponent`: vision endpoints and the perception worker as declared requirements. Loads nothing. |
 
 `controller` and `profile` compose parts that are imported only from inside the package. `src/controller/` holds:
 
@@ -49,7 +49,7 @@ The Playwright transport is typed structurally, so this package does not depend 
 
 ### Readings
 
-The bridge reaches station software only through its ports. Each reading carries its source, model identity and digest, frame digest, time and confidence. A reading becomes current only after it is stable across consecutive reads. A low-confidence reading is submitted as `uncertain`, for a person to confirm. Unchanged content is resubmitted at most once per heartbeat window. Each submission's idempotency key fingerprints its exact payload.
+The screen bridge reaches the workstation application only through its ports. Each reading carries its source, model identity and digest, frame digest, time and confidence. A reading becomes current only after it is stable across consecutive reads. A low-confidence reading is submitted as `uncertain`, for a person to confirm. Unchanged content is resubmitted at most once per heartbeat window. Each submission's idempotency key fingerprints its exact payload.
 
 ### Controller gate
 
@@ -82,7 +82,7 @@ Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/in
 ## Tests
 
 ```sh
-bun test packages/station
+bun test workstations/screen-bridge
 cd examples/line-station && bun run station:golden
 ```
 
@@ -93,4 +93,4 @@ cd examples/line-station && bun run station:golden
 
 ## Skills
 
-- [bridge-station-screen](skills/bridge-station-screen/SKILL.md): Bridge station software through its screen, or choose its automation route instead.
+- [bridge-station-screen](skills/bridge-station-screen/SKILL.md): Bridge workstation application through its screen, or choose its automation route instead.

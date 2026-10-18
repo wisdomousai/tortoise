@@ -6,7 +6,7 @@ Rules for the entries:
 
 - One term per concept. The term on this page is the one every page uses.
 - A term that has several meanings in everyday use is qualified: "hardening profile", "station profile", "OS user".
-- Code identifiers are not terms. A page names the concept and then the identifier in backticks when the reader needs it.
+- Code identifiers are not terms. A page names the concept and then the identifier in backticks when the sentence points at that identifier.
 - A `Do not use:` line lists the words the term replaces. An entry with a qualifier in parentheses, such as `page (for a screen)`, bans only that sense, because the bare word has other correct senses.
 - Protocol, file-format and product names keep their own form. These abbreviations also stay abbreviated:
   - interfaces and protocols: CLI, MCP, API, UI, HTTP, SSE, TLS, mTLS, OIDC, PKCE, OPC UA, MQTT, OTLP;
@@ -55,7 +55,7 @@ Do not use: remote mode.
 
 ### Audit log
 
-The hash-chained, tamper-evident record of commands, queries, denials, outbox transitions, sync passes, connections and agent runs. The kernel's default port keeps no log; `plugins/audit` provides one in the site policy's audit mode. In required mode, a command whose accepted record cannot be appended inside its transaction rolls back. The code names are `packages/event-log`, `EventLogPort` and the policy key `eventLog`. Lives in [`plugins/audit`](../plugins/audit/README.md); explained in [security and compliance](security-and-compliance.md#audit-log).
+The hash-chained, tamper-evident record of commands, queries, denials, outbox transitions, sync passes, connections and agent runs. The composition's default port keeps no log; `plugins/audit` provides one in the deployment policy's audit mode. In required mode, a command whose accepted record cannot be appended inside its transaction rolls back. The code names are `packages/event-log`, `EventLogPort` and the policy key `eventLog`. Lives in [`plugins/audit`](../plugins/audit/README.md); explained in [security and compliance](security-and-compliance.md#audit-log).
 
 Do not use: event log, audit trail, log (alone, for the audit log).
 
@@ -77,11 +77,11 @@ Do not use: file upload (for a blob), asset (for a blob).
 
 ### Bridge mode
 
-How far a screen bridge or a driver bridge may act. `monitor-only` never acts, `assist` runs only actions of hazard class `none`, and `actuate` runs every declared action. Lives in [`packages/station`](../packages/station/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [operator workstations](operator-workstations.md).
+How far a screen bridge or a driver bridge may act. `monitor-only` never acts, `assist` runs only actions of hazard class `none`, and `actuate` runs every declared action. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [operator workstations](operator-workstations.md).
 
 ### Caller
 
-Whoever submits a command or query: a person at a screen, an agent run, a script, a trigger, a device or the dispatcher. Every caller uses the same catalog with the same validation and authorization.
+The source of a command or query: a person at a screen, an agent run, a script, a trigger, a device or the dispatcher. Every caller uses the same catalog with the same validation and authorization.
 
 Do not use: actor, requester, client (for a caller), invoker.
 
@@ -115,9 +115,15 @@ Do not use: write operation, action (for a command).
 
 ### Compliance bundle
 
-The evidence an auditor checks: the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. It is generated from the catalog and the site policy and re-checked while the application runs. Lives in [`plugins/compliance`](../plugins/compliance/README.md).
+The evidence an auditor checks: the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. It is generated from the catalog and the deployment policy and re-checked while the application runs. Lives in [`plugins/compliance`](../plugins/compliance/README.md).
 
 Do not use: evidence pack, audit bundle, report (alone).
+
+### Composition
+
+The portable layer that composes an application and its plugins, resolves the host ports and opens one authority. It uses no Node, Bun or React Native API. Lives in [`packages/kernel`](../packages/kernel/README.md).
+
+Do not use: kernel (for the composition), core (for the composition), bootstrapper, composition root.
 
 ### Connection file
 
@@ -131,7 +137,7 @@ Do not use: integration (for a connector), adapter (for a connector), bridge (fo
 
 ### Container
 
-A project, plant, station or other unit that people hold roles in. Membership is per container. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [authorization](authorization.md).
+A project, plant, workstation or other unit that people hold roles in. Membership is per container. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [authorization](authorization.md).
 
 Do not use: scope (for a container).
 
@@ -153,7 +159,7 @@ One declaration of a kind of record that lives in a system of record and can be 
 
 ### Delivery mode
 
-How a driver action avoids acting twice. `idempotent`: the driver deduplicates by effect ID. `convergent`: the host reads the declared state before and after acting. `once`: the driver answers a lookup, and an unknown outcome holds the effect. A station procedure is always convergent. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [hardware drivers](hardware-drivers.md).
+How a driver action avoids acting twice. `idempotent`: the driver deduplicates by effect ID. `convergent`: the host reads the declared state before and after acting. `once`: the driver answers a lookup, and an unknown outcome holds the effect. A procedure for a workstation application is always convergent. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [hardware drivers](hardware-drivers.md).
 
 ### Delivery outcome
 
@@ -161,7 +167,13 @@ What one delivery attempt returns to the dispatcher. The target accepts or rejec
 
 ### Destination
 
-A network endpoint that a module, host component or child process declares by ID, with its direction, scope, protocol and data classes. The site policy binds it to an address, so code never names a customer host. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in [security and compliance](security-and-compliance.md#declarations).
+A network endpoint that a module, host component or child process declares by ID, with its direction, scope, protocol and data classes. The deployment policy binds it to an address, so code never names a customer host. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in [security and compliance](security-and-compliance.md#declarations).
+
+### Deployment policy
+
+The policy one host runs under. It names the hardening floor, the identity floor, destination and folder bindings, process pins and ingress. A site runs under one. A desktop-local host can run under one. That host is not a site. The launcher setting is `--site-policy`. Lives in [`plugins/site`](../plugins/site/README.md); explained in [security and compliance](security-and-compliance.md#deployment-policy).
+
+Do not use: site policy, deployment config, environment file, settings (for the deployment policy).
 
 ### Device
 
@@ -199,7 +211,7 @@ Do not use: delivery intent, durable intent, message (for an effect), job (for a
 
 ### Egress guard
 
-The path from server code and declared child processes to the network. It admits a destination only when the site policy binds it. The reviewed exemptions are listed in `scripts/boundary-rules.ts`; a paired device has no egress guard. Lives in [`plugins/network`](../plugins/network/README.md).
+The path from server code and declared child processes to the network. It admits a destination only when the deployment policy binds it. The reviewed exemptions are listed in `scripts/boundary-rules.ts`; a paired device has no egress guard. Lives in [`plugins/network`](../plugins/network/README.md).
 
 Do not use: firewall (for the guard), proxy (alone), network policy.
 
@@ -217,7 +229,7 @@ Do not use: demo app, reference app.
 
 ### Exchange folder
 
-A directory the application exchanges files through with another system, declared by ID with its access and data classes. Only the site policy knows its path. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in [security and compliance](security-and-compliance.md#declarations).
+A directory the application exchanges files through with another system, declared by ID with its access and data classes. Only the deployment policy knows its path. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in [security and compliance](security-and-compliance.md#declarations).
 
 ### Execution context
 
@@ -233,7 +245,7 @@ Do not use: sandbox (alone, for the execution host), jail, container (for the ex
 
 ### Extractor
 
-Turns one frame, such as a screen capture or a driver's state read, into readings with a confidence and a provenance. It omits a field it cannot read instead of failing. Lives in [`packages/observation`](../packages/observation/README.md); [`packages/station`](../packages/station/README.md) fixes it to screen captures.
+Turns one frame, such as a screen capture or a driver's state read, into readings with a confidence and a provenance. It omits a field it cannot read instead of failing. Lives in [`packages/observation`](../packages/observation/README.md); [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) fixes it to screen captures.
 
 ### Feed
 
@@ -257,11 +269,11 @@ Do not use: core (for the framework), platform (for the framework), library (alo
 
 ### Framework release
 
-The framework and plugin packages published together at one version. `bun run check:manifests` refuses packages at different versions, and `bun run check:framework` reports an application that installed more than one. Lives in `scripts/release.ts`; explained in [development and testing](development-and-testing.md).
+The framework, workstation and plugin packages published together at one version. `bun run check:manifests` refuses packages at different versions, and `bun run check:framework` reports an application that installed more than one. Lives in `scripts/release.ts`; explained in [development and testing](development-and-testing.md).
 
 ### Gated actuator
 
-A connector that acts on a screen or on equipment only after a deterministic gate: the bridge mode, the seat or local control, and a readback that confirms the result. A model may resolve a target or propose a step; it never acts itself. Lives in [`packages/station`](../packages/station/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
+A connector that acts on a screen or on equipment only after a deterministic gate: the bridge mode, the seat or local control, and a readback that confirms the result. A model may resolve a target or propose a step; it never acts itself. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
 ### Generator
 
@@ -269,7 +281,7 @@ A pure transformation from the catalog to a reference document. The outputs are 
 
 ### Golden check
 
-Replays labeled frames through a station profile and its extractors and reports per-field accuracy and confidence. It is run before a profile or model change is used, and a confident wrong reading must stay at zero. Lives in [`packages/station`](../packages/station/README.md).
+Replays labeled frames through a station profile and its extractors and reports per-field accuracy and confidence. It is run before a profile or model change is used, and a confident wrong reading must stay at zero. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
 
 ### Grant
 
@@ -289,7 +301,7 @@ Do not use: resolver, service method.
 
 ### Hardening profile
 
-The floor a site policy sets for identity, delegated grants, audit and egress: `desktop-local`, `site-hub`, `sandbox` or `zero-trust`. Explained in [security and compliance](security-and-compliance.md#site-policy).
+The floor a deployment policy sets for identity, delegated grants, audit and egress: `desktop-local`, `site-hub`, `sandbox` or `zero-trust`. Explained in [security and compliance](security-and-compliance.md#deployment-policy).
 
 Do not use: profile (alone, for a hardening profile), security level, mode (for a hardening profile).
 
@@ -301,7 +313,7 @@ Do not use: LLM harness, agent runtime, model adapter.
 
 ### Hazard class
 
-What a declared action can do to people or equipment. `none` runs in assist mode, `low` needs actuate mode, and `operator-present` needs actuate mode and a station-side confirmation in the effect payload. Station procedures and driver actions use the same classes. Lives in [`packages/station`](../packages/station/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
+What a declared action can do to people or equipment. `none` runs in assist mode, `low` needs actuate mode, and `operator-present` needs actuate mode and a confirmation at the workstation in the effect payload. Procedures for a workstation application and driver actions use the same classes. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
 ### Host
 
@@ -315,7 +327,7 @@ A part of the host, such as the audit forwarder or a screen bridge, that declare
 
 ### Host platform
 
-What the kernel needs from the machine: workspace ownership, storage, a blob store, an optional secret store and the host's own components. It also states what it can offer: raw sockets, child processes, ingress and folders. The Bun platform, the hosted platform and the mobile platform are host platforms. Lives in [`packages/kernel`](../packages/kernel/README.md).
+What the composition needs from the machine: workspace ownership, storage, a blob store, an optional secret store and the host's own components. It also states what it can offer: raw sockets, child processes, ingress and folders. The Bun platform, the hosted platform and the mobile platform are host platforms. Lives in [`packages/kernel`](../packages/kernel/README.md).
 
 Do not use: platform (alone, for a host platform), runtime environment, OS (for a host platform).
 
@@ -327,7 +339,7 @@ Do not use: framework plugin, add-on.
 
 ### Hosted authority
 
-The Bun host on the hosted platform: the workspace in a shared Postgres database, ownership as a workspace lease, and TLS ingress with workforce sign-in from the site policy. Explained in [hosting](hosting.md#hosted-authority).
+The Bun host on the hosted platform: the workspace in a shared Postgres database, ownership as a workspace lease, and TLS ingress with workforce sign-in from the deployment policy. Explained in [hosting](hosting.md#hosted-authority).
 
 Do not use: cloud mode, multi-tenant host, server deployment.
 
@@ -365,12 +377,6 @@ The ordered record of committed changes that live queries follow. Each entry nam
 
 Do not use: event stream (for the journal), changelog, event log (for the journal).
 
-### Kernel
-
-The portable layer that composes an application and its plugins and opens an authority on a host platform. It uses no Node, Bun or React Native API. Lives in [`packages/kernel`](../packages/kernel/README.md).
-
-Do not use: core (for the kernel), bootstrapper, composition root.
-
 ### Launch exchange
 
 How a browser gets its session. The host issues a one-use launch key that expires after 60 seconds, and the web frame exchanges it for the session cookie. Lives in [`packages/adapters`](../packages/adapters/README.md) and [`packages/frame`](../packages/frame/README.md).
@@ -407,13 +413,13 @@ Do not use: feature (for a module), capability module, domain module, bounded co
 
 ### Observation
 
-A reading from a source that cannot be queried, such as a broker topic, a controller tag or a station screen, submitted through an ingest command. Lives in [`packages/observation`](../packages/observation/README.md).
+A reading from a source that cannot be queried, such as a broker topic, a controller tag or the screen of a workstation application, submitted through an ingest command. Lives in [`packages/observation`](../packages/observation/README.md).
 
 Do not use: reading (alone), signal (alone), sample (alone).
 
 ### Operator
 
-A person who works at a station or a point of work, usually under an `operator` role the application declares. A person who installs and runs a site is a site operator.
+A person who works at a workstation or a point of work, usually under an `operator` role the application declares. A person who installs and runs a site is a site operator.
 
 ### OS action
 
@@ -437,11 +443,11 @@ The local owner is the principal `owner`. Where the identity policy admits it, t
 
 ### Perception source
 
-An extractor for screen captures in `packages/station/src/perception`: the accessibility tree, a perception worker process speaking JSON lines, or a vision model behind an OpenAI-compatible endpoint. A vision endpoint must be loopback or explicitly allowlisted. Lives in [`packages/station`](../packages/station/README.md); explained in [operator workstations](operator-workstations.md).
+An extractor for screen captures in `workstations/screen-bridge/src/perception`: the accessibility tree, a perception worker process speaking JSON lines, or a vision model behind an OpenAI-compatible endpoint. A vision endpoint must be loopback or explicitly allowlisted. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
 
 ### Person
 
-A human caller: an operator, inspector, supervisor, auditor or owner at a screen or a station. Used when the page contrasts people with agents, scripts and devices.
+A human caller: an operator, inspector, supervisor, auditor or owner at a screen or a workstation. Used when the page contrasts people with agents, scripts and devices.
 
 Do not use: user (except "OS user"), end user, human operator (when "operator" is a role).
 
@@ -467,11 +473,11 @@ Do not use: identity (for the principal), account (for the principal), user ID.
 
 ### Procedure
 
-A declared sequence of screen steps in a station profile, run for one effect type. It carries preconditions, a hazard class, a readback that proves it took effect, and whether it may run again after an interruption. The bridge runs nothing else. A driver's counterpart is an action in its driver contract. Lives in [`packages/station`](../packages/station/README.md).
+A declared sequence of screen steps in a station profile, run for one effect type. It carries preconditions, a hazard class, a readback that proves it took effect, and whether it may run again after an interruption. The screen bridge runs nothing else. A driver's counterpart is an action in its driver contract. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
 
 ### Process port
 
-The kernel port that starts declared child processes from the site policy's bindings. Its default refuses. Lives in [`plugins/process`](../plugins/process/README.md).
+The host port that starts declared child processes from the deployment policy's bindings. Its default refuses. Lives in [`plugins/process`](../plugins/process/README.md).
 
 ### Proposal
 
@@ -507,13 +513,13 @@ Always qualified. Releasing a held effect returns it to queued for another deliv
 
 ### Remote query
 
-A query that reads another system at the moment someone asks and stores nothing. It acts with the caller's own credential, or with a service credential where the query declares that fallback. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [systems of record](systems-of-record.md).
+A query that reads another system when the caller runs the query, and stores nothing. The query acts with the caller's credential, or with a service credential where the query declares that fallback. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [systems of record](systems-of-record.md).
 
 Do not use: live search (for the primitive), passthrough query, proxy query, federated query.
 
 ### Requirement declaration
 
-What a module, host component or plugin needs outside the process, as data: destinations, exchange folders, devices and child processes. The site policy binds them. Explained in [security and compliance](security-and-compliance.md#declarations).
+What a module, host component or plugin needs outside the process, as data: destinations, exchange folders, devices and child processes. The deployment policy binds them. Explained in [security and compliance](security-and-compliance.md#declarations).
 
 Do not use: dependency declaration, capability requirement, permission request.
 
@@ -531,21 +537,27 @@ Do not use: generator (for the scaffold), boilerplate, CLI (for the scaffold).
 
 ### Scanner profile
 
-Schema-validated data describing how one scanner at one station reaches the application and how its output is normalized. Its transport is a keyboard wedge, a serial port, HID POS, a camera, a host plugin or an Android intent. Lives in [`packages/devices`](../packages/devices/README.md); explained in [point-of-work input](point-of-work-input.md).
+Schema-validated data describing how one scanner at one workstation reaches the application and how its output is normalized. Its transport is a keyboard wedge, a serial port, HID POS, a camera, a host plugin or an Android intent. Lives in [`packages/devices`](../packages/devices/README.md); explained in [point-of-work input](point-of-work-input.md).
 
 ### Screen
 
-One routed part of an application's UI, declared in its `screens` entrypoint and bound to capabilities through the typed client. A station screen is the display of station software and is always called that. Explained in [architecture](architecture.md#application-entrypoints).
+One routed part of an application's UI, declared in its `screens` entrypoint and bound to capabilities through the typed client. The display of a workstation application is its screen. Explained in [architecture](architecture.md#application-entrypoints).
 
-Do not use: view (for a screen), page (for a screen), frontend (for the screens), route (for a screen).
+Do not use: view (for a screen), page (for a screen), frontend (for the screens), route (for a screen), station screen, bridged screen.
+
+### Screen bridge
+
+The connector that reads a workstation application through its screen and drives declared procedures on it. It is not the workstation. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
+
+Do not use: station (for the screen bridge), computer use (for the screen bridge).
 
 ### Seat
 
-The working position at a station and who holds it. The screen bridge reads the holder, `operator`, `agent` or `idle`, before every action and does not act while the operator holds it. For station sign-in, a seat is a principal listed as one, whose session may sign operators in. Explained in [operator workstations](operator-workstations.md).
+The working position at a workstation and who holds it. The screen bridge reads the holder, `operator`, `agent` or `idle`, before every action and does not act while the operator holds it. For workstation sign-in, a seat is a principal listed as one, whose session may sign operators in. Explained in [operator workstations](operator-workstations.md).
 
 ### Session
 
-What a host issues to an authenticated caller; the execution context is derived from it. It is a browser cookie after the launch exchange, the bearer token of a connection file, or a paired device's credential. It is also a workforce sign-in cookie or a station sign-in. Lives in [`packages/adapters`](../packages/adapters/README.md).
+What a host issues to an authenticated caller; the execution context is derived from it. It is a browser cookie after the launch exchange, the bearer token of a connection file, or a paired device's credential. It is also a workforce sign-in cookie or a workstation sign-in. Lives in [`packages/adapters`](../packages/adapters/README.md).
 
 Do not use: login (for a session), token (alone, for a session), connection (for a session).
 
@@ -555,23 +567,17 @@ Recording a system of record's outcome for one effect, accepted or rejected, thr
 
 ### Shell port
 
-The kernel port that receives OS requests under declared OS handlers and performs declared OS actions. Without a plugin that provides it, every call fails with `UNAVAILABLE`; `plugins/os` provides it. Lives in [`packages/kernel`](../packages/kernel/README.md).
+The host port that receives OS requests under declared OS handlers and performs declared OS actions. Without a plugin that provides it, every call fails with `UNAVAILABLE`; `plugins/os` provides it. Lives in [`packages/kernel`](../packages/kernel/README.md).
 
 ### Site
 
-A plant, office or customer location where a host runs under one site policy. "Site" also prefixes the things a site owns: site policy, site bundle, site host, site install.
+A plant, office or customer location where a host runs under one deployment policy. A desktop-local host is not a site.
 
 Do not use: location (for a site), deployment (for a site), customer (for a site).
 
 ### Site bundle
 
 One signed, versioned directory per application and platform, checked before a site installs it. It holds the payload, a manifest with every file's digest and the declared requirements, and an Ed25519 signature. `site install` verifies it and places it as a release, and a failed step leaves the previous release current. Lives in [`packages/bundle`](../packages/bundle/README.md) and [`plugins/site`](../plugins/site/README.md).
-
-### Site policy
-
-Deployment data for one site: the hardening profile, the identity floor, destination and exchange-folder bindings, process bindings, and ingress. Validated against the composed requirement declarations. Lives in [`plugins/site`](../plugins/site/README.md); explained in [security and compliance](security-and-compliance.md#site-policy).
-
-Do not use: deployment config, environment file, settings (for the site policy).
 
 ### Snapshot
 
@@ -581,7 +587,7 @@ Do not use: state dump, checkpoint (for a snapshot), copy (for a snapshot).
 
 ### Standing grant
 
-A person's recorded, expiring permission for a trigger to act as them. Lives in [`plugins/automation`](../plugins/automation/README.md).
+A person's recorded, expiring permission for a trigger to act as that principal. Lives in [`plugins/automation`](../plugins/automation/README.md).
 
 Do not use: persistent grant, saved permission, long-lived grant.
 
@@ -597,21 +603,11 @@ Numbered versions of an application's and each plugin's state, with the steps be
 
 Do not use: schema migration, upgrade script, data migration.
 
-### Station
-
-A shared workplace at a machine where operators sign in by badge and PIN. Station software is the vendor or in-house program there, and a station screen is its display. Explained in [operator workstations](operator-workstations.md).
-
-Do not use: workstation (for a station), HMI (for a station; an HMI is one kind of station software).
-
 ### Station profile
 
-Versioned data describing one kind of station software: how to recognize its screens and where each field is shown and read. It also marks the forbidden regions and declares the procedures the bridge may run. Lives in [`packages/station`](../packages/station/README.md); explained in [operator workstations](operator-workstations.md).
+Versioned data describing one kind of workstation application: how to recognize its screens and where each field is shown and read. It also marks the forbidden regions and declares the procedures the screen bridge may run. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
 
 Do not use: profile (alone, for a station profile).
-
-### Station sign-in
-
-An operator signing in at a station by badge and PIN, for a short-lived session of their own. Only a seat's own session may sign people in, and signing in does not move a seat an agent holds. Lives in [`plugins/station-sign-in`](../plugins/station-sign-in/README.md).
 
 ### Storage
 
@@ -627,7 +623,7 @@ Do not use: transport (for a surface), channel (for a surface), interface (for a
 
 ### System of record
 
-Another system that owns enterprise data and accepts or rejects what the application delivers: an ERP, MES, QMS, CRM, EAM or a peer host. The application reaches it through a target. Explained in [systems of record](systems-of-record.md).
+Another system that owns records the application reads or changes, and that decides what it accepts. It cannot join the application's transaction, so the application reaches it through a target. Explained in [systems of record](systems-of-record.md).
 
 Do not use: SoR, external system, upstream system, backend system, legacy system, remote system (for a system of record; "remote system of record" is fine).
 
@@ -643,7 +639,7 @@ The name [primitives](primitives.md) uses for a site bundle together with its in
 
 ### Telemetry
 
-OpenTelemetry metrics and traces of commands, outbox delivery and backlog, and runs, derived from the audit log and the outbox. They are exported through the egress guard without record contents. A driver's `telemetry` event is different: it enters as an observation. Lives in [`plugins/telemetry`](../plugins/telemetry/README.md).
+OpenTelemetry metrics and traces of commands, outbox delivery and backlog, and runs, derived from the audit log and the outbox. The metrics and traces are exported through the egress guard without record contents. A driver's `telemetry` event is different: it enters as an observation. Lives in [`plugins/telemetry`](../plugins/telemetry/README.md).
 
 ### Trigger
 
@@ -685,9 +681,25 @@ People signing in to a serving host through the site's identity provider under `
 
 Do not use: SSO (alone), enterprise login, OIDC login (for the primitive).
 
+### Workstation
+
+The edge workplace where operators sign in at a seat. A workstation application already running there is read and driven through the screen bridge. The packages live under `workstations/`, between the framework and the host plugins. Explained in [operator workstations](operator-workstations.md).
+
+Do not use: station (for a workstation).
+
+### Workstation application
+
+Software already running at a workstation that has no API and must stay unmodified. A vendor HMI, test-bench software and an MES client are workstation applications. The screen bridge reads and drives its screen. Explained in [operator workstations](operator-workstations.md).
+
+Do not use: station software, bridged program, application (alone, for a workstation application), HMI (for a workstation application; an HMI is one kind).
+
+### Workstation sign-in
+
+An operator signing in at a workstation by badge and PIN, for a short-lived session issued to that operator. Only a seat's own session may sign people in, and signing in does not move a seat an agent holds. Lives in [`workstations/sign-in`](../workstations/sign-in/README.md).
+
 ### Workspace
 
-The data one authority owns: state, revisions, receipts, journal, outbox, blobs and plugin slices, at one path or in one database. One authority holds it at a time, through an OS lock or a workspace lease. A package of this repository is a package, plugin, app, example or SDK, not a workspace.
+The data one authority owns: state, revisions, receipts, journal, outbox, blobs and plugin slices, at one path or in one database. One authority holds it at a time, through an OS lock or a workspace lease. A package of this repository is a framework package, a workstation package, a plugin, an app, an example or an SDK, not a workspace.
 
 Do not use: database (for a workspace), tenant, project (for a workspace), data directory (for the concept).
 

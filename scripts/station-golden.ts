@@ -27,7 +27,7 @@ import {
   type FieldValue,
   type Frame,
   type GoldenFrame,
-} from '@agent-native/station';
+} from '@agent-native/screen-bridge';
 
 interface Manifest {
   readonly profile: string;

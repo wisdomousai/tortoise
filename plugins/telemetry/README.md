@@ -34,7 +34,7 @@ Plugins (`plugins/*`). Server only. The plugin trusts the audit plugin's log as 
 
 Compose `telemetryPluginManifest` in the manifest's `plugins`. Compose `telemetryPlugin`, or `createTelemetryPlugin(options)`, in the application's `plugins`. Both go after the site, network and audit plugins. Startup refuses an application without the audit plugin before it, or without a provided network port.
 
-The [site policy](../../docs/glossary.md#site-policy) binds the `telemetry` destination to the collector's OTLP/HTTP address, for example `"destinations": { "telemetry": { "url": "http://127.0.0.1:4318" } }`. The destination is loopback and plain HTTP. Run an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) next to the authority, and let it hold any vendor credential and forward the data on. While the destination is unbound, the plugin exports nothing and says why in `status().lastError`.
+The [deployment policy](../../docs/glossary.md#deployment-policy) binds the `telemetry` destination to the collector's OTLP/HTTP address, for example `"destinations": { "telemetry": { "url": "http://127.0.0.1:4318" } }`. The destination is loopback and plain HTTP. Run an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) next to the authority, and let it hold any vendor credential and forward the data on. While the destination is unbound, the plugin exports nothing and says why in `status().lastError`.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
@@ -96,7 +96,7 @@ The tests also use `@agent-native/runtime`, `@agent-native/site`, `@agent-native
 bun test plugins/telemetry
 ```
 
-`test/telemetry.test.ts` starts an authority with the site, network, audit and telemetry plugins and a loopback collector bound in its site policy. It checks:
+`test/telemetry.test.ts` starts an authority with the site, network, audit and telemetry plugins and a loopback collector bound in its deployment policy. It checks:
 
 - the command, delivery, attempt, backlog and run metrics;
 - the parent links between command, delivery and run spans;

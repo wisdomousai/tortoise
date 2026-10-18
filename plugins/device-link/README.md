@@ -47,7 +47,7 @@ The hub stores SHA-256 digests of codes and tokens, never the values. The redeem
 
 The hub resolves a token through `link.credential.resolve` on every request, so a revocation applies to the next request. A revoked or unknown token is refused as a credential, with `FORBIDDEN` and `details.credential`. A client can tell that refusal apart from a denied capability.
 
-The resolved context does not pass through the identity port's admission. The [site policy](../../docs/glossary.md#site-policy) decides whether a network listener exists at all. Only the `site-hub` and `sandbox` [hardening profiles](../../docs/glossary.md#hardening-profile) allow TLS without client certificates.
+The resolved context does not pass through the identity port's admission. The [deployment policy](../../docs/glossary.md#deployment-policy) decides whether a network listener exists at all. Only the `site-hub` and `sandbox` [hardening profiles](../../docs/glossary.md#hardening-profile) allow TLS without client certificates.
 
 Only the plugin's admins create codes and list, rename and revoke devices. The admins are the owner who created the workspace. A tablet cannot create codes or manage devices, because `link.*` is never in its grant.
 

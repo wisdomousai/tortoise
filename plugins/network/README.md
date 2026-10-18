@@ -1,6 +1,6 @@
 # @agent-native/network
 
-The network host plugin turns the [site policy](../../docs/glossary.md#site-policy)'s bindings into the host's only path off the machine. It provides the [egress guard](../../docs/glossary.md#egress-guard) as the network port, and starts the loopback proxy for declared child processes in a serving host. When the policy selects it, the plugin provides the mutual TLS listener as the ingress port. Its `network export` renders the same bindings as default-deny OS and orchestrator rules, for the paths the in-process guard cannot see.
+The network host plugin turns the [deployment policy](../../docs/glossary.md#deployment-policy)'s bindings into the host's only path off the machine. It provides the [egress guard](../../docs/glossary.md#egress-guard) as the network port, and starts the loopback proxy for declared child processes in a serving host. When the policy selects it, the plugin provides the mutual TLS listener as the ingress port. Its `network export` renders the same bindings as default-deny OS and orchestrator rules, for the paths the in-process guard cannot see.
 
 ## Layer
 
@@ -41,7 +41,7 @@ What the plugin does at each lifecycle hook:
 
 | Hook       | Effect                                                                                                                                |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `open`     | Builds the guard over the site policy, starts the child proxy when serving, and provides `network` and, under TLS or mTLS, `ingress`. |
+| `open`     | Builds the guard over the deployment policy, starts the child proxy when serving, and provides `network` and, under TLS or mTLS, `ingress`. |
 | `describe` | `{ mode, ingress }` for the `listening` record.                                                                                       |
 | `close`    | Stops the proxy. Plugins opened later, such as `audit`, have closed by then, so a final forwarder flush still has the guard.          |
 
@@ -87,4 +87,4 @@ The webhook suite shows a third-party plugin refused by the guard for an unbound
 
 ## Skills
 
-- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): site policy, signed bundles and install.
+- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.

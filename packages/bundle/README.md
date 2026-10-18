@@ -72,4 +72,4 @@ It also requires an approval of the exact requirements for a first install or a 
 
 ## Skills
 
-- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): site policy, signed bundles and install.
+- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.

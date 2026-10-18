@@ -1,5 +1,10 @@
 import { createHash } from 'node:crypto';
-import type { AccessibilityNode, Extractor, Frame, ScreenTransport } from '@agent-native/station';
+import type {
+  AccessibilityNode,
+  Extractor,
+  Frame,
+  ScreenTransport,
+} from '@agent-native/screen-bridge';
 import { HEIGHT, LAYOUT, WIDTH, type HmiSimulator } from './simulator';
 
 /**

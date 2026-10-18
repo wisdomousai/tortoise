@@ -1,6 +1,6 @@
 ---
 name: connect-a-site-to-a-fleet
-description: Connect an on-site agent-native authority to a fleet application, or build a fleet that sites report to. Use when composing the fleet-agent plugin, enrolling a site with a code, binding the fleet destination and the fleet-releases folder in a site policy, staging signed releases for site install, forwarding the audit log, turning on the remote-access relay, or implementing the fleet side of the protocol (fleetSiteModule with device-link). Covers plugins/fleet-agent.
+description: Connect an on-site agent-native authority to a fleet application, or build a fleet that sites report to. Use when composing the fleet-agent plugin, enrolling a site with a code, binding the fleet destination and the fleet-releases folder in a deployment policy, staging signed releases for site install, forwarding the audit log, turning on the remote-access relay, or implementing the fleet side of the protocol (fleetSiteModule with device-link). Covers plugins/fleet-agent.
 ---
 
 # Connect a site to a fleet
@@ -18,7 +18,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 
 1. Add `fleetAgentPluginManifest` to the manifest's `plugins`, after the site, network and audit plugins.
 2. Add `fleetAgentPlugin`, or `createFleetAgentPlugin({ intervalMs })`, to the application's `plugins` in the same order.
-3. In the [site policy](../../../../docs/glossary.md#site-policy), bind `destinations.fleet` to the fleet's https origin. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+3. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `destinations.fleet` to the fleet's https origin. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
 4. Bind `folders['fleet-releases']` to a directory the host's OS user can write. Leaving the destination or the folder out disables only that part, and the site still runs.
 5. Create a `field-sync` enrollment on the fleet.
 6. Start the site once with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`. The plugin stores the credential, so later starts need no code.

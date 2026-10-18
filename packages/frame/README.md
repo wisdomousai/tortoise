@@ -41,7 +41,7 @@ bun run build:registry
 
 ### Routes and layout
 
-Routes render inside the sidebar shell, or full-window with `layout: 'full'` for a station screen. Both layouts are pathless routes, so a screen reads its params with `useParams({ strict: false })`. A `from:` route ID no longer matches. The shell fills its slots from `screens`: title, context line, a sidebar section above the navigation, navigation count badges and status. `app-shell` exports `NavigationCount`, `SidebarSection` and `SidebarLink` for those slots.
+Routes render inside the sidebar shell, or full-window with `layout: 'full'` for a workstation screen. Both layouts are pathless routes, so a screen reads its params with `useParams({ strict: false })`. A `from:` route ID no longer matches. The shell fills its slots from `screens`: title, context line, a sidebar section above the navigation, navigation count badges and status. `app-shell` exports `NavigationCount`, `SidebarSection` and `SidebarLink` for those slots.
 
 The shell's two-column breakpoint is 64rem. Below it, on phones and on tablets in portrait or in a hub's WebView, the sidebar becomes a bar. The bar holds the title, a menu button that opens the same panel as a sheet, and the palette button. A route may declare `compact`, a component rendered there instead of `component`. `useCompact()` (`src/lib/compact.ts`) is the same test for a screen that adapts in place.
 

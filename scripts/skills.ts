@@ -10,7 +10,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 export const root = resolve(import.meta.dir, '..');
-export const layers = ['packages', 'plugins', 'apps', 'examples', 'sdks'] as const;
+export const layers = ['packages', 'workstations', 'plugins', 'apps', 'examples', 'sdks'] as const;
 
 export interface Skill {
   /** The directory name, which is also the skill name. */
@@ -67,7 +67,7 @@ export function skills(): Skill[] {
 }
 
 /** Workspaces whose public surface the skills are reviewed against. */
-export const surfaceLayers = ['packages', 'plugins', 'sdks'] as const;
+export const surfaceLayers = ['packages', 'workstations', 'plugins', 'sdks'] as const;
 /** The key under which the root package scripts are recorded, and the skills that cover them. */
 export const rootScripts = 'package.json scripts';
 export const rootScriptSkills = ['check-a-change', 'create-agent-native-app'];

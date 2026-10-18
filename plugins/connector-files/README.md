@@ -4,7 +4,7 @@ This [connector](../../docs/glossary.md#connector) reaches a [system of record](
 
 ## Layer
 
-Plugin layer, as a connector library without plugin entrypoints. `./contracts` is browser-safe data. Everything else is server only and reaches the file system only through [exchange folders](../../docs/glossary.md#exchange-folder) that the [site policy](../../docs/glossary.md#site-policy) binds. The other system's files are input.
+Plugin layer, as a connector library without plugin entrypoints. `./contracts` is browser-safe data. Everything else is server only and reaches the file system only through [exchange folders](../../docs/glossary.md#exchange-folder) that the [deployment policy](../../docs/glossary.md#deployment-policy) binds. The other system's files are input.
 
 ## Primitives
 
@@ -29,7 +29,7 @@ Plugin layer, as a connector library without plugin entrypoints. `./contracts` i
 ### Application wiring
 
 - **Manifest:** list `fileExchange({ id, target, description, folders: { drop, receipts, archive, inbox }, dataClasses })` in `components`. It declares one folder requirement per folder: the drop folder as `write`, carrying `target`, and the others as `read`. The catalog then accepts the outbox target without a network destination.
-- **Site policy:** bind each folder ID to a directory under `folders`, or disable it with a reason. Code never names a path.
+- **Deployment policy:** bind each folder ID to a directory under `folders`, or disable it with a reason. Code never names a path.
 - **`connect`:** build `fileTargetPort({ target, folders: context.folders, drop: { drop, receipts?, archive?, format, encode }, feed: { inbox, format, map } })`. Pass it to the target integration like any other `SystemOfRecordPort`.
 
 Either half may be left out. A target that only reports needs no drop folder, and a target that only receives needs no inbox.
@@ -65,7 +65,7 @@ A file is read only after it has been quiet for `quietMs`, 2 seconds by default.
 
 Parsing accepts only the declared format. The XML reader refuses a DOCTYPE, attributes and nesting, so entity expansion and external references cannot occur. Receipt codes and messages are cut to 100 and 500 characters before they reach state. The application's `map` and the sync command's input schema decide what a record may change.
 
-A folder that the site policy disables or does not bind is unavailable through the folder port. Delivery then fails transiently, and the effect waits in the outbox. An unmounted share fails the same way.
+A folder that the deployment policy disables or does not bind is unavailable through the folder port. Delivery then fails transiently, and the effect waits in the outbox. An unmounted share fails the same way.
 
 Limits:
 
@@ -95,4 +95,4 @@ bun test plugins/connector-files
 ## Skills
 
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md): wiring a target, its outbox and inbound sync, with a file exchange as one of the ports.
-- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): binding the exchange folders in the site policy.
+- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): binding the exchange folders in the deployment policy.
