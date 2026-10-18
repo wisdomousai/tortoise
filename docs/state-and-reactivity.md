@@ -1,6 +1,6 @@
 # State and reactivity
 
-This page explains how commands change a workspace, queries read it and screens stay current, for developers of handlers, screens and clients.
+Commands change a workspace, queries read it, and screens stay current through the journal.
 
 ## Concepts
 

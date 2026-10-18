@@ -1,6 +1,6 @@
 # Glossary
 
-This page defines the terms the documentation uses. Each entry gives the meaning, where the concept lives, and the words it replaces. [Primitives](primitives.md) lists the building blocks with their status and code locations.
+Each entry gives the meaning of a term, where the concept lives, and the words it replaces. [Primitives](primitives.md) lists the building blocks with their status and code locations.
 
 Rules for the entries:
 

@@ -1,10 +1,10 @@
 # Mobile host
 
-This page covers the mobile host: its storage on the device, the authority lifecycle, pairing with a hub and the device's trust boundary. The mobile host runs an application on Android and iOS phones and tablets. [Architecture](architecture.md#embedded-and-attached-modes) explains embedded and attached modes.
+The mobile host runs an application on Android and iOS phones and tablets, with its storage on the device. It manages the authority lifecycle, pairs with a hub and keeps the device's trust boundary. [Architecture](architecture.md#embedded-and-attached-modes) explains embedded and attached modes.
 
 ## Concepts
 
-This page is the home for the [hub](glossary.md#hub), the [device link](glossary.md#device-link) and the paired [device](glossary.md#device).
+Terms: the [hub](glossary.md#hub), the [device link](glossary.md#device-link) and the paired [device](glossary.md#device).
 
 ## Packages
 

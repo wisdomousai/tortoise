@@ -1,10 +1,10 @@
 # Security and compliance
 
-This guide covers admitting an application into a restricted network. It describes what the application may reach, how the host enforces that, how actions are recorded, and how an auditor checks the result. An auditor can check before deployment and while the application runs. Each control is a [host plugin](glossary.md#host-plugin), and [architecture](architecture.md#host-plugins) explains how plugins compose.
+An application declares what it may reach, the host enforces that, actions are recorded, and an auditor checks the result before deployment and while the application runs. Each control is a [host plugin](glossary.md#host-plugin), and [architecture](architecture.md#host-plugins) explains how plugins compose.
 
 ## Concepts
 
-This page is the home for [requirement declarations](glossary.md#requirement-declaration), [destinations](glossary.md#destination), [exchange folders](glossary.md#exchange-folder), the [site policy](glossary.md#site-policy), [hardening profiles](glossary.md#hardening-profile), the [egress guard](glossary.md#egress-guard), the [audit log](glossary.md#audit-log) and the [compliance bundle](glossary.md#compliance-bundle).
+Terms: [requirement declarations](glossary.md#requirement-declaration), [destinations](glossary.md#destination), [exchange folders](glossary.md#exchange-folder), the [site policy](glossary.md#site-policy), [hardening profiles](glossary.md#hardening-profile), the [egress guard](glossary.md#egress-guard), the [audit log](glossary.md#audit-log) and the [compliance bundle](glossary.md#compliance-bundle).
 
 ## Controls and plugins
 

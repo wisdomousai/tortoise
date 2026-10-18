@@ -1,6 +1,6 @@
 # Desktop host
 
-This page covers the Electron window in `apps/desktop` and its packaged build, for integrators who ship an application to one person's machine. [Architecture](architecture.md#authorities-and-hosts) explains hosts and [attached mode](glossary.md#attached-mode).
+The Electron window in `apps/desktop` and its packaged build run an application on one person's machine. [Architecture](architecture.md#authorities-and-hosts) explains hosts and [attached mode](glossary.md#attached-mode).
 
 ## Window and renderer
 

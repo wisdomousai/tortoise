@@ -1,6 +1,6 @@
 # Operator workstations
 
-This page explains how an [application](glossary.md#application) observes and drives [station](glossary.md#station) software through its [station screen](glossary.md#screen). Coding agents follow the [bridge-station-screen](../packages/station/skills/bridge-station-screen/SKILL.md) skill. The example is [`examples/line-station`](../examples/line-station/README.md).
+An [application](glossary.md#application) observes and drives [station](glossary.md#station) software through its [station screen](glossary.md#screen). Coding agents follow the [bridge-station-screen](../packages/station/skills/bridge-station-screen/SKILL.md) skill. The example is [`examples/line-station`](../examples/line-station/README.md).
 
 Station software rarely has a usable API, is often validated or under warranty, and must not be modified. Where its only stable interface is its station screen, the application treats it as a [system of record](systems-of-record.md) reached through that screen. Software with an automation interface, such as COM, a local RPC service, files or a decodable network protocol, is reached through a [driver](hardware-drivers.md) instead, as [Automation route](#automation-route) describes.
 
@@ -8,7 +8,7 @@ The application monitors the station and lets operators and agents act through i
 
 ## Concepts
 
-This page is the home for [station profiles](glossary.md#station-profile), [procedures](glossary.md#procedure), [bridge modes](glossary.md#bridge-mode), [hazard classes](glossary.md#hazard-class), the [seat](glossary.md#seat) and [station sign-in](glossary.md#station-sign-in).
+Terms: [station profiles](glossary.md#station-profile), [procedures](glossary.md#procedure), [bridge modes](glossary.md#bridge-mode), [hazard classes](glossary.md#hazard-class), the [seat](glossary.md#seat) and [station sign-in](glossary.md#station-sign-in).
 
 ## Station software and the MES
 

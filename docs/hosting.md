@@ -1,6 +1,6 @@
 # Hosting
 
-This guide covers running an [authority](glossary.md#authority) on a server and connecting [sites](glossary.md#site) to a fleet. It describes the hosted authority, with its Postgres [workspace](glossary.md#workspace) and lease, and the fleet, with enrollment, reports, releases and the relay. [Architecture](architecture.md#authorities-and-hosts) explains authorities, hosts and host platforms.
+An [authority](glossary.md#authority) can run on a server, with its [workspace](glossary.md#workspace) in Postgres under a lease, and [sites](glossary.md#site) can report to a fleet through enrollment, reports, releases and a relay. [Architecture](architecture.md#authorities-and-hosts) explains authorities, hosts and host platforms.
 
 ## Concepts
 

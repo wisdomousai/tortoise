@@ -1,6 +1,6 @@
 # Architecture
 
-This page describes the [framework](glossary.md#framework): the layers, the [surfaces](glossary.md#surface), the request flow, authorities and hosts, host plugins, [storage](glossary.md#storage) and the invariants the checks test. [Primitives](primitives.md) lists the building blocks and where they live.
+The [framework](glossary.md#framework) is built in four layers. Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an authority on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns, and the checks test the invariants. [Primitives](primitives.md) lists the building blocks and where they live.
 
 The project is a TypeScript reference, to read, run and export, for applications that people and AI agents operate together, often on or next to the machines where work happens. A typical application records events locally and delivers them to a [system of record](glossary.md#system-of-record) such as an ERP, a quality system or an MES.
 

@@ -1,6 +1,6 @@
 # Getting started
 
-This guide runs the examples, uses an [application](glossary.md#application) through the CLI and MCP, and creates another application with the [scaffold](glossary.md#scaffold)../README.md) and wants to run the [framework](glossary.md#framework). Commands run from the repository root unless a block says otherwise.
+Run the examples, use an [application](glossary.md#application) through the CLI and MCP, and create another application with the [scaffold](glossary.md#scaffold). Commands run from the repository root unless a block says otherwise.
 
 ## Workspace ownership
 

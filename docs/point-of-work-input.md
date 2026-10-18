@@ -1,6 +1,6 @@
 # Point-of-work input
 
-This page explains how [operators](glossary.md#operator) give input at a [station](glossary.md#station): with gloves, at arm's length or further, while watching a machine.md#screen). Coding agents follow the [add-scanner-input](../packages/devices/skills/add-scanner-input/SKILL.md) skill.
+[Operators](glossary.md#operator) give input at a [station](glossary.md#station) with gloves, at arm's length or further, while watching a machine. Coding agents follow the [add-scanner-input](../packages/devices/skills/add-scanner-input/SKILL.md) skill.
 
 Scanners and keypads do most of the input. Two domain-neutral kits support these screens:
 
@@ -11,7 +11,7 @@ Scanners and keypads do most of the input. Two domain-neutral kits support these
 
 ## Concepts
 
-This page is the home for [scanner profiles](glossary.md#scanner-profile), [input sources](glossary.md#input-source) and scan routes.
+Terms: [scanner profiles](glossary.md#scanner-profile), [input sources](glossary.md#input-source) and scan routes.
 
 ## Design guidelines
 

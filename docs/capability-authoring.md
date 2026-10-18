@@ -1,6 +1,6 @@
 # Capability authoring
 
-This page shows a developer how to add domain behavior to an application, from the contract to the tests. The `project-tasks` example is the worked reference.
+Domain behavior enters an application as a capability, written from the contract through the handler and policy rule to the tests. The `project-tasks` example is the worked reference.
 
 ## Concepts
 

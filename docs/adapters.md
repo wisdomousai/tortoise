@@ -1,10 +1,10 @@
 # Adapters
 
-This page describes the framework's ports and their reference adapters: storage, and the HTTP, MCP and CLI surfaces.
+The framework reaches storage and serves the HTTP, MCP and CLI [surfaces](glossary.md#surface) through ports. Each port has a reference adapter that an application can replace.
 
 ## Concepts
 
-This page is the home for the [adapter](glossary.md#adapter), the [surface](glossary.md#surface) adapters and the [storage](glossary.md#storage) adapters.
+Terms: the [adapter](glossary.md#adapter), the [surface](glossary.md#surface) adapters and the [storage](glossary.md#storage) adapters.
 
 ## Ports
 

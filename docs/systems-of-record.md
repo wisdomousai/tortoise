@@ -1,10 +1,10 @@
 # Systems of record
 
-This page explains how an [application](glossary.md#application) delivers what it captures to a system of record, and how it reads that system's data.md#host). Coding agents follow the [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md) skill.
+An [application](glossary.md#application) delivers what it captures to a system of record, such as an ERP, MES, QMS, CRM, EAM or a peer [host](glossary.md#host), and reads that system's data. Coding agents follow the [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md) skill.
 
 ## Concepts
 
-This page explains these terms: [system of record](glossary.md#system-of-record), [outbox effect](glossary.md#effect), [dispatcher](glossary.md#dispatcher), [connector](glossary.md#connector), [delivery outcome](glossary.md#delivery-outcome), [settlement](glossary.md#settlement), [reconciliation](glossary.md#reconciliation), [grant file](glossary.md#grant-file) and [remote query](glossary.md#remote-query).
+Terms: [system of record](glossary.md#system-of-record), [outbox effect](glossary.md#effect), [dispatcher](glossary.md#dispatcher), [connector](glossary.md#connector), [delivery outcome](glossary.md#delivery-outcome), [settlement](glossary.md#settlement), [reconciliation](glossary.md#reconciliation), [grant file](glossary.md#grant-file) and [remote query](glossary.md#remote-query).
 
 In this pattern, a capture application with a bounded working set sits in front of a system of record. People at [screens](glossary.md#screen), the CLI and agents through MCP can use every [capability](glossary.md#capability). These [examples](glossary.md#example) use it:
 

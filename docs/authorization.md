@@ -1,10 +1,10 @@
 # Authorization
 
-This page explains who may run which [capability](glossary.md#capability) on which records, and where the [authority](glossary.md#authority) checks it.
+The [authority](glossary.md#authority) decides who may run which [capability](glossary.md#capability) on which records, and checks it inside the transaction.
 
 ## Concepts
 
-This page is the home for the [principal](glossary.md#principal), the [container](glossary.md#container), [membership](glossary.md#membership), the [policy](glossary.md#policy), the [grant](glossary.md#grant) and delegated grant, and field projection.
+Terms: the [principal](glossary.md#principal), the [container](glossary.md#container), [membership](glossary.md#membership), the [policy](glossary.md#policy), the [grant](glossary.md#grant) and delegated grant, and field projection.
 
 ## Execution context
 

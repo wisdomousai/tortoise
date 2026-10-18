@@ -1,6 +1,6 @@
 # Interaction contract
 
-This page describes the contract every [surface](glossary.md#surface) shares, for developers of screens, surface adapters and clients. Modules own their schemas and operation IDs; the framework owns the shared protocol types.
+Every [surface](glossary.md#surface) shares one contract. Modules own their schemas and operation IDs; the framework owns the shared protocol types.
 
 ## Concepts
 

@@ -1,10 +1,10 @@
 # Providers and account connections
 
-This page covers provider accounts and their configuration, the credential vault, local models and the model server, and live probes. [Agents](agents.md) explains harnesses, runs, proposals, triggers, standing grants and model entries.
+Provider accounts and their configuration, the credential vault, local models and the model server, and live probes. [Agents](agents.md) explains harnesses, runs, proposals, triggers, standing grants and model entries.
 
 ## Concepts
 
-This page is the home for the [credential vault](glossary.md#credential-vault).
+Terms: the [credential vault](glossary.md#credential-vault).
 
 ## Provider harnesses
 

@@ -1,10 +1,10 @@
 # Agents
 
-This page explains how agents act on an application: harnesses and agent runs, the tools a run calls, agent definitions, proposals, triggers and standing grants, local models and evaluation. [Providers](providers.md) covers provider accounts, funding and the local harness.
+Agents act on an application's records through agent runs, with the same capabilities, validation and authorization as people. A harness executes each run. [Providers](providers.md) covers provider accounts, funding and the local harness.
 
 ## Concepts
 
-This page is the home for [harness](glossary.md#harness), [agent run](glossary.md#agent-run), [agent definition](glossary.md#agent-definition), [proposal](glossary.md#proposal), [trigger](glossary.md#trigger), [standing grant](glossary.md#standing-grant) and [model entry](glossary.md#model-entry).
+Terms: [harness](glossary.md#harness), [agent run](glossary.md#agent-run), [agent definition](glossary.md#agent-definition), [proposal](glossary.md#proposal), [trigger](glossary.md#trigger), [standing grant](glossary.md#standing-grant) and [model entry](glossary.md#model-entry).
 
 ## Harnesses
 

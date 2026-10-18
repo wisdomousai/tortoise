@@ -1,10 +1,10 @@
 # Hardware drivers
 
-This page explains how an application observes and controls equipment through a driver process. A driver connects an instrument, a controller or station software. The API is in the [connector-driver README](../plugins/connector-driver/README.md) and the [process plugin README](../plugins/process/README.md).
+An application observes and controls equipment through a driver process. A driver connects an instrument, a controller or station software. The API is in the [connector-driver README](../plugins/connector-driver/README.md) and the [process plugin README](../plugins/process/README.md).
 
 ## Concepts
 
-This page is the home for [driver](glossary.md#driver), [driver contract](glossary.md#driver-contract), [driver SDK](glossary.md#driver-sdk), [delivery mode](glossary.md#delivery-mode), [hazard class](glossary.md#hazard-class) and [gated actuator](glossary.md#gated-actuator).
+Terms: [driver](glossary.md#driver), [driver contract](glossary.md#driver-contract), [driver SDK](glossary.md#driver-sdk), [delivery mode](glossary.md#delivery-mode), [hazard class](glossary.md#hazard-class) and [gated actuator](glossary.md#gated-actuator).
 
 ## Driver processes
 
