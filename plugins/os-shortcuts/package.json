@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "OS shortcuts host plugin: serves shortcut handlers (dock menu, jump list, Android app shortcuts, web manifest shortcuts) for the OS plugin.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

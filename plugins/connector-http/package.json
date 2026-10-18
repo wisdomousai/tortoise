@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "HTTP connector: a generic REST system of record through the network port, with an idempotency header, lookup by key, rejection mapping as data and a paged change feed.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

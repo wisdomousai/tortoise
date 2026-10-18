@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "OpenTelemetry metrics and traces from the audit log and the outbox, exported through the egress guard without record contents.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

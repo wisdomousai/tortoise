@@ -240,7 +240,7 @@ Control mappings are indicative, not a certification.
 
 **By hand, mobile export.** 17 October 2026: `bun run scaffold <dir> --name field-survey --example asset-survey-field` exports `apps/mobile`, the field app and the hub example it imports. In the export, a frozen install, `bun run typecheck`, `bun test examples`, `bun run mobile:prepare` (the native config lists the managed-config and `expo-camera` config plugins) and `expo export --platform android` (a Hermes bundle) pass. `test:scaffold:full` does not repeat the mobile steps, and no native build was made from the export.
 
-**Limits.** No framework version has been published to npm or any real registry; every install from versions ran against the loopback registry (`release:serve`). No license is declared, so nothing can go to a public registry until one is chosen. The packages publish TypeScript source, and only Bun and Vite have consumed them. An example export still copies the framework. An authority hosts one application.
+**Limits.** No framework version has been published to npm or any real registry; every install from versions ran against the loopback registry (`release:serve`). The packages are MIT licensed, but publishing to a public registry needs an account for it. The packages publish TypeScript source, and only Bun and Vite have consumed them. An example export still copies the framework. An authority hosts one application.
 
 ## Known defects
 

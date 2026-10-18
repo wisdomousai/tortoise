@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Thick-finger operator input primitives, distributed as a shadcn registry.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

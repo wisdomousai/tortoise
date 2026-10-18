@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Hub link host plugin: pairs a field device with an agent-native hub and gives the device a network port to it that carries the device credential.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "File exchange connector: a system of record reached through shared folders, with file-drop delivery, receipt or archive lookup and inbound sync from result exports.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

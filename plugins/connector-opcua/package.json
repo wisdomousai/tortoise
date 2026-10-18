@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "OPC UA connector: read-only observation of node values through the network port with a UA binary client (security policy None, anonymous), submitted as readings through an ingest command.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

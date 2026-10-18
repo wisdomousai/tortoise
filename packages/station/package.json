@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Server-only bridge to legacy station software through its screen: profiles, observer, gated controller connector and perception adapters.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

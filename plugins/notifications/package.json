@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Notifications host plugin: delivers outbox effects as local notifications through the OS plugin and runs the continuation a reply's single-use nonce stands for.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Native frame for one application on Android and iOS (navigation, session, live invalidation) and glove-sized components, distributed as a shadcn registry.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

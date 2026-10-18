@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "OS host plugin: provides the shell port, matches OS requests to declared handlers and performs declared OS actions through an attached adapter.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

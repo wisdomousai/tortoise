@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "The site side of a fleet: outbound health reports, audit forwarding, verified release staging and an optional remote-access relay that holds no authority.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

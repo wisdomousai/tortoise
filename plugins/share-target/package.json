@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Share target host plugin: serves share handlers and share actions for the OS plugin, and holds web share target posts until the landing session claims them.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

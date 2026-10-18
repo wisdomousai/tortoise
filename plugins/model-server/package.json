@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Model server plugin: starts llama.cpp llama-server or vLLM through the process port on measured, activated weights and serves them to local agents.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

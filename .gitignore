@@ -20,3 +20,7 @@ apps/mobile/generated/
 # Coding-agent skill links, written by `bun run skills:link`.
 .claude/skills/
 .agents/skills/
+
+# The root LICENSE, copied into a package only while it is packed
+packages/*/LICENSE
+plugins/*/LICENSE

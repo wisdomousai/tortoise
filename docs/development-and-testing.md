@@ -113,7 +113,7 @@ The packages in `packages/*` and `plugins/*` are published together at one versi
 | `bun run release:serve`                    | Pack, then serve the tarballs as a read-only registry on loopback, for `scaffold new --registry`. Add `--port` to keep the URL a lockfile records.                                           |
 | `bun run release:publish --registry <url>` | Publish the packed tarballs in dependency order to the named registry with that registry's configured credentials. It never picks a registry itself; add `--dry-run`, `--tag` or `--access`. |
 
-The packages publish TypeScript source, so they run under Bun and bundlers that compile dependencies' TypeScript (Vite does). No license is declared yet; choose one before publishing anywhere public.
+The packages publish TypeScript source, so they run under Bun and bundlers that compile dependencies' TypeScript (Vite does). The framework is MIT licensed: the root `license` field is copied into every package manifest by `check:manifests`, and `release:pack` puts the root `LICENSE` text in every tarball.
 
 ## Providers and releases
 

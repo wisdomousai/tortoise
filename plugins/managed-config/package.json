@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Managed configuration host plugin: settings pushed through device management (Android app restrictions, iOS managed app configuration) become plugin settings.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

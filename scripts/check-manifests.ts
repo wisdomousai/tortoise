@@ -1,8 +1,8 @@
 /**
  * Fails when a publishable workspace's manifest would not install on its own from a registry: a
  * dependency its published source imports is missing or stale, it is private, its version
- * differs from the other framework packages, or it lacks the repository directory and packed
- * file list. `--write` rewrites the manifests to what is expected; problems a rewrite cannot fix,
+ * differs from the other framework packages, or it lacks the license, the repository directory
+ * and the packed file list. `--write` rewrites the manifests to what is expected; problems a rewrite cannot fix,
  * such as an import the root manifest does not list, still fail.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -18,7 +18,16 @@ const root = resolve(import.meta.dir, '..');
 const write = process.argv.includes('--write');
 
 /** Manifest keys in the order they are written; others keep their place after `exports`. */
-const leading = ['name', 'version', 'type', 'description', 'repository', 'files', 'exports'];
+const leading = [
+  'name',
+  'version',
+  'type',
+  'description',
+  'license',
+  'repository',
+  'files',
+  'exports',
+];
 const trailing = ['dependencies', 'peerDependencies', 'peerDependenciesMeta'];
 function ordered(manifest: Manifest): Manifest {
   const keys = Object.keys(manifest);

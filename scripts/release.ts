@@ -13,7 +13,7 @@
  * on the command line, with whatever credentials that registry's configuration provides; it
  * never chooses a registry itself, so nothing reaches the public registry by default.
  */
-import { mkdir, rm } from 'node:fs/promises';
+import { copyFile, mkdir, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { readPacked, startLocalRegistry } from './local-registry';
 import { publishedLayers, workspaces } from './workspace-manifests';
@@ -31,11 +31,16 @@ export async function packFramework(out: string, checkout = root): Promise<strin
   await rm(out, { recursive: true, force: true });
   await mkdir(out, { recursive: true });
   const published = workspaces(checkout, publishedLayers);
-  for (const workspace of published)
-    await run(
-      ['bun', 'pm', 'pack', '--destination', out, '--quiet'],
-      join(checkout, workspace.directory),
-    );
+  // Each tarball carries the root LICENSE text, copied in only while it is packed.
+  for (const workspace of published) {
+    const directory = join(checkout, workspace.directory);
+    await copyFile(join(checkout, 'LICENSE'), join(directory, 'LICENSE'));
+    try {
+      await run(['bun', 'pm', 'pack', '--destination', out, '--quiet'], directory);
+    } finally {
+      await rm(join(directory, 'LICENSE'), { force: true });
+    }
+  }
   return published.map((workspace) => workspace.manifest.name);
 }
 

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Execution host plugin: runs tools an agent uses in Linux bubblewrap sandboxes with a seccomp filter, relays to the host API and the egress proxy as the only network, and a run-bound token as the only credential.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

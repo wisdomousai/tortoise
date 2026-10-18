@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "OS handlers and OS actions at runtime: request parsing and matching, targets, action instructions and generated platform registrations.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

@@ -123,6 +123,7 @@ export function importedPackages(root: string, workspace: Workspace): Set<string
 }
 
 interface RootManifest {
+  readonly license?: string;
   readonly dependencies?: Record<string, string>;
   readonly devDependencies?: Record<string, string>;
 }
@@ -162,8 +163,11 @@ export function expectedManifest(
     private: _private,
     ...rest
   } = workspace.manifest;
+  // Every package carries the repository's license; `release.ts pack` adds its text.
+  if (!rootManifest.license) problems.push('the root manifest needs a license');
   const manifest: Manifest = {
     ...rest,
+    ...(rootManifest.license ? { license: rootManifest.license } : {}),
     repository: { type: 'git', url: repositoryUrl, directory: workspace.directory },
     files: [...publishedFiles],
     ...(Object.keys(dependencies).length ? { dependencies: sorted(dependencies) } : {}),

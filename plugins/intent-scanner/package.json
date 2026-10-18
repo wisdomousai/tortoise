@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Intent scanner host plugin: barcode scans that a rugged Android device's scanner app broadcasts as intents, through a native receiver.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",

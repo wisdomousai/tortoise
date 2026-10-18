@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Compliance host plugin: security manifest, data flows, control mapping, CycloneDX SBOM, runtime posture monitor and the auditor queries and screen.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
