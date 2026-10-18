@@ -10,6 +10,7 @@ export const repoRoot = resolve(import.meta.dirname, '../..');
 
 /** The guide pages in reading order: `docs/<file>.md` and the sidebar text. */
 export const guides: ReadonlyArray<readonly [file: string, text: string]> = [
+  ['overview', 'Overview'],
   ['getting-started', 'Getting started'],
   ['architecture', 'Architecture'],
   ['primitives', 'Primitives'],

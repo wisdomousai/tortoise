@@ -449,6 +449,12 @@ Do not use: user (except "OS user"), end user, human operator (when "operator" i
 
 The object a host plugin exposes to later plugins and to handlers as `services[<plugin id>]`, such as the audit plugin's log directory and forwarder statistics. It is trusted code like the plugin. Lives in [`packages/kernel`](../packages/kernel/README.md).
 
+### Point of work
+
+The place where an operator, a device or station software produces the input an application captures: a station PC, a site server or a phone next to the equipment. [Point-of-work input](point-of-work-input.md) describes the input kits, and [overview](overview.md) the request path from there.
+
+Do not use: edge (for the point of work), shop floor (as a term).
+
 ### Policy
 
 The port that decides operation, object, row and field access for a principal, built with `definePolicy` or the CASL adapter. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [authorization](authorization.md).
@@ -684,6 +690,12 @@ Do not use: lock (for a claim), lease (alone, for a claim), reservation.
 People signing in to a serving host through the site's identity provider under `identity: external`. Lives in [`plugins/site`](../plugins/site/README.md).
 
 Do not use: SSO (alone), enterprise login, OIDC login (for the primitive).
+
+### Working set
+
+The copies of system-of-record records that an application keeps for its tasks, such as inspection lots or MES orders. Inbound sync keeps them current, and the system of record stays authoritative for them. Lives in each application's state.
+
+Do not use: cache (for the working set), mirror.
 
 ### Workspace
 
