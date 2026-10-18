@@ -5,7 +5,7 @@ description: Connect an agent-native application to another system that keeps it
 
 # Connect a system of record
 
-The application owns its working set and its pending [outbox effects](../../../../docs/glossary.md#effect). The [system of record](../../../../docs/glossary.md#system-of-record) keeps ownership of its own records. A local [receipt](../../../../docs/glossary.md#receipt) proves the local commit, not acceptance by the [target](../../../../docs/glossary.md#target). [Systems of record](../../../../docs/systems-of-record.md) explains the design, and the [package README](../../README.md) lists every primitive. `examples/quality-inspection` is the worked outbox and sync example, and `examples/crm-capture` adds live search and adoption.
+The application owns its working set and its pending [outbox effects](../../../../docs/glossary.md#effect). The [system of record](../../../../docs/glossary.md#system-of-record) keeps ownership of its own records. A local [receipt](../../../../docs/glossary.md#receipt) proves the local commit, not acceptance by the [target](../../../../docs/glossary.md#target). Design: [Systems of record](../../../../docs/systems-of-record.md). `examples/quality-inspection` is the worked outbox and sync example, and `examples/crm-capture` adds live search and adoption.
 
 ## Before writing
 

@@ -5,7 +5,7 @@ description: Add or change barcode scanner input at a point of work, so a scan s
 
 # Add scanner input
 
-A scan is input data from the person who scans, and it grants nothing by itself. A scan route turns it into an ordinary command that [policy](../../../../docs/glossary.md#policy) still authorizes, with no model turn. [Point-of-work input](../../../../docs/point-of-work-input.md) holds the design guidelines and the scanner kit reference. The [package README](../../README.md) lists the sources, profiles and entrypoints.
+A scan is input data from the person who scans, and it grants nothing by itself. A scan route turns it into an ordinary command that [policy](../../../../docs/glossary.md#policy) still authorizes, with no model turn. Design: [Point-of-work input](../../../../docs/point-of-work-input.md).
 
 ## Before writing
 

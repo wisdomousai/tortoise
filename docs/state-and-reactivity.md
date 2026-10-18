@@ -4,10 +4,7 @@ Commands change a workspace, queries read it, and screens stay current through t
 
 ## Concepts
 
-- [Snapshot](glossary.md#snapshot): one consistent read of a workspace.
-- [Revision](glossary.md#revision): a per-resource counter.
-- [Journal](glossary.md#journal): the ordered record of committed changes.
-- [Live query](glossary.md#live-query): a query that follows the journal.
+Terms: [snapshot](glossary.md#snapshot), [revision](glossary.md#revision), [journal](glossary.md#journal) and [live query](glossary.md#live-query).
 
 ## Commands
 

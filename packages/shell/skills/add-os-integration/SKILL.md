@@ -5,7 +5,7 @@ description: Let the operating system reach an agent-native application, or let 
 
 # Add an OS integration
 
-An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its [module](../../../../docs/glossary.md#module). The first kind is an [OS handler](../../../../docs/glossary.md#os-handler), the second an [OS action](../../../../docs/glossary.md#os-action). `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. [Host plugins](../../../../docs/glossary.md#host-plugin) serve each kind. `examples/project-tasks/os.ts` declares one of nearly every kind and is the worked reference. [Primitives](../../../../docs/primitives.md#os-handler) lists where each part lives.
+An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its [module](../../../../docs/glossary.md#module). The first kind is an [OS handler](../../../../docs/glossary.md#os-handler), the second an [OS action](../../../../docs/glossary.md#os-action). `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. [Host plugins](../../../../docs/glossary.md#host-plugin) serve each kind. `examples/project-tasks/os.ts` declares one of nearly every kind and is the worked reference.
 
 ## Before writing
 
@@ -52,7 +52,7 @@ bun test examples/<app>
 bunx playwright test examples/<app>/e2e
 ```
 
-- Each plugin README lists what its `test/mobile.test.ts` covers on the mobile instance, with Bun bindings for the device.
+- Each serving plugin's `test/mobile.test.ts` runs the mobile instance with Bun bindings for the device.
 - `examples/project-tasks/test/os.test.ts` covers the desktop path over HTTP.
 - `examples/project-tasks/e2e/os.pw.ts` covers the browser.
 

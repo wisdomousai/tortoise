@@ -5,12 +5,12 @@ description: Connect an on-site agent-native instance to a fleet application, or
 
 # Connect a site to a fleet
 
-The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet) and is outbound only. Each cycle it reports outbox counts, forwards the [audit log](../../../../docs/glossary.md#audit-log) events the fleet lacks and stages the assigned release. With the relay on, it also forwards remote-access requests to the site's own API. [Hosting](../../../../docs/hosting.md#fleet) explains the protocol, and the [README](../../README.md#trust-boundary) states what each part may and may not do.
+The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet) and is outbound only. Each cycle it reports outbox counts, forwards the [audit log](../../../../docs/glossary.md#audit-log) events the fleet lacks and stages the assigned release. With the relay on, it also forwards remote-access requests to the site's own API. See [Hosting](../../../../docs/hosting.md#fleet) and the [README](../../README.md#trust-boundary).
 
 ## Before writing
 
 - The site side needs a provided network port, so startup refuses an application without one.
-- A fleet is an application like any other. `examples/fleet` is a complete fleet: site records, release channels, a health screen, audit events checked against each site's hash chain, and relay requests.
+- A fleet is an application like any other. `examples/fleet` is a complete fleet.
 
 ## Steps
 

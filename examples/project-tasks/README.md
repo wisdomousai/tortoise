@@ -13,7 +13,7 @@ Content (`examples/*`). Domain code, screens, the demonstration job and tests li
 The example is one [application](../../docs/primitives.md#application). It composes:
 
 - a [module](../../docs/primitives.md#module) of fourteen [capabilities](../../docs/primitives.md#capability) (`project.*`, `task.*` and `task-reminders.effect.settle`) and the six [approval request](../../docs/primitives.md#approval-request) capabilities. The plugins add `compliance.*` and `webhook.*`.
-- the `site`, `network`, `audit`, `compliance`, [`os`](../../plugins/os/README.md), [`share-target`](../../plugins/share-target/README.md), [`notifications`](../../plugins/notifications/README.md) and [`os-shortcuts`](../../plugins/os-shortcuts/README.md) [host plugins](../../docs/primitives.md#host-plugin). The manifest and the application list them, and the screens list those that have screens. The example plugin [`webhook`](../../plugins/webhook/README.md) comes after them.
+- the `site`, `network`, `audit`, `compliance`, [`os`](../../plugins/os/README.md), [`share-target`](../../plugins/share-target/README.md), [`notifications`](../../plugins/notifications/README.md) and [`os-shortcuts`](../../plugins/os-shortcuts/README.md) [host plugins](../../docs/primitives.md#host-plugin). The example plugin [`webhook`](../../plugins/webhook/README.md) comes after them.
 - [OS handlers](../../docs/primitives.md#os-handler) in `os.ts`, listed under [OS requests](#os-requests).
 - an [OS action](../../docs/primitives.md#os-action), `task.reminder`. `task.remind` queues an [outbox effect](../../docs/primitives.md#outbox-effect) to `task-reminders`, which the notifications plugin shows on the desktop or phone. Its Mark done reply (`task.reminder-reply`) runs `task.set-status` to done. `task-reminders.effect.settle` records on the task whether the reminder was shown.
 - the [blob store](../../docs/primitives.md#blob-store). `task.create` attaches an optional file within `attachmentLimits` (`attachments.ts`), `task.delete` drops the reference, and the task row links to the bytes.
@@ -44,9 +44,7 @@ The example is one [application](../../docs/primitives.md#application). It compo
 
 The plugins add the Security and Webhook screens.
 
-`server` concatenates `handlers/projects` and `handlers/tasks`, which share the handler context, lookups, paging and DTOs in `server/context`.
-
-`ui/projects` re-exports the screens from `ui/projects/`, one file per component. The task row uses `useTaskDraft`, and the project screen uses `useAction` and `useProjectSession`. Drafts whose forms collapse, such as a new project name or a new task title, stay in the parent screen. Collapsing a form therefore does not lose what was typed.
+The task row uses `useTaskDraft`, and the project screen uses `useAction` and `useProjectSession`. Drafts whose forms collapse, such as a new project name or a new task title, stay in the parent screen. Collapsing a form therefore does not lose what was typed.
 
 ### Commands
 
@@ -287,7 +285,7 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 38. Name the query that validates each selectable record in `selectableResources`.
 39. Write a background job as an HTTP caller with `createHttpTransport` from `@agent-native/client`, as `job.ts` does. Read the connection file with `readConnection`.
 40. Bind each of the job's idempotency keys to the record's revision, and send that revision as the expected one.
-41. Adapt the tests the scaffold wrote to the new domain: `test/conformance.test.ts`, `test/ui-bindings.test.ts`, `test/project.test.ts`, `e2e/default-screens.pw.ts` and one test per add command. The [Tests](#tests) section says what each of this example's test files proves.
+41. Adapt the tests the scaffold wrote to the new domain: `test/conformance.test.ts`, `test/ui-bindings.test.ts`, `test/project.test.ts`, `e2e/default-screens.pw.ts` and one test per add command.
 
     | Test file in this example | Helpers |
     | --- | --- |

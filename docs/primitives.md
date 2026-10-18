@@ -23,7 +23,7 @@ flowchart LR
   External --> Observation --> Command
 ```
 
-The status is `implemented`, `partial` or `proposed`. Where a location is a package, plugin, app, example or SDK, its README explains how the primitive works, its settings and its limits. The [glossary](glossary.md) defines the terms, and the [implementation ledger](implementation-status.md) records what has been run.
+The status is `implemented`, `partial` or `proposed`.
 
 ## Core
 

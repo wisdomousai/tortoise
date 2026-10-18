@@ -5,7 +5,7 @@ description: Run an agent-native application on Android or iOS, or extend what i
 
 # Extend the mobile host
 
-The Expo project in `apps/mobile` runs one [application](../../../../docs/glossary.md#application)'s [instance](../../../../docs/glossary.md#instance) on the device. It uses the same [kernel](../../../../docs/glossary.md#composition) and runtime as the desktop host and has its own [workspace](../../../../docs/glossary.md#workspace). The application, its plugins and its native screens come from `app.config.json` through a generated entry, so the starter names no content. [Mobile host](../../../../docs/mobile.md) describes the modes, pairing and the trust boundary. `examples/asset-survey-field` is the worked reference for a field application paired with a [hub](../../../../docs/glossary.md#hub).
+The Expo project in `apps/mobile` runs one [application](../../../../docs/glossary.md#application)'s [instance](../../../../docs/glossary.md#instance) on the device. It uses the same [kernel](../../../../docs/glossary.md#composition) and runtime as the desktop host and has its own [workspace](../../../../docs/glossary.md#workspace). The application, its plugins and its native screens come from `app.config.json` through a generated entry, so the starter names no content. Design: [Mobile host](../../../../docs/mobile.md). `examples/asset-survey-field` is the worked reference for a field application paired with a [hub](../../../../docs/glossary.md#hub).
 
 ## Before writing
 

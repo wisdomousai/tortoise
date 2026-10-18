@@ -5,7 +5,7 @@ description: Serve a local base or fine-tuned model to agents with measured dige
 
 # Serve a local model
 
-A [model entry](../../../../docs/glossary.md#model-entry) names the weights by digest. At each start, the model server plugin proves that the files on disk are those weights and that a fine-tune passed its gate. It then starts the server through the [process port](../../../../docs/glossary.md#process-port). [Agents](../../../../docs/agents.md#local-models) explains local models. The [plugin README](../../README.md) gives the start sequence, the trust boundary and the gaps.
+A [model entry](../../../../docs/glossary.md#model-entry) names the weights by digest. At each start, the model server plugin proves that the files on disk are those weights and that a fine-tune passed its gate. It then starts the server through the [process port](../../../../docs/glossary.md#process-port). See [Agents](../../../../docs/agents.md#local-models) and the [plugin README](../../README.md).
 
 ## Before writing
 

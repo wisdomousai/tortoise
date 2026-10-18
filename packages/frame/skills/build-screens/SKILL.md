@@ -5,7 +5,7 @@ description: Build or change the web screens of an agent-native application or h
 
 # Build screens
 
-[Screens](../../../../docs/glossary.md#screen) are the browser half of an application. They read through [live queries](../../../../docs/glossary.md#live-query) and write only through catalog commands, so a person and an agent reach the same behavior. The [frame README](../../README.md) describes the [web frame](../../../../docs/glossary.md#web-frame), routes, layouts and registry. [Primitives](../../../../docs/primitives.md#ui-registry) lists the registry items. `examples/project-tasks/screens.tsx` is the smallest worked `screens` entrypoint.
+[Screens](../../../../docs/glossary.md#screen) are the browser half of an application. They read through [live queries](../../../../docs/glossary.md#live-query) and write only through catalog commands, so a person and an agent reach the same behavior. See the [frame README](../../README.md) for the [web frame](../../../../docs/glossary.md#web-frame). `examples/project-tasks/screens.tsx` is the smallest worked `screens` entrypoint.
 
 ## Before writing
 

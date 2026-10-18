@@ -20,8 +20,6 @@ Plugins (`plugins/*`). Server only, except `contracts` and `plugin-manifest`.
 | `@agent-native/fleet-agent/plugin` | server | `createFleetAgentPlugin`, `fleetAgentPlugin`, the service and status types. |
 | `@agent-native/fleet-agent/testing` | server (tests) | `fleetNetworkFixture`: a network plugin whose `fleet` destination goes through a test's function. |
 
-The package exports every source file through `./*`. The other files, `audit`, `credential`, `link`, `relay`, `releases` and `report`, are used only inside the package.
-
 A fleet composes `fleetSiteModule`, implements its handlers and enrolls sites with the [device-link plugin](../device-link/README.md). Each site is a `field-sync` device whose sync capabilities are `fleetSiteOperationIds`.
 
 ### Settings
@@ -38,7 +36,7 @@ Compose the plugin after the site plugin, the network plugin and, for audit forw
 
 ## Trust boundary
 
-[Hosting](../../docs/hosting.md#fleet-agent) describes each guarantee below in full.
+See [Hosting](../../docs/hosting.md#fleet-agent).
 
 - **Fleet outages.** The plugin writes nothing to the workspace. A failed cycle records its reason in `status().lastError`, and the site keeps committing and delivering while the fleet is unreachable.
 - **Reports.** The plugin reads the outbox with the host's trusted identity (`pendingEffects`). Only [effect](../../docs/glossary.md#effect) counts per target leave the site.

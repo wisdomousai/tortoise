@@ -1,6 +1,6 @@
 # Getting started
 
-Run the examples, use an [application](glossary.md#application) through the CLI and MCP, and create another application with the [scaffold](glossary.md#scaffold). Commands run from the repository root unless a block says otherwise.
+An [application](glossary.md#application) runs as a desktop window, a browser page, a CLI and an MCP server over one [workspace](glossary.md#workspace). Commands run from the repository root unless a block says otherwise.
 
 ## Workspace ownership
 
@@ -167,7 +167,7 @@ bun run scaffold /path/to/new-app --name new-app
 
 With `--example <name>`, it exports one example as the application the starter hosts. Every export writes a versioned list of file hashes to `scaffold.manifest.json`.
 
-The scaffold does not install global agent configuration or invent a domain from the application name. A coding agent shapes the generated parts into the requested domain with the [setup skill](../packages/scaffold/skills/create-agent-native-app/SKILL.md) and the [capability authoring guide](capability-authoring.md). The other task skills live next to the package they describe and are listed in [AGENTS.md](../AGENTS.md#skills). Running `bun install` links them for Claude Code and Codex. `bun run check:skills` fails when the code a skill describes changes without a skill review.
+The scaffold does not install global agent configuration or invent a domain from the application name. A coding agent shapes the generated parts into the requested domain with the [setup skill](../packages/scaffold/skills/create-agent-native-app/SKILL.md) and the [capability authoring guide](capability-authoring.md). The other task skills live next to the package they describe and are listed in [AGENTS.md](../AGENTS.md#skills). Running `bun install` links them for Claude Code and Codex.
 
 ## Related pages
 

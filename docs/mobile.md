@@ -8,7 +8,7 @@ Terms: the [hub](glossary.md#hub), the [device link](glossary.md#device-link) an
 
 ## Packages
 
-The Expo project in `apps/mobile` runs one application on Android and iOS. The application, its plugins and its screens come from `app.config.json` through a generated entry, so the starter names no content. The READMEs hold the details:
+The Expo project in `apps/mobile` runs one application on Android and iOS. The application, its plugins and its screens come from `app.config.json` through a generated entry, so the starter names no content. The mobile host consists of:
 
 - [`packages/mobile`](../packages/mobile/README.md): the platform, the instance and writing a native plugin.
 - [`packages/frame-native`](../packages/frame-native/README.md): the native frame and the glove-sized components.

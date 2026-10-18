@@ -6,7 +6,7 @@ The receipt is written as one CSV file into the ERP's drop folder, and the ERP a
 
 ## Layer
 
-Content (`examples/*`). It was created with `scaffold new` and extended with `scaffold add target` and `scaffold add capability`, then written by hand on those parts. It has 839 lines of application source outside its tests, against 1,837 for `crm-capture`.
+Content (`examples/*`). It was created with `scaffold new` and extended with `scaffold add target` and `scaffold add capability`, then written by hand on those parts.
 
 ## Primitives
 
@@ -17,8 +17,6 @@ The example is one [application](../../docs/primitives.md#application). It uses:
 - the ERP as a [target](../../docs/primitives.md#target) whose [connector](../../docs/primitives.md#connector) is `fileTargetPort` from [`connector-files`](../../plugins/connector-files/README.md). It runs over three exchange folders, declared as [requirements](../../docs/primitives.md#requirement-declaration) and bound by the [deployment policy](../../docs/primitives.md#deployment-policy);
 - an [agent definition](../../docs/primitives.md#agent-definition), `receiving.discrepancy`, whose [approval requests](../../docs/primitives.md#approval-request) a person approves or rejects;
 - [reconciliation](../../docs/primitives.md#reconciliation) of goods receipts the ERP left unclear, through `reconciliationOperations` and the Held receipts screen.
-
-The manifest and the application list the `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance plugin's screens.
 
 ## Entrypoints
 
@@ -214,10 +212,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
 14. Widen the two commands in `contracts/delivery.ts` with strict input schemas and the delivery output schema. Change each permission's resource type to `Delivery`, add the delivery dependency and replace the headless exception with a UI binding.
 15. Add a discrepancy check to `domain.ts` that tells whether a counted line differs from its notice. The delivery handlers and the target handlers both use it.
 16. Implement the two command handlers in `handlers/delivery.ts` with the collection's record helpers, the discrepancy check and a conflict error for refused states.
-17. Declare the exchange folders with `fileExchange` next to the target's declaration, and add a components list to the manifest that holds the declaration. The example uses these folder IDs, as the [connector-files README](../../plugins/connector-files/README.md) describes:
-    - inbox `erp-asn`, for notice exports;
-    - drop `erp-goods-receipts`, for goods receipt files;
-    - receipts `erp-receipts`, for the ERP's receipt files.
+17. Declare the exchange folders with `fileExchange` next to the target's declaration, and add a components list to the manifest that holds the declaration. The example uses the folder IDs `erp-asn`, `erp-goods-receipts` and `erp-receipts`, as the [connector-files README](../../plugins/connector-files/README.md) describes.
 18. Remove the generated `erp-api` entry from the module's network list and from the desktop deployment policy. A binding for a destination that nothing declares is a deployment policy error, even when the binding is disabled.
 19. Rename the generated effect type to `goods-receipt.post`, and export it as a constant from the target handlers file for the port to check.
 20. Replace the generated fake in `erp-port.ts` with a port factory that returns the connector's file target port. Give it a CSV drop whose encode callback writes a goods receipt as one row and rejects any other effect type.
@@ -239,7 +234,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
 36. Open the application in those tests with `openEmbeddedInstance`, a quiet period of 0 and a deployment policy setting that binds the three folders to temporary directories.
 37. Play the ERP with `FakeFileConsumer` from the connector's testing entrypoint. Run each delivery pass with `runOnce` on the ERP target's dispatcher from the instance's integrations, with backoff ignored.
 38. Replace the generated default screens spec with a spec like `e2e/receiving.pw.ts`. Keep the package name that the generated spec passes to `startService`, because the example's spec names the example's own package.
-39. Rewrite the generated `README.md` with the entrypoints, exchange folders, trust boundary and tests, as the example's README does.
+39. Rewrite the generated `README.md` for the new application.
 40. Run the focused checks, then the full check. The [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md) says which to report.
 
     ```sh
@@ -269,7 +264,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
     AGENT_NATIVE_SITE_POLICY=/absolute/path/to/site-policy.json bun run dev
     ```
 
-Without the folder bindings the host starts, imports no notices and keeps posted goods receipts in the outbox. The [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md) covers site policies. The ERP side replaces `FakeFileConsumer` and follows the rules in the [connector-files delivery section](../../plugins/connector-files/README.md#delivery).
+The [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md) covers site policies. The ERP side replaces `FakeFileConsumer` and follows the rules in the [connector-files delivery section](../../plugins/connector-files/README.md#delivery).
 
 ## Limits
 

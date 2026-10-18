@@ -31,10 +31,8 @@ Framework (`packages/*`). Pure functions with no Node, Bun or browser API, so th
 | Import                              | Runs in  | Contents                                                                         |
 | ----------------------------------- | -------- | -------------------------------------------------------------------------------- |
 | `@agent-native/shell`               | any host | Everything listed under Primitives.                                              |
-| `@agent-native/shell/*`             | any host | One source file from `src/`, listed below.                                       |
+| `@agent-native/shell/*`             | any host | One source file from `src/`.                                       |
 | `@agent-native/shell/registrations` | any host | The generators alone, for `mobile:prepare`, desktop packaging and the frame's Vite plugin. |
-
-The source files are `parse`, `match`, `targets`, `actions`, `registrations`, `desktop`, `desktop-arguments`, `local-files`, `mobile`, `shares`, `notifications`, `intents`, `shortcuts`, `expo-plugins`, `declared`, `provenance` and `associations`.
 
 ## Trust boundary
 

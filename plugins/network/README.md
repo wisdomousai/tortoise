@@ -12,7 +12,7 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 - [Execution host](../../docs/primitives.md#execution-host): `networkRules`, `exportRules`, `exportFormats`, `networkCommand`, `networkCliCommand` and `networkUsage`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `networkPlugin` requires `site`. It is written only against `@agent-native/host/plugin`, and reads the [audit log](../../docs/glossary.md#audit-log) port through the composed ports.
 
-The [architecture](../../docs/architecture.md#host-plugins) explains why network and audit reach each other only through ports. [Security and compliance](../../docs/security-and-compliance.md#egress) describes the controls for site operators.
+See [Architecture](../../docs/architecture.md#host-plugins) and [Security and compliance](../../docs/security-and-compliance.md#egress).
 
 ## Entrypoints
 
@@ -27,15 +27,6 @@ The [architecture](../../docs/architecture.md#host-plugins) explains why network
 | `@agent-native/network/proxy`           | server only        | `startEgressProxy`, the loopback CONNECT proxy for declared child processes.                                    |
 | `@agent-native/network/exporters`       | server only        | `exportRules` for `json`, `nftables`, `windows-firewall`, `k8s-networkpolicy`, `k8s-pod`, `compose`, `systemd`. |
 | `@agent-native/network/cli`             | server only        | `network export`.                                                                                               |
-
-`rules` holds `networkRules` and `ingress` holds `policyIngress`, and both are importable by path. `guard/` holds:
-
-- the denial type;
-- the shared kernel: audit, binding lookup, and address and TLS checks;
-- the destination client with its redirect loop;
-- process and multi-origin routing.
-
-`exporters/` has one file per format, plus the shared header, YAML and service defaults.
 
 What the plugin does at each lifecycle hook:
 

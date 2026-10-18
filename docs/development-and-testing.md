@@ -40,8 +40,7 @@ What each step catches:
 - **`check:boundaries`**: imports across layers, server code reaching browser bundles, and direct network or process APIs outside the reviewed exemptions in `scripts/boundary-rules.ts`. Portable source may not import `node:` or `bun:` modules or use Node or Bun globals.
 - **`check:manifests`**: a framework package manifest that would not install on its own. [Framework packages](#framework-packages) lists what it compares.
 - **`check:framework`**: more than one installed framework version. It runs `scaffold versions`.
-- **`check:readmes`**: a package without a README, a README whose first line is not `# <package name>`, or a broken relative link.
-- **`check:skills`**: a skill whose name, description, links, `bun run` scripts or named paths are wrong, or that `AGENTS.md` does not list or its package README does not link. A package's exports or the root scripts that differ from the review `bun run skills:stamp` recorded, and a missing or stale skill link.
+- **`check:skills`**: a skill that is out of date with the code it describes ([AGENTS.md](../AGENTS.md#skills)).
 - **`check:size`**: code in a package `src/index.ts` other than re-exports. Files over 300 lines and functions over 80 lines are listed as hints and do not fail.
 - **`generate`**: a [catalog](glossary.md#catalog) that cannot be documented. It writes the reference to `dist/reference/<id>/`, which is not committed.
 - **`check:registry:operator`**: generated operator registry files that are out of date. `bun run build:registry:operator` regenerates them.
@@ -188,7 +187,7 @@ Never discover credentials from unrelated configuration, and never switch silent
 
 The workflow follows the [GitHub-hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) and the [Bun CI guide](https://bun.sh/guides/runtime/cicd). It has not yet run remotely.
 
-The [implementation status](implementation-status.md) records browser, native, live and by-hand runs separately, with what has not been shown. An export, a bundled sidecar or a passing suite does not count as a release. Skipped acceptance tests and unsupported platforms are reported as such.
+An export, a bundled sidecar or a passing suite does not count as a release. Skipped acceptance tests and unsupported platforms are reported as such.
 
 ## Related pages
 

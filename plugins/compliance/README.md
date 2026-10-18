@@ -28,7 +28,7 @@ Plugin layer, shipped with the framework. An application composes it as `complia
 | `@agent-native/compliance/plugin-screens` | browser | `complianceScreens`: the screen at `/compliance`, its navigation item and the `compliance.` prefix. |
 | `@agent-native/compliance/cli` | server only | `complianceCommand` and `complianceCliCommand` (`compliance report`). |
 
-`manifest`, `controls`, `sbom`, `posture` and `monitor` are also importable by path, and the root export covers them. `sbom/` holds the lockfile parser and the dependency graph, and `audit-events` pages the audit log for the monitor. Only the package itself imports those two.
+`manifest`, `controls`, `sbom`, `posture` and `monitor` are also importable by path, and the root export covers them.
 
 ### Compliance screen
 

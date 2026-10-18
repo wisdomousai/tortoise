@@ -13,7 +13,7 @@ Content (`examples/*`). The demo quality system ([`fake-sor.ts`](fake-sor.ts)) l
 The example is one [application](../../docs/primitives.md#application). It composes:
 
 - a [module](../../docs/primitives.md#module) of `inspection.*` [capabilities](../../docs/primitives.md#capability), plus the `compliance` module from its plugin.
-- the `site`, `network`, `audit`, `compliance`, `process` and `driver` (`connector-driver`) [host plugins](../../docs/primitives.md#host-plugin). The manifest and the application list them all, and the screens compose the compliance and driver plugins' screens.
+- the `site`, `network`, `audit`, `compliance`, `process` and `driver` (`connector-driver`) [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance and driver plugins' screens.
 - a [driver contract](../../docs/primitives.md#driver-contract) for the capture station's measuring instrument (`contracts/instrument.ts`), and a Python [driver process](../../docs/primitives.md#driver-process) for it in `drivers/instrument/`.
 - [outbox effects](../../docs/primitives.md#outbox-effect) for every captured record, delivered by a [dispatcher](../../docs/primitives.md#dispatcher) through a [connector](../../docs/primitives.md#connector). [Inbound sync](../../docs/primitives.md#inbound-sync) brings in lots and code groups. One [target](../../docs/primitives.md#target) in `contracts/target.ts` declares both directions.
 - [capability bindings](../../docs/primitives.md#capability-binding) for keyboard-first capture: `useCapabilityForm`, capture timing and wedge-scan routing.
@@ -30,11 +30,9 @@ The example is one [application](../../docs/primitives.md#application). It compo
 | `@agent-native/quality-inspection/screens` | browser | Default export: `defineScreens` with Inspection, Capture, Synchronization, the sync badge and the plugin screens. |
 | `@agent-native/quality-inspection/*` | see file | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `fake-sor`. |
 
-`contracts` composes `contracts/schemas`, `contracts/operation`, `contracts/queries` and `contracts/commands`, all browser-safe. `contracts/instrument` is the instrument's driver contract.
+`appendResult` in `server/` validates a measurement, picks the sample and queues forwarding, all in the caller's transaction.
 
-`server` concatenates the handler groups in `handlers/`: lots, reports, capture, supervision, integration and instrument. They share `server/`, which holds the context and clock, plant and grant visibility, DTOs and `appendResult`. `appendResult` validates a measurement, picks the sample and queues forwarding, all in the caller's transaction.
-
-Each screen in `ui/` keeps its parts in a folder of the same name. Hooks that issue commands, such as `useCapture` and the defect and correction forms, are `.tsx`, because the UI-binding test only reads screen files.
+Hooks that issue commands, such as `useCapture` and the defect and correction forms, are `.tsx`, because the UI-binding test only reads screen files.
 
 ### Commands
 
@@ -52,12 +50,7 @@ Resolve both under **Synchronization**. The framework never reads these variable
 
 ### Measuring instrument
 
-The capture station can read a gauge or balance through its serial data output. The instrument only reports, and its contract has no actions.
-
-1. The inspector presses the instrument's data button. The driver reads the line and sends `measurement.taken`.
-2. The application's `connect` runs `inspection.instrument.ingest` for that event as the instrument principal (`INSTRUMENT_PRINCIPAL`). The reading carries the driver's identity and the instrument's ID as reported at the handshake.
-3. The capture station offers the newest unconfirmed reading above the value field. **Use reading** records it as the current sample through `inspection.result.record` with `instrumentReading`.
-4. The result keeps the reading's provenance, and the forwarded record names the instrument.
+The capture station can read a gauge or balance through its serial data output. The instrument only reports, and its contract has no actions. The inspector presses the instrument's data button, and the capture station offers the reading above the value field.
 
 A reading is not a result until a person confirms it. The instrument does not know the part or characteristic it measured. The instance refuses a confirmation when:
 
@@ -80,7 +73,7 @@ The driver is optional. Without a deployment policy binding for the `instrument-
 }
 ```
 
-`instrument_driver.py` documents the line format and the other settings: baud rate, framing, and key or stream output. `instrument_contract.py` is generated from `contracts/instrument.ts` with the SDK's stub generator, and a test fails when the two differ. `simulator.py` puts a simulated instrument on a pseudo-terminal pair for tests and demos.
+`instrument_contract.py` is generated from `contracts/instrument.ts` with the SDK's stub generator, and a test fails when the two differ. `simulator.py` puts a simulated instrument on a pseudo-terminal pair for tests and demos.
 
 ## Trust boundary
 
@@ -135,7 +128,7 @@ bunx playwright test examples/quality-inspection/e2e
 
 ## Demonstrated mechanisms
 
-Paths under the packages and scripts directories are relative to the repository root. The others are relative to `examples/quality-inspection`. Test names are quoted from the test files.
+Paths under the packages and scripts directories are relative to the repository root. The others are relative to `examples/quality-inspection`.
 
 | Mechanism | Code | Proof |
 | --- | --- | --- |
@@ -219,15 +212,13 @@ Defects follow the same path with the effect type `defect.post`. A usage decisio
 
 ## Instrument reading flow
 
-The [Measuring instrument](#measuring-instrument) section describes what the inspector sees and when a confirmation is refused. The steps below name the code for each stage.
-
 1. The process plugin starts `instrument-driver` only when the deployment policy binds it. The `observe` hook of `connect` in `application.ts` checks the binding with `processes.availability` and starts nothing without it.
-2. `instrument_driver.py` reads lines from the serial port and sends a `measurement.taken` event for each measurement. The file documents the line format and the output modes.
-3. The ingest from `createInstrumentIngest` in `application.ts` runs `inspection.instrument.ingest` as the instrument principal. Its idempotency key `driver:<contract id>:<session>:<seq>` makes a replayed event record once.
+2. `instrument_driver.py` reads lines from the serial port and sends a `measurement.taken` event for each measurement, which the inspector triggers with the instrument's data button.
+3. The ingest from `createInstrumentIngest` in `application.ts` runs `inspection.instrument.ingest` as the instrument principal (`INSTRUMENT_PRINCIPAL`). The reading carries the driver's identity and the instrument's ID as reported at the handshake. Its idempotency key `driver:<contract id>:<session>:<seq>` makes a replayed event record once.
 4. The ingest handler in `handlers/instrument.ts` stores the instrument reading.
 5. `InstrumentReadingOffer` in `ui/capture-station/instrument-reading.tsx` follows `inspection.instrument.readings` and offers the newest instrument reading.
 6. The Use reading button sends `inspection.result.record` with `instrumentReading`. The handler checks the instrument reading with `confirmReading` in `handlers/instrument.ts`.
-7. `appendResult` records the result with the instrument reading's provenance, and `useReading` marks the instrument reading used.
+7. `appendResult` records the result with the instrument reading's provenance, so the forwarded record names the instrument, and `useReading` marks the instrument reading used.
 
 ## Implementation steps
 
@@ -411,7 +402,7 @@ Follow the [write-hardware-driver](../../plugins/connector-driver/skills/write-h
 - **Fake quality system.** `FakeQualitySystem` is in memory and per process, and no real quality system has run against this example. Its documents and feed are gone when the process exits.
 - **Instrument hardware.** The Python driver has run only against its pseudo-terminal simulator, on macOS. The driver tests skip without `python3` and `pyserial`, and the browser spec skips without uv and a cached `pyserial`.
 - **Lost driver events.** A failed ingest is reported and not retried. The supervisor's sequence check reports events the driver lost.
-- **Instrument readings.** The application keeps only the newest 20 instrument readings. The README lists when a confirmation is refused.
+- **Instrument readings.** The application keeps only the newest 20 instrument readings.
 - **Corrections.** Only results can be corrected. A rejected defect or usage decision has no command in the application, and the Needs attention screen says to follow it up in the quality system.
 - **Usage decisions.** No command reverts a decision, and capture stops once a lot is decided or closed.
 - **Measurement age.** The instance refuses a measurement more than 24 hours old. A batch holds at most 100 measurements for one lot.

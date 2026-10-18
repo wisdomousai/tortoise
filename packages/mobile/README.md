@@ -22,15 +22,7 @@ Framework (`packages/*`). The mobile starter in `apps/mobile` uses it, and conte
 | `@agent-native/mobile/intent-filters` | build time            | `intent-filters.plugin.cjs`, the Expo config plugin that registers Android intent handlers.                                    |
 | `@agent-native/mobile/shortcuts`      | build time            | `shortcuts.plugin.cjs`, the Expo config plugin that writes static Android app shortcuts.                                       |
 
-`src/expo/` holds the parts that import Expo:
-
-- the SQLite driver on `expo-sqlite`'s synchronous API, with a new connection per driver;
-- the blob store on `expo-file-system`;
-- the starter's lifecycle, through `AppState` and `expo-background-task`;
-- the OS bindings: links from React Native's `Linking`, files through `expo-file-system`'s `File`, shares through `expo-sharing` and notifications through `expo-notifications`;
-- on Android, intents through the native module `AgentNativeOsIntents` (`expoIntentBindings`).
-
-The [Android intents plugin](../../plugins/android-intents/README.md) brings that native module; without it the intent bindings are absent. The root TypeScript project excludes `src/expo/`, and `tsconfig.native.json` checks it.
+The [Android intents plugin](../../plugins/android-intents/README.md) brings the `AgentNativeOsIntents` native module; without it the intent bindings are absent. The root TypeScript project excludes `src/expo/`, and `tsconfig.native.json` checks it.
 
 A workspace on a device is a name (`field`), not a path, so a configured value cannot address files outside the app's sandbox. Its databases are `<name>.workspace.sqlite` and `<name>.lock.sqlite` in Expo's database directory. Its blobs are in `agent-native/<name>/blobs` under the document directory.
 

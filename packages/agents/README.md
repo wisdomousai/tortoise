@@ -43,13 +43,6 @@ Framework (`packages/*`). Server only. The host constructs harnesses with explic
 | `@agent-native/agents/models` | server only | `ModelEntry`, `defineModelEntry`, `entryIdentity`, `ModelActivation`, `activates`. |
 | `@agent-native/agents/requirements` | server only | `providerComponents`, `localInferenceComponent` and `LOCAL_INFERENCE_DESTINATION`, as data. |
 
-Four entries compose parts from a folder that only the package imports:
-
-- `src/supervisor/`: the in-memory run store, the bounded event queue, redaction, the run record and its persisted events, turn execution and replay. It also holds the run lifecycle: start, cancel, pending requests and interrupted-run recovery.
-- `src/codex/`: the app-server process and thread setup, and the translation of its messages: tool calls, questions and completion.
-- `src/claude/`: the in-process MCP server that exposes the application's tools. The SDK process launch stays in `claude.ts`, the egress-exempt file.
-- `src/chatgpt/`: the vault-backed profile store, the PKCE authorization request and callback checks, and the token and revocation endpoints. Only `chatgpt.ts` chooses the default `fetch`.
-
 A caller may pass the run ID to `start`. A run repeated after a restart then keeps its tool calls' idempotency keys. Starting an ID that already exists throws.
 
 ## Trust boundary
@@ -114,8 +107,6 @@ The tests use deterministic fixtures only. They prove adapter and protocol behav
 - `test/process.test.ts`: explicit environments, JSON-RPC failure propagation and subprocess-tree cancellation.
 - `test/local.test.ts`: the local harness against a loopback OpenAI-compatible fixture server, with harness choice by model requirement and the model identity on the run record. It also covers named models and an entry's agents narrowing the choice, an entry's identity and a readiness check.
 - `test/requirements.test.ts`: the authorization URL is one the declared open action builds, and a different flow, endpoint or callback does not match.
-
-The fixture-server cases in `test/local.test.ts` cover a tool call, finish, the placeholder key, an unserved model and an unbound destination.
 
 `scripts/live-smoke.ts` is an opt-in live probe with a fixed synthetic prompt. It needs an explicitly configured account and never reads developer credential files.
 

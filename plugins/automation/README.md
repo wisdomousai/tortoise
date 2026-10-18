@@ -24,7 +24,7 @@ Plugin layer, with the three plugin entrypoints an application lists. It trusts 
 | `@agent-native/automation/plugin-screens` | browser | `automationScreens`: the `/automation` route with triggers, grants and failed runs. |
 | `@agent-native/automation/*` | see file | `contracts` (browser-safe), `jobs`, `triggers`, `server`, `run`, `loop`, `run-ids`. |
 
-`server` holds the state, handlers and policy. `createAutomationPlugin` takes `{ triggers, jobs, localModel, agentHarnesses, intervalMs, now, newId }`.
+`createAutomationPlugin` takes `{ triggers, jobs, localModel, agentHarnesses, intervalMs, now, newId }`.
 
 ### Trigger loop
 

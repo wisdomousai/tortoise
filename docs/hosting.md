@@ -4,9 +4,7 @@ An [instance](glossary.md#instance) can run on a server, with its [workspace](gl
 
 ## Concepts
 
-- [Hosted instance](glossary.md#hosted-instance): the Bun host on the hosted platform, with its workspace in a shared Postgres database.
-- [Workspace lease](glossary.md#workspace-lease): one instance's hold on a hosted workspace, with a fencing token that every commit checks.
-- [Fleet](glossary.md#fleet): an application that sites report to through the fleet agent plugin.
+Terms: [hosted instance](glossary.md#hosted-instance), [workspace lease](glossary.md#workspace-lease) and [fleet](glossary.md#fleet).
 
 ## Hosted instance
 

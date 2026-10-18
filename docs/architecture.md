@@ -1,15 +1,10 @@
 # Architecture
 
-The [framework](glossary.md#framework) is built in layers. Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an instance on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns, and the checks test the invariants. [Primitives](primitives.md) lists the building blocks and the package of each one. [Overview](overview.md) maps the same layers to the inputs and the request path.
+The [framework](glossary.md#framework) is built in layers. Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an instance on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns.
 
 ## Concepts
 
-- [Application](glossary.md#application): one unit of content that a host runs, with its tests.
-- [Instance](glossary.md#instance): the one running instance that owns a [workspace](glossary.md#workspace) and executes its [commands](glossary.md#command) and [queries](glossary.md#query).
-- [Host](glossary.md#host): the process that opens an instance for one application on a [host platform](glossary.md#host-platform) and serves it.
-- [Embedded mode](glossary.md#embedded-mode): the instance runs inside the calling process.
-- [Attached mode](glossary.md#attached-mode): the [caller](glossary.md#caller) reaches an instance that another process owns, through a [session](glossary.md#session) that instance issued.
-- [Host plugin](glossary.md#host-plugin): a cross-cutting part an application composes, with [modules](glossary.md#module), a state slice, a [policy](glossary.md#policy), ports and lifecycle hooks. "Plugin" alone means a host plugin.
+Terms: [application](glossary.md#application), [instance](glossary.md#instance), [host](glossary.md#host), [embedded mode](glossary.md#embedded-mode), [attached mode](glossary.md#attached-mode) and [host plugin](glossary.md#host-plugin).
 
 ## Layers
 
@@ -188,7 +183,7 @@ Startup refuses the composition in these cases:
 
 ### Plugins in the examples
 
-The [examples](#examples) table names the plugins each example composes. `project-tasks` also composes [webhook](../plugins/webhook/README.md), an example plugin written as a third party would write one. Most examples compose these:
+`project-tasks` also composes [webhook](../plugins/webhook/README.md), an example plugin written as a third party would write one. Most examples compose these:
 
 - **site** loads the deployment policy and enforces its identity floor.
 - **network** guards outbound connections.
@@ -286,4 +281,4 @@ Each [example](glossary.md#example) is an application under `examples/` and serv
 - [Desktop](desktop.md) and [mobile](mobile.md): packaging and the mobile host.
 - [Development and testing](development-and-testing.md): running the checks.
 
-[Implementation status](implementation-status.md) is the only status page: it holds the evidence [by area](implementation-status.md#by-area), the [known defects](implementation-status.md#known-defects) and what is [out of scope](implementation-status.md#out-of-scope).
+[Implementation status](implementation-status.md) is the only status page.

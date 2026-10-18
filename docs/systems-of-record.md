@@ -127,7 +127,7 @@ A connector implements `SystemOfRecordPort`. These connectors are ready-made:
 - [Screen bridge](../workstations/screen-bridge/README.md): a [workstation application](glossary.md#workstation-application) reached through its screen, as [operator workstations](operator-workstations.md) explains.
 - [Peer port](../packages/integration/README.md): another agent-native [host](glossary.md#host), through its HTTP API.
 
-The folders of `connector-files` are [requirement declarations](glossary.md#requirement-declaration) that the [deployment policy](glossary.md#deployment-policy) binds. Each connector plugin ships a fake for tests. The HTTP, files and driver connectors pass the conformance suite in [`packages/testing`](../packages/testing/README.md), whose README lists its six cases. Among them, the suite checks idempotent delivery or lookup before resend, rejection as data, and that a lost reply is held or found again.
+The folders of `connector-files` are [requirement declarations](glossary.md#requirement-declaration) that the [deployment policy](glossary.md#deployment-policy) binds. Each connector plugin ships a fake for tests. The HTTP, files and driver connectors pass the conformance suite in [`packages/testing`](../packages/testing/README.md).
 
 [`connector-mqtt`](../plugins/connector-mqtt/README.md) and [`connector-opcua`](../plugins/connector-opcua/README.md) only observe an MQTT broker or an OPC UA server. The connectors submit readings as [observations](glossary.md#observation) through an ingest command and implement no target port.
 
@@ -196,7 +196,7 @@ The instance verbs open the workspace or serve it:
 
 `drain` reports per target what awaits delivery, what is held, what is upstream, and whether this process can deliver there. Only effects awaiting delivery count toward the exit code, including those for a target this process cannot deliver. An orchestrator keeps an ephemeral sandbox container, or its workspace, until `drain` exits 0.
 
-`examples/quality-inspection/test/sandbox.test.ts` runs the CLI in embedded mode from source. `bun run test:sandbox` runs the same test against the compiled binary. The generated application skill lists the CLI form next to the MCP tool name for every workflow.
+`examples/quality-inspection/test/sandbox.test.ts` runs the CLI in embedded mode from source. `bun run test:sandbox` runs the same test against the compiled binary.
 
 ### Exit codes
 

@@ -48,7 +48,7 @@ A guide in `docs/` explains one topic. Sections, in order, each present when it 
 
 ### Reference
 
-A reference page is an index with a fixed entry shape and no narrative: the [glossary](glossary.md) and [primitives](primitives.md). The first paragraph says what the entries are. Every entry has the same parts in the same order, and entries are sorted by a stated rule. This styleguide is a reference page of rules grouped by topic.
+A reference page is an index with a fixed entry shape and no narrative: the [glossary](glossary.md) and [primitives](primitives.md). The first paragraph says what the entries are. Every entry has the same parts in the same order, and entries are sorted by a stated rule.
 
 ### Package README
 

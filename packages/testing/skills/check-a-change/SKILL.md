@@ -5,7 +5,7 @@ description: Choose and run the checks for a change in this repository and repor
 
 # Check a change
 
-Every change must pass `bun run check`. [Development and testing](../../../../docs/development-and-testing.md) explains each check and lists the focused scripts. The focused checks for each kind of change are in the table under Checks.
+Every change must pass `bun run check`.
 
 ## Before writing
 
@@ -23,7 +23,7 @@ Every change must pass `bun run check`. [Development and testing](../../../../do
 6. When `bun run check:skills` reports a changed surface, read each skill it names. Update it for what changed: new or renamed entrypoints, exports, steps, commands and checks.
 7. Review the skills the same way for a changed behavior with an unchanged surface, such as a new rule, a changed default or a new limit. The check does not prompt for it.
 8. Run `bun run skills:stamp <workspace>` once the skills are reviewed.
-9. Commit the skill and `scripts/reviewed-surface.json` with the code. AGENTS.md lists every skill and how they grow.
+9. Commit the skill and `scripts/reviewed-surface.json` with the code.
 10. Leave generated references out of the commit. `bun run generate` writes them to `dist/reference/`.
 11. Report each kind of evidence separately:
     - **Deterministic:** what `bun run check` and the focused suites showed.

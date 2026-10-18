@@ -5,7 +5,7 @@ description: Prepare an agent-native application for a site, plant or customer m
 
 # Deploy to a site
 
-A [deployment policy](../../../../docs/glossary.md#deployment-policy) is deployment data. It binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its [hardening profile](../../../../docs/glossary.md#hardening-profile) floor. The network, process, audit and compliance plugins enforce it. [Security and compliance](../../../../docs/security-and-compliance.md) is the site operator's guide, and the [site plugin README](../../README.md) lists the API and the install order.
+A [deployment policy](../../../../docs/glossary.md#deployment-policy) is deployment data. It binds what the application declares to one site's addresses, executables and certificates: destinations, processes, ingress, identity and audit. The site plugin resolves the policy against the composed catalog and refuses a policy below its [hardening profile](../../../../docs/glossary.md#hardening-profile) floor. The network, process, audit and compliance plugins enforce it. See [Security and compliance](../../../../docs/security-and-compliance.md) and the [site plugin README](../../README.md).
 
 ## Before writing
 

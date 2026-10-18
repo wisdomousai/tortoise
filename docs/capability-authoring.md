@@ -4,12 +4,7 @@ Domain behavior enters an application as a capability, written from the contract
 
 ## Concepts
 
-- [Capability](glossary.md#capability): a command or query declared once as data.
-- [Module](glossary.md#module): the unit that groups capabilities, handlers and a state slice.
-- [Handler](glossary.md#handler): the server code that implements one capability.
-- [Collection](glossary.md#collection): a typed set of keyed records with generated reads.
-- [State migration](glossary.md#state-migration): numbered steps between stored state shapes.
-- [Behavioral scenario](glossary.md#behavioral-scenario): a reusable test of one capability.
+Terms: [capability](glossary.md#capability), [module](glossary.md#module), [handler](glossary.md#handler), [collection](glossary.md#collection), [state migration](glossary.md#state-migration) and [behavioral scenario](glossary.md#behavioral-scenario).
 
 ## Contract
 

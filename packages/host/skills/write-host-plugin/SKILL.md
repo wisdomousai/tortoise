@@ -5,7 +5,7 @@ description: Write a host plugin in plugins/<name> for a cross-cutting concern (
 
 # Write a host plugin
 
-A [host plugin](../../../../docs/glossary.md#host-plugin) adds [modules](../../../../docs/glossary.md#module), a state slice, a [policy](../../../../docs/glossary.md#policy), settings, lifecycle hooks and ports to the [host](../../../../docs/glossary.md#host). An [application](../../../../docs/glossary.md#application) lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one, and its README walks through every part. [Architecture](../../../../docs/architecture.md#host-plugins) describes the ports, the composition rules and the lifecycle.
+A [host plugin](../../../../docs/glossary.md#host-plugin) adds [modules](../../../../docs/glossary.md#module), a state slice, a [policy](../../../../docs/glossary.md#policy), settings, lifecycle hooks and ports to the [host](../../../../docs/glossary.md#host). An [application](../../../../docs/glossary.md#application) lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one. Design: [Architecture](../../../../docs/architecture.md#host-plugins).
 
 ## Before writing
 

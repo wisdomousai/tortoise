@@ -14,7 +14,7 @@ The example demonstrates the fleet described in [hosting](../../docs/hosting.md#
 
 ## Layer
 
-Content (`examples/*`). It has 1,236 lines of application source outside its tests.
+Content (`examples/*`).
 
 ## Primitives
 
@@ -27,8 +27,6 @@ The example is one [application](../../docs/primitives.md#application). It uses:
 - [blob store](../../docs/primitives.md#blob-store) attachments for release files;
 - the hash chain of the [audit log](../../docs/primitives.md#audit-log), to check forwarded audit events.
 
-The manifest and the application list the `site`, `network`, `audit` and `device-link` [host plugins](../../docs/primitives.md#host-plugin). The screens compose the device-link enrollment screen.
-
 ## Entrypoints
 
 | Import | Runs in | Contents |
@@ -38,7 +36,7 @@ The manifest and the application list the `site`, `network`, `audit` and `device
 | `@agent-native/fleet/screens` | browser | Default export: `defineScreens` with the fleet screens and the device-link enrollment screen. |
 | `@agent-native/fleet/*` | see file | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`. |
 
-`createFleetApplication` takes services (`now`, `newId`) and members. The fleet screens are health, sites, releases, channels, audit events and remote access.
+`createFleetApplication` takes services (`now`, `newId`) and members.
 
 ### Capabilities
 
@@ -52,13 +50,7 @@ The manifest and the application list the `site`, `network`, `audit` and `device
 | `audit-event.list`, `audit-event.get` | members | Forwarded events, newest first, by site or kind. |
 | `relay.request`, `relay.list`, `relay.get` | members; request by an operator in person | A request to a site's `/api/v1/` and the response it returned. |
 
-A site's report holds its application, instance, outbox counts by target, audit position and staged release. `fleet.health` lists the sites that match any of these:
-
-- not reporting for 15 minutes;
-- with held effects;
-- with a broken audit chain;
-- with audit forwarding over 1,000 events behind;
-- with a staged release other than their channel's.
+A site's report holds its application, instance, outbox counts by target, audit position and staged release. `fleet.health` lists the sites that need attention, by the issue kinds in [Report and release flow](#report-and-release-flow).
 
 The fleet protocol capabilities are for enrolled sites only: `fleet.site.report`, `fleet.site.desired`, `fleet.audit.cursor`, `fleet.audit.ingest`, `fleet.relay.take` and `fleet.relay.answer`.
 
@@ -86,14 +78,8 @@ Enroll a site from the Devices screen. Then start the site with `--fleet-enrollm
 - **Site reads.** Of the fleet's records, a site can read only the release its channel assigns. `GET /api/v1/blobs/<digest>` serves the site that release's files and no other blob.
 - **Releases.** The fleet checks that the manifest is a bundle manifest and that the uploaded blobs are exactly its files, by digest and size. It does not judge the signature. Each site checks the signature against its own trusted keys before staging, so a compromised fleet can withhold releases but cannot install one.
 - **Audit.** Each forwarded event must have the next sequence number, link to the hash of the event before it, and match its own hash (`hashEvent` from `@agent-native/event-log/chain`). The first event that fails stops collection for that site and records the reason on the site, where the health screen shows it.
-- **Audit retention.** The fleet skips events it already holds. A site reads the fleet's cursor before each batch, so a batch arrives again only when its reply was lost. It keeps the newest 1,000 events per site, and the site's own log keeps them all.
+- **Audit retention.** The fleet skips events it already holds. A site reads the fleet's cursor before each batch, so a batch arrives again only when its reply was lost.
 - **Relay.** A request's headers and body are stored on the request only while it waits. The command receipt keeps the input for as long as receipts are kept. They are never listed and are dropped when the site takes the request. The site adds no credential, so a request reaches a capability only with a session the site issued. The site checks that session as it checks any other caller's.
-
-The fleet has these limits:
-
-- The command receipt of `fleet.relay.take` keeps the request it returned, headers included, for replays with the same idempotency key. Pass short-lived site sessions.
-- A broken audit chain stays broken. No capability exists yet to inspect the break and resume collection from the site's current head.
-- Health thresholds are constants in `handlers/sites.ts`.
 
 ## Dependencies
 
@@ -288,12 +274,6 @@ bun run scaffold /absolute/path/to/absent-target --name <app-name> --example fle
 ```
 
 The example uses no fake system of record. Its tests replace the site's network plugin with `fleetNetworkFixture`, which routes the fleet destination to the fleet's loopback port. A deployed site composes the network plugin instead, which provides the `NetworkPort` from the bound destination in its deployment policy.
-
-To run the example locally, from `examples/fleet`:
-
-```sh
-bun run dev
-```
 
 ## Limits
 

@@ -1,6 +1,6 @@
 # Providers and account connections
 
-Provider accounts and their configuration, the credential vault, local models and the model server, and live probes. [Agents](agents.md) explains harnesses, runs, approval requests, triggers, standing grants and model entries.
+The host runs agent harnesses under provider accounts that the local owner connects. [Agents](agents.md) explains harnesses and runs.
 
 ## Concepts
 

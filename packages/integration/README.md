@@ -11,14 +11,14 @@ Framework (`packages/*`). Server only. Domain-neutral: the domain supplies the p
 ## Primitives
 
 - [Connector](../../docs/primitives.md#connector): `SystemOfRecordPort` (with optional `search`), `SearchAccess`, `SearchPage`, `TargetDescription`, `DeliveryResult`, `UpstreamPending`, `LookupResult`, `DeliveryFailure`, `DeliveryUncertain`. `createPeerPort`, `PeerPortOptions`, `PeerClient` and `payloadBlobs` serve a target that is another agent-native host.
-- [Dispatcher](../../docs/primitives.md#dispatcher): `createEffectDispatcher` (with `worker`, `leaseMs` and `recheck`), `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DispatchReport`. `src/dispatcher/delivery.ts` holds the per-effect steps: claim, look up or deliver, poll an acknowledged effect, record under the claim's fence and settle.
+- [Dispatcher](../../docs/primitives.md#dispatcher): `createEffectDispatcher` (with `worker`, `leaseMs` and `recheck`), `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DispatchReport`.
 - [Worker claims](../../docs/primitives.md#worker-claims): every attempt carries the claim's fencing token. For `defineTarget` settle commands, every settlement carries it too.
 - [Reconciliation](../../docs/primitives.md#reconciliation): the dispatcher holds an effect in three cases: its outcome cannot be established, the target lost its acknowledgement, or the recheck denies its original caller. It polls an acknowledged effect instead of resending it.
 - [Inbound sync](../../docs/primitives.md#inbound-sync): `createInboundSync`, `PullBatch`, and upstream versions through `UpstreamVersions` and `newerItems`.
 - [Target](../../docs/primitives.md#target): `targetHandlers`, `TargetHandlerOptions`, `TargetCursor`, `settleDelivery`, `Delivered`, `targetContext`, `targetLane`, `targetRules`, `connectTarget`.
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteSource`, `CallerCredentials` and `RemoteSourceOptions` turn a port's `search` into the runtime's `RemoteSource`. The source resolves the caller's credential first.
 - [Data provider](../../docs/primitives.md#data-provider): `implementDataProvider` supplies a provider's search and lookup handlers from one item mapper.
-- [Gated actuator](../../docs/primitives.md#gated-actuator): `src/convergent/` holds convergent delivery, described under [Convergent delivery](#convergent-delivery).
+- [Gated actuator](../../docs/primitives.md#gated-actuator): convergent delivery for a target that can only be observed and acted on, such as a screen or an instrument.
 
 [Systems of record](../../docs/systems-of-record.md) explains the design. [`examples/quality-inspection/application.ts`](../../examples/quality-inspection/application.ts) wires a target against a fake quality system. [`examples/crm-capture/application.ts`](../../examples/crm-capture/application.ts) adds a remote source for a remote query.
 

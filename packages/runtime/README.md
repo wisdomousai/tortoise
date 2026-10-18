@@ -42,24 +42,9 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 | Import                    | Runs in     | Contents                                                                   |
 | ------------------------- | ----------- | -------------------------------------------------------------------------- |
 | `@agent-native/runtime`   | server only | `createApplication`, the handler factory, memory storage, composition and all types. |
-| `@agent-native/runtime/*` | server only | One source file from `src/`, listed below.                                 |
+| `@agent-native/runtime/*` | server only | One source file from `src/`.                                 |
 
-The source files are `types`, `compose`, `state-equality`, `application`, `memory-storage`, `memory-blob-store`, `collection`, `policy`, `membership`, `agent-grant`, `approval`, `approval-dataset`, `reconciliation` and `effect-phase`.
-
-`src/application/` holds the parts `createApplication` wires together. Import them only from inside the package. Each part takes the shared `Kernel` object (registry, ports, clocks, audit trail, context guard) instead of closing over it:
-
-- `kernel.ts`: registry validation, operation ID resolution, the authorize-then-recheck step and output projection.
-- `commands.ts`, `command-request.ts`, `command-commit.ts`: the command transaction, its request validation and fingerprint, and its journal, receipt and `command.accepted` steps.
-- `command-steps.ts`: the precondition check and the handler run. A precondition is checked as a read, and hidden and missing records get the same denial.
-- `continuation.ts`: the command a handler continues with, run in the parent's transaction under the parent's context and receipt.
-- `remote-queries.ts`: the remote query's three steps around the source call, and the purity check on its handler steps.
-- `queries.ts`, `events.ts`, `outbox.ts`, `recovery.ts`: reads, journal delivery, the host-only outbox and crash recovery of the audit log.
-- `blobs.ts`, `blob-references.ts`, `uploads.ts`:
-  - uploads, reads, connector reads and sweeping;
-  - the reference changes a command applies at commit;
-  - the in-memory record of recent uploads, with the lock that keeps a store write and a sweep apart.
-- `handler-context.ts`, `effects.ts`, `delegation.ts`, `audit.ts`, `records.ts`: what a handler sees, outbox transitions, grant checks, audit records and prototype-safe record writes.
-- `effect-claims.ts`: worker claims, and the recheck of the original caller before the first claim.
+The parts in `src/application/` are imported only from inside the package.
 
 Browser code may import types from here with `import type`. A value import fails `check:boundaries`.
 

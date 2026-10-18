@@ -5,7 +5,7 @@ description: Run an agent-native application's instance on a server, with its wo
 
 # Run a hosted instance
 
-A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [host](../../../../docs/glossary.md#host) on another [host platform](../../../../docs/glossary.md#host-platform). `hostedPlatform` keeps the [workspace](../../../../docs/glossary.md#workspace) in a shared Postgres database and makes ownership a [workspace lease](../../../../docs/glossary.md#workspace-lease) with a fencing token. A replacement instance can take over, and a paused old one commits nothing more. Contracts and handlers do not change. [Hosting](../../../../docs/hosting.md#hosted-instance) explains the lease, the [host README](../../README.md#trust-boundary) states what it guarantees, and the [ledger](../../../../docs/implementation-status.md#hosted-instance) lists what is not built.
+A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [host](../../../../docs/glossary.md#host) on another [host platform](../../../../docs/glossary.md#host-platform). `hostedPlatform` keeps the [workspace](../../../../docs/glossary.md#workspace) in a shared Postgres database and makes ownership a [workspace lease](../../../../docs/glossary.md#workspace-lease) with a fencing token. A replacement instance can take over, and a paused old one commits nothing more. Contracts and handlers do not change. Design: [Hosting](../../../../docs/hosting.md#hosted-instance).
 
 ## Before writing
 

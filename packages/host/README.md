@@ -44,7 +44,7 @@ That copy is for disaster recovery only. Restoring it would drop records committ
 | Import                                 | Runs in     | Contents                                                                                                                                                         |
 | -------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@agent-native/host`                   | server only | Application, manifest and plugin definitions, ports, `openEmbeddedInstance`, `startHost`, `serve`, `createCli`, `combineIntegrations` and the config readers.   |
-| `@agent-native/host/*`                 | server only | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                                                           |
+| `@agent-native/host/*`                 | server only | One source file from `src/`. Only `manifest` and `plugin-manifest` are browser-safe.                                                                           |
 | `@agent-native/host/manifest`          | browser     | `defineManifest`: an application's ID, title and modules. Imports no host code.                                                                                  |
 | `@agent-native/host/plugin-manifest`   | browser     | `definePluginManifest`, `PluginSetting`: a plugin's ID, modules, components and settings. Imports no host code.                                                  |
 | `@agent-native/host/plugin`            | server only | The composition's `defineHostPlugin`, port types and lifecycle contexts, plus `BunNetworkPort`, `bunSocket`, `childEnvironment`, `BunProcessPort` and `bunProcesses`. |
@@ -62,14 +62,6 @@ That copy is for disaster recovery only. Restoring it would drop records committ
 | `@agent-native/host/optional-packages` | server only | Packages loaded only when an optional adapter is configured; standalone builds keep them external.                                                               |
 
 `host` and `integrations` are also importable by path; prefer the root export.
-
-The larger entries are thin composers over folders of parts:
-
-- `src/host/`: `startHost`'s steps for the instance, agents, connection files and the cleanup stack, and its routes in `routes/` for shutdown, UI sessions and runs. It also holds the SQLite run store and the agent tool port.
-- `src/providers/`: shared `ProviderState`, owner scope and vault namespacing, profile selection, the verified native runtime, lazy harnesses, the provider account routes, the model catalog and the OAuth callback. Only `providers.ts` chooses the default `fetch`, as the egress-exempt file; the parts call it through the state.
-- `src/plugins/`: the Bun side of the composition's plugin parts: `loopbackIngress` as the default ingress in `ports.ts`, `readPluginSettings` from the environment in `settings.ts` and `openPlugins` on `bunPlatform` in `lifecycle.ts`. Composition, port resolution and the lifecycle live in `@agent-native/kernel`.
-- `src/platform/`: `bunPlatform`, which `embedded.ts` and `host/instance.ts` pass to the composition's `openInstance`, and `hostedPlatform`. Given `hostedPlatform` as `platform`, `startHost` uses it instead.
-- `src/cli/`: one module per command group (`serve`, `mcp`, `sync` and `drain`, `backup` and `restore`, `migrate`, capability calls) and shared argument parsing.
 
 ## Trust boundary
 

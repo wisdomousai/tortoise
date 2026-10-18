@@ -152,7 +152,7 @@ bun test plugins/connector-driver
 - `test/events.test.ts` covers the event ingest: one command per wanted event, keyed by session and sequence, with the reporting unit. A failed ingest is reported without stopping later events.
 - `test/check.test.ts` runs `checkDriver` against the fake driver, and `driver check` against `test/fixtures/chamber-driver.ts` as a real child process over stdio.
 
-Each SDK's own tests run its simulated chamber against this base, as the SDK READMEs describe.
+Each SDK's own tests run its simulated chamber against this base.
 
 ## Skills
 

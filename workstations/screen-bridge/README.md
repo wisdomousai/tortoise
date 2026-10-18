@@ -26,15 +26,7 @@ Workstation (`workstations/*`). Server only, except `requirements`. The domain [
 | `@agent-native/screen-bridge/*`            | see below          | One source file, such as `@agent-native/screen-bridge/perception/worker`.                                        |
 | `@agent-native/screen-bridge/requirements` | browser and server | `stationBridgeComponent`: vision endpoints and the perception worker as declared requirements. Loads nothing. |
 
-`controller` and `profile` compose parts that are imported only from inside the package. `src/controller/` holds:
-
-- the shared kernel: perception, clock and this process's attempt memory, over the integration package's convergent reads;
-- the safety gate: bridge state and forbidden zones;
-- payload and precondition checks before delivery;
-- the step runner with its per-action guard;
-- lookup.
-
-`src/profile/` holds `$input` bindings, region geometry and profile validation. `profile` re-exports them, so existing imports are unchanged.
+`controller` and `profile` compose parts that are imported only from inside the package.
 
 The [perception sources](../../docs/glossary.md#perception-source) are these extractors:
 

@@ -1,6 +1,6 @@
 # Overview
 
-The framework builds applications that run at the [point of work](glossary.md#point-of-work): on a workstation PC, a site server or a phone next to the equipment. An application takes input from operators, scanners, instruments, plant signals and workstation applications, and commits each change to a local [workspace](glossary.md#workspace). The application delivers the changes to the [systems of record](glossary.md#system-of-record) that own the enterprise data, such as an ERP, an MES or a quality system. Each [capability](glossary.md#capability) is declared once and reached from the application's screens, HTTP, MCP and the CLI. The repository is a reference architecture: the [framework](glossary.md#framework), [host plugins](glossary.md#host-plugin), a [starter](glossary.md#starter) and eight [examples](glossary.md#example).
+The framework builds applications that run at the [point of work](glossary.md#point-of-work): on a workstation PC, a site server or a phone next to the equipment. An application takes input from operators, scanners, instruments, plant signals and workstation applications, and commits each change to a local [workspace](glossary.md#workspace). The application delivers the changes to the [systems of record](glossary.md#system-of-record) that own the enterprise data, such as an ERP, an MES or a quality system. Each [capability](glossary.md#capability) is declared once and reached from the application's screens, HTTP, MCP and the CLI. The repository is a reference architecture.
 
 ## Concepts
 
@@ -12,7 +12,7 @@ The system of record is authoritative for master data and for the postings it ac
 
 ## Request path
 
-The diagram shows three paths through the code: a command and its delivery, inbound sync, and a remote query. Each step names its code and the tests that prove it. The arrow keys move between steps while the diagram has focus.
+The arrow keys move between steps while the diagram has focus.
 
 <OverviewView view="request-path" />
 
@@ -31,7 +31,7 @@ A command takes this path:
 
 ### Effect phases
 
-An outbox effect is in one phase at a time. Selecting a phase lists the transitions into and out of it.
+An outbox effect is in one phase at a time.
 
 <OverviewView view="phases" />
 
@@ -51,13 +51,11 @@ An outbox effect is in one phase at a time. Selecting a phase lists the transiti
 
 ## Operating properties
 
-Each property names the tests that prove it.
-
 <OverviewView view="properties" />
 
 ## Layers and dependencies
 
-Selecting a workspace marks its framework dependencies and the workspaces that depend on it. [Architecture](architecture.md#layers) describes the layers, and its [invariants](architecture.md#invariants) list the import rules.
+[Architecture](architecture.md#layers) describes the layers, and its [invariants](architecture.md#invariants) list the import rules.
 
 <OverviewView view="layers" />
 
@@ -69,13 +67,13 @@ The kernel takes each port from the one plugin that provides it, or uses the def
 
 ## Examples
 
-Each example's declarations come from its security manifest. A [deployment policy](glossary.md#deployment-policy) binds the destinations, child processes, devices and exchange folders, and the host refuses the rest.
+A [deployment policy](glossary.md#deployment-policy) binds the destinations, child processes, devices and exchange folders, and the host refuses the rest.
 
 <OverviewView view="examples" />
 
 ## Generated data
 
-`bun run generate` writes `dist/reference/overview.json` from the workspace manifests, the READMEs, the application manifests and their catalogs. The request paths, properties, port table and example routes come from `scripts/overview-curated.ts`. The generator checks every file, test name and guide heading those entries name, so `bun run check` fails on a stale entry. `bun run docs:dev` and `bun run docs:build` run the generator first.
+`bun run docs:dev` and `bun run docs:build` run the generator first.
 
 ```sh
 bun run generate

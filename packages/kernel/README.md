@@ -4,7 +4,7 @@ The [composition](../../docs/glossary.md#composition) (`@agent-native/kernel`): 
 
 ## Layer
 
-Framework (`packages/*`). `@agent-native/host` re-exports the definition helpers under its own subpaths, so content and plugins keep importing from the host. The subpaths are `@agent-native/host/manifest`, `/plugin-manifest`, `/plugin`, `/application` and `/integrations`.
+Framework (`packages/*`). `@agent-native/host` re-exports the definition helpers under its own subpaths, so content and plugins keep importing from the host.
 
 ## Primitives
 
@@ -29,7 +29,7 @@ The composition never starts a process. A plugin such as `@agent-native/process`
 | Import                                 | Runs in  | Contents                                                                                                                                                                                                         |
 | -------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@agent-native/kernel`                 | any host | The public API listed under Primitives.                                                                                                                                                                          |
-| `@agent-native/kernel/*`               | any host | One source file, listed below. Only `manifest` and `plugin-manifest` are browser-safe.                                                                                                                           |
+| `@agent-native/kernel/*`               | any host | One source file from `src/`. Only `manifest` and `plugin-manifest` are browser-safe.                                                                                                                           |
 | `@agent-native/kernel/manifest`        | browser  | `defineManifest` and the application's `targets` (`desktop`, `web`, `mobile`), checked against each plugin's `platforms`. `expoPlugins` lists the Expo config plugins of the application's own native libraries, for mobile targets only. |
 | `@agent-native/kernel/plugin-manifest` | browser  | `definePluginManifest`, `PluginSetting`, `PluginNative`, `platformIds`. Without `platforms`, a plugin runs only on `bun`. `native` names an Expo module and config plugin and requires `android` or `ios`. |
 | `@agent-native/kernel/plugin`          | any host | `defineHostPlugin`, the port types and the lifecycle contexts. `NetworkPort.socket` and `childEnvironment` are optional here.                                                                                    |

@@ -5,7 +5,7 @@ description: Create a new agent-native application from this framework with `bun
 
 # Create an agent-native application
 
-The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets and requesting agents. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead. [The setup reference](references/new-application.md) has the commands and what the export contains, and [getting started](../../../../docs/getting-started.md#new-application) shows a first run.
+The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets and requesting agents. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead. Commands: [setup reference](references/new-application.md) and [getting started](../../../../docs/getting-started.md#new-application).
 
 ## Before writing
 
@@ -56,7 +56,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | Metrics and traces in an observability backend | `plugins/telemetry/skills/export-telemetry/SKILL.md` |
 | Which checks to run and how to report them | `packages/testing/skills/check-a-change/SKILL.md` |
 
-AGENTS.md lists the same skills, and `bun install` links them for Claude Code and Codex. An application that installs the framework from a registry gets these skills from the installed packages under `node_modules/@agent-native/`. There, the steps that change framework source apply in the framework checkout instead.
+`bun install` links these skills for Claude Code and Codex. An application that installs the framework from a registry gets these skills from the installed packages under `node_modules/@agent-native/`. There, the steps that change framework source apply in the framework checkout instead.
 
 ## Checks
 

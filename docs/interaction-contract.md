@@ -4,9 +4,7 @@ Every [surface](glossary.md#surface) shares one contract. Modules own their sche
 
 ## Concepts
 
-- [Idempotency key](glossary.md#idempotency-key): the caller's key that makes a repeated command return its first [receipt](glossary.md#receipt).
-- [UI binding](primitives.md#capability-binding): the screen control a capability declares.
-- [UI session context](primitives.md#ui-session-context): the selection a screen shares with an agent run.
+Terms: [idempotency key](glossary.md#idempotency-key), [UI binding](glossary.md#ui-binding) and [UI session context](glossary.md#ui-session-context).
 
 ## Schemas
 

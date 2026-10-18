@@ -2,13 +2,6 @@
 
 The [telemetry](../../docs/glossary.md#telemetry) [host plugin](../../docs/glossary.md#host-plugin). It derives OpenTelemetry metrics and traces for an [instance](../../docs/glossary.md#instance) from the audit plugin's log and the [outbox](../../docs/glossary.md#outbox). It posts them as OTLP/HTTP JSON to a collector on the same machine, through the network port, so the [egress guard](../../docs/glossary.md#egress-guard) binds, limits and logs every export.
 
-The metrics cover:
-
-- commands by outcome;
-- outbox delivery time and attempts;
-- the outbox backlog by target;
-- agent and job runs by end state.
-
 No record contents, inputs, principals or resource IDs are exported.
 
 ## Layer

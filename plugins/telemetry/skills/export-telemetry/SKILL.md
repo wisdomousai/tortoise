@@ -5,7 +5,7 @@ description: Export OpenTelemetry metrics and traces from an agent-native instan
 
 # Export telemetry
 
-The telemetry plugin turns the [audit log](../../../../docs/glossary.md#audit-log) and the [outbox](../../../../docs/glossary.md#outbox) into OpenTelemetry metrics and spans. It posts them as OTLP/HTTP JSON through the [egress guard](../../../../docs/glossary.md#egress-guard). [Architecture](../../../../docs/architecture.md#telemetry) explains what the export carries. The [README](../../README.md) lists every metric, attribute and span and states what may leave.
+The telemetry plugin turns the [audit log](../../../../docs/glossary.md#audit-log) and the [outbox](../../../../docs/glossary.md#outbox) into OpenTelemetry metrics and spans. It posts them as OTLP/HTTP JSON through the [egress guard](../../../../docs/glossary.md#egress-guard). See [Architecture](../../../../docs/architecture.md#telemetry) and the [README](../../README.md).
 
 ## Before writing
 

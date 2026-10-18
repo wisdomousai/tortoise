@@ -9,7 +9,7 @@ The starter's web root: the [web frame](../../packages/frame/README.md) around t
 ## Primitives
 
 - [Starter](../../docs/primitives.md#starter): the web half of the starter.
-- [Web frame](../../docs/primitives.md#web-frame) and [UI registry](../../docs/primitives.md#ui-registry) document the frame and its registry.
+- [Web frame](../../docs/primitives.md#web-frame) and [UI registry](../../docs/primitives.md#ui-registry): the frame and registry the starter builds on.
 
 ## Entrypoints
 
@@ -25,11 +25,9 @@ This package exports nothing; it is built.
 
 `@/` resolves against this `src` first, then the frame, then the operator registry. A file here at the same path as a frame file replaces it.
 
-`bun run build` builds the configured application, and `bun run build:web:examples` builds every example:
-
 ```sh
-bun run build
-bun run build:web:examples
+bun run build               # the configured application
+bun run build:web:examples  # every example
 ```
 
 ## Trust boundary

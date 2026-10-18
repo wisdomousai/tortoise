@@ -20,21 +20,7 @@ Skills live in each package's `skills/` directory and travel with it. A source e
 | Import                     | Runs in     | Contents                                                                                    |
 | -------------------------- | ----------- | ------------------------------------------------------------------------------------------- |
 | `@agent-native/scaffold`   | server only | `scaffold`, `scaffoldNew`, `scaffoldAdd`, `installedFramework`, `appNames`, `displayNameOf` and their types. |
-| `@agent-native/scaffold/*` | server only | One source file from `src/`, listed below.                                                  |
-
-The signatures are `scaffold(options)`, `scaffoldNew(options)`, `scaffoldAdd(request, options)` and `installedFramework(root)`. The source files are:
-
-- `scaffold`, `new`, `add` and `cli`;
-- `file-rules`: what is exported;
-- `examples`: example pruning;
-- `published`: an export over installed framework versions;
-- `versions`: the installed-version check;
-- `json`: JSON as Prettier writes it;
-- `content`: adding the generated package to the root manifest and `bun.lock`;
-- `apply`: applying a generated part in memory;
-- `markers`: inserting at `// scaffold:<list>` markers.
-
-Part generators are in `src/templates/`.
+| `@agent-native/scaffold/*` | server only | One source file from `src/`.                                                  |
 
 ### Command line
 

@@ -43,19 +43,6 @@ The example is one [application](../../docs/primitives.md#application), targetin
 | `@agent-native/asset-survey-field/screens-native` | React Native (Hermes) | Default export: `defineNativeScreens` with the field screens and the plugin screens. |
 | `@agent-native/asset-survey-field/*` | see file | `contracts`, `domain`, `handlers`, `policy`, and `ui-native/*` (React Native). |
 
-`fieldManifest(plugins)` builds the manifest of one build. Tests compose `createFieldApplication` under Bun without the native plugins. The native screens are Assignments (home), Assignment, Capture, Unplaced and Sync. The plugin screens are hub-link's and, on Android, the scanner's.
-
-### Capture flow
-
-1. The hub dispatches an assignment to the paired device. The next inbound sync applies the hub's feed: every assignment of this device, with the nodes below its roots.
-2. `field.capture.record` checks that the assignment is open and that the node belongs to it. A capture with no node is unplaced.
-3. `field.capture.record` then attaches the photos and enqueues `capture.ingest` to `hub` with the capture as the payload. The capture ID is generated on the device, so a capture delivered twice is the same capture at the hub.
-4. `field.assignment.return` enqueues `assignment.return` after the captures already waiting, and closes the assignment for further captures.
-5. The outbox delivers when the hub is reachable, uploading the photos first. The hub's outcome settles each record as `accepted`, or as `rejected` with the hub's code and message. A refused return reopens the assignment on the device. An unreachable hub or a refused device credential leaves the record pending.
-6. Once the hub has the return, its feed marks the assignment `returned` on the device.
-
-Captures cannot be amended, placed or discarded on the device. The outbox payload is fixed once enqueued, so placing happens on the hub during review.
-
 ### Scanner profile
 
 The [scanner profile](../../docs/glossary.md#scanner-profile) in [`ui-native/shared.tsx`](ui-native/shared.tsx) is Zebra DataWedge broadcasting `dev.agentnative.SCAN`. Change it to match the device's scanner software. The [intent-scanner README](../../plugins/intent-scanner/README.md) has the Honeywell variant. The profile is a constant, not a setting.

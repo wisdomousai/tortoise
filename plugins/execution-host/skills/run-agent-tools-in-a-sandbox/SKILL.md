@@ -5,7 +5,7 @@ description: Run the tools an agent uses (shell commands, a provider CLI, the ap
 
 # Run agent tools in a sandbox
 
-The [execution host](../../../../docs/glossary.md#execution-host) runs an agent's tools in a sandbox: a declared child process whose executable is bubblewrap. The task inside sees only the tools and paths it names. It reaches the host API with a token bound to its run's [grant](../../../../docs/glossary.md#grant), and the network only through the egress proxy. [Security and compliance](../../../../docs/security-and-compliance.md#agent-tool-sandboxes) explains the isolation. The [plugin README](../../README.md) describes the layout, the seccomp filter and the gaps; read its trust boundary section before choosing what to mount.
+The [execution host](../../../../docs/glossary.md#execution-host) runs an agent's tools in a sandbox: a declared child process whose executable is bubblewrap. The task inside sees only the tools and paths it names. It reaches the host API with a token bound to its run's [grant](../../../../docs/glossary.md#grant), and the network only through the egress proxy. See [Security and compliance](../../../../docs/security-and-compliance.md#agent-tool-sandboxes). Before choosing what to mount, read the trust boundary in the [plugin README](../../README.md).
 
 ## Before writing
 

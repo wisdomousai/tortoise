@@ -46,12 +46,6 @@ Data lives in `var/lib/agent-native/<app>`, outside every release, so switching 
 | `@agent-native/site/policy-file`     | server only        | `sitePolicyFor` and `policyErrors`, which offline CLI verbs of other plugins use to read a policy. |
 | `@agent-native/site/cli`             | server only        | `site check`, the install verbs and `POLICY_REJECTED_EXIT_CODE`.                                   |
 
-`src/policy/` holds the schema, URL and port rules, per-binding checks, processes, folders, offline consequences and profile floors. These modules are importable by path:
-
-- `identity` (`assertIdentity`) and `needs` (`portsNeeded`);
-- `workforce/sign-in` and `workforce/discovery`;
-- `install/install`, `install/layout`, `install/native` (the OS commands), `install/windows` and `install/cli`.
-
 What the plugin does at each lifecycle hook:
 
 | Hook       | Effect                                                                                                                                                          |

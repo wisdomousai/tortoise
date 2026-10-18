@@ -15,7 +15,7 @@ The controls apply in this order:
 3. **Enforce.** The egress guard refuses everything else in process. Generated OS and orchestrator rules add a second layer.
 4. **Record.** The audit log records business actions, denials and connections in one hash chain.
 
-Most examples compose the four plugins below, and the [examples table](architecture.md#examples) names the plugins of each.
+Most examples compose the four plugins below.
 
 | Plugin | Provides | CLI verb |
 | --- | --- | --- |
@@ -69,8 +69,6 @@ Building the catalog applies these rules (`packages/contracts/src/requirements.t
 - **Child processes.** A child process lists the only destinations it may reach.
 - **Exchange folders.** A folder that another system reads or writes is declared by ID with its access (`read`, `write` or `read-write`), data classes and outbox targets. Code reaches a folder only through the folder port, so a module never names a path.
 - **Audit fields.** A capability lists the input fields that are safe to record in plain text. The audit log records the rest of the input as a digest.
-
-Each application's generated contract and security manifest list the composed declarations.
 
 ## Deployment policy
 
@@ -232,7 +230,7 @@ The security manifest's `summary.site` lists what pins the application to the si
 
 ## Checks
 
-Each plugin adds its own CLI verb, so an application has the verbs of the plugins it composes. The verbs run offline, with no instance or workspace. Here `app` stands for the application's CLI:
+The verbs run offline, with no instance or workspace. Here `app` stands for the application's CLI:
 
 ```sh
 app site check --site site-policy.json                # exit 2 on any error finding

@@ -26,8 +26,6 @@ Framework (`packages/*`). The [host](../../docs/glossary.md#host) composes these
 
 ## Entrypoints
 
-Import a subpath. The root export holds only `adapterContractVersion`.
-
 | Import | Runs in | Contents |
 | --- | --- | --- |
 | `@agent-native/adapters` | server only | `adapterContractVersion`. |
@@ -54,14 +52,7 @@ Import a subpath. The root export holds only `adapterContractVersion`.
 | `@agent-native/adapters/ui-sessions` | server only | `UiSessionStore`: host-issued sessions, captured context and expiring intents. |
 | `@agent-native/adapters/ui-deliveries` | server only | `UiDeliveryStore`: what accepted OS requests asked each session's frame to show, per session token. |
 
-The `version` subpath holds `adapterContractVersion`, which the root re-exports. The root script `bun run mcp` runs the MCP adapter as a stdio bridge to a running host.
-
-Four adapters compose parts from a folder that only the package imports:
-
-- `src/http/`: sessions, sealed cursors, response headers and status codes, bounded body parsing, the pull-based event stream and the framework's authenticated routes. `http.ts` keeps the host, origin and cross-site checks and then authentication, in that order.
-- `src/cli/`: the connection file, argument parsing and coercion, help text, dry-run validation and execution, and text formatting. `cli.ts` keeps the dispatcher, the exit codes and the main guard.
-- `src/postgres/`: the `PgDriver` interface, the schema, and the async row reads and writes behind `postgres-storage.ts` and `postgres-lease.ts`. Rows are built and compared by the helpers in `src/row-storage/`.
-- `src/row-storage/`: the schema, the row helpers, and the load and persist steps behind `row-storage.ts`.
+The root script `bun run mcp` runs the MCP adapter as a stdio bridge to a running host.
 
 ## Trust boundary
 
@@ -77,7 +68,7 @@ Direct and HTTP cursors carry the authorization revision they were issued under.
 
 A stored session minted from such a credential keeps its `via`. Every recheck uses it: each request, each event-stream pull and a launch exchange. A credential is therefore accepted only from the source it was issued for (`CredentialSource`). Cookie-authenticated writes still need a same-origin `Origin`. A token that neither step resolves is refused with `FORBIDDEN` and `details.credential: 'rejected'`, which a client tells apart from a denied request.
 
-`publicRoute` runs after the Host and Origin checks and before the session check.
+The host, origin and cross-site checks run before authentication. `publicRoute` runs after the Host and Origin checks and before the session check.
 
 A session that stands for such a credential (`HostSession.credential`) can mint a launch key like any other session. The [launch exchange](../../docs/glossary.md#launch-exchange) opens a browser session of its own, whose cookie is a new token. That session keeps the credential's name and rechecks it on every request and every event-stream poll. Revoking the credential, such as a paired tablet's, ends the browser session at its next request and closes its stream. A bearer credential's own event stream is rechecked the same way.
 

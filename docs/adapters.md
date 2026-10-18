@@ -8,7 +8,7 @@ Terms: the [adapter](glossary.md#adapter), the [surface](glossary.md#surface) ad
 
 ## Ports
 
-[Capabilities](glossary.md#capability) never mention how the application is hosted or stored. Each outside dependency enters through a port with stated guarantees. The reference adapters are local: Bun, SQLite, loopback HTTP and stdio.
+[Capabilities](glossary.md#capability) never mention how the application is hosted or stored. Each outside dependency enters through a port with stated guarantees.
 
 | Port | Reference adapters | What an adapter keeps |
 | --- | --- | --- |

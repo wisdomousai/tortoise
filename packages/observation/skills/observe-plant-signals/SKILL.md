@@ -5,7 +5,7 @@ description: Read values from plant control systems into an agent-native applica
 
 # Observe plant signals
 
-A broker or an OPC UA server is a source that can be read but not queried for history or written. Its values become readings: claims about the source, with provenance and confidence. An ingest command decides what they change. The [observation package README](../../README.md) explains the gate and the idempotency keys. The [MQTT](../../../../plugins/connector-mqtt/README.md) and [OPC UA](../../../../plugins/connector-opcua/README.md) READMEs list the options and limits.
+A broker or an OPC UA server is a source that can be read but not queried for history or written. Its values become readings: claims about the source, with provenance and confidence. An ingest command decides what they change. See the [observation package README](../../README.md), [MQTT](../../../../plugins/connector-mqtt/README.md) and [OPC UA](../../../../plugins/connector-opcua/README.md).
 
 ## Before writing
 

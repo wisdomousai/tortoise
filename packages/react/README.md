@@ -20,18 +20,10 @@ The [interaction contract](../../docs/interaction-contract.md) defines drafts, c
 | Import                        | Runs in | Contents                                                                                  |
 | ----------------------------- | ------- | ----------------------------------------------------------------------------------------- |
 | `@agent-native/react`         | browser | `useLiveQuery`, `useCommand`, `captureUiContext`, `UiSessions`.                           |
-| `@agent-native/react/*`       | browser | One source file, listed below. The root re-exports `hooks` and `ui-context`.              |
+| `@agent-native/react/*`       | browser | One source file from `src/`. The root re-exports `hooks` and `ui-context`.              |
 | `@agent-native/react/form`    | browser | `useCapabilityForm`: a TanStack Form bound to one command capability.                     |
 | `@agent-native/react/query`   | browser | `createLiveBindings`: TanStack Query bindings for one authenticated transport.            |
 | `@agent-native/react/capture` | browser | `useScannerInput`, `useCaptureTiming`, `useCaptureLoop`, and `ScanDetector` from devices. |
-
-`query.ts` is the entry module over `src/query/`, whose files are imported only from inside the package:
-
-- `keys`: the cache key root, query metadata and the fence interface;
-- `live`: the options for local queries;
-- `remote`: the options for remote queries, single-result and paged.
-
-`createLiveBindings` passes them its transport and authorization fence.
 
 ## Trust boundary
 

@@ -25,7 +25,7 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 | `@agent-native/process/plugin`          | server only        | `processPlugin`, for `defineApplication({ plugins })`.                       |
 | `@agent-native/process/open`            | server only        | `openProcesses`, the port over the resolved policy.                          |
 
-`decide.ts` holds availability and the environment. `spawn.ts` is the only file that starts or kills a process. It is the boundary check's one exemption for this plugin.
+`spawn.ts` is the only file that starts or kills a process. It is the boundary check's one exemption for this plugin.
 
 Callers on Bun type the result with `bunProcesses(ports.processes)` from `@agent-native/host/plugin`. It returns the child's streams and a `terminate` that stops the child's whole tree. Applications get the port in `connect` as `processes`.
 

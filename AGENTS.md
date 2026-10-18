@@ -1,6 +1,6 @@
 # Working on this starter
 
-`docs/overview.md` maps inputs, the request path and the ports to packages; `docs/architecture.md` describes the layers and how a request flows; `docs/primitives.md` lists the building blocks and where they live. Read them before changing a boundary.
+Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before changing a boundary.
 
 ## Layers
 
@@ -59,7 +59,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Connect a site to a fleet: enrollment, reports, audit forwarding, release staging, relay | [connect-a-site-to-a-fleet](plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) |
 | Export OpenTelemetry metrics and traces | [export-telemetry](plugins/telemetry/skills/export-telemetry/SKILL.md) |
 
-How skills stay current with the code (`bun run check:skills` enforces the first three points):
+How skills stay current with the code:
 
 - A skill is named for a task, not a package, and names are unique across the repo. The owning workspace's README links it, and this table lists it.
 - Every package, plugin and SDK README has a `## Skills` section that links the skills covering it, or says why none do.

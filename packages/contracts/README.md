@@ -35,9 +35,7 @@ The worked example is [`examples/project-tasks/contracts.ts`](../../examples/pro
 | Import | Runs in | Contents |
 | --- | --- | --- |
 | `@agent-native/contracts` | browser and server | Everything below, plus JSON helpers (`assertJson`, `canonicalJson`) and the capability type helpers. |
-| `@agent-native/contracts/*` | browser and server | One source file, listed below. |
-
-The source files are `json`, `schema`, `capability`, `catalog`, `errors`, `requirements`, `audit`, `data-provider`, `collection`, `membership`, `target`, `agent`, `agent-instructions`, `approval`, `reconciliation`, `blob`, `os`, `os-catalog`, `os-templates` and `os-wire`.
+| `@agent-native/contracts/*` | browser and server | One source file from `src/`. |
 
 ## Trust boundary
 

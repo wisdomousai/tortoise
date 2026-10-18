@@ -41,27 +41,6 @@ The structure names nodes by reference designations: IEC 81346, KKS and ANSI/IEE
 
 `createAssetSurveyApplication` takes another extractor, or a factory given the network port. It also takes another EAM port, services or members.
 
-Handlers are grouped by concern in `handlers/` and share `handlers/context`:
-
-- `structure`: nodes, designations and documents;
-- `field`: assignments, the device feed, ingest, and placing and discarding captures;
-- `review`: extraction requests, acceptance and the model target;
-- `filing`: the EAM provider, filing, export, and the EAM and export targets.
-
-### Capture flow
-
-1. `assignment.create` names subtrees and capture kinds. `assignment.dispatch` sends the assignment to one paired device.
-2. The device reads `assignment.feed`: its assignments with the structure slice below each root. The cursor is a digest of the content. It changes exactly when the slice does.
-3. The device uploads photos and calls `capture.ingest` with an ID it generated. The same capture delivered again is accepted once, and a different capture under that ID is a `CONFLICT`. A capture for a node outside the assignment, such as one retired since the device synced, arrives unplaced.
-4. `extraction.request` enqueues the photos to `model`. The proposal returns through the model's feed with a confidence and photo region per value. Values below 0.8 are flagged.
-5. `extraction.accept` writes the reviewer's values to the node. Each value records its capture and whether the reviewer changed it. Only a person may accept.
-6. `filing.file` sends the node's attributes and their source photos to `eam`, updating an asset by ID or creating one. The EAM's outcome names the asset, and its feed reports later changes such as retirement.
-7. `filing.export` sends the same record to `export` instead, for a system that imports files. The `filing-export` process writes it as a folder `<designation>_<filing>` with `record.json` and `photos/<digest>.<ext>`. The folder name is the filing's reference.
-
-Each target has at most one pending filing per node. The assignment's stage (`in-field`, `processed`, `filed`) follows from its captures and filings, so no command moves it.
-
-The extractor port keeps proposals in memory until the hub syncs them. A restart in between loses the proposal, and the reviewer requests it again.
-
 ### Commands
 
 | Command (in this directory) | Purpose |
@@ -226,7 +205,9 @@ An extraction proposal is this example's record of the values a model read from 
 9. `capture.get` returns each proposed value with its confidence, its photo region and an attention flag below the `ATTENTION_BELOW` confidence of 0.8.
 10. A person calls `extraction.accept` with the values to keep, and the policy refuses a delegated agent. The handler writes each value to the node with its capture ID and an edited flag, then marks the capture reviewed.
 
-Commands store the assignment states draft, dispatched and returned. The derived stages are in field, processed and filed, which `domain.ts` computes from captures and filings.
+Each target has at most one pending filing per node. Commands store the assignment states draft, dispatched and returned. The stages `in-field`, `processed` and `filed` follow from the captures and filings, which `domain.ts` computes, so no command moves them.
+
+The extractor port keeps proposals in memory until the hub syncs them. A restart in between loses the proposal, and the reviewer requests it again.
 
 ## Filing flow
 
@@ -238,7 +219,7 @@ Commands store the assignment states draft, dispatched and returned. The derived
 6. Inbound sync pulls asset changes into `filing.sync`, which updates the asset status only on nodes filed as that asset.
 7. `filing.export` enqueues a `filing.export` effect for the `export` target with the record, the filer and the time.
 8. `createExportPort` in `export/connector.ts` starts the `filing-export` process through the process port. It writes one request line to standard input and reads one answer line, as `export/protocol.ts` defines.
-9. The worker in `export/worker.ts` checks each photo against its digest, writes the folder under a temporary name and renames it into place. The folder name becomes the filing's external reference.
+9. The worker in `export/worker.ts` checks each photo against its digest, writes the folder `<designation>_<filing>` with `record.json` and `photos/<digest>.<ext>` under a temporary name and renames it into place. The folder name becomes the filing's external reference.
 10. When the site binds no `filing-export` process, the start fails. The dispatcher records a transient failure and retries the effect.
 
 ## Implementation steps

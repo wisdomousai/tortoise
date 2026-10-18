@@ -20,7 +20,7 @@ Content (`examples/*`). The fake MES ([`fake-mes.ts`](fake-mes.ts)) and the fake
 The example is one [application](../../docs/primitives.md#application). It composes:
 
 - a [module](../../docs/primitives.md#module) of `line.*` [capabilities](../../docs/primitives.md#capability), the [device configuration module](../../docs/primitives.md#device-configuration-module), and the `compliance` module from its plugin.
-- the `site`, `network`, `process`, `audit`, `compliance`, `automation` and `connector-driver` [host plugins](../../docs/primitives.md#host-plugin), listed in the manifest and the application. The screens compose the compliance, automation and driver plugins' screens.
+- the `site`, `network`, `process`, `audit`, `compliance`, `automation` and `connector-driver` [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance, automation and driver plugins' screens.
 - the `expire-approval-requests` [trigger](../../docs/primitives.md#trigger), declared in `automation.ts`. A supervisor enables it with a [standing grant](../../docs/primitives.md#standing-grant), and it then closes expired approval requests at their stations every five minutes.
 - the station bridge. [Observations](../../docs/primitives.md#observation) are submitted through `line.observation.ingest`. A [gated actuator](../../docs/primitives.md#gated-actuator) sits behind a station-screen [connector](../../docs/primitives.md#connector), configured by a [station profile](../../docs/primitives.md#station-and-scanner-profiles) ([`station-profile.json`](station-profile.json)) and gated by a [golden check](../../docs/primitives.md#golden-check).
 - MES delivery through [outbox effects](../../docs/primitives.md#outbox-effect), a [dispatcher](../../docs/primitives.md#dispatcher) and [inbound sync](../../docs/primitives.md#inbound-sync), declared as a [target](../../docs/primitives.md#target) in `contracts/target.ts`. Station bridges settle their screen procedures through the same settle command, so its handler overrides which effects a principal may settle.
@@ -39,13 +39,9 @@ The example is one [application](../../docs/primitives.md#application). It compo
 | `@agent-native/line-station/screens` | browser | Default export: `defineScreens` with the workstation screens and the plugin screens. |
 | `@agent-native/line-station/*` | see file | `contracts` (browser-safe), `domain`, `policy`, `server`, `bridge`, `station-bridge`, `driver-bridge`, `fake-mes`. |
 
-The station route is the station bridge or the automation route. The screens are stations, the station surface, device setup, the bridge screen and the operator kit, plus Compliance and Drivers from their plugins.
+The station route is the station bridge or the automation route.
 
-`contracts` composes `contracts/schemas`, `contracts/operation` (descriptions and the capability helper), `contracts/queries` and `contracts/commands`, which are browser-safe like it.
-
-`server` concatenates one handler group per concern from `handlers/`: queries, production, attention, administration, observation, approval requests and integration. The groups share `server/`: the handler context and clock, station access, DTOs, attention items and outcome settlement. Every handler checks state and authorization inside its own command.
-
-`ui/station` re-exports the workstation screens from `ui/station/`: the overview, the MES status and the station surface. The surface has one part per region: header, machine banner, stop reasons, correction, counters, order task, recent stops and requested recipe.
+Every handler checks state and authorization inside its own command.
 
 `StationSurface` keeps the command in flight and the open correction through `useStationCommands` and `useAttention`, so live updates do not reset them. Files that issue commands are `.tsx`, because the UI-binding test only reads screen files. `ui/station-kit/` holds the gallery's demo state. The gallery screen owns that state because the inactive tab unmounts.
 
@@ -81,8 +77,6 @@ The driver in `drivers/automation/` is written with the .NET SDK (`sdks/driver-d
 
 - `ComStation` binds the vendor's automation server late by ProgID (`STATION_AUTOMATION_PROGID`) on the SDK's handler thread, a single-threaded apartment on Windows. Its member names are this reference's assumption; map them to the real object model there.
 - `SimulatedStation` keeps a station in `STATION_AUTOMATION_SIM_DIR`, for the demo and the tests.
-
-`StationAutomationContract.cs` is generated from the contract, and the header of `Program.cs` has the commands. `StationAutomation.slnx` opens the driver and the SDK project it references in an IDE.
 
 The route starts only when configured, with `createLineStationApplication({ automation })` or `STATION_ROUTE=automation` in the demo. It also needs a site-policy binding for the `station-automation-driver` process. Bind the published driver executable, and set one of the two variables in the binding's environment. A host serves one station on this route, because the driver runs on the station PC.
 
@@ -212,7 +206,7 @@ Framework tests cover what the example leaves untested:
 | `fake-hmi/`, `dev.ts` | The simulated HMI, its in-memory transport, simulator OCR and golden recorder, and the development start that runs it in process. |
 | `golden/` | Recorded frames, their images and the labeled manifest for the golden check. |
 | `screens.tsx`, `ui/` | Routes, the station surface, the bridge and scanner screens, and the operator kit gallery. |
-| `domain.test.ts`, `golden.test.ts`, `test/`, `e2e/` | Tests listed in the README; `test/automation-route.ts` is the shared setup of the automation-route tests. |
+| `domain.test.ts`, `golden.test.ts`, `test/`, `e2e/` | Bun tests and Playwright specs; `test/automation-route.ts` is the shared setup of the automation-route tests. |
 
 ## Observation and stop flow
 
@@ -317,12 +311,6 @@ These steps start from the exported example and name the file to change in it. F
 26. Keep the site, network, process, audit and compliance plugins in `manifest.ts` and `application.ts`, and the compliance screens in `screens.tsx`.
 27. Change the screens in `ui/` and the routes in `screens.tsx`, with live queries and catalog commands only. Use the [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md) and, for scanners, the [add-scanner-input skill](../../packages/devices/skills/add-scanner-input/SKILL.md).
 28. Change the tests to your domain.
-    - `domain.test.ts`: the domain over the in-memory simulator transport and a fake MES.
-    - `test/conformance.test.ts`: direct, HTTP, CLI and MCP results, and the lanes.
-    - `test/approvals.test.ts`: approval requests, their conflicts and the expiry job.
-    - `test/application.test.ts` and `golden.test.ts`: the demo configuration, the embedded instance and the golden gate.
-    - `test/automation.test.ts` and `test/automation-driver.test.ts`: the automation route over a fake driver and the built driver.
-    - `test/ui-bindings.test.ts` and `e2e/station.pw.ts`: the bindings and the browser run against a separate fake HMI process.
 29. Run the checks with the [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md).
 
     ```sh

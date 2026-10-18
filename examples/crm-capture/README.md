@@ -6,7 +6,7 @@ The example is the reference for live search of a system of record; [systems of 
 
 ## Layer
 
-Content (`examples/*`). The fake CRM in [`fake-crm.ts`](fake-crm.ts) is a demo and test fixture that lives here only. [`fake-crm/seed.ts`](fake-crm/seed.ts) seeds it, and [`fake-crm/cursor.ts`](fake-crm/cursor.ts) pages it. Its records use Salesforce-style field names to show the mapping. Nothing here talks to Salesforce.
+Content (`examples/*`). The fake CRM in [`fake-crm.ts`](fake-crm.ts) is a demo and test fixture that lives here only. Its records use Salesforce-style field names to show the mapping. Nothing here talks to Salesforce.
 
 ## Primitives
 
@@ -16,7 +16,7 @@ The example is one [application](../../docs/primitives.md#application). It compo
 - a [module](../../docs/primitives.md#module) of local `crm.*` [capabilities](../../docs/primitives.md#capability) for adopted accounts, activities and sync status.
 - adoption and activity forwarding through [outbox effects](../../docs/primitives.md#outbox-effect), a [dispatcher](../../docs/primitives.md#dispatcher) and [inbound sync](../../docs/primitives.md#inbound-sync). They are declared once as a [target](../../docs/primitives.md#target) in `contracts/target.ts` and wired with `connectTarget`.
 - a [requirement declaration](../../docs/primitives.md#requirement-declaration) for the `crm-api` destination, which carries both the outbox target and the remote reads.
-- the `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primitives.md#host-plugin). The manifest and the application list all four. The screens compose the compliance plugin's Compliance screen, and the plugin adds the `compliance.*` queries.
+- the `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance plugin's Compliance screen, and the plugin adds the `compliance.*` queries.
 - [capability bindings](../../docs/primitives.md#capability-binding): `remoteInfiniteQueryOptions` for the paged search box, `liveQueryOptions` for adopted accounts and `useCapabilityForm` for activities.
 
 `bun run generate` writes the capability reference to `dist/reference/crm-capture/operations.md`.
@@ -30,36 +30,7 @@ The example is one [application](../../docs/primitives.md#application). It compo
 | `@agent-native/crm-capture/screens` | browser | Default export: `defineScreens` with Search (home), Accounts and the account detail. |
 | `@agent-native/crm-capture/*` | see file | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `fake-crm`. |
 
-`createCrmCaptureApplication` takes another port, services or members. `contracts` composes `contracts/schemas`, `contracts/providers` and `contracts/operations`, which are browser-safe like it.
-
-`server` concatenates one handler group per concern from `handlers/`, and the groups share `handlers/context`:
-
-- `providers`: the provider item mappers;
-- `accounts`: local reads;
-- `capture`: adopt and activity capture;
-- `integration`: the integration principal's sync and settle commands.
-
-### Live search
-
-The provider handlers never call the CRM. `implementDataProvider` gives the runtime two pure steps. The first turns the search input into the source request. The second parses each record the CRM returns, scopes it to the caller's regions and marks it with its local status.
-
-The runtime calls the source between those steps, through `createRemoteSource` over `FakeCrm.search`. That is the one place where per-caller CRM credentials are resolved.
-
-`ui/search.tsx` debounces the input by 250 ms and runs both providers through `remoteInfiniteQueryOptions`. The previous result stays on screen while the next one loads. Every keystroke aborts the superseded request down to the source.
-
-The CRM answers five records per page. "Show more from the CRM" (`ui/search/more-results.tsx`) sends the last page's `next` back as `cursor`. An agent pages the same way by passing `cursor` to the next tool call.
-
-A live list of local accounts overlays each result's adopt status, so adopting updates the result row without a new CRM search. `ui/search/source-line.tsx` shows where and when a result came from, and which identity answered.
-
-### Adoption
-
-Adopting is a domain command, because what adoption means depends on the domain. The data provider does not generate it.
-
-1. `crm.account.adopt` records the account as `following` and enqueues `account.follow`.
-2. When the effect is delivered, the CRM checks the caller's own access and accepts or rejects it.
-3. The feed delivers the followed account's record to `crm.account.sync`, which sets it to `adopted` and keeps it current.
-
-Record content always comes from the [integration principal](../../docs/glossary.md#integration-principal). The caller cannot supply it, and an `EffectOutcome` never has to carry a record.
+`createCrmCaptureApplication` takes another port, services or members.
 
 ### Commands
 
@@ -135,7 +106,7 @@ The fake CRM proves the wiring and the trust order. It does not prove a real CRM
 
 ## Demonstrated mechanisms
 
-Paths in this section are relative to the example directory unless they start with `packages/`. Test names are quoted from the test files.
+Paths in this section are relative to the example directory unless they start with `packages/`.
 
 | Mechanism | Code | Proof |
 | --- | --- | --- |
@@ -181,17 +152,19 @@ Paths in this section are relative to the example directory unless they start wi
 
 ## Search flow
 
-1. The search screen debounces the input by 250 ms and calls `crm.account.search` or `crm.contact.search` through `live.remoteInfiniteQueryOptions` (`ui/search.tsx`). MCP, the CLI and HTTP call the same queries.
+1. The search screen debounces the input by 250 ms, keeps the previous result on screen while the next one loads, aborts the superseded request down to the source on every keystroke, and calls `crm.account.search` or `crm.contact.search` through `live.remoteInfiniteQueryOptions` (`ui/search.tsx`). MCP, the CLI and HTTP call the same queries.
 2. The runtime authorizes the query in a read snapshot and builds the source request from the input (`packages/runtime/src/application/remote-queries.ts`). Policy admits members to the provider queries and limits the integration principal to its lane (`policy.ts`).
 3. Outside any transaction, the runtime calls the `crm` source with the caller's context. The caller's cancellation or a 10-second deadline aborts the call.
 4. The remote source uses the principal's own CRM login, else a service credential, because both providers declare `caller-or-service` (`packages/integration/src/remote-source.ts`). A delegated agent's context carries the principal of the person who delegated it.
 5. The fake CRM keeps what that credential may see: owned or public accounts for a login, all accounts for a service credential (`fake-crm.ts`). It returns five matches per page by default, and its `next` cursor names the query, the search text and the CRM identity behind the credential (`fake-crm/cursor.ts`).
 6. In a fresh snapshot, the runtime authorizes again and runs the item mapper (`handlers/providers.ts`). The mapper drops malformed records and records outside the caller's regions and sets `local`, and the runtime then projects, validates and authorizes once more.
-7. The result holds `items`, `next` and a `source` status with the target, the time of the answer and the identity, and nothing is stored. The audit record keeps the target, status, identity, item count and whether more pages exist (`packages/runtime/src/application/queries.ts`).
-8. "Show more from the CRM" sends the last page's `next` back as `cursor` (`ui/search/more-results.tsx`). A cursor replayed under another credential or for another search text fails with `INVALID_INPUT`.
+7. The result holds `items`, `next` and a `source` status with the target, the time of the answer and the identity, and nothing is stored. `ui/search/source-line.tsx` shows where and when the result came from and which identity answered. The audit record keeps the target, status, identity, item count and whether more pages exist (`packages/runtime/src/application/queries.ts`).
+8. "Show more from the CRM" sends the last page's `next` back as `cursor` (`ui/search/more-results.tsx`), and an agent pages the same way by passing `cursor` to the next tool call. A cursor replayed under another credential or for another search text fails with `INVALID_INPUT`.
 9. When the CRM throws `DeliveryFailure`, the result is empty, with `source.status` set to `unavailable` and the CRM's message. The screen shows an alert and lists the followed accounts whose name matches, or whose CRM ID matches while they have no details (`ui/search.tsx`).
 
 ## Adoption and activity flow
+
+Adopting is a domain command, because what adoption means depends on the domain, and the data provider does not generate it. Record content always comes from the [integration principal](../../docs/glossary.md#integration-principal). The caller cannot supply it, and an `EffectOutcome` never has to carry a record.
 
 1. `crm.account.adopt` returns the stored status without a new effect when the account is already following or adopted (`handlers/capture.ts`). Otherwise it enqueues an `account.follow` effect on `account:<id>` and stores the account as `following`.
 2. Any member may adopt any CRM ID, and a delegated caller whose grant lists resources must name `account:<id>` (`policy.ts`). The CRM decides visibility when it receives the follow request.
@@ -205,7 +178,7 @@ Paths in this section are relative to the example directory unless they start wi
 
 ## Implementation steps
 
-1. Run the example from its directory to see both flows. The demo variables select the owner's CRM login, slow searches and make the CRM unreachable.
+1. Run the example from its directory to see both flows.
 
    ```sh
    cd examples/crm-capture
@@ -329,7 +302,7 @@ Paths in this section are relative to the example directory unless they start wi
     - **Refused callers**: outsiders and the integration principal.
 40. Replace the account-list comparison in the generated `test/conformance.test.ts` with one search compared over the runtime, HTTP, the CLI and MCP. The generated comparison calls `account.create`, which step 8 removes (`examples/crm-capture/test/conformance.test.ts`).
 41. Replace the generated browser test `e2e/default-screens.pw.ts` with a spec for the search and account screens (`examples/crm-capture/e2e/search.pw.ts`). The generated UI-binding test scans the whole application directory, so it covers the new screens unchanged.
-42. Update the application's `README.md`: the trust boundary, the entrypoints and the tests. The generated text describes editors and viewers and the default-screens browser test.
+42. Rewrite the generated `README.md` for the new application.
 43. Bind `crm-api` to the CRM's URL in the deployment policy, as the [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md) describes.
 44. Run the focused checks, then the full check, as the [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md) describes.
 

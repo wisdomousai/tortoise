@@ -5,7 +5,7 @@ description: Observe or control equipment from an agent-native application throu
 
 # Write a hardware driver
 
-A [driver](../../../../docs/glossary.md#driver) is an executable in whatever language suits the equipment. The host starts it as a child process through the [process port](../../../../docs/glossary.md#process-port) and speaks JSON-RPC over stdin and stdout. Driver actions are delivered as outbox effects on a target, and driver state becomes [observations](../../../../docs/glossary.md#observation). Commands, handlers, screens and agents then work as they do for any other system of record. [Hardware drivers](../../../../docs/hardware-drivers.md) holds the design, the protocol and the gate, and the [connector-driver README](../../README.md) holds the API.
+A [driver](../../../../docs/glossary.md#driver) is an executable in whatever language suits the equipment. The host starts it as a child process through the [process port](../../../../docs/glossary.md#process-port) and speaks JSON-RPC over stdin and stdout. Driver actions are delivered as outbox effects on a target, and driver state becomes [observations](../../../../docs/glossary.md#observation). Commands, handlers, screens and agents then work as they do for any other system of record. See [Hardware drivers](../../../../docs/hardware-drivers.md) and the [connector-driver README](../../README.md).
 
 ## Before writing
 

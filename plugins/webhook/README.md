@@ -4,14 +4,7 @@ An example [host plugin](../../docs/glossary.md#host-plugin), written the way a 
 
 ## Layer
 
-Plugins (`plugins/*`). The plugin uses no private framework API, so it stands in for a third party's plugin. It uses the public plugin API for:
-
-- a manifest with a [module](../../docs/glossary.md#module), a requirement component and a setting;
-- a state slice with a policy;
-- a `start` hook that runs a loop as a delegated caller;
-- a status [screen](../../docs/glossary.md#screen).
-
-It is not an application, so it has no `manifest`, `application` or `screens` entrypoint. It has the three plugin entrypoints an application lists instead. It trusts the host's network port to apply the [deployment policy](../../docs/glossary.md#deployment-policy).
+Plugins (`plugins/*`). The plugin uses no private framework API, so it stands in for a third party's plugin. It trusts the host's network port to apply the [deployment policy](../../docs/glossary.md#deployment-policy).
 
 ## Primitives
 
