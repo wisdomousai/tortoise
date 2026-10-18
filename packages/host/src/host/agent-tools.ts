@@ -1,25 +1,14 @@
-import { ApplicationError } from '@agent-native/contracts';
+import { ApplicationError, operationToolSchema } from '@agent-native/contracts';
 import type { DelegationGrant, ExecutionContext } from '@agent-native/runtime';
 import type { RunSnapshot, ToolExecutionContext, ToolPort } from '@agent-native/agents/types';
 import type { HostedApplication } from '../application';
 
-/** Every catalog operation as a harness tool taking an `{ input, expectedRevisions }` envelope. */
+/** Every catalog operation as a harness tool taking an `{ input }` envelope, and `expectedRevisions` for a command. */
 function toolDefinitions(application: HostedApplication) {
   return application.catalog.operations.map((operation) => ({
     operation: operation.id,
     description: operation.description || operation.id,
-    inputSchema: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        input: operation.inputSchema,
-        expectedRevisions: {
-          type: 'object',
-          additionalProperties: { type: 'integer', minimum: 0 },
-        },
-      },
-      required: ['input'],
-    },
+    inputSchema: operationToolSchema(operation),
   }));
 }
 

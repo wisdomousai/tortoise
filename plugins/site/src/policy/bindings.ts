@@ -121,5 +121,6 @@ export function resolveBinding(
     ...(binding.ca ? { caPath: binding.ca, ca: scope.ca?.[binding.ca] } : {}),
     ...(binding.certificatePins ? { certificatePins: binding.certificatePins } : {}),
     ...(binding.tls ? { tls: true } : {}),
+    ...(binding.timeoutMs ? { timeoutMs: binding.timeoutMs } : {}),
   } as ResolvedBinding;
 }

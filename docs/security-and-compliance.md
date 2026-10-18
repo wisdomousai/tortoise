@@ -78,6 +78,7 @@ A site policy is deployment data, validated against the composed declarations. C
 - **Bindings** name declared destinations and match their protocol, host and port.
 - **`addresses`** (CIDRs) let the guard check DNS answers, which defeats DNS rebinding, and the firewall exports need them. A binding without addresses gets a warning, and its scope is never widened.
 - **`ca`** replaces the trust store for a destination, and **`certificatePins`** pin server certificates.
+- **`timeoutMs`** replaces the guard's per-request timeout of 30 seconds for one destination, from 1 second to an hour. A local model server that reasons before it answers needs minutes.
 - **`folders`** binds each declared folder ID to an absolute directory (POSIX, a Windows drive path or a UNC share), or disables it with a reason. Two folders cannot share a directory, an undeclared or unbound required folder is an error, and a bound directory that does not exist is a warning, since a share may be mounted later. A disabled or unbound folder is unavailable through the folder port.
 - **Connected mode** requires every required destination to be bound or explicitly disabled. Each closed destination is listed with its offline consequence.
 

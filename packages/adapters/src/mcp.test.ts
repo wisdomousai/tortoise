@@ -23,13 +23,22 @@ const catalog = buildCatalog([
         permission: { action: 'read', resourceType: 'Lot' },
         ui: { binding: 'lot.list' },
       }),
+      defineCapability({
+        id: 'lot.release',
+        kind: 'command',
+        description: 'Release a lot.',
+        input: jsonSchema(z.strictObject({ id: z.string() })),
+        output: jsonSchema(z.strictObject({})),
+        permission: { action: 'write', resourceType: 'Lot' },
+        ui: { binding: 'lot.release' },
+      }),
     ],
     agents: [
       defineAgent({
         id: 'lot.advisor',
         title: 'Lot advisor',
         instructions: 'Suggest which lots to release.',
-        operations: ['lot.list'],
+        operations: ['lot.list', 'lot.release'],
         model: 'any',
         output: 'propose',
         budgets: { turns: 4, toolCalls: 10, wallTimeMs: 30_000 },
@@ -57,8 +66,10 @@ test('each agent definition is a readable MCP resource with its tools and budget
     const text = (read.contents[0] as { text: string }).text;
     expect(text).toContain('# Lot advisor');
     expect(text).toContain('Suggest which lots to release.');
-    expect(text).toContain('recorded as proposals');
-    expect(text).toContain('Tools: `lot_list`.');
+    // A proposing agent reads the commands it may propose, with their inputs.
+    expect(text).toContain('call proposal.submit');
+    expect(text).toContain('- `lot.release`: Release a lot.');
+    expect(text).toContain('Tools: `lot_list`, `lot_release`.');
     expect(text).toContain('4 turns, 10 tool calls, 30 seconds');
   } finally {
     await client.close();

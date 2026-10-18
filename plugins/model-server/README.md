@@ -72,7 +72,7 @@ Gaps:
 
 - Ollama is not managed: it keeps models in its own store under its own digests. Run it outside the host and record it as unverified.
 - Weights and adapters are not yet delivered as bundle artifacts by digest, staged or rolled back; the deployment places the files. Fleet delivery waits for the fleet application and site agent.
-- No real llama-server or vLLM has run under this plugin; the tests use a stand-in that takes llama-server's flags.
+- No vLLM and no real fine-tune have run under this plugin. A real llama-server has run with base weights (`test/live.test.ts`); the other tests use a stand-in that takes llama-server's flags.
 - One server per plugin, bound to the one `local-inference` destination.
 - Hashing large weights at each start takes time (about a second per gigabyte, depending on the disk).
 
@@ -93,6 +93,12 @@ bun test plugins/model-server
 - the gate on an evaluation server fails a scenario the model misses and passes one it meets; the activated server then serves an agent scenario whose run records the entry, the measured base and adapter digests, the dataset digest and `verified: true`;
 - a harness serving another entry is refused for an agent that names its model;
 - the directory digest, and each runtime's arguments.
+
+`test/live.test.ts` runs only when `LOCAL_MODEL_GGUF` names a GGUF file. The plugin then starts the real llama.cpp `llama-server` (`LLAMA_SERVER`, or the one on `PATH`) on those weights, measures them, and runs a proposing agent's scenario on it from a plain-language task. `LOCAL_MODEL_LICENSE` names the weights' license (Apache-2.0 when unset).
+
+```sh
+LOCAL_MODEL_GGUF=~/models/gemma-4-E4B-it-Q4_0.gguf bun test plugins/model-server/test/live.test.ts
+```
 
 ## Skills
 

@@ -28,7 +28,7 @@ When a stored shape changes, add a step to the application's `StateMigrations` (
 
 When an agent definition gains or loses an operation, or an operation an agent uses changes, add or update the agent's scenarios (`examples/<app>/test/agent-scenarios.test.ts`, `runAgentScenarios` from `@agent-native/testing/agent-scenarios`): a task and fixture state, the commits and proposals expected, and the calls that must be refused. They judge the receipts, never the agent's text. An agent that names a local model in `models`, and the proposal dataset its decisions become, are covered by the `serve-a-local-model` skill (`plugins/model-server/skills/serve-a-local-model/SKILL.md`).
 
-Never add a second writable store, and never duplicate a handler in an API route, MCP tool, CLI command or agent adapter. Those surfaces are generated from the catalog.
+Never add a second writable store, and never duplicate a handler in an API route, MCP tool, CLI command or agent adapter. Those surfaces are generated from the catalog. A new surface or harness builds an operation's tool schema with `operationToolSchema` from `@agent-native/contracts` (or `toolEnvelopeSchema` for its own envelope fields): a recursive input schema (`jsonValueSchema`, `z.lazy`) carries `$defs` that only resolve from the envelope's root, and llama.cpp and strict MCP clients refuse the tool otherwise. A run under an agent definition starts its prompt with `agentInstructions(catalog, agentId)`, which lists a proposing agent's commands and their inputs; a command's `description` is what that model reads about it, so write it for a model as well as a person.
 
 ## Checks
 

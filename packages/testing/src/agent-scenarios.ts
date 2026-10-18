@@ -1,6 +1,11 @@
 import { createRunSupervisor } from '@agent-native/agents';
 import type { Harness, ModelIdentity, ToolPort } from '@agent-native/agents/types';
-import { errorEnvelope, type Catalog } from '@agent-native/contracts';
+import {
+  agentInstructions,
+  errorEnvelope,
+  operationToolSchema,
+  type Catalog,
+} from '@agent-native/contracts';
 import {
   agentGrant,
   type CommandReceipt,
@@ -155,7 +160,12 @@ function compareList(
   });
 }
 
-function judge(scenario: AgentScenario, state: string, calls: readonly AgentScenarioCall[]) {
+function judge(
+  scenario: AgentScenario,
+  state: string,
+  calls: readonly AgentScenarioCall[],
+  failure?: { code: string; message: string },
+) {
   const failures: string[] = [];
   const committed = calls.filter((call) => call.outcome === 'committed');
   const commits = committed.filter((call) => call.operation !== 'proposal.submit');
@@ -185,7 +195,9 @@ function judge(scenario: AgentScenario, state: string, calls: readonly AgentScen
         `Expected ${want.operation} to be refused${want.code ? ` with ${want.code}` : ''}`,
       );
   if (expect.outcome && state !== expect.outcome)
-    failures.push(`Expected the run to have ${expect.outcome}, it ended ${state}`);
+    failures.push(
+      `Expected the run to have ${expect.outcome}, it ended ${state}${failure ? ` (${failure.code}: ${failure.message})` : ''}`,
+    );
   return { commits, proposals, failures };
 }
 
@@ -205,15 +217,7 @@ function scenarioTools(
       .map((operation) => ({
         operation: operation.id,
         description: operation.description || operation.id,
-        inputSchema: {
-          type: 'object',
-          additionalProperties: false,
-          properties: {
-            input: operation.inputSchema,
-            expectedRevisions: { type: 'object', additionalProperties: { type: 'integer' } },
-          },
-          required: ['input'],
-        },
+        inputSchema: operationToolSchema(operation),
       })),
     async execute(operation, body, call) {
       const envelope = (body ?? {}) as {
@@ -306,7 +310,7 @@ export async function runAgentScenario(
     .start({
       id: runId,
       harnessId: harness.id,
-      prompt: promptFor(scenario, harness, agent.instructions),
+      prompt: promptFor(scenario, harness, agentInstructions(application.catalog, agent.id)),
       budget: { ...agent.budgets },
       model: agent.model,
       demand: { agent: agent.id, ...(agent.models ? { models: agent.models } : {}) },
@@ -336,7 +340,7 @@ export async function runAgentScenario(
   for await (const _event of supervisor.events(runId));
   const snapshot = await supervisor.get(runId);
   const state = snapshot?.state ?? 'lost';
-  const judged = judge(scenario, state, calls);
+  const judged = judge(scenario, state, calls, snapshot?.failure);
   const failures = [...judged.failures];
   const partial = {
     scenario: scenario.name,

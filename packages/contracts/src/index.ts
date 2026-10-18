@@ -10,6 +10,7 @@ export * from './collection';
 export * from './membership';
 export * from './target';
 export * from './agent';
+export * from './agent-instructions';
 export * from './proposal';
 export * from './reconciliation';
 export * from './blob';

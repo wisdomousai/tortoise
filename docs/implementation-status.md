@@ -17,7 +17,9 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Measured.** On an M-series laptop, 20 one-record commits on 20,000 records (about 5 MB): row storage 26–30 ms per commit, one document 46–52 ms.
 
-**Not shown.** No host route starts an agent run from a definition. No agent trigger has run against a real model: the automation test that has a triggered agent propose and a person accept answers from a loopback fixture server, and no real local model server has been run. The line-station proposal tile and the frame's proposal review have no browser test.
+**Live.** A triggered agent has proposed on a real local model, and a person accepted (see [Agents and providers](#agents-and-providers)).
+
+**Not shown.** No host route starts an agent run from a definition. The line-station proposal tile and the frame's proposal review have no browser test.
 
 **Limits.** Row storage still serializes every row to find the change, so commit CPU grows with state. Receipts are kept by default. The phone's snapshot storage has neither rows nor retention. No encryption at rest.
 
@@ -125,9 +127,22 @@ When a change adds or invalidates evidence, or closes a gap, edit the entry for 
 
 **Not shown, live.** No live ChatGPT consent, token refresh or revocation, and no Claude or AI SDK inference. No provider credentials were discovered or reused.
 
-**Local models, live.** No real llama-server, vLLM or fine-tune has run under the model server plugin; its tests use a stand-in server that takes llama-server's flags. Weights are not yet delivered as bundle artifacts.
+**Local models, live.** On 18 October 2026, on an Apple M3 laptop (macOS 26.7.1), with llama.cpp `llama-server` 0.7.0 (Homebrew build 11669) and Gemma 4 E4B-it Q4_0 (`ggml-org/gemma-4-E4B-it-GGUF`, Apache-2.0, 4,590,807,392 bytes, measured `sha256:a555b900214b477d8880e7832e0b8925e139b0159640036b09fe472b6f2097f2`):
 
-**Agent scenarios, live.** None run. The scenarios in `packages/testing` and `examples/receiving` have passed with the deterministic harness only; a model's results go here, per model and scenario, when a configured harness runs them.
+- `plugins/model-server/test/live.test.ts` passed 5 times in 5. The plugin started the real server through the process port, measured the weights and served the `note.suggester` agent. From the task "Propose adding a note with id n1 that says "Call the supplier"", the model proposed `note.add` with that input. The run recorded the entry, the measured digest and `verified: true`. Each run took 22–31 seconds, including the server start.
+- `plugins/automation/test/live.test.ts` passed 3 times in 3. A received lot started the `lot.reviewer` run through its trigger and standing grant; the model read the lot, then proposed `lot.inspect` for `l1`. A viewer's accept was refused, and an inspector's accept committed the inspection. Each run took 41–68 seconds.
+
+The runs found these defects, now fixed and covered by deterministic tests:
+
+- A tool envelope nested a recursive input schema's `$defs`, so llama.cpp refused the tool (`cannot resolve $ref`). `toolEnvelopeSchema` moves them to the root.
+- A proposing agent's model was never told which commands it may propose or their inputs, and a trigger run's prompt left out the agent's instructions. Both now start with `agentInstructions`.
+- An application refusal or a malformed call ended an AI SDK run. The model now reads the error and may correct the call.
+- `expectedRevisions` was offered on queries and `proposal.submit`, where it means nothing, and models filled it with invented keys.
+- The egress guard's 30-second request timeout cut off a model that reasons before it answers. A destination binding now takes `timeoutMs`.
+
+Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these fixes, and was not rerun after them. No vLLM and no fine-tune has run. Weights are not yet delivered as bundle artifacts.
+
+**Agent scenarios, live.** Gemma 4 E4B-it Q4_0 on llama-server 0.7.0: the model server's `proposes a note on a real model` passed (see above). The scenarios in `packages/testing` and `examples/receiving` have passed with the deterministic harness only.
 
 ### Execution host
 

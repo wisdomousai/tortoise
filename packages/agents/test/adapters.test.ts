@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { MockLanguageModelV4 } from 'ai/test';
+import { ApplicationError } from '@agent-native/contracts';
 import { AiSdkHarness } from '../src/ai-sdk';
 import { ClaudeHarness } from '../src/claude';
 import { CodexHarness } from '../src/codex';
@@ -264,6 +265,79 @@ describe('provider adapters with local protocol fixtures', () => {
     await expect(collect(new AiSdkHarness({ model: truncated }).run(turn()))).rejects.toThrow(
       'length',
     );
+  });
+
+  test('AI SDK hands a refusal back to the model as the tool result; any other failure ends the run', async () => {
+    const usage = {
+      inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+      outputTokens: { total: 1, text: 1, reasoning: 0 },
+    };
+    const streamed = (parts: unknown[]) =>
+      ({
+        stream: new ReadableStream({
+          start(controller) {
+            for (const part of [{ type: 'stream-start', warnings: [] }, ...parts])
+              controller.enqueue(part);
+            controller.close();
+          },
+        }),
+      }) as any;
+    const finish = (reason: string) => ({
+      type: 'finish',
+      usage,
+      finishReason: { unified: reason, raw: reason },
+    });
+    const call = (id: string, input = '{"message":"hello"}') => ({
+      type: 'tool-call',
+      toolCallId: id,
+      toolName: toolName('app.ping'),
+      input,
+    });
+    const prompts: unknown[] = [];
+    const model = (input?: string) => {
+      let step = 0;
+      return new MockLanguageModelV4({
+        doStream: async (options: { prompt: unknown }) => {
+          prompts.push(options.prompt);
+          return step++ === 0
+            ? streamed([call('first', input), finish('tool-calls')])
+            : streamed([
+                { type: 'text-start', id: 't' },
+                { type: 'text-delta', id: 't', delta: 'corrected' },
+                { type: 'text-end', id: 't' },
+                finish('stop'),
+              ]);
+        },
+      });
+    };
+    const failing = (error: Error): HarnessTurn => ({
+      ...turn(),
+      tools: {
+        ...turn().tools,
+        execute: async () => {
+          throw error;
+        },
+      },
+    });
+    const events = await collect(
+      new AiSdkHarness({ model: model() }).run(
+        failing(new ApplicationError('INVALID_INPUT', 'Input does not match operation schema')),
+      ),
+    );
+    expect(events).toContainEqual({ type: 'text', text: 'corrected' });
+    expect(JSON.stringify(prompts[1])).toContain('INVALID_INPUT');
+    await expect(
+      collect(new AiSdkHarness({ model: model() }).run(failing(new Error('database gone')))),
+    ).rejects.toThrow('Application tool failed: app.ping');
+    // Input the model could not form never reaches the tool; the model reads why and goes on.
+    const calls: unknown[] = [];
+    prompts.length = 0;
+    const malformed = await collect(
+      new AiSdkHarness({ model: model('{"message":') }).run(turn(calls)),
+    );
+    expect(calls).toEqual([]);
+    expect(malformed).toContainEqual({ type: 'text', text: 'corrected' });
+    expect(prompts).toHaveLength(2);
   });
 });
 

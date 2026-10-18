@@ -56,7 +56,8 @@ const notesModule = defineModule({
       model: 'local',
       models: [ENTRY],
       output: 'propose',
-      budgets: { turns: 4, toolCalls: 4, wallTimeMs: 20_000 },
+      // A local model that reasons before it calls a tool takes tens of seconds per turn on a laptop.
+      budgets: { turns: 4, toolCalls: 4, wallTimeMs: 120_000 },
     }),
   ],
 });

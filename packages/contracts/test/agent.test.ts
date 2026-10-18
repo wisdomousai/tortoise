@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { z } from 'zod';
 import {
+  agentInstructions,
   buildCatalog,
   defineAgent,
   defineCapability,
@@ -99,4 +100,22 @@ test('defineAgent freezes the definition and its operations', () => {
   const defined = agent();
   expect(Object.isFrozen(defined)).toBe(true);
   expect(Object.isFrozen(defined.operations)).toBe(true);
+});
+
+test('a proposing agent reads the commands it may propose with their inputs; a direct one its instructions', () => {
+  const catalog = catalogWith(
+    agent({ id: 'lot.direct' }),
+    agent({ id: 'lot.proposer', output: 'propose', operations: ['lot.list', 'lot.recompute'] }),
+  );
+  expect(agentInstructions(catalog, 'lot.direct')).toBe(agent().instructions);
+  const text = agentInstructions(catalog, 'lot.proposer');
+  expect(text.startsWith(agent().instructions)).toBe(true);
+  expect(text).toContain('call proposal.submit with `operation`');
+  expect(text).toContain('- `lot.recompute`: ');
+  expect(text).toContain(
+    'Input schema: {"additionalProperties":false,"properties":{},"type":"object"}',
+  );
+  // Queries are tools of their own, so they are not listed as proposable.
+  expect(text).not.toContain('`lot.list`');
+  expect(() => agentInstructions(catalog, 'lot.missing')).toThrow('Unknown agent lot.missing');
 });

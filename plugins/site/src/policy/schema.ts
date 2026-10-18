@@ -32,6 +32,12 @@ const bindingSchema = z.union([
     certificatePins: z.array(pin).optional(),
     /** Wrap a `tcp` destination in TLS. */
     tls: z.boolean().optional(),
+    /**
+     * Per-request timeout in milliseconds, replacing the guard's default of 30 s, for a
+     * destination that answers slowly by nature, such as a local model server that reasons
+     * before it replies.
+     */
+    timeoutMs: z.number().int().min(1_000).max(3_600_000).optional(),
   }),
 ]);
 /** An environment variable name, as a process binding sets it. */

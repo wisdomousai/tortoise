@@ -1,6 +1,8 @@
 import {
+  agentInstructions,
   ApplicationError,
   errorEnvelope,
+  operationToolSchema,
   type Catalog,
   type EventLogPort,
 } from '@agent-native/contracts';
@@ -75,18 +77,7 @@ function toolDefinitions(application: HostedApplication, operations: ReadonlySet
     .map((operation) => ({
       operation: operation.id,
       description: operation.description || operation.id,
-      inputSchema: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          input: operation.inputSchema,
-          expectedRevisions: {
-            type: 'object',
-            additionalProperties: { type: 'integer', minimum: 0 },
-          },
-        },
-        required: ['input'],
-      },
+      inputSchema: operationToolSchema(operation),
     }));
 }
 
@@ -174,7 +165,7 @@ export function createTriggerRuns(
           : undefined;
       await supervisor.start({
         id,
-        ...startInput(trigger, start, harness),
+        ...startInput(application.catalog, trigger, start, harness),
         budget: { ...trigger.budgets },
         ...(trigger.model ? { model: trigger.model } : {}),
         ...(trigger.demand ? { demand: trigger.demand } : {}),
@@ -203,6 +194,7 @@ export function createTriggerRuns(
 }
 
 function startInput(
+  catalog: Catalog,
   trigger: ResolvedTrigger,
   start: { event?: TriggerEvent; slot?: number },
   agentHarness: Harness | undefined,
@@ -213,13 +205,14 @@ function startInput(
     return { harnessId: JOB_HARNESS, prompt: JSON.stringify(prompt) };
   }
   // The changed record goes in as the run's selection, which the model reads with its tools.
+  // The agent's instructions come first, so a trigger prompt only says what happened.
   const { event } = start;
   const cause = event
     ? `Started by ${event.type} of ${event.resource} (revision ${event.revision}) through ${event.operation}.`
     : `Started by the schedule (slot ${start.slot}).`;
   return {
     harnessId: agentHarness.id,
-    prompt: `${trigger.prompt ?? trigger.title}\n\n${cause}`,
+    prompt: `${agentInstructions(catalog, trigger.run.agent)}\n\n${trigger.prompt ?? trigger.title}\n\n${cause}`,
     context: {
       trigger: trigger.id,
       ...(event

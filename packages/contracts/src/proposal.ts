@@ -69,7 +69,11 @@ export const proposalOperations = {
         confidence: z.number().min(0).max(1).optional(),
         model: z.string().min(1).max(200).optional(),
         resource: z.string().min(1).max(256).optional(),
-        baseRevisions: revisionsSchema.optional(),
+        baseRevisions: revisionsSchema
+          .optional()
+          .describe(
+            'Optional. Each resource ID you were given a revision for (for example `lot:l1`, as the prompt that started the run names it), mapped to that revision. Accepting is refused as a conflict when one changed since. Omit it when you were given no revision.',
+          ),
       }),
     ),
     output: jsonSchema(proposalSchema),

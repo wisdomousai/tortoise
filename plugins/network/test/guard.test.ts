@@ -62,6 +62,7 @@ const server = Bun.serve({
     if (url.pathname === '/hop') return Response.redirect(`${url.origin}/ok`, 302);
     if (url.pathname === '/away') return Response.redirect('http://127.0.0.2:9/', 302);
     if (url.pathname === '/big') return new Response('x'.repeat(4096));
+    if (url.pathname === '/slow') return Bun.sleep(1_500).then(() => new Response('late'));
     return new Response('ok');
   },
 });
@@ -78,6 +79,29 @@ const local = (eventLog?: EventLogPort) =>
   });
 
 describe('egress guard', () => {
+  test("a binding's timeout replaces the guard's default for that destination only", async () => {
+    const egress = (timeoutMs?: number) =>
+      createEgress({
+        policy: policy({
+          mode: 'isolated',
+          destinations: {
+            'local-model': {
+              url: `http://127.0.0.1:${server.port}`,
+              ...(timeoutMs ? { timeoutMs } : {}),
+            },
+          },
+        }),
+        requirements,
+        timeoutMs: 1_000,
+      });
+    await expect(egress().client('local-model').fetch('/slow')).rejects.toThrow();
+    const response = await egress(5_000).client('local-model').fetch('/slow');
+    expect(await response.text()).toBe('late');
+    expect(() =>
+      policy({ destinations: { 'local-model': { url: 'http://127.0.0.1:1', timeoutMs: 10 } } }),
+    ).toThrow('expected number to be >=1000');
+  });
+
   test('a bound destination is reachable at its origin and every hop is audited', async () => {
     const log = createMemoryEventLog();
     const response = await local(log).client('local-model').fetch('/hop');

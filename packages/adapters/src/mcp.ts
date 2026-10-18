@@ -8,7 +8,10 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { createHttpTransport, type Transport } from '@agent-native/client';
 import {
+  agentInstructions,
   errorEnvelope,
+  expectedRevisionsSchema,
+  toolEnvelopeSchema,
   type Catalog,
   type CatalogAgent,
   type CatalogOperation,
@@ -17,22 +20,19 @@ import { readConnection } from './cli';
 
 /** Command transport metadata is outside the domain input, so models cannot forge trusted context. */
 export function toolInputSchema(operation: CatalogOperation) {
+  const command = operation.kind === 'command';
   return {
-    type: 'object' as const,
-    additionalProperties: false,
-    properties: {
-      input: operation.inputSchema,
-      ...(operation.kind === 'command'
+    ...toolEnvelopeSchema(
+      operation.inputSchema,
+      command
         ? {
             idempotencyKey: { type: 'string', minLength: 1 },
-            expectedRevisions: {
-              type: 'object',
-              additionalProperties: { type: 'integer', minimum: 0 },
-            },
+            expectedRevisions: expectedRevisionsSchema,
           }
-        : {}),
-    },
-    required: operation.kind === 'command' ? ['input', 'idempotencyKey'] : ['input'],
+        : {},
+      command ? ['input', 'idempotencyKey'] : ['input'],
+    ),
+    type: 'object' as const,
   };
 }
 
@@ -101,11 +101,12 @@ function agentText(catalog: Catalog, agent: CatalogAgent): string {
   const tools = agent.operations.map(
     (id) => catalog.operations.find((operation) => operation.id === id)?.mcpName ?? id,
   );
-  const mode =
+  // A proposing agent's instructions list the commands it may propose and their inputs.
+  const body =
     agent.output === 'direct'
-      ? 'You run these commands yourself.'
-      : 'Your commands are recorded as proposals for a person to accept; they are not applied.';
-  return `# ${agent.title}\n\n${agent.instructions}\n\n${mode}\n\nTools: ${tools.map((name) => `\`${name}\``).join(', ')}.\n\nBudgets per run: ${agent.budgets.turns} turns, ${agent.budgets.toolCalls} tool calls, ${agent.budgets.wallTimeMs / 1000} seconds.\n`;
+      ? `${agent.instructions}\n\nYou run these commands yourself.`
+      : agentInstructions(catalog, agent.id);
+  return `# ${agent.title}\n\n${body}\n\nTools: ${tools.map((name) => `\`${name}\``).join(', ')}.\n\nBudgets per run: ${agent.budgets.turns} turns, ${agent.budgets.toolCalls} tool calls, ${agent.budgets.wallTimeMs / 1000} seconds.\n`;
 }
 
 /** The contract, each workflow and each agent definition, as readable resources. */

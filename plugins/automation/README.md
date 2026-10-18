@@ -9,7 +9,7 @@ Layer: plugins (`plugins/*`). It has the three plugin entrypoints an application
 - [Trigger](../../docs/primitives.md#trigger): `defineTrigger`, `TriggerDefinition`, `TriggerSource`, the jobs a trigger runs (`Job`, `JobContext`, `TriggerEvent`) and the checks `resolveTriggers` applies when the plugin opens.
 - [Standing grant](../../docs/primitives.md#standing-grant): `automation.grant.issue`, `renew` and `revoke`, the `standingGrantSchema` record, and `runContext`, which turns a grant into the context one run executes under.
 - [Host plugin](../../docs/primitives.md#host-plugin): `createAutomationPlugin`, `automationPluginManifest`, `automationScreens`.
-- [Agent run](../../docs/primitives.md#agent-run): runs go through a run supervisor of the plugin's own, with the job harness (`createJobHarness`), the local harness when `localModel` is set, and any `agentHarnesses`. An agent run uses the first available harness that meets the agent's model requirement and fails with `UNAVAILABLE` when none does. Its model sees only the operations agent triggers may call.
+- [Agent run](../../docs/primitives.md#agent-run): runs go through a run supervisor of the plugin's own, with the job harness (`createJobHarness`), the local harness when `localModel` is set, and any `agentHarnesses`. An agent run uses the first available harness that meets the agent's model requirement and fails with `UNAVAILABLE` when none does. Its model sees only the operations agent triggers may call. The prompt starts with `agentInstructions` (the definition's instructions and, for a proposing agent, each command it may propose with its input schema), then the trigger's prompt and what started the run.
 
 ## Entrypoints
 
@@ -43,6 +43,7 @@ bun test plugins/automation
 - `test/automation.test.ts`: an event runs its job once as the issuer, and a crash after the commit but before the record replays on restart instead of repeating; the audit log records the run's command under the issuer and run and the recorded outcome; revoking stops future runs; a demoted issuer's run fails once into an open failure that only the issuer sees and resolves; only people issue, renew and revoke, each their own, and only the loop records progress; a schedule runs once per slot from the next one, within its budget; triggers that name unknown operations, jobs or agents, schedules under a minute, and runs that would start themselves are refused when the plugin opens.
 - `test/host.test.ts`: a serving host runs an enabled trigger and resumes from recorded progress after a restart; the screen references every bound operation.
 - `test/local-proposal.test.ts`: on a serving host with the site and network plugins, a received lot starts a run of a proposing agent on a local model, reached only through the `local-inference` destination bound to a loopback fixture server. The model sees only the lot query and `proposal.submit`; the proposal names the issuer, the run and the model and changes nothing; a viewer's accept is refused and leaves it open, and an inspector's accept commits the inspection as the inspector.
+- `test/live.test.ts`: the same flow on a real model, run only when `LOCAL_MODEL_GGUF` names a GGUF file. The test starts llama.cpp `llama-server` itself and binds `local-inference` to it with a five-minute `timeoutMs`.
 
 ## Skills
 

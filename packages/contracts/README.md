@@ -9,7 +9,7 @@ Layer: framework (`packages/*`). Domain-neutral; a domain defines its capabiliti
 - [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `jsonValueSchema` (any JSON value, the one recursive schema the portability check accepts), `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`.
 - [Module](../../docs/primitives.md#module): `defineModule`, `CapabilityModule`.
 - [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`.
-- [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, and the catalog checks `checkAgent` and `catalogAgents`.
+- [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, the catalog checks `checkAgent` and `catalogAgents`, and `agentInstructions`, the text a run's model starts with (for a proposing agent, each command it may propose with its input schema). Harnesses and surfaces build an operation's tool schema with `operationToolSchema` (or `toolEnvelopeSchema` and `expectedRevisionsSchema`), which moves a recursive input's `$defs` to the envelope's root so llama.cpp and strict MCP clients resolve them.
 - [Command](../../docs/primitives.md#command): the caller-safe error envelope (`ApplicationError`, `ErrorCode`, `errorEnvelope`).
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): `Requirements`, `NetworkDestination`, `DeviceRequirement`, `ProcessRequirement`, `defineHostComponent`, `collectRequirements`, `destinationsForTarget`, `destinationsForRead`.
 - [Remote query](../../docs/primitives.md#remote-query): the result shape every remote query returns (`remoteResultSchema`, `RemoteResult`, `remoteSourceStatusSchema`, `RemoteSourceStatus`) and its opaque page cursor (`remoteCursorSchema`).
@@ -54,7 +54,7 @@ bun test packages/contracts
 
 `test/data-provider.test.ts` covers data providers: literal IDs and types survive, both queries declare `remote`, search pages with a cursor the provider cannot redefine, and a provider without a destination that reads its target fails composition.
 
-`test/agent.test.ts` covers agent definitions in the catalog: sorted with their module, and refused for unknown or repeated operations, unbounded budgets, malformed scopes and a direct agent on a command without a UI binding. `test/contracts.test.ts` rejects an operation without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
+`test/agent.test.ts` covers agent definitions in the catalog: sorted with their module, and refused for unknown or repeated operations, unbounded budgets, malformed scopes and a direct agent on a command without a UI binding; and the instructions a proposing agent reads. `test/tool-envelope.test.ts` resolves every `$ref` of a wrapped recursive schema from its root, and offers `expectedRevisions` to commands other than `proposal.submit` only. `test/contracts.test.ts` rejects an operation without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
 
 `test/os.test.ts` covers OS declarations: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
 

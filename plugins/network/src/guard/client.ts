@@ -58,9 +58,9 @@ async function guardedFetch(
   const binding = await bindingFor(kernel, destinationId);
   let url = targetUrl(input, binding);
   const tls = tlsFor(binding);
-  const signal = init.signal
-    ? AbortSignal.any([init.signal, AbortSignal.timeout(kernel.timeoutMs)])
-    : AbortSignal.timeout(kernel.timeoutMs);
+  // The binding's own timeout, when the site set one, replaces the guard's default.
+  const timeout = AbortSignal.timeout(binding.timeoutMs ?? kernel.timeoutMs);
+  const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout;
   let method = init.method ?? 'GET';
   let body = init.body;
   for (let hop = 0; ; hop++) {

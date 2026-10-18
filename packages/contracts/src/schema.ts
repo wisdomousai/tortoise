@@ -144,3 +144,49 @@ export function jsonSchema<Z extends z.ZodType>(schema: Z): Schema<z.output<Z>> 
   };
   return Object.freeze({ jsonSchema: exported, parse, '~standard': standardSchema(schema, parse) });
 }
+
+/**
+ * A tool's input schema: the operation's input schema as the `input` property of an envelope,
+ * beside transport fields such as `expectedRevisions`. The input schema's `$defs` move to the
+ * envelope's root, because its references (`#/$defs/...`) resolve against the root of the
+ * document a model server or MCP client receives; left nested, a strict consumer such as
+ * llama.cpp's grammar builder refuses the tool.
+ */
+export function toolEnvelopeSchema(
+  inputSchema: JsonObject,
+  properties: JsonObject = {},
+  required: readonly string[] = ['input'],
+): JsonObject {
+  const { $defs, $schema: _schema, ...input } = inputSchema;
+  return {
+    type: 'object',
+    additionalProperties: false,
+    properties: { input, ...properties },
+    required: [...required],
+    ...($defs === undefined ? {} : { $defs }),
+  };
+}
+
+/** `expectedRevisions` as a tool offers it, described so a model fills it only from what it read. */
+export const expectedRevisionsSchema: JsonObject = {
+  type: 'object',
+  description:
+    'Optional. Each resource ID you were given a revision for (for example `lot:l1`, as the prompt that started the run names it), mapped to that revision. The command is refused as a conflict when one changed since. Omit it when you were given no revision.',
+  additionalProperties: { type: 'integer', minimum: 0 },
+};
+
+/**
+ * The tool schema an agent harness offers for one operation: the operation's input in the
+ * envelope and, for a command, the optional `expectedRevisions`. A query checks no revisions,
+ * and `proposal.submit` creates a record and carries the revisions it rests on in its input
+ * (`baseRevisions`), so neither is offered them; models given both fill the wrong one.
+ */
+export function operationToolSchema(operation: {
+  readonly id: string;
+  readonly kind: 'command' | 'query';
+  readonly inputSchema: JsonObject;
+}): JsonObject {
+  return operation.kind === 'command' && operation.id !== 'proposal.submit'
+    ? toolEnvelopeSchema(operation.inputSchema, { expectedRevisions: expectedRevisionsSchema })
+    : toolEnvelopeSchema(operation.inputSchema);
+}

@@ -56,6 +56,7 @@ export interface ResolvedBinding {
   readonly caPath?: string;
   readonly certificatePins?: readonly string[];
   readonly tls?: boolean;
+  readonly timeoutMs?: number;
 }
 /** What does not work in this deployment and why: the offline-first consequence list. */
 export interface OfflineConsequence {

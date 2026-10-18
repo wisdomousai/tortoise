@@ -79,11 +79,13 @@ const lotChecker = defineAgent({
 const lotReviewer = defineAgent({
   id: 'lot.reviewer',
   title: 'Lot reviewer',
-  instructions: 'Read the received lot and propose lot.inspect for it.',
+  instructions:
+    'Read the received lot with lot.get, then propose lot.inspect for it. Both take the lot’s own id, which is the part after `lot:` in its resource: `l1` for `lot:l1`.',
   operations: ['lot.get', 'lot.inspect'],
   model: 'local',
   output: 'propose',
-  budgets: { turns: 4, toolCalls: 4, wallTimeMs: 10_000 },
+  // Long enough for a real local model that reasons before each call (test/live.test.ts).
+  budgets: { turns: 4, toolCalls: 4, wallTimeMs: 180_000 },
 });
 const lotsModule = defineModule({
   id: 'lots',
