@@ -26,7 +26,7 @@ Plugin layer, as a library without plugin entrypoints. `./contracts` is browser-
 ### Application wiring
 
 - **Manifest:** list `opcUaServer({ id, destination, description, dataClasses })` in `components`. It declares a `site`-scoped `tcp` egress [destination](../../docs/glossary.md#destination) with offline `degrade`.
-- **Site policy:** bind the destination to `tcp://plc-gateway:4840`.
+- **Deployment policy:** bind the destination to `tcp://plc-gateway:4840`.
 - **`observe`:** build an `OpcUaClient({ network, destination, endpointUrl })`. Start `createOpcUaObserver({ client, fields: [{ id, node: 'ns=2;s=Press.Temperature', stableReads? }], application, context, ingestOperation })` with an interval. Stop the observer on shutdown, which closes the session.
 
 ### Client

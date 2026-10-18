@@ -32,7 +32,7 @@ The run supervisor executes runs that share a conversation ID one after another,
 
 Output is bounded, and known credential formats are redacted, including a secret split across streamed chunks. Redaction is a safety net: keep credentials away from runs in the first place.
 
-The host keeps run snapshots in their own SQLite database, `runs.sqlite` in the workspace directory. At startup, runs that had not settled become interrupted. The host never silently repeats a model turn or a committed command. Resume identifiers are provider-specific and are not a portable conversation format. The host appends each run's start and end to the [audit log](glossary.md#audit-log), without its prompt or output.
+The host keeps run snapshots in a separate SQLite database, `runs.sqlite`, in the workspace directory. At startup, runs that had not settled become interrupted. The host never silently repeats a model turn or a committed command. Resume identifiers are provider-specific and are not a portable conversation format. The host appends each run's start and end to the [audit log](glossary.md#audit-log), without its prompt or output.
 
 ## Application tools
 
@@ -72,7 +72,7 @@ The web frame's `approval-review` [UI registry](glossary.md#ui-registry) item li
 
 [`plugins/automation`](../plugins/automation/README.md) runs work without a person at the screen. A trigger starts an agent definition or a deterministic job on a committed change or on a schedule. Triggers are declared in code with `defineTrigger`, never at run time, and checked when the plugin opens. The check refuses unknown capabilities, jobs or agents, a schedule under one minute, and a run that would start its own trigger again.
 
-A trigger does nothing until a person enables it by issuing a standing grant. Only a person issues, renews or revokes a grant, and only their own. A grant lasts from one minute to 90 days. Issuing replaces any other active grant for the trigger, so one event never starts two runs. Revoking a grant stops future runs, and a run in progress finishes within its budget.
+A trigger does nothing until a person enables the trigger by issuing a standing grant. A person issues, renews or revokes only the standing grant of that principal. A grant lasts from one minute to 90 days. Issuing replaces any other active grant for the trigger, so one event never starts two runs. Revoking a grant stops future runs, and a run in progress finishes within its budget.
 
 Each pass of the trigger loop visits every trigger with an active grant. An event trigger reads the journal after its cursor as the issuer, narrowed to the capabilities it reacts to. A schedule trigger checks whether a new slot began. The loop starts one run per matching event or slot and records progress before the next, so a failed run is recorded and never retried. An idle loop writes nothing.
 

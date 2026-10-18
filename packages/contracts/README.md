@@ -52,7 +52,7 @@ The source files are `json`, `schema`, `capability`, `catalog`, `errors`, `requi
 - OS declarations that break the rules in `os-catalog.ts`;
 - requirement errors.
 
-The requirement errors are an outbox target without a queuing destination or queuing notify action, a process naming an undeclared destination, and a remote query whose target no destination `reads`. A declaration grants nothing by itself. A [site policy](../../docs/glossary.md#site-policy) binds it, and the [egress guard](../../docs/glossary.md#egress-guard) enforces it.
+The requirement errors are an outbox target without a queuing destination or queuing notify action, a process naming an undeclared destination, and a remote query whose target no destination `reads`. A declaration grants nothing by itself. A [deployment policy](../../docs/glossary.md#deployment-policy) binds it, and the [egress guard](../../docs/glossary.md#egress-guard) enforces it.
 
 An OS handler describes requests from any application or web page on the device. Its params and templates are therefore validated again when a request arrives. The catalog only proves that the declaration is coherent.
 

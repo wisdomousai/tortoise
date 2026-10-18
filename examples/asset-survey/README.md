@@ -75,7 +75,7 @@ For live extraction:
 
 - set `ASSET_SURVEY_MODEL` to a vision model's ID;
 - set `ASSET_SURVEY_MODEL_API_KEY` to its key;
-- bind `model-api` in the site policy to an OpenAI-compatible chat completions base URL, such as `https://api.openai.com/v1`. The destination is declared `https`, so the site check refuses a plain `http` URL such as a local server's.
+- bind `model-api` in the deployment policy to an OpenAI-compatible chat completions base URL, such as `https://api.openai.com/v1`. The destination is declared `https`, so the site check refuses a plain `http` URL such as a local server's.
 
 The application reads nothing else: no other variable, key store or provider login.
 
@@ -95,9 +95,9 @@ A paired device (`device:<id>`) may read its own feed, return its own assignment
 
 The [integration principal](../../docs/glossary.md#integration-principal) settles and syncs the `model`, `eam` and `export` targets only. A proposal never writes attributes. An EAM snapshot only updates `assetStatus` of nodes filed as that asset.
 
-The model's answer is untrusted input. The model extractor keeps only values under valid attribute names, from photos of the request, with confidence and regions clamped. Every value is a proposal that a person accepts or corrects. The extractor's requests reach only the `model-api` [destination](../../docs/glossary.md#destination) through the network port. The site policy decides the endpoint, and a request elsewhere fails.
+The model's answer is untrusted input. The model extractor keeps only values under valid attribute names, from photos of the request, with confidence and regions clamped. Every value is a proposal that a person accepts or corrects. The extractor's requests reach only the `model-api` [destination](../../docs/glossary.md#destination) through the network port. The deployment policy decides the endpoint, and a request elsewhere fails.
 
-The export directory belongs to the site. The site policy binds `filing-export` to an executable and its arguments. The reference [`export/worker.ts`](export/worker.ts) takes the directory as its last argument, for example `{ "executable": "/usr/local/bin/bun", "args": ["<repo>/examples/asset-survey/export/worker.ts", "/srv/survey-export"] }`. The worker:
+The export directory belongs to the site. The deployment policy binds `filing-export` to an executable and its arguments. The reference [`export/worker.ts`](export/worker.ts) takes the directory as its last argument, for example `{ "executable": "/usr/local/bin/bun", "args": ["<repo>/examples/asset-survey/export/worker.ts", "/srv/survey-export"] }`. The worker:
 
 - accepts one path segment as the folder name;
 - writes only photos whose bytes match their digest;
@@ -134,7 +134,7 @@ bunx playwright test examples/asset-survey/e2e
   - outsiders and the integration principal are refused.
 - `test/export.test.ts`:
   - an unbound export waits while the EAM filing of the same node goes out, and a second export of the node conflicts;
-  - bound through a site policy, the process writes one folder with the record and photos that match their digests, and the filing names it;
+  - bound through a deployment policy, the process writes one folder with the record and photos that match their digests, and the filing names it;
   - the worker answers a repeated effect as written;
   - the worker refuses another effect for the same folder, a photo that does not match its digest and a folder outside the directory.
 - `test/model-extractor.test.ts`:
@@ -348,7 +348,7 @@ Commands store the assignment states draft, dispatched and returned. The derived
 16. Keep these properties of the policy, because the check fails without them.
     - `mode` set to `connected`; without it the check reports `ISOLATED_BINDING`.
     - `grants.maxTtlSeconds`, which the `site-hub` profile requires; without it the check reports `GRANT_FLOOR`.
-    - The certificate and key in `site/`, because their paths resolve against the directory of the site policy.
+    - The certificate and key in `site/`, because their paths resolve against the directory of the deployment policy.
     - `https` URLs for both destinations, which are declared `https`.
 
 17. Check the policy against the declarations of the application that `app.config.json` hosts. The output lists `eam-api` and `model-api` under `bound`, and the unbound optional destinations of the plugins and the host's model providers under `consequences`.

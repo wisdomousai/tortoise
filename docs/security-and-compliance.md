@@ -4,14 +4,14 @@ An application declares what it may reach, the host enforces that, actions are r
 
 ## Concepts
 
-Terms: [requirement declarations](glossary.md#requirement-declaration), [destinations](glossary.md#destination), [exchange folders](glossary.md#exchange-folder), the [site policy](glossary.md#site-policy), [hardening profiles](glossary.md#hardening-profile), the [egress guard](glossary.md#egress-guard), the [audit log](glossary.md#audit-log) and the [compliance bundle](glossary.md#compliance-bundle).
+Terms: [requirement declarations](glossary.md#requirement-declaration), [destinations](glossary.md#destination), [exchange folders](glossary.md#exchange-folder), the [deployment policy](glossary.md#deployment-policy), [hardening profiles](glossary.md#hardening-profile), the [egress guard](glossary.md#egress-guard), the [audit log](glossary.md#audit-log) and the [compliance bundle](glossary.md#compliance-bundle).
 
 ## Controls and plugins
 
 The controls apply in this order:
 
 1. **Declare.** Modules, host components and plugins state what they need outside the process: destinations, exchange folders, devices and child processes.
-2. **Bind.** A site policy opens only what one [site](glossary.md#site) allows. Without a policy, nothing off the host is reachable.
+2. **Bind.** A deployment policy opens only what one [site](glossary.md#site) allows. Without a policy, nothing off the host is reachable.
 3. **Enforce.** The egress guard refuses everything else in process. Generated OS and orchestrator rules add a second layer.
 4. **Record.** The audit log records business actions, denials and connections in one hash chain.
 
@@ -19,12 +19,12 @@ Most examples compose the four plugins below, and the [examples table](architect
 
 | Plugin | Provides | CLI verb |
 | --- | --- | --- |
-| `site` | The site policy, the hardening profile floors, identity and exchange folders | `site check` |
+| `site` | The deployment policy, the hardening profile floors, identity and exchange folders | `site check` |
 | `network` | The egress guard, the proxy for child processes, TLS and mTLS ingress, and exported OS rules | `network export` |
 | `audit` | The audit log, forwarding, startup attestation and crash recovery | `audit verify` |
 | `compliance` | Auditor queries, the posture monitor and the Compliance screen | `compliance report` |
 
-Leaving a plugin out keeps its part closed. Without `network`, nothing leaves the host. Without `audit`, the kernel's audit log port keeps no log.
+Leaving a plugin out keeps its part closed. Without `network`, nothing leaves the host. Without `audit`, the composition's audit log port keeps no log.
 
 Startup refuses configuration that no composed plugin would enforce:
 
@@ -37,7 +37,7 @@ The host reads environment variables only for settings that a composed plugin de
 
 ## Declarations
 
-Modules, host components and plugins declare their requirements as data, and an application adds the host components it brings, such as a screen bridge or device drivers. The catalog composes them all. Reach is declared in the catalog because an OS sandbox alone is not portable, reviewers cannot read it, and it gives the application nothing to check.
+Modules, host components and plugins declare their requirements as data, and an application adds the host components it brings, such as a screen bridge or device drivers. The catalog composes the declarations. Reach is declared in the catalog. An OS sandbox is not portable, and the application cannot read or check the sandbox.
 
 The audit plugin declares its collector in `plugins/audit/src/plugin-manifest.ts`:
 
@@ -64,7 +64,7 @@ export const auditCollectorComponent = defineHostComponent({
 
 Building the catalog applies these rules (`packages/contracts/src/requirements.ts`):
 
-- **Fixed hosts.** A declaration names a host only for a fixed vendor endpoint. The site policy names site systems.
+- **Fixed hosts.** A declaration names a host only for a fixed vendor endpoint. The deployment policy names site systems.
 - **Outbox targets.** Every [target](glossary.md#target) travels over a declared destination, exchange folder or child process. A destination that carries [outbox effects](glossary.md#effect) must queue while offline.
 - **Child processes.** A child process lists the only destinations it may reach.
 - **Exchange folders.** A folder that another system reads or writes is declared by ID with its access (`read`, `write` or `read-write`), data classes and outbox targets. Code reaches a folder only through the folder port, so a module never names a path.
@@ -72,9 +72,9 @@ Building the catalog applies these rules (`packages/contracts/src/requirements.t
 
 Each application's generated contract and security manifest list the composed declarations.
 
-## Site policy
+## Deployment policy
 
-A site policy is deployment data for one site, validated against the composed declarations. The host reads it from `--site-policy` or `AGENT_NATIVE_SITE_POLICY`. Check one with `app site check --site <file>`, which reports the same findings that refuse startup.
+A deployment policy is deployment data for one site, validated against the composed declarations. The host reads it from `--site-policy` or `AGENT_NATIVE_SITE_POLICY`. Check one with `app site check --site <file>`, which reports the same findings that refuse startup.
 
 A policy file under the `sandbox` profile:
 
@@ -94,7 +94,7 @@ A policy file under the `sandbox` profile:
 ```
 
 - **Bindings** name declared destinations and must match their protocol, host and port.
-- **`addresses`** are CIDRs. They let the guard check DNS answers, which defeats DNS rebinding, and the rule exports need them. A binding without addresses gets a warning, and the exports keep it blocked instead of widening it.
+- **`addresses`** are CIDRs. The addresses let the guard check DNS answers, which defeats DNS rebinding, and the rule exports need the addresses. A binding without addresses gets a warning, and the exports keep it blocked instead of widening it.
 - **`ca`** replaces the trust store for one destination, and **`certificatePins`** pin its server certificates.
 - **`timeoutMs`** replaces the guard's 30-second request timeout for one destination, from 1 second to an hour. A local model server that reasons before it answers needs minutes.
 - **`folders`** binds each declared folder ID to an absolute directory or disables it with a reason. The directory can be a POSIX path, a Windows drive path or a UNC share. A disabled or unbound folder is unavailable through the folder port.
@@ -176,7 +176,7 @@ The export does not apply the rules; applying them is a deployment step. The tes
 
 ### Agent tool sandboxes
 
-The [execution host](glossary.md#execution-host) runs the tools an agent uses in Linux bubblewrap sandboxes. It starts each sandbox through the [process port](glossary.md#process-port), so the site policy binds and pins bubblewrap. Each sandbox has:
+The [execution host](glossary.md#execution-host) runs the tools an agent uses in Linux bubblewrap sandboxes. It starts each sandbox through the [process port](glossary.md#process-port), so the deployment policy binds and pins bubblewrap. Each sandbox has:
 
 - new namespaces;
 - a root that holds only the declared tools and named paths;
@@ -202,7 +202,7 @@ The audit log records these events in one chain:
 
 `packages/contracts/src/audit.ts` lists the event kinds. Each event carries the caller's principal, workspace, run and [channel](glossary.md#channel), the operation ID, a safe reason code and correlation IDs. It carries an input digest and only the input fields the capability allows.
 
-The kernel's audit log port keeps no log. Once `plugins/audit` is composed, the log runs in the policy's audit mode, which defaults to fail-closed. A supplied policy therefore needs the audit plugin unless it sets `best-effort`. The file log chains events with SHA-256 across rotated segments and writes checkpoints. It syncs every append, keeps its files private to the owner, and allows one writer per directory. It lives in the workspace unless the `audit-log` setting moves it.
+The composition's audit log port keeps no log. Once `plugins/audit` is composed, the log runs in the policy's audit mode, which defaults to fail-closed. A supplied policy therefore needs the audit plugin unless it sets `best-effort`. The file log chains events with SHA-256 across rotated segments and writes checkpoints. It syncs every append, keeps its files private to the owner, and allows one writer per directory. It lives in the workspace unless the `audit-log` setting moves it.
 
 ### Fail-closed ordering
 
@@ -249,11 +249,11 @@ Only listed auditors may read the audit log; at creation the workspace owner is 
 
 ## Isolated operation
 
-With no site policy, the application runs isolated:
+With no deployment policy, the application runs isolated:
 
 - it listens on loopback only;
 - outbox targets queue visibly;
-- inference providers report themselves unavailable;
+- inference providers report a status of unavailable;
 - the deterministic harness keeps working.
 
 A site connected to a fleet keeps working while the fleet is unreachable ([hosting](hosting.md#fleet)).

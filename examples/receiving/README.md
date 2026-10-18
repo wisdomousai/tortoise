@@ -14,7 +14,7 @@ The example is one [application](../../docs/primitives.md#application). It uses:
 
 - a [collection](../../docs/primitives.md#collection) of delivery lines, with generated reads and the default list and record screens;
 - a [policy](../../docs/primitives.md#policy) built with `definePolicy`;
-- the ERP as a [target](../../docs/primitives.md#target) whose [connector](../../docs/primitives.md#connector) is `fileTargetPort` from [`connector-files`](../../plugins/connector-files/README.md). It runs over three exchange folders, declared as [requirements](../../docs/primitives.md#requirement-declaration) and bound by the [site policy](../../docs/primitives.md#site-policy);
+- the ERP as a [target](../../docs/primitives.md#target) whose [connector](../../docs/primitives.md#connector) is `fileTargetPort` from [`connector-files`](../../plugins/connector-files/README.md). It runs over three exchange folders, declared as [requirements](../../docs/primitives.md#requirement-declaration) and bound by the [deployment policy](../../docs/primitives.md#deployment-policy);
 - an [agent definition](../../docs/primitives.md#agent-definition), `receiving.discrepancy`, whose [approval requests](../../docs/primitives.md#approval-request) a person approves or rejects;
 - [reconciliation](../../docs/primitives.md#reconciliation) of goods receipts the ERP left unclear, through `reconciliationOperations` and the Held receipts screen.
 
@@ -48,7 +48,7 @@ The manifest and the application list the `site`, `network`, `audit` and `compli
 
 The notice CSV has the columns `id`, `purchaseOrder`, `supplier`, `sku`, `description` and `expected`. The goods receipt CSV has the columns `delivery`, `purchaseOrder`, `sku`, `counted`, `reason` and `note`.
 
-The site policy binds each ID to a directory:
+The deployment policy binds each ID to a directory:
 
 ```json
 {
@@ -81,7 +81,7 @@ bun test examples/receiving
 bunx playwright test examples/receiving
 ```
 
-- `test/receiving.test.ts` runs an embedded instance with a site policy that binds the folders to temporary directories, and `FakeFileConsumer` playing the ERP. It covers:
+- `test/receiving.test.ts` runs an embedded instance with a deployment policy that binds the folders to temporary directories, and `FakeFileConsumer` playing the ERP. It covers:
   - notice import;
   - the agent's grant refusing a direct classification, and a viewer's approval being refused;
   - posting with a pending upstream, and settling from the receipt;
@@ -92,7 +92,7 @@ bunx playwright test examples/receiving
 - `test/agent-scenarios.test.ts` judges the discrepancy agent with [agent scenarios](../../docs/glossary.md#agent-scenario) on the deterministic harness. The agent requests approval for classifications and never commits them.
 - `test/conformance.test.ts` imports a notice through a served host and counts over HTTP. It reads one list directly, over HTTP, the CLI and MCP.
 - `test/ui-bindings.test.ts` checks that every bound capability is referenced by a screen.
-- `e2e/receiving.pw.ts` has two tests against the real host with a site policy:
+- `e2e/receiving.pw.ts` has two tests against the real host with a deployment policy:
   - the first waits for the notice import, then counts, classifies and posts a line in the browser. The test answers as the ERP, and the ERP screen then shows the receipt accepted.
   - the second leaves the receipt unreadable and records on the Held receipts screen that the ERP booked it.
 
@@ -109,7 +109,7 @@ Paths in this table are relative to the example directory, except those under `p
 | [Outbox effect](../../docs/primitives.md#outbox-effect) acknowledged as upstream | `handlers/erp-target.ts` (`erp.send`, effect type `goods-receipt.post`) | `test/receiving.test.ts`: `upstream: 2` after the first delivery pass |
 | [Connector](../../docs/primitives.md#connector) over exchange folders | `erp-port.ts` (`erpPort`, built on `fileTargetPort`) | `test/receiving.test.ts` with `FakeFileConsumer` as the ERP |
 | [Requirement declaration](../../docs/primitives.md#requirement-declaration) of folders | `contracts/erp-target.ts` (`erpExchange`); `manifest.ts` (`components`) | Every test that opens the application; [`test/ui-bindings.test.ts`](test/ui-bindings.test.ts) builds the catalog with `manifest.components` |
-| [Site policy](../../docs/primitives.md#site-policy) folder bindings | `sitePluginManifest` in `manifest.ts`; `sitePlugin` in `application.ts` | `test/receiving.test.ts`: the unbound drop folder test; [`e2e/receiving.pw.ts`](e2e/receiving.pw.ts) |
+| [Deployment policy](../../docs/primitives.md#deployment-policy) folder bindings | `sitePluginManifest` in `manifest.ts`; `sitePlugin` in `application.ts` | `test/receiving.test.ts`: the unbound drop folder test; [`e2e/receiving.pw.ts`](e2e/receiving.pw.ts) |
 | [Inbound sync](../../docs/primitives.md#inbound-sync) of notices | `erp-port.ts` (`feed`); `handlers/erp-target.ts` (`applyBatch`) | `test/receiving.test.ts`: the corrected notice and malformed export test |
 | [Reconciliation](../../docs/primitives.md#reconciliation) of held goods receipts | `contracts.ts` (`reconciliationOperations`); `handlers/reconciliation.ts`; `ui/reconcile.tsx` | `test/receiving.test.ts`: the unreadable receipt file test; the second test in `e2e/receiving.pw.ts` |
 | [Agent definition](../../docs/primitives.md#agent-definition) with `output: 'request-approval'` | `contracts.ts` (`receiving.discrepancy`) | [`test/agent-scenarios.test.ts`](test/agent-scenarios.test.ts) |
@@ -138,7 +138,7 @@ Paths in this table are relative to the example directory, except those under `p
 
 ## Notice import flow
 
-1. The ERP writes a CSV export into the folder that the site policy binds to `erp-asn`.
+1. The ERP writes a CSV export into the folder that the deployment policy binds to `erp-asn`.
 2. The target's inbound sync asks the connector in `erp-port.ts` for changes. The folder feed reads only files that have been quiet for the quiet period, which is 2 seconds unless the application's `quietMs` option sets it.
 3. The feed parses each row and passes it to the example's mapping callback, which converts the expected quantity to a number. The callback validates the row against `asnLineSchema`, and a row that does not fit fails the whole pass.
 4. The integration principal submits the batch as `erp.sync`. The policy admits that principal only through the ERP target's lane in `policy.ts`.
@@ -178,7 +178,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
    bun install --frozen-lockfile
    ```
 
-3. Add the ERP target over the collection. The command writes the target's files with a fake port, and lists an `erp-api` destination as disabled in the desktop site policy.
+3. Add the ERP target over the collection. The command writes the target's files with a fake port, and lists an `erp-api` destination as disabled in the desktop deployment policy.
 
    ```sh
    bun run scaffold add target erp --collection delivery
@@ -218,7 +218,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
     - inbox `erp-asn`, for notice exports;
     - drop `erp-goods-receipts`, for goods receipt files;
     - receipts `erp-receipts`, for the ERP's receipt files.
-18. Remove the generated `erp-api` entry from the module's network list and from the desktop site policy. A binding for a destination that nothing declares is a site policy error, even when the binding is disabled.
+18. Remove the generated `erp-api` entry from the module's network list and from the desktop deployment policy. A binding for a destination that nothing declares is a deployment policy error, even when the binding is disabled.
 19. Rename the generated effect type to `goods-receipt.post`, and export it as a constant from the target handlers file for the port to check.
 20. Replace the generated fake in `erp-port.ts` with a port factory that returns the connector's file target port. Give it a CSV drop whose encode callback writes a goods receipt as one row and rejects any other effect type.
 21. Give the port factory a CSV feed and a quiet period option that it passes to the feed. The feed's mapping callback converts the expected quantity to a number, validates the row against the notice line schema and throws on a row that does not fit.
@@ -236,7 +236,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
 33. Pass the manifest's components to the UI binding test, as `test/ui-bindings.test.ts` does. Without them the catalog refuses the ERP target, which then has no declared network destination, folder or process.
 34. In the generated target test, keep the case that refuses a viewer's send and a person's sync, and drop the other case. Change the file's open helper so it builds the application without the fake and without the `erp` option.
 35. Replace the generated collection, capability and agent tests with a behavioral test like `test/receiving.test.ts` and agent scenarios like the example's. The generated tests use the create command or empty inputs.
-36. Open the application in those tests with `openEmbeddedInstance`, a quiet period of 0 and a site policy setting that binds the three folders to temporary directories.
+36. Open the application in those tests with `openEmbeddedInstance`, a quiet period of 0 and a deployment policy setting that binds the three folders to temporary directories.
 37. Play the ERP with `FakeFileConsumer` from the connector's testing entrypoint. Run each delivery pass with `runOnce` on the ERP target's dispatcher from the instance's integrations, with backoff ignored.
 38. Replace the generated default screens spec with a spec like `e2e/receiving.pw.ts`. Keep the package name that the generated spec passes to `startService`, because the example's spec names the example's own package.
 39. Rewrite the generated `README.md` with the entrypoints, exchange folders, trust boundary and tests, as the example's README does.

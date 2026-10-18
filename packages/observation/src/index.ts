@@ -1,7 +1,7 @@
 /**
  * Server-only observation of sources that cannot be queried: readings with provenance, stability
  * across consecutive reads, confidence thresholds and submission through a domain ingest command.
- * `@agent-native/station` builds the screen observer on it; a driver connector builds the
+ * `@agent-native/screen-bridge` builds the screen observer on it; a driver connector builds the
  * instrument observer on it.
  */
 export {

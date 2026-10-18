@@ -10,11 +10,11 @@ Framework (`packages/*`). Server only, because the observer hashes payloads with
 
 - [Observation](../../docs/primitives.md#observation): readings with provenance, the stability gate and the observer.
   - `Reading`, `RawReading`, `FieldValue`: a field value with its provenance: the extractor, the frame's time and digest, and the `ModelIdentity` or `DeviceIdentity` of the model or driver that read it. A device identity records the driver ID and version, the unit's serial number and its firmware.
-  - `Extractor<Frame, Field, Modality>`: the [extractor](../../docs/glossary.md#extractor) that turns one frame, such as a screen capture or a driver's state read, into raw readings. `@agent-native/station` fixes it to screen captures and screen fields.
+  - `Extractor<Frame, Field, Modality>`: the [extractor](../../docs/glossary.md#extractor) that turns one frame, such as a screen capture or a driver's state read, into raw readings. `@agent-native/screen-bridge` fixes it to screen captures and screen fields.
   - `StabilityGate` and `gateReadings`: a reading counts only once the same value arrives on `stableReads` consecutive frames. A stable reading below the field's `minConfidence` is marked `uncertain`, so the domain asks a person instead of recording it.
   - `createObserver`: samples on an interval and submits each observation through the ingest capability. Unchanged content, which excludes times and digests, is resubmitted at most once per heartbeat window.
 
-`createStationObserver` in `@agent-native/station` is the screen observer built on these parts. A driver connector builds the instrument observer the same way.
+`createStationObserver` in `@agent-native/screen-bridge` is the screen observer built on these parts. A driver connector builds the instrument observer the same way.
 
 ## Entrypoints
 
@@ -38,7 +38,7 @@ Framework: `@agent-native/runtime`. Node: `node:crypto`.
 ## Tests
 
 ```sh
-bun test packages/observation packages/station
+bun test packages/observation workstations/screen-bridge
 ```
 
 - `test/observation.test.ts`: the gate with device provenance, uncertain and unknown fields, and the heartbeat and key rules.
@@ -48,5 +48,5 @@ The station suites cover the same rules through the screen observer.
 ## Skills
 
 - [observe-plant-signals](skills/observe-plant-signals/SKILL.md): MQTT, Sparkplug B and OPC UA sources as readings.
-- [bridge-station-screen](../station/skills/bridge-station-screen/SKILL.md): station software reached through its screen.
+- [bridge-station-screen](../../workstations/screen-bridge/skills/bridge-station-screen/SKILL.md): a workstation application reached through its screen.
 - [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.

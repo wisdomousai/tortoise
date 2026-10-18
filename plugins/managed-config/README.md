@@ -1,6 +1,6 @@
 # @agent-native/managed-config
 
-The managed configuration [host plugin](../../docs/glossary.md#host-plugin) supplies settings that an administrator sets through device management. On Android these are application restrictions, set by the MDM's device policy controller. On iOS they are managed app configuration, pushed by the MDM. The plugin reads the values when the [instance](../../docs/glossary.md#instance) opens and supplies them as other plugins' settings. A hub address, an enrollment code or a [site policy](../../docs/glossary.md#site-policy) therefore reaches the plugins that declare them without the person typing anything.
+The managed configuration [host plugin](../../docs/glossary.md#host-plugin) supplies settings that an administrator sets through device management. On Android these are application restrictions, set by the MDM's device policy controller. On iOS they are managed app configuration, pushed by the MDM. The plugin reads the values when the [instance](../../docs/glossary.md#instance) opens and supplies them as other plugins' settings. A hub address, an enrollment code or a [deployment policy](../../docs/glossary.md#deployment-policy) therefore reaches the plugins that declare them without the person typing anything.
 
 ## Layer
 

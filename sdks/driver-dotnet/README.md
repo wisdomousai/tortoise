@@ -62,7 +62,7 @@ Pass `HandlerThread = new HandlerThread()` in the options to run every handler o
 
 The thread waits with managed waits, and the runtime pumps COM messages during them. Calls and events marshalled from other apartments are therefore dispatched. A visible ActiveX control that needs a full Win32 message loop needs a window thread of its own.
 
-A 32-bit COM server needs a 32-bit driver. Publish it with `dotnet publish -r win-x86 --self-contained`, and bind that executable in the [site policy](../../docs/glossary.md#site-policy).
+A 32-bit COM server needs a 32-bit driver. Publish it with `dotnet publish -r win-x86 --self-contained`, and bind that executable in the [deployment policy](../../docs/glossary.md#deployment-policy).
 
 ## Trust boundary
 

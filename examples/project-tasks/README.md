@@ -1,6 +1,6 @@
 # @agent-native/project-tasks
 
-`project-tasks` is a local project and task workspace, and the smallest application that exercises the whole [kernel](../../docs/glossary.md#kernel). People and agents create projects, manage members with owner, editor and viewer roles, and create, edit and complete tasks. Owners see a private note on each task that no one else can read, search or sort by.
+`project-tasks` is a local project and task workspace, and the smallest application that exercises the whole [kernel](../../docs/glossary.md#composition). People and agents create projects, manage members with owner, editor and viewer roles, and create, edit and complete tasks. Owners see a private note on each task that no one else can read, search or sort by.
 
 It is the starter's default application in `app.config.json`, and the home of the framework's cross-cutting conformance suites. It demonstrates [state and reactivity](../../docs/state-and-reactivity.md), [authorization](../../docs/authorization.md), [agents](../../docs/agents.md) and [capability authoring](../../docs/capability-authoring.md).
 
@@ -134,8 +134,8 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | [OS handlers](../../docs/primitives.md#os-handler) and an [OS action](../../docs/primitives.md#os-action) | `os.ts`: `projectTasksOs` | `test/os.test.ts`; `e2e/os.pw.ts` |
 | [Shell port](../../docs/primitives.md#shell-port) for OS requests and instructions | `plugins/os`; the host's `shell/actions` and `shell/requests` routes | `test/os.test.ts`: "a reminder waits for the desktop…" |
 | [Audit log](../../docs/primitives.md#audit-log) written by the runtime | The audit plugin in `application.ts` | `test/security.test.ts`: "the host attests, audits each channel…" and "startup resolves a command accepted before a crash" |
-| [Site policy](../../docs/primitives.md#site-policy) and hardening floors, with [workforce sign-in](../../docs/primitives.md#workforce-sign-in) | The site plugin in `application.ts` | `test/security.test.ts`: "an unusable site policy refuses startup…"; `test/hardening.test.ts`: "an external identity floor needs a workforce provider…" |
-| [Egress guard](../../docs/primitives.md#egress-guard) | The network plugin in `application.ts` | `test/security.test.ts`: "provider egress is denied unless the site policy binds it" |
+| [Deployment policy](../../docs/primitives.md#deployment-policy) and hardening floors, with [workforce sign-in](../../docs/primitives.md#workforce-sign-in) | The site plugin in `application.ts` | `test/security.test.ts`: "an unusable deployment policy refuses startup…"; `test/hardening.test.ts`: "an external identity floor needs a workforce provider…" |
+| [Egress guard](../../docs/primitives.md#egress-guard) | The network plugin in `application.ts` | `test/security.test.ts`: "provider egress is denied unless the deployment policy binds it" |
 | [Host plugin](../../docs/primitives.md#host-plugin) composition, with a third-party plugin | Plugin lists in `manifest.ts`, `application.ts`, `screens.tsx` | `e2e/workspace.pw.ts`, which counts the plugins' MCP tools; `test/ui-bindings.test.ts` |
 | Exclusive workspace ownership through the [host platform](../../docs/primitives.md#host-platform) | `packages/host/src/platform/bun.ts`: `bunPlatform`; no example code | `packages/adapters/src/ownership.test.ts`; `test/security.test.ts`: "…refuses startup and releases the workspace" for release after a refused start |
 | [Workspace lease](../../docs/primitives.md#workspace-lease) on the hosted platform | No example code; `serve --hosted-workspace` | No test here; one by-hand run in the [implementation status](../../docs/implementation-status.md#hosted-instance) |
@@ -269,7 +269,7 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 20. Reference the bytes with `ctx.attach` in the create handler.
 21. Drop the reference with `ctx.detach` in the delete handler.
 22. Declare OS handlers and actions as an `OsDeclarations` object on the module. The [add-os-integration skill](../../packages/shell/skills/add-os-integration/SKILL.md) maps each kind to its plugin.
-23. Append the plugins that serve the declared kinds to the lists in `application.ts` and `manifest.ts`, with `osPlugin` before `notificationsPlugin`, which requires it. The kernel's `checkPlugins` refuses lists that differ in plugins or order, or that place a plugin before one it requires.
+23. Append the plugins that serve the declared kinds to the lists in `application.ts` and `manifest.ts`, with `osPlugin` before `notificationsPlugin`, which requires it. The composition's `checkPlugins` refuses lists that differ in plugins or order, or that place a plugin before one it requires.
 24. Set `integration: { target, delivery: 'outbox' }` on the capability that sends a notification. A target that a queueing notify action carries needs no network destination.
 25. Enqueue the notification with `ctx.enqueue`, passing `target`, `type`, `resource` and an `OsNotificationPayload` as `payload`. The payload holds the principal, the category, a title, an optional body and optional replies, as the [notifications plugin README](../../plugins/notifications/README.md) lists.
 26. Declare a notify OS action whose `targets` list the outbox target and whose offline mode is `queue`. Give it `dataClasses` for the payload's fields and a category whose buttons name a reply handler.

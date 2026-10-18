@@ -66,7 +66,7 @@ A reading is not a result until a person confirms it. The instrument does not kn
 - it is in another unit than the characteristic;
 - its value or time differs from the reading on screen.
 
-The driver is optional. Without a site-policy binding for the `instrument-driver` process, nothing starts and the capture station looks as before. To run it, install the SDK (`sdks/driver-python`) and `pyserial` into a Python environment. Then bind the process in the site policy:
+The driver is optional. Without a deployment policy binding for the `instrument-driver` process, nothing starts and the capture station looks as before. To run it, install the SDK (`sdks/driver-python`) and `pyserial` into a Python environment. Then bind the process in the deployment policy:
 
 ```json
 {
@@ -131,7 +131,7 @@ bunx playwright test examples/quality-inspection/e2e
   - the test needs `python3` and `pyserial`, installed or in uv's cache, and is skipped otherwise.
 - `e2e/inspection.pw.ts`, in Chromium: keyboard-only capture, wedge bursts and double Enter record once, live system-of-record outcomes, and drafts keep their sample.
 - `e2e/compliance.pw.ts`: the Compliance screen shows a new denial without a reload.
-- `e2e/instrument.pw.ts`, in Chromium with the real host, a site policy binding the Python driver and a pseudo-terminal instrument: a key press on the instrument is offered on the capture station and recorded with **Use reading**. It is skipped without uv and a cached `pyserial`.
+- `e2e/instrument.pw.ts`, in Chromium with the real host, a deployment policy binding the Python driver and a pseudo-terminal instrument: a key press on the instrument is offered on the capture station and recorded with **Use reading**. It is skipped without uv and a cached `pyserial`.
 
 ## Demonstrated mechanisms
 
@@ -167,7 +167,7 @@ Paths under the packages and scripts directories are relative to the repository 
 | [Driver SDK](../../docs/primitives.md#driver-sdk) in Python | `drivers/instrument/instrument_driver.py` | `test/instrument-driver.test.ts`; `drivers/instrument/test_instrument_driver.py` |
 | [Host plugins](../../docs/primitives.md#host-plugin) for site, network, audit and compliance | `manifest.ts`; `application.ts` | `test/security.test.ts`; `e2e/compliance.pw.ts` |
 | [Requirement declaration](../../docs/primitives.md#requirement-declaration) for the target and the driver | `contracts.ts`; `contracts/instrument.ts` | `test/security.test.ts` |
-| [Site policy](../../docs/primitives.md#site-policy) and [egress guard](../../docs/primitives.md#egress-guard) export | `site-policy.sandbox.json` | `test/security.test.ts` |
+| [Deployment policy](../../docs/primitives.md#deployment-policy) and [egress guard](../../docs/primitives.md#egress-guard) export | `site-policy.sandbox.json` | `test/security.test.ts` |
 | [Audit log](../../docs/primitives.md#audit-log) and [compliance bundle](../../docs/primitives.md#compliance-bundle) | The audit and compliance plugins | `test/security.test.ts`; `test/sandbox.test.ts` |
 | [State migration](../../docs/primitives.md#state-migration) without numbered versions | `application.ts` `upgradeState` | `test/instrument.test.ts`, "state saved before readings existed is upgraded with an empty set" |
 
@@ -187,7 +187,7 @@ Paths under the packages and scripts directories are relative to the repository 
 | `fake-sor.ts` | `FakeQualitySystem`, the seed data and `toSyncInput`, used only by `application.ts` and the tests. |
 | `ui/` | The screens and their parts. |
 | `drivers/instrument/` | The Python driver, its generated contract stub, a pseudo-terminal instrument simulator and Python unit tests. |
-| `site-policy.sandbox.json` | A site policy under the `sandbox` hardening profile, read by the security test. |
+| `site-policy.sandbox.json` | A deployment policy under the `sandbox` hardening profile, read by the security test. |
 | `domain.test.ts`, `test/` | Bun tests, and the shared instrument fixture in `test/instrument-fixture.ts`. |
 | `e2e/` | Playwright specs against a host started by `tests/e2e/service.ts` in the repository root. |
 
@@ -221,7 +221,7 @@ Defects follow the same path with the effect type `defect.post`. A usage decisio
 
 The [Measuring instrument](#measuring-instrument) section describes what the inspector sees and when a confirmation is refused. The steps below name the code for each stage.
 
-1. The process plugin starts `instrument-driver` only when the site policy binds it. The `observe` hook of `connect` in `application.ts` checks the binding with `processes.availability` and starts nothing without it.
+1. The process plugin starts `instrument-driver` only when the deployment policy binds it. The `observe` hook of `connect` in `application.ts` checks the binding with `processes.availability` and starts nothing without it.
 2. `instrument_driver.py` reads lines from the serial port and sends a `measurement.taken` event for each measurement. The file documents the line format and the output modes.
 3. The ingest from `createInstrumentIngest` in `application.ts` runs `inspection.instrument.ingest` as the instrument principal. Its idempotency key `driver:<contract id>:<session>:<seq>` makes a replayed event record once.
 4. The ingest handler in `handlers/instrument.ts` stores the instrument reading.
@@ -305,7 +305,7 @@ Steps that cite a file of an existing example give its path from the framework r
    - an outcome that cannot be established throws `DeliveryUncertain`;
    - an effect the target acknowledged but has not decided returns `{ status: 'pending' }`.
 5. Pass the connector as the application's port option. This example takes `systemOfRecord`, and a generated application takes an option named for the target.
-6. Bind the target's network destination in the site policy, as the [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md) skill describes. A generated application lists it as disabled in `apps/desktop/site-policy.json`.
+6. Bind the target's network destination in the deployment policy, as the [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md) skill describes. A generated application lists it as disabled in `apps/desktop/site-policy.json`.
 
 ### Entrypoints
 
@@ -386,7 +386,7 @@ Follow the [write-hardware-driver](../../plugins/connector-driver/skills/write-h
     pkill -f "tail -f /dev/null"
     ```
 
-19. Bind the driver's process in the site policy, with its executable, arguments and settings.
+19. Bind the driver's process in the deployment policy, with its executable, arguments and settings.
 
 ### Tests and checks
 
@@ -427,11 +427,11 @@ Follow the [write-hardware-driver](../../plugins/connector-driver/skills/write-h
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) and [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) skills
 - [CRM capture](../crm-capture/README.md), which adds a remote query and adoption over a system of record
 - [Receiving](../receiving/README.md), which reaches its system of record through shared folders and reconciles held effects
-- [Line station](../line-station/README.md), which drives station software through a .NET driver
+- [Line station](../line-station/README.md), which drives workstation application through a .NET driver
 
 ## Skills
 
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) covers the target, delivery and inbound sync.
 - [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md) covers the instrument driver.
-- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md) covers the site policy, starting from `site-policy.sandbox.json`.
+- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md) covers the deployment policy, starting from `site-policy.sandbox.json`.
 - [build-screens](../../packages/frame/skills/build-screens/SKILL.md) covers the capture screens and registry parts.

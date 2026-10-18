@@ -1,6 +1,6 @@
 ---
 name: observe-plant-signals
-description: Read values from plant control systems into an agent-native application as gated readings, through an MQTT broker (plain topics or Sparkplug B) or an OPC UA server. Use when a module needs machine state, counters or process values that only a broker or controller gateway has, when writing an ingest command for such readings, or when binding a broker or OPC UA server in a site policy. Covers packages/observation, plugins/connector-mqtt and plugins/connector-opcua.
+description: Read values from plant control systems into an agent-native application as gated readings, through an MQTT broker (plain topics or Sparkplug B) or an OPC UA server. Use when a module needs machine state, counters or process values that only a broker or controller gateway has, when writing an ingest command for such readings, or when binding a broker or OPC UA server in a deployment policy. Covers packages/observation, plugins/connector-mqtt and plugins/connector-opcua.
 ---
 
 # Observe plant signals
@@ -25,7 +25,7 @@ A broker or an OPC UA server is a source that can be read but not queried for hi
    - for MQTT, `createMqttObserver({ subscriber: { network, destination, clientId, username?, password? }, fields, application, context, ingestOperation })`;
    - for OPC UA, an `OpcUaClient({ network, destination, endpointUrl })` passed to `createOpcUaObserver({ client, fields, ... })`.
 5. Call `start(intervalMs, onError)` and return the observer so the [host](../../../../docs/glossary.md#host) stops it.
-6. Bind the [destination](../../../../docs/glossary.md#destination) in the [site policy](../../../../docs/glossary.md#site-policy): `tcp://broker:1883`, `tls: true` for 8883, or `tcp://gateway:4840`. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) has the policy steps.
+6. Bind the [destination](../../../../docs/glossary.md#destination) in the [deployment policy](../../../../docs/glossary.md#deployment-policy): `tcp://broker:1883`, `tls: true` for 8883, or `tcp://gateway:4840`. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) has the policy steps.
 7. Take broker credentials from the deployment, never from code.
 
 ## Checks

@@ -16,9 +16,9 @@ The workspace is a canonical path on a local filesystem. A dedicated lock databa
 
 The window first tries to attach. It reads the private [connection file](glossary.md#connection-file), checks that the endpoint is loopback, verifies the contract with the bearer token and asks for a one-time launch credential. A connection file alone does not prove that a host is alive. If attaching fails, Electron launches the compiled host from the runtime manifest and waits for its ready line. It performs the same handshake and loads the bootstrap URL. Secrets go to the host and never through the preload.
 
-An attached host stays owned by whoever started it, and closing an attaching window never stops it. Electron stops a host it started only if the instance file still names that exact instance, so a failed competing launch cannot stop the winner. The default workspace sits under Electron's `userData` directory. Trusted launchers and tests can point `AGENT_NATIVE_WORKSPACE` elsewhere; the renderer cannot.
+An attached host stays owned by the process that started the host, and closing an attaching window never stops the host. Electron stops a host it started only if the instance file still names that exact instance, so a failed competing launch cannot stop the winner. The default workspace sits under Electron's `userData` directory. Trusted launchers and tests can point `AGENT_NATIVE_WORKSPACE` elsewhere; the renderer cannot.
 
-## Site policy
+## Deployment policy
 
 The build ships `apps/desktop/site-policy.json`, under the `desktop-local` [hardening profile](glossary.md#hardening-profile). It binds only the OpenAI and Anthropic provider endpoints and asks for a fail-closed [audit log](glossary.md#audit-log). Under this policy, an application that composes the site plugin also needs the network and audit plugins, or startup refuses (`plugins/site/src/needs.ts`). The `desktop-local` profile is the only one that accepts a best-effort audit log ([security and compliance](security-and-compliance.md#hardening-profiles)). `AGENT_NATIVE_SITE_POLICY` in the trusted host environment substitutes another policy.
 
@@ -32,11 +32,11 @@ Windows registers the scheme at startup with `--` before the link. A packaged ma
 
 ## Packaged resources
 
-The targets are macOS arm64 and x64, Windows x64 and Linux x64 with glibc. Each stage contains the compiled host, the web assets, the site policy, native Codex and Claude distributions, the credential addon, a runtime manifest and the bundled Electron scripts. No developer Bun, Node, Codex or Claude installation is needed. Versions are pinned in the staging configuration and the lockfile.
+The targets are macOS arm64 and x64, Windows x64 and Linux x64 with glibc. Each stage contains the compiled host, the web assets, the deployment policy, native Codex and Claude distributions, the credential addon, a runtime manifest and the bundled Electron scripts. No developer Bun, Node, Codex or Claude installation is needed. Versions are pinned in the staging configuration and the lockfile.
 
-- **Acquisition.** Native distributions keep their adjacent assets and licenses. They come only from the npm registry over HTTPS, at pinned versions, with the registry's integrity hash verified.
+- **Acquisition.** Native distributions keep adjacent assets and licenses. The distributions come only from the npm registry over HTTPS, at pinned versions, with the registry's integrity hash verified.
 - **Extraction** rejects path traversal, links and device files.
-- **The runtime manifest** records relative paths and SHA-256 digests. Startup checks the primary executables and the site policy, and the offline smoke test checks every file. Digests detect a damaged stage; signing is a separate release step.
+- **The runtime manifest** records relative paths and SHA-256 digests. Startup checks the primary executables and the deployment policy, and the offline smoke test checks every file. Digests detect a damaged stage; signing is a separate release step.
 - **The credential addon** is embedded through a generated static require, because Bun cannot follow npm's dynamic platform loader.
 - **Provider binaries** stay outside the archive and are invoked by absolute path. The native Claude executable brings its own runtime.
 
@@ -44,7 +44,7 @@ The targets are macOS arm64 and x64, Windows x64 and Linux x64 with glibc. Each 
 
 `bun run dev`, from the repository root or an example, opens the window without packaging. The launcher builds the web assets, bundles the main and preload scripts, and starts Electron in development mode. Electron starts the host from source in that workspace, or attaches when an instance already runs there. An example's dev script keeps its fakes alive until the window closes.
 
-A packaged build ignores development mode. The source host inherits the developer's environment, but the workspace, port, web root, runtime manifest and site policy that Electron sets win. The desktop site policy is the default, so provider sign-in behaves as in a packaged build. Set `AGENT_NATIVE_SITE_POLICY` to an empty value to run isolated. `bun run dev:web` serves the browser without a window.
+A packaged build ignores development mode. The source host inherits the developer's environment, but the workspace, port, web root, runtime manifest and deployment policy that Electron sets win. The desktop deployment policy is the default, so provider sign-in behaves as in a packaged build. Set `AGENT_NATIVE_SITE_POLICY` to an empty value to run isolated. `bun run dev:web` serves the browser without a window.
 
 ## Build and smoke test
 
@@ -66,7 +66,7 @@ The packaged-window tests take the absolute path of the executable:
 DESKTOP_EXECUTABLE='/absolute/path/to/packaged/executable' bunx playwright test tests/e2e/desktop.pw.ts
 ```
 
-They check the window's isolation, live UI updates, persistence across reopen, shutdown of an owned host and survival of an attached one. Rerun them on the final stage after any change; the executable path identifies the artifact that was checked.
+The packaged-window tests check the window's isolation, live UI updates, persistence across reopen, shutdown of an owned host and survival of an attached one. Rerun the tests on the final stage after any change; the executable path identifies the artifact that was checked.
 
 ## Platform gates
 
@@ -87,7 +87,7 @@ On Linux, a missing or locked Secret Service leaves credential-free work usable 
 ## Related pages
 
 - [`apps/desktop`](../apps/desktop/README.md): the Electron sources and their trust checks.
-- [Security and compliance](security-and-compliance.md): site policy, hardening profiles and the audit log.
+- [Security and compliance](security-and-compliance.md): deployment policy, hardening profiles and the audit log.
 - [Implementation status](implementation-status.md#desktop): the native runs.
 - [Electron security recommendations](https://www.electronjs.org/docs/latest/tutorial/security)
 - [Electron application packaging](https://www.electronjs.org/docs/latest/tutorial/application-distribution)

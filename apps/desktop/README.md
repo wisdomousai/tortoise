@@ -24,7 +24,7 @@ This package exports nothing; Electron runs it.
 | [`src/development-launch.ts`](src/development-launch.ts) | Electron main | The source launch behind `bun run dev`, honored only when Electron reports an unpackaged build. |
 | [`src/os-shell.ts`](src/os-shell.ts) | Electron main | OS input and relayed OS actions, wired to the framework's desktop shell adapter. |
 | [`src/preload.ts`](src/preload.ts) | preload | Exposes `desktopHost` with the platform name and a `desktop` flag only. |
-| [`site-policy.json`](site-policy.json) | sidecar | The shipped site policy: `desktop-local` hardening profile, provider endpoints only, fail-closed audit log. |
+| [`site-policy.json`](site-policy.json) | sidecar | The shipped deployment policy: `desktop-local` hardening profile, provider endpoints only, fail-closed audit log. |
 
 `src/os-shell.ts` handles:
 
@@ -33,7 +33,7 @@ This package exports nothing; Electron runs it.
 - the declared shortcuts, as the macOS dock menu and the Windows jump list;
 - window opens.
 
-`bun run dev` opens the same window against `apps/service` run from source. A packaged build verifies the digests of the compiled [host](../../docs/glossary.md#host) executable and the shipped [site policy](../../docs/glossary.md#site-policy) before launch. Package a build with:
+`bun run dev` opens the same window against `apps/service` run from source. A packaged build verifies the digests of the compiled [host](../../docs/glossary.md#host) executable and the shipped [deployment policy](../../docs/glossary.md#deployment-policy) before launch. Package a build with:
 
 ```sh
 bun run package:stage <target>
@@ -46,7 +46,7 @@ The renderer runs sandboxed, with context isolation, no Node integration and web
 
 A URL the renderer asks to open leaves only when a declared [OS action](../../docs/glossary.md#os-action) builds it. An example is the PKCE account-authorization URL of the `openai.authorize` action. The URL opens in the system browser, so provider sign-in never runs inside the window. With the `plugins/os` [host plugin](../../docs/glossary.md#host-plugin) composed, main performs the open as that action, so it is audited and the site can disable it. Without the plugin, main rebuilds the URL from the declaration and opens it without an audit record.
 
-Main owns only the exact child it launched and stops only that child. Closing an attached window leaves an existing instance running. Workspace, port, web root, runtime manifest and site policy are applied after any developer environment, so a launch cannot override them. A packaged process ignores the development flag and keeps the digest checks. Changed native bytes, path traversal and links in native packages are refused.
+Main owns only the exact child it launched and stops only that child. Closing an attached window leaves an existing instance running. Workspace, port, web root, runtime manifest and deployment policy are applied after any developer environment, so a launch cannot override them. A packaged process ignores the development flag and keeps the digest checks. Changed native bytes, path traversal and links in native packages are refused.
 
 `scripts/boundary-rules.ts` lists two reviewed [egress guard](../../docs/glossary.md#egress-guard) exemptions in this package. `src/service-lifecycle.ts` starts the loopback sidecar. `src/os-shell.ts` calls the shell API of that sidecar.
 
@@ -76,4 +76,4 @@ The native Playwright tests need an already packaged build and skip without `DES
 ## Skills
 
 - [add-os-integration](../../packages/shell/skills/add-os-integration/SKILL.md): OS handlers and actions, and the electron-builder registrations.
-- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): the shipped site policy and its test.
+- [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): the shipped deployment policy and its test.

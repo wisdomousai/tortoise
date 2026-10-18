@@ -9,7 +9,7 @@ import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 import { driverPluginManifest } from '@agent-native/connector-driver/plugin-manifest';
 import { deviceConfigModule } from '@agent-native/devices/contracts';
 import { scannerDevicesComponent } from '@agent-native/devices/requirements';
-import { stationBridgeComponent } from '@agent-native/station/requirements';
+import { stationBridgeComponent } from '@agent-native/screen-bridge/requirements';
 import { lineStationModule } from './contracts';
 import { stationAutomationContract } from './contracts/automation';
 

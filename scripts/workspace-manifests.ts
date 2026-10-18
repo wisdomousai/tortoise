@@ -1,5 +1,5 @@
 /**
- * The publishable workspaces (`packages/*` and `plugins/*`) and the manifest each must carry to
+ * The publishable workspaces (`packages/*`, `workstations/*` and `plugins/*`) and the manifest each must carry to
  * install from a registry: its own dependencies, worked out from what its published source
  * imports, the shared framework version, and which files it packs. Inside this checkout the root
  * manifest lists every dependency, so a missing entry here only fails for someone installing the
@@ -9,7 +9,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { isBuiltin } from 'node:module';
 import { join } from 'node:path';
 
-export const publishedLayers = ['packages', 'plugins'] as const;
+export const publishedLayers = ['packages', 'workstations', 'plugins'] as const;
 
 /** Packed into every published package: everything except tests and development scripts. */
 export const publishedFiles = [

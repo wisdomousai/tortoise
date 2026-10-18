@@ -5,7 +5,7 @@ import {
   createWorkerExtractor,
   type Extractor,
   type PlaywrightPageLike,
-} from '@agent-native/station';
+} from '@agent-native/screen-bridge';
 import { createLineStationBridge, filler, loadProfile } from './bridge';
 import { createSimulatorOcr } from './fake-hmi/memory';
 import type { HostedApplication } from '@agent-native/host/application';

@@ -1,16 +1,16 @@
 # @agent-native/process
 
-The process [host plugin](../../docs/glossary.md#host-plugin). It provides the kernel's [process port](../../docs/glossary.md#process-port), which starts the child processes that modules and host components declare. Each start uses the executable, arguments, working directory, pin and environment variables that the [site policy](../../docs/glossary.md#site-policy) binds under `processes`. Server code that needs a child, such as a perception worker or a hardware driver, asks the port by process ID and never names an executable itself.
+The process [host plugin](../../docs/glossary.md#host-plugin). It provides the host's [process port](../../docs/glossary.md#process-port), which starts the child processes that modules and host components declare. Each start uses the executable, arguments, working directory, pin and environment variables that the [deployment policy](../../docs/glossary.md#deployment-policy) binds under `processes`. Server code that needs a child, such as a perception worker or a hardware driver, asks the port by process ID and never names an executable itself.
 
 ## Layer
 
-Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`. The plugin trusts the site policy as the only source of executables, and the site plugin to have validated it.
+Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`. The plugin trusts the deployment policy as the only source of executables, and the site plugin to have validated it.
 
 ## Primitives
 
 - [Host plugin](../../docs/primitives.md#host-plugin): `processPlugin`, `processPluginManifest`, `openProcesses`. `processPlugin` requires `site` and provides the `processes` port. It is written only against `@agent-native/host/plugin`.
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): a process declares `secrets`, the environment variable names it needs, and no values.
-- [Site policy](../../docs/primitives.md#site-policy): the `processes` section binds each declared process to an absolute executable, or disables it.
+- [Deployment policy](../../docs/primitives.md#deployment-policy): the `processes` section binds each declared process to an absolute executable, or disables it.
 - [Egress guard](../../docs/primitives.md#egress-guard): a process that declares destinations gets the network port's `childEnvironment`, which points it at the loopback proxy.
 - [Audit log](../../docs/primitives.md#audit-log): every start, refusal and exit is a `child.started`, `child.refused` or `child.exited` record.
 - [Process port](../../docs/primitives.md#process-port): the port this plugin provides. [Hardware drivers](../../docs/hardware-drivers.md) use it most.
@@ -43,7 +43,7 @@ What the plugin does at each lifecycle hook:
 
 ### Executable
 
-The executable comes only from the site policy. The policy refuses a relative executable or working directory, a binding for an undeclared process, and an unbound required process. Each start rechecks availability in this order:
+The executable comes only from the deployment policy. The policy refuses a relative executable or working directory, a binding for an undeclared process, and an unbound required process. Each start rechecks availability in this order:
 
 1. declared;
 2. not disabled;
@@ -100,4 +100,4 @@ bun test plugins/process packages/kernel/test/processes.test.ts
 ## Skills
 
 - [write-hardware-driver](../connector-driver/skills/write-hardware-driver/SKILL.md): driver contracts, SDKs and driver checks.
-- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): site policy, signed bundles and install.
+- [deploy-to-site](../site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.

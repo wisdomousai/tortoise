@@ -1,15 +1,15 @@
 # Systems of record
 
-An [application](glossary.md#application) delivers what it captures to a system of record, such as an ERP, MES, QMS, CRM, EAM or a peer [host](glossary.md#host), and reads that system's data. Coding agents follow the [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md) skill.
+A [system of record](glossary.md#system-of-record) owns records an [application](glossary.md#application) reads or changes, and decides which of those changes it accepts. It cannot join the application's transaction. A [command](glossary.md#command) that changes those records commits an [outbox effect](glossary.md#effect) with the local change. The [dispatcher](glossary.md#dispatcher) delivers the effect afterwards. The [connect-system-of-record](../packages/integration/skills/connect-system-of-record/SKILL.md) skill covers the connection.
 
 ## Concepts
 
 Terms: [system of record](glossary.md#system-of-record), [outbox effect](glossary.md#effect), [dispatcher](glossary.md#dispatcher), [connector](glossary.md#connector), [delivery outcome](glossary.md#delivery-outcome), [settlement](glossary.md#settlement), [reconciliation](glossary.md#reconciliation), [grant file](glossary.md#grant-file) and [remote query](glossary.md#remote-query).
 
-In this pattern, a capture application with a bounded working set sits in front of a system of record. People at [screens](glossary.md#screen), the CLI and agents through MCP can use every [capability](glossary.md#capability). These [examples](glossary.md#example) use it:
+The application keeps its working set, its pending effects and their outcomes. People at [screens](glossary.md#screen), the CLI and agents through MCP can use every [capability](glossary.md#capability). These [examples](glossary.md#example) connect a system of record:
 
 - `quality-inspection`: inspection lots, specifications and code groups arrive from an in-memory quality system. Inspectors or an agent record values and codes, and each result is delivered, then accepted or rejected.
-- `crm-capture`: each [caller](glossary.md#caller) searches a fake CRM with their own access and adopts the accounts they find.
+- `crm-capture`: the [caller](glossary.md#caller) searches a fake CRM with the caller's access and adopts the accounts the caller finds.
 - `receiving`: an ERP reached only through shared folders. Notices are imported from an inbox, and goods receipts are delivered as files and settled from receipt files.
 
 ## Topologies
@@ -28,7 +28,7 @@ The process pulls master data once, then delivers and syncs in the background. A
 
 ### Topology choice
 
-Choose by where the system of record's credential may live. In embedded mode the dispatcher, and the credential with it, runs inside the sandbox container. That suits a customer-controlled sandbox container whose only egress is the system of record. When the agent's environment is not trusted, run `serve` outside it and attach through a grant-bound connection file. The agent then reaches only capabilities in the [catalog](glossary.md#catalog).
+The credential's location decides the mode. In embedded mode the dispatcher, and the credential with it, runs inside the sandbox container. The container's only egress is the system of record. When the agent's environment is not trusted, run `serve` outside the environment and attach through a grant-bound connection file. The agent then reaches only capabilities in the [catalog](glossary.md#catalog).
 
 The topology does not isolate the agent. Isolation comes from a sandbox container or a separate OS user, the egress policy and the [delegated grant](glossary.md#grant).
 
@@ -91,7 +91,7 @@ The dispatcher holds an effect in these cases:
 
 The dispatcher never retries a held effect. Only a domain command settles or releases it. Releasing a held effect returns it to delivery on the next pass, without backoff, and drops any acknowledgement.
 
-`reconciliationHandlers` serves the reconciliation capabilities. One lists held effects by target or record. The other records a person's decision: applied settles the effect as accepted, with the person's reference or one naming them. Refused settles it as rejected, and not applied releases it. The domain's `onResolved` runs in the same transaction.
+`reconciliationHandlers` serves the reconciliation capabilities. One lists held effects by target or record. The other records a person's decision: applied settles the effect as accepted, with the person's reference or a reference naming the person. Refused settles the effect as rejected, and not applied releases the effect. The domain's `onResolved` runs in the same transaction.
 
 An effect that the domain's visibility rule hides from the caller reads as missing, in the list and in a decision. The held and reconciliation tests in `packages/integration/test` cover this.
 
@@ -124,16 +124,16 @@ A connector implements `SystemOfRecordPort`. These connectors are ready-made:
 - [`connector-http`](../plugins/connector-http/README.md): a REST system through the network port, with requests, rejection rules and lookup as data. It needs an idempotency header or a lookup.
 - [`connector-files`](../plugins/connector-files/README.md): shared folders. Effects are dropped as files and settled from receipt files or the archive; result exports feed inbound sync.
 - [`connector-driver`](../plugins/connector-driver/README.md): equipment behind a [driver](hardware-drivers.md) process.
-- [Station connector](../packages/station/README.md): [station](glossary.md#station) software reached through its screen, as [operator workstations](operator-workstations.md) explains.
-- [Peer port](../packages/integration/README.md): another agent-native host, through its HTTP API.
+- [Screen bridge](../workstations/screen-bridge/README.md): a [workstation application](glossary.md#workstation-application) reached through its screen, as [operator workstations](operator-workstations.md) explains.
+- [Peer port](../packages/integration/README.md): another agent-native [host](glossary.md#host), through its HTTP API.
 
-The folders of `connector-files` are [requirement declarations](glossary.md#requirement-declaration) that the [site policy](glossary.md#site-policy) binds. Each connector plugin ships a fake for tests. The HTTP, files and driver connectors pass the conformance suite in [`packages/testing`](../packages/testing/README.md), whose README lists its six cases. Among them, the suite checks idempotent delivery or lookup before resend, rejection as data, and that a lost reply is held or found again.
+The folders of `connector-files` are [requirement declarations](glossary.md#requirement-declaration) that the [deployment policy](glossary.md#deployment-policy) binds. Each connector plugin ships a fake for tests. The HTTP, files and driver connectors pass the conformance suite in [`packages/testing`](../packages/testing/README.md), whose README lists its six cases. Among them, the suite checks idempotent delivery or lookup before resend, rejection as data, and that a lost reply is held or found again.
 
-[`connector-mqtt`](../plugins/connector-mqtt/README.md) and [`connector-opcua`](../plugins/connector-opcua/README.md) only observe an MQTT broker or an OPC UA server. They submit readings as [observations](glossary.md#observation) through an ingest command and implement no target port.
+[`connector-mqtt`](../plugins/connector-mqtt/README.md) and [`connector-opcua`](../plugins/connector-opcua/README.md) only observe an MQTT broker or an OPC UA server. The connectors submit readings as [observations](glossary.md#observation) through an ingest command and implement no target port.
 
 ## Remote queries
 
-The outbox and inbound sync keep a working set current. A remote query answers at the moment someone asks.
+The outbox and inbound sync keep a working set current. A remote query answers when the caller runs the query.
 
 Importing the whole system of record through inbound sync would copy records that the caller may not see under that system's own sharing rules, and the copy is stale between pulls. Calling the source from a handler would put the call inside the transaction, where it cannot be authorized again.
 
@@ -155,11 +155,11 @@ sequenceDiagram
 
 The source call runs outside any transaction, under a deadline of 10 seconds by default. The second snapshot authorizes again. A revocation during the source call drops the result.
 
-A [data provider](glossary.md#data-provider) declares search and lookup queries over one target. They are ordinary catalog [queries](glossary.md#query), so the screens, MCP, the CLI and HTTP return the same result. Composition fails unless a declared network destination reads that target. `implementDataProvider` builds both handlers from one item mapper, which may consult local state. In `crm-capture` it drops rows outside the caller's regions and marks accounts that exist locally.
+A [data provider](glossary.md#data-provider) declares search and lookup queries over one target. The queries are ordinary catalog [queries](glossary.md#query), so the screens, MCP, the CLI and HTTP return the same result. Composition fails unless a declared network destination reads that target. `implementDataProvider` builds both handlers from one item mapper, which may consult local state. In `crm-capture` it drops rows outside the caller's regions and marks accounts that exist locally.
 
 ### Credentials and paging
 
-The source uses the caller's own credential first. A delegated agent's context carries the principal of the person who delegated, so the agent searches with that person's access. The source uses a service credential only where the query declares that fallback, and otherwise asks the caller to connect their account. The system of record applies its own sharing, and local [policy](glossary.md#policy) then projects the result.
+The source uses the caller's own credential first. A delegated agent's context carries the principal of the person who delegated, so the agent searches with that person's access. The source uses a service credential only where the query declares that fallback, and otherwise asks the caller to connect the caller's account. The system of record applies its own sharing, and local [policy](glossary.md#policy) then projects the result.
 
 Page numbers shift as the source changes, so paging uses the source's opaque cursors. Each result carries the cursor while there is more, and the next request sends it back. A connector must bind each cursor to the search and the credential that produced it, and refuse it otherwise; the fake CRM does. Local scoping can shorten or empty a page, so only a missing cursor ends the list.
 
@@ -207,7 +207,7 @@ The instance verbs open the workspace or serve it:
 | 1 | | `site status`: a site release is installed but not verified |
 | 1 | | `driver check`: a check failed |
 | 1 | | `serve --hosted-workspace`: the instance lost its workspace lease |
-| 2 | `INVALID_INPUT` | Invalid input or usage; also `site check` and `network export` when the site policy has error findings. |
+| 2 | `INVALID_INPUT` | Invalid input or usage; also `site check` and `network export` when the deployment policy has error findings. |
 | 3 | `NOT_FOUND` | Not found |
 | 4 | `FORBIDDEN` | Forbidden |
 | 5 | `CONFLICT` | Conflict, including a workspace that a live instance owns |
@@ -222,7 +222,7 @@ The site, network, audit, compliance and driver verbs exist when the application
 
 ## Limits
 
-- The system of record keeps master data and legal or financial postings. The application owns its capture working set, its pending effects and their outcomes.
+- The system of record keeps the records it owns. The application owns its working set, its pending effects and their outcomes.
 - Exactly-once delivery is not possible across two systems.
 - The fake quality system and fake CRM are in-memory and per process, for demos and tests. The fake CRM keeps demo credentials in memory; a site backs caller credentials with its vault.
 - A grant limited to specific resources can create new records only of the types its `creates` list names. [Authorization](authorization.md#delegation-and-replay) explains it.
@@ -232,7 +232,7 @@ The site, network, audit, compliance and driver verbs exist when the application
 - [Implementation status](implementation-status.md): the evidence for each part.
 - [Architecture](architecture.md#instances-and-hosts): instances and hosts.
 - [Authorization](authorization.md): where access is checked again.
-- [Hardware drivers](hardware-drivers.md) and [operator workstations](operator-workstations.md): connectors for equipment and station software.
+- [Hardware drivers](hardware-drivers.md) and [operator workstations](operator-workstations.md): connectors for equipment and workstation application.
 - [Hosting](hosting.md): the hosted instance and its workspace lease.
 - [`packages/integration`](../packages/integration/README.md): the dispatcher, inbound sync, targets and remote sources.
 - [`packages/react`](../packages/react/README.md): the capture screens' forms, live and remote queries, and scanner capture.

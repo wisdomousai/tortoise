@@ -6,7 +6,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createHttpTransport } from '@agent-native/client';
 import { createMcpServer } from '@agent-native/adapters/mcp';
-import { createAccessibilityExtractor } from '@agent-native/station';
+import { createAccessibilityExtractor } from '@agent-native/screen-bridge';
 import { startHost } from '@agent-native/host/host';
 import { createLineStationApplication } from '../application';
 import { createLineStationBridge } from '../bridge';

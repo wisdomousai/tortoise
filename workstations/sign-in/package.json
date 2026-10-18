@@ -1,13 +1,13 @@
 {
-  "name": "@agent-native/station-sign-in",
+  "name": "@agent-native/workstation-sign-in",
   "version": "0.1.0",
   "type": "module",
-  "description": "Station sign-in host plugin: operators sign in at a shared station seat with a badge scan and PIN, for a short-lived session of their own.",
+  "description": "Workstation sign-in host plugin: operators sign in at a shared seat with a badge scan and PIN, for a short-lived session of their own.",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
-    "directory": "plugins/station-sign-in"
+    "directory": "workstations/sign-in"
   },
   "files": [
     "**/*",

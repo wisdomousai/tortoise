@@ -77,7 +77,7 @@ cd examples/fleet
 bun run dev
 ```
 
-Enroll a site from the Devices screen. Then start the site with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`, and a site policy that binds `destinations.fleet` to this host's HTTPS origin. The [connect-a-site-to-a-fleet](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) skill has the steps.
+Enroll a site from the Devices screen. Then start the site with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`, and a deployment policy that binds `destinations.fleet` to this host's HTTPS origin. The [connect-a-site-to-a-fleet](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) skill has the steps.
 
 ## Trust boundary
 
@@ -258,9 +258,9 @@ These steps build a new application with `scaffold new` and add the fleet's part
 9. List in `audit.fields` the input fields that are safe in plain text, and leave out headers, bodies and anything that carries a session.
 10. Build the screens with `defineScreens` and the registry items `CollectionScreen`, `RecordScreen` and `CapabilityForm`. Map each operation ID prefix to a screen in `capabilityScreens`. The [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md) covers routes and registry items.
 11. Write the behavior tests, as [test/site.ts](test/site.ts) and [test/fleet.test.ts](test/fleet.test.ts) do. The [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) covers testing a fleet against real sites.
-    - **Fleet.** Start it with `startHost` and a temporary site policy.
+    - **Fleet.** Start it with `startHost` and a temporary deployment policy.
     - **Enrollment.** Create a `field-sync` enrollment code for each site with `link.enrollment.create`, and pass it as the site's `fleet-enrollment-code` setting.
-    - **Sites.** Compose `createFleetAgentPlugin` and `fleetAgentPluginManifest`, with the manifest and plugin of `fleetNetworkFixture` in place of the network plugin. The site policy binds the `fleet-releases` folder, and `fleet-trust` is the path to the release signing key's public key file. Set `fleet-relay` to `on` for a relay test.
+    - **Sites.** Compose `createFleetAgentPlugin` and `fleetAgentPluginManifest`, with the manifest and plugin of `fleetNetworkFixture` in place of the network plugin. The deployment policy binds the `fleet-releases` folder, and `fleet-trust` is the path to the release signing key's public key file. Set `fleet-relay` to `on` for a relay test.
     - **Cycles.** Drive each site with the agent service's `sync()` and `relay()`.
 12. Rewrite the generated Playwright spec under `e2e/` for the fleet's screens.
 13. Run these focused checks, then the full check. The [check-a-change skill](../../packages/testing/skills/check-a-change/SKILL.md) says how to report them.
@@ -278,7 +278,7 @@ These steps build a new application with `scaffold new` and add the fleet's part
 14. Run the fleet on a site host with the [deploy-to-site skill](../../plugins/site/skills/deploy-to-site/SKILL.md), or as a hosted instance with the [run-a-hosted-instance skill](../../packages/host/skills/run-a-hosted-instance/SKILL.md). The fleet declares no outbox target and no site-pinned requirement, so it runs on either.
 15. Connect each site with the [connect-a-site-to-a-fleet skill](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md).
     - **Plugins.** The site composes the site, network and audit plugins and `createFleetAgentPlugin`, and its manifest lists `fleetAgentPluginManifest`. Without the audit plugin it forwards no audit events.
-    - **Site policy.** It binds `destinations.fleet` to the fleet's https origin and the `fleet-releases` folder to a directory.
+    - **Deployment policy.** It binds `destinations.fleet` to the fleet's https origin and the `fleet-releases` folder to a directory.
     - **Settings.** `fleet-trust` is the path to the release signing key's public key file; without it the site stages no release. The site starts once with the enrollment code.
 
 To read a working copy instead, export this example unchanged. It stays under `examples/fleet`, and the steps above do not start from it.
@@ -287,7 +287,7 @@ To read a working copy instead, export this example unchanged. It stays under `e
 bun run scaffold /absolute/path/to/absent-target --name <app-name> --example fleet
 ```
 
-The example uses no fake system of record. Its tests replace the site's network plugin with `fleetNetworkFixture`, which routes the fleet destination to the fleet's loopback port. A deployed site composes the network plugin instead, which provides the `NetworkPort` from the bound destination in its site policy.
+The example uses no fake system of record. Its tests replace the site's network plugin with `fleetNetworkFixture`, which routes the fleet destination to the fleet's loopback port. A deployed site composes the network plugin instead, which provides the `NetworkPort` from the bound destination in its deployment policy.
 
 To run the example locally, from `examples/fleet`:
 

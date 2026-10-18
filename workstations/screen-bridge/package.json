@@ -1,13 +1,13 @@
 {
-  "name": "@agent-native/station",
+  "name": "@agent-native/screen-bridge",
   "version": "0.1.0",
   "type": "module",
-  "description": "Server-only bridge to legacy station software through its screen: profiles, observer, gated controller connector and perception adapters.",
+  "description": "Screen bridge to a workstation application that has no API and must stay unmodified: profiles, observer, gated controller and perception adapters.",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/youtiger/agent-native-desktop-starter.git",
-    "directory": "packages/station"
+    "directory": "workstations/screen-bridge"
   },
   "files": [
     "**/*",

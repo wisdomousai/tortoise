@@ -53,7 +53,7 @@ export const renameHandler = handler(rename, (input, ctx) => {
 });
 ```
 
-The module decides how its state is represented. A handler can wrap the transaction's state in its own repositories and receive domain services through `services`. The kernel needs no universal record table.
+The module decides how its state is represented. A handler can wrap the transaction's state in its own repositories and receive domain services through `services`. The composition needs no universal record table.
 
 A handler declares each changed resource with `ctx.change`, and the runtime assigns its [revision](glossary.md#revision) and [journal](glossary.md#journal) entry. A command that changes state but declares no changed resource fails. An effect or blob reference on an undeclared resource fails too, and so does a query that changes state.
 
@@ -100,7 +100,7 @@ A module declares what it reaches outside the process as [requirement declaratio
 - exchange folders, each with a purpose, access and data classes;
 - devices and child processes, each with a purpose and availability.
 
-A network destination that carries an outbox target must queue while offline. Server code reaches the network only through the [egress guard](glossary.md#egress-guard). A capability's `audit` field lists the input fields safe to record in plain text; the [audit log](glossary.md#audit-log) records the rest as digests. After `bun run generate`, review the generated security manifest and data flows. [Security and compliance](security-and-compliance.md) explains how a site policy binds the declarations.
+A network destination that carries an outbox target must queue while offline. Server code reaches the network only through the [egress guard](glossary.md#egress-guard). A capability's `audit` field lists the input fields safe to record in plain text; the [audit log](glossary.md#audit-log) records the rest as digests. After `bun run generate`, review the generated security manifest and data flows. [Security and compliance](security-and-compliance.md) explains how a deployment policy binds the declarations.
 
 ## Screen binding
 

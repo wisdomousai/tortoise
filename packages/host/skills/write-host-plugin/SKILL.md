@@ -1,6 +1,6 @@
 ---
 name: write-host-plugin
-description: Write a host plugin in plugins/<name> for a cross-cutting concern (site policy, network, audit, compliance, notifications, a third-party integration) that several applications compose. Use when behavior is not one application's domain but needs its own state slice, policy, settings, lifecycle hooks, CLI verbs, screens or a kernel port. plugins/webhook is the template.
+description: Write a host plugin in plugins/<name> for a cross-cutting concern (deployment policy, network, audit, compliance, notifications, a third-party integration) that several applications compose. Use when behavior is not one application's domain but needs its own state slice, policy, settings, lifecycle hooks, CLI verbs, screens or a host port. plugins/webhook is the template.
 ---
 
 # Write a host plugin

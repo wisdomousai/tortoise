@@ -26,7 +26,7 @@ Plugin layer, as a library without plugin entrypoints. `./contracts` is browser-
 ### Application wiring
 
 - **Manifest:** list `mqttBroker({ id, destination, description, dataClasses })` in `components`. It declares a `site`-scoped `tcp` egress [destination](../../docs/glossary.md#destination) with offline `degrade`.
-- **Site policy:** bind the destination to `tcp://broker:1883`, or to port 8883 with `tls: true` and a `ca` or certificate pins. The deployment passes the broker credentials in through the policy, never through the code.
+- **Deployment policy:** bind the destination to `tcp://broker:1883`, or to port 8883 with `tls: true` and a `ca` or certificate pins. The deployment passes the broker credentials in through the policy, never through the code.
 - **`observe`:** start `createMqttObserver({ subscriber: { network, destination, clientId, username?, password? }, fields, application, context, ingestOperation })` with an interval, and stop it on shutdown.
 
 A field is one of:

@@ -1,6 +1,6 @@
 # Hardware drivers
 
-An application observes and controls equipment through a driver process. A driver connects an instrument, a controller or station software. The API is in the [connector-driver README](../plugins/connector-driver/README.md) and the [process plugin README](../plugins/process/README.md).
+An application observes and controls equipment through a driver process. A driver connects an instrument, a controller or workstation application. The API is in the [connector-driver README](../plugins/connector-driver/README.md) and the [process plugin README](../plugins/process/README.md).
 
 ## Concepts
 
@@ -21,7 +21,7 @@ Vendor code never runs inside the host process: no FFI, no native addons and no 
 
 ## Process binding
 
-The driver plugin's manifest declares each driver's process as a [requirement declaration](glossary.md#requirement-declaration), carrying the target named after the contract. The [site policy](security-and-compliance.md#site-policy) binds the process ID to an absolute executable with fixed arguments and environment, optionally pinned by hash. The [process port](glossary.md#process-port) starts only declared and bound processes. The child does not inherit the host's environment, and closing it kills its whole process tree. A required driver without a binding refuses startup; an optional one leaves that driver unavailable.
+The driver plugin's manifest declares each driver's process as a [requirement declaration](glossary.md#requirement-declaration), carrying the target named after the contract. The [deployment policy](security-and-compliance.md#deployment-policy) binds the process ID to an absolute executable with fixed arguments and environment, optionally pinned by hash. The [process port](glossary.md#process-port) starts only declared and bound processes. The child does not inherit the host's environment, and closing it kills its whole process tree. A required driver without a binding refuses startup; an optional one leaves that driver unavailable.
 
 ## Protocol
 
@@ -50,7 +50,7 @@ A driver error carries a kind, which decides what happens to the [outbox effect]
 | `precondition` | The equipment is not in a state to do it now. | Settled as a business rejection. |
 | `transient` | Nothing was done, and a retry may succeed. | Retried with backoff. |
 | `uncertain` | The equipment may have acted. | Held for a person to reconcile. |
-| `refused` | The bridge mode or the driver's own rules forbid it. | Retried, so it waits until they allow it. |
+| `refused` | The bridge mode or the driver's own rules forbid the action. | Retried, so the effect waits until the mode or the rules allow the action. |
 
 An action in flight when the driver exits, times out or is cancelled fails transiently, as does a malformed answer. Before the [dispatcher](glossary.md#dispatcher) sends that effect again, the action's delivery mode decides whether the earlier attempt took effect.
 
@@ -61,7 +61,7 @@ A driver contract is browser-safe data written with `defineDriverContract` in th
 - state fields, with type, options, decimals, unit, minimum confidence and the number of agreeing reads that make a value stable;
 - actions, each with an input schema, a delivery mode, a hazard class, a timeout, and optionally preconditions and a readback on state;
 - events, each with a kind (telemetry, occurrence or progress) and a maximum rate;
-- the `control` field that shows when someone works the equipment locally;
+- the `control` field that shows when the operator works the equipment locally;
 - whether the driver answers lookups;
 - the process the driver runs as, with its devices and network destinations.
 
@@ -117,7 +117,7 @@ The reference contract is a test chamber in the plugin's `testing` entrypoint, w
 3. Write the driver with the SDK: a handshake handler that opens the equipment and names its units, a state reader, and a handler per action.
 4. Check the driver against its contract. The check never sends `action.invoke`, so it is safe against connected equipment.
 5. Build a self-contained executable with PyInstaller or Nuitka, or as a .NET single-file build. Use `win-x86` for a 32-bit COM server.
-6. Bind the executable's path and hash in the site policy.
+6. Bind the executable's path and hash in the deployment policy.
 
 The commands for steps 2, 4 and 6:
 
@@ -137,14 +137,14 @@ app driver list
 
 ### Station automation
 
-`examples/line-station` actuates. A .NET driver reaches the station software through its COM automation server instead of its screen. Its contract reports the screen profile's fields. It loads recipes as a convergent `operator-present` action, with the screen procedure's precondition and readback. The domain is the same on both routes, and each station is configured on one route. A simulated station stands in for the COM server in the tests and the demo.
+`examples/line-station` actuates. A .NET driver reaches the workstation application through its COM automation server instead of its screen. Its contract reports the screen profile's fields. It loads recipes as a convergent `operator-present` action, with the screen procedure's precondition and readback. The domain is the same on both routes, and each station is configured on one route. A simulated station stands in for the COM server in the tests and the demo.
 
 ## Limits
 
 - **Safety:** drivers never operate safety functions. Machine guarding and safety stay with the machine and its builder, and nothing here is safety-rated.
 - **Child-process network:** the proxy environment confines HTTP and HTTPS clients only. Raw sockets that a driver opens itself, for Modbus TCP or OPC UA, are contained only by the exported OS rules; a TypeScript adapter can use the network port instead.
 - **Secrets:** a process that declares secrets needs a platform secret store. The Bun platform has none, so such a driver is unavailable there.
-- **Signing:** driver executables are pinned by hash only. A site bundle does not carry them, so they get no signature and no staged activation.
+- **Signing:** driver executables are pinned by hash only. A site bundle does not carry the executables. The executables get no signature and no staged activation.
 
 A kind of equipment counts as supported only once it has run on real hardware or its real software, and the [implementation ledger](implementation-status.md#hardware-drivers) records that run.
 
@@ -160,5 +160,5 @@ Not built:
 
 - [Operator workstations](operator-workstations.md): the screen route and bridge modes.
 - [Systems of record](systems-of-record.md): the outbox, held effects and reconciliation.
-- [Security and compliance](security-and-compliance.md): site policy and exported OS rules.
+- [Security and compliance](security-and-compliance.md): deployment policy and exported OS rules.
 - [write-hardware-driver](../plugins/connector-driver/skills/write-hardware-driver/SKILL.md): the skill for this task.

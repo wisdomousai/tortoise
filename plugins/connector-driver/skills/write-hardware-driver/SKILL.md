@@ -12,7 +12,7 @@ A [driver](../../../../docs/glossary.md#driver) is an executable in whatever lan
 - Drivers never operate safety functions.
 - The framework is not real-time. A timing-critical loop stays inside the driver or the controller below it, and is one action to the framework.
 - High-rate data stays in the driver or goes to a historian.
-- Prefer a deterministic route. A station whose software has an automation interface is reached through a driver. A station reachable only through its screen uses the `bridge-station-screen` skill (`packages/station/skills/bridge-station-screen/SKILL.md`).
+- Prefer a deterministic route. A station whose software has an automation interface is reached through a driver. A station reachable only through its screen uses the `bridge-station-screen` skill (`workstations/screen-bridge/skills/bridge-station-screen/SKILL.md`).
 - Choose each action's [delivery mode](../../../../docs/hardware-drivers.md#delivery-modes) from what the equipment can prove:
   - `idempotent` when the driver can deduplicate by effect ID;
   - `convergent` when a readback shows the result;
@@ -40,7 +40,7 @@ A [driver](../../../../docs/glossary.md#driver) is an executable in whatever lan
 8. Check the driver with `app driver check <id> -- <executable>`. The check never invokes an action, so it is safe against connected equipment.
 9. Build a self-contained executable with PyInstaller, Nuitka or a .NET single-file build.
 10. Print the process IDs and contract digests to bind with `app driver list`.
-11. Bind the driver's process ID to the executable's absolute path and hash in the site policy. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+11. Bind the driver's process ID to the executable's absolute path and hash in the deployment policy. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
 
 `examples/quality-inspection` reads a measuring instrument with a Python driver, observe only. `examples/line-station` loads recipes through a .NET driver as a convergent action, in actuate mode.
 

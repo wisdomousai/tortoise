@@ -1,6 +1,6 @@
 # @agent-native/kernel
 
-The [kernel](../../docs/glossary.md#kernel): the portable part of the host. It composes an [application definition](../../docs/glossary.md#application-definition) and its plugins, resolves the kernel's ports and opens one workspace's [instance](../../docs/glossary.md#instance) on a `HostPlatform`. It uses no Node, Bun or React Native API, so the Bun host in [`@agent-native/host`](../host/README.md) and the mobile host share it. Everything that needs the machine comes from the platform the starter passes in: workspace ownership, storage, a listener, sockets and child processes.
+The [composition](../../docs/glossary.md#composition) (`@agent-native/kernel`): the portable part of the host. It composes an [application definition](../../docs/glossary.md#application-definition) and its plugins, resolves the host ports and opens one workspace's [instance](../../docs/glossary.md#instance) on a `HostPlatform`. It uses no Node, Bun or React Native API, so the Bun host in [`@agent-native/host`](../host/README.md) and the mobile host share it. Everything that needs the machine comes from the platform the starter passes in: workspace ownership, storage, a listener, sockets and child processes.
 
 ## Layer
 
@@ -18,7 +18,7 @@ Framework (`packages/*`). `@agent-native/host` re-exports the definition helpers
 - [Blob store](../../docs/primitives.md#blob-store): `HostPlatform.openBlobs` gives each instance its workspace's store. A serving instance sweeps unreferenced blobs when it opens.
 - [Host platform](../../docs/primitives.md#host-platform): `HostPlatform`, `PlatformId`, `platformIds`, `PlatformCapability`, `PlatformOwnership`, `assertPlatformSupports`, `installGlobals`, `assertGlobals`, `missingGlobals`, `RequiredGlobal`, `SecretStore`, `scopedSecrets`.
 
-The kernel never starts a process. A plugin such as `@agent-native/process` provides the process port, and `spawn` returns the platform's handle as `unknown`.
+The composition never starts a process. A plugin such as `@agent-native/process` provides the process port, and `spawn` returns the platform's handle as `unknown`.
 
 ### State migrations
 
@@ -50,7 +50,7 @@ The Bun host adds what needs Bun: `loopbackIngress`, `readPluginSettings`, the B
 
 ### Startup refusals
 
-A platform is trusted host code chosen by the starter; content never supplies one. Application definitions and plugins are trusted as in the host. The kernel refuses these before the workspace is opened:
+A platform is trusted host code chosen by the starter; content never supplies one. Application definitions and plugins are trusted as in the host. The composition refuses these before the workspace is opened:
 
 - A plugin whose `platforms` does not list the running platform refuses startup. So does a manifest that lists a plugin under a `targets` entry the plugin cannot run on.
 - A deployment that declares a socket destination, an ingress destination or a child process on a platform without `sockets`, `ingress` or `child-process` refuses startup. The refusal names the component that declared it.
@@ -66,7 +66,7 @@ When the workspace loads, storage refuses a workspace whose state was migrated p
 
 ### Shell port
 
-The kernel has no OS integration of its own: the default [shell port](../../docs/glossary.md#shell-port) refuses every request, action and attachment with `UNAVAILABLE`. A provider receives OS requests as the session that submitted them. That session only says where to deliver; nothing in a request sets the principal, workspace or grant.
+The composition has no OS integration of its own: the default [shell port](../../docs/glossary.md#shell-port) refuses every request, action and attachment with `UNAVAILABLE`. A provider receives OS requests as the session that submitted them. That session only says where to deliver; nothing in a request sets the principal, workspace or grant.
 
 ### Plugin routes and credentials
 
@@ -87,7 +87,7 @@ The opened plugins try each hook in composition order and use the first answer. 
 
 ### Listener and ownership
 
-The kernel binds no listener of its own. The default ingress is the platform's, and without one every `listen` fails with `UNAVAILABLE`. `openInstance` does not acquire or release ownership. The caller acquires it from the same platform and releases it after `close`. On a failed open the kernel closes what it opened and leaves the ownership with the caller.
+The composition binds no listener of its own. The default ingress is the platform's, and without one every `listen` fails with `UNAVAILABLE`. `openInstance` does not acquire or release ownership. The caller acquires it from the same platform and releases it after `close`. On a failed open the composition closes what it opened and leaves the ownership with the caller.
 
 ## Dependencies
 
@@ -112,7 +112,7 @@ bun run test:portable
 - `test/processes.test.ts`: without a provider no process starts and availability says why; one plugin may provide the port, the late view reads it, and two providers are refused.
 - `test/globals.test.ts`: the required globals behave as the runtime expects.
 
-`bun run test:portable` runs the kernel, runtime, client, integration and mobile suites with `test/without-web-globals.ts` preloaded. That file deletes the globals Hermes may lack and installs the kernel's replacements, so those suites prove they run without Bun's versions.
+`bun run test:portable` runs the composition, runtime, client, integration and mobile suites with `test/without-web-globals.ts` preloaded. That file deletes the globals Hermes may lack and installs the composition's replacements, so those suites prove they run without Bun's versions.
 
 ## Skills
 

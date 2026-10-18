@@ -1,6 +1,6 @@
 # @agent-native/model-server
 
-The model server plugin runs a local model for agents that require one. It hashes the weights it is given and refuses to start when a digest differs from the [model entry](../../docs/glossary.md#model-entry), or when a fine-tune has no passing activation. It starts llama.cpp `llama-server` or vLLM through the [process port](../../docs/glossary.md#process-port), listening on the address the [site policy](../../docs/glossary.md#site-policy) binds to `local-inference`. The [harness](../../docs/glossary.md#harness) it returns records the measured digests on every run. [Agents](../../docs/agents.md#local-models) explains model entries, approval datasets and the gate.
+The model server plugin runs a local model for agents that require one. It hashes the weights it is given and refuses to start when a digest differs from the [model entry](../../docs/glossary.md#model-entry), or when a fine-tune has no passing activation. It starts llama.cpp `llama-server` or vLLM through the [process port](../../docs/glossary.md#process-port), listening on the address the [deployment policy](../../docs/glossary.md#deployment-policy) binds to `local-inference`. The [harness](../../docs/glossary.md#harness) it returns records the measured digests on every run. [Agents](../../docs/agents.md#local-models) explains model entries, approval datasets and the gate.
 
 ## Layer
 
@@ -9,7 +9,7 @@ Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`.
 ## Primitives
 
 - [Model entry](../../docs/primitives.md#model-entry): `createModelServer({ entry, files, activation })` serves one entry and refuses files or an activation that do not match it.
-- [Process port](../../docs/primitives.md#process-port): `modelServer({ id, runtime })` declares the server as a process. The site policy binds and pins its executable and gives the arguments that set its listening address.
+- [Process port](../../docs/primitives.md#process-port): `modelServer({ id, runtime })` declares the server as a process. The deployment policy binds and pins its executable and gives the arguments that set its listening address.
 - [Requirement declaration](../../docs/primitives.md#requirement-declaration): `modelServer` declares the process and no [destinations](../../docs/glossary.md#destination). Agents reach the server on `local-inference`, which the host's provider components declare.
 - [Agent run](../../docs/primitives.md#agent-run): `harness` is a `localHarness` for the entry, available only while the server is ready.
 - [Audit log](../../docs/primitives.md#audit-log): `model.started`, `model.refused` and `model.exited`, each with the entry and its digests. A refusal carries `DIGEST_MISMATCH`, `UNREADABLE`, `NOT_ACTIVATED`, `NOT_READY` or `UNAVAILABLE`.
@@ -41,7 +41,7 @@ Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`.
    plugins: [sitePlugin, networkPlugin, processPlugin, models.plugin, createAutomationPlugin({ triggers, agentHarnesses: [models.harness] })];
    ```
 
-3. Bind both in the site policy. The arguments put the server on the address `local-inference` names, and the plugin adds what to load:
+3. Bind both in the deployment policy. The arguments put the server on the address `local-inference` names, and the plugin adds what to load:
 
    ```json
    "destinations": { "local-inference": { "url": "http://127.0.0.1:8081" } },
@@ -75,7 +75,7 @@ The load arguments for each runtime:
 
 The deployment chooses the entry, the files and the activation. At every start, this plugin proves only that the files on disk are the ones the entry names, and that a fine-tune passed its gate. Run records then carry `verified: true` with the measured digests.
 
-The server process is trusted to serve what it loaded, and the site policy pins its executable. It declares no destinations. The network plugin's exported rules block its egress where the deployment applies them, and in-process it never gets the proxy.
+The server process is trusted to serve what it loaded, and the deployment policy pins its executable. It declares no destinations. The network plugin's exported rules block its egress where the deployment applies them, and in-process it never gets the proxy.
 
 A harness for an externally run server records the digests it was given with `verified: false`. Such a harness is `localModel` in the automation plugin, or `localHarness` directly.
 

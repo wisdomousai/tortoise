@@ -4,11 +4,12 @@
 
 ## Layers
 
-The layers are **framework** `packages/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
+The layers are **framework** `packages/*`, **workstations** `workstations/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
 
-- The framework and the starter name no domain and import no plugin or example. The starter hosts the one application named in `app.config.json`.
+- The framework and the starter name no domain and import no workstation package, plugin or example. The starter hosts the one application named in `app.config.json`.
 - An example is an application with a browser-safe `manifest` entrypoint, a server `application` entrypoint and a browser `screens` entrypoint. Its domain code, fakes, screens and tests stay in the example; framework tests never import one.
-- A cross-cutting concern (site policy, network, audit, compliance) is a host plugin in `plugins/<name>`, with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. A plugin imports the framework and the plugins it requires, reaches the network, ingress, identity and audit log through kernel ports, and writes only through its own commands.
+- A cross-cutting concern (deployment policy, network, audit, compliance) is a host plugin in `plugins/<name>`, with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. A plugin imports the framework and the plugins it requires, reaches the network, ingress, identity and audit log through host ports, and writes only through its own commands.
+- A workstation package is an opinion about an edge workplace. It imports the framework only. The screen bridge and workstation sign-in live there.
 - Generic host or frame behavior goes in the framework, so a forked starter keeps receiving it.
 - A driver SDK in `sdks/<language>` implements the driver protocol that `plugins/connector-driver` defines, and proves itself against that plugin's reference contract. Nothing else imports an SDK, so the host depends on no driver language, and an SDK imports no application.
 
@@ -45,7 +46,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Choose the checks and report the evidence | [check-a-change](packages/testing/skills/check-a-change/SKILL.md) |
 | Connect a system of record: outbox, settle, sync, live reads | [connect-system-of-record](packages/integration/skills/connect-system-of-record/SKILL.md) |
 | Build screens and registry components | [build-screens](packages/frame/skills/build-screens/SKILL.md) |
-| Bridge station software through its screen | [bridge-station-screen](packages/station/skills/bridge-station-screen/SKILL.md) |
+| Bridge a workstation application through its screen | [bridge-station-screen](workstations/screen-bridge/skills/bridge-station-screen/SKILL.md) |
 | Add scanner and point-of-work input | [add-scanner-input](packages/devices/skills/add-scanner-input/SKILL.md) |
 | Add OS handlers, actions and native registrations | [add-os-integration](packages/shell/skills/add-os-integration/SKILL.md) |
 | Extend the mobile host: native plugins, pairing | [extend-mobile-host](packages/mobile/skills/extend-mobile-host/SKILL.md) |
