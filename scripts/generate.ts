@@ -1,6 +1,7 @@
 import { controls, controlsMarkdown } from '@agent-native/compliance';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { overview } from './overview';
 import { applications, artifacts, json, root } from './reference-artifacts';
 
 // Writes every application's reference to an ignored directory, replacing what was there. The
@@ -13,6 +14,8 @@ const manifests = await applications();
 const outputs = [
   ['controls.json', json(controls)] as const,
   ['controls.md', controlsMarkdown(controls)] as const,
+  // The overview map's data, read by `docs/.vitepress/overview.data.ts`.
+  ['overview.json', json(await overview(root, manifests))] as const,
   ...manifests.flatMap((manifest) =>
     [...artifacts(manifest)].map(([name, content]) => [join(manifest.id, name), content] as const),
   ),
