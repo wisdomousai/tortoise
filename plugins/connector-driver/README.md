@@ -110,7 +110,7 @@ If the readback does not show the result, the effect is held for a person. A dri
 
 The [integration principal](../../docs/glossary.md#integration-principal)'s grant names only the target's settle and status capabilities and the observer's ingest command. A misbehaving driver therefore cannot reach business commands. Only the workspace owner reads `driver.status.get`, and a resource-limited delegated grant must name `driver:status`.
 
-`driver check` starts an executable outside the site policy, through the process plugin's spawn with its base environment. Nothing the host holds reaches the driver. The check never sends `action.invoke`, so it is safe against a connected unit.
+`driver check` starts an executable outside the site policy, through the process plugin's spawn with its base environment. Nothing the host holds reaches the driver. A driver that reads a variable gets it through a wrapper, such as `/usr/bin/env INSTRUMENT_PORT=/dev/ttyUSB0 <executable>`. The check never sends `action.invoke`, so it is safe against a connected unit.
 
 Limits:
 

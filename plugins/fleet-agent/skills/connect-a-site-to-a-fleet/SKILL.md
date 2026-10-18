@@ -32,7 +32,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 2. Implement its handlers. Each handler acts for `ctx.context.principalId`, the calling site, and answers only about that site.
 3. Compose the device-link plugin with `syncOperations: fleetSiteOperationIds`.
 4. Attach release files to a resource the site's policy lets it read, so `GET /api/v1/blobs/<digest>` serves them.
-5. Store forwarded audit events as received, and accept each sequence once. The site resends after a lost reply.
+5. Store forwarded audit events as received, and accept each sequence once. The site reads your cursor before each batch, so a batch arrives again only when its reply was lost.
 
 ## Checks
 

@@ -58,8 +58,9 @@ function prune(ctx: Context, site: string, newest: number) {
  * Forwarded audit events. Each must follow the last one the fleet holds for that site: the next
  * sequence number, a `prev` equal to that event's hash, and its own hash over the event. The
  * first event that fails stops collection for the site, records why on the site, and commits,
- * so the break is visible instead of retried away. Events the fleet already holds are skipped,
- * since a site resends after a lost reply.
+ * so the break is visible instead of retried away. Events the fleet already holds are skipped:
+ * a site reads the fleet's cursor before each batch, so a repeat arrives only when the reply to
+ * a batch was lost after the fleet committed it.
  */
 export function auditHandlers(): HandlerContribution<AppState, Services>[] {
   return [

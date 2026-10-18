@@ -93,10 +93,14 @@ async function main(args: readonly string[]) {
   if (isNew && published)
     // No lockfile is exported: the first install against the registry writes it.
     console.log(
-      `Framework ${manifest.framework!.version} installs from ${published.registry ?? 'the npm registry'}. Next: bun install && bun run generate && bun run check, then commit bun.lock`,
+      `Framework ${manifest.framework!.version} installs from ${published.registry ?? 'the npm registry'}. Next: bun install && bun run format && bun run generate && bun run check, then commit bun.lock`,
     );
   else if (isNew)
-    console.log('Next: bun install --frozen-lockfile && bun run generate && bun run check');
+    // A source export copies framework READMEs and skills that link to omitted examples, so the
+    // full `bun run check` fails there; name the checks that pass.
+    console.log(
+      'Next: bun install --frozen-lockfile && bun run format && bun run generate && bun run typecheck && bun test',
+    );
 }
 
 if (import.meta.main) await main(process.argv.slice(2));

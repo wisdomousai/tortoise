@@ -104,7 +104,10 @@ A generated application lists the site, network, audit and compliance plugins. I
 
 `versions` reads package manifests under `node_modules` only. A published-framework export trusts the configured registry for the `@agent-native` scope as it trusts npm for other packages. The lockfile then pins each tarball's integrity.
 
-Gap: an example export always copies the framework.
+Gaps:
+
+- An example export always copies the framework.
+- In an application exported from source, `bun run check` fails at `check:readmes` and `check:skills`. The copied framework READMEs and skills link to examples the export leaves out.
 
 ## Dependencies
 

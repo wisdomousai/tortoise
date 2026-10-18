@@ -23,6 +23,8 @@ async function files(directory: string): Promise<string[]> {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     if (['node_modules', '.git', 'dist'].includes(entry.name)) continue;
     const path = resolve(directory, entry.name);
+    // `mobile:prepare` writes a git-ignored copy of the host there; it is not source.
+    if (path.endsWith('/apps/mobile/generated')) continue;
     if (entry.isDirectory()) result.push(...(await files(path)));
     else if (/\.[cm]?[jt]sx?$/.test(path) && !path.includes('.test.') && !path.endsWith('.pw.ts'))
       result.push(path);
