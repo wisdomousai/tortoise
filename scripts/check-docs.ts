@@ -65,6 +65,24 @@ export function corpus(): string[] {
 const glossaryPath = join(root, 'docs', 'glossary.md');
 const terms = existsSync(glossaryPath) ? glossaryTerms(readFileSync(glossaryPath, 'utf8')) : [];
 
+/** Every guide must be in the site sidebar's `guides` list, or a reader cannot find it. */
+export function sidebarFindings(): Finding[] {
+  const sidebarPath = join(root, 'docs', '.vitepress', 'sidebar.ts');
+  if (!existsSync(sidebarPath)) return [];
+  const listed = new Set(
+    [...readFileSync(sidebarPath, 'utf8').matchAll(/\['([a-z0-9-]+)',\s*'/g)].map((m) => m[1]),
+  );
+  const findings: Finding[] = [];
+  for (const file of readdirSync(join(root, 'docs')))
+    if (file.endsWith('.md') && !listed.has(file.slice(0, -3)))
+      findings.push({
+        line: 1,
+        rule: 'sidebar',
+        message: `docs/${file} is not in the guides list of docs/.vitepress/sidebar.ts`,
+      });
+  return findings;
+}
+
 /** Findings for one Markdown file. */
 export function check(path: string): Finding[] {
   const text = readFileSync(path, 'utf8');
@@ -102,14 +120,22 @@ export function check(path: string): Finding[] {
     }
     if (fenced) return;
     const trimmed = raw.trim();
-    // Tables, comments, rules and block quotes (quoted examples of old text) are not prose here.
-    if (
-      !trimmed ||
-      /^\|/.test(trimmed) ||
-      /^<!--/.test(trimmed) ||
-      /^---+$/.test(trimmed) ||
-      /^>/.test(trimmed)
-    ) {
+    // An indented code block (four spaces after a blank line) is code, like a fenced one.
+    if (/^( {4}|\t)/.test(raw) && !paragraph && (index === 0 || !lines[index - 1]!.trim())) return;
+    // A table cell is checked as its own short sentence; its words and terms count.
+    if (/^\|/.test(trimmed)) {
+      flush();
+      if (/^\|[\s:|-]+\|$/.test(trimmed)) return;
+      for (const cell of trimmed.split('|').slice(1, -1)) {
+        const prose = stripMarkup(cell.trim());
+        if (!prose) continue;
+        for (const sentence of sentences(prose)) findings.push(...sentenceFindings(sentence, line));
+        if (!isGlossary) findings.push(...termFindings(prose, line, terms));
+      }
+      return;
+    }
+    // Comments, rules and block quotes (quoted examples of old text) are not prose here.
+    if (!trimmed || /^<!--/.test(trimmed) || /^---+$/.test(trimmed) || /^>/.test(trimmed)) {
       flush();
       return;
     }
@@ -147,8 +173,12 @@ if (import.meta.main) {
   const perRule = new Map<string, number>();
   const perFile = new Map<string, number>();
   for (const file of files) {
-    const findings = check(file).filter((finding) => !onlyRule || finding.rule === onlyRule);
     const name = relative(root, file);
+    const own = name === 'docs/.vitepress/sidebar.ts' ? [] : check(file);
+    const findings = [
+      ...own,
+      ...(requested.length ? [] : file === files[0] ? sidebarFindings() : []),
+    ].filter((finding) => !onlyRule || finding.rule === onlyRule);
     for (const finding of findings) {
       total += 1;
       perRule.set(finding.rule, (perRule.get(finding.rule) ?? 0) + 1);

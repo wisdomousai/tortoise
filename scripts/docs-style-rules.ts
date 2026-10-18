@@ -83,7 +83,7 @@ export function headingFindings(heading: string, line: number): Finding[] {
     findings.push({ line, rule: 'heading-form', message: 'heading is a question' });
   if (/, not\b|\bnot\b.*\bbut\b|\bvs\.?\b|\bversus\b/i.test(text))
     findings.push({ line, rule: 'heading-form', message: 'heading is a contrast; name the topic' });
-  if (new RegExp(`^(${numberWords}|\\d+\\.?)\\s`, 'i').test(text))
+  if (new RegExp(`^(${numberWords}|\\d+[.)]?)\\s`, 'i').test(text))
     findings.push({
       line,
       rule: 'heading-form',
@@ -109,7 +109,7 @@ export function stripMarkup(text: string): string {
   return text
     .replace(/!\[[^\]]*\]\([^)]*\)/g, 'image')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/`[^`]*`/g, 'code')
+    .replace(/`[^`]*`/g, 'Code')
     .replace(/\*\*|__|(?<!\w)[*_](?!\s)|(?<!\s)[*_](?!\w)/g, '');
 }
 
@@ -119,14 +119,21 @@ export function sentences(text: string): string[] {
     .replace(/\b(e\.g|i\.e|etc|vs|cf|Mr|Mrs|Dr|No|Fig|Inc|Ltd)\./g, '$1<dot>')
     .replace(/(\d)\.(\d)/g, '$1<dot>$2');
   return guarded
-    .split(/(?<=[.!?])\s+(?=[A-Z`"'(\[])/)
+    .split(/(?<=[.!?])\s+/)
     .map((sentence) => sentence.replace(/<dot>/g, '.').trim())
     .filter(Boolean);
 }
 
 /** Comma-separated items in a sentence, counting an Oxford "and" or "or" as the last item. */
 function inlineItems(sentence: string): number {
-  const withoutParens = sentence.replace(/\([^)]*\)/g, '');
+  const withoutParens = sentence
+    .replace(/\([^)]*\)/g, '')
+    .replace(/\bhttps?:\/\/\S+/g, 'url')
+    // A comma that opens a clause separates no item.
+    .replace(
+      /,\s+(so|because|which|who|but|and (if|when|then)|if|when|while|where|although|unless|since|whereas)\b/g,
+      ' $1',
+    );
   const commas = (withoutParens.match(/,/g) ?? []).length;
   // "a, b, c and d" has two commas and four items; "a, b and c" has one comma and three items.
   const oxford = /,\s*(and|or)\s/.test(withoutParens) ? 1 : 2;
@@ -147,7 +154,7 @@ export function sentenceFindings(sentence: string, line: number): Finding[] {
     });
   const items = inlineItems(sentence);
   // Four short nouns in a row read fine; four clauses do not. Length decides.
-  if (items >= inlineItemLimit && words > 24)
+  if (items >= inlineItemLimit && words > 30)
     findings.push({
       line,
       rule: 'inline-enumeration',
@@ -178,7 +185,9 @@ export interface Term {
 
 /**
  * Banned synonyms from the glossary: every `Do not use:` line under a `### Term` heading lists
- * the words the canonical term replaces, separated by commas. A banned entry may be quoted.
+ * the words the canonical term replaces, separated by commas. An entry with a qualifier in
+ * parentheses, such as `page (for a screen)`, is guidance for a reviewer and is not checked,
+ * because the bare word has other legitimate senses. Only unqualified entries are checked.
  */
 export function glossaryTerms(glossary: string): Term[] {
   const terms: Term[] = [];
@@ -191,9 +200,10 @@ export function glossaryTerms(glossary: string): Term[] {
       terms.push({
         canonical,
         banned: banned[1]!
+          .replace(/\([^)]*\)/g, '\u0000')
           .split(',')
           .map((entry) => entry.trim().replace(/^["'`]|["'`.]$/g, ''))
-          .filter(Boolean),
+          .filter((entry) => entry && !entry.includes('\u0000')),
       });
   }
   return terms;

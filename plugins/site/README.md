@@ -18,7 +18,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Workforce sign-in](../../docs/primitives.md#workforce-sign-in): `createWorkforceSignIn`, `WorkforceConfig`, `discover`, `providerJson`, `ProviderMetadata`, `DestinationFetch`, and `workforceIdentityComponent`, which declares the `workforce-idp` destination. Under `identity: external` on a serving host, `openSite` serves its `/auth/sign-in`, `/auth/callback` and `/auth/sign-out` routes as `publicRoute` and resolves its session cookies through `authenticateCookie`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `sitePlugin` is written only against `@agent-native/host/plugin`. It provides the `identity` port and declares the ports its policy `needs`.
 
-The [architecture](../../docs/architecture.md#plugins) explains how plugins use each other through ports and declare the ports they need. [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
+The [architecture](../../docs/architecture.md#host-plugins) explains how plugins use each other through ports and declare the ports they need. [Security and compliance](../../docs/security-and-compliance.md) is the operator's guide.
 
 ## Entrypoints
 

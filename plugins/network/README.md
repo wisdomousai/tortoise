@@ -10,7 +10,7 @@ Layer: plugins (`plugins/*`), shipped with the framework. Server only, except `p
 - [Execution host](../../docs/primitives.md#execution-host): `networkRules`, `exportRules`, `exportFormats`, `networkCommand`, `networkCliCommand`, `networkUsage`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `networkPlugin` requires `site`. It is written only against `@agent-native/host/plugin` and reads the event-log port through the composed ports.
 
-The [architecture](../../docs/architecture.md#plugins) explains why network and audit reach each other only through ports. [Security and compliance](../../docs/security-and-compliance.md) describes the controls for operators.
+The [architecture](../../docs/architecture.md#host-plugins) explains why network and audit reach each other only through ports. [Security and compliance](../../docs/security-and-compliance.md) describes the controls for operators.
 
 ## Entrypoints
 

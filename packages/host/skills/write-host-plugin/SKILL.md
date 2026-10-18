@@ -5,7 +5,7 @@ description: Write a host plugin in plugins/<name> for a cross-cutting concern (
 
 # Write a host plugin
 
-A host plugin adds modules, a state slice, a policy, settings, lifecycle hooks and ports to the host. An application lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one, and its README walks through every part. [Architecture](../../../../docs/architecture.md#plugins) describes the lifecycle.
+A host plugin adds modules, a state slice, a policy, settings, lifecycle hooks and ports to the host. An application lists it in its three entrypoints, so generated artifacts follow from the application alone. `plugins/webhook` is written the way a third party would write one, and its README walks through every part. [Architecture](../../../../docs/architecture.md#host-plugins) describes the lifecycle.
 
 ## Before writing
 
