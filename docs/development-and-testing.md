@@ -1,7 +1,5 @@
 # Development and testing
 
-Installing the repository, the checks a change must pass, and the focused test and build scripts. Browser, desktop and station runs, [framework releases](glossary.md#framework-release), provider checks and continuous integration. [Architecture](architecture.md) describes the layers, and [capability authoring](capability-authoring.md) describes how to add behavior.
-
 ## Setup
 
 Install the pinned dependencies:

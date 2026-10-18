@@ -1,7 +1,5 @@
 # Primitives
 
-The framework's building blocks. Each entry has a definition in italics, then a line with its status and its code locations. Entries are grouped by area, and [architecture](architecture.md) explains how the areas fit together.
-
 ```mermaid
 flowchart LR
   subgraph Callers

@@ -4,9 +4,9 @@ Rules for prose in this repository: guides in `docs/`, the root README, `AGENTS.
 
 ## Base style
 
-The [Google developer documentation style guide](https://developers.google.com/style) is the base style for all prose in the repository. It governs voice, tone, word choice, grammar, punctuation, capitalization, lists, tables, code in text and link text wherever the sections below are silent.
+The [Google developer documentation style guide](https://developers.google.com/style) is the base style for all prose in the repository. It governs voice, tone, word choice, grammar, punctuation, capitalization, lists, tables, code in text and link text wherever this styleguide is silent.
 
-The repository departs from the Google guide in these points, and the sections below take precedence:
+These departures from the Google guide take precedence over it:
 
 - **Subject.** Sentences describe what the software does, with a component, file, command or role as the subject. The second person "you" appears only in procedures, as the implied subject of an imperative.
 - **Dashes.** No em-dashes.

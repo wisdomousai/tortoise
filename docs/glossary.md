@@ -1,7 +1,5 @@
 # Glossary
 
-Each entry gives the meaning of a term, where the concept lives, and the words it replaces. [Primitives](primitives.md) lists the building blocks with their status and code locations.
-
 Rules for the entries:
 
 - One term per concept. The term on this page is the one every page uses.

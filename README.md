@@ -16,15 +16,14 @@ The Bun [host](docs/glossary.md#host) keeps the [workspace](docs/glossary.md#wor
 
 ## Layers and packages
 
-The repository has these layers:
+The repository has these parts:
 
 - the framework in `packages/*`;
 - workstation packages in `workstations/*`;
 - host plugins in `plugins/*`;
 - the starter in `apps/*`, which hosts the one application named in `app.config.json`;
-- the examples in `examples/*`.
-
-Driver SDKs for other languages sit in `sdks/*`, next to those layers. [Architecture](docs/architecture.md#packages) lists the framework packages, and its [examples](docs/architecture.md#examples) section lists the eight examples. `bun run check:readmes` checks that every package, workstation package, plugin, app, example and SDK has a README titled with its package name and that its links work. Each README states its trust boundary and how to run its tests.
+- the examples in `examples/*`;
+- driver SDKs for other languages in `sdks/*`.
 
 ## First run
 

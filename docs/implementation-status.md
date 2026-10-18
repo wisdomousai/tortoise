@@ -1,8 +1,6 @@
 # Implementation status
 
-What has run outside `bun run check`, and what has not been shown at all. The test suites define deterministic behavior; read the tests for it. The entries describe the current source, and git holds the history. No public release has been made.
-
-Each entry names its kind of evidence. One kind never counts as evidence of another.
+No public release has been made. Evidence of one kind never counts as evidence of another:
 
 - **Browser:** Playwright in Chromium against the real host (`bun run test:e2e`).
 - **Native:** a packaged build or a real OS facility, on a named platform.
