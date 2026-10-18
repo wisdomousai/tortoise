@@ -15,7 +15,7 @@ This example is one [Application](../../docs/primitives.md#application) and the 
 - a [Driver contract](../../docs/primitives.md#driver-contract) for the capture station's measuring instrument (`contracts/instrument.ts`), and a Python [Driver process](../../docs/primitives.md#driver-process) for it in `drivers/instrument/`;
 - [Outbox effects](../../docs/primitives.md#outbox-effect) for every captured record, delivered by a [Dispatcher](../../docs/primitives.md#dispatcher) through a [Connector](../../docs/primitives.md#connector), and [Inbound sync](../../docs/primitives.md#inbound-sync) of lots and code groups, all declared as one [Target](../../docs/primitives.md#target) in `contracts/target.ts`;
 - [Capability bindings](../../docs/primitives.md#capability-binding) for keyboard-first capture (`useCapabilityForm`, capture timing and wedge-scan routing);
-- the frame's [registry](../../docs/primitives.md#ui-registry) parts (`capability-form`, `live-data-table`); its Compliance screen comes from the compliance plugin.
+- the frame's [registry](../../docs/primitives.md#ui-registry) parts: `live-data-table`, and the operator-ui parts `tile-picker`, `numeric-pad` and `status-strip`; its Compliance screen comes from the compliance plugin.
 
 Read the [system-of-record pattern](../../docs/system-of-record-pattern.md). `bun run generate` writes the operation reference to `dist/reference/quality-inspection/operations.md`.
 

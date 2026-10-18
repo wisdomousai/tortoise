@@ -119,7 +119,8 @@ export const createFieldHandlers = (): HandlerContribution<FieldState, FieldServ
   handler(ops.assignmentReturn, (input, ctx) => {
     const assignment = openAssignment(ctx, input.id);
     const resource = assignmentRecords(ctx).resource(assignment.id);
-    // Enqueued after every capture of the assignment, so the hub sees them before the return.
+    // Enqueued after every capture of the assignment. The dispatcher delivers in that order
+    // while no delivery fails, so the hub normally sees the captures before the return.
     const effectId = ctx.enqueue({
       target: hubTarget.target,
       type: 'assignment.return',

@@ -12,7 +12,8 @@ import { relayAnswerSchema, relayRequestSchema } from '@agent-native/fleet-agent
 /**
  * A remote-access request to one site's API and, once the site answered, its response. The
  * request's headers are dropped when the site takes it, so a site session passed in
- * `authorization` stays in the fleet's state only while the request waits.
+ * `authorization` stays in the request's state only while it waits. The command receipt of
+ * `relay.request` keeps the input as well, for as long as receipts are kept.
  */
 export const relaySchema = z.strictObject({
   id: recordKeySchema,

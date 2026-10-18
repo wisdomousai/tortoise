@@ -96,7 +96,7 @@ bun run typecheck
   1. The phone pairs from managed configuration.
   2. It receives the dispatched assignment and its structure, and finds a node by tag.
   3. Offline, it records a placed and an unplaced capture and returns the assignment. A later capture is refused.
-  4. On reconnecting, it delivers all three, photos included. Delivering again changes nothing at the hub.
+  4. On reconnecting, it delivers all three, photos included. The hub answers a repeated capture ID with its first result.
   5. The hub's feed closes the assignment on the phone.
   6. At the hub, the nameplate is read and accepted and filed into the demo EAM with the photo as evidence.
 - The second test covers refusals with two phones:

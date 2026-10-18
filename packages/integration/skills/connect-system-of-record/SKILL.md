@@ -29,7 +29,7 @@ Never give the integration principal more than settle, sync and status, and neve
 ## Checks
 
 - Run `connectorConformance` from `@agent-native/testing/connectors` against the port (`plugins/connector-driver/test/conformance.test.ts`, `plugins/connector-http/test/connector-http.test.ts` and `plugins/connector-files/test/connector-files.test.ts` show callers). It covers idempotent delivery or lookup, rejection, lost replies and pull.
-- Test a lost reply, a rejection, a held effect released and settled, and a stale sync range in the application's tests (`examples/quality-inspection/test/application.test.ts`).
+- Test a lost reply, a rejection, a held effect released and settled, and a stale sync range. The framework covers them in `packages/integration/test/reliability.test.ts`; `examples/receiving/test/receiving.test.ts` shows an application's tests for a rejected receipt, a held posting and a malformed export.
 
 ```sh
 bun run test:integration

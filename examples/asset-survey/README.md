@@ -10,7 +10,7 @@ Layer: content (`examples/*`). The default extractor and the EAM are demo fakes 
 
 This example is one [Application](../../docs/primitives.md#application). It composes:
 
-- four [modules](../../docs/primitives.md#module) in [`contracts.ts`](contracts.ts): structure and documents, field work (assignments and captures), extraction, and filing, each with a workflow text for agents;
+- four [modules](../../docs/primitives.md#module) in [`contracts.ts`](contracts.ts): structure and documents, field work (assignments and captures), extraction, and filing, three of them with a workflow text for agents;
 - [blob references](../../docs/primitives.md#blob-store): captures and documents carry photos and files as `BlobRef`s with declared limits; extraction requests and filings attach the photos they send, so the connectors can read them;
 - three [targets](../../docs/primitives.md#target), wired with `connectTarget`: `model` (requests go out through the outbox, proposals come back through its feed), `eam` (filings go out, asset snapshots come back) and `export` (filings go out as folders, no feed);
 - a [data provider](../../docs/primitives.md#data-provider), `eam.asset`, for live EAM search and lookup with the integration's service account;
@@ -47,7 +47,7 @@ The assignment's stage (`in-field`, `processed`, `filed`) follows from its captu
 | --------------------------------- | -------------------------------------------------------------------- |
 | `bun run dev` / `bun run dev:web` | Desktop window or browser on port 4326 with the demo extractor and EAM. |
 
-Run it from the root with `AGENT_NATIVE_APPLICATION=@agent-native/asset-survey`. For live extraction, set `ASSET_SURVEY_MODEL` to a vision model's ID and `ASSET_SURVEY_MODEL_API_KEY` to its key, and bind `model-api` in the site policy to an OpenAI-compatible chat completions base URL, such as `https://api.openai.com/v1` or a local server's `http://127.0.0.1:11434/v1`. Nothing else is read: no other variable, key store or provider login. The demo EAM holds `EAM-1001` (`=G1-Q1`, active, with a serial) and `EAM-1002` (`=G1-F2`, retired). It refuses to create an asset without a serial or with the designation of an active asset.
+Run it from the root with `AGENT_NATIVE_APPLICATION=@agent-native/asset-survey`. For live extraction, set `ASSET_SURVEY_MODEL` to a vision model's ID and `ASSET_SURVEY_MODEL_API_KEY` to its key, and bind `model-api` in the site policy to an OpenAI-compatible chat completions base URL, such as `https://api.openai.com/v1`. The destination is declared `https`, so the site check refuses a plain `http` URL such as a local server's. Nothing else is read: no other variable, key store or provider login. The demo EAM holds `EAM-1001` (`=G1-Q1`, active, with a serial) and `EAM-1002` (`=G1-F2`, retired). It refuses to create an asset without a serial or with the designation of an active asset.
 
 Known limits: the extractor port keeps proposals in memory until the hub syncs them, so a restart in between loses the proposal and the reviewer requests it again. The scheme tables in [`contracts/schemes.ts`](contracts/schemes.ts) hold the common class letters and device numbers, not the full standards.
 
