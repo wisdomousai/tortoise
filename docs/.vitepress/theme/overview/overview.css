@@ -1,0 +1,540 @@
+/*
+ * The overview views. Colours come from the VitePress theme tokens, so light and dark mode both
+ * apply; a standalone page defines the same tokens. Wide diagrams scroll inside their own box.
+ */
+.overview-view {
+  margin: 16px 0 24px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.overview-view p {
+  margin: 0 0 8px;
+}
+
+.overview-view ul {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+.overview-view li + li {
+  margin-top: 2px;
+}
+
+.ov-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ov-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.ov-toolbar .ov-segments {
+  margin-bottom: 0;
+}
+
+.ov-segment,
+.ov-button,
+.ov-chip {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  background: var(--vp-c-bg);
+  color: var(--vp-c-text-1);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.ov-segment:hover,
+.ov-button:hover:not([disabled]),
+.ov-chip:hover {
+  border-color: var(--vp-c-brand-1);
+}
+
+.ov-segment[aria-pressed='true'] {
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+
+.ov-button[disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ov-segment:focus-visible,
+.ov-button:focus-visible,
+.ov-chip:focus-visible,
+.ov-path:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+
+.ov-stepper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ov-counter {
+  min-width: 48px;
+  text-align: center;
+  color: var(--vp-c-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-path {
+  border-radius: 8px;
+}
+
+.ov-path-body,
+.ov-layers-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.ov-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg);
+  padding: 8px;
+}
+
+.ov-scroll svg {
+  display: block;
+  margin: 0 auto;
+  max-width: none;
+}
+
+.ov-detail {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+  padding: 12px 16px;
+  min-width: 0;
+}
+
+.ov-detail-meta,
+.ov-label {
+  color: var(--vp-c-text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ov-label {
+  margin-top: 12px !important;
+}
+
+.ov-detail-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ov-muted {
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+}
+
+.ov-tests q {
+  quotes: '“' '”';
+}
+
+.ov-tests code,
+.ov-sources code {
+  font-size: 12px;
+}
+
+.ov-sources,
+.ov-inline-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.overview-view code {
+  overflow-wrap: anywhere;
+}
+
+/* Diagram shapes. */
+.ov-lane {
+  fill: var(--vp-c-bg-soft);
+}
+
+.ov-lane-title {
+  fill: var(--vp-c-text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ov-node {
+  cursor: pointer;
+}
+
+.ov-node rect {
+  fill: var(--vp-c-bg);
+  stroke: var(--vp-c-divider);
+  stroke-width: 1.5;
+}
+
+.ov-node:hover rect {
+  stroke: var(--vp-c-brand-1);
+}
+
+.ov-node.is-done rect {
+  stroke: var(--vp-c-brand-2);
+}
+
+.ov-node.is-current rect {
+  fill: var(--vp-c-brand-soft);
+  stroke: var(--vp-c-brand-1);
+  stroke-width: 2;
+}
+
+.ov-node-title {
+  fill: var(--vp-c-text-1);
+  font-size: 13px;
+}
+
+.ov-node-index {
+  fill: var(--vp-c-text-3);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-edge,
+.ov-phase-edge {
+  fill: none;
+  stroke: var(--vp-c-text-3);
+  stroke-width: 1.5;
+}
+
+.ov-edge.is-done {
+  stroke: var(--vp-c-brand-1);
+}
+
+.ov-arrowhead {
+  fill: var(--vp-c-text-3);
+}
+
+/* Effect phases: one colour per transition kind. */
+.ov-phase-edge.is-claim,
+.ov-key.is-claim {
+  stroke: var(--vp-c-indigo-1);
+  background: var(--vp-c-indigo-1);
+}
+.ov-phase-edge.is-attempt,
+.ov-key.is-attempt {
+  stroke: var(--vp-c-yellow-1);
+  background: var(--vp-c-yellow-1);
+}
+.ov-phase-edge.is-settle,
+.ov-key.is-settle {
+  stroke: var(--vp-c-green-1);
+  background: var(--vp-c-green-1);
+}
+.ov-phase-edge.is-release,
+.ov-key.is-release {
+  stroke: var(--vp-c-purple-1);
+  background: var(--vp-c-purple-1);
+}
+.ov-phase-edge.is-cancel,
+.ov-key.is-cancel {
+  stroke: var(--vp-c-red-1);
+  background: var(--vp-c-red-1);
+}
+
+.ov-phases .ov-phase-edge {
+  opacity: 0.35;
+}
+
+.ov-phases .ov-phase-edge.is-related {
+  opacity: 1;
+  stroke-width: 2;
+}
+
+.ov-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  color: var(--vp-c-text-2);
+  font-size: 12px;
+}
+
+.ov-key {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  margin-left: 8px;
+}
+
+.ov-key:first-child {
+  margin-left: 0;
+}
+
+/* Layers. */
+.ov-bands {
+  position: relative;
+  display: grid;
+  gap: 8px;
+}
+
+.ov-band {
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  padding: 8px 10px 10px;
+}
+
+.ov-band-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vp-c-text-2);
+}
+
+.ov-band-title code {
+  font-weight: 400;
+}
+
+.ov-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ov-chip {
+  position: relative;
+  z-index: 1;
+  padding: 2px 8px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+}
+
+.ov-chip.is-selected {
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-1);
+  color: var(--vp-c-white);
+}
+
+.ov-chip.is-dependency,
+.ov-key.is-dependency {
+  border-color: var(--vp-c-indigo-1);
+  background: linear-gradient(var(--vp-c-indigo-soft), var(--vp-c-indigo-soft)), var(--vp-c-bg);
+}
+
+.ov-chip.is-dependent,
+.ov-key.is-dependent {
+  border-color: var(--vp-c-green-1);
+  background: linear-gradient(var(--vp-c-green-soft), var(--vp-c-green-soft)), var(--vp-c-bg);
+}
+
+.ov-key.is-dependency {
+  background: var(--vp-c-indigo-1);
+}
+
+.ov-key.is-dependent {
+  background: var(--vp-c-green-1);
+}
+
+.ov-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.ov-overlay-edge {
+  fill: none;
+  stroke-width: 1.25;
+  opacity: 0.7;
+}
+
+.ov-overlay-edge.is-dependency {
+  stroke: var(--vp-c-indigo-1);
+}
+
+.ov-overlay-edge.is-dependent {
+  stroke: var(--vp-c-green-1);
+}
+
+.ov-rules {
+  font-size: 13px;
+}
+
+/* Tables. */
+.ov-table-wrap {
+  overflow-x: auto;
+}
+
+.overview-view .ov-table {
+  display: table;
+  width: 100%;
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.overview-view .ov-table th,
+.overview-view .ov-table td {
+  padding: 6px 10px;
+  vertical-align: top;
+}
+
+.ov-properties td:first-child {
+  min-width: 180px;
+}
+
+.ov-properties .ov-tests {
+  padding-left: 0;
+  list-style: none;
+}
+
+/* Examples. */
+.ov-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 8px 0 12px;
+}
+
+.ov-facts dt {
+  color: var(--vp-c-text-2);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.ov-facts dd {
+  margin: 0;
+}
+
+.ov-scopes {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ov-scope {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg);
+  padding: 8px 10px;
+  min-width: 0;
+}
+
+.ov-scope-title {
+  font-weight: 600;
+}
+
+.ov-scope .ov-label:first-of-type {
+  margin-top: 4px !important;
+}
+
+.overview-view .ov-declarations {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0 16px;
+  list-style: none;
+  padding: 0;
+}
+
+.overview-view .ov-declarations li + li {
+  margin-top: 0;
+}
+
+.ov-declared {
+  display: grid;
+  gap: 2px;
+  border-left: 3px solid var(--vp-c-brand-1);
+  padding: 2px 0 2px 8px;
+  margin-bottom: 6px;
+}
+
+.ov-declared.is-optional {
+  border-left-style: dashed;
+  border-left-color: var(--vp-c-text-3);
+}
+
+.ov-declared-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.ov-declared-text {
+  color: var(--vp-c-text-2);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.ov-badge {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 11px;
+  color: var(--vp-c-text-2);
+}
+
+@media (max-width: 640px) {
+  .ov-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .ov-facts dd {
+    margin-bottom: 6px;
+  }
+
+  /* Chips wrap into short rows here; the colours and the panel carry the relations. */
+  .ov-overlay {
+    display: none;
+  }
+
+  /* Each table row becomes a stack of cells labelled with their column. */
+  .overview-view .ov-table,
+  .overview-view .ov-table tbody,
+  .overview-view .ov-table tr,
+  .overview-view .ov-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .overview-view .ov-table thead {
+    display: none;
+  }
+
+  .overview-view .ov-table tr {
+    border-top: 1px solid var(--vp-c-divider);
+    padding: 6px 0;
+  }
+
+  .overview-view .ov-table td {
+    border: 0;
+    padding: 2px 10px;
+  }
+
+  .overview-view .ov-table td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--vp-c-text-2);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .ov-properties td:first-child {
+    min-width: 0;
+  }
+}

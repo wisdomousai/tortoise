@@ -31,7 +31,7 @@ export default withMermaid(
   defineConfig({
     title: 'Agent-native desktop starter',
     description:
-      'A TypeScript reference for applications that people and AI agents operate together.',
+      'A TypeScript reference architecture for applications at the point of work that deliver to systems of record.',
     base: '/agent-native-desktop-starter/',
     srcDir: '..',
     outDir: '../dist/docs',
@@ -78,7 +78,7 @@ export default withMermaid(
     ignoreDeadLinks: false,
     themeConfig: {
       nav: [
-        { text: 'Guides', link: '/docs/getting-started' },
+        { text: 'Guides', link: '/docs/overview' },
         { text: 'Glossary', link: '/docs/glossary' },
         { text: 'AGENTS.md', link: '/AGENTS' },
       ],

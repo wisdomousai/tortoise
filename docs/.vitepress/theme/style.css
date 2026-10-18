@@ -1,0 +1,4 @@
+/* A page opened at an anchor shows the heading below the fixed nav, not under it. */
+.vp-doc :is(h1, h2, h3, h4)[id] {
+  scroll-margin-top: calc(var(--vp-nav-height) + 24px);
+}
