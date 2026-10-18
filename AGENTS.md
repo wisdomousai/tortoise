@@ -1,6 +1,6 @@
 # Working on this starter
 
-`docs/architecture.md` describes the layers and how a request flows; `docs/primitives.md` lists the building blocks and where they live. Read them before changing a boundary.
+`docs/overview.md` maps inputs, the request path and the ports to packages; `docs/architecture.md` describes the layers and how a request flows; `docs/primitives.md` lists the building blocks and where they live. Read them before changing a boundary.
 
 ## Layers
 

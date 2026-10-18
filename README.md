@@ -1,6 +1,8 @@
 # Agent-native desktop starter
 
-A TypeScript [framework](docs/glossary.md#framework) for an [application](docs/glossary.md#application) whose [commands](docs/glossary.md#command) and [queries](docs/glossary.md#query) are one [catalog](docs/glossary.md#catalog). Every [surface](docs/glossary.md#surface) calls that catalog. One [authority](docs/glossary.md#authority) commits the result. When another system owns records the application reads or changes, the application connects that system as a [system of record](docs/systems-of-record.md). The repository contains the framework, [workstation](docs/glossary.md#workstation) packages, [host plugins](docs/glossary.md#host-plugin), a [starter](docs/glossary.md#starter) and eight [examples](docs/glossary.md#example).
+Desktop applications are the expert's tools again. A single-user application on the expert's own machine responds at once, works without a network, and composes with the other programs there, including the control software that runs equipment. Agent harnesses such as Claude Code and Codex run on the same machine and act through its CLIs and MCP servers. This repository is a reference architecture and [framework](docs/glossary.md#framework) for that paradigm. It provides reusable building blocks for agent-native, hyper-specialized applications for the edge workforce. People and agents operate each application together, and it delivers their work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES.
+
+[Overview](docs/overview.md) shows how an input becomes a committed change and a delivery to a system of record, with the packages that handle each step.
 
 ## Capabilities and surfaces
 
@@ -57,6 +59,7 @@ Each [storage](docs/glossary.md#storage) transaction receives the whole workspac
 
 ## Guides
 
+- [Overview](docs/overview.md): the inputs, the request path, the layers and the ports, with the examples that use each.
 - [Getting started](docs/getting-started.md): run the examples, use the examples through the CLI and MCP, and create another application.
 - [Architecture](docs/architecture.md): layers, surfaces, request flow, instances and hosts, host plugins, storage and the invariants the checks test.
 - [Primitives](docs/primitives.md): the building blocks, the status of each, and the package of each one.

@@ -22,6 +22,7 @@ The subject of a sentence is a component, a file, a command, or a role the softw
 - Call the repository the repository or the project, never "this checkout".
 - A procedure is a numbered list of imperatives: Run, Set, Open. The imperative names no addressee.
 - Link a skill by name. Do not write "Coding agents follow".
+- The root README's first paragraph states why the project exists. Every other paragraph follows these rules.
 
 ## Pronouns
 

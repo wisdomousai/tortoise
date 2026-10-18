@@ -67,7 +67,7 @@ export const paths: readonly RequestPath[] = [
         lane: 'world',
         title: 'Input',
         summary:
-          'An operator presses a control, a scanner reads a code, a driver reports a reading or an observer reads a workstation application's screen.',
+          "An operator presses a control, a scanner reads a code, a driver reports a reading or an observer reads a workstation application's screen.",
         doc: 'point-of-work-input',
         sources: [
           'packages/devices/src',
@@ -164,7 +164,7 @@ export const paths: readonly RequestPath[] = [
         lane: 'delivery',
         title: 'Connector',
         summary:
-          'The connector reaches the system of record through the network port, an exchange folder, a driver process or a workstation application's screen.',
+          "The connector reaches the system of record through the network port, an exchange folder, a driver process or a workstation application's screen.",
         doc: 'systems-of-record#connectors',
         sources: [
           'plugins/connector-http/src',
@@ -401,7 +401,8 @@ export const properties: readonly Property[] = [
   },
   {
     property: 'An undeclared or unbound destination is refused and recorded.',
-    mechanism: 'The egress guard is the network port; the deployment policy binds each destination.',
+    mechanism:
+      'The egress guard is the network port; the deployment policy binds each destination.',
     doc: 'security-and-compliance#egress-guard',
     tests: [
       {
@@ -448,13 +449,13 @@ export const properties: readonly Property[] = [
     ],
   },
   {
-    property: "An agent's proposal changes records only when a person accepts it.",
-    mechanism: "Acceptance runs the command once, as the accepter, within the accepter's grant.",
-    doc: 'agents#proposals',
+    property: "An agent's approval request changes records only when a person approves it.",
+    mechanism: "Approval runs the command once, as the approver, within the approver's grant.",
+    doc: 'agents#approval-requests',
     tests: [
       {
-        file: 'packages/runtime/test/proposal.test.ts',
-        test: 'an agent proposes and a person accepts: the command runs as the accepter, once',
+        file: 'packages/runtime/test/approval.test.ts',
+        test: 'an agent requests approval and a person approves: the command runs as the approver, once',
       },
     ],
   },
@@ -563,8 +564,10 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
     sources: ['examples/quality-inspection/fake-sor.ts', 'examples/quality-inspection/drivers'],
   },
   'line-station': {
-    input: 'A workstation application's screen through an observer, scanners, and an automation driver.',
-    record: 'A homebrew MES for orders and stops, and the workstation application through its screen.',
+    input:
+      "A workstation application's screen through an observer, scanners, and an automation driver.",
+    record:
+      'A homebrew MES for orders and stops, and the workstation application through its screen.',
     sources: [
       'examples/line-station/fake-mes.ts',
       'examples/line-station/fake-hmi',

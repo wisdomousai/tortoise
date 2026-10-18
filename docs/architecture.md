@@ -1,6 +1,6 @@
 # Architecture
 
-The [framework](glossary.md#framework) is built in layers. Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an instance on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns, and the checks test the invariants. [Primitives](primitives.md) lists the building blocks and the package of each one.
+The [framework](glossary.md#framework) is built in layers. Every capability is served through the same set of [surfaces](glossary.md#surface), runs in an instance on a host and commits to [storage](glossary.md#storage). Host plugins add cross-cutting concerns, and the checks test the invariants. [Primitives](primitives.md) lists the building blocks and the package of each one. [Overview](overview.md) maps the same layers to the inputs and the request path.
 
 ## Concepts
 
