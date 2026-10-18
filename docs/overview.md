@@ -12,8 +12,6 @@ The system of record is authoritative for master data and for the postings it ac
 
 ## Request path
 
-The arrow keys move between steps while the diagram has focus.
-
 <OverviewView view="request-path" />
 
 A command takes this path:
@@ -64,15 +62,6 @@ The kernel takes each port from the one plugin that provides it, or uses the def
 A [deployment policy](glossary.md#deployment-policy) binds the destinations, child processes, devices and exchange folders, and the host refuses the rest.
 
 <OverviewView view="examples" />
-
-## Generated data
-
-`bun run docs:dev` and `bun run docs:build` run the generator first.
-
-```sh
-bun run generate
-bun run docs:dev
-```
 
 ## Limits
 
