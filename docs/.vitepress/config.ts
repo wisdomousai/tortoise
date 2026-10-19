@@ -9,7 +9,7 @@ import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 import { repoRoot, sidebar } from './sidebar';
 
-const repository = 'https://github.com/youtiger/agent-native-desktop-starter';
+const repository = 'https://github.com/wisdomousai/agent-native-desktop-starter';
 
 /**
  * A relative link to a source file or a directory has no page on the site. It points at the same
@@ -85,7 +85,7 @@ export default withMermaid(
       sidebar: sidebar(),
       search: { provider: 'local' },
       socialLinks: [
-        { icon: 'github', link: 'https://github.com/youtiger/agent-native-desktop-starter' },
+        { icon: 'github', link: 'https://github.com/wisdomousai/agent-native-desktop-starter' },
       ],
       outline: [2, 3],
     },

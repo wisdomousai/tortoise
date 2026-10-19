@@ -8,7 +8,7 @@ import { mount, type Links, type ViewName } from './overview';
 
 const props = defineProps<{ view: ViewName }>();
 const root = ref<HTMLElement>();
-const repository = 'https://github.com/youtiger/agent-native-desktop-starter';
+const repository = 'https://github.com/wisdomousai/agent-native-desktop-starter';
 
 const links: Links = {
   doc: (reference) => {
