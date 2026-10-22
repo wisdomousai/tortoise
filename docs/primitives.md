@@ -417,9 +417,9 @@ _Schema-validated data about one site's equipment. A station profile describes o
 
 implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`packages/devices`](../packages/devices/README.md)
 
-### Device configuration module
+### Device configuration
 
-_A reusable module that makes per-workstation device configuration, the scanner profiles and scan routes, ordinary commands and queries._
+_The `device` feature: per-workstation device configuration, the scanner profiles and scan routes, as ordinary commands and queries that the mounting application authorizes through a station relation._
 
 implemented · [`packages/devices`](../packages/devices/README.md)
 

@@ -1,42 +1,55 @@
-import { expect, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 import {
-  composeAuthorization,
   createApplication,
   createMemoryStorage,
-  sliceHandlers,
+  featureHandlers,
+  routeAuthorization,
 } from '@agent-native/runtime';
+import { featureConformance } from '@agent-native/testing/features';
 import { defaultWedgeProfile } from '../src/index';
 import {
-  createDeviceHandlers,
   createDeviceState,
-  deviceAuthorizationRoute,
   deviceConfigModule,
+  deviceFeature,
+  type DeviceAccess,
   type DeviceState,
 } from '../src/server';
 
-/** A composing application owns station roles; the device module only receives the view. */
+/** A composing application owns station roles; the device feature only receives the view. */
 interface Root {
   roles: Record<string, Record<string, 'operator' | 'supervisor'>>;
-  devices: DeviceState;
+  device: DeviceState;
 }
 
+const access = (state: Root): DeviceAccess => ({
+  relation: (context, station) => {
+    const role = state.roles[station]?.[context.principalId];
+    return role === 'supervisor' ? 'administer' : role ? 'read' : undefined;
+  },
+});
+
 function setup() {
+  const feature = deviceFeature();
   const root: Root = {
     roles: { L1: { sam: 'supervisor', olga: 'operator' }, L2: { olga: 'supervisor' } },
-    devices: createDeviceState(),
+    device: createDeviceState(),
   };
   return createApplication({
     modules: [deviceConfigModule],
-    handlers: sliceHandlers<Root, 'devices', unknown>('devices', createDeviceHandlers()),
+    handlers: featureHandlers<Root, unknown>(
+      { key: 'device', feature, access },
+      { modules: [deviceConfigModule], applicationModules: [] },
+    ),
     storage: createMemoryStorage(root),
-    authorization: composeAuthorization<Root>([
-      deviceAuthorizationRoute<Root>((state) => ({
-        config: state.devices,
-        access: (principal, station) => {
-          const role = state.roles[station]?.[principal];
-          return role === 'supervisor' ? 'administer' : role ? 'read' : undefined;
-        },
-      })),
+    authorization: routeAuthorization<Root>(undefined, [
+      {
+        id: 'device',
+        operations: deviceConfigModule.capabilities.map((capability) => capability.id),
+        resourceTypes: feature.authorization!.resourceTypes,
+        select: (state) => state.device,
+        access,
+        port: feature.authorization!.port,
+      },
     ]),
     services: {},
   });
@@ -104,4 +117,19 @@ test('routes are compiled before they are stored and stale writers conflict', as
       as('sam'),
     ),
   ).rejects.toMatchObject({ code: 'CONFLICT' });
+});
+
+describe('device feature conformance', () => {
+  const profile = defaultWedgeProfile('line-1');
+  const cases = featureConformance(deviceFeature(), {
+    allowAll: { relation: () => 'administer' },
+    denyAll: { relation: () => undefined },
+    sampleSlice: { stations: { L1: { scanners: {}, routes: [] } } },
+    requests: [
+      { operation: 'device.config.get', input: { station: 'L1' } },
+      { operation: 'device.scanner.save', input: { station: 'L1', profile } },
+    ],
+    events: [{ cursor: 1, resource: 'device:L1', revision: 1, type: 'changed', operation: 'x' }],
+  });
+  for (const check of cases) test(check.name, check.run);
 });

@@ -19,7 +19,7 @@ Content (`examples/*`). The fake MES ([`fake-mes.ts`](fake-mes.ts)) and the fake
 
 The example is one [application](../../docs/primitives.md#application). It composes:
 
-- a [module](../../docs/primitives.md#module) of `line.*` [capabilities](../../docs/primitives.md#capability), the [device configuration module](../../docs/primitives.md#device-configuration-module), and the `compliance` module from its plugin.
+- a [module](../../docs/primitives.md#module) of `line.*` [capabilities](../../docs/primitives.md#capability), the [device configuration](../../docs/primitives.md#device-configuration) module, and the `compliance` module from its plugin.
 - the `site`, `network`, `process`, `audit`, `compliance`, `automation` and `connector-driver` [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance, automation and driver plugins' screens.
 - the `expire-approval-requests` [trigger](../../docs/primitives.md#trigger), declared in `automation.ts`. A supervisor enables it with a [standing grant](../../docs/primitives.md#standing-grant), and it then closes expired approval requests at their stations every five minutes.
 - the station bridge. [Observations](../../docs/primitives.md#observation) are submitted through `line.observation.ingest`. A [gated actuator](../../docs/primitives.md#gated-actuator) sits behind a station-screen [connector](../../docs/primitives.md#connector), configured by a [station profile](../../docs/primitives.md#station-and-scanner-profiles) ([`station-profile.json`](station-profile.json)) and gated by a [golden check](../../docs/primitives.md#golden-check).
@@ -173,7 +173,7 @@ Paths in the Code and Proof columns are relative to the example directory. A pat
 | [Agent definition](../../docs/primitives.md#agent-definition) that makes [approval requests](../../docs/primitives.md#approval-request) | `contracts.ts` `stopExplainer`, `handlers/approvals.ts` | `test/approvals.test.ts` |
 | [Trigger](../../docs/primitives.md#trigger) under a [standing grant](../../docs/primitives.md#standing-grant) | `automation.ts` | `test/approvals.test.ts`: the expiry job only |
 | [Requirement declarations](../../docs/primitives.md#requirement-declaration) and host components | `contracts.ts` `requirements`, `manifest.ts` | None in the example |
-| Scanner [device configuration module](../../docs/primitives.md#device-configuration-module) | `manifest.ts`, `application.ts` `deviceAuthorizationRoute` | `test/conformance.test.ts`: operators read, supervisors save |
+| Scanner [device configuration](../../docs/primitives.md#device-configuration) | `manifest.ts`, `application.ts` `deviceAuthorizationRoute` | `test/conformance.test.ts`: operators read, supervisors save |
 | Scanner [input source](../../docs/primitives.md#input-source) | `ui/station/order-task.tsx` | `e2e/station.pw.ts` |
 | Operator [UI registry](../../docs/primitives.md#ui-registry) parts | `ui/station/station-surface.tsx`, `ui/station-admin.tsx` | `e2e/station.pw.ts` |
 | [State migration](../../docs/primitives.md#state-migration) by the unversioned upgrade for workspaces from before approval requests | `application.ts` `upgradeState` | `test/application.test.ts`: the upgrade leaves a current state unchanged; the backfill for an older workspace is untested |

@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
+import {
+  defineCapability,
+  defineFeatureManifest,
+  defineModule,
+  jsonSchema,
+} from '@agent-native/contracts';
 import { scannerProfileSchema } from './scanner/profile';
 import { scanRouteSchema } from './scanner/router';
 
@@ -81,4 +86,14 @@ export const deviceConfigModule = defineModule({
       text: 'Read the station configuration first. Save a scanner profile only from values the user confirmed or a calibration produced; never guess prefixes, suffixes or layouts. Keep specific scan routes before general ones and test a pattern against an example code the user supplies.',
     },
   ],
+});
+
+/**
+ * The `device` feature: per-station device configuration as one mountable part. Its state slice is
+ * `device`, its resource type `device:<station>`.
+ */
+export const deviceFeatureManifest = defineFeatureManifest({
+  id: 'device',
+  title: 'Device configuration',
+  modules: [deviceConfigModule],
 });

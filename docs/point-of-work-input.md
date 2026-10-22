@@ -106,7 +106,7 @@ A scan router maps a scan to an intent without a model turn. A route matches a G
 
 ## Device configuration
 
-The device configuration module reads and saves scanner profiles and scan routes per station. Writes carry expected [revisions](glossary.md#revision), so a stale writer conflicts. Routes are compiled before they are stored, so an invalid pattern fails at configuration time. The composing application decides who may change the configuration. In `line-station`, a station's supervisors administer it, and others with a role at that station read it.
+The `device` [feature](glossary.md#feature) reads and saves scanner profiles and scan routes per station. Writes carry expected [revisions](glossary.md#revision), so a stale writer conflicts. Routes are compiled before they are stored, so an invalid pattern fails at configuration time. The mounting application decides who may change the configuration through a station relation. In `line-station`, a station's supervisors administer it, and others with a role at that station read it.
 
 ## Use
 

@@ -7,10 +7,13 @@ import {
 import type {
   AuthorizationPort,
   AuthorizationRoute,
+  ExecutionContext,
+  FeaturePolicy,
+  FeatureServer,
   HandlerContext,
   HandlerContribution,
 } from '@agent-native/runtime';
-import { deviceConfigModule, deviceOperations } from './contracts';
+import { deviceConfigModule, deviceFeatureManifest, deviceOperations } from './contracts';
 import type { ScannerProfile } from './scanner/profile';
 import { createScanRouter, type ScanRoute } from './scanner/router';
 
@@ -144,4 +147,57 @@ export function deviceAuthorizationRoute<Root>(
   };
 }
 
-export { deviceConfigModule, deviceOperations } from './contracts';
+/** A caller's relation to a station: may read its configuration, or administer it. */
+export type DeviceRelation = 'read' | 'administer';
+
+/**
+ * The application's answer to who may configure devices where. The application's own policy
+ * never sees device operations, so `relation` must apply the application's membership gate and
+ * its integration principals' lanes; the feature applies a delegated grant's resource scope.
+ */
+export interface DeviceAccess {
+  relation(context: ExecutionContext, station: string): DeviceRelation | undefined;
+}
+
+/**
+ * The device feature's policy. Reads need any relation to the station and writes `administer`; a
+ * resource-limited delegation must name `device:<station>`. A command is also checked against
+ * the access view of the previous state.
+ */
+const deviceFeaturePolicy: FeaturePolicy<DeviceState, DeviceAccess> = {
+  authorize({ capability, input, context, access, previousAccess, phase }) {
+    if (!knownOperations.has(capability.id)) return { allowed: false, reason: 'NO_POLICY' };
+    const station = String((input as { station?: unknown }).station ?? '');
+    if (context.grant?.resources && !context.grant.resources.includes(`device:${station}`))
+      return { allowed: false, reason: 'RESOURCE_DENIED' };
+    const permitted = (view: DeviceAccess) => {
+      const relation = view.relation(context, station);
+      if (!relation) return false;
+      return capability.kind === 'query' || phase === 'replay' || relation === 'administer';
+    };
+    return {
+      allowed: permitted(access) && (!previousAccess || permitted(previousAccess)),
+      reason: 'RESOURCE_DENIED',
+    };
+  },
+  canReadEvent({ access, context, event }) {
+    const station = event.resource.slice(event.resource.indexOf(':') + 1);
+    return access.relation(context, station) !== undefined;
+  },
+};
+
+/**
+ * Device configuration as a feature: scanner profiles and scan routes per station, in the
+ * `device` slice. The application mounts it with a `DeviceAccess` view built from its own
+ * station roles.
+ */
+export function deviceFeature(): FeatureServer<DeviceState, DeviceAccess> {
+  return {
+    manifest: deviceFeatureManifest,
+    state: { create: createDeviceState },
+    handlers: createDeviceHandlers(),
+    authorization: { resourceTypes: ['device'], port: deviceFeaturePolicy },
+  };
+}
+
+export { deviceConfigModule, deviceFeatureManifest, deviceOperations } from './contracts';

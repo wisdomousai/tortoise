@@ -186,7 +186,7 @@ Signing in does not move a seat that the bridge holds. The operator takes the sc
 | Actual machine state, loaded recipe, counters, alarms | A workstation application; the application holds observed copies with provenance. |
 | Stops and their classification, count confirmations, operator verifications, desired state | Application, forwarded to the MES or station through the outbox. |
 | Observation history | Application, bounded, with frame digests in place of retained frames. |
-| Scanner profiles and scan routes per station | Application, through the device configuration module. |
+| Scanner profiles and scan routes per station | Application, through the `device` feature. |
 
 ## Use
 

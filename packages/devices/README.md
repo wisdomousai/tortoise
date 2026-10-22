@@ -10,7 +10,7 @@ Framework (`packages/*`). Scanner logic and the capability [module](../../docs/g
 
 - [Input source](../../docs/primitives.md#input-source): `ScannerSource`, `ScanEvent`, `decodeScan`, `calibrate`, `createScanRouter`, `createWedgeSource`, `createSerialSource`, `createHidPosSource`, `createCameraSource`, `scannerDevicesComponent`.
 - [Scanner profile](../../docs/primitives.md#station-and-scanner-profiles): `ScannerProfile`, `scannerProfileSchema`, `ScanRoute`.
-- [Device configuration module](../../docs/primitives.md#device-configuration-module): `deviceConfigModule`, `createDeviceHandlers`. A supervisor's screen, a CLI script and an agent change scanner profiles and routes through it the same way, under policy and revisions.
+- [Device configuration](../../docs/primitives.md#device-configuration): `deviceFeature`, `deviceFeatureManifest`, `DeviceAccess`, `DeviceRelation`, `deviceConfigModule`, `createDeviceHandlers`. A supervisor's screen, a CLI script and an agent change scanner profiles and routes through it the same way, under policy and revisions. `devicePolicy` and `deviceAuthorizationRoute` compose the module without the feature.
 
 The setup screen and the scanner hook ship in [`@agent-native/operator-ui`](../operator-ui/README.md).
 
@@ -24,9 +24,9 @@ These modules are portable and run in React Native as well: `scanner/decode`, `s
 | --- | --- | --- |
 | `@agent-native/devices` | browser and server | Every scanner module: sources, decoding, GS1, AIM symbologies, keyboard layouts, calibration, profiles and routing. |
 | `@agent-native/devices/*` | per row | One source file, for example `@agent-native/devices/scanner/wedge`. |
-| `@agent-native/devices/contracts` | browser and server | `deviceConfigModule` and `deviceOperations`. |
+| `@agent-native/devices/contracts` | browser and server | `deviceFeatureManifest`, `deviceConfigModule` and `deviceOperations`. |
 | `@agent-native/devices/requirements` | browser and server | `scannerDevicesComponent`: serial, HID and camera sources as device requirements. |
-| `@agent-native/devices/server` | server only | `createDeviceHandlers`, `createDeviceState`, `devicePolicy`, `deviceAuthorizationRoute`. |
+| `@agent-native/devices/server` | server only | `deviceFeature`, `DeviceAccess`, `createDeviceHandlers`, `createDeviceState`, `devicePolicy`, `deviceAuthorizationRoute`. |
 
 `deviceOperations` holds `device.config.get`, `device.scanner.save`, `device.scanner.remove` and `device.routes.save`.
 
@@ -38,7 +38,7 @@ A scan is input data and grants no permission. Sources are registered explicitly
 
 ### Configuration
 
-The configuration module is domain-neutral. The composing application decides who reads or administers a station by passing an access view to the device policy. Routes are compiled before they are stored, and stale writers conflict on the expected revision. Profiles are configuration and hold no secrets.
+The `device` feature is domain-neutral. The mounting application decides who reads or administers a station with a `DeviceAccess` view, whose `relation` must apply the application's membership gate and integration lanes, because the application's policy never sees device operations. The feature's policy applies a delegated grant's resource scope, `device:<station>`. Routes are compiled before they are stored, and stale writers conflict on the expected revision. Profiles are configuration and hold no secrets.
 
 ### Device requirements
 
@@ -55,7 +55,7 @@ bun test packages/devices
 ```
 
 - `test/scanner.test.ts`: layout repair for a US scanner on QWERTZ or Swiss hosts with dead keys, GS1 check digits and fields, AIM identifiers and calibration inference. It also covers routing, serial line assembly, HID POS reports, camera repeat suppression, wedge bursts and the host bridge.
-- `test/config.test.ts`: administrators configure, operators read and people with no role see nothing; stale route writers conflict.
+- `test/config.test.ts`: through the feature, administrators configure, operators read and people with no role see nothing; stale route writers conflict; the feature conformance cases.
 
 ## Skills
 

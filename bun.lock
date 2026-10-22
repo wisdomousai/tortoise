@@ -241,6 +241,9 @@
         "@agent-native/runtime": "workspace:*",
         "zod": "4.6.5",
       },
+      "devDependencies": {
+        "@agent-native/testing": "workspace:*",
+      },
     },
     "packages/event-log": {
       "name": "@agent-native/event-log",
