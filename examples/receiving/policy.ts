@@ -1,4 +1,10 @@
-import { definePolicy, own, type OperationRule } from '@agent-native/runtime';
+import {
+  definePolicy,
+  own,
+  type ApprovalAccess,
+  type OperationRule,
+  type ReconciliationAccess,
+} from '@agent-native/runtime';
 import { targetLane, targetRules } from '@agent-native/integration';
 import { operations } from './contracts';
 import { erpTarget } from './contracts/erp-target';
@@ -13,12 +19,8 @@ const editor: OperationRule<AppState, Role> = {
 
 /**
  * Workspace policy. Only members pass the caller gate; integration principals hold no role and
- * act only in their own lanes. An operation this policy does not list is denied.
- *
- * Any member may request approval; the agent requests approval under the delegated grant of the member who started
- * it. Approving runs the requested command under the approver, so its own editor rule applies
- * again. Deciding an approval request needs a person, and so does saying whether the ERP applied a held
- * receipt.
+ * act only in their own lanes. An operation this policy does not list is denied. The approval
+ * and reconciliation features decide their own operations over the access views below.
  */
 export const appPolicy = definePolicy<AppState, Role>({
   integrations: [
@@ -33,21 +35,40 @@ export const appPolicy = definePolicy<AppState, Role>({
     [operations.deliveryClassify.id]: editor,
     ...targetRules(erpTarget),
     [operations.erpSend.id]: editor,
-    [operations.approvalRequest.id]: {},
-    [operations.approvalApprove.id]: { person: true },
-    [operations.approvalReject.id]: { ...editor, person: true },
-    [operations.approvalExpire.id]: {},
-    [operations.approvalList.id]: 'open',
-    [operations.approvalGet.id]: 'open',
-    [operations.reconciliationList.id]: 'open',
-    [operations.reconciliationResolve.id]: { ...editor, person: true },
     // scaffold:rules
   },
   events: {
-    // Feed, delivery and approval request state is visible to every member.
+    // Feed and delivery state is visible to every member.
     sync: () => true,
     delivery: () => true,
-    'approval-request': () => true,
     // scaffold:events
   },
+});
+
+/**
+ * Who may do what with approval requests. Only members pass, as the caller gate requires, so the
+ * ERP's integration principal is refused. Any member may request, approve and read; the
+ * discrepancy agent requests under the delegated grant of the member who started it, and the
+ * feature refuses approving to a delegated caller. Approving runs the requested command under
+ * the approver, so its own editor rule applies again. Only editors reject.
+ */
+export const approvalAccess = (state: AppState): ApprovalAccess => ({
+  allows(context, action) {
+    const role = roleOf(state, context.principalId);
+    if (role === undefined) return false;
+    return action !== 'reject' || role === 'editor';
+  },
+});
+
+/**
+ * Who may reconcile held goods receipts: members list them and editors decide. Every member sees
+ * every held receipt, as they see every line.
+ */
+export const reconciliationAccess = (state: AppState): ReconciliationAccess => ({
+  allows(context, action) {
+    const role = roleOf(state, context.principalId);
+    return action === 'read' ? role !== undefined : role === 'editor';
+  },
+  sees: (context, effect) =>
+    roleOf(state, context.principalId) !== undefined && effect.resource.startsWith('delivery:'),
 });

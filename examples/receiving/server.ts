@@ -3,20 +3,17 @@ import type { AppState } from './domain';
 import type { Services } from './handlers/context';
 import { deliveryHandlers } from './handlers/delivery';
 import { erpHandlers } from './handlers/erp-target';
-import { approvalHandlers } from './handlers/approvals';
-import { reconciliationHandlers } from './handlers/reconciliation';
 // scaffold:imports
 
 export type { Services } from './handlers/context';
-export { appPolicy } from './policy';
+export { onReceiptResolved } from './handlers/reconciliation';
+export { appPolicy, approvalAccess, reconciliationAccess } from './policy';
 
 /** Every handler of the application: one group per collection, capability and target. */
 export function createHandlers(): HandlerContribution<AppState, Services>[] {
   return [
     ...deliveryHandlers(),
     ...erpHandlers(),
-    ...(approvalHandlers() as HandlerContribution<AppState, Services>[]),
-    ...reconciliationHandlers(),
     // scaffold:handlers
   ];
 }

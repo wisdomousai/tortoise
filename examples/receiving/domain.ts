@@ -1,4 +1,4 @@
-import type { ApprovalRequest } from '@agent-native/contracts';
+import type { StateMigrations } from '@agent-native/runtime';
 import type { Delivery } from './contracts/delivery';
 // scaffold:imports
 
@@ -18,8 +18,6 @@ export interface AppState {
   /** Feed positions by target. */
   sync: Record<string, Cursor>;
   deliveries: Record<string, Delivery>;
-  /** Requested commands, such as a discrepancy reason an agent suggests, awaiting a person. */
-  approvals: Record<string, ApprovalRequest>;
   // scaffold:state
 }
 
@@ -32,10 +30,28 @@ export function createState(ownerId: string, members: Record<string, Role> = {})
       // scaffold:sync
     },
     deliveries: {},
-    approvals: {},
     // scaffold:initial
   };
 }
+
+/**
+ * Version 2 moved approval requests from `approvals` into the `approval` feature's slice, which
+ * adopts them first (`application.ts`). The step is not compatible, so code from version 1
+ * refuses a version 2 workspace instead of running without its approval requests.
+ */
+export const migrations: StateMigrations = {
+  version: 2,
+  steps: [
+    {
+      from: 1,
+      to: 2,
+      up: (stored) => {
+        const { approvals: _moved, ...rest } = stored as Record<string, unknown>;
+        return rest;
+      },
+    },
+  ],
+};
 
 /**
  * A stored workspace under the current code: record sets added since it was created start

@@ -2,6 +2,7 @@ import { useParams } from '@tanstack/react-router';
 import { CapabilityForm } from '@/components/capability-form';
 import { CollectionScreen, RecordScreen } from '@/components/collection-screen';
 import { ApprovalReview } from '@/components/approval-review';
+import { approvalOperations } from '@agent-native/contracts';
 import { operations } from '../contracts';
 
 export const reasonOf = (approval: { operation: string; input: Record<string, unknown> }) =>
@@ -25,9 +26,9 @@ function DeliveryScreen() {
       </section>
       <ApprovalReview
         title="Suggested reason"
-        list={operations.approvalList}
-        approve={operations.approvalApprove}
-        reject={operations.approvalReject}
+        list={approvalOperations.approvalList}
+        approve={approvalOperations.approvalApprove}
+        reject={approvalOperations.approvalReject}
         resource={`delivery:${id}`}
         describe={reasonOf}
       />

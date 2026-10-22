@@ -258,7 +258,7 @@ These steps start from the exported example and name the file to change in it. F
 5. Change the MES target in `contracts/target.ts`, its handlers in `handlers/integration.ts` and the status shape of `syncStatus` in `handlers/queries.ts`. Keep the `settles` override, because the bridge principals settle through the same operation.
 6. Change the commands in `handlers/production.ts`. Each records the desired state and calls `ctx.enqueue` for the MES target or for `legacy-hmi:<station>`.
 7. Change the observation handler in `handlers/observation.ts` and the field names in `FIELDS` in `domain.ts` to the fields your domain interprets. Keep the rule that an uncertain reading becomes an attention item.
-8. Keep reading confirmation and the reconcile command in `handlers/attention.ts` when a decision changes more than the effect and its record. Otherwise compose `reconciliationOperations` from the contracts package with the runtime's `reconciliationHandlers`, as the [receiving example](../receiving/README.md) does; the export does not contain that example.
+8. Keep reading confirmation and the reconcile command in `handlers/attention.ts` when a decision changes more than the effect and its record. Otherwise mount the runtime's `reconciliationFeature`, as the [receiving example](../receiving/README.md) does; the export does not contain that example.
 9. Keep the mode and seat commands in `handlers/administration.ts` and the control query in `handlers/queries.ts`. Both routes read the control query before they act.
 10. Change `policy.ts` for your roles and resources, and keep these parts.
     - `person: true` on commands that need a person at the station.

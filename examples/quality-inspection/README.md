@@ -311,7 +311,7 @@ Steps that cite a file of an existing example give its path from the framework r
 This example composes no reconciliation, so a held effect has no screen in it. These steps follow the receiving example in the framework checkout.
 
 1. Compose `reconciliationOperations` from `@agent-native/contracts` in the module, so a person can [resolve held effects](../../docs/primitives.md#reconciliation).
-2. Add `reconciliationHandlers` from `@agent-native/runtime` with `visible` and an `onResolved` that records the outcome as `onOutcome` would. `examples/receiving/handlers/reconciliation.ts` shows both options.
+2. Mount `reconciliationFeature()` from `@agent-native/runtime` with an access view whose `sees` filters the held effects, and an `onResolved` hook that records the outcome as `onOutcome` would. `examples/receiving/application.ts` and `examples/receiving/handlers/reconciliation.ts` show both.
 3. Add policy rules for the reconciliation list and resolve capabilities, as `examples/receiving/policy.ts` does.
 4. Add a screen with the frame's `reconciliation-review` registry component, as `examples/receiving/ui/reconcile.tsx` does.
 

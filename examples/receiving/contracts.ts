@@ -1,28 +1,26 @@
-import {
-  defineAgent,
-  defineModule,
-  approvalOperations,
-  reconciliationOperations,
-} from '@agent-native/contracts';
+import { defineAgent, defineModule } from '@agent-native/contracts';
 import { deliveryOperations } from './contracts/delivery';
 import { erpSend, erpTarget } from './contracts/erp-target';
 // scaffold:imports
 
-/** Every operation of the Goods receiving module, by key. Browser-safe. */
+/**
+ * Every operation of the Goods receiving module, by key. Browser-safe. Approval requests and
+ * reconciliation come from the `approval` and `reconciliation` features the manifest lists.
+ */
 export const operations = {
   ...deliveryOperations,
   erpSettle: erpTarget.settle,
   erpSync: erpTarget.sync,
   erpStatus: erpTarget.status,
   erpSend,
-  ...approvalOperations,
-  ...reconciliationOperations,
   // scaffold:operations
 } as const;
 
 export const receivingModule = defineModule({
   id: 'receiving',
   capabilities: Object.values(operations),
+  // The discrepancy agent reads and requests approval requests.
+  requires: ['approval'],
   agents: [
     defineAgent({
       id: 'receiving.discrepancy',

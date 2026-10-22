@@ -7,8 +7,8 @@ import { FakeFileConsumer } from '@agent-native/connector-files/testing';
 import { openEmbeddedInstance } from '@agent-native/host';
 import { agentGrant, type ExecutionContext } from '@agent-native/runtime';
 import { createReceivingApplication } from '../application';
-import { receivingModule } from '../contracts';
-import { erpExchange, erpFolders } from '../contracts/erp-target';
+import { erpFolders } from '../contracts/erp-target';
+import manifest from '../manifest';
 
 const owner = { workspaceId: 'local', principalId: 'owner' };
 const viewer = { workspaceId: 'local', principalId: 'viewer' };
@@ -17,7 +17,7 @@ const agent: ExecutionContext = {
   ...owner,
   runId: 'run-1',
   grant: agentGrant(
-    buildCatalog([receivingModule], { components: [erpExchange] }),
+    buildCatalog(manifest.modules, { components: manifest.components }),
     'receiving.discrepancy',
     owner,
     {

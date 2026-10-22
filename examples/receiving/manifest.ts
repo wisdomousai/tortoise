@@ -1,3 +1,4 @@
+import { approvalFeatureManifest, reconciliationFeatureManifest } from '@agent-native/contracts';
 import { defineManifest } from '@agent-native/host/manifest';
 import { auditPluginManifest } from '@agent-native/audit/plugin-manifest';
 import { compliancePluginManifest } from '@agent-native/compliance/plugin-manifest';
@@ -12,6 +13,7 @@ export default defineManifest({
   title: 'Goods receiving',
   modules: [receivingModule],
   components: [erpExchange],
+  features: [approvalFeatureManifest, reconciliationFeatureManifest],
   plugins: [
     sitePluginManifest,
     networkPluginManifest,

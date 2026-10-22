@@ -16,7 +16,7 @@ The example is one [application](../../docs/primitives.md#application). It uses:
 - a [policy](../../docs/primitives.md#policy) built with `definePolicy`;
 - the ERP as a [target](../../docs/primitives.md#target) whose [connector](../../docs/primitives.md#connector) is `fileTargetPort` from [`connector-files`](../../plugins/connector-files/README.md). It runs over three exchange folders, declared as [requirements](../../docs/primitives.md#requirement-declaration) and bound by the [deployment policy](../../docs/primitives.md#deployment-policy);
 - an [agent definition](../../docs/primitives.md#agent-definition), `receiving.discrepancy`, whose [approval requests](../../docs/primitives.md#approval-request) a person approves or rejects;
-- [reconciliation](../../docs/primitives.md#reconciliation) of goods receipts the ERP left unclear, through `reconciliationOperations` and the Held receipts screen.
+- [reconciliation](../../docs/primitives.md#reconciliation) of goods receipts the ERP left unclear, through the `reconciliation` [feature](../../docs/primitives.md#feature) and the Held receipts screen.
 
 ## Entrypoints
 
@@ -64,7 +64,7 @@ Until the folders are bound, no notice is imported and posted receipts wait in t
 
 Only workspace members pass the policy's caller gate. Editors count, classify and post, and viewers read. The [integration principal](../../docs/glossary.md#integration-principal) `erp-integration` holds no role and acts only in the ERP target's [policy lane](../../docs/glossary.md#policy-lane).
 
-Any member may request approval. The agent requests approval under the grant of the member who started it, and that grant leaves out `delivery.classify` itself. Approving runs the requested command under the approver, so only an editor's approval commits, and deciding needs a person.
+The `approval` and `reconciliation` features decide their own operations over the access views in `policy.ts`, which apply the same member gate, so `erp-integration` and non-members are refused there too. Any member may request approval. The agent requests approval under the grant of the member who started it, and that grant leaves out `delivery.classify` itself. Approving runs the requested command under the approver, so only an editor's approval commits, and deciding needs a person. Only editors reject approval requests and decide held receipts.
 
 Notice rows are input. A row that does not fit the line schema fails the import, so a malformed export is reported instead of half applied. A later export never overwrites a notice line that someone has counted.
 
@@ -87,6 +87,7 @@ bunx playwright test examples/receiving
   - an unreadable receipt held until an editor says the ERP booked it, with a viewer refused;
   - a rejected receipt reopening the line;
   - corrected notices and a malformed export.
+- `test/migration.test.ts` opens a workspace stored at state version 1 and finds its approval requests in the `approval` feature, once. It also refuses `erp-integration` and a non-member on approval requests and held receipts, and a viewer's rejection.
 - `test/agent-scenarios.test.ts` judges the discrepancy agent with [agent scenarios](../../docs/glossary.md#agent-scenario) on the deterministic harness. The agent requests approval for classifications and never commits them.
 - `test/conformance.test.ts` imports a notice through a served host and counts over HTTP. It reads one list directly, over HTTP, the CLI and MCP.
 - `test/ui-bindings.test.ts` checks that every bound capability is referenced by a screen.
@@ -109,9 +110,11 @@ Paths in this table are relative to the example directory, except those under `p
 | [Requirement declaration](../../docs/primitives.md#requirement-declaration) of folders | `contracts/erp-target.ts` (`erpExchange`); `manifest.ts` (`components`) | Every test that opens the application; [`test/ui-bindings.test.ts`](test/ui-bindings.test.ts) builds the catalog with `manifest.components` |
 | [Deployment policy](../../docs/primitives.md#deployment-policy) folder bindings | `sitePluginManifest` in `manifest.ts`; `sitePlugin` in `application.ts` | `test/receiving.test.ts`: the unbound drop folder test; [`e2e/receiving.pw.ts`](e2e/receiving.pw.ts) |
 | [Inbound sync](../../docs/primitives.md#inbound-sync) of notices | `erp-port.ts` (`feed`); `handlers/erp-target.ts` (`applyBatch`) | `test/receiving.test.ts`: the corrected notice and malformed export test |
-| [Reconciliation](../../docs/primitives.md#reconciliation) of held goods receipts | `contracts.ts` (`reconciliationOperations`); `handlers/reconciliation.ts`; `ui/reconcile.tsx` | `test/receiving.test.ts`: the unreadable receipt file test; the second test in `e2e/receiving.pw.ts` |
+| [Feature](../../docs/primitives.md#feature) mounts with access views and hooks | `manifest.ts` (`features`); `application.ts` (`mountFeature`); `policy.ts` (`approvalAccess`, `reconciliationAccess`) | [`test/migration.test.ts`](test/migration.test.ts): the refusal test |
+| [State migration](../../docs/primitives.md#state-migration) with adoption | `domain.ts` (`migrations`); `application.ts` (`adopt`) | [`test/migration.test.ts`](test/migration.test.ts): the version 1 test |
+| [Reconciliation](../../docs/primitives.md#reconciliation) of held goods receipts | `application.ts` (`reconciliationFeature`); `handlers/reconciliation.ts` (`onReceiptResolved`); `ui/reconcile.tsx` | `test/receiving.test.ts`: the unreadable receipt file test; the second test in `e2e/receiving.pw.ts` |
 | [Agent definition](../../docs/primitives.md#agent-definition) with `output: 'request-approval'` | `contracts.ts` (`receiving.discrepancy`) | [`test/agent-scenarios.test.ts`](test/agent-scenarios.test.ts) |
-| [Approval request](../../docs/primitives.md#approval-request) approved under the approver | `handlers/approvals.ts`; `ui/delivery.tsx`; `ui/approvals.tsx` | `test/receiving.test.ts`: the agent grant and viewer approval checks |
+| [Approval request](../../docs/primitives.md#approval-request) approved under the approver | `application.ts` (`approvalFeature`); `ui/delivery.tsx`; `ui/approvals.tsx` | `test/receiving.test.ts`: the agent grant and viewer approval checks |
 | [Agent scenario](../../docs/primitives.md#agent-scenario) on the deterministic harness | `test/agent-scenarios.test.ts` (`runAgentScenarios`) | The same file |
 | [Surface adapter](../../docs/primitives.md#surface-adapter) parity | Generated from the catalog; no example code | `test/conformance.test.ts`: instance, HTTP, CLI and MCP read one list |
 | [UI registry](../../docs/primitives.md#ui-registry) screens and [capability bindings](../../docs/primitives.md#capability-binding) | `ui/delivery.tsx`; `ui/approvals.tsx`; `ui/reconcile.tsx` | `test/ui-bindings.test.ts`, `e2e/receiving.pw.ts` |
@@ -121,16 +124,16 @@ Paths in this table are relative to the example directory, except those under `p
 
 | Path | Holds |
 | --- | --- |
-| `manifest.ts` | The browser-safe manifest: the module, the `erpExchange` folder declarations and the site, network, audit and compliance [host plugins](../../docs/primitives.md#host-plugin). |
+| `manifest.ts` | The browser-safe manifest: the module, the `erpExchange` folder declarations, the `approval` and `reconciliation` features and the site, network, audit and compliance [host plugins](../../docs/primitives.md#host-plugin). |
 | `contracts.ts` | The `operations` map, the module and the inline `receiving.discrepancy` agent definition. |
 | `contracts/delivery.ts` | The delivery line schema, the `deliveries` collection, its generated reads and the receive and classify commands. |
 | `contracts/erp-target.ts` | The ERP target, the notice line schema, the folder IDs, the `erpExchange` declaration and the `erp.send` command. |
-| `domain.ts` | Roles, the state shape, `createState`, `upgradeState` and the `discrepant` check. |
-| `policy.ts` | The policy: caller gate, editor rule, person-only rules, the ERP lane and event visibility. |
+| `domain.ts` | Roles, the state shape, `createState`, the state `migrations`, `upgradeState` and the `discrepant` check. |
+| `policy.ts` | The policy: caller gate, editor rule, the ERP lane and event visibility; the approval and reconciliation access views. |
 | `server.ts` | `createHandlers`, which lists every handler group, and the policy export. |
-| `handlers/` | One file per group: delivery lines, the ERP target, approval requests and reconciliation; `context.ts` binds handlers to the state and services. |
+| `handlers/` | Delivery lines, the ERP target and the reconciliation hook; `context.ts` binds handlers to the state and services. |
 | `erp-port.ts` | The ERP connector: CSV encoding of goods receipts and CSV mapping of notice rows. |
-| `application.ts` | `createReceivingApplication`, which composes plugins and connects the ERP target to the folder port. |
+| `application.ts` | `createReceivingApplication`, which mounts the features, composes plugins and connects the ERP target to the folder port. |
 | `screens.tsx`, `ui/` | The screen definitions, the line screen, the approval requests, Held receipts and ERP status screens. |
 | `test/`, `e2e/` | Behavioral, agent scenario, cross-surface and UI binding tests, and the Playwright spec. |
 
@@ -221,9 +224,9 @@ Run `scaffold new` from the framework checkout's root, and every later command f
 23. Remove the generated `erpDeliveries` map from the state type and the initial state, together with its type import. Store the posting on the delivery line instead.
 24. Rewrite the send handler in `handlers/erp-target.ts` with the posting preconditions and a goods receipt payload that holds the columns the port writes. Rewrite the send command's description to list its three refusals.
 25. Rewrite the target's outcome hook, batch callback and status counts in the same file, as the example does.
-26. Write `handlers/reconciliation.ts`, which calls the runtime's reconciliation handlers with a visibility filter for delivery effects and a resolve hook.
-27. List the reconciliation handler group in `server.ts`, and spread the framework's reconciliation capabilities into the operations map.
-28. Give the reconciliation list query the open rule, and the resolve command the editor rule with `person: true`.
+26. Write `handlers/reconciliation.ts` with an `onResolved` hook that records the outcome on the line's posting.
+27. List `reconciliationFeatureManifest` in the manifest's `features`, and mount `reconciliationFeature()` in `application.ts` with that hook.
+28. Write `reconciliationAccess` in `policy.ts`: members list held receipts and see those on delivery lines, and editors decide them.
 29. In `ui/delivery.tsx`, drop the create form from the list screen and replace the generated record screen with a line screen.
 30. Put the count, reason and send forms and the approval request review on the line screen, and remove the send form from the ERP screen.
 31. Add a Held receipts screen with the reconciliation review, and register its route, navigation item and capability screen prefix in `screens.tsx`.
