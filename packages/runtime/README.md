@@ -17,7 +17,10 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceAnswer`, and the `sources` and `remoteDeadlineMs` options.
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
 - [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed [grant](../../docs/glossary.md#grant).
-- [Approval request](../../docs/primitives.md#approval-request): `approvalHandlers` (`ApprovalOptions`) serve the approval request capabilities over the application's `approval requests` slice. Approving continues with the requested command as the approver.
+- [Approval request](../../docs/primitives.md#approval-request):
+  - `approvalFeature` (`ApprovalFeatureOptions`): the `approval` [feature](../../docs/glossary.md#feature), with its slice (`ApprovalSlice`), an `ApprovalAccess` view the application supplies, `newId` and `now` hooks (`ApprovalHooks`), and a policy in which approve and reject are person-only;
+  - `approvalHandlers` (`ApprovalOptions`): the handlers the feature uses, over any store and visibility rule;
+  - approving continues with the requested command as the approver.
 - [Approval dataset](../../docs/primitives.md#approval-dataset): `exportApprovalDataset` reads the closed approval requests a caller may see through `approval.list` and applies the `DatasetRedaction`. It returns the rows with their `sha256:` digest (`datasetDigest`), which a fine-tuned model entry names.
 - [Policy](../../docs/primitives.md#policy): the `AuthorizationPort` (`AuthorizationRequest`, `Decision`), and `definePolicy` with `PolicySpec`, `OperationRule`, `IntegrationLane`, `EventRule`, `Access` and `isDelegated`.
 - [Membership](../../docs/primitives.md#membership): `membershipHandler`, `membershipRule`, `roleIn`, `MembershipStore`.
@@ -27,7 +30,8 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 - [Worker claims](../../docs/primitives.md#worker-claims): `EffectClaim`, the host-only `claimEffect` (`ClaimResult`) and `recordAttempt` (`AttemptRecord`, with `fence` and `upstream`). The `dispatch` authorization phase is checked before the first claim.
 - [Reconciliation](../../docs/primitives.md#reconciliation):
   - `effectPhase` and `EffectPhase`: the phases an effect passes through and the transitions the outbox allows;
-  - `reconciliationHandlers` (`ReconciliationOptions`): the held effects of every target a caller may see, and a person's decision;
+  - `reconciliationFeature`: the `reconciliation` feature, with a `ReconciliationAccess` view (`allows` and `sees`), an `onResolved` hook (`ReconciliationHooks`), and a policy in which resolving is person-only;
+  - `reconciliationHandlers` (`ReconciliationOptions`): the handlers the feature uses: the held effects of every target a caller may see, and a person's decision;
   - the decision settles or releases the effect and calls the domain's `onResolved` in the same transaction.
 - [Blob store](../../docs/primitives.md#blob-store):
   - the `BlobStore` port (`StoredBlob`), `BlobRecord` and `createMemoryBlobStore`;
@@ -93,6 +97,7 @@ bun test packages/runtime
   - the fixed decision order of `definePolicy`: lanes, caller gate, person-only, grant resources, container roles, both snapshots or the previous one at commit, event types;
   - `set-member` refusing non-managers, self-changes and reserved principals.
 - `test/agent-grant.test.ts`: an agent's grant stays within the issuer's capabilities, resources and expiry. It leaves a requesting agent's commands out and is bound to the issuer and run.
+- `test/approval-feature.test.ts`: through an application, a run requests and a person approves in one commit; a delegated approval, a viewer's approval and a non-member's request, list and approval are refused; a hidden record cannot be requested; a list and the journal show only what the access view allows.
 - `test/approval.test.ts`:
   - approving runs the command once as the approver and replays its continuation;
   - an agent grant, a viewer and a demoted approver are refused, and a changed record conflicts, each leaving the approval request pending;

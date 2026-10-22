@@ -5,9 +5,12 @@ import {
   defineFeatureManifest,
   defineModule,
   jsonSchema,
+  type ApprovalRequest,
 } from '@agent-native/contracts';
 import {
+  approvalFeature,
   isDelegated,
+  reconciliationFeature,
   type FeatureHandler,
   type FeaturePolicy,
   type FeatureServer,
@@ -112,4 +115,49 @@ describe('feature conformance', () => {
     });
     expect(slice).toMatchObject({ status: 'rejected' });
   });
+});
+
+describe('built-in features', () => {
+  const approvalRequest: ApprovalRequest = {
+    id: 'r1',
+    operation: 'item.finish',
+    input: { id: 'a' },
+    rationale: 'Finished on the line',
+    resource: 'item:a',
+    baseRevisions: {},
+    status: 'pending',
+    requestedBy: 'person',
+    createdAt: 0,
+    expiresAt: 1000,
+  };
+  const approval = featureConformance(approvalFeature(), {
+    allowAll: { allows: () => true },
+    denyAll: { allows: () => false },
+    sampleSlice: { requests: { r1: approvalRequest } },
+    requests: [
+      {
+        operation: 'approval.request',
+        input: { operation: 'item.finish', input: {}, rationale: 'r', resource: 'item:a' },
+      },
+      { operation: 'approval.approve', input: { id: 'r1' } },
+      { operation: 'approval.reject', input: { id: 'r1' } },
+      { operation: 'approval.list', input: {} },
+    ],
+    events: [
+      { cursor: 1, resource: 'approval-request:r1', revision: 1, type: 'changed', operation: 'x' },
+    ],
+    personOnly: ['approval.approve', 'approval.reject'],
+  });
+  for (const check of approval) test(`approval: ${check.name}`, check.run);
+
+  const reconciliation = featureConformance(reconciliationFeature(), {
+    allowAll: { allows: () => true, sees: () => true },
+    denyAll: { allows: () => false, sees: () => false },
+    requests: [
+      { operation: 'reconciliation.list', input: {} },
+      { operation: 'reconciliation.resolve', input: { effectId: 'e1', decision: 'applied' } },
+    ],
+    personOnly: ['reconciliation.resolve'],
+  });
+  for (const check of reconciliation) test(`reconciliation: ${check.name}`, check.run);
 });

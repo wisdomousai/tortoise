@@ -52,7 +52,7 @@ A run under a definition acts under a [delegated grant](glossary.md#grant) that 
 
 ## Approval requests
 
-An approval request lets an agent ask for a command it may not run itself. `approvalHandlers` in `packages/runtime` implements the approval request capabilities over a collection in the application's state:
+An approval request lets an agent ask for a command it may not run itself. `approvalFeature` in `packages/runtime` implements the approval request capabilities as the `approval` [feature](glossary.md#feature), with approval requests in its own state slice. The application mounts it with an `ApprovalAccess` view that answers who may request, approve, reject, expire and read approval requests about a record, and that applies the application's membership gate, integration lanes and grant scope:
 
 | Capability                      | Usual caller          | What it does                                                 |
 | ------------------------------- | --------------------- | ------------------------------------------------------------ |
@@ -64,7 +64,7 @@ An approval request lets an agent ask for a command it may not run itself. `appr
 
 Submission refuses an unknown command, input its schema rejects, and a request for an approval operation. The requester's principal and run ID come from the [execution context](glossary.md#execution-context), never from the input. A model name the requester states is its own label; the run's recorded model is the trusted one. A resource-scoped run requests approval only for the records it started on ([authorization](authorization.md#delegation-and-replay)).
 
-Approving marks the approval request approved and continues with its command as a [continuation](glossary.md#continuation) under the approver's context. The command's grant check, [policy](glossary.md#policy) and commit recheck apply to the approver. The revisions the requester read act as expected revisions, so a record changed since then conflicts. A refusal or a conflict rolls the approval back and leaves the approval request pending. A requesting agent's grant leaves the command out, so it cannot approve its own approval request (`packages/runtime/test/approval.test.ts`).
+Approving marks the approval request approved and continues with its command as a [continuation](glossary.md#continuation) under the approver's context. The command's grant check, [policy](glossary.md#policy) and commit recheck apply to the approver. The revisions the requester read act as expected revisions, so a record changed since then conflicts. A refusal or a conflict rolls the approval back and leaves the approval request pending. A requesting agent's grant leaves the command out, so it cannot approve its own approval request. The feature's policy refuses approve and reject to any delegated caller (`packages/runtime/test/approval.test.ts`, `packages/runtime/test/approval-feature.test.ts`).
 
 The web frame's `approval-review` [UI registry](glossary.md#ui-registry) item lists pending approval requests live with Approve and Reject. A refusal or conflict shows on the approval request, which stays pending. The operator registry's attention queue shows an approval request with the same choices.
 

@@ -14,6 +14,8 @@ export * from './membership.js';
 export * from './agent-grant.js';
 export * from './approval.js';
 export * from './reconciliation.js';
+export * from './approval-feature.js';
+export * from './reconciliation-feature.js';
 export * from './effect-phase.js';
 export type { ClaimResult } from './application/effect-claims.js';
 export type { AttemptRecord } from './application/outbox.js';

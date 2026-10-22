@@ -211,7 +211,7 @@ implemented · [`packages/agents`](../packages/agents/README.md) [`plugins/model
 
 ### Approval request
 
-_A command that one caller, usually an agent run, asks a person to approve before it runs. The approved command runs under the approver's own grants and policy._
+_A command that one caller, usually an agent run, asks a person to approve before it runs. The approved command runs under the approver's own grants and policy. The `approval` feature keeps approval requests._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/operator-ui`](../packages/operator-ui/README.md)
 
@@ -345,7 +345,7 @@ partial · [`sdks/driver-python`](../sdks/driver-python/README.md) [`sdks/driver
 
 ### Reconciliation
 
-_A tracked state and procedure for outcomes no one can establish automatically._
+_A tracked state and procedure for outcomes no one can establish automatically. The `reconciliation` feature serves the decisions._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/frame`](../packages/frame/README.md) [`examples/receiving`](../examples/receiving/README.md) [`examples/line-station`](../examples/line-station/README.md)
 

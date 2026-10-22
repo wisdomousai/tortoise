@@ -29,9 +29,10 @@ The application owns its working set and its pending [outbox effects](../../../.
 7. Return a business rejection as data, `DeliveryUncertain` when the outcome cannot be established, and `pending` when the target acknowledged but has not decided.
 8. Connect the target in `application.ts` with `connectTarget` (`examples/quality-inspection/application.ts`). A target without a feed only delivers.
 9. Compose reconciliation for held effects. The dispatcher holds an effect whose outcome cannot be established, whose acknowledgement was lost or whose recheck was denied. It polls `upstream` effects. Only a domain command moves an effect out of `held`: settle it when the target applied or refused it, release it when it did not.
-   - Compose `reconciliationOperations` from `@agent-native/contracts` with `reconciliationHandlers({ visible, onResolved })` from `@agent-native/runtime`, as `examples/receiving/handlers/reconciliation.ts` does.
+   - Mount `reconciliationFeature()` from `@agent-native/runtime`: list `reconciliationFeatureManifest` in `defineManifest({ features })` and mount it with `mountFeature` in `application.ts`, as the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) describes.
+   - In the access view, `allows(context, action)` applies the application's membership gate and integration lanes, and `sees(context, effect)` decides which held effects a caller may see and decide.
    - Add the frame's `reconciliation-review` [UI registry](../../../../docs/glossary.md#ui-registry) item to a screen.
-   - In `onResolved`, record the outcome on the domain record as the target's `onOutcome` would.
+   - In the `onResolved` hook, record the outcome on the domain record as the target's `onOutcome` would. It receives the application's handler context last and commits with the decision.
 10. Write a domain command of your own for a held effect only when the decision changes more than the effect and its record (`examples/line-station/handlers/attention.ts`).
 11. For live search, declare search and lookup queries with `defineDataProvider` (`examples/crm-capture/contracts/providers.ts`). Implement them with `implementDataProvider`, and back them with `createRemoteSource`, which resolves the caller's own credential first.
 12. Write adoption of a search result as a domain command that enqueues a follow effect.

@@ -91,9 +91,9 @@ The dispatcher holds an effect in these cases:
 
 The dispatcher never retries a held effect. Only a domain command settles or releases it. Releasing a held effect returns it to delivery on the next pass, without backoff, and drops any acknowledgement.
 
-`reconciliationHandlers` serves the reconciliation capabilities. One lists held effects by target or record. The other records a person's decision: applied settles the effect as accepted, with the person's reference or a reference naming the person. Refused settles the effect as rejected, and not applied releases the effect. The domain's `onResolved` runs in the same transaction.
+`reconciliationFeature` serves the reconciliation capabilities as the `reconciliation` [feature](glossary.md#feature). The application mounts it with a `ReconciliationAccess` view and an `onResolved` hook. One capability lists held effects by target or record. The other records a person's decision: applied settles the effect as accepted, with the person's reference or a reference naming the person. Refused settles the effect as rejected, and not applied releases the effect. The domain's `onResolved` runs in the same transaction, and resolving is refused to a delegated caller.
 
-An effect that the domain's visibility rule hides from the caller reads as missing, in the list and in a decision. The held and reconciliation tests in `packages/integration/test` cover this.
+An effect that the access view's `sees` hides from the caller reads as missing, in the list and in a decision. The held and reconciliation tests in `packages/integration/test` cover this.
 
 ## Effect phases
 

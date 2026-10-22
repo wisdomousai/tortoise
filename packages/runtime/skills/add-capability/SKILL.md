@@ -40,6 +40,8 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
     - the calls that must be refused.
 
     Scenarios judge the receipts, never the agent's text.
+
+    An agent that requests approval needs the `approval` feature: mount `approvalFeature()` with an `ApprovalAccess` view, as the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) describes.
 14. For an agent that names a local model in `models`, and the [approval dataset](../../../../docs/glossary.md#approval-dataset) its decisions become, follow the `serve-a-local-model` skill (`plugins/model-server/skills/serve-a-local-model/SKILL.md`).
 15. Write a command's `description` for a model as well as a person. A run under an agent definition starts its prompt with `agentInstructions(catalog, agentId)`, which lists a requesting agent's commands and their inputs with those descriptions.
 16. For a new surface or harness, build a capability's tool schema with `operationToolSchema` from `@agent-native/contracts`, or `toolEnvelopeSchema` for the surface's own envelope fields. A recursive input schema (`jsonValueSchema`, `z.lazy`) carries `$defs` that resolve only from the envelope's root. llama.cpp and strict MCP clients refuse the tool otherwise.
