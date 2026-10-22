@@ -189,6 +189,10 @@ export function definePolicy<State, Role extends string = string>(
       if (!Object.hasOwn(spec.operations, operation))
         throw new Error(`Integration lane names an operation the policy does not: ${operation}`);
   return {
+    covers: {
+      operations: Object.keys(spec.operations),
+      resourceTypes: Object.keys(spec.events),
+    },
     authorize(request) {
       const id = request.capability.id;
       const rule = Object.hasOwn(spec.operations, id) ? spec.operations[id] : undefined;

@@ -28,19 +28,16 @@ export async function readable<State, Services>(
   const { authorization } = kernel.options;
   for (const resource of record.resources) {
     if (!grantCoversResource(context.grant, resource)) continue;
+    const event = {
+      cursor: snapshot.cursor,
+      resource,
+      revision: revisionOf(snapshot, resource),
+      type: 'blob.read',
+      operation: 'blob.read',
+    };
     const allowed = authorization.canReadResource
-      ? await authorization.canReadResource({ resource, context, state: snapshot.state })
-      : await authorization.canReadEvent({
-          event: {
-            cursor: snapshot.cursor,
-            resource,
-            revision: revisionOf(snapshot, resource),
-            type: 'blob.read',
-            operation: 'blob.read',
-          },
-          context,
-          state: snapshot.state,
-        });
+      ? await authorization.canReadResource({ resource, event, context, state: snapshot.state })
+      : await authorization.canReadEvent({ event, context, state: snapshot.state });
     if (allowed) return true;
   }
   return false;

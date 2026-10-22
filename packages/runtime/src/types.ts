@@ -123,6 +123,15 @@ export interface Decision {
   readonly reason?: string;
 }
 export interface AuthorizationPort<State> {
+  /**
+   * The operations and journal resource types this port has rules for. Composition refuses a
+   * feature or plugin that owns one of them, so a unit never silently shadows an application
+   * rule. `definePolicy` and the composition helpers fill it; a port without it is not checked.
+   */
+  readonly covers?: {
+    readonly operations?: readonly string[];
+    readonly resourceTypes?: readonly string[];
+  };
   /** Apply resource-grant scope to reads as well as writes; hosts also check persisted run revocation here. */
   authorize(request: AuthorizationRequest<State>): Decision | Promise<Decision>;
   projectOutput?(
@@ -135,10 +144,12 @@ export interface AuthorizationPort<State> {
   }): boolean | Promise<boolean>;
   /**
    * Whether the context may read a resource as it is now; it decides who may read the blobs
-   * attached to it. Defaults to `canReadEvent` with an event for the resource's current revision.
+   * attached to it. Defaults to `canReadEvent` with `event`, a `blob.read` event for the
+   * resource's current revision.
    */
   canReadResource?(request: {
     readonly resource: string;
+    readonly event: ChangeEvent;
     readonly context: ExecutionContext;
     readonly state: State;
   }): boolean | Promise<boolean>;

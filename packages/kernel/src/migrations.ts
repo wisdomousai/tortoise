@@ -1,28 +1,6 @@
-import type { SliceVersion } from '@agent-native/runtime';
+import type { MigrationStep, SliceVersion, StateMigrations } from '@agent-native/runtime';
 
-/**
- * One step from state version `from` to `to`. `up` receives the slice as stored and returns it
- * in the new shape; it must be deterministic, because storage runs it on every load until a
- * commit persists the result.
- *
- * `compatible`: code at `from` still reads and writes the result, because the step only adds
- * optional data. A rollback past compatible steps is allowed; past any other step it is refused.
- */
-export interface MigrationStep {
-  readonly from: number;
-  readonly to: number;
-  readonly compatible?: boolean;
-  up(state: unknown, ownerId: string): unknown;
-}
-/**
- * The versions of one state slice (an application's own state or one plugin's slice). `version`
- * is what this code writes; `steps` chain contiguously up to it. State stored before versioning
- * counts as version 1.
- */
-export interface StateMigrations {
-  readonly version: number;
-  readonly steps?: readonly MigrationStep[];
-}
+export type { MigrationStep, StateMigrations };
 
 const UNVERSIONED = 1;
 

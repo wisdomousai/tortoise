@@ -10,6 +10,7 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 
 - [Instance](../../docs/primitives.md#instance): `createApplication`, `ApplicationOptions`.
 - [Module](../../docs/primitives.md#module): `sliceHandlers`, `composeAuthorization` and `authorizationRoute` compose independently authored [modules](../../docs/glossary.md#module) into one state and policy.
+- [Feature](../../docs/primitives.md#feature): the server part of a feature, `FeatureServer`, with `FeatureState`, `FeatureHandler`, `FeatureHandlerContext`, `FeaturePolicy` and `FeatureComposition`. `featureHandlers` binds a feature's handlers to its slice, the application's access view and hooks. `routeAuthorization` routes each operation, event and resource read to the owning unit's policy or to the application's, and refuses a unit that claims an operation or resource type in the application port's `covers`. `definePolicy` fills `covers`. `StateMigrations` and `MigrationStep` describe a slice's versions.
 - [Command](../../docs/primitives.md#command): `createHandlerFactory`, `HandlerContext` (with `continueWith`), `CommandReceipt` (with `continuation`), `StoredReceipt`.
 - [Query](../../docs/primitives.md#query): `QueryResult`.
 - [Collection](../../docs/primitives.md#collection): `records` (`Records`), `collectionGetHandler`, `collectionListHandler`, `DEFAULT_PAGE`, and the prototype-safe `own` and `put`.
@@ -87,6 +88,7 @@ bun test packages/runtime
   - policy projects the source's rows, and a service answer to a caller-only query is refused;
   - deadline and cancellation reach the source, and the audit log records no rows.
 - `test/compose.test.ts`: modules see only their slice; unrouted capabilities fail closed.
+- `test/feature.test.ts`: a feature handler sees its slice, a lazy access view and hooks whose writes commit or roll back with the command; the feature policy decides its operations, events and resource reads; a unit claiming an application rule is refused.
 - `test/policy.test.ts`:
   - the fixed decision order of `definePolicy`: lanes, caller gate, person-only, grant resources, container roles, both snapshots or the previous one at commit, event types;
   - `set-member` refusing non-managers, self-changes and reserved principals.
