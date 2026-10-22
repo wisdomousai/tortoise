@@ -19,10 +19,14 @@ export const noteSchema = z.strictObject({
 });
 export type Note = z.output<typeof noteSchema>;
 
+/** A note as reads present it: the stored note and its current revision. */
+export const noteRecordSchema = noteSchema.extend({ revision: z.number().int().nonnegative() });
+export type NoteRecord = z.output<typeof noteRecordSchema>;
+
 export const notes = defineCollection({
   type: 'note',
   resourceType: 'Note',
-  item: noteSchema,
+  item: noteRecordSchema,
   label: { one: 'Note', many: 'Notes' },
   titleField: 'title',
   fields: [

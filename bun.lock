@@ -52,6 +52,7 @@
         "@agent-native/receiving": "workspace:*",
         "@agent-native/runtime": "workspace:*",
         "@agent-native/sample-notes": "workspace:*",
+        "@agent-native/sample-notes-agents": "workspace:*",
         "@agent-native/sample-notes-host-plugin": "workspace:*",
         "@agent-native/sample-notes-operations": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
@@ -757,6 +758,10 @@
       "name": "@agent-native/sample-notes",
       "version": "0.1.0",
     },
+    "samples/notes-agents": {
+      "name": "@agent-native/sample-notes-agents",
+      "version": "0.1.0",
+    },
     "samples/notes-host-plugin": {
       "name": "@agent-native/sample-notes-host-plugin",
       "version": "0.1.0",
@@ -904,6 +909,8 @@
     "@agent-native/runtime": ["@agent-native/runtime@workspace:packages/runtime"],
 
     "@agent-native/sample-notes": ["@agent-native/sample-notes@workspace:samples/notes"],
+
+    "@agent-native/sample-notes-agents": ["@agent-native/sample-notes-agents@workspace:samples/notes-agents"],
 
     "@agent-native/sample-notes-host-plugin": ["@agent-native/sample-notes-host-plugin@workspace:samples/notes-host-plugin"],
 

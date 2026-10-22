@@ -24,6 +24,11 @@ const notesOf = (ctx: Context) => records(ctx, notes, ctx.state.notes);
 /** Every member sees every note; the policy's caller gate keeps everyone else out. */
 const visible = () => true;
 const store = (state: NotesState) => state.notes;
+/** Reads add the note's current revision, which a change passes back as `expectedRevisions`. */
+const present = (note: Note, ctx: Context) => ({
+  ...note,
+  revision: ctx.getRevision(`${notes.type}:${note.id}`),
+});
 
 /**
  * The handlers of the notes module, written against the notes slice. An application that
@@ -37,6 +42,7 @@ export function createNotesHandlers(): HandlerContribution<NotesState, NotesServ
       {
         store,
         visible,
+        present,
         order: (a, b) => b.updatedAt - a.updatedAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
         searchText: (note) => `${note.title} ${note.text}`,
       },
@@ -44,7 +50,7 @@ export function createNotesHandlers(): HandlerContribution<NotesState, NotesServ
     collectionGetHandler<NotesState, NotesServices, typeof noteOperations.noteGet, Note>(
       notes,
       noteOperations.noteGet,
-      { store, visible },
+      { store, visible, present },
     ),
     bind(noteOperations.noteAdd, (input, ctx) => {
       const id = (ctx.services.newId ?? randomUUID)();
