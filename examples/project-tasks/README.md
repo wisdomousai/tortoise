@@ -12,7 +12,7 @@ Content (`examples/*`). Domain code, screens, the demonstration job and tests li
 
 The example is one [application](../../docs/primitives.md#application). It composes:
 
-- a [module](../../docs/primitives.md#module) of fourteen [capabilities](../../docs/primitives.md#capability) (`project.*`, `task.*` and `task-reminders.effect.settle`) and the six [approval request](../../docs/primitives.md#approval-request) capabilities. The plugins add `compliance.*` and `webhook.*`.
+- a [module](../../docs/primitives.md#module) of fourteen [capabilities](../../docs/primitives.md#capability) (`project.*`, `task.*` and `task-reminders.effect.settle`). The `approval` [feature](../../docs/primitives.md#feature) adds the six [approval request](../../docs/primitives.md#approval-request) capabilities, and the plugins add `compliance.*` and `webhook.*`.
 - the `site`, `network`, `audit`, `compliance`, [`os`](../../plugins/os/README.md), [`share-target`](../../plugins/share-target/README.md), [`notifications`](../../plugins/notifications/README.md) and [`os-shortcuts`](../../plugins/os-shortcuts/README.md) [host plugins](../../docs/primitives.md#host-plugin). The example plugin [`webhook`](../../plugins/webhook/README.md) comes after them.
 - [OS handlers](../../docs/primitives.md#os-handler) in `os.ts`, listed under [OS requests](#os-requests).
 - an [OS action](../../docs/primitives.md#os-action), `task.reminder`. `task.remind` queues an [outbox effect](../../docs/primitives.md#outbox-effect) to `task-reminders`, which the notifications plugin shows on the desktop or phone. Its Mark done reply (`task.reminder-reply`) runs `task.set-status` to done. `task-reminders.effect.settle` records on the task whether the reminder was shown.
@@ -38,7 +38,7 @@ The example is one [application](../../docs/primitives.md#application). It compo
 | Import | Runs in | Contents |
 | --- | --- | --- |
 | `@agent-native/project-tasks/manifest` | browser and server | Default export: `defineManifest` with ID `project-tasks` and its modules. |
-| `@agent-native/project-tasks/application` | server only | Default export: `defineApplication` with state, upgrade, handlers, policy and selectable resources. |
+| `@agent-native/project-tasks/application` | server only | Default export: `defineApplication` with state, migrations, upgrade, handlers, policy, the approval feature and selectable resources. |
 | `@agent-native/project-tasks/screens` | browser | Default export: `defineScreens` with the Projects screen and the routes that open a project or task. |
 | `@agent-native/project-tasks/*` | see file | `contracts`, `os` and `attachments` (browser-safe), `domain`, `policy`, `server`. |
 
@@ -90,6 +90,7 @@ bunx playwright test examples/project-tasks/e2e
 - `domain.test.ts`: the role matrix, scoped counts and pages, and protected fields.
 - `test/transport-conformance.test.ts`: the same scenarios agree directly, over HTTP, through a CLI subprocess and over MCP.
 - `test/approval-surfaces.test.ts`: approving an approval request runs its command once as the approver, directly, over HTTP, the CLI and MCP. A viewer's approval is refused on each.
+- `test/migration.test.ts`: approval requests stored at state version 1, under `projectTasks` or at the root, move into the `approval` feature, and a stored request is approved after the move. A non-member cannot list, request or approve, and a viewer cannot reject.
 - `test/storage-conformance.test.ts`: memory and SQLite storage commit state, receipts and outbox identically.
 - `test/security-conformance.test.ts`: grants constrain rows, replay and events, and interruptions cannot commit or leak.
 - `test/hardening.test.ts`: hardened sites admit only expiring launcher grants, and mTLS still requires a session token.
@@ -114,7 +115,7 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | --- | --- | --- |
 | [Capability](../../docs/primitives.md#capability) and [module](../../docs/primitives.md#module) declarations | `contracts.ts`: `operations`, `projectTasksModule` | `test/ui-bindings.test.ts`; `test/transport-conformance.test.ts` |
 | [Application](../../docs/primitives.md#application) composed from one state slice | `application.ts`: `createProjectTasksApplication` | `test/application.test.ts` |
-| Unversioned state upgrade instead of a [state migration](../../docs/primitives.md#state-migration) | `application.ts`: `upgradeState` | `test/application.test.ts` |
+| [State migration](../../docs/primitives.md#state-migration) to version 2 with adoption into the approval feature, and an unversioned upgrade from the root layout | `domain.ts`: `migrations`, `storedSlice`; `application.ts`: `adopt`, `upgradeState` | `test/migration.test.ts`; `test/application.test.ts` |
 | [Policy](../../docs/primitives.md#policy) with CASL row scopes and an owner-only field | `policy.ts`: `projectTaskPolicy`, `taskReadScope` | `domain.test.ts`: "scopes rows before page/count/search…" |
 | Roles held per project | `policy.ts`: `projectRole`; `handlers/projects.ts` | `domain.test.ts`: "object and field restrictions protect current and proposed state" |
 | Revisions, idempotency keys and conflicts | `server/context.ts`: `dto`; `ui/projects/task-row.tsx`: `useTaskDraft` | `domain.test.ts`: "conflicts, duplicate retries, revocation…"; `e2e/workspace.pw.ts` |
@@ -123,8 +124,8 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | [Surface adapters](../../docs/primitives.md#surface-adapter) for direct calls, HTTP, the CLI and MCP | Generated from the catalog; no example code | `test/transport-conformance.test.ts` |
 | Memory and SQLite [storage](../../docs/primitives.md#storage) | No example code; the host or the test supplies the adapter | `test/storage-conformance.test.ts` |
 | [Journal and live query](../../docs/primitives.md#journal-and-live-query) | `dependencies` in `contracts.ts`; `live.liveQueryOptions` in `ui/` | `test/direct-transport.test.ts`; `test/host.test.ts`: "SSE resets after revocation…" and "HTTP projections agree across sessions…"; `e2e/workspace.pw.ts` |
-| [Approval request](../../docs/primitives.md#approval-request) operations and review screen | `handlers/approvals.ts`; `approvalRules` in `policy.ts`; `ui/approvals.tsx` | `test/approval-surfaces.test.ts` |
-| [Agent definition](../../docs/primitives.md#agent-definition) that requests approval | `contracts.ts`: `project.planner` | No test in this example |
+| [Approval request](../../docs/primitives.md#approval-request) operations through the `approval` [feature](../../docs/primitives.md#feature), and the review screen | `manifest.ts`: `features`; `application.ts`: `mountFeature`; `approvalAccess` in `policy.ts`; `ui/approvals.tsx` | `test/approval-surfaces.test.ts`; `test/migration.test.ts`: the refusal test |
+| [Agent definition](../../docs/primitives.md#agent-definition) that requests approval | `contracts.ts`: `project.planner` in `projectPlannerModule`, which requires the approval module | No test in this example |
 | [Agent run](../../docs/primitives.md#agent-run) with [UI session context](../../docs/primitives.md#ui-session-context) | `ui/projects/agent-panel.tsx`; `selectableResources` in `application.ts` | `test/host.test.ts`: "real host preserves delegated instance…"; `test/ui-sessions.test.ts`; `e2e/workspace.pw.ts` |
 | [Blob store](../../docs/primitives.md#blob-store) references with limits | `attachments.ts`; `handlers/tasks.ts` | `test/os.test.ts`: "an image is staged…" |
 | [Outbox effect](../../docs/primitives.md#outbox-effect) and its settle command | `task.remind`, `task-reminders.effect.settle` in `handlers/tasks.ts` | `test/os.test.ts`: "a reminder waits for the desktop…" |
@@ -146,13 +147,13 @@ Example paths are relative to `examples/project-tasks`. Framework paths start at
 | Path | Holds |
 | --- | --- |
 | `manifest.ts` | Browser-safe identity: id, title, the module and the plugin manifests in order. |
-| `application.ts` | Application definition: state slice, upgrade, handlers, authorization route, selectable resources, plugins. |
+| `application.ts` | Application definition: state slice, migrations, upgrade, handlers, authorization route, the approval feature, selectable resources, plugins. |
 | `screens.tsx` | Routes, navigation, capability screens, resource paths, the project sidebar and plugin screens. |
-| `contracts.ts` | The fourteen capabilities, the approval request operations, one workflow, the planner agent and the module's OS declarations. |
+| `contracts.ts` | The fourteen capabilities, one workflow, the module's OS declarations, and the planner agent's module. |
 | `domain.ts` | State types and the empty slice, with tombstones for deleted tasks. |
 | `policy.ts` | Project roles, the CASL ability, command, query and event rules, output projection. |
 | `server.ts`, `server/context.ts` | The handler list, lookups, paging and the revision-carrying result shape. |
-| `handlers/` | Projects and membership, tasks and reminders, approval requests. |
+| `handlers/` | Projects and membership, tasks and reminders. |
 | `os.ts`, `attachments.ts` | OS declarations and the blob limits a task's file must meet. |
 | `job.ts` | The demonstration job, which calls the host over HTTP. |
 | `ui/projects.tsx`, `ui/approvals.tsx` | The screens the routes name: projects, one project, approval requests and the pending approval request count. |
@@ -316,7 +317,7 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 ## Limits
 
 - **Planner agent.** No test runs the `project.planner` definition, and the agent panel starts runs by harness and prompt only. Approval requests from this agent are unproven; the approval request test covers approval requests a viewer submits.
-- **State migrations.** Without numbered migrations the workspace has no state version. The upgrade step must accept every older shape on each load, and the staged `migrate` command has no step to apply.
+- **State migrations.** Version 2 is the only numbered step. The upgrade step still accepts the root layout from before modules were composed, on each load.
 - **Membership.** The handler fixes only the workspace owner's entry, so a project owner can remove or demote another project owner. The commit-phase check refuses a change to the caller's own owner role.
 - **People directory.** The access form takes a principal ID as free text. The owner must know the ID; nothing lists the people who could be added.
 - **Deletes.** A deleted task has no restore command. The blob store sweeps its file after the grace period.

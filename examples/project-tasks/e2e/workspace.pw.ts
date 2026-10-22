@@ -28,8 +28,8 @@ test('UI, external MCP and deterministic agent share live state; drafts retain t
       }),
     );
     const tools = await mcp.listTools();
-    // The instance hosts one application: the project-tasks capabilities (14), the approval request
-    // operations (6), the compliance queries (3), the notifications plugin's operations (3) and
+    // The instance hosts one application: the project-tasks capabilities (14), the approval
+    // feature's operations (6), the compliance queries (3), the notifications plugin's operations (3) and
     // the webhook plugin's operations (2). Policy keeps the plugin-only ones from any caller.
     expect(tools.tools.length).toBe(28);
     const projects = await mcp.callTool({ name: 'project_list', arguments: { input: {} } });

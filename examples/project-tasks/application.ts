@@ -1,5 +1,13 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
+import {
+  approvalFeature,
+  authorizationRoute,
+  composeAuthorization,
+  sliceHandlers,
+  type ApprovalAccess,
+  type ApprovalHooks,
+} from '@agent-native/runtime';
 import { defineApplication } from '@agent-native/host/application';
+import { mountFeature } from '@agent-native/host/feature';
 import { auditPlugin } from '@agent-native/audit/plugin';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { networkPlugin } from '@agent-native/network/plugin';
@@ -11,8 +19,9 @@ import { sitePlugin } from '@agent-native/site/plugin';
 import { webhookPlugin } from '@agent-native/webhook/plugin';
 import manifest from './manifest';
 import { operations } from './contracts';
-import type { ProjectTaskState } from './domain';
+import { migrations, storedSlice, type ProjectTaskState } from './domain';
 import {
+  approvalAccess,
   createProjectTaskHandlers,
   createProjectTaskState,
   projectTaskPolicy,
@@ -21,8 +30,9 @@ import {
 } from './server';
 
 /**
- * Workspace state: one slice, so the module composes unchanged next to others. Plugin slices
- * (the compliance auditors) are added by `defineApplication` under their plugin ids.
+ * Workspace state: one slice, so the module composes unchanged next to others. Feature and plugin
+ * slices (approval requests, the compliance auditors) are added by `defineApplication` under
+ * their ids.
  */
 export interface ProjectTasksState {
   projectTasks: ProjectTaskState;
@@ -37,19 +47,11 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
   return defineApplication<ProjectTasksState, ProjectTaskServices>({
     manifest,
     createState: (ownerId) => ({ projectTasks: createProjectTaskState(ownerId) }),
+    migrations,
     upgradeState(state, ownerId) {
-      const value = (state ?? {}) as Record<string, unknown>;
-      const slice = (
-        'projects' in value ? value : (value.projectTasks ?? createProjectTaskState(ownerId))
-      ) as ProjectTaskState;
-      // Workspaces from before approval requests or reminders get empty slices for them.
-      return {
-        projectTasks: {
-          ...slice,
-          approvals: slice.approvals ?? {},
-          reminderEffects: slice.reminderEffects ?? {},
-        },
-      };
+      const slice = (storedSlice(state) ?? createProjectTaskState(ownerId)) as ProjectTaskState;
+      // Workspaces from before reminders get an empty map for them.
+      return { projectTasks: { ...slice, reminderEffects: slice.reminderEffects ?? {} } };
     },
     handlers: sliceHandlers<ProjectTasksState, 'projectTasks', ProjectTaskServices>(
       'projectTasks',
@@ -59,10 +61,28 @@ export function createProjectTasksApplication(options: { services?: ProjectTaskS
       authorizationRoute(
         'projectTasks',
         projectTasksModule,
-        ['project', 'task', 'approval-request'],
+        ['project', 'task'],
         projectTaskPolicy,
       ),
     ]),
+    features: [
+      mountFeature<ProjectTasksState, ApprovalAccess, ApprovalHooks, ProjectTaskServices>(
+        approvalFeature(),
+        {
+          access: (state) => approvalAccess(state.projectTasks),
+          hooks: {
+            newId: (ctx) => (ctx.services.newId ?? (() => crypto.randomUUID()))(),
+            now: (ctx) => (ctx.services.now ?? Date.now)(),
+          },
+          // Version 1 kept approval requests in the task slice, or at the root before modules
+          // were composed.
+          adopt: {
+            before: 2,
+            from: (stored) => ({ requests: storedSlice(stored)?.approvals ?? {} }),
+          },
+        },
+      ),
+    ],
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { project: operations.projectGet.id, task: operations.taskGet.id },
     plugins: [

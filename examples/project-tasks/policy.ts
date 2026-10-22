@@ -2,14 +2,13 @@ import {
   definePolicy,
   own,
   type Access,
+  type ApprovalAccess,
   type ExecutionContext,
   type OperationRule,
 } from '@agent-native/runtime';
 import type { ProjectTaskState, Role, Task } from './domain';
 import { createScopedAbility, matchesScope } from '@agent-native/adapters/casl';
-import { operations as taskOperations, approvalOperations } from './contracts';
-
-const operations = { ...taskOperations, ...approvalOperations };
+import { operations } from './contracts';
 
 export function projectRole(
   state: ProjectTaskState,
@@ -126,44 +125,38 @@ const onTask = (container: Rule['container']): Rule => ({
 });
 const projectEvent = { container: (id: string) => id };
 
-/** The project a resource belongs to: a project, a task (or its tombstone) or an approval request. */
+/** The project a resource belongs to: a project or a task (or its tombstone). */
 export function projectOfResource(state: ProjectTaskState, resource: string): string | undefined {
   const separator = resource.indexOf(':');
   const type = resource.slice(0, separator);
   const id = resource.slice(separator + 1);
   if (type === 'project') return own(state.projects, id) ? id : undefined;
   if (type === 'task') return own(state.tasks, id)?.projectId ?? own(state.deletedTasks, id);
-  if (type === 'approval-request') {
-    const about = own(state.approvals, id)?.resource;
-    return about && !about.startsWith('approval-request:')
-      ? projectOfResource(state, about)
-      : undefined;
-  }
   return undefined;
 }
-const approvalProject: Rule['container'] = (input, state) =>
-  projectOfResource(state, `approval-request:${String(input.id)}`);
+
 /**
- * Any project member may request approval and approve; approving also passes the requested task command's
- * own rule under the approver, so a viewer's approval is refused there. Deciding needs a
- * person. Rejecting needs a role that could have made the change.
+ * Who may do what with approval requests, for the `approval` feature. Every approval request
+ * names the project or task it is about, and the caller needs a role in that record's project:
+ * any role requests, approves and reads, and rejecting needs a role that could have made the
+ * change. Approving also passes the requested task command's own rule under the approver, so a
+ * viewer's approval is refused there, and the feature refuses deciding to a delegated caller.
+ * Listing needs a role in some project or the workspace's ownership.
  */
-const approvalRules = {
-  [operations.approvalRequest.id]: {
-    container: (input, state) =>
-      typeof input.resource === 'string' ? projectOfResource(state, input.resource) : undefined,
+export const approvalAccess = (state: ProjectTaskState): ApprovalAccess => ({
+  allows(context, action, resource) {
+    if (resource === undefined)
+      return (
+        action === 'read' &&
+        (state.workspaceOwnerId === context.principalId ||
+          Object.keys(state.projects).some((id) => projectRole(state, context.principalId, id)))
+      );
+    const project = projectOfResource(state, resource);
+    const role = project && projectRole(state, context.principalId, project);
+    if (!role) return false;
+    return action !== 'reject' || role !== 'viewer';
   },
-  [operations.approvalApprove.id]: { container: approvalProject, person: true },
-  [operations.approvalReject.id]: {
-    container: approvalProject,
-    roles: ['owner', 'editor'],
-    person: true,
-  },
-  [operations.approvalExpire.id]: { container: approvalProject },
-  // Handlers scope these to the caller's projects before filtering and counting.
-  [operations.approvalList.id]: 'open',
-  [operations.approvalGet.id]: 'open',
-} satisfies Record<string, Rule | 'open'>;
+});
 
 /**
  * Project roles through CASL: owners administer and see private notes, editors edit tasks in
@@ -193,15 +186,11 @@ export const projectTaskPolicy = definePolicy<ProjectTaskState, Role>({
     },
     // Deletes have no proposed object; authorize their original project and retained tombstone.
     [operations.taskDelete.id]: { ...onTask(taskProject), commit: 'previous' },
-    ...approvalRules,
   },
   events: {
     project: projectEvent,
     task: {
       container: (id, state) => own(state.tasks, id)?.projectId ?? own(state.deletedTasks, id),
-    },
-    'approval-request': {
-      container: (id, state) => projectOfResource(state, `approval-request:${id}`),
     },
   },
   projectOutput: ({ state, context, output }) => projectOutput(state, context, output),

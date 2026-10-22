@@ -234,7 +234,7 @@ export const operations = {
 } as const;
 export const projectTasksModule = defineModule({
   id: 'project-tasks',
-  capabilities: [...Object.values(operations), ...Object.values(approvalOperations)],
+  capabilities: Object.values(operations),
   workflows: [
     {
       id: 'project-planning',
@@ -242,6 +242,18 @@ export const projectTasksModule = defineModule({
       text: 'Create a project from the brief, add concrete tasks, inspect the scoped task list, and update each task status as work progresses.',
     },
   ],
+  os: projectTasksOs,
+});
+
+/**
+ * The planner agent, in a module of its own because it needs the `approval` feature's
+ * operations: an application composes `projectTasksModule` without approval requests, and adds
+ * this module and the feature to run the planner.
+ */
+export const projectPlannerModule = defineModule({
+  id: 'project-planner',
+  capabilities: [],
+  requires: ['project-tasks', 'approval'],
   agents: [
     // Not resource-scoped: grant resources match exactly, so a grant listing only the selected
     // project would refuse the approval request records it creates. Project roles bound the run instead.
@@ -256,6 +268,5 @@ export const projectTasksModule = defineModule({
       budgets: { turns: 12, toolCalls: 40, wallTimeMs: 300_000 },
     }),
   ],
-  os: projectTasksOs,
 });
 export { byId };
