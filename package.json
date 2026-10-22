@@ -126,6 +126,7 @@
     "@agent-native/receiving": "workspace:*",
     "@agent-native/runtime": "workspace:*",
     "@agent-native/sample-notes": "workspace:*",
+    "@agent-native/sample-notes-host-plugin": "workspace:*",
     "@agent-native/sample-notes-operations": "workspace:*",
     "@agent-native/scaffold": "workspace:*",
     "@agent-native/screen-bridge": "workspace:*",

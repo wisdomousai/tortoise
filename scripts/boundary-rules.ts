@@ -10,10 +10,11 @@ export const forbiddenBrowserImport =
 /**
  * Every plugin in `plugins/*` follows one layout: `plugin-manifest`, `plugin-screens`,
  * `contracts` and the `ui/` and `components/` folders are browser code, at the package root or
- * under `src/`; everything else is server code.
+ * under `src/`; everything else is server code. A sample's own plugin, in
+ * `samples/<name>/plugins/<plugin>`, follows the same layout.
  */
 export const pluginBrowserSource =
-  /^(?:plugins\/[^/]+|workstations\/sign-in)\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
+  /^(?:(?:samples\/[^/]+\/)?plugins\/[^/]+|workstations\/sign-in)\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
 /** The browser-safe subpaths of a plugin package, for `@agent-native/<plugin>/<subpath>`. */
 export const pluginBrowserEntry = /^(?:plugin-manifest|plugin-screens|contracts)$/;
 /** Resolved source paths of server-only framework and plugin packages. */
