@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { defineCapability } from './capability';
+import { defineCapability, defineModule } from './capability';
+import { defineFeatureManifest } from './feature';
 import { jsonSchema, jsonValueSchema } from './schema';
 
 /**
@@ -78,3 +79,19 @@ export const reconciliationOperations = {
     ui: { binding: 'reconciliation.resolve' },
   }),
 } as const;
+
+/** The reconciliation feature's module: `reconciliation.list` and `reconciliation.resolve`. */
+export const reconciliationModule = defineModule({
+  id: 'reconciliation',
+  capabilities: Object.values(reconciliationOperations),
+});
+
+/**
+ * The browser-safe part of the reconciliation feature, which keeps no state of its own. An
+ * application lists it in `defineManifest({ features })` and mounts `reconciliationFeature`.
+ */
+export const reconciliationFeatureManifest = defineFeatureManifest({
+  id: 'reconciliation',
+  title: 'Reconciliation',
+  modules: [reconciliationModule],
+});

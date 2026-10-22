@@ -39,6 +39,12 @@ _The unit a domain contributes to the catalog: capabilities, requirement declara
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md)
 
+### Feature
+
+_A reusable domain part an application mounts once, such as approval requests: modules under one operation namespace, a state slice, handlers and a policy over an access view the application supplies. A host plugin is a feature with ports, a lifecycle and settings._
+
+partial · [`packages/contracts`](../packages/contracts/README.md)
+
 ### Catalog
 
 _The composed, validated description of everything the application can do._

@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { defineCapability } from './capability';
+import { defineCapability, defineModule } from './capability';
+import { defineFeatureManifest } from './feature';
 import { collectionGet, collectionList, defineCollection, recordKeySchema } from './collection';
 import { jsonSchema, jsonValueSchema } from './schema';
 
@@ -131,3 +132,19 @@ export const approvalOperations = {
     ui: { exception: 'screens show approval requests from the list; agents read one' },
   }),
 } as const;
+
+/** The approval request feature's module: every approval operation under the `approval` id. */
+export const approvalModule = defineModule({
+  id: 'approval',
+  capabilities: Object.values(approvalOperations),
+});
+
+/**
+ * The browser-safe part of the approval request feature. An application lists it in
+ * `defineManifest({ features })` and mounts the server part, `approvalFeature`, once.
+ */
+export const approvalFeatureManifest = defineFeatureManifest({
+  id: 'approval',
+  title: 'Approval requests',
+  modules: [approvalModule],
+});
