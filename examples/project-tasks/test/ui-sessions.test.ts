@@ -152,3 +152,69 @@ test('a late UI validation cannot overwrite a newer selection', async () => {
   await expect(older).rejects.toMatchObject({ code: 'CONFLICT' });
   expect((await store.capture(owner, first.sessionId)).selectedResources).toEqual(['task:new']);
 });
+
+test('a run sends intents only to the live UI session of its own principal, for resources it may read', async () => {
+  let now = 0;
+  const sessions = new Sessions(() => now);
+  const owner = sessions.create({ principalId: 'owner', workspaceId: 'w' });
+  const readable = new Set(['task:one', 'approval-request:a1']);
+  const store = new UiSessionStore({
+    now: () => now,
+    isActive: (token) => !!sessions.get(token),
+    validateContext: async () => {},
+    async validateIntent(_, intent) {
+      const named = 'resource' in intent ? [intent.resource] : (intent.resources ?? []);
+      if (named.some((resource) => !readable.has(resource)))
+        throw new ApplicationError('FORBIDDEN', 'Resource unavailable');
+    },
+    sessionTtlMs: 1000,
+  });
+  const { sessionId } = await store.register(owner, {
+    selectedResources: ['task:one'],
+    observedRevisions: { 'task:one': 0 },
+  });
+  const run = { principalId: 'owner', workspaceId: 'w', runId: 'r1' };
+  const opened = await store.sendFromRun(run, sessionId, {
+    type: 'openResource',
+    resource: 'task:one',
+  });
+  const review = await store.sendFromRun(run, sessionId, {
+    type: 'requestReview',
+    title: 'Check the suggestion',
+    operations: ['task.create'],
+    resources: ['approval-request:a1'],
+  });
+  expect((await store.poll(owner, sessionId)).map((entry) => entry.id)).toEqual([opened, review]);
+
+  const open = { type: 'openResource', resource: 'task:one' } as const;
+  await expect(
+    store.sendFromRun({ ...run, runId: undefined }, sessionId, open),
+  ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  await expect(
+    store.sendFromRun({ ...run, principalId: 'someone-else' }, sessionId, open),
+  ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  await expect(
+    store.sendFromRun({ ...run, workspaceId: 'other' }, sessionId, open),
+  ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  await expect(
+    store.sendFromRun(run, sessionId, { type: 'openResource', resource: 'task:hidden' }),
+  ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  await expect(
+    store.sendFromRun(run, sessionId, {
+      type: 'requestReview',
+      title: 'x',
+      operations: [],
+      resources: ['approval-request:hidden'],
+    }),
+  ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  const aborted = new AbortController();
+  aborted.abort();
+  await expect(
+    store.sendFromRun({ ...run, signal: aborted.signal }, sessionId, open),
+  ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+
+  now = 1001;
+  await expect(store.sendFromRun(run, sessionId, open)).rejects.toMatchObject({
+    code: 'NOT_FOUND',
+  });
+});

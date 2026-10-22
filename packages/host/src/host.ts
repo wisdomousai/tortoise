@@ -175,11 +175,13 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
     const { application, ports } = instance;
     const sessions = new Sessions();
     let origin = '';
+    // UI sessions first: a run started from one sends its intents through the agent tools.
+    const ui = uiRoutes(instance, definition, sessions, cleanup);
     const agents = await startAgents(
       instance,
       options,
       ownership,
-      { sessions, origin: () => origin },
+      { sessions, origin: () => origin, uiSessions: ui.uiSessions },
       cleanup,
     );
     const ownerSession: HostSession | undefined = instance.localOwner
@@ -191,7 +193,7 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
     let running: Running | undefined;
     const close = createClose(() => running!);
     const routes: HostRouteContext = {
-      ...uiRoutes(instance, definition, sessions, cleanup),
+      ...ui,
       ...agents,
       harnesses: options.harnesses,
       shutdown: { ownerSession, instance: ownership.instance, close },

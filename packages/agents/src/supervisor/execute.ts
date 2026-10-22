@@ -29,7 +29,7 @@ function exceed(run: Active, budget: string) {
 function runTools(kernel: SupervisorKernel, run: Active, calls: Calls): ToolPort {
   const tools = kernel.options.tools;
   return {
-    definitions: tools.definitions,
+    definitions: tools.definitionsFor?.(run.snapshot.context) ?? tools.definitions,
     execute(operation, input, context) {
       abortCheck(run);
       if (terminalStates.has(run.snapshot.state)) throw new Error('Run is already terminal');

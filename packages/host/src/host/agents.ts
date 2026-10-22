@@ -1,4 +1,5 @@
 import type { Sessions } from '@agent-native/adapters/http';
+import type { UiSessionStore } from '@agent-native/adapters/ui-sessions';
 import { DeterministicHarness } from '@agent-native/agents/deterministic';
 import { createRunSupervisor, runAuditRecord } from '@agent-native/agents/supervisor';
 import { childEnvironment } from '../plugin';
@@ -12,7 +13,11 @@ export async function startAgents(
   instance: Instance,
   options: StartHostOptions,
   ownership: WorkspaceOwnership,
-  host: { readonly sessions: Sessions; readonly origin: () => string },
+  host: {
+    readonly sessions: Sessions;
+    readonly origin: () => string;
+    readonly uiSessions?: UiSessionStore;
+  },
   cleanup: CleanupStack,
 ) {
   const { ports, application } = instance;
@@ -31,7 +36,7 @@ export async function startAgents(
   const supervisor: ReturnType<typeof createRunSupervisor> = createRunSupervisor({
     harnesses: [new DeterministicHarness(), ...providers.harnesses, ...(options.harnesses ?? [])],
     store: instance.runStore,
-    tools: createAgentTools(application, (id) => supervisor.get(id)),
+    tools: createAgentTools(application, (id) => supervisor.get(id), host.uiSessions),
     // Run starts and ends go to the audit log after the fact. A log that cannot write never
     // stops a run: the audit mode's fail-closed settings cover commands, queries and egress.
     ...(ports.eventLog

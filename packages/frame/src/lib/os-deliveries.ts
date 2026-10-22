@@ -1,7 +1,11 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from '@tanstack/react-router';
 import type { JsonObject, OsDelivery, OsProvenance } from '@agent-native/contracts';
-import { screenForCapability, type ApplicationScreens } from '@agent-native/frame/screens';
+import {
+  resourcePath,
+  screenForCapability,
+  type ApplicationScreens,
+} from '@agent-native/frame/screens';
 import { hostJson } from './host-client';
 
 export { describeProvenance } from '@agent-native/shell/provenance';
@@ -67,12 +71,7 @@ async function apply(id: string, delivery: OsDelivery, screens: ApplicationScree
     return;
   }
   if (delivery.type === 'navigate') await go(delivery.to, delivery.search);
-  else {
-    const [kind, ...rest] = delivery.resource.split(':');
-    const resolve = kind ? screens.resources?.[kind] : undefined;
-    if (!resolve) throw new Error(`No screen opens ${kind} resources`);
-    await go(await resolve(rest.join(':')));
-  }
+  else await go(await resourcePath(screens, delivery.resource));
   shown = { id, provenance: delivery.provenance };
   notify();
 }

@@ -19,3 +19,4 @@ export * from './os';
 export * from './os-catalog';
 export * from './os-templates';
 export * from './os-wire';
+export * from './ui-intent';

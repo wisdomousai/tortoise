@@ -41,13 +41,15 @@ export function createUiSessions(
   return new UiSessionStore({
     isActive: (token) => !!sessions.get(token),
     validateContext: validate,
+    // Every resource an intent names must be one the sender may read now, as for a selection.
     async validateIntent(context, intent) {
-      if ('resource' in intent)
-        await validate(context, {
-          selectedResources: [intent.resource],
-          observedRevisions: { [intent.resource]: 0 },
-        });
-      else if (
+      const resources = 'resource' in intent ? [intent.resource] : (intent.resources ?? []);
+      await validate(context, {
+        selectedResources: [...resources],
+        observedRevisions: Object.fromEntries(resources.map((resource) => [resource, 0])),
+      });
+      if (
+        'operations' in intent &&
         intent.operations.some(
           (id) => !application.catalog.operations.some((operation) => operation.id === id),
         )
