@@ -40,6 +40,14 @@ In the `project-tasks` example, workspace owners administer projects, project ow
 
 It evaluates a command on both the current and the proposed state, so a rule cannot forget the commit-time check (`packages/runtime/test/policy.test.ts`). Roles come from a membership, whose `set-member` command refuses a change to the caller's own role.
 
+## Feature policies
+
+A [feature](glossary.md#feature)'s operations and resource types are decided by the feature's own policy (`routeAuthorization` in `packages/runtime/src/compose.ts`). The application's policy never sees them, so its `caller` gate and [policy lanes](glossary.md#policy-lane) do not apply. The feature's policy reads an access view that the application computes from its own state, and the view applies the application's membership, its integration principals' lanes and a delegated grant's resource scope. A command is checked against the access views of the current and the previous state.
+
+Person-only rules sit in the feature's policy, so every application gets them: approving or rejecting an [approval request](glossary.md#approval-request) and resolving a held effect refuse a delegated caller. A caller who cannot read an approval request gets `NOT_FOUND` for it, not a refusal that confirms it exists.
+
+`packages/runtime/test/approval-feature.test.ts` covers the approval feature's policy over an access view. Each migrated example's `test/migration.test.ts` refuses its integration principals and non-members on the feature's operations.
+
 ## Lists
 
 A list is scoped to what the caller may see before it is filtered, sorted, paged or counted (`packages/runtime/test/collection.test.ts`). Protected fields cannot be used to filter or sort, because the query schema does not accept them. In the examples, a delegated grant narrows lists and single-record reads further. Dictionary lookups check own properties, so a name like `constructor` never matches by accident.

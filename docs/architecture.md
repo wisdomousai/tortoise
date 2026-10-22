@@ -208,6 +208,14 @@ Startup refuses the composition in these cases:
 - **audit** keeps the tamper-evident audit log.
 - **compliance** adds auditor queries, the posture monitor and the Compliance screen.
 
+### Features in the examples
+
+- **receiving** mounts `approval` and `reconciliation`.
+- **project-tasks** mounts `approval`.
+- **line-station** mounts `approval` and `device`.
+
+Each answers the access views from its own roles in `policy.ts`, and adopted the data its version 1 state kept.
+
 ### Telemetry
 
 The telemetry plugin derives OpenTelemetry metrics and spans from the audit log and the [outbox](glossary.md#outbox), so handlers and adapters carry no metrics code. It exports through the network port to a collector on the same machine. The export carries operation, target, harness and channel IDs, fixed states, error codes, counts and durations, and digests of correlation, effect and run IDs. It carries no record contents, inputs, [principals](glossary.md#principal) or resource IDs ([telemetry plugin](../plugins/telemetry/README.md)).

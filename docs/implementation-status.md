@@ -131,7 +131,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Not shown.**
 
-- The examples declare no [state migrations](glossary.md#state-migration) yet, and keep their unversioned `upgradeState`.
+- Removing a feature or plugin from an application drops its slice at the next commit. Nothing keeps or exports the dropped data.
 - A target port that maps effects by `contractVersion` has not been written.
 - The phone's storage stamps versions, but has no staged `migrate`.
 
@@ -343,8 +343,13 @@ Control mappings are indicative.
 
 `test:scaffold:full` does not repeat the mobile steps, and no native build was made from the export.
 
+**By hand, features.** On 22 October 2026, in a `scaffold new` export, `add collection`, `add capability`, `add target`, `add agent` and `add feature stock --screens` produced an application that passed typecheck, build, its 17 unit tests and its Playwright spec. `bun run generate` was skipped ([known defects](#known-defects)).
+
 **Limits.**
 
+- An application cannot compose the `device-link` plugin and the `device` feature: both claim the `device` resource type.
+- The `device-link`, `hub-link`, `notifications` and `sign-in` plugins keep operation namespaces that differ from their IDs (`link`, `hub`, `notification`, `station`).
+- An application authorization port built without `definePolicy` declares no `covers`, so composition cannot refuse one that also decides a feature's operations.
 - No framework version has been published to npm or any real registry. Every install from versions ran against the loopback registry (`release:serve`).
 - The packages are MIT licensed.
 - The packages publish TypeScript source, and only Bun and Vite have consumed them.
@@ -352,6 +357,8 @@ Control mappings are indicative.
 - An instance hosts one application.
 
 ## Known defects
+
+`bun run generate` fails in a `scaffold new` export: `scripts/overview.ts` checks paths under examples the export leaves out. `bun run test:scaffold:full` fails at that step.
 
 A session revoked during a request does not stop the request. HTTP authenticates each request once. If a session is revoked or expires while its command waits, the command's context stays live and the command commits. New requests with that token are refused.
 
