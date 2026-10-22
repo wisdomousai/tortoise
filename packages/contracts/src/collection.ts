@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { defineCapability } from './capability';
+import type { DisplayField } from './display';
 import { jsonSchema } from './schema';
 
 /** Record keys: non-empty, bounded, and used verbatim in journal resources (`<type>:<key>`). */
@@ -18,6 +19,10 @@ export interface CollectionSpec<Type extends string, Item extends z.ZodObject> {
   readonly container?: keyof Item['shape'] & string;
   /** Names for generated screens and descriptions. */
   readonly label?: { readonly one: string; readonly many: string };
+  /** Field of `item` that names a record; generated screens and agents show it. */
+  readonly titleField?: keyof Item['shape'] & string;
+  /** Fields of `item` that generated screens show, in order; the scalar fields when omitted. */
+  readonly fields?: readonly DisplayField[];
 }
 
 /**
@@ -35,6 +40,8 @@ export function defineCollection<const Type extends string, Item extends z.ZodOb
   if (!(key in spec.item.shape)) throw new Error(`Collection key is not an item field: ${key}`);
   if (spec.container && !(spec.container in spec.item.shape))
     throw new Error(`Collection container is not an item field: ${spec.container}`);
+  if (spec.titleField && !(spec.titleField in spec.item.shape))
+    throw new Error(`Collection title field is not an item field: ${spec.titleField}`);
   return Object.freeze({
     type: spec.type,
     resourceType: spec.resourceType,
@@ -42,6 +49,8 @@ export function defineCollection<const Type extends string, Item extends z.ZodOb
     key,
     ...(spec.container ? { container: spec.container } : {}),
     label: spec.label ?? { one: spec.type, many: `${spec.type}s` },
+    ...(spec.titleField ? { titleField: spec.titleField } : {}),
+    ...(spec.fields ? { fields: spec.fields } : {}),
     /** The journal resource of one record. */
     resource: (id: string): `${Type}:${string}` => `${spec.type}:${id}`,
   });
@@ -83,6 +92,15 @@ const readPermission = (collection: Collection) => ({
   resourceType: collection.resourceType,
 });
 
+/** A generated read's display: the collection's names, resource kind, key and fields. */
+const readDisplay = (collection: Collection, label: string) => ({
+  label,
+  resource: collection.type,
+  key: collection.key,
+  ...(collection.titleField ? { titleField: collection.titleField } : {}),
+  ...(collection.fields ? { fields: collection.fields } : {}),
+});
+
 /**
  * Generate `<id>.get`: one record by key, or `NOT_FOUND` when it is absent or the caller may not
  * see it. Requires `read` on the collection's resource type. The server pairs it with
@@ -102,6 +120,7 @@ export function collectionGet<
     permission: readPermission(collection),
     dependencies: [collection.type, ...(spec.dependencies ?? [])],
     ui: spec.ui ?? { binding: `${spec.id}.get` },
+    display: readDisplay(collection, collection.label.one),
   });
 }
 
@@ -144,6 +163,7 @@ export function collectionList<
     permission: readPermission(collection),
     dependencies: [collection.type, ...(spec.dependencies ?? [])],
     ui: spec.ui ?? { binding: `${spec.id}.list` },
+    display: readDisplay(collection, collection.label.many),
   });
 }
 export type CollectionListInput<Item, Filters extends keyof Item> = {

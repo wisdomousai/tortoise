@@ -7,6 +7,7 @@ import type {
   RemoteReadDeclaration,
 } from './capability';
 import { catalogAgents, type CatalogAgent } from './agent';
+import { checkDisplay, type DisplayDeclaration } from './display';
 import { canonicalJson, type JsonObject } from './json';
 import { collectOs, osActionTargets, type CatalogOs } from './os-catalog';
 import {
@@ -31,6 +32,7 @@ export interface CatalogOperation {
   readonly dependencies: readonly string[];
   readonly errors: readonly string[];
   readonly ui: { readonly binding?: string; readonly exception?: string };
+  readonly display?: DisplayDeclaration;
   readonly integration?: IntegrationDeclaration;
   readonly remote?: RemoteReadDeclaration;
   /** Network destinations the operation reaches, derived from its outbox or remote-read target. */
@@ -204,6 +206,7 @@ function catalogOperation(
     dependencies: capability.dependencies ?? [],
     errors: capability.errors ?? [],
     ui: capability.ui!,
+    ...(capability.display ? { display: capability.display } : {}),
     // Omitted rather than undefined: the catalog is canonical JSON.
     ...(capability.integration ? { integration: capability.integration } : {}),
     ...(capability.remote ? { remote: capability.remote } : {}),
@@ -253,6 +256,7 @@ export function buildCatalog(
       const processes = target ? processesForTarget(requirements, target) : [];
       const folders = target ? foldersForTarget(requirements, target) : [];
       checkAuditFields(capability);
+      checkDisplay(capability.id, capability.display, capability.output.jsonSchema);
       checkBlobLimits(capability);
       operations.push(
         catalogOperation(capability, module.id, mcpName, destinations, processes, folders),

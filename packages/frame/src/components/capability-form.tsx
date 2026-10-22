@@ -152,6 +152,7 @@ interface FormProps<C extends AnyCapability> {
   capability: C & { kind: 'command' };
   /** Inputs supplied by the screen (for example the selected lot); not rendered as fields. */
   fixed?: Partial<InputOf<C>>;
+  /** The button text; the capability's display label, else "Submit". */
   submitLabel?: string;
   onCommitted?: (receipt: Receipt<OutputOf<C>>) => void;
 }
@@ -159,7 +160,7 @@ interface FormProps<C extends AnyCapability> {
 function FormBody<C extends AnyCapability>({
   capability,
   fixed = {},
-  submitLabel = 'Submit',
+  submitLabel = capability.display?.label ?? 'Submit',
   onCommitted,
   prepared,
   dismiss,

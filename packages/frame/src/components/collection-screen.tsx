@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import type { AnyCapability, JsonObject } from '@agent-native/contracts';
+import type { AnyCapability, DisplayDeclaration, JsonObject } from '@agent-native/contracts';
 import { CapabilityForm } from '@/components/capability-form';
 import { LiveDataTable, type LiveColumn } from '@/components/live-data-table';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,18 @@ export function recordFields(schema: JsonObject, list: boolean): string[] {
     .map(([name]) => name);
 }
 
+/** The fields to show and their headings: the capability's display fields, else the schema's. */
+function shownFields(capability: AnyCapability, list: boolean, limit?: number) {
+  const display: DisplayDeclaration | undefined = capability.display;
+  if (display?.fields)
+    return display.fields.map((field) => ({
+      name: field.name,
+      label: field.label ?? humanize(field.name),
+    }));
+  const names = recordFields(capability.output.jsonSchema, list);
+  return (limit ? names.slice(0, limit) : names).map((name) => ({ name, label: humanize(name) }));
+}
+
 /** A forwarded record's delivery state; anything else as plain text. */
 function Value({ name, value }: { name: string; value: unknown }) {
   if (value === undefined || value === null)
@@ -52,9 +64,10 @@ function Value({ name, value }: { name: string; value: unknown }) {
 
 /**
  * A collection's list screen: a server-paged table over its generated `list` query, a search box
- * when the list declares one, and a form for its create command. Columns come from the record
- * schema, and a `sync` field renders as delivery state. Replace it with a purpose-built screen
- * one route at a time; the instance still scopes, filters and counts before paging.
+ * when the list declares one, and a form for its create command. Columns come from the list's
+ * display fields, else from the record schema, and a `sync` field renders as delivery state.
+ * Replace it with a purpose-built screen one route at a time; the instance still scopes, filters
+ * and counts before paging.
  */
 export function CollectionScreen({
   title,
@@ -66,7 +79,7 @@ export function CollectionScreen({
   title: string;
   list: Query;
   create?: Command;
-  /** Fields to show; the record's scalar fields (at most six) when omitted. */
+  /** Fields to show; the display fields, else the record's scalar fields (at most six). */
   columns?: readonly string[];
   /** The screen that opens one row, for example `/items/$id`. */
   open?: (row: Row) => string;
@@ -78,13 +91,22 @@ export function CollectionScreen({
   const input = { offset, limit: PAGE, ...(searchable && search ? { search } : {}) };
   const query = useQuery(live.liveQueryOptions(list, input as never));
   const data = query.data as { items: Row[]; total: number } | undefined;
-  const fields = columns ?? recordFields(list.output.jsonSchema, true).slice(0, 6);
-  // Rows are announced by their title or name when the record has one, else by the first field.
+  const declared = shownFields(list, true, 6);
+  const fields = columns
+    ? columns.map(
+        (name) => declared.find((field) => field.name === name) ?? { name, label: humanize(name) },
+      )
+    : declared;
+  // Rows are announced by the display title field, else a title or name, else the first field.
+  const names = fields.map((field) => field.name);
   const labelField =
-    fields.find((name) => name === 'title' || name === 'name') ?? fields[0] ?? 'id';
-  const tableColumns: LiveColumn<Row>[] = fields.map((name) => ({
+    list.display?.titleField ??
+    names.find((name) => name === 'title' || name === 'name') ??
+    names[0] ??
+    'id';
+  const tableColumns: LiveColumn<Row>[] = fields.map(({ name, label }) => ({
     id: name,
-    header: humanize(name),
+    header: label,
     cell: ({ row }) => <Value name={name} value={row.original[name]} />,
   }));
   return (
@@ -125,9 +147,10 @@ export function CollectionScreen({
 }
 
 /**
- * One record of a collection: its fields from the generated `get` query and a form for its
- * update command with the record's key fixed. A record the caller may not see is `NOT_FOUND`
- * from the instance and shows as unavailable.
+ * One record of a collection: its fields from the generated `get` query, in display order when
+ * the query declares display fields, and a form for its update command with the record's key
+ * fixed. The heading names the record by its display title field when there is one. A record the
+ * caller may not see is `NOT_FOUND` from the instance and shows as unavailable.
  */
 export function RecordScreen({
   title,
@@ -145,16 +168,17 @@ export function RecordScreen({
   const id = params[param] ?? '';
   const query = useQuery(live.liveQueryOptions(get, { id } as never));
   const record = query.data as Row | undefined;
+  const titleField = get.display?.titleField;
   if (query.isError) return <p className="text-muted-foreground">{title} unavailable.</p>;
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">
-        {title} {id}
+        {title} {(titleField && record?.[titleField] ? String(record[titleField]) : '') || id}
       </h1>
       <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
-        {recordFields(get.output.jsonSchema, false).map((name) => (
+        {shownFields(get, false).map(({ name, label }) => (
           <div key={name} className="contents">
-            <dt className="text-muted-foreground">{humanize(name)}</dt>
+            <dt className="text-muted-foreground">{label}</dt>
             <dd>
               <Value name={name} value={record?.[name]} />
             </dd>

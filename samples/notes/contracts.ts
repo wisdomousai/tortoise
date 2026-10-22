@@ -24,6 +24,13 @@ export const notes = defineCollection({
   resourceType: 'Note',
   item: noteSchema,
   label: { one: 'Note', many: 'Notes' },
+  titleField: 'title',
+  fields: [
+    { name: 'title' },
+    { name: 'text' },
+    { name: 'author', label: 'Added by' },
+    { name: 'updatedAt', label: 'Changed' },
+  ],
 });
 
 const write = { action: 'write', resourceType: 'Note' };
@@ -50,6 +57,7 @@ export const noteOperations = {
     permission: write,
     dependencies: ['note'],
     ui: { binding: 'note.add' },
+    display: { label: 'Add note', resource: 'note', titleField: 'title' },
   }),
   noteUpdate: defineCapability({
     id: 'note.update',
@@ -67,6 +75,7 @@ export const noteOperations = {
     permission: write,
     dependencies: ['note'],
     ui: { binding: 'note.update' },
+    display: { label: 'Save note', resource: 'note', titleField: 'title' },
   }),
 } as const;
 

@@ -58,7 +58,7 @@ test('the CLI adds and lists notes in-process, with no frame', async () => {
   expect((await cli('note', 'add', '--title', 'x'.repeat(201), '--text', '')).exitCode).toBe(2);
 });
 
-test('an MCP client sees one tool per capability and the workflow text', async () => {
+test('an MCP client sees one titled tool per capability and the workflow text', async () => {
   const instance = await openEmbeddedInstance(createNotesApplication(), {
     workspacePath: join(directory, 'mcp'),
   });
@@ -77,6 +77,13 @@ test('an MCP client sees one tool per capability and the workflow text', async (
       'note_list',
       'note_update',
     ]);
+    // The display declaration gives each tool a title and says which resource a record is.
+    const list = tools.find((tool) => tool.name === 'note_list')!;
+    expect(list.title).toBe('Notes');
+    expect(list.description).toContain(
+      'Each record is the resource note:<id>. title names a record.',
+    );
+    expect(tools.find((tool) => tool.name === 'note_add')!.title).toBe('Add note');
     const workflow = await mcp.readResource({ uri: 'app://workflows/notes.edit' });
     expect(JSON.stringify(workflow.contents)).toContain('expectedRevisions');
     const called = await mcp.callTool({

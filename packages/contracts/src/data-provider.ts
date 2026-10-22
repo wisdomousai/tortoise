@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { defineCapability, type RemoteReadDeclaration } from './capability';
+import type { DisplayDeclaration } from './display';
 import { jsonSchema } from './schema';
 
 /**
@@ -58,6 +59,14 @@ export interface DataProviderSpec<
   readonly item: Item;
   readonly descriptions: { readonly search: string; readonly lookup: string };
   readonly ui?: { readonly search?: UiDeclaration; readonly lookup?: UiDeclaration };
+  /**
+   * How found records are shown, on both queries. A found record is not a local resource, so
+   * the declaration names no resource kind.
+   */
+  readonly display?: {
+    readonly search?: string;
+    readonly lookup?: string;
+  } & Pick<DisplayDeclaration, 'titleField' | 'fields'>;
 }
 
 /** A provider's search input: its own query plus the paging cursor. */
@@ -94,6 +103,14 @@ export function defineDataProvider<
     capability as C & { readonly remote: RemoteReadDeclaration };
   const output = jsonSchema(remoteResultSchema(spec.item));
   const permission = { action: 'search', resourceType: spec.resourceType };
+  const display = (label: string | undefined) => {
+    const shown = {
+      ...(label ? { label } : {}),
+      ...(spec.display?.titleField ? { titleField: spec.display.titleField } : {}),
+      ...(spec.display?.fields ? { fields: spec.display.fields } : {}),
+    };
+    return Object.keys(shown).length ? { display: shown } : {};
+  };
   const search = declared(
     defineCapability({
       id: `${spec.id}.search` as `${Id}.search`,
@@ -109,6 +126,7 @@ export function defineDataProvider<
       permission,
       remote,
       ui: spec.ui?.search ?? { binding: `${spec.id}.search` },
+      ...display(spec.display?.search),
     }),
   );
   const lookup = declared(
@@ -121,6 +139,7 @@ export function defineDataProvider<
       permission,
       remote,
       ui: spec.ui?.lookup ?? { binding: `${spec.id}.lookup` },
+      ...display(spec.display?.lookup),
     }),
   );
   return Object.freeze({
