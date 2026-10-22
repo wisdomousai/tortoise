@@ -22,25 +22,27 @@ export const config = readStarterConfig(join(root, 'app.config.json'), {});
 const program = config.name;
 
 /**
- * Every application this checkout can host: the configured one and each example. The catalog,
+ * Every application this checkout can host: the configured one, each example and each sample. The catalog,
  * and so every generated artifact, belongs to one application.
  */
 export async function applications(): Promise<ApplicationManifest[]> {
   const found = new Map<string, ApplicationManifest>();
   const configured = await loadManifest(config);
   found.set(configured.id, configured);
-  const examples = await readdir(join(root, 'examples'), { withFileTypes: true }).catch(() => []);
-  for (const entry of examples)
-    if (
-      entry.isDirectory() &&
-      (await Bun.file(join(root, 'examples', entry.name, 'manifest.ts')).exists())
-    ) {
-      const manifest = await loadManifest({
-        ...config,
-        application: join(root, 'examples', entry.name),
-      });
-      found.set(manifest.id, manifest);
-    }
+  for (const layer of ['examples', 'samples'])
+    for (const entry of await readdir(join(root, layer), { withFileTypes: true }).catch(() => []))
+      if (
+        entry.isDirectory() &&
+        (await Bun.file(join(root, layer, entry.name, 'manifest.ts')).exists())
+      ) {
+        const manifest = await loadManifest({
+          ...config,
+          application: join(root, layer, entry.name),
+        });
+        if (found.has(manifest.id) && manifest.id !== configured.id)
+          throw new Error(`Two applications have the id ${manifest.id}`);
+        found.set(manifest.id, manifest);
+      }
   return [...found.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
 }
 

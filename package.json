@@ -15,6 +15,7 @@
     "plugins/*",
     "apps/*",
     "examples/*",
+    "samples/*",
     "sdks/*"
   ],
   "scripts": {
@@ -31,8 +32,8 @@
     "test": "bun test",
     "test:unit": "bun test packages/contracts packages/runtime packages/client packages/react",
     "test:integration": "bun test packages/integration",
-    "test:conformance": "bun test packages/testing packages/adapters examples",
-    "test:service": "bun test packages/host plugins examples",
+    "test:conformance": "bun test packages/testing packages/adapters examples samples",
+    "test:service": "bun test packages/host plugins examples samples",
     "test:harness": "bun test packages/agents",
     "test:e2e": "playwright test",
     "test:scaffold": "bun test packages/scaffold",
@@ -125,6 +126,7 @@
     "@agent-native/react": "workspace:*",
     "@agent-native/receiving": "workspace:*",
     "@agent-native/runtime": "workspace:*",
+    "@agent-native/sample-notes": "workspace:*",
     "@agent-native/scaffold": "workspace:*",
     "@agent-native/screen-bridge": "workspace:*",
     "@agent-native/share-target": "workspace:*",

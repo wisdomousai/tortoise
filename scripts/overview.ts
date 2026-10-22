@@ -21,6 +21,7 @@ const layerTitles: Record<string, string> = {
   plugins: 'Plugins',
   apps: 'Starter',
   examples: 'Examples',
+  samples: 'Samples',
   sdks: 'Driver SDKs',
 };
 
