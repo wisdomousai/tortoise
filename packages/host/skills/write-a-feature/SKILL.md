@@ -44,9 +44,8 @@ bun run check:boundaries
 bun run generate
 ```
 
-Test a feature through a fixture application in its own package. The tests cover:
+Run `featureConformance` from `@agent-native/testing/features` in the feature's tests, with an allow-all and a deny-all access view, sample requests and events over a sample slice, and the person-only operations. Then test the feature through a fixture application in its own package. Those tests cover:
 
-- the policy with an access view that denies everything and one that allows everything;
 - a hook that writes application state, and a failing handler that rolls the hook's write back;
 - adoption of a stored workspace at the version before the move, and older code refusing the result.
 

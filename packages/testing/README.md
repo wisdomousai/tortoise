@@ -11,6 +11,7 @@ Framework (`packages/*`). Test code; production code does not import it. Scenari
 - [Behavioral scenario](../../docs/primitives.md#behavioral-scenario): `BehavioralScenario`, `ScenarioDriver`, `runScenarios`, `directDriver`, `assertEquivalent`.
 - [Model entry](../../docs/primitives.md#model-entry): `gateModel` produces the `ModelActivation` a managed model server requires.
 - [Storage](../../docs/primitives.md#storage): `storageConformance`, `StorageHarness`, `ConformanceState`, `ConformanceStorage`, and `pgliteDriver`, an in-process Postgres `PgDriver`.
+- [Feature](../../docs/primitives.md#feature): `featureConformance`, `FeatureConformanceOptions`, `FeatureRequest`.
 - [Agent scenario](../../docs/primitives.md#agent-scenario): `AgentScenario`, `runAgentScenario`, `runAgentScenarios`, `assertAgentScenarios`, `scenarioRegressions`.
 
 ## Entrypoints
@@ -18,13 +19,14 @@ Framework (`packages/*`). Test code; production code does not import it. Scenari
 | Import                                  | Runs in        | Contents                                                                                       |
 | --------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------- |
 | `@agent-native/testing`                 | server (tests) | `scenarios`, `agent-scenarios` and `activation`.                                               |
-| `@agent-native/testing/*`               | server (tests) | One source file: `scenarios`, `agent-scenarios`, `activation`, `ui-bindings`, `connectors`, `storage` or `postgres`. |
+| `@agent-native/testing/*`               | server (tests) | One source file: `scenarios`, `agent-scenarios`, `activation`, `ui-bindings`, `connectors`, `storage`, `features` or `postgres`. |
 | `@agent-native/testing/scenarios`       | server (tests) | `ScenarioDriver`, `BehavioralScenario`, `directDriver`, `runScenarios`, `assertEquivalent`.    |
 | `@agent-native/testing/activation`      | server (tests) | `gateModel`, `scenariosDigest`: the activation gate for a local model.                         |
 | `@agent-native/testing/agent-scenarios` | server (tests) | `AgentScenario`, `runAgentScenario`, `runAgentScenarios`, `assertAgentScenarios`, `scenarioRegressions`, `containsValue`, `liveScenariosRequested`. |
 | `@agent-native/testing/ui-bindings`     | server (tests) | `referencedCapabilities`, `unboundOperations`: a static scan of an application's screens.      |
 | `@agent-native/testing/connectors`      | server (tests) | `connectorConformance`, `ConnectorHarness`, `conformanceEffect`: the connector contract.       |
 | `@agent-native/testing/storage`         | server (tests) | `storageConformance`, `StorageHarness`: the cases any `Storage` adapter must pass.             |
+| `@agent-native/testing/features`        | server (tests) | `featureConformance`: the cases any feature's handlers, slice and policy must pass.            |
 | `@agent-native/testing/postgres`        | server (tests) | `pgliteDriver`: Postgres compiled to WebAssembly behind `PgDriver`, for tests without a server. |
 
 ### Behavioral scenarios and UI bindings
@@ -67,6 +69,18 @@ A case returns `{ passed: true }`, or `{ skipped: reason }` when its hook is mis
 - a removed record stays removed, and a stored `__proto__` key stays data;
 - outbox effects and blob references are stored with the commit.
 
+### Feature conformance
+
+`featureConformance(feature, options)` checks a [feature](../../docs/glossary.md#feature)'s server part the way composition uses it. `options` holds an access view that answers yes to everything, one that answers no, a sample slice, and optionally sample requests, sample events and the person-only operations. The cases:
+
+- every operation has one handler, every handler an operation, and a remote handler exactly when the operation declares `remote`;
+- a new slice is unchanged by a JSON round trip and by `upgrade`;
+- under the deny-all view every command is refused to a person and a delegated caller, and every sample request and event is refused;
+- under the allow-all view a person passes every sample request and reads every sample event, which shows the policy reads the access view;
+- under the allow-all view a delegated caller is refused every person-only operation.
+
+Cases return results and throw as the connector cases do.
+
 ### Agent scenarios
 
 An `AgentScenario` names an agent definition, the task a person gives it, who issues the run, the records it starts on and fixture `setup` commands. It states what must come out:
@@ -104,7 +118,7 @@ The gate passes only when every scenario passes.
 
 Scenarios receive the `ExecutionContext` from the test, which stands in for the trusted host. They must not derive it from capability input. An agent scenario's tools take their grants from the run's context only, never from the call, as the host's run tools do. `assertEquivalent` compares canonical JSON, so key order cannot hide or fake a difference.
 
-`unboundOperations` proves that a screen names a capability (`<contracts import>.<key>` in a `.tsx` file). It does not prove that a control renders it. Browser specs cover the reference screens, not every capability.
+`unboundOperations` proves that a screen names a capability (`<import>.<key>` in a `.tsx` file, for an import from a contracts module or a feature's or plugin's manifest entrypoint). It does not prove that a control renders it. Browser specs cover the reference screens, not every capability.
 
 ## Dependencies
 
@@ -132,6 +146,7 @@ bun run test:conformance
   - a second storage's commit invalidates the first one's cached snapshot;
   - the same cases run against the server.
 - `test/connectors.test.ts`: the connector cases against a conforming in-memory target, and against flawed ones (duplicates on retry, refusals thrown, abort ignored). Each flawed target fails with the rule it breaks.
+- `test/features.test.ts`: the feature cases against a conforming ledger fixture, and against a missing handler, a policy that ignores the access view and a slice JSON cannot keep.
 - `test/agent-scenarios.test.ts`: agent scenarios over a lots fixture, with the deterministic harness and a scripted model harness:
   - an approval request judged as passing;
   - a direct write and an approval request outside the selection refused;

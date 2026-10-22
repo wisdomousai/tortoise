@@ -43,7 +43,7 @@ implemented · [`packages/contracts`](../packages/contracts/README.md) [`package
 
 _A reusable domain part an application mounts once, such as approval requests: modules under one operation namespace, a state slice, handlers and a policy over an access view the application supplies, hooks the application implements, and optional connections. A host plugin is a feature with ports, a lifecycle and settings._
 
-implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/kernel`](../packages/kernel/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md)
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/kernel`](../packages/kernel/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`packages/testing`](../packages/testing/README.md)
 
 ### Catalog
 

@@ -30,7 +30,8 @@ const isCapability = (value: unknown): value is AnyCapability =>
 
 /**
  * Capabilities the screens under `source` invoke or read: every `<local>.<key>` in a `.tsx` file
- * where `<local>` is a named import from a contracts module and `<key>` names a capability on it.
+ * where `<local>` is a named import from a contracts module or a feature's or plugin's manifest
+ * entrypoint, and `<key>` names a capability on it.
  * `source` is a directory, a `.tsx` file, or several of them: an application that routes a
  * shared frame screen lists that screen's file next to its own directory. A reference is not
  * proof that a control renders, but an operation nothing in the UI references certainly has no
@@ -40,7 +41,8 @@ export async function referencedCapabilities(
   source: string | readonly string[],
 ): Promise<Set<string>> {
   const referenced = new Set<string>();
-  const importPattern = /import\s*\{([^}]*)\}\s*from\s*'([^']*contracts)'/g;
+  // A contracts module, or a feature's or plugin's browser-safe manifest entrypoint.
+  const importPattern = /import\s*\{([^}]*)\}\s*from\s*'([^']*(?:contracts|manifest))'/g;
   const sources = typeof source === 'string' ? [source] : source;
   for (const file of (await Promise.all(sources.map(files))).flat()) {
     const text = await readFile(file, 'utf8');
