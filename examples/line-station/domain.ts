@@ -1,5 +1,4 @@
-import { own, put } from '@agent-native/runtime';
-import type { ApprovalRequest } from '@agent-native/contracts';
+import { own, put, type StateMigrations } from '@agent-native/runtime';
 
 /**
  * Line stations on top of a homebrew MES and screen-only station software.
@@ -144,8 +143,6 @@ export interface LineState {
   stops: Record<string, Stop>;
   counts: Record<string, CountReport>;
   attention: Record<string, AttentionItem>;
-  /** Requested commands, usually stop reasons from the stop explainer, keyed by ID. */
-  approvals: Record<string, ApprovalRequest>;
   watermark?: string;
   lastSyncAt?: number;
 }
@@ -177,9 +174,31 @@ export function createLineState(
     stops: {},
     counts: {},
     attention: {},
-    approvals: {},
   };
 }
+
+/**
+ * Version 2 moves approval requests out of `lineStation.approvals` and device configuration out
+ * of the root `devices` into the approval and device features, which adopt them first
+ * (`application.ts`). The step is not compatible, so code from version 1 refuses a version 2
+ * workspace instead of running without them.
+ */
+export const migrations: StateMigrations = {
+  version: 2,
+  steps: [
+    {
+      from: 1,
+      to: 2,
+      up: (stored) => {
+        const { devices: _devices, ...rest } = stored as Record<string, unknown>;
+        const line = rest.lineStation as Record<string, unknown> | undefined;
+        if (!line) return rest;
+        const { approvals: _approvals, ...lineStation } = line;
+        return { ...rest, lineStation };
+      },
+    },
+  ],
+};
 
 /** Prototype-safe record access; keys are untrusted input. */
 export { own, put };

@@ -5,7 +5,6 @@ import { attentionHandlers } from './handlers/attention';
 import { integrationHandlers } from './handlers/integration';
 import { observationHandlers } from './handlers/observation';
 import { productionHandlers } from './handlers/production';
-import { approvalHandlers } from './handlers/approvals';
 import { queryHandlers } from './handlers/queries';
 import type { LineServices } from './server/context';
 
@@ -23,9 +22,8 @@ export function createLineHandlers(): HandlerContribution<LineState, LineService
     ...administrationHandlers(),
     ...observationHandlers(),
     ...integrationHandlers(),
-    ...approvalHandlers(),
   ];
 }
-export { lineStationModule } from './contracts';
+export { lineStationModule, stopExplainerModule } from './contracts';
 export { createLineState } from './domain';
-export { linePolicy } from './policy';
+export { approvalAccess, deviceAccess, linePolicy } from './policy';

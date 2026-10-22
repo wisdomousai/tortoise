@@ -1,12 +1,20 @@
-import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
+import {
+  approvalFeature,
+  authorizationRoute,
+  composeAuthorization,
+  sliceHandlers,
+  type ApprovalAccess,
+  type ApprovalHooks,
+} from '@agent-native/runtime';
 import { connectTarget, type SystemOfRecordPort } from '@agent-native/integration';
 import {
-  createDeviceHandlers,
   createDeviceState,
-  deviceAuthorizationRoute,
+  deviceFeature,
+  type DeviceAccess,
   type DeviceState,
 } from '@agent-native/devices/server';
 import { defineApplication } from '@agent-native/host/application';
+import { mountFeature } from '@agent-native/host/feature';
 import { auditPlugin } from '@agent-native/audit/plugin';
 import { lineAutomationPlugin } from './automation';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
@@ -18,10 +26,12 @@ import { driverServiceOf } from '@agent-native/connector-driver/open';
 import { sitePlugin } from '@agent-native/site/plugin';
 import manifest from './manifest';
 import { mesTarget } from './contracts';
-import { stationRole, type LineState } from './domain';
+import { migrations, type LineState } from './domain';
 import {
+  approvalAccess,
   createLineHandlers,
   createLineState,
+  deviceAccess,
   lineStationModule,
   linePolicy,
   type LineServices,
@@ -31,9 +41,12 @@ import { startStationBridge, type StationBridgeConfig } from './station-bridge';
 import { stationAutomationContract } from './contracts/automation';
 import { createLineStationDriverBridge, type StationAutomationConfig } from './driver-bridge';
 
+/**
+ * Workspace state: the line slice. Feature and plugin slices (approval requests, device
+ * configuration, the compliance auditors) are added by `defineApplication` under their ids.
+ */
 export interface LineStationState {
   lineStation: LineState;
-  devices: DeviceState;
 }
 
 /** The homebrew MES integration; separate from every person and every station bridge. */
@@ -109,33 +122,31 @@ const freshLine = (ownerId: string) =>
     ],
   });
 
-/** Line and device handlers, each over its own slice of the state. */
-const lineStationHandlers = () => [
-  ...sliceHandlers<LineStationState, 'lineStation', LineServices>(
-    'lineStation',
-    createLineHandlers(),
-  ),
-  ...sliceHandlers<LineStationState, 'devices', LineServices>('devices', createDeviceHandlers()),
+/** The approval and device features, with access from station roles. */
+const lineStationFeatures = () => [
+  mountFeature<LineStationState, ApprovalAccess, ApprovalHooks, LineServices>(approvalFeature(), {
+    access: (state) => approvalAccess(state.lineStation),
+    hooks: {
+      newId: (ctx) => (ctx.services.newId ?? (() => crypto.randomUUID()))(),
+      now: (ctx) => (ctx.services.now ?? Date.now)(),
+    },
+    // Version 1 kept approval requests in the line slice.
+    adopt: {
+      before: 2,
+      from: (stored) => ({
+        requests: (stored as { lineStation?: { approvals?: object } }).lineStation?.approvals ?? {},
+      }),
+    },
+  }),
+  mountFeature<LineStationState, DeviceAccess, unknown, LineServices>(deviceFeature(), {
+    access: (state) => deviceAccess(state.lineStation),
+    // Version 1 kept device configuration at the root under `devices`.
+    adopt: {
+      before: 2,
+      from: (stored) => (stored as { devices?: DeviceState }).devices ?? createDeviceState(),
+    },
+  }),
 ];
-
-/** Line policy for line resources, station roles for devices. */
-const lineStationAuthorization = () =>
-  composeAuthorization<LineStationState>([
-    authorizationRoute(
-      'lineStation',
-      lineStationModule,
-      ['station', 'stop', 'count', 'attention', 'order', 'counters', 'sync', 'approval-request'],
-      linePolicy,
-    ),
-    // Device configuration follows station roles: supervisors administer, everyone else reads.
-    deviceAuthorizationRoute<LineStationState>((state) => ({
-      config: state.devices,
-      access(principalId, station) {
-        const role = stationRole(state.lineStation, principalId, station);
-        return role === 'supervisor' ? 'administer' : role ? 'read' : undefined;
-      },
-    })),
-  ]);
 
 type BridgeApplication = Parameters<typeof startStationBridge>[0]['application'];
 
@@ -194,7 +205,7 @@ function startAutomation(
 }
 
 /**
- * The line-station application: stations with device configuration. `mes` is the MES port
+ * The line-station application: stations with approval requests and device configuration. `mes` is the MES port
  * (each instance gets its own in-memory homebrew MES fake without one); `stations` are the
  * station screens a serving host bridges (from the demo environment without them), and
  * `automation` the one station reached through the station automation driver instead. Without
@@ -210,20 +221,13 @@ export function createLineStationApplication(
 ) {
   return defineApplication<LineStationState, LineServices>({
     manifest,
-    createState: (ownerId) => ({
-      lineStation: freshLine(ownerId),
-      devices: createDeviceState(),
-    }),
+    createState: (ownerId) => ({ lineStation: freshLine(ownerId) }),
+    migrations,
     upgradeState(state, ownerId) {
       const value = (state ?? {}) as Partial<LineStationState>;
-      return {
-        // Workspaces from before approval requests get an empty approval request slice.
-        lineStation: value.lineStation
-          ? { ...value.lineStation, approvals: value.lineStation.approvals ?? {} }
-          : freshLine(ownerId),
-        devices: value.devices ?? createDeviceState(),
-      };
+      return { lineStation: value.lineStation ?? freshLine(ownerId) };
     },
+    features: lineStationFeatures(),
     plugins: [
       sitePlugin,
       networkPlugin,
@@ -233,8 +237,18 @@ export function createLineStationApplication(
       lineAutomationPlugin,
       stationAutomationPlugin,
     ],
-    handlers: lineStationHandlers(),
-    authorization: lineStationAuthorization(),
+    handlers: sliceHandlers<LineStationState, 'lineStation', LineServices>(
+      'lineStation',
+      createLineHandlers(),
+    ),
+    authorization: composeAuthorization<LineStationState>([
+      authorizationRoute(
+        'lineStation',
+        lineStationModule,
+        ['station', 'stop', 'count', 'attention', 'order', 'counters', 'sync'],
+        linePolicy,
+      ),
+    ]),
     ...(options.services ? { services: options.services } : {}),
     connect: ({ application, workspaceId, processes, services }) => ({
       integrations: [

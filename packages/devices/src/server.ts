@@ -5,8 +5,6 @@ import {
   type OutputOf,
 } from '@agent-native/contracts';
 import type {
-  AuthorizationPort,
-  AuthorizationRoute,
   ExecutionContext,
   FeaturePolicy,
   FeatureServer,
@@ -23,16 +21,6 @@ export interface DeviceState {
 }
 export function createDeviceState(): DeviceState {
   return { stations: {} };
-}
-
-/**
- * What the composing application tells the device policy. `access` resolves a principal's
- * relation to a station from the application's own authoritative state (for example a
- * line-station role); the device module never stores memberships itself.
- */
-export interface DeviceAuthorizationView {
-  readonly config: DeviceState;
-  access(principalId: string, station: string): 'read' | 'administer' | undefined;
 }
 
 type Context = HandlerContext<DeviceState, unknown>;
@@ -104,48 +92,6 @@ export function createDeviceHandlers(): HandlerContribution<DeviceState, unknown
 }
 
 const knownOperations = new Set<string>(deviceConfigModule.capabilities.map((item) => item.id));
-
-/**
- * Station-scoped policy. Reads need any relation to the station, writes need `administer`; a
- * resource-limited delegation must name `device:<station>`. Every decision uses the access view
- * of the state being committed, and commands are also checked against the previous state.
- */
-export const devicePolicy: AuthorizationPort<DeviceAuthorizationView> = {
-  authorize({ capability, input, context, state, previousState, phase }) {
-    if (!knownOperations.has(capability.id)) return { allowed: false, reason: 'NO_POLICY' };
-    const station = String((input as { station?: unknown }).station ?? '');
-    if (context.grant?.resources && !context.grant.resources.includes(`device:${station}`))
-      return { allowed: false, reason: 'RESOURCE_DENIED' };
-    const permitted = (snapshot: DeviceAuthorizationView) => {
-      const relation = snapshot.access(context.principalId, station);
-      if (!relation) return false;
-      return capability.kind === 'query' || phase === 'replay' || relation === 'administer';
-    };
-    return {
-      allowed: permitted(state) && (!previousState || permitted(previousState)),
-      reason: 'RESOURCE_DENIED',
-    };
-  },
-  canReadEvent({ state, context, event }) {
-    const station = event.resource.slice(event.resource.indexOf(':') + 1);
-    return state.access(context.principalId, station) !== undefined;
-  },
-};
-
-/**
- * Authorization route for composing the module. `select` builds the access view from the whole
- * application state, so device permissions follow the application's own station roles.
- */
-export function deviceAuthorizationRoute<Root>(
-  select: (state: Root) => DeviceAuthorizationView,
-): AuthorizationRoute<Root> {
-  return {
-    module: deviceConfigModule,
-    resourceTypes: ['device'],
-    select,
-    port: devicePolicy as AuthorizationPort<unknown>,
-  };
-}
 
 /** A caller's relation to a station: may read its configuration, or administer it. */
 export type DeviceRelation = 'read' | 'administer';

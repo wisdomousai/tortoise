@@ -1,13 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import { buildCatalog } from '@agent-native/contracts';
-import {
-  agentGrant,
-  createApplication,
-  createMemoryStorage,
-  type ExecutionContext,
-} from '@agent-native/runtime';
+import { createApplicationRuntime } from '@agent-native/host';
+import { agentGrant, createMemoryStorage, type ExecutionContext } from '@agent-native/runtime';
+import { createLineStationApplication } from '../application';
 import { expireJob } from '../automation';
-import { createLineHandlers, createLineState, lineStationModule, linePolicy } from '../server';
+import manifest from '../manifest';
+import { createLineState } from '../server';
 
 const T0 = 1_760_000_000_000;
 const workspaceId = 'plant';
@@ -37,12 +35,12 @@ function setup() {
     ['s2', 'line-2'],
   ] as const)
     state.stops[id] = { id, station, state: 'ALARM', alarm: 'E42 infeed jam', startedAt: T0 };
-  const app = createApplication({
-    modules: [lineStationModule],
-    handlers: createLineHandlers(),
-    storage: createMemoryStorage(state),
-    authorization: linePolicy,
+  // The composed application, so approval requests go through the approval feature's policy.
+  const definition = createLineStationApplication({
     services: { newId: () => `p${++ids}`, now: () => clock },
+  });
+  const app = createApplicationRuntime(definition, {
+    storage: createMemoryStorage({ ...definition.createState('sam'), lineStation: state }),
     now: () => clock,
   });
   const command = (operation: string, input: unknown, context: ExecutionContext) =>
@@ -64,7 +62,7 @@ function setup() {
 const explainer = (issuer: ExecutionContext): ExecutionContext => ({
   ...issuer,
   runId: 'run-1',
-  grant: agentGrant(buildCatalog([lineStationModule]), 'stop.explainer', issuer, {
+  grant: agentGrant(buildCatalog(manifest.modules), 'stop.explainer', issuer, {
     runId: 'run-1',
     now: T0,
   }),

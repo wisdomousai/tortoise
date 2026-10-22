@@ -1,4 +1,4 @@
-import { defineAgent, defineModule, approvalOperations } from '@agent-native/contracts';
+import { defineAgent, defineModule } from '@agent-native/contracts';
 import { commandOperations } from './contracts/commands';
 import { queryOperations } from './contracts/queries';
 
@@ -32,7 +32,6 @@ export { mesTarget } from './contracts/target';
 export const operations = {
   ...queryOperations,
   ...commandOperations,
-  ...approvalOperations,
 } as const;
 
 /**
@@ -89,13 +88,7 @@ export const lineStationModule = defineModule({
       },
     ],
   },
-  agents: [stopExplainer],
   workflows: [
-    {
-      id: 'explain-stop',
-      operations: ['line.stop.list', 'line.station.get', 'line.reason.list', 'approval.request'],
-      text: 'Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and submit an approval to classify it with the reason the alarm and history support, with your evidence as the rationale. The operator accepts or rejects it at the station; never classify a stop from a guess. If no reason fits, say so.',
-    },
     {
       id: 'shift-handover',
       operations: [
@@ -106,6 +99,24 @@ export const lineStationModule = defineModule({
         'line.sync.status',
       ],
       text: 'Summarize each station for the next shift: active order and counters with their freshness and source, stops and their classification, open attention items and held screen procedures, and records the MES rejected. Report observed values as observed (with time and confidence), not as facts.',
+    },
+  ],
+});
+
+/**
+ * The stop explainer and its workflow. They make approval requests, so this module requires the
+ * approval feature's module, and `lineStationModule` still composes without it.
+ */
+export const stopExplainerModule = defineModule({
+  id: 'stop-explainer',
+  capabilities: [],
+  requires: ['line-station', 'approval'],
+  agents: [stopExplainer],
+  workflows: [
+    {
+      id: 'explain-stop',
+      operations: ['line.stop.list', 'line.station.get', 'line.reason.list', 'approval.request'],
+      text: 'Find the unclassified stop, read the station state and alarm text at the stop and the MES stop reasons, and submit an approval to classify it with the reason the alarm and history support, with your evidence as the rationale. The operator accepts or rejects it at the station; never classify a stop from a guess. If no reason fits, say so.',
     },
   ],
 });

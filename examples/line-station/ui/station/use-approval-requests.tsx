@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { approvalOperations } from '@agent-native/contracts';
 import { approvalChoices, type AttentionItem } from '@/components/attention-queue';
 import { client, live } from '@/lib/session';
 import { operations } from '../../contracts';
@@ -14,7 +15,7 @@ const PREFIX = 'approval-request:';
  */
 export function useApprovalRequests(stopId: string | undefined, run: Run) {
   const approvals = useQuery({
-    ...live.liveQueryOptions(operations.approvalList, {
+    ...live.liveQueryOptions(approvalOperations.approvalList, {
       status: 'pending',
       operation: operations.stopClassify.id,
       resource: `stop:${stopId ?? ''}`,
@@ -40,8 +41,8 @@ export function useApprovalRequests(stopId: string | undefined, run: Run) {
     const id = itemId.slice(PREFIX.length);
     void run(`attention:${itemId}`, () =>
       value === 'approve'
-        ? client.command(operations.approvalApprove, { id })
-        : client.command(operations.approvalReject, { id }),
+        ? client.command(approvalOperations.approvalApprove, { id })
+        : client.command(approvalOperations.approvalReject, { id }),
     );
     return true;
   };

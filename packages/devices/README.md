@@ -10,7 +10,7 @@ Framework (`packages/*`). Scanner logic and the capability [module](../../docs/g
 
 - [Input source](../../docs/primitives.md#input-source): `ScannerSource`, `ScanEvent`, `decodeScan`, `calibrate`, `createScanRouter`, `createWedgeSource`, `createSerialSource`, `createHidPosSource`, `createCameraSource`, `scannerDevicesComponent`.
 - [Scanner profile](../../docs/primitives.md#station-and-scanner-profiles): `ScannerProfile`, `scannerProfileSchema`, `ScanRoute`.
-- [Device configuration](../../docs/primitives.md#device-configuration): `deviceFeature`, `deviceFeatureManifest`, `DeviceAccess`, `DeviceRelation`, `deviceConfigModule`, `createDeviceHandlers`. A supervisor's screen, a CLI script and an agent change scanner profiles and routes through it the same way, under policy and revisions. `devicePolicy` and `deviceAuthorizationRoute` compose the module without the feature.
+- [Device configuration](../../docs/primitives.md#device-configuration): `deviceFeature`, `deviceFeatureManifest`, `DeviceAccess`, `DeviceRelation`, `deviceConfigModule`, `createDeviceHandlers`. A supervisor's screen, a CLI script and an agent change scanner profiles and routes through it the same way, under policy and revisions.
 
 The setup screen and the scanner hook ship in [`@agent-native/operator-ui`](../operator-ui/README.md).
 
@@ -26,7 +26,7 @@ These modules are portable and run in React Native as well: `scanner/decode`, `s
 | `@agent-native/devices/*` | per row | One source file, for example `@agent-native/devices/scanner/wedge`. |
 | `@agent-native/devices/contracts` | browser and server | `deviceFeatureManifest`, `deviceConfigModule` and `deviceOperations`. |
 | `@agent-native/devices/requirements` | browser and server | `scannerDevicesComponent`: serial, HID and camera sources as device requirements. |
-| `@agent-native/devices/server` | server only | `deviceFeature`, `DeviceAccess`, `createDeviceHandlers`, `createDeviceState`, `devicePolicy`, `deviceAuthorizationRoute`. |
+| `@agent-native/devices/server` | server only | `deviceFeature`, `DeviceAccess`, `createDeviceHandlers`, `createDeviceState`. |
 
 `deviceOperations` holds `device.config.get`, `device.scanner.save`, `device.scanner.remove` and `device.routes.save`.
 

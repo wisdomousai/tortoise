@@ -1092,17 +1092,14 @@
     "./src/index symbologyFromFormat",
     "./src/requirements scannerDevicesComponent",
     "./src/server DeviceAccess",
-    "./src/server DeviceAuthorizationView",
     "./src/server DeviceRelation",
     "./src/server DeviceState",
     "./src/server createDeviceHandlers",
     "./src/server createDeviceState",
-    "./src/server deviceAuthorizationRoute",
     "./src/server deviceConfigModule",
     "./src/server deviceFeature",
     "./src/server deviceFeatureManifest",
-    "./src/server deviceOperations",
-    "./src/server devicePolicy"
+    "./src/server deviceOperations"
   ],
   "packages/event-log": [
     ". ChainHead",

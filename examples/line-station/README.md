@@ -19,12 +19,13 @@ Content (`examples/*`). The fake MES ([`fake-mes.ts`](fake-mes.ts)) and the fake
 
 The example is one [application](../../docs/primitives.md#application). It composes:
 
-- a [module](../../docs/primitives.md#module) of `line.*` [capabilities](../../docs/primitives.md#capability), the [device configuration](../../docs/primitives.md#device-configuration) module, and the `compliance` module from its plugin.
+- a [module](../../docs/primitives.md#module) of `line.*` [capabilities](../../docs/primitives.md#capability), the `stop-explainer` module with the stop explainer and its workflow, and the `compliance` module from its plugin.
+- the `approval` and `device` [features](../../docs/primitives.md#feature): [approval requests](../../docs/primitives.md#approval-request) and [device configuration](../../docs/primitives.md#device-configuration). `approvalAccess` and `deviceAccess` in `policy.ts` answer for them from station roles.
 - the `site`, `network`, `process`, `audit`, `compliance`, `automation` and `connector-driver` [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance, automation and driver plugins' screens.
 - the `expire-approval-requests` [trigger](../../docs/primitives.md#trigger), declared in `automation.ts`. A supervisor enables it with a [standing grant](../../docs/primitives.md#standing-grant), and it then closes expired approval requests at their stations every five minutes.
 - the station bridge. [Observations](../../docs/primitives.md#observation) are submitted through `line.observation.ingest`. A [gated actuator](../../docs/primitives.md#gated-actuator) sits behind a station-screen [connector](../../docs/primitives.md#connector), configured by a [station profile](../../docs/primitives.md#station-and-scanner-profiles) ([`station-profile.json`](station-profile.json)) and gated by a [golden check](../../docs/primitives.md#golden-check).
 - MES delivery through [outbox effects](../../docs/primitives.md#outbox-effect), a [dispatcher](../../docs/primitives.md#dispatcher) and [inbound sync](../../docs/primitives.md#inbound-sync), declared as a [target](../../docs/primitives.md#target) in `contracts/target.ts`. Station bridges settle their screen procedures through the same settle command, so its handler overrides which effects a principal may settle.
-- the `stop.explainer` [agent definition](../../docs/primitives.md#agent-definition), which submits a stop reason as an [approval request](../../docs/primitives.md#approval-request) about `stop:<id>`. The station shows it as an attention tile, and approving it classifies the stop as the operator. An approval request takes the station of the stop it is about, so the policy resolves that station for submit, approve and reject.
+- the `stop.explainer` [agent definition](../../docs/primitives.md#agent-definition), which submits a stop reason as an [approval request](../../docs/primitives.md#approval-request) about `stop:<id>`. The station shows it as an attention tile, and approving it classifies the stop as the operator. An approval request takes the station of the stop it is about: operators and supervisors there request, approve and reject it, and every role there reads it. Station bridges and the MES integration hold no station role, so they reach no approval request.
 - the automation route: a [driver contract](../../docs/primitives.md#driver-contract) for the workstation application's automation interface (`contracts/automation.ts`), the driver bridge (`driver-bridge.ts`) and a .NET [driver process](../../docs/primitives.md#driver-process) in `drivers/automation/`.
 - [input sources](../../docs/primitives.md#input-source) and the operator [UI registry](../../docs/primitives.md#ui-registry) on a glove-sized station surface.
 
@@ -34,8 +35,8 @@ The example is one [application](../../docs/primitives.md#application). It compo
 
 | Import | Runs in | Contents |
 | --- | --- | --- |
-| `@agent-native/line-station/manifest` | browser and server | Default export: `defineManifest` with ID `line-station`, its modules and the station-bridge component. |
-| `@agent-native/line-station/application` | server only | Default export: `defineApplication`, whose `connect` wires the MES and, when configured, one station route. |
+| `@agent-native/line-station/manifest` | browser and server | Default export: `defineManifest` with ID `line-station`, its modules, the approval and device features and the station-bridge component. |
+| `@agent-native/line-station/application` | server only | Default export: `defineApplication` with state migrations and the approval and device features, whose `connect` wires the MES and, when configured, one station route. |
 | `@agent-native/line-station/screens` | browser | Default export: `defineScreens` with the workstation screens and the plugin screens. |
 | `@agent-native/line-station/*` | see file | `contracts` (browser-safe), `domain`, `policy`, `server`, `bridge`, `station-bridge`, `driver-bridge`, `fake-mes`. |
 
@@ -135,6 +136,7 @@ bunx playwright test examples/line-station/e2e
   - approval requests stay at their station;
   - a stale stop conflicts, and a demoted operator is refused;
   - the expiry job closes only expired approval requests at the stations of whoever enabled it.
+- `test/migration.test.ts`: a workspace stored at state version 1 finds its approval requests in the `approval` feature and its scanner profiles in the `device` feature, and an approval of a stored request classifies the stop. Station bridges, the MES integration and non-members are refused on both features; viewers cannot request or reject, and only supervisors save a scanner profile.
 - `test/ui-bindings.test.ts`: every capability that claims a UI binding is referenced by a screen.
 - `e2e/station.pw.ts`, in Chromium: hold-to-confirm, tile hotkeys versus wedge scans, keypad tolerance, takeover, and a stop observed on the fake HMI and classified end to end.
 
@@ -170,13 +172,14 @@ Paths in the Code and Proof columns are relative to the example directory. A pat
 | Driver [connector](../../docs/primitives.md#connector) and observer on the bridge principal | `driver-bridge.ts` | `test/automation.test.ts` |
 | [Driver process](../../docs/primitives.md#driver-process) on the .NET [driver SDK](../../docs/primitives.md#driver-sdk) | `drivers/automation/` | `test/automation-driver.test.ts`, skipped without `dotnet` |
 | Driver start through the [process port](../../docs/primitives.md#process-port) | `application.ts` `startAutomation` (availability check), `createDriverPlugin` | None in the example |
-| [Agent definition](../../docs/primitives.md#agent-definition) that makes [approval requests](../../docs/primitives.md#approval-request) | `contracts.ts` `stopExplainer`, `handlers/approvals.ts` | `test/approvals.test.ts` |
+| [Agent definition](../../docs/primitives.md#agent-definition) that makes [approval requests](../../docs/primitives.md#approval-request) | `contracts.ts` `stopExplainer`, `stopExplainerModule` | `test/approvals.test.ts` |
+| [Feature](../../docs/primitives.md#feature) mounts with access views | `manifest.ts` `features`, `application.ts` `lineStationFeatures`, `policy.ts` `approvalAccess`, `deviceAccess` | `test/migration.test.ts`: the refusal tests |
 | [Trigger](../../docs/primitives.md#trigger) under a [standing grant](../../docs/primitives.md#standing-grant) | `automation.ts` | `test/approvals.test.ts`: the expiry job only |
 | [Requirement declarations](../../docs/primitives.md#requirement-declaration) and host components | `contracts.ts` `requirements`, `manifest.ts` | None in the example |
-| Scanner [device configuration](../../docs/primitives.md#device-configuration) | `manifest.ts`, `application.ts` `deviceAuthorizationRoute` | `test/conformance.test.ts`: operators read, supervisors save |
+| Scanner [device configuration](../../docs/primitives.md#device-configuration) | `manifest.ts`, `policy.ts` `deviceAccess` | `test/migration.test.ts`: operators read, supervisors save |
 | Scanner [input source](../../docs/primitives.md#input-source) | `ui/station/order-task.tsx` | `e2e/station.pw.ts` |
 | Operator [UI registry](../../docs/primitives.md#ui-registry) parts | `ui/station/station-surface.tsx`, `ui/station-admin.tsx` | `e2e/station.pw.ts` |
-| [State migration](../../docs/primitives.md#state-migration) by the unversioned upgrade for workspaces from before approval requests | `application.ts` `upgradeState` | `test/application.test.ts`: the upgrade leaves a current state unchanged; the backfill for an older workspace is untested |
+| [State migration](../../docs/primitives.md#state-migration) to version 2 with adoption into the approval and device features | `domain.ts` `migrations`, `application.ts` `adopt` | `test/migration.test.ts`: the version 1 test |
 
 Framework tests cover what the example leaves untested:
 
@@ -189,11 +192,11 @@ Framework tests cover what the example leaves untested:
 | Path | Holds |
 | --- | --- |
 | `contracts.ts`, `contracts/` | Schemas, queries, commands, the MES target, station membership, the driver contract, the stop explainer and the module's network requirements. Browser-safe. |
-| `domain.ts` | State types, `createLineState`, the bridge principal and target names, and reading freshness (30 seconds). |
-| `policy.ts` | `linePolicy`: station roles, person-only commands, the bridge and MES lanes, journal event visibility. |
+| `domain.ts` | State types, `createLineState`, the state `migrations`, the bridge principal and target names, and reading freshness (30 seconds). |
+| `policy.ts` | `linePolicy`: station roles, person-only commands, the bridge and MES lanes, journal event visibility. `approvalAccess` and `deviceAccess` for the features. |
 | `server.ts`, `handlers/`, `server/` | One handler group per concern, and the shared context, access checks, DTOs, attention items and outcome settlement. |
-| `manifest.ts` | The manifest: modules, plugin manifests and host components, including the screen bridge's browser. |
-| `application.ts` | The application definition: state, plugins, handlers, authorization and `connect` for the MES and the station routes. |
+| `manifest.ts` | The manifest: modules, the approval and device features, plugin manifests and host components, including the screen bridge's browser. |
+| `application.ts` | The application definition: state, migrations, the features, plugins, handlers, authorization and `connect` for the MES and the station routes. |
 | `automation.ts` | The `expire-approval-requests` trigger and its job. |
 | `bridge.ts` | The screen route: observer, screen connector and dispatcher under one bridge principal. |
 | `station-bridge.ts` | Starts the screen route against a browser-based screen with Playwright and picks the counter extractor. |
@@ -304,7 +307,7 @@ These steps start from the exported example and name the file to change in it. F
     - `connectorConformance` from the testing package's connectors entrypoint tests the connector.
 22. Pass your screen-route stations as the `stations` option of `createLineStationApplication` in the default export of `application.ts`. Pass the one automation-route station as its `automation` option; the two options replace the demo environment that `demoStations` and `demoAutomationStation` read.
 23. Change `freshLine` in `application.ts` to create your stations, because no command adds a station.
-24. Change the stop explainer's instructions and operations in `contracts.ts`, and the approval request rules in `policy.ts` for the records its requests are about.
+24. Change the stop explainer's instructions and operations in `contracts.ts`, and `approvalAccess` in `policy.ts` for the records its requests are about.
 25. Change the trigger and its job in `automation.ts`. Keep the automation plugin in all three entrypoints: `automationPluginManifest` in `manifest.ts`, `lineAutomationPlugin` in `application.ts` and `automationScreens` in `screens.tsx`.
 26. Keep the site, network, process, audit and compliance plugins in `manifest.ts` and `application.ts`, and the compliance screens in `screens.tsx`.
 27. Change the screens in `ui/` and the routes in `screens.tsx`, with live queries and catalog commands only. Use the [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md) and, for scanners, the [add-scanner-input skill](../../packages/devices/skills/add-scanner-input/SKILL.md).

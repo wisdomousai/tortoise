@@ -1,5 +1,12 @@
 import { targetLane, targetRules } from '@agent-native/integration';
-import { definePolicy, membershipRule, type OperationRule } from '@agent-native/runtime';
+import {
+  definePolicy,
+  membershipRule,
+  type ApprovalAccess,
+  type ExecutionContext,
+  type OperationRule,
+} from '@agent-native/runtime';
+import type { DeviceAccess } from '@agent-native/devices/server';
 import { mesTarget, operations } from './contracts';
 import { stationMembership } from './contracts/membership';
 import { bridgeStation, own, stationRole, type LineState, type StationRole } from './domain';
@@ -14,13 +21,6 @@ export function stationOfResource(state: LineState, resource: string): string | 
   if (type === 'count') return own(state.counts, id)?.station;
   if (type === 'attention') return own(state.attention, id)?.station;
   if (type === 'order') return own(state.orders, id)?.station;
-  // An approval request belongs to the station of the record it is about.
-  if (type === 'approval-request') {
-    const about = own(state.approvals, id)?.resource;
-    return about && !about.startsWith('approval-request:')
-      ? stationOfResource(state, about)
-      : undefined;
-  }
   return undefined;
 }
 
@@ -41,14 +41,12 @@ const atStation = (
   },
   roles,
 });
-const approvalStation = (input: Record<string, unknown>, state: LineState) =>
-  stationOfResource(state, `approval-request:${String(input.id)}`);
 const named = (input: Record<string, unknown>) =>
   typeof input.station === 'string' ? input.station : undefined;
 /**
  * Commands that stand for a person at the station: starting an order (hazard: the machine loads
  * a recipe), verifying what the screen shows, reconciling an interrupted procedure and taking or
- * handing back the screen. Delegated agent runs may read, request approval and classify, never these.
+ * handing back the screen. Delegated agent runs may read and classify, never these.
  */
 const person = (rule: Rule): Rule => ({ ...rule, person: true, reason: 'PERSON_AT_STATION' });
 const stationEvent = (type: string) => ({
@@ -104,22 +102,6 @@ export const linePolicy = definePolicy<LineState, StationRole>({
       atStation((input, state) => own(state.attention, String(input.attentionId))?.station),
     ),
     [operations.bridgeSetMode.id]: atStation(named, ['supervisor']),
-    // An approval request is about a record at one station; submitting needs a role there, and deciding
-    // needs a person with an operating role there. Approving then also passes the requested
-    // command's own rule, under the approver.
-    [operations.approvalRequest.id]: atStation((input, state) =>
-      typeof input.resource === 'string' ? stationOfResource(state, input.resource) : undefined,
-    ),
-    [operations.approvalApprove.id]: person(atStation(approvalStation)),
-    [operations.approvalReject.id]: person(atStation(approvalStation)),
-    [operations.approvalExpire.id]: atStation(approvalStation, [
-      'operator',
-      'supervisor',
-      'viewer',
-    ]),
-    // Handlers scope these to approval requests at the caller's stations before filtering and counting.
-    [operations.approvalList.id]: 'open',
-    [operations.approvalGet.id]: 'open',
     [operations.stationSetMember.id]: {
       ...membershipRule(stationMembership),
       grant: (input) => `station:${String(input.station)}`,
@@ -132,12 +114,60 @@ export const linePolicy = definePolicy<LineState, StationRole>({
     count: stationEvent('count'),
     attention: stationEvent('attention'),
     order: stationEvent('order'),
-    'approval-request': stationEvent('approval-request'),
     // MES master-data changes are visible to anyone who works at some station.
     sync: (id, state, context) =>
       id === mesTarget.target &&
       Object.keys(state.stations).some((station) =>
         stationRole(state, context.principalId, station),
       ),
+  },
+});
+
+/**
+ * The station `context` works at for `resource`, within a delegated grant's `station:<id>`
+ * resources, or undefined.
+ */
+function workingStation(state: LineState, context: ExecutionContext, resource: string) {
+  const station = stationOfResource(state, resource);
+  if (station === undefined || !stationRole(state, context.principalId, station)) return undefined;
+  const scope = context.grant?.resources;
+  return !scope || scope.includes(`station:${station}`) ? station : undefined;
+}
+
+/**
+ * Who may do what with approval requests, for the `approval` feature. An approval request names
+ * the record it is about (`stop:<id>`) and takes that record's station: operators and
+ * supervisors there request, approve and reject, viewers there also expire (the expiry job runs
+ * as whoever enabled it), and every role there reads. Listing needs a role at some station. A
+ * delegated grant's `station:<id>` resources narrow all of it; station bridges and the MES
+ * integration hold no station role, so they reach none of it. Approving also passes the
+ * requested command's own rule under the approver, and the feature refuses deciding to a
+ * delegated caller.
+ */
+export const approvalAccess = (state: LineState): ApprovalAccess => ({
+  allows(context, action, resource) {
+    if (resource === undefined)
+      return (
+        action === 'read' &&
+        Object.keys(state.stations).some(
+          (station) => workingStation(state, context, `station:${station}`) !== undefined,
+        )
+      );
+    const station = workingStation(state, context, resource);
+    if (station === undefined) return false;
+    const role = stationRole(state, context.principalId, station)!;
+    if (action === 'read' || action === 'expire') return true;
+    return operate.includes(role);
+  },
+});
+
+/**
+ * Device configuration follows station roles for the `device` feature: supervisors administer,
+ * every other role reads. The feature applies a delegated grant's `device:<station>` resources.
+ */
+export const deviceAccess = (state: LineState): DeviceAccess => ({
+  relation(context, station) {
+    const role = stationRole(state, context.principalId, station);
+    return role === 'supervisor' ? 'administer' : role ? 'read' : undefined;
   },
 });
