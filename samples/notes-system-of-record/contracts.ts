@@ -38,7 +38,6 @@ export const publications = defineCollection({
     { name: 'title' },
     { name: 'sync', label: 'Delivery' },
     { name: 'sorRef', label: 'Publisher id' },
-    { name: 'publishedAt', label: 'Sent' },
   ],
 });
 

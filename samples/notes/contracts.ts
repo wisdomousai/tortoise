@@ -32,8 +32,8 @@ export const notes = defineCollection({
   fields: [
     { name: 'title' },
     { name: 'text' },
+    // `updatedAt` stays out: a JSON number carries no unit, so a screen would print the epoch.
     { name: 'author', label: 'Added by' },
-    { name: 'updatedAt', label: 'Changed' },
   ],
 });
 

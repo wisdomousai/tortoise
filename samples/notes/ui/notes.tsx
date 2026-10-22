@@ -33,7 +33,7 @@ export function noteRoutes(options: { sections?: readonly NoteSection[] } = {}) 
           title="Notes"
           list={noteOperations.noteList}
           create={noteOperations.noteAdd}
-          columns={['title', 'author', 'updatedAt']}
+          columns={['title', 'author']}
           open={(row) => `/notes/${String(row.id)}`}
         />
       ),
