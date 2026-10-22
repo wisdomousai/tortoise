@@ -10,7 +10,15 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 export const root = resolve(import.meta.dir, '..');
-export const layers = ['packages', 'workstations', 'plugins', 'apps', 'examples', 'samples', 'sdks'] as const;
+export const layers = [
+  'packages',
+  'workstations',
+  'plugins',
+  'apps',
+  'examples',
+  'samples',
+  'sdks',
+] as const;
 
 export interface Skill {
   /** The directory name, which is also the skill name. */
