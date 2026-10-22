@@ -9,6 +9,8 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 ## Primitives
 
 - [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`, and `jsonValueSchema`. `jsonValueSchema` accepts any JSON value and is the one recursive schema the portability check accepts.
+- [Display metadata](../../docs/primitives.md#display-metadata): `DisplayDeclaration`, `DisplayField`, a capability's `display`; `checkDisplay`, which the catalog build runs; and `displayRecord`, the record schema an output holds.
+- [UI session context](../../docs/primitives.md#ui-session-context): `UiIntent` and `uiResourcePattern`, the `<kind>:<id>` form of a named resource.
 - [Module](../../docs/primitives.md#module): `defineModule`, `CapabilityModule`.
 - [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`.
 - [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, and the catalog checks `checkAgent` and `catalogAgents`. `agentInstructions` is the text a run's model starts with, and for a requesting agent it lists each command the agent may request approval for with its input schema.

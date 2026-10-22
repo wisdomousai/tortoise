@@ -179,11 +179,17 @@ _A UI control bound to a capability through the typed client._
 
 implemented · [`packages/react`](../packages/react/README.md)
 
+### Display metadata
+
+_How a capability and its records are shown: label, resource kind, key, title field and fields._
+
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/adapters`](../packages/adapters/README.md)
+
 ### UI session context
 
-_What a person is looking at, captured for an agent, and the intents an agent can send back._
+_What a person is looking at, captured for an agent run, and the intents the run sends back through the `ui.*` run tools._
 
-implemented · [`packages/adapters`](../packages/adapters/README.md) [`packages/react`](../packages/react/README.md) [`packages/agents`](../packages/agents/README.md)
+implemented · [`packages/adapters`](../packages/adapters/README.md) [`packages/host`](../packages/host/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/agents`](../packages/agents/README.md)
 
 ### Agent run
 

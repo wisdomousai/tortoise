@@ -68,7 +68,7 @@ When the authorization revision changes, the stream resets without revealing new
 
 A [UI session context](glossary.md#ui-session-context) carries ephemeral navigation and selection, separate from business commands. The host creates each one and binds it to the live credential, principal and workspace. A selection is checked against authorized queries, and capturing it for a run freezes its IDs and revisions. Updates are versioned, so a late validation cannot overwrite a newer selection.
 
-UI intents are bounded, expire, are offered until acknowledged, and end as accepted, rejected or expired. A leaked session ID alone grants nothing, and no intent operation commits business records.
+[UI intents](glossary.md#ui-intent) are bounded, expire, are offered until acknowledged, and end as accepted, rejected or expired. A run sends an intent only to the session it captured, as the session's own principal in the same workspace. Each named resource is read under the run's grant, so a run cannot show a person a record the run may not read. A leaked session ID alone grants nothing, and no intent commits business records.
 
 ## Process boundary
 

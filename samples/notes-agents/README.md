@@ -1,6 +1,6 @@
 # @agent-native/sample-notes-agents
 
-`sample-notes-agents` composes the [notes sample](../notes/README.md) unchanged with agents. The `note.titler` agent and a trigger suggest titles for untitled notes as [approval requests](../../docs/glossary.md#approval-request), and a person approves or rejects each one. A run started from the note screen sends UI intents (see [UI session context](../../docs/primitives.md#ui-session-context)) back to that screen.
+`sample-notes-agents` composes the [notes sample](../notes/README.md) unchanged with agents. The `note.titler` agent and a trigger suggest titles for untitled notes as [approval requests](../../docs/glossary.md#approval-request), and a person approves or rejects each one. A run started from the note screen sends [UI intents](../../docs/glossary.md#ui-intent) back to that screen.
 
 ## Layer
 

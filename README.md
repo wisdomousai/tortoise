@@ -19,6 +19,7 @@ The Bun [host](docs/glossary.md#host) keeps the [workspace](docs/glossary.md#wor
 - host plugins in `plugins/*`;
 - the starter in `apps/*`, which hosts the one application named in `app.config.json`;
 - the examples in `examples/*`;
+- the samples in `samples/*`, one concept each on a shared notes application;
 - driver SDKs for other languages in `sdks/*`.
 
 ## First run

@@ -40,7 +40,7 @@ Tools are derived from the [catalog](glossary.md#catalog), one per [capability](
 
 Every tool call goes through the [instance](glossary.md#instance) like any other [caller](glossary.md#caller). The instance validates input, rechecks current authorization and cancellation, and commits. The initiating grant stays the upper bound even when the principal could do more. A run cannot start another run, so runs cannot delegate further.
 
-When the authorization revision changes, the host hides the run's earlier free-form output, because model text cannot be field-projected. A run started from a selection captures the resource IDs and revisions from the [UI session context](glossary.md#ui-session-context). Later selection changes do not retarget it.
+When the authorization revision changes, the host hides the run's earlier free-form output, because model text cannot be field-projected. A run started from a selection captures the resource IDs and revisions from the [UI session context](glossary.md#ui-session-context). Later selection changes do not retarget it. Such a run also gets the `ui.open`, `ui.select` and `ui.request-review` tools, which send [UI intents](glossary.md#ui-intent) to that screen only.
 
 Cancellation aborts the active work and is checked before commit. Commands that already committed stay committed. An answer to a question or approval resolves only the matching request.
 
@@ -134,6 +134,7 @@ No host route starts an agent run from an agent definition. Definitions run thro
 - [Authorization](authorization.md)
 - [Security and compliance](security-and-compliance.md)
 - [State and reactivity](state-and-reactivity.md)
+- [Interaction contract](interaction-contract.md#ui-intents)
 - [Implementation status](implementation-status.md)
 - [Desktop](desktop.md#packaged-resources)
 - [Testing package: agent scenarios](../packages/testing/README.md#agent-scenarios)

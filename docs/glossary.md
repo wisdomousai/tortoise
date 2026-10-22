@@ -191,6 +191,10 @@ The worker that claims queued, retrying and upstream effects, delivers them thro
 
 Do not use: outbox worker, relay (for the dispatcher).
 
+### Display metadata
+
+What a capability declares about how it and its records are shown: a label, the resource kind its records name, their key, title field and shown fields. Generic screens, the command palette, MCP tool titles and the generated reference read it. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in the [interaction contract](interaction-contract.md).
+
 ### Driver
 
 A supervised child process that controls or reads equipment, speaking JSON-RPC over its standard streams and started through the process port. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [hardware drivers](hardware-drivers.md).
@@ -533,6 +537,12 @@ The per-resource counter a command bumps. `expectedRevisions` makes a stale writ
 
 Do not use: version (for a revision), etag.
 
+### Sample
+
+A small application under `samples/` that shows one concept. `samples/notes` is the base, and every other sample composes it unchanged and adds one concern. Listed in [samples](samples.md).
+
+Do not use: demo (for a sample).
+
 ### Scaffold
 
 The tool that exports the framework, the starter and content as a standalone application, or generates a new application and its parts. Lives in [`packages/scaffold`](../packages/scaffold/README.md).
@@ -655,13 +665,17 @@ Do not use: hook (for a trigger), cron job, automation (alone, for a trigger).
 
 The screen control a capability declares it is reached from, or the stated reason it has none. Building the catalog fails for a capability with neither. An application's UI-binding test fails when no screen references a capability that claims a binding. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/testing`](../packages/testing/README.md).
 
+### UI intent
+
+A request from an agent run to the screen it started from: open a resource, select one, or ask for a review. It is checked under the run's grant, expires, and changes no records. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/adapters`](../packages/adapters/README.md); explained in the [interaction contract](interaction-contract.md#ui-intents).
+
 ### UI registry
 
 Reusable screen parts published as shadcn registries over stock shadcn primitives, which an application copies with `shadcn add` and then owns. The `agent-native` registry ships in [`packages/frame`](../packages/frame/README.md); the `operator` registry ships in [`packages/operator-ui`](../packages/operator-ui/README.md).
 
 ### UI session context
 
-The selection and observed revisions a screen shares with an agent run, checked against authorized queries and frozen when the run captures it. The agent can send back bounded, expiring intents to open, select or request review. None of them commits business records. Lives in [`packages/adapters`](../packages/adapters/README.md); explained in [authorization](authorization.md).
+The selection and observed revisions a screen shares with an agent run, checked against authorized queries and frozen when the run captures it. A run started from it can send [UI intents](#ui-intent) back to the screen. Lives in [`packages/adapters`](../packages/adapters/README.md); explained in [authorization](authorization.md).
 
 ### Watermark
 

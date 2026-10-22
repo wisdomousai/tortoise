@@ -47,7 +47,7 @@ A caller may pass the run ID to `start`. A run repeated after a restart then kee
 
 ### Tools
 
-Tools are capabilities only. Tool implementations derive identity and grant from the run, never from model arguments. They recheck cancellation at their commit boundary. A duplicate invocation ID executes once.
+Tools are capabilities, plus the host's `ui.*` tools for a run started from a UI session, which a `ToolPort` offers through `definitionsFor`. Tool implementations derive identity and grant from the run, never from model arguments. They recheck cancellation at their commit boundary. A duplicate invocation ID executes once.
 
 In the AI SDK harness, some failures go back to the model as that call's result: an application refusal (an `ApplicationError`) and a call the model could not form. The model may then correct the call within its turn and tool-call budgets, as an MCP client reads `isError`. Any other tool failure, a spent budget or a cancellation ends the run.
 

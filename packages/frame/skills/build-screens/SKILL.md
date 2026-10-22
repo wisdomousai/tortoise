@@ -1,6 +1,6 @@
 ---
 name: build-screens
-description: Build or change the web screens of an agent-native application or host plugin. Use when adding a route, list or record screen, form, capture or workstation screen, navigation item or capability screen; when pulling or changing an item of the agent-native or operator shadcn registry; or when replacing a frame file in the starter. Covers examples/<app>/screens.tsx, examples/<app>/ui, packages/frame, packages/react, packages/operator-ui and apps/web.
+description: Build or change the web screens of an agent-native application or host plugin. Use when adding a route, list or record screen, form, capture or workstation screen, navigation item or capability screen; when a screen shares its selection with agent runs or handles their UI intents; when pulling or changing an item of the agent-native or operator shadcn registry; or when replacing a frame file in the starter. Covers examples/<app>/screens.tsx, examples/<app>/ui, samples/<name>/ui, packages/frame, packages/react, packages/operator-ui and apps/web.
 ---
 
 # Build screens
@@ -13,6 +13,7 @@ description: Build or change the web screens of an agent-native application or h
   - `collection-screen` builds list and record screens from a collection's generated capabilities;
   - `capability-form` renders any command;
   - `live-data-table` pages after the instance scopes rows.
+- Declare [display metadata](../../../../docs/glossary.md#display-metadata) on the capability before writing columns or labels in a screen. `collection-screen`, `capability-form` and the command palette read it. A collection passes it as `titleField` and `fields`.
 - For gloved or high-frequency input, use the `operator` registry (`packages/operator-ui`) and read [point-of-work input](../../../../docs/point-of-work-input.md).
 - `examples/line-station/ui/station.tsx` composes a full station's screen.
 - Each command a screen issues needs a matching `ui.binding` on its capability, its [UI binding](../../../../docs/glossary.md#ui-binding). The `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`) covers it.
@@ -22,19 +23,23 @@ description: Build or change the web screens of an agent-native application or h
 ## Steps
 
 1. Declare the routes in the application's `screens.tsx` with `defineScreens`: routes, navigation, the screen for each capability, and `resources` for screens that open a resource the OS delivers.
-2. Give a station's screen `layout: 'full'`. Declare `compact` on a route for phone and portrait-tablet widths.
-3. Declare a plugin's screens with `definePluginScreens` in its `plugin-screens` entrypoint.
-4. Merge plugin screens with `defineScreens({ plugins })`. It fails on duplicate routes and on targets no route declares.
-5. Write commands with `useCapabilityForm` from `@agent-native/react/form`. It keeps one [idempotency key](../../../../docs/glossary.md#idempotency-key) until the command commits, so a double tap or a scanner's double Enter records once. Do not mint keys per click.
-6. Read data with `useLiveQuery`. It refetches only the queries whose dependencies changed. Never filter or page client-side over a partial set.
-7. Capture input with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@agent-native/react/capture`, so capture time is measured.
-8. Change a registry item in its source. For the operator registry, edit `packages/operator-ui/registry.manifest.ts` and run `bun run build:registry:operator`.
-9. Never hand-edit the generated `registry.json` or `src/styles/operator.css`.
-10. Rebuild the frame registry with `bun run build:registry`.
-11. For framework capabilities, wrap the registry screen in an application screen that passes the capabilities and a `describe` label, as `examples/receiving/ui/reconcile.tsx` does. `approval-review` takes `approvalOperations`, and `reconciliation-review` takes `reconciliationOperations`.
-12. Change the starter's look in `apps/web`. A file at the same `src/` path as a frame file replaces it.
-13. Add stock primitives to `apps/web` with `shadcn add`. Keep domain screens in the application, never in the starter.
-14. For native screens, use `defineNativeScreens` from `packages/frame-native` and follow the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).
+2. On a record screen, call `useUiSession(resource, handlers)` from `@/lib/ui-session` with the record's `<kind>:<id>` and revision, so a run started from the screen captures it. List the kind in the application's `selectableResources`.
+   - An `openResource` intent navigates through `screens.resources` unless the handlers pass `open`.
+   - Pass `select` when the screen can change its selection without navigating; without it, `selectResource` is rejected.
+   - Render the returned `review` and call `acknowledgeReview` when the person has seen it. `samples/notes-agents/ui/titles.tsx` does both.
+3. Give a station's screen `layout: 'full'`. Declare `compact` on a route for phone and portrait-tablet widths.
+4. Declare a plugin's screens with `definePluginScreens` in its `plugin-screens` entrypoint.
+5. Merge plugin screens with `defineScreens({ plugins })`. It fails on duplicate routes and on targets no route declares.
+6. Write commands with `useCapabilityForm` from `@agent-native/react/form`. It keeps one [idempotency key](../../../../docs/glossary.md#idempotency-key) until the command commits, so a double tap or a scanner's double Enter records once. Do not mint keys per click.
+7. Read data with `useLiveQuery`. It refetches only the queries whose dependencies changed. Never filter or page client-side over a partial set.
+8. Capture input with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@agent-native/react/capture`, so capture time is measured.
+9. Change a registry item in its source. For the operator registry, edit `packages/operator-ui/registry.manifest.ts` and run `bun run build:registry:operator`.
+10. Never hand-edit the generated `registry.json` or `src/styles/operator.css`.
+11. Rebuild the frame registry with `bun run build:registry`.
+12. For framework capabilities, wrap the registry screen in an application screen that passes the capabilities and a `describe` label, as `examples/receiving/ui/reconcile.tsx` does. `approval-review` takes `approvalOperations`, and `reconciliation-review` takes `reconciliationOperations`.
+13. Change the starter's look in `apps/web`. A file at the same `src/` path as a frame file replaces it.
+14. Add stock primitives to `apps/web` with `shadcn add`. Keep domain screens in the application, never in the starter.
+15. For native screens, use `defineNativeScreens` from `packages/frame-native` and follow the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).
 
 ## Checks
 
@@ -57,3 +62,5 @@ description: Build or change the web screens of an agent-native application or h
 - [`@agent-native/frame`](../../README.md)
 - [`examples/project-tasks/screens.tsx`](../../../../examples/project-tasks/screens.tsx)
 - [`examples/quality-inspection/ui/capture-station.tsx`](../../../../examples/quality-inspection/ui/capture-station.tsx)
+- [Notes agents sample](../../../../samples/notes-agents/README.md)
+- [Interaction contract](../../../../docs/interaction-contract.md#ui-intents)

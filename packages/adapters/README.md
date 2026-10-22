@@ -21,7 +21,7 @@ Framework (`packages/*`). The [host](../../docs/glossary.md#host) composes these
   - Postgres: `PostgresStorage`, `PostgresStorageOptions`, `PG_SCHEMA_VERSION`, `PgDriver`, `PgQuery`, `PgValue`, and `bunPostgres` on `Bun.SQL`.
 - [Workspace lease](../../docs/primitives.md#workspace-lease): `acquireWorkspaceLease`, `WorkspaceLease`, `LeaseOptions`, `WorkspaceLeaseLostError`.
 - [Blob store](../../docs/primitives.md#blob-store): `createFileBlobStore`, the HTTP routes `POST /api/v1/blobs` and `GET /api/v1/blobs/:digest`, and blobs on the direct transport.
-- [UI session context](../../docs/primitives.md#ui-session-context): `UiSessionStore`.
+- [UI session context](../../docs/primitives.md#ui-session-context): `UiSessionStore`. `sendFromRun` accepts an intent from a run only for the session it captured, under the session's principal and workspace.
 - [Shell port](../../docs/primitives.md#shell-port): `UiDeliveryStore` and `validDelivery` hold what accepted OS requests asked each session's frame to show.
 
 ## Entrypoints
