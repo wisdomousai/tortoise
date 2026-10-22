@@ -15,6 +15,8 @@ A [feature](../../../../docs/glossary.md#feature) contributes [modules](../../..
 
 ## Steps
 
+In an application made by `scaffold new`, `bun run scaffold add feature <id> [--screens]` writes the manifest, the server part, the access view, the mount, the screens and a test for steps 1 to 7; change them from there.
+
 1. Declare the browser-safe part with `defineFeatureManifest` from `@agent-native/contracts`. Every operation starts with `<id>.`; module, outbox target and remote-read target names are `<id>` or start with `<id>-`. List features it needs in `requires`.
 2. Declare the server part with `defineFeature<Slice, Access, Hooks>` from `@agent-native/host/feature`:
    - `state.create` for the slice, and `state.migrations` with a step whenever the slice shape changes;

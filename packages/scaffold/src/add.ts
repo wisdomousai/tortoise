@@ -7,6 +7,7 @@ import type { AppNames } from './templates/application';
 import { agent } from './templates/agent';
 import { capability, type CapabilitySpec } from './templates/capability';
 import { collection, type Generated } from './templates/collection';
+import { featurePart } from './templates/feature';
 import { names } from './templates/names';
 import { target } from './templates/target';
 
@@ -15,7 +16,8 @@ export type AddRequest =
   | { readonly kind: 'collection'; readonly name: string }
   | ({ readonly kind: 'capability' } & CapabilitySpec)
   | { readonly kind: 'target'; readonly name: string; readonly collection: string }
-  | { readonly kind: 'agent'; readonly name: string; readonly collection: string };
+  | { readonly kind: 'agent'; readonly name: string; readonly collection: string }
+  | { readonly kind: 'feature'; readonly name: string; readonly screens?: boolean };
 
 export interface AddOptions {
   /** The checkout root; the current directory when omitted. */
@@ -67,17 +69,19 @@ async function readAppNames(directory: string): Promise<AppNames> {
 async function partFor(request: AddRequest, app: AppNames, directory: string): Promise<Generated> {
   if (request.kind === 'collection') return collection(app, names(request.name, 'Collection type'));
   if (request.kind === 'capability') return capability(app, request);
+  if (request.kind === 'feature')
+    return featurePart(app, names(request.name, 'Feature ID'), request.screens === true);
   const one = names(request.collection, 'Collection type');
   if (!(await exists(join(directory, 'contracts', `${one.kebab}.ts`))))
     throw new Error(`No collection ${one.kebab}; add it first with scaffold add collection`);
   if (request.kind === 'target') return target(app, names(request.name, 'Target name'), one);
-  // The first agent brings the approval request operations; later ones only add their definition.
-  const contracts = await readFile(join(directory, 'contracts.ts'), 'utf8');
+  // The first agent mounts the approval feature; later ones only add their definition.
+  const manifest = await readFile(join(directory, 'manifest.ts'), 'utf8');
   return agent(
     app,
     names(request.name, 'Agent name'),
     one,
-    !contracts.includes('approvalOperations'),
+    !manifest.includes('approvalFeatureManifest'),
   );
 }
 

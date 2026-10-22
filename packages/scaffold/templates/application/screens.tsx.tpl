@@ -6,6 +6,7 @@ import manifest from './manifest';
 
 /** The {{displayName}} screens. Each collection starts with the default list and record screens. */
 export default defineScreens({
+  manifest,
   title: manifest.title,
   home: '{{home}}',
   routes: [
@@ -16,6 +17,9 @@ export default defineScreens({
   ],
   capabilityScreens: [
     // scaffold:capability-screens
+  ],
+  features: [
+    // scaffold:features
   ],
   plugins: [complianceScreens],
 });

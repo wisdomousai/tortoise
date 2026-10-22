@@ -5,7 +5,7 @@ description: Create a new agent-native application from this framework with `bun
 
 # Create an agent-native application
 
-The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets and requesting agents. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead.
+The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets, requesting agents and features. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead.
 
 ## Before writing
 
@@ -40,6 +40,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | Writes another system must accept, sync, live reads | `packages/integration/skills/connect-system-of-record/SKILL.md` |
 | Screens and registry components | `packages/frame/skills/build-screens/SKILL.md` |
 | A cross-cutting concern several applications compose | `packages/host/skills/write-host-plugin/SKILL.md` |
+| A domain part an application mounts once, such as approval requests | `packages/host/skills/write-a-feature/SKILL.md` |
 | Instruments and machines through a driver process | `plugins/connector-driver/skills/write-hardware-driver/SKILL.md` |
 | Tools an agent runs, confined in a sandbox | `plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md` |
 | A model on this host, base or fine-tuned | `plugins/model-server/skills/serve-a-local-model/SKILL.md` |

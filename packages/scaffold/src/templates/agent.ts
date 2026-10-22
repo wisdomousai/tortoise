@@ -25,28 +25,8 @@ export const ${agent.camel}Agent = defineAgent({
 });
 `;
 
-const handlers = `import { approvalHandlers as handlersOf } from '@agent-native/runtime';
-import { operations } from '../contracts';
-import type { AppState } from '../domain';
-import { newId, now, type Services } from './context';
-
-/**
- * Requested commands. Every member sees every approval request, as they see every record. Approving runs
- * the requested command under the approver, so the command's own rule decides whether they may.
- */
-export function approvalHandlers() {
-  return handlersOf<AppState, Services>({
-    store: (state) => state.approvals,
-    commands: Object.values(operations).filter((operation) => operation.kind === 'command'),
-    visible: () => true,
-    newId,
-    now,
-  });
-}
-`;
-
-const screen = `import { ApprovalReview } from '@/components/approval-review';
-import { operations } from '../contracts';
+const screen = `import { approvalOperations } from '@agent-native/contracts';
+import { ApprovalReview } from '@/components/approval-review';
 
 /** Pending approval requests from every agent, each with Approve and Reject. */
 export function ApprovalsScreen() {
@@ -55,9 +35,9 @@ export function ApprovalsScreen() {
       <h1 className="text-xl font-semibold">Approvals</h1>
       <ApprovalReview
         title="Pending approvals"
-        list={operations.approvalList}
-        approve={operations.approvalApprove}
-        reject={operations.approvalReject}
+        list={approvalOperations.approvalList}
+        approve={approvalOperations.approvalApprove}
+        reject={approvalOperations.approvalReject}
         describe={(approval) => \`\${approval.resource ?? ''}: \${approval.operation}\`}
       />
     </div>
@@ -193,9 +173,33 @@ test('a person approves an approval, and the update commits as that person', asy
 });
 `;
 
+/** Lines of the access view the approval feature asks, inserted into `policy.ts`. */
+const access = [
+  '/**',
+  ' * Who may do what with approval requests, for the `approval` feature. Members request, read and',
+  " * approve them; approving runs the requested command under the approver, so the command's own",
+  ' * rule decides. Only editors reject. Integration principals hold no role and reach none of it.',
+  ' */',
+  'export const approvalAccess = (state: AppState): ApprovalAccess => ({',
+  '  allows(context, action) {',
+  '    const role = roleOf(state, context.principalId);',
+  "    return action === 'reject' ? role === 'editor' : role !== undefined;",
+  '  },',
+  '});',
+];
+
+/** The approval feature's mount in `application.ts`, with the application's ID and clock. */
+const mount = [
+  'mountFeature<AppState, ApprovalAccess, ApprovalHooks, Services>(approvalFeature(), {',
+  '  access: approvalAccess,',
+  '  hooks: { newId: (ctx) => newId(ctx), now: (ctx) => now(ctx) },',
+  '}),',
+];
+
 /**
- * An agent that requests approval for updates to one collection. The first agent also adds the approval request
- * operations, their handlers, rules and state, and a screen listing pending approval requests.
+ * An agent that requests approval for updates to one collection. The first agent also mounts the
+ * `approval` feature, with an access view from the workspace roles, and adds a screen listing
+ * pending approval requests.
  */
 export function agent(app: AppNames, name: Names, one: Names, first: boolean): Generated {
   const many = plural(one);
@@ -209,35 +213,31 @@ export function agent(app: AppNames, name: Names, one: Names, first: boolean): G
       files,
       insertions: { 'contracts.ts': { imports: [agentImport], agents: [`${name.camel}Agent,`] } },
     };
-  const rule = (op: string, value: string) => `[operations.approval${op}.id]: ${value},`;
   return {
-    files: { ...files, 'handlers/approvals.ts': handlers, 'ui/approvals.tsx': screen },
+    files: { ...files, 'ui/approvals.tsx': screen },
     insertions: {
       'contracts.ts': {
-        imports: [`import { approvalOperations } from '@agent-native/contracts';`, agentImport],
-        operations: ['...approvalOperations,'],
+        imports: [agentImport],
+        // Agents request approval through the approval feature's operations.
+        requires: ["'approval',"],
         agents: [`${name.camel}Agent,`],
       },
-      'domain.ts': {
-        imports: [`import type { ApprovalRequest } from '@agent-native/contracts';`],
-        state: ['approvals: Record<string, ApprovalRequest>;'],
-        initial: ['approvals: {},'],
+      'manifest.ts': {
+        imports: [`import { approvalFeatureManifest } from '@agent-native/contracts';`],
+        features: ['approvalFeatureManifest,'],
       },
       'policy.ts': {
-        // Agents request approval; deciding an approval request needs a person.
-        rules: [
-          rule('Request', '{}'),
-          rule('Approve', '{ person: true }'),
-          rule('Reject', '{ ...editor, person: true }'),
-          rule('Expire', '{}'),
-          rule('List', "'open'"),
-          rule('Get', "'open'"),
-        ],
-        events: ["'approval-request': () => true,"],
+        imports: [`import type { ApprovalAccess } from '@agent-native/runtime';`],
+        access,
       },
-      'server.ts': {
-        imports: [`import { approvalHandlers } from './handlers/approvals';`],
-        handlers: ['...(approvalHandlers() as HandlerContribution<AppState, Services>[]),'],
+      'application.ts': {
+        imports: [
+          `import { approvalFeature, type ApprovalAccess, type ApprovalHooks } from '@agent-native/runtime';`,
+          `import { mountFeature } from '@agent-native/host/feature';`,
+          `import { newId, now } from './handlers/context';`,
+          `import { approvalAccess } from './policy';`,
+        ],
+        features: mount,
       },
       'screens.tsx': {
         imports: [`import { ApprovalsScreen } from './ui/approvals';`],

@@ -132,28 +132,50 @@ test('add extends the application at its markers and refuses to overwrite a part
   expect(await read(join(app, 'screens.tsx'))).toContain(
     "{ path: 'ledger', component: LedgerScreen }",
   );
-  // The first agent brings the approval request operations and screen; a second adds only itself.
+  // The first agent mounts the approval feature and adds its screen; a second adds only itself.
   const closer = await scaffoldAdd(
     { kind: 'agent', name: 'closer', collection: 'note' },
     { root: target },
   );
   expect(closer.written).toEqual(
-    expect.arrayContaining([
-      'contracts/closer-agent.ts',
-      'handlers/approvals.ts',
-      'ui/approvals.tsx',
-    ]),
+    expect.arrayContaining(['contracts/closer-agent.ts', 'ui/approvals.tsx']),
   );
+  expect(closer.written).not.toContain('handlers/approvals.ts');
   const second = await scaffoldAdd(
     { kind: 'agent', name: 'reviewer', collection: 'site' },
     { root: target },
   );
-  expect(second.written).not.toContain('handlers/approvals.ts');
+  expect(second.written).not.toContain('ui/approvals.tsx');
   const withAgents = await read(join(app, 'contracts.ts'));
-  expect(withAgents.match(/\.\.\.approvalOperations,/g)).toHaveLength(1);
+  expect(withAgents.match(/'approval',/g)).toHaveLength(1);
   for (const key of ['closerAgent,', 'reviewerAgent,']) expect(withAgents).toContain(key);
-  expect(await read(join(app, 'policy.ts'))).toContain(
-    '[operations.approvalApprove.id]: { person: true },',
+  expect((await read(join(app, 'manifest.ts'))).match(/approvalFeatureManifest,/g)).toHaveLength(1);
+  expect(await read(join(app, 'application.ts'))).toContain('approvalFeature(), {');
+  expect(await read(join(app, 'policy.ts'))).toContain('export const approvalAccess');
+  expect(await read(join(app, 'domain.ts'))).not.toContain('approvals');
+  // A feature goes into the manifest, the application and, with screens, defineScreens.
+  const stock = await scaffoldAdd(
+    { kind: 'feature', name: 'stock', screens: true },
+    { root: target },
+  );
+  expect(stock.written).toEqual(
+    expect.arrayContaining([
+      'features/stock/contracts.ts',
+      'features/stock/feature.ts',
+      'features/stock/screens.tsx',
+      'test/stock-feature.test.ts',
+    ]),
+  );
+  expect(await read(join(app, 'manifest.ts'))).toMatch(
+    /approvalFeatureManifest,\n\s*stockFeatureManifest,/,
+  );
+  expect(await read(join(app, 'application.ts'))).toContain('stockFeature(), {');
+  expect(await read(join(app, 'screens.tsx'))).toContain('stockScreens,');
+  const headless = await scaffoldAdd({ kind: 'feature', name: 'tally' }, { root: target });
+  expect(headless.written).not.toContain('features/tally/screens.tsx');
+  expect(await read(join(app, 'screens.tsx'))).not.toContain('tallyScreens');
+  await expect(scaffoldAdd({ kind: 'feature', name: 'Stock' }, { root: target })).rejects.toThrow(
+    'Feature ID must be lowercase words',
   );
   await expect(scaffoldAdd({ kind: 'collection', name: 'site' }, { root: target })).rejects.toThrow(
     'Refusing to overwrite contracts/site.ts',
@@ -326,6 +348,7 @@ acceptance(
     ]);
     await run([...cli, 'target', 'ledger', '--collection', 'note']);
     await run([...cli, 'agent', 'closer', '--collection', 'note']);
+    await run([...cli, 'feature', 'stock', '--screens']);
     for (const script of ['format', 'generate', 'typecheck', 'build'])
       await run(['bun', 'run', script]);
     await run(['bun', 'test', 'examples/field-notes']);

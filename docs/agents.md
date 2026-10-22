@@ -102,7 +102,7 @@ A background job is an ordinary caller with a scoped identity and grant. It read
 
 ## Use
 
-Add a requesting agent definition to an application made by the [scaffold](glossary.md#scaffold). The first agent also adds the approval request capabilities and a screen of pending approval requests.
+Add a requesting agent definition to an application made by the [scaffold](glossary.md#scaffold). The first agent also mounts the `approval` [feature](glossary.md#feature) with an access view from the workspace roles, and adds a screen of pending approval requests.
 
 ```sh
 bun run scaffold add agent <name> --collection <type>

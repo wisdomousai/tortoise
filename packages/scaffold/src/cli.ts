@@ -11,6 +11,7 @@ const USAGE = `Usage:
   bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
   bun run scaffold add target <name> --collection <type> [--app <directory>]
   bun run scaffold add agent <name> --collection <type> [--app <directory>]
+  bun run scaffold add feature <id> [--screens] [--app <directory>]
   bun run scaffold versions [<application-directory>]`;
 
 function parse(args: readonly string[]) {
@@ -18,9 +19,12 @@ function parse(args: readonly string[]) {
     const index = args.indexOf(name);
     return index < 0 ? undefined : args[index + 1];
   };
-  const positional = args.filter(
-    (arg, index) => !arg.startsWith('--') && !args[index - 1]?.startsWith('--'),
-  );
+  // Flags take no value, so the argument after one is positional.
+  const flags = new Set(['--published', '--screens']);
+  const positional = args.filter((arg, index) => {
+    const previous = args[index - 1];
+    return !arg.startsWith('--') && !(previous?.startsWith('--') && !flags.has(previous));
+  });
   return { option, positional };
 }
 
@@ -28,6 +32,7 @@ function addRequest(
   kind: string | undefined,
   name: string | undefined,
   option: (name: string) => string | undefined,
+  flag: (name: string) => boolean,
 ): AddRequest {
   if (!name) throw new Error(USAGE);
   if (kind === 'collection') return { kind, name };
@@ -38,6 +43,7 @@ function addRequest(
   }
   if (kind === 'target' || kind === 'agent')
     return { kind, name, collection: option('--collection') ?? '' };
+  if (kind === 'feature') return { kind, name, screens: flag('--screens') };
   throw new Error(USAGE);
 }
 
@@ -59,7 +65,7 @@ async function main(args: readonly string[]) {
     return;
   }
   if (positional[0] === 'add') {
-    const request = addRequest(positional[1], positional[2], option);
+    const request = addRequest(positional[1], positional[2], option, (name) => args.includes(name));
     const app = option('--app');
     const result = await scaffoldAdd(request, app ? { application: app } : {});
     console.log(`Wrote ${result.written.length} files in ${result.directory}`);

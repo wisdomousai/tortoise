@@ -223,8 +223,8 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 
    The command writes these parts.
    - **Agent definition:** `contracts/planner-agent.ts`, which lists and reads tasks and requests approval for `task.update`, with the `request-approval` output mode.
-   - **Approval request operations:** added to the contracts by the first agent only, with `handlers/approvals.ts` built on `approvalHandlers`.
-   - **Approval request rules and state:** an approval request entry in the state, a rule for each approval request command and query with approve and reject limited to a person, and an approval request event rule.
+   - **Approval feature:** the first agent only lists `approvalFeatureManifest` in `manifest.ts`, mounts `approvalFeature()` in `application.ts` and adds `'approval'` to the module's `requires`.
+   - **Approval access view:** `approvalAccess` in `policy.ts`, where members request, read and approve and only editors reject. Approving runs the requested command under the approver.
    - **Approval requests screen:** `ui/approvals.tsx`, with its route and navigation entry.
    - **Agent scenario test:** `test/planner-agent.test.ts`, which plays scenarios with `runAgentScenarios`.
 
@@ -244,7 +244,8 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 9. Replace the workspace `members` map in `domain.ts` with a member map on each project, and store the workspace owner's ID in the state. Then change `policy.ts` as follows.
    - Remove the `caller` gate and the `editor` rule.
    - Pass `definePolicy` a `roleOf` option that returns the caller's role in a container, as `projectRole` does in the example.
-   - Give every rule a `container` and `roles`, including the generated approval request rules. The runtime consults the option only for a rule with a container, and an open rule admits any principal once the gate is gone.
+   - Give every rule a `container` and `roles`. The runtime consults the option only for a rule with a container, and an open rule admits any principal once the gate is gone.
+   - Rewrite `approvalAccess` to answer from project roles, as the example's does. The `caller` gate never applied to the approval feature, so the access view must refuse non-members itself.
 10. Keep a tombstone that maps each deleted record to its container, as `deletedTasks` does. Replays and event checks resolve the container from it.
 11. Shape each contract with `defineCapability`. A generated capability starts with empty input and output, the application as resource type and a headless UI exception; give it these parts.
     - **ID:** stable and dotted, such as `task.remind`.

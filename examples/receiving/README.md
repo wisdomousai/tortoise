@@ -162,7 +162,7 @@ Paths in this table are relative to the example directory, except those under `p
 
 ## Implementation steps
 
-The steps build an application equivalent to the example. The example itself was generated with the scaffold's new, add target and add capability commands. Its agent and reconciliation were written by hand. The steps use `add agent` for the agent, which generates the same approval request parts.
+The steps build an application equivalent to the example. The example itself was generated with the scaffold's new, add target and add capability commands. Its agent and reconciliation were written by hand. The steps use `add agent` for the agent, which mounts the same `approval` feature.
 
 Run `scaffold new` from the framework checkout's root, and every later command from the new checkout's root unless a step names another directory. Steps 7 to 39 edit files, and the application typechecks again once they are all done.
 
@@ -192,7 +192,7 @@ Run `scaffold new` from the framework checkout's root, and every later command f
    bun run scaffold add capability delivery.classify --kind command --description "Give the reason a counted quantity differs from the expected one. Editors only."
    ```
 
-5. Add the requesting agent, which the scaffold writes to `contracts/discrepancy-agent.ts` together with the approval request capabilities and an Approval requests screen. Its agent ID is `receiving.discrepancy`.
+5. Add the requesting agent, which the scaffold writes to `contracts/discrepancy-agent.ts`. The first agent also mounts the `approval` feature with `approvalAccess` in `policy.ts`, and adds an Approvals screen. Its agent ID is `receiving.discrepancy`.
 
    ```sh
    bun run scaffold add agent discrepancy --collection delivery

@@ -4,12 +4,16 @@ import { compliancePluginManifest } from '@agent-native/compliance/plugin-manife
 import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
 import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 import { {{app.camel}}Module } from './contracts';
+// scaffold:imports
 
 /** Browser-safe identity of the {{displayName}} application. */
 export default defineManifest({
   id: '{{app.kebab}}',
   title: {{displayName.literal}},
   modules: [{{app.camel}}Module],
+  features: [
+    // scaffold:features
+  ],
   plugins: [
     sitePluginManifest,
     networkPluginManifest,

@@ -33,12 +33,13 @@ bun run scaffold add collection <type> [--app <directory>]
 bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
 bun run scaffold add target <name> --collection <type> [--app <directory>]
 bun run scaffold add agent <name> --collection <type> [--app <directory>]
+bun run scaffold add feature <id> [--screens] [--app <directory>]
 bun run scaffold versions [<application-directory>]
 ```
 
 - **Export** with `--example <name>` exports one [example](../../docs/glossary.md#example) as the hosted application, with the examples it imports. A field application keeps the hub application whose modules it shares. The export leaves the other examples, their reference sets, root dependencies and lockfile entries out.
 - **`new`** exports no example and generates one application in `examples/<name>`.
-- **`add`** extends that application with a collection, a [capability](../../docs/glossary.md#capability), a [target](../../docs/glossary.md#target) or an agent.
+- **`add`** extends that application with a collection, a [capability](../../docs/glossary.md#capability), a [target](../../docs/glossary.md#target), an agent or a [feature](../../docs/glossary.md#feature).
 - **`versions`** checks that an installed application has one framework version.
 
 ### Published-framework export
@@ -55,10 +56,20 @@ With `--published` or `--registry <url>`, `new` leaves the framework source out 
 
 ### Generated parts
 
-`add agent` writes an agent definition that reads the collection and requests approval for `<type>.update`. Its agent scenarios are played by the deterministic harness. The first agent also adds:
+`add agent` writes an agent definition that reads the collection and requests approval for `<type>.update`. Its agent scenarios are played by the deterministic harness. The first agent also:
 
-- the approval request capabilities, with their handlers, rules and state;
-- a Approval requests screen where a person approves or rejects.
+- lists `approvalFeatureManifest` in the manifest and mounts `approvalFeature()` in `application.ts`, with the application's ID and clock as hooks;
+- adds `approvalAccess` to `policy.ts`: members request, read and approve, and only editors reject;
+- adds `'approval'` to the module's `requires`, because the agent requests approval through the feature's operations;
+- adds an Approvals screen where a person approves or rejects.
+
+`add feature <id>` writes a [feature](../../docs/glossary.md#feature) in `features/<id>/`:
+
+- `contracts.ts`: the manifest, with a `<id>.list` query and a person-only `<id>.record` command;
+- `feature.ts`: the slice, the handlers and the policy over an access view;
+- with `--screens`, `screens.tsx`: one screen declared with `defineFeatureScreens`, added to `defineScreens({ features })`. Without it, both operations declare a headless UI exception.
+
+It also adds the access view to `policy.ts` (members read, editors record), the mount to `application.ts` and `test/<id>-feature.test.ts`, which runs the feature conformance cases and the roles through the application. The `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) covers changing it from there.
 
 `add target` also lists the target's destination as disabled in `apps/desktop/site-policy.json`. `site check` then passes until someone binds the destination to the system of record's URL.
 
@@ -66,7 +77,7 @@ With `--published` or `--registry <url>`, `new` leaves the framework source out 
 
 The application skeleton is a set of `.tpl` files in `templates/application`, rendered with `{{name}}` placeholders. A placeholder without a value throws. The skeleton is text rather than code, so the boundary check does not read its plugin imports as the scaffold's own. Functions in `src/templates/` generate the parts, because parts differ by kind: a command or a query, a target's collection.
 
-A generated application keeps `// scaffold:<list>` comments in its capabilities, handlers, policy rules, lanes, state, options, integrations, routes and navigation. `add` inserts on the lines before the marker, so the marker stays last. `add` refuses:
+A generated application keeps `// scaffold:<list>` comments in its capabilities, `requires`, handlers, policy rules, access views, lanes, state, options, integrations, features, routes and navigation. `add` inserts on the lines before the marker, so the marker stays last. `add` refuses:
 
 - an application without its manifest and policy;
 - a part whose file already exists;

@@ -27,3 +27,5 @@ export const appPolicy = definePolicy<AppState, Role>({
     // scaffold:events
   },
 });
+
+// scaffold:access

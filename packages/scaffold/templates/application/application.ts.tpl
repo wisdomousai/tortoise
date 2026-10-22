@@ -22,6 +22,9 @@ export function create{{app.pascal}}Application(options: {{app.pascal}}Options =
     manifest,
     createState: state,
     upgradeState: (stored, ownerId) => upgradeState(stored, state(ownerId)),
+    features: [
+      // scaffold:features
+    ],
     handlers: createHandlers(),
     authorization: appPolicy,
     plugins: [sitePlugin, networkPlugin, auditPlugin, compliancePlugin],
