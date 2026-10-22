@@ -157,9 +157,29 @@ The host is a composition with ports. A plugin provides a port; without one, the
 
 Plugins provide ports because a wrapper around each call cannot write an audit record inside the command's transaction, bind outbound connections or refuse startup.
 
+### Features and host plugins
+
+A [feature](glossary.md#feature) is a reusable domain part an application mounts once, such as approval requests. It has modules whose operation IDs start with the feature's ID, a state slice under that ID, handlers and a policy. The feature never reads application state. The application mounts it with `mountFeature`, which supplies:
+
+- an access view the application computes from its own state, which the feature's policy and handlers read;
+- hooks the feature calls inside a command, which may write application records in the same transaction;
+- an adoption that moves data an older application version kept in its own state into the feature's slice.
+
+A host plugin is a feature with ports, settings, lifecycle hooks and platforms, and no access view or hooks. `defineApplication` folds features, then plugins, into one state, handler list, policy, set of services and set of connections (`packages/kernel/src/features`). A feature's slice is stamped `feature:<id>` and a plugin's `plugin:<id>`.
+
+Composition refuses these, at definition time:
+
+- feature or plugin lists that differ from the manifest's, in content or order, and a `requires` not composed before;
+- a feature and a plugin with the same ID, or two units with operations in the same namespace;
+- an operation outside its unit's namespace, or an application operation inside one. A plugin's namespace is its ID unless its manifest names another; device link (`link`), hub link (`hub`), notifications (`notification`) and workstation sign-in (`station`) keep ones that predate the rule;
+- a feature module, target, source or resource type that is not the feature's ID or does not start with `<id>-`;
+- a resource type two units claim, or one the application policy's `covers` lists, and an application policy rule for a unit's operation. `definePolicy` declares `covers`; a handwritten port without it is not checked;
+- an application state or services key equal to a unit's ID;
+- an adoption whose application version no incompatible migration step reaches, so code from before the data moved refuses the workspace.
+
 ### Composition
 
-A plugin has the same entrypoints as an application: a manifest, a server entrypoint and, when it has any, screens. The application lists its plugins in each of its own entrypoints, so generated artifacts follow from the application alone. A plugin's state is its own slice under its ID. Its policy decides only its own capabilities and resource types.
+A plugin has the same entrypoints as an application: a manifest, a server entrypoint and, when it has any, screens. The application lists its features and plugins in each of its own entrypoints, so generated artifacts follow from the application alone. A plugin's state is its own slice under its ID. Its policy decides only its own capabilities and resource types.
 
 A plugin imports the packages of the plugins it requires, for their types, policy helpers and service accessors. The network plugin, for example, imports the site plugin's policy types. At runtime, plugins reach each other through the composed ports and the services the plugins expose. The port view resolves once every plugin has opened, so two plugins can use each other without a construction cycle. The egress guard records into the audit log, and the audit log's forwarder sends through the guard. The two plugins do not import each other.
 

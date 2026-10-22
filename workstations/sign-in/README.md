@@ -9,7 +9,7 @@ Workstation (`workstations/*`). The plugin runs on the Bun host only, because si
 ## Primitives
 
 - [Workstation sign-in](../../docs/primitives.md#workstation-sign-in): the `station.*` [capabilities](../../docs/glossary.md#capability), the sign-in, sign-out and enrollment routes (`stationPaths`), and operator token resolution.
-- [Host plugin](../../docs/primitives.md#host-plugin): `createStationSignInPlugin`, `stationSignInPlugin` and `stationSignInPluginManifest`. The plugin uses the authenticated-route and credential hooks of a serving host.
+- [Host plugin](../../docs/primitives.md#host-plugin): `createStationSignInPlugin`, `stationSignInPlugin` and `stationSignInPluginManifest`. The plugin uses the authenticated-route and credential hooks of a serving host. Its manifest keeps the operation namespace `station`, which the `station.badge.*` and `station.session.*` operations predate.
 
 ## Entrypoints
 

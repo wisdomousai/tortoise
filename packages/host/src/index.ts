@@ -16,6 +16,14 @@ export {
 } from './application';
 export { defineManifest, type ApplicationManifest } from './manifest';
 export {
+  defineFeature,
+  mountFeature,
+  type Feature,
+  type FeatureAdoption,
+  type FeatureMount,
+  type MountBindings,
+} from './feature';
+export {
   definePluginManifest,
   type PluginManifest,
   type PluginModules,

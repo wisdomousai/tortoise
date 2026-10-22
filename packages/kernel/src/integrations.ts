@@ -13,6 +13,9 @@ export function combineIntegrations(options: {
   connections: ApplicationConnections;
 }) {
   const all: readonly TargetIntegration<any>[] = options.connections.integrations ?? [];
+  const targets = all.map((integration) => integration.target);
+  const twice = targets.find((target, index) => targets.indexOf(target) !== index);
+  if (twice) throw new Error(`Target "${twice}" has two integrations`);
   return {
     all,
     /** The integration for one target; fails when the application declares none by that name. */

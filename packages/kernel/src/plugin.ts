@@ -6,6 +6,7 @@ import type {
   HandlerContribution,
 } from '@agent-native/runtime';
 import type { HostedApplication, Observer } from './application';
+import { checkFeature, type Feature } from './feature';
 import type { ApplicationManifest } from './manifest';
 import type { StateMigrations } from './migrations';
 import type { HostPlatform, SecretStore } from './platform';
@@ -205,16 +206,21 @@ export interface PluginCommand {
 }
 
 /**
- * The server part of a plugin. Its state slice lives under `state[manifest.id]`, its handlers see
- * only that slice, and its policy authorizes only its own operations and resource types.
+ * The server part of a plugin: a feature with ports, a lifecycle and settings. Its state slice
+ * lives under `state[manifest.id]`, its handlers see only that slice, and its policy authorizes
+ * only its own operations and resource types. Unlike a feature, a plugin is not given an access
+ * view or hooks: it decides from its own slice and the execution context.
  *
  * Trust boundary: a plugin is trusted code with the host's privileges, like an application
  * definition. It contributes through the same catalog, runtime and ports as everything else, so
  * its operations are authorized and audited and its connections are declared.
  */
-export interface HostPlugin<Slice = any, Services = any> {
+export interface HostPlugin<Slice = any, Services = any> extends Omit<
+  Feature<Slice, undefined, {}, Services>,
+  'manifest' | 'handlers' | 'authorization'
+> {
   readonly manifest: PluginManifest;
-  /** Plugins that must be composed, and opened, before this one. */
+  /** Features or plugins that must be composed, and plugins opened, before this one. */
   readonly requires?: readonly string[];
   readonly state?: {
     create(ownerId: string): Slice;
@@ -243,13 +249,13 @@ export type AnyHostPlugin = HostPlugin<any, any>;
 
 /**
  * Declare a plugin's server part. Fails at definition time when it contributes modules without
- * state, handlers and a policy, since the runtime would refuse it at startup anyway.
+ * handlers and a policy, since the runtime would refuse it at startup anyway.
  */
 export function defineHostPlugin<Slice, Services = unknown>(
   plugin: HostPlugin<Slice, Services>,
 ): HostPlugin<Slice, Services> {
-  const { manifest } = plugin;
-  if (manifest.modules.length && !(plugin.state && plugin.handlers && plugin.authorization))
-    throw new Error(`Plugin "${manifest.id}" has modules but no state, handlers or policy`);
+  checkFeature('Plugin', plugin);
+  if (plugin.services !== undefined)
+    throw new Error(`Plugin "${plugin.manifest.id}" exposes its service from open, not statically`);
   return Object.freeze(plugin);
 }

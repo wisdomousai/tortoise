@@ -22,6 +22,7 @@ import type {
   Invocation,
   QueryResult,
   RemoteHandler,
+  RemoteSource,
 } from './types.js';
 
 export type { ApplicationOptions } from './application/kernel.js';
@@ -96,6 +97,16 @@ export function createApplication<
   const { events, deliverEvents } = createEvents(kernel);
   const { pendingEffects, recordAttempt, claimEffect } = createOutbox(kernel);
   const { putBlob, readBlob, readEffectBlob, sweepBlobs } = createBlobs(kernel);
+  /**
+   * Add sources for remote queries once the runtime exists, such as those an application's or
+   * feature's connections build from the network port. A target bound twice is refused.
+   */
+  function bindSources(sources: Readonly<Record<string, RemoteSource>>) {
+    for (const [target, source] of Object.entries(sources)) {
+      if (kernel.sources.has(target)) throw new Error(`Source for "${target}" is bound twice`);
+      kernel.sources.set(target, source);
+    }
+  }
   return {
     catalog: kernel.catalog,
     invoke,
@@ -113,5 +124,6 @@ export function createApplication<
     readBlob,
     readEffectBlob,
     sweepBlobs,
+    bindSources,
   };
 }

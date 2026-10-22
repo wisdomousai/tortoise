@@ -13,7 +13,7 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 - [Connector](../../docs/primitives.md#connector): `createNotificationPort`, the outbox port of one [target](../../docs/glossary.md#target) that a notify action carries.
 - [Dispatcher](../../docs/primitives.md#dispatcher): `openNotifications` starts one [dispatcher](../../docs/glossary.md#dispatcher) per such target. `settleOperationOf` names the settle command each one uses.
 - [Host plugin](../../docs/primitives.md#host-plugin):
-  - `notificationsPlugin`, `createNotificationsPlugin` and `notificationsPluginManifest`;
+  - `notificationsPlugin`, `createNotificationsPlugin` and `notificationsPluginManifest`, whose operations keep the namespace `notification`;
   - the module `notificationsModule` with `notificationOperations` and `issuedReplySchema`;
   - the slice `NotificationsState`, `ReplyRecord` and `createNotificationsState`, with `digestOf` and `newNonce`;
   - `notificationsHandlers`, `notificationsPolicy`, `NotificationsService` and `NotificationsServices`.

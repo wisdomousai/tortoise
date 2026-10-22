@@ -21,7 +21,17 @@ export {
   type ApplicationTarget,
 } from './manifest';
 export {
+  checkFeature,
+  defineFeature,
+  mountFeature,
+  type Feature,
+  type FeatureAdoption,
+  type FeatureMount,
+  type MountBindings,
+} from './feature';
+export {
   definePluginManifest,
+  pluginNamespace,
   platformIds,
   type PlatformId,
   type PluginManifest,

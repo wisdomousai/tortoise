@@ -11,15 +11,21 @@ import type { CapabilityModule, EventLogPort, HostComponent } from '@agent-nativ
 import type { TargetIntegration } from '@agent-native/integration';
 import type { ApplicationManifest } from './manifest';
 import { deploymentComponents } from './components';
-import type { AnyHostPlugin, FolderPort, NetworkPort, ProcessPort } from './plugin';
-import { checkMigrations, type StateMigrations } from './migrations';
+import type { FeatureMount } from './feature';
+import { checkUnits } from './features/check';
 import {
-  checkPlugins,
   composeAuthorization,
+  composeConnect,
   composeCreateState,
   composeHandlers,
+  composeServices,
+  composeSources,
   composeUpgradeState,
-} from './plugins/compose';
+  featureComposition,
+} from './features/compose';
+import { composedUnits } from './features/units';
+import type { AnyHostPlugin, FolderPort, NetworkPort, ProcessPort } from './plugin';
+import type { StateMigrations } from './migrations';
 
 /**
  * Everything the host needs to run one application, supplied by content. The host never
@@ -61,10 +67,17 @@ export interface ApplicationDefinition<State, Services = unknown> {
   /**
    * Sources for remote queries, by target (see `createRemoteSource`). Every instance built from
    * this definition shares them; they hold credentials access, never application state.
+   * Deprecated: return sources from `connect`, which reaches them through the network port.
    */
   readonly sources?: Readonly<Record<string, RemoteSource>>;
   /** Wire systems of record and observers once the runtime exists. Called once per instance. */
   readonly connect?: (context: ConnectContext) => ApplicationConnections;
+  /**
+   * The features the manifest lists, mounted in the same order (see `mountFeature`).
+   * `defineApplication` folds their slices, handlers, policies, services and connections into
+   * this definition.
+   */
+  readonly features?: readonly FeatureMount<State>[];
   /**
    * Server parts of the plugins the manifest lists, in the same order. `defineApplication`
    * folds their state slices, handlers and policies into this definition; the host opens their
@@ -101,6 +114,11 @@ export interface ApplicationConnections {
   /** Systems of record the outbox delivers to and inbound sync pulls from. */
   readonly integrations?: readonly TargetIntegration<any>[];
   /**
+   * Sources for remote queries, by target, built from the ports this context offers. They are
+   * bound into the runtime once per instance; a target that already has a source is refused.
+   */
+  readonly sources?: Readonly<Record<string, RemoteSource>>;
+  /**
    * Start observers. A serving host with background work enabled calls this once, after it
    * listens; the mobile instance calls it on each foreground after the previous observers
    * stopped; embedded instances never do. A failed observation pass reports through `onError`
@@ -112,23 +130,21 @@ export interface ApplicationConnections {
 }
 
 /**
- * Declare an application. Plugins are folded in here, so storage and the runtime see one state,
- * one handler list and one policy: each plugin's slice sits under its id, its handlers see only
- * that slice and its policy decides only its own operations and resource types.
+ * Declare an application. Features and plugins are folded in here, so storage and the runtime
+ * see one state, one handler list, one policy and one set of connections: each unit's slice sits
+ * under its id, its handlers see only that slice and its policy decides only its own operations
+ * and resource types.
  *
- * Fails at definition time when the plugins differ from the manifest's or are out of `requires`
- * order, or when a selectable resource names an operation the manifest does not compose, so a
- * typo cannot silently disable run context.
+ * Fails at definition time when the features or plugins differ from the manifest's or are out
+ * of `requires` order, when a migration chain or adoption is inconsistent, when a unit claims an
+ * operation or resource type the application policy covers, or when a selectable resource names
+ * an operation the manifest does not compose, so a typo cannot silently disable run context.
  */
 export function defineApplication<State, Services = unknown>(
   definition: ApplicationDefinition<State, Services>,
 ): ApplicationDefinition<State, Services> {
-  const plugins = definition.plugins ?? [];
-  checkPlugins(definition.manifest.plugins ?? [], plugins);
-  if (definition.migrations) checkMigrations('Application', definition.migrations);
-  for (const plugin of plugins)
-    if (plugin.state?.migrations)
-      checkMigrations(`Plugin ${plugin.manifest.id}`, plugin.state.migrations);
+  const units = composedUnits(definition);
+  checkUnits(definition, units);
   const operations = new Set(
     definition.manifest.modules.flatMap((module: CapabilityModule) =>
       module.capabilities.map((capability) => capability.id),
@@ -137,22 +153,29 @@ export function defineApplication<State, Services = unknown>(
   for (const [kind, operation] of Object.entries(definition.selectableResources ?? {}))
     if (!operations.has(operation))
       throw new Error(`Selectable resource "${kind}" names unknown operation "${operation}"`);
-  if (!plugins.length) return Object.freeze(definition);
+  if (!units.length) return Object.freeze(definition);
+  const sources = composeSources(definition.sources, units);
+  const connect = composeConnect(definition.connect, units);
+  const services = composeServices(definition.services, units);
   return Object.freeze({
     ...definition,
-    createState: composeCreateState(definition.createState, plugins) as (ownerId: string) => State,
-    upgradeState: composeUpgradeState(definition.upgradeState, plugins) as (
+    createState: composeCreateState(definition.createState, units) as (ownerId: string) => State,
+    upgradeState: composeUpgradeState(definition.upgradeState, units) as (
       state: unknown,
       ownerId: string,
     ) => State,
-    handlers: composeHandlers(definition.handlers, plugins) as HandlerContribution<
-      State,
-      Services
-    >[],
+    handlers: composeHandlers(
+      definition.handlers,
+      units,
+      featureComposition(definition.manifest.modules, units),
+    ) as HandlerContribution<State, Services>[],
     authorization: composeAuthorization(
       definition.authorization,
-      plugins,
+      units,
     ) as AuthorizationPort<State>,
+    ...(services === undefined ? {} : { services: services as Services }),
+    ...(sources ? { sources } : {}),
+    ...(connect ? { connect } : {}),
   });
 }
 

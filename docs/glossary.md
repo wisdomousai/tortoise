@@ -37,7 +37,7 @@ A test of an agent definition: a task, fixture state and the commits, approval r
 
 One unit of content that a host runs: a browser-safe manifest, an application definition and screens, with their tests. The examples under `examples/` are applications. Explained in [architecture](architecture.md#application-entrypoints).
 
-Do not use: app (in prose; `app` stays in file names and commands), feature (for an application).
+Do not use: app (in prose; `app` stays in file names and commands).
 
 ### Application definition
 
@@ -249,6 +249,12 @@ Do not use: sandbox (alone, for the execution host), jail, container (for the ex
 
 Turns one frame, such as a screen capture or a driver's state read, into readings with a confidence and a provenance. It omits a field it cannot read instead of failing. Lives in [`packages/observation`](../packages/observation/README.md); [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) fixes it to screen captures.
 
+### Feature
+
+A reusable domain part an application mounts once, such as approval requests: modules whose operations start with the feature's ID, a state slice under that ID, handlers and a policy. The application supplies an access view and hooks when it mounts it. Declared with `defineFeatureManifest` and `defineFeature`; explained in [architecture](architecture.md#features-and-host-plugins). A harness's `features` flags are unrelated.
+
+Do not use: component (for a feature), extension, mixin.
+
 ### Feed
 
 The inbound side of a target: the item schema, the most items one batch may carry, and the records a batch changes. Inbound sync applies feed batches. Lives in [`packages/contracts`](../packages/contracts/README.md).
@@ -335,7 +341,7 @@ Do not use: platform (alone, for a host platform), runtime environment, OS (for 
 
 ### Host plugin
 
-A cross-cutting part an application composes: modules, a state slice, a policy, ports and lifecycle hooks, with the same three entrypoints as an application. Lives in `plugins/`; explained in [architecture](architecture.md#host-plugins). "Plugin" alone means a host plugin after first use.
+A cross-cutting part an application composes: a feature with ports, settings and lifecycle hooks, and the same three entrypoints as an application. Lives in `plugins/`; explained in [architecture](architecture.md#host-plugins). "Plugin" alone means a host plugin after first use.
 
 Do not use: framework plugin, add-on.
 
@@ -417,7 +423,7 @@ Do not use: model config, checkpoint (for a model entry), model registration.
 
 The browser-safe unit a domain contributes to the catalog: capabilities, requirement declarations, OS declarations, workflows and agent definitions, declared with `defineModule`. Its handlers, state slice and policy are server code supplied with the application definition or the host plugin. Lives in [`packages/contracts`](../packages/contracts/README.md).
 
-Do not use: feature (for a module), capability module, domain module, bounded context, package (for a module).
+Do not use: capability module, domain module, bounded context, package (for a module).
 
 ### Observation
 

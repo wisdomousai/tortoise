@@ -8,6 +8,8 @@ import { notificationsModule } from './contracts';
 export const notificationsPluginManifest = definePluginManifest({
   id: 'notifications',
   title: 'Notifications',
+  // Operation ids predate the namespace rule.
+  namespace: 'notification',
   modules: [notificationsModule],
   // The desktop adapter shows notifications over the host's shell relay, the mobile one in-process.
   platforms: ['bun', 'android', 'ios'],

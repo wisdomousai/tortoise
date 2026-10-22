@@ -8,6 +8,8 @@ import { stationSignInModule } from './contracts';
 export const stationSignInPluginManifest = definePluginManifest({
   id: 'station-sign-in',
   title: 'Station sign-in',
+  // Operation ids predate the namespace rule.
+  namespace: 'station',
   modules: [stationSignInModule],
   settings: [
     {

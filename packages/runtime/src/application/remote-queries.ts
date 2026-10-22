@@ -68,7 +68,7 @@ async function callSource<State, Services>(
     items: [],
     source: { target: remote.target, status: 'unavailable', fetchedAt: kernel.now(), message },
   });
-  const source = kernel.options.sources?.[remote.target];
+  const source = kernel.sources.get(remote.target);
   if (!source) return unavailable('Source is not connected');
   const deadline = AbortSignal.timeout(kernel.options.remoteDeadlineMs ?? 10_000);
   const signal = context.signal ? AbortSignal.any([context.signal, deadline]) : deadline;

@@ -9,7 +9,7 @@ Plugins (`plugins/*`). Bun only, because a hub is a serving [host](../../docs/gl
 ## Primitives
 
 - [Device link](../../docs/primitives.md#device-link): the `link.*` [capabilities](../../docs/glossary.md#capability), the enrollment route and credential resolution.
-- [Host plugin](../../docs/primitives.md#host-plugin): `createDeviceLinkPlugin`, `deviceLinkPlugin` and `deviceLinkPluginManifest`. The plugin uses the public-route and credential hooks of a serving host.
+- [Host plugin](../../docs/primitives.md#host-plugin): `createDeviceLinkPlugin`, `deviceLinkPlugin` and `deviceLinkPluginManifest`. The plugin uses the public-route and credential hooks of a serving host. Its manifest keeps the operation namespace `link`, because the operation IDs are the device protocol.
 - [Capability binding](../../docs/primitives.md#capability-binding): `deviceLinkScreens`, the devices [screen](../../docs/glossary.md#screen) at `/devices`.
 
 ## Entrypoints

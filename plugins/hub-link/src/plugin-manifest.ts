@@ -35,6 +35,8 @@ export const hubDestinationComponent = defineHostComponent({
 export const hubLinkPluginManifest = definePluginManifest({
   id: 'hub-link',
   title: 'Hub link',
+  // Operation ids are a wire protocol older than the namespace rule.
+  namespace: 'hub',
   platforms: ['android', 'ios', 'bun'],
   modules: [hubLinkModule],
   components: [hubDestinationComponent],

@@ -1,6 +1,13 @@
-import type { CapabilityModule, HostComponent } from '@agent-native/contracts';
+import {
+  operationNamespace,
+  type CapabilityModule,
+  type FeatureManifest,
+  type FeatureModules,
+  type HostComponent,
+} from '@agent-native/contracts';
 import {
   moduleSpecifierPattern,
+  pluginNamespace,
   type PlatformId,
   type PluginManifest,
   type PluginModules,
@@ -27,7 +34,7 @@ export interface ApplicationManifest<
   readonly id: string;
   /** Human title shown by the frame when the starter's identity does not override it. */
   readonly title: string;
-  /** The application's modules followed by its plugins' modules (see `defineManifest`). */
+  /** The application's modules, then its features', then its plugins' (see `defineManifest`). */
   readonly modules: Modules;
   /**
    * Non-module parts this application brings, such as a screen bridge or device drivers, with
@@ -35,6 +42,8 @@ export interface ApplicationManifest<
    * composed requirements are what a site policy binds. Pure data. Includes the plugins'.
    */
   readonly components?: readonly HostComponent[];
+  /** Features mounted into this application, in the order their slices are composed. */
+  readonly features?: readonly FeatureManifest[];
   /** Plugins composed into this application, in the order the host opens them. */
   readonly plugins?: readonly PluginManifest[];
   /**
@@ -57,41 +66,96 @@ export interface ExpoPluginEntry {
 }
 
 /**
- * Declare an application manifest. Plugin modules and components are merged in after the
- * application's own, so every consumer of `modules` and `components` sees the whole catalog and
- * none has to know plugins exist. Literal module types are preserved for typed clients.
- * Fails at definition time on an invalid id, a module listed twice (including across plugins),
- * a plugin listed twice, an unknown target, a plugin that runs on no platform of a target, or an
- * Expo config plugin on an application that does not target mobile.
+ * Declare an application manifest. Feature and plugin modules and components are merged in after
+ * the application's own, so every consumer of `modules` and `components` sees the whole catalog
+ * and none has to know features or plugins exist. Literal module types are preserved for typed
+ * clients. Fails at definition time on an invalid id, a module listed twice, a feature or plugin
+ * listed twice or sharing an id or namespace, a feature required before it is mounted, an
+ * application operation inside a feature's or plugin's namespace, an unknown target, a plugin
+ * that runs on no platform of a target, or an Expo config plugin on an application that does
+ * not target mobile.
  */
 export function defineManifest<
   const Modules extends readonly CapabilityModule[],
+  const Features extends readonly FeatureManifest[] = readonly [],
   const Plugins extends readonly PluginManifest[] = readonly [],
 >(
-  manifest: Omit<ApplicationManifest<Modules>, 'plugins'> & { readonly plugins?: Plugins },
-): ApplicationManifest<readonly (Modules[number] | PluginModules<Plugins>)[]> {
+  manifest: Omit<ApplicationManifest<Modules>, 'plugins' | 'features'> & {
+    readonly features?: Features;
+    readonly plugins?: Plugins;
+  },
+): ApplicationManifest<
+  readonly (Modules[number] | FeatureModules<Features> | PluginModules<Plugins>)[]
+> {
   if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(manifest.id))
     throw new Error(`Invalid application id "${manifest.id}"`);
+  const features: readonly FeatureManifest[] = manifest.features ?? [];
   const plugins: readonly PluginManifest[] = manifest.plugins ?? [];
-  const pluginIds = plugins.map((plugin) => plugin.id);
-  const twice = pluginIds.find((id, index) => pluginIds.indexOf(id) !== index);
-  if (twice) throw new Error(`Plugin "${twice}" is composed twice`);
-  checkTargets(manifest.targets, plugins);
-  checkExpoPlugins(manifest);
-  const modules = [...manifest.modules, ...plugins.flatMap((plugin) => plugin.modules)];
+  checkUnitIds(features, plugins);
+  const units = [...features, ...plugins];
+  const modules = [...manifest.modules, ...units.flatMap((unit) => unit.modules)];
   const ids = modules.map((module) => module.id);
   const duplicate = ids.find((id, index) => ids.indexOf(id) !== index);
   if (duplicate) throw new Error(`Module "${duplicate}" is composed twice`);
+  checkUnitManifests(manifest.modules, features, plugins);
+  checkTargets(manifest.targets, plugins);
+  checkExpoPlugins(manifest);
   const components = [
     ...(manifest.components ?? []),
-    ...plugins.flatMap((plugin) => plugin.components ?? []),
+    ...units.flatMap((unit) => unit.components ?? []),
   ];
   return Object.freeze({
     ...manifest,
     modules,
     ...(components.length ? { components } : {}),
+    ...(features.length ? { features } : {}),
     ...(plugins.length ? { plugins } : {}),
   });
+}
+
+/** Features and plugins share one id space: state keys, stamps and services keys. */
+function checkUnitIds(features: readonly FeatureManifest[], plugins: readonly PluginManifest[]) {
+  const twice = (ids: readonly string[]) => ids.find((id, index) => ids.indexOf(id) !== index);
+  const feature = twice(features.map((unit) => unit.id));
+  if (feature) throw new Error(`Feature "${feature}" is mounted twice`);
+  const plugin = twice(plugins.map((unit) => unit.id));
+  if (plugin) throw new Error(`Plugin "${plugin}" is composed twice`);
+  const shared = features.find((unit) => plugins.some((other) => other.id === unit.id));
+  if (shared) throw new Error(`Feature and plugin "${shared.id}" share an id`);
+}
+
+/**
+ * A feature or plugin that declares operations owns its namespace: no other unit shares it, and
+ * the application's own operations stay out of it. A unit without operations claims none, so a
+ * plugin such as `site` leaves `site.*` to the application.
+ */
+function checkUnitManifests(
+  own: readonly CapabilityModule[],
+  features: readonly FeatureManifest[],
+  plugins: readonly PluginManifest[],
+) {
+  const namespaces = new Map<string, string>();
+  const operating = (unit: FeatureManifest) =>
+    unit.modules.some((module) => module.capabilities.length > 0);
+  for (const [unit, namespace] of [
+    ...features.filter(operating).map((feature) => [feature.id, feature.id] as const),
+    ...plugins.filter(operating).map((plugin) => [plugin.id, pluginNamespace(plugin)] as const),
+  ]) {
+    const owner = namespaces.get(namespace);
+    if (owner)
+      throw new Error(`"${unit}" and "${owner}" share the operation namespace "${namespace}"`);
+    namespaces.set(namespace, unit);
+  }
+  for (const [index, feature] of features.entries())
+    for (const required of feature.requires ?? [])
+      if (!features.slice(0, index).some((earlier) => earlier.id === required))
+        throw new Error(`Feature "${feature.id}" requires "${required}" mounted before it`);
+  for (const module of own)
+    for (const capability of module.capabilities) {
+      const owner = namespaces.get(operationNamespace(capability.id));
+      if (owner)
+        throw new Error(`Application operation ${capability.id} is in the namespace of "${owner}"`);
+    }
 }
 
 /**

@@ -41,9 +41,9 @@ implemented · [`packages/contracts`](../packages/contracts/README.md) [`package
 
 ### Feature
 
-_A reusable domain part an application mounts once, such as approval requests: modules under one operation namespace, a state slice, handlers and a policy over an access view the application supplies. A host plugin is a feature with ports, a lifecycle and settings._
+_A reusable domain part an application mounts once, such as approval requests: modules under one operation namespace, a state slice, handlers and a policy over an access view the application supplies, hooks the application implements, and optional connections. A host plugin is a feature with ports, a lifecycle and settings._
 
-partial · [`packages/contracts`](../packages/contracts/README.md)
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/kernel`](../packages/kernel/README.md)
 
 ### Catalog
 
@@ -107,7 +107,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/ad
 
 ### State migration
 
-_Numbered versions of an application's and each plugin's state, with the steps between them, stamped per workspace. Storage runs the steps when it loads a workspace; the `migrate` command runs them on a checked copy before it replaces the database._
+_Numbered versions of an application's, each feature's and each plugin's state, with the steps between them, stamped per workspace. A feature can adopt data an older application version kept in its own state. Storage runs the steps when it loads a workspace; the `migrate` command runs them on a checked copy before it replaces the database._
 
 implemented · [`packages/kernel/src/migrations.ts`](../packages/kernel/src/migrations.ts) [`packages/kernel/src/state-upgrade.ts`](../packages/kernel/src/state-upgrade.ts) [`packages/host/src/cli/migrate-command.ts`](../packages/host/src/cli/migrate-command.ts)
 
@@ -137,7 +137,7 @@ implemented · [`packages/kernel`](../packages/kernel/README.md) [`packages/host
 
 ### Host plugin
 
-_A cross-cutting part an application composes: modules, a state slice, a policy, ports and lifecycle hooks._
+_A cross-cutting part an application composes: a feature with ports, settings and lifecycle hooks._
 
 implemented · [`packages/kernel`](../packages/kernel/README.md) [`packages/host`](../packages/host/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/mobile`](../packages/mobile/README.md) [`plugins/managed-config`](../plugins/managed-config/README.md)
 

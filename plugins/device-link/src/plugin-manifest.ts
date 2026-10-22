@@ -10,6 +10,8 @@ import { deviceLinkModule } from './contracts';
 export const deviceLinkPluginManifest = definePluginManifest({
   id: 'device-link',
   title: 'Device link',
+  // Operation ids are a wire protocol older than the namespace rule.
+  namespace: 'link',
   modules: [deviceLinkModule],
   settings: [
     {

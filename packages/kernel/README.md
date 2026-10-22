@@ -10,7 +10,8 @@ Framework (`packages/*`). `@agent-native/host` re-exports the definition helpers
 
 - [Application](../../docs/primitives.md#application): `defineManifest`, `ApplicationManifest`, `ApplicationTarget`, `targetPlatforms`, `defineApplication`, `ApplicationDefinition`, `AnyApplicationDefinition`, `ApplicationConnections`, `ConnectContext`, `HostedApplication`, `Observer`, `createApplicationRuntime`, `hostContext`.
 - [Host](../../docs/primitives.md#host): `openInstance`, `OpenInstanceOptions`, `Instance`, `LOCAL_WORKSPACE`, `LOCAL_OWNER`, `combineIntegrations`, `Integrations`, `deploymentCatalog`, `deploymentComponents`, `deploymentRequirements`.
-- [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `PluginManifest`, `PluginModules`, `PluginSetting`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `CredentialSource`, `PluginOpenContext`, `PluginStartContext`, `SettingsProviderContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `noIngress`, `resolvePorts`, `isolatedNetwork`, `latePorts`, `openPlugins`, `OpenedPlugins`, `PluginPlatform`, `PluginSettings`, `assertClaimed`, `settingsFor`, `mergeSettings`.
+- [Feature](../../docs/primitives.md#feature): `defineFeature`, `Feature`, `checkFeature`, `mountFeature`, `MountBindings`, `FeatureMount`, `FeatureAdoption`, `ApplicationDefinition.features`, `ApplicationManifest.features` and `ApplicationConnections.sources`. `src/features` folds features and plugins into one state, handler list, policy, set of services and set of connections, and holds the composition checks.
+- [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `pluginNamespace`, `PluginManifest`, `PluginModules`, `PluginSetting`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `CredentialSource`, `PluginOpenContext`, `PluginStartContext`, `SettingsProviderContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `noIngress`, `resolvePorts`, `isolatedNetwork`, `latePorts`, `openPlugins`, `OpenedPlugins`, `PluginPlatform`, `PluginSettings`, `assertClaimed`, `settingsFor`, `mergeSettings`.
 - [Shell port](../../docs/primitives.md#shell-port): `ShellPort`, `ShellAdapter`, `noShell` (the default, which refuses every call), `HostPorts.shell`, and `HostPlatform.shell`, the adapter a platform that runs the OS in-process supplies.
 - [Process port](../../docs/primitives.md#process-port): `ProcessPort`, `ProcessAvailability`, `ProcessSpawnOptions`, `noProcesses`, `HostPorts.processes` and `ConnectContext.processes`. The default `noProcesses` reports every process unavailable and rejects every start.
 - [Exchange folder](../../docs/glossary.md#exchange-folder): `FolderPort`, `BoundFolder`, `noFolders` and `HostPorts.folders`. Under the default `noFolders`, every folder is unavailable until a plugin binds folders.
@@ -22,7 +23,7 @@ The composition never starts a process. A plugin such as `@agent-native/process`
 
 ### State migrations
 
-`stateUpgrade` turns a composed definition into the storage upgrade that both platforms pass to their storage. Each slice is stamped with the version it holds and the oldest version that reads it. The application's steps never see a plugin slice, and each plugin's steps see only its own. The unversioned `upgradeState` still runs after them on every load. `ApplicationDefinition.contractVersion` is recorded on every effect the application enqueues.
+`stateUpgrade` turns a composed definition into the storage upgrade that both platforms pass to their storage. Each slice is stamped with the version it holds and the oldest version that reads it: `application`, `feature:<id>` and `plugin:<id>`. The application's steps never see a feature or plugin slice, and each unit's steps see only its own. A feature mounted with `adopt` builds its missing slice from the application's state as stored, before the application step that removes the data, when the workspace is older than `adopt.before`. The unversioned `upgradeState` still runs after them on every load. `ApplicationDefinition.contractVersion` is recorded on every effect the application enqueues.
 
 ## Entrypoints
 
@@ -116,5 +117,6 @@ bun run test:portable
 
 ## Skills
 
+- [write-a-feature](../host/skills/write-a-feature/SKILL.md): a reusable domain part with its slice, policy over an access view, hooks and adoption.
 - [write-host-plugin](../host/skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
 - [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.

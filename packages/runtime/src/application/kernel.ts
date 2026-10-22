@@ -94,8 +94,11 @@ export function createKernel<State, Services>(
   );
   const handlers = registerHandlers(capabilities, options.handlers);
   const now = options.now ?? Date.now;
+  // Sources the definition supplies, plus those its connections bind once the runtime exists.
+  const sources = new Map<string, RemoteSource>(Object.entries(options.sources ?? {}));
   return {
     options,
+    sources,
     catalog,
     capabilities,
     handlers,

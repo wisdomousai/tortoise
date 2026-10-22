@@ -10,6 +10,7 @@ Framework (`packages/*`). The starter's `apps/service` calls it. Content calls o
 
 - [Application](../../docs/primitives.md#application): `defineManifest`, `ApplicationManifest`, `defineApplication`, `ApplicationDefinition`, `ApplicationConnections`.
 - [Host](../../docs/primitives.md#host): `startHost`, `serve`, `createCli`, `openEmbeddedInstance`, `combineIntegrations`, `readStarterConfig`, `readMobileTarget`, `loadApplication`, `loadManifest`, `hostComponents`, `deploymentCatalog`, `deploymentRequirements`.
+- [Feature](../../docs/primitives.md#feature): `defineFeature`, `mountFeature`, `Feature`, `FeatureMount`, `FeatureAdoption` and `MountBindings`, re-exported from [`@agent-native/kernel`](../kernel/README.md) at `@agent-native/host/feature`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginManifest`, `PluginManifest`, `PluginSetting`, `PluginModules`, `defineHostPlugin`, `HostPlugin`, `AnyHostPlugin`, `PluginInstance`, `PluginOpenContext`, `PluginStartContext`, `PluginCommand`, `HostPorts`, `NetworkPort`, `IngressPort`, `IdentityPort`, `defaultPorts`, `readPluginSettings`, `PluginSettings`. The definitions and the ports come from [`@agent-native/kernel`](../kernel/README.md); the host re-exports them and adds the Bun parts.
 - [Host platform](../../docs/primitives.md#host-platform): `bunPlatform` and the Bun port types, described under [Bun platform](#bun-platform).
 - [Host platform](../../docs/primitives.md#host-platform): `hostedPlatform` (`HostedPlatformOptions`), the Bun platform with the workspace in Postgres under a [workspace lease](../../docs/glossary.md#workspace-lease). `serve --hosted-workspace <name>` selects it, with `AGENT_NATIVE_DATABASE_URL`.
@@ -137,6 +138,12 @@ bun run test:service
   - slices kept across upgrades, policy routing, open order and cleanup after a failed open;
   - duplicate ports, null defaults and claimed settings;
   - `ready` in an embedded instance and `start` as a delegated caller.
+- `test/features.test.ts`: feature composition.
+  - manifest merge order and refusals for shared ids and namespaces, `requires` and operations outside a namespace;
+  - the slice, access view, hooks and policy in one transaction, and refusals for shadowed application rules, service and state keys;
+  - a plugin resource type that shadows an application event rule;
+  - connections and sources merged and bound once;
+  - `feature:<id>` stamps, adoption of legacy data once, and older code refused.
 - `test/workspace-backup.test.ts`: backs up a live workspace through the CLI, and refuses to restore while a host owns it.
 - `test/migrations.test.ts`: runs `migrate` with a pending effect, after a failed step and over a compatible step, and checks that storage refuses older code.
 - `test/providers.test.ts`: no credential reads at startup, single-use OAuth callbacks bound to their session, explicit API-key funding and no leaked provider error text.
@@ -145,6 +152,7 @@ The shell and delivery routes are tested with a fixture application in `plugins/
 
 ## Skills
 
+- [write-a-feature](skills/write-a-feature/SKILL.md): a reusable domain part with its slice, policy over an access view, hooks and adoption.
 - [write-host-plugin](skills/write-host-plugin/SKILL.md): a host plugin with its own state, policy, settings and ports.
 - [run-a-hosted-instance](skills/run-a-hosted-instance/SKILL.md): a workspace in Postgres under a lease, behind TLS ingress and workforce sign-in.
 - [create-agent-native-app](../scaffold/skills/create-agent-native-app/SKILL.md): creating an application with the scaffold.

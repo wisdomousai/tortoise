@@ -1,4 +1,8 @@
-import type { CapabilityModule, HostComponent } from '@agent-native/contracts';
+import {
+  checkNamespace,
+  type CapabilityModule,
+  type FeatureManifest,
+} from '@agent-native/contracts';
 
 /** The JavaScript hosts an instance runs on: Bun on desktops and servers, Hermes on phones. */
 export type PlatformId = 'bun' | 'android' | 'ios';
@@ -18,20 +22,19 @@ export interface PluginSetting {
 }
 
 /**
- * The browser-safe part of a host plugin: its id and what it adds to the composed catalog.
- * Applications list it in `defineManifest({ plugins })`, which merges its modules and components
- * into the manifest, so generators, the UI-binding check and the frame see plugin operations and
+ * The browser-safe part of a host plugin: a feature manifest with host concerns. Applications
+ * list it in `defineManifest({ plugins })`, which merges its modules and components into the
+ * manifest, so generators, the UI-binding check and the frame see plugin operations and
  * requirements exactly like the application's own. Pure data, no host code.
  */
 export interface PluginManifest<
   Modules extends readonly CapabilityModule[] = readonly CapabilityModule[],
-> {
-  /** Lowercase id. Also the key of the plugin's state slice and services. */
-  readonly id: string;
-  readonly title: string;
-  readonly modules: Modules;
-  /** Network destinations, devices and processes the plugin itself needs. */
-  readonly components?: readonly HostComponent[];
+> extends FeatureManifest<Modules> {
+  /**
+   * The namespace of the plugin's operations when it is not the plugin's id, for a plugin whose
+   * operation ids are a wire protocol that predates the rule, such as device link's `link.*`.
+   */
+  readonly namespace?: string;
   readonly settings?: readonly PluginSetting[];
   /**
    * Platforms the plugin's server part runs on. Absent means Bun only, which is what every plugin
@@ -79,7 +82,8 @@ function checkNative(manifest: Pick<PluginManifest, 'id' | 'platforms' | 'native
 
 /**
  * Declare a plugin manifest. Fails at definition time on an invalid id, key, env name or platform,
- * and on native code in a plugin that runs on neither Android nor iOS.
+ * an operation outside the plugin's namespace, and native code in a plugin that runs on neither
+ * Android nor iOS.
  */
 export function definePluginManifest<
   const Modules extends readonly CapabilityModule[] = readonly [],
@@ -87,6 +91,11 @@ export function definePluginManifest<
   manifest: Omit<PluginManifest<Modules>, 'modules'> & { readonly modules?: Modules },
 ): PluginManifest<Modules> {
   if (!idPattern.test(manifest.id)) throw new Error(`Invalid plugin id "${manifest.id}"`);
+  checkNamespace(
+    `Plugin ${manifest.id}`,
+    manifest.namespace ?? manifest.id,
+    manifest.modules ?? [],
+  );
   for (const platform of manifest.platforms ?? [])
     if (!platformIds.includes(platform))
       throw new Error(`Plugin "${manifest.id}" names an unknown platform "${platform}"`);
@@ -101,6 +110,10 @@ export function definePluginManifest<
   }
   return Object.freeze({ ...manifest, modules: manifest.modules ?? ([] as unknown as Modules) });
 }
+
+/** The namespace of a plugin's operations. */
+export const pluginNamespace = (manifest: Pick<PluginManifest, 'id' | 'namespace'>) =>
+  manifest.namespace ?? manifest.id;
 
 /** Every module a list of plugin manifests contributes, as one union for typed clients. */
 export type PluginModules<Plugins extends readonly PluginManifest[]> =

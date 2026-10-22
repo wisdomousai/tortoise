@@ -89,6 +89,7 @@ export async function openInstance(
         folders: ports.folders,
         services: plugins.services,
       }) ?? {};
+    if (connections.sources) application.bindSources(connections.sources);
     const integrations = combineIntegrations({
       application,
       workspaceId: LOCAL_WORKSPACE,
