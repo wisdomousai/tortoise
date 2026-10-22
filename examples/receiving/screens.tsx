@@ -10,6 +10,7 @@ import { ReconcileScreen } from './ui/reconcile';
 
 /** The Goods receiving screens: delivery lines, open approval requests, held receipts and the ERP exchange. */
 export default defineScreens({
+  manifest,
   title: manifest.title,
   home: '/deliveries',
   routes: [

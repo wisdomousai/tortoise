@@ -89,3 +89,53 @@ export function defineFeatureManifest<
 /** Every module a list of feature manifests contributes, as one union for typed clients. */
 export type FeatureModules<Features extends readonly FeatureManifest[]> =
   Features[number]['modules'][number];
+
+/** The part of an application manifest that names its features and plugins. */
+export interface UnitsManifest {
+  readonly features?: readonly { readonly id: string }[];
+  readonly plugins?: readonly { readonly id: string; readonly namespace?: string }[];
+}
+
+/** What the web and native frames read of a feature's or plugin's screens. */
+export interface UnitScreensShape {
+  readonly id: string;
+  readonly capabilityScreens?: readonly { readonly prefix: string }[];
+}
+
+/**
+ * Refuse feature and plugin screens that the application manifest does not compose, that are
+ * listed out of the manifest's order, or that open capabilities outside the unit's operation
+ * namespace. Shared by `defineScreens` and `defineNativeScreens`.
+ */
+export function checkUnitScreens(declared: {
+  readonly features?: readonly UnitScreensShape[];
+  readonly plugins?: readonly UnitScreensShape[];
+  readonly manifest?: UnitsManifest;
+}): void {
+  const kinds = [
+    ['Feature', declared.features ?? [], declared.manifest?.features ?? []],
+    ['Plugin', declared.plugins ?? [], declared.manifest?.plugins ?? []],
+  ] as const;
+  if (!declared.manifest && kinds.some(([, screens]) => screens.length))
+    throw new Error('Feature and plugin screens need the application manifest');
+  for (const [kind, screens, units] of kinds) {
+    let last = -1;
+    for (const unit of screens) {
+      const index = units.findIndex((entry) => entry.id === unit.id);
+      if (index === -1)
+        throw new Error(
+          `${kind} screens "${unit.id}" have no ${kind.toLowerCase()} in the manifest`,
+        );
+      if (index <= last)
+        throw new Error(`${kind} screens "${unit.id}" are out of the manifest's order`);
+      last = index;
+      const entry: { readonly id: string; readonly namespace?: string } = units[index]!;
+      const namespace = entry.namespace ?? entry.id;
+      for (const { prefix } of unit.capabilityScreens ?? [])
+        if (!prefix.startsWith(`${namespace}.`))
+          throw new Error(
+            `${kind} screens "${unit.id}" open "${prefix}", which is outside the namespace "${namespace}."`,
+          );
+    }
+  }
+}

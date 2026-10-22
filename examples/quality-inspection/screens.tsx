@@ -14,6 +14,7 @@ import { PlantContext, RejectionCount, SyncBadge } from './ui/sync-status';
  * system rejected, and plant access. The sidebar names the plant and role and counts rejections.
  */
 export default defineScreens({
+  manifest,
   title: manifest.title,
   home: '/inspection',
   routes: [

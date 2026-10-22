@@ -9,6 +9,7 @@ import { SyncBadge } from './ui/sync-badge';
 
 /** Find in the CRM, the accounts this workspace follows, and one account's activities. */
 export default defineScreens({
+  manifest,
   title: manifest.title,
   home: '/search',
   routes: [

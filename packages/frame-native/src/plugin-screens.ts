@@ -1,17 +1,10 @@
-import type { NativeNavigationItem, NativeScreenRoute } from './screens';
+import type { FeatureNativeScreens } from './feature-screens';
 
 /**
- * What a host plugin contributes to the native frame: its screens, tabs and the screen each of its
- * capability families opens. Applications pass it to `defineNativeScreens({ plugins })`, which
- * places plugin tabs after the application's own.
+ * What a host plugin contributes to the native frame; the same shape as a feature's native
+ * screens. Applications pass it to `defineNativeScreens({ plugins })`.
  */
-export interface PluginNativeScreens {
-  /** The plugin manifest's id. */
-  readonly id: string;
-  readonly routes: readonly NativeScreenRoute[];
-  readonly navigation?: readonly NativeNavigationItem[];
-  readonly capabilityScreens?: readonly { readonly prefix: string; readonly to: string }[];
-}
+export type PluginNativeScreens = FeatureNativeScreens;
 
 /** Declare a plugin's native screens. Checks run when an application composes them. */
 export function definePluginNativeScreens(screens: PluginNativeScreens): PluginNativeScreens {

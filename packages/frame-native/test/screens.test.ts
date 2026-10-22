@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { defineFeatureNativeScreens } from '../src/feature-screens';
 import { definePluginNativeScreens } from '../src/plugin-screens';
 import {
   defineNativeScreens,
@@ -23,18 +24,40 @@ const base = {
   ],
 };
 
-test('plugin screens merge after the application and the longest prefix wins', () => {
+const manifest = {
+  features: [{ id: 'approval' }],
+  plugins: [{ id: 'device-link', namespace: 'link' }],
+};
+
+test('feature and plugin screens merge after the application and the longest prefix wins', () => {
+  const approvals = defineFeatureNativeScreens({
+    id: 'approval',
+    routes: [route('/approvals')],
+    navigation: [{ to: '/approvals', label: 'Approvals', icon: Icon }],
+    capabilityScreens: [{ prefix: 'approval.', to: '/approvals' }],
+  });
   const pairing = definePluginNativeScreens({
     id: 'device-link',
     routes: [route('/pairing')],
     navigation: [{ to: '/pairing', label: 'Pairing', icon: Icon }],
-    capabilityScreens: [{ prefix: 'device.', to: '/pairing' }],
+    capabilityScreens: [{ prefix: 'link.', to: '/pairing' }],
   });
-  const screens = defineNativeScreens({ ...base, plugins: [pairing] });
-  expect(screens.navigation.map((item) => item.to)).toEqual(['/captures', '/tree', '/pairing']);
+  const screens = defineNativeScreens({
+    ...base,
+    manifest,
+    features: [approvals],
+    plugins: [pairing],
+  });
+  expect(screens.navigation.map((item) => item.to)).toEqual([
+    '/captures',
+    '/tree',
+    '/approvals',
+    '/pairing',
+  ]);
   expect(nativeScreenForCapability(screens, 'capture.detail.read')).toBe('/captures/detail');
   expect(nativeScreenForCapability(screens, 'capture.record')).toBe('/captures');
-  expect(nativeScreenForCapability(screens, 'device.revoke')).toBe('/pairing');
+  expect(nativeScreenForCapability(screens, 'approval.approve')).toBe('/approvals');
+  expect(nativeScreenForCapability(screens, 'link.revoke')).toBe('/pairing');
   expect(nativeScreenForCapability(screens, 'other.op')).toBeUndefined();
 });
 
@@ -58,7 +81,22 @@ test('dead links, duplicates and a home that is not a tab fail at definition tim
   expect(() =>
     defineNativeScreens({
       ...base,
+      manifest: { plugins: [{ id: 'p' }] },
       plugins: [definePluginNativeScreens({ id: 'p', routes: [route('/tree')] })],
     }),
   ).toThrow('declared twice');
+});
+
+test('unit screens are checked against the manifest', () => {
+  const pairing = definePluginNativeScreens({ id: 'device-link', routes: [route('/pairing')] });
+  expect(() => defineNativeScreens({ ...base, plugins: [pairing] })).toThrow(
+    'Feature and plugin screens need the application manifest',
+  );
+  expect(() =>
+    defineNativeScreens({
+      ...base,
+      manifest: { plugins: [{ id: 'device-link', namespace: 'link' }] },
+      plugins: [{ ...pairing, capabilityScreens: [{ prefix: 'device.', to: '/pairing' }] }],
+    }),
+  ).toThrow('Plugin screens "device-link" open "device.", which is outside the namespace "link."');
 });

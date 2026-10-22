@@ -17,7 +17,8 @@ Framework (`packages/*`). Browser code, plus a build-time Vite plugin. The frame
 - [OS handler](../../docs/primitives.md#os-handler): `useBrowserOsInput`, mounted at the frame root, is the browser shell adapter. It submits the link, shortcut or share claim in a landing URL and the files an installed web application was launched with.
 - [OS action](../../docs/primitives.md#os-action): `runOsAction` asks for a declared action. When no adapter performs it, the frame runs the returned open or share in the browser.
 - [Generator](../../docs/primitives.md#generator): the `frame` Vite plugin writes `icon.svg` and `manifest.webmanifest`, with the name, the icon, and the protocol handlers, file handlers and shortcuts from `webManifestOs`.
-- [Host plugin](../../docs/primitives.md#host-plugin): `definePluginScreens`, `PluginScreens`. `defineScreens({ plugins })` merges a plugin's routes, navigation and capability screens before its checks.
+- [Feature](../../docs/primitives.md#feature): `defineFeatureScreens`, `FeatureScreens`. `defineScreens({ manifest, features })` merges a feature's routes, navigation and capability screens before its checks.
+- [Host plugin](../../docs/primitives.md#host-plugin): `definePluginScreens`, `PluginScreens`, the same shape. `defineScreens({ manifest, plugins })` merges plugin screens after feature screens.
 
 A worked `screens` entrypoint is [`examples/project-tasks/screens.tsx`](../../examples/project-tasks/screens.tsx).
 
@@ -26,6 +27,7 @@ A worked `screens` entrypoint is [`examples/project-tasks/screens.tsx`](../../ex
 | Import                               | Runs in    | Contents                                                                                                                |
 | ------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `@agent-native/frame/screens`        | browser    | `defineScreens`, `screenForCapability` and the `ApplicationScreens` types. Free of `@/` imports.                        |
+| `@agent-native/frame/feature-screens` | browser   | `defineFeatureScreens`, `FeatureScreens`: a feature's routes, navigation and capability screens.                        |
 | `@agent-native/frame/plugin-screens` | browser    | `definePluginScreens`, `PluginScreens`: a plugin's routes, navigation and capability screens.                           |
 | `@agent-native/frame/vite`           | build time | `frame({ appSource, configPath, outRoot })`: Vite plugins and the output directory `dist/web/<application id>`.         |
 | `@agent-native/frame/components/*`   | browser    | Registry components under `src/components/`, for example `run-panel` or `ui/native-dialog`.                             |
@@ -49,7 +51,7 @@ The shell's two-column breakpoint is 64rem. Below it, on phones and on tablets i
 
 ### Launch and session
 
-The frame imports no application and no plugin. Plugin screens arrive through `defineScreens({ plugins })`, and `virtual:agent-native/screens` is resolved from `app.config.json` at build time.
+The frame imports no application, feature or plugin. Their screens arrive through `defineScreens({ features, plugins })`, and `virtual:agent-native/screens` is resolved from `app.config.json` at build time.
 
 The launch credential travels in the URL fragment and never reaches a server log. The frame removes it from the address bar first and exchanges it once for an HttpOnly session cookie. The transport carries no token. Cache and bindings live as long as the document, and a new launch reloads it with an empty cache. The window title comes from the trusted starter identity, not the template.
 
@@ -59,7 +61,12 @@ The palette lists only capabilities the session's grant allows and never offers 
 
 `live-data-table` never filters or paginates client-side over a partial set; the instance counts and pages after scoping. `collection-screen` builds a collection's list and record screens over `live-data-table` and `capability-form`. It uses the collection's generated `list`, `get`, create and update capabilities, so it inherits the same paging rule. A record the caller may not see shows as unavailable.
 
-`defineScreens` checks the application's and its plugins' screens together. It fails at definition time on a duplicate route, or on a navigation or capability target that no route declares.
+`defineScreens` checks the application's, its features' and its plugins' screens together. It fails at definition time on:
+
+- a duplicate route;
+- a navigation or capability target that no route declares;
+- feature or plugin screens without the application's `manifest`, for a unit the manifest does not compose, or out of the manifest's order;
+- a unit capability screen whose prefix is outside the unit's operation namespace, so a unit's palette entries open only its own capabilities.
 
 ### OS requests
 
@@ -86,12 +93,13 @@ Browser files must not import host-only modules. `bun run check:boundaries` bund
 ## Tests
 
 ```sh
+bun test packages/frame
 bun run check:boundaries
 bun run build:web:examples
 bun run test:e2e
 ```
 
-The frame has no unit suite of its own. `check:boundaries` builds every example's screens through the starter's real Vite config. The Playwright specs in `examples/*/e2e` drive the frame in Chromium, including live updates and draft conflicts.
+`test/screens.test.ts` covers feature and plugin merging and the manifest checks. The frame has no other unit suite. `check:boundaries` builds every example's screens through the starter's real Vite config. The Playwright specs in `examples/*/e2e` drive the frame in Chromium, including live updates and draft conflicts.
 
 ## Skills
 

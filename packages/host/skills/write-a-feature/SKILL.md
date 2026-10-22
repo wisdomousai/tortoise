@@ -27,7 +27,8 @@ A [feature](../../../../docs/glossary.md#feature) contributes [modules](../../..
 5. Decide person-only rules in the feature's own policy (`isDelegated` from `@agent-native/runtime`), not in the access view, so every application gets them.
 6. Mount it in the application:
    - list the manifest in `defineManifest({ features })`;
-   - mount it in `defineApplication({ features: [mountFeature(feature, { access, hooks, adopt })] })` in the same order.
+   - mount it in `defineApplication({ features: [mountFeature(feature, { access, hooks, adopt })] })` in the same order;
+   - add its screens, declared with `defineFeatureScreens` from `@agent-native/frame/feature-screens`, to `defineScreens({ manifest, features })`; the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers screens.
 7. In `access`, replicate the gates the application's own policy applies: membership (`caller`), [integration principal](../../../../docs/glossary.md#integration-principal) lanes and delegated-grant scope. The application policy never sees the feature's operations.
 8. Remove any application policy rule for the feature's operations and any event rule for its resource types. Composition refuses both when the application policy is built with `definePolicy`.
 9. When the data lived in application state before, adopt it:

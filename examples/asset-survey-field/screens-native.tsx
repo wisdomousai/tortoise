@@ -8,8 +8,10 @@ import { AssignmentsScreen } from './ui-native/assignments';
 import { CaptureScreen } from './ui-native/capture';
 import { FieldStatus, SyncScreen, UnplacedScreen } from './ui-native/captures';
 import { scannerProfile } from './ui-native/shared';
+import manifest from './manifest';
 
 export default defineNativeScreens({
+  manifest,
   title: 'Asset survey',
   home: '/assignments',
   routes: [

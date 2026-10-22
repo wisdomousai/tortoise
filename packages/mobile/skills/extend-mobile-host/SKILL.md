@@ -20,7 +20,7 @@ The Expo project in `apps/mobile` runs one [application](../../../../docs/glossa
 3. Add a `screens-native` entrypoint with `defineNativeScreens` from `@agent-native/frame-native/screens`. Screens read the session with `useSession()`.
 4. Build native screens from the `agent-native-native` [UI registry](../../../../docs/glossary.md#ui-registry) in `packages/frame-native`, such as `hold-button`, `status-pill` and `list-row`.
 5. Run `bun run build:registry:native` after changing a registry item.
-6. Contribute a plugin's native screens with `definePluginNativeScreens`.
+6. Contribute a plugin's native screens with `definePluginNativeScreens` and a feature's with `defineFeatureNativeScreens`. Pass the application's `manifest` to `defineNativeScreens`, which checks unit screens against it.
 7. For a native plugin, follow "Writing a native plugin" in the [mobile package README](../../README.md#writing-a-native-plugin). In short:
    - put an Expo module next to `src/`, with an optional `app.plugin.js` config plugin;
    - set `platforms` and `native: { module, expoPlugin? }` in `plugin-manifest`;

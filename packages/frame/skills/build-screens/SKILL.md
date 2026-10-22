@@ -1,6 +1,6 @@
 ---
 name: build-screens
-description: Build or change the web screens of an agent-native application or host plugin. Use when adding a route, list or record screen, form, capture or workstation screen, navigation item or capability screen; when pulling or changing an item of the agent-native or operator shadcn registry; or when replacing a frame file in the starter. Covers examples/<app>/screens.tsx, examples/<app>/ui, packages/frame, packages/react, packages/operator-ui and apps/web.
+description: Build or change the web screens of an agent-native application, feature or host plugin. Use when adding a route, list or record screen, form, capture or workstation screen, navigation item or capability screen; when pulling or changing an item of the agent-native or operator shadcn registry; or when replacing a frame file in the starter. Covers examples/<app>/screens.tsx, examples/<app>/ui, packages/frame, packages/react, packages/operator-ui and apps/web.
 ---
 
 # Build screens
@@ -23,8 +23,8 @@ description: Build or change the web screens of an agent-native application or h
 
 1. Declare the routes in the application's `screens.tsx` with `defineScreens`: routes, navigation, the screen for each capability, and `resources` for screens that open a resource the OS delivers.
 2. Give a station's screen `layout: 'full'`. Declare `compact` on a route for phone and portrait-tablet widths.
-3. Declare a plugin's screens with `definePluginScreens` in its `plugin-screens` entrypoint.
-4. Merge plugin screens with `defineScreens({ plugins })`. It fails on duplicate routes and on targets no route declares.
+3. Declare a feature's screens with `defineFeatureScreens` from `@agent-native/frame/feature-screens`, and a plugin's with `definePluginScreens` in its `plugin-screens` entrypoint. Capability screen prefixes start with the unit's operation namespace and a dot.
+4. Merge them with `defineScreens({ manifest, features, plugins })`, listed in the manifest's order. It fails on duplicate routes, on targets no route declares, and on unit screens that the manifest does not compose, are out of its order, or open capabilities outside the unit's namespace.
 5. Write commands with `useCapabilityForm` from `@agent-native/react/form`. It keeps one [idempotency key](../../../../docs/glossary.md#idempotency-key) until the command commits, so a double tap or a scanner's double Enter records once. Do not mint keys per click.
 6. Read data with `useLiveQuery`. It refetches only the queries whose dependencies changed. Never filter or page client-side over a partial set.
 7. Capture input with `useScannerInput`, `useCaptureTiming` and `useCaptureLoop` from `@agent-native/react/capture`, so capture time is measured.
@@ -39,7 +39,7 @@ description: Build or change the web screens of an agent-native application or h
 ## Checks
 
 1. Add a UI-binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`, as in `examples/project-tasks/test/ui-bindings.test.ts`. It proves a screen references every capability that claims a binding.
-2. Add plugin screen directories to that test's scan.
+2. Add feature and plugin screen directories to that test's scan.
 3. Add a Playwright spec in `examples/<app>/e2e/` that proves the screen renders and commits.
 4. Run the checks:
 

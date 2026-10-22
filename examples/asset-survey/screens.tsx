@@ -14,6 +14,7 @@ import { SurveyStatus } from './ui/survey-status';
 
 /** The hub: prepare the structure, send field work, review what comes back, file it. */
 export default defineScreens({
+  manifest,
   title: manifest.title,
   home: '/structure',
   routes: [

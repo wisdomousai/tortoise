@@ -10,6 +10,7 @@ import { siteRoutes } from './ui/sites';
 
 /** The Fleet screens: health, sites, releases and channels, audit events and remote access. */
 export default defineScreens({
+  manifest,
   title: manifest.title,
   home: '/health',
   routes: [

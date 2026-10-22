@@ -1,4 +1,6 @@
 import type { ComponentType, ReactNode } from 'react';
+import { checkUnitScreens, type UnitsManifest } from '@agent-native/contracts';
+import type { FeatureScreens } from './feature-screens';
 import type { PluginScreens } from './plugin-screens';
 
 /**
@@ -55,33 +57,42 @@ export interface ApplicationScreens {
   readonly sidebar?: ComponentType;
   /** Rendered in the sidebar footer, for example synchronization state. */
   readonly status?: ComponentType;
+  /** Screens of the features the manifest lists. `defineScreens` merges them into the above. */
+  readonly features?: readonly FeatureScreens[];
   /** Screens of the plugins the manifest lists. `defineScreens` merges them into the above. */
   readonly plugins?: readonly PluginScreens[];
+  /**
+   * The application's manifest; required with feature or plugin screens, which `defineScreens`
+   * checks against the units it composes. Only their ids and namespaces are read.
+   */
+  readonly manifest?: UnitsManifest;
 }
 
-/** The application's routes, navigation and capability screens followed by each plugin's. */
-function mergePlugins(screens: ApplicationScreens): ApplicationScreens {
-  const plugins = screens.plugins ?? [];
-  if (!plugins.length) return screens;
+/** The application's routes, navigation and capability screens, then each feature's and plugin's. */
+function mergeUnits(screens: ApplicationScreens): ApplicationScreens {
+  const units = [...(screens.features ?? []), ...(screens.plugins ?? [])];
+  if (!units.length) return screens;
   return {
     ...screens,
-    routes: [...screens.routes, ...plugins.flatMap((plugin) => plugin.routes)],
-    navigation: [...screens.navigation, ...plugins.flatMap((plugin) => plugin.navigation ?? [])],
+    routes: [...screens.routes, ...units.flatMap((unit) => unit.routes)],
+    navigation: [...screens.navigation, ...units.flatMap((unit) => unit.navigation ?? [])],
     capabilityScreens: [
       ...(screens.capabilityScreens ?? []),
-      ...plugins.flatMap((plugin) => plugin.capabilityScreens ?? []),
+      ...units.flatMap((unit) => unit.capabilityScreens ?? []),
     ],
   };
 }
 
 /**
  * Declare an application's screens. Browser-safe and free of `@/` imports so content can
- * import it by package name. Plugin screens are merged in first, so the checks cover them: fails
- * at definition time on a duplicate route or a navigation or capability target that no route
- * declares, so a typo cannot ship a dead link.
+ * import it by package name. Feature and plugin screens are merged in first, so the checks cover
+ * them: fails at definition time on a duplicate route or a navigation or capability target that
+ * no route declares, so a typo cannot ship a dead link. It also fails on feature or plugin screens
+ * the manifest does not compose, out of its order, or opening another unit's capabilities.
  */
 export function defineScreens(declared: ApplicationScreens): ApplicationScreens {
-  const screens = mergePlugins(declared);
+  checkUnitScreens(declared);
+  const screens = mergeUnits(declared);
   const paths = screens.routes.map((route) => route.path.replace(/^\//, ''));
   const duplicate = paths.find((path, index) => paths.indexOf(path) !== index);
   if (duplicate) throw new Error(`Screen route "${duplicate}" is declared twice`);

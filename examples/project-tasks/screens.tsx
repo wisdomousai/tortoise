@@ -12,6 +12,7 @@ import { projectPath, taskProjectPath } from './ui/projects/shared';
  * its own route, so a project link survives a reload and the agent's UI session can select one.
  */
 export default defineScreens({
+  manifest,
   title: manifest.title,
   home: '/projects',
   routes: [

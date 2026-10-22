@@ -1,4 +1,6 @@
 import type { ComponentType } from 'react';
+import { checkUnitScreens, type UnitsManifest } from '@agent-native/contracts';
+import type { FeatureNativeScreens } from './feature-screens';
 import type { PluginNativeScreens } from './plugin-screens';
 import type { NativeSession } from './session';
 
@@ -52,32 +54,43 @@ export interface NativeApplicationScreens {
   >;
   /** Rendered above every screen, for example synchronization state. */
   readonly status?: ComponentType;
+  /** Screens of the features the manifest lists. `defineNativeScreens` merges them into the above. */
+  readonly features?: readonly FeatureNativeScreens[];
   /** Screens of the plugins the manifest lists. `defineNativeScreens` merges them into the above. */
   readonly plugins?: readonly PluginNativeScreens[];
+  /**
+   * The application's manifest; required with feature or plugin screens, which
+   * `defineNativeScreens` checks against the units it composes. Only their ids and namespaces are
+   * read.
+   */
+  readonly manifest?: UnitsManifest;
 }
 
-function mergePlugins(screens: NativeApplicationScreens): NativeApplicationScreens {
-  const plugins = screens.plugins ?? [];
-  if (!plugins.length) return screens;
+/** The application's screens, tabs and capability screens, then each feature's and plugin's. */
+function mergeUnits(screens: NativeApplicationScreens): NativeApplicationScreens {
+  const units = [...(screens.features ?? []), ...(screens.plugins ?? [])];
+  if (!units.length) return screens;
   return {
     ...screens,
-    routes: [...screens.routes, ...plugins.flatMap((plugin) => plugin.routes)],
-    navigation: [...screens.navigation, ...plugins.flatMap((plugin) => plugin.navigation ?? [])],
+    routes: [...screens.routes, ...units.flatMap((unit) => unit.routes)],
+    navigation: [...screens.navigation, ...units.flatMap((unit) => unit.navigation ?? [])],
     capabilityScreens: [
       ...(screens.capabilityScreens ?? []),
-      ...plugins.flatMap((plugin) => plugin.capabilityScreens ?? []),
+      ...units.flatMap((unit) => unit.capabilityScreens ?? []),
     ],
   };
 }
 
 /**
  * Declare an application's native screens. Free of React Native imports, so Bun tests and the
- * build step can load it. Plugin screens are merged first, so the checks cover them: fails at
- * definition time on a duplicate path, a navigation or capability target that no screen declares,
- * a home that is not a tab, or a tab declared twice.
+ * build step can load it. Feature and plugin screens are merged first, so the checks cover them:
+ * fails at definition time on a duplicate path, a navigation or capability target that no screen
+ * declares, a home that is not a tab, or a tab declared twice. It also fails on feature or plugin
+ * screens the manifest does not compose, out of its order, or opening another unit's capabilities.
  */
 export function defineNativeScreens(declared: NativeApplicationScreens): NativeApplicationScreens {
-  const screens = mergePlugins(declared);
+  checkUnitScreens(declared);
+  const screens = mergeUnits(declared);
   const paths = screens.routes.map((route) => route.path);
   const duplicate = paths.find((path, index) => paths.indexOf(path) !== index);
   if (duplicate) throw new Error(`Screen "${duplicate}" is declared twice`);

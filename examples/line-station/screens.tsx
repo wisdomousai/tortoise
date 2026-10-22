@@ -13,6 +13,7 @@ import { StationBridgeScreen, StationDevicesScreen } from './ui/station-admin';
  * scanner setup (device.*), the bridge view and the operator primitive gallery (`station/kit`).
  */
 export default defineScreens({
+  manifest,
   title: manifest.title,
   home: '/station',
   routes: [

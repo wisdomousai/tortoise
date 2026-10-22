@@ -18,6 +18,7 @@
   ],
   "exports": {
     "./screens": "./src/screens.ts",
+    "./feature-screens": "./src/feature-screens.ts",
     "./plugin-screens": "./src/plugin-screens.ts",
     "./vite": "./vite.ts",
     "./components/*": "./src/components/*.tsx",
