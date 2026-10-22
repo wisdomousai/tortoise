@@ -129,6 +129,7 @@
     "@agent-native/sample-notes-agents": "workspace:*",
     "@agent-native/sample-notes-host-plugin": "workspace:*",
     "@agent-native/sample-notes-operations": "workspace:*",
+    "@agent-native/sample-notes-system-of-record": "workspace:*",
     "@agent-native/scaffold": "workspace:*",
     "@agent-native/screen-bridge": "workspace:*",
     "@agent-native/share-target": "workspace:*",

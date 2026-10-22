@@ -55,6 +55,7 @@
         "@agent-native/sample-notes-agents": "workspace:*",
         "@agent-native/sample-notes-host-plugin": "workspace:*",
         "@agent-native/sample-notes-operations": "workspace:*",
+        "@agent-native/sample-notes-system-of-record": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
         "@agent-native/screen-bridge": "workspace:*",
         "@agent-native/share-target": "workspace:*",
@@ -770,6 +771,10 @@
       "name": "@agent-native/sample-notes-operations",
       "version": "0.1.0",
     },
+    "samples/notes-system-of-record": {
+      "name": "@agent-native/sample-notes-system-of-record",
+      "version": "0.1.0",
+    },
     "sdks/driver-dotnet": {
       "name": "@agent-native/driver-sdk-dotnet",
       "version": "0.1.0",
@@ -915,6 +920,8 @@
     "@agent-native/sample-notes-host-plugin": ["@agent-native/sample-notes-host-plugin@workspace:samples/notes-host-plugin"],
 
     "@agent-native/sample-notes-operations": ["@agent-native/sample-notes-operations@workspace:samples/notes-operations"],
+
+    "@agent-native/sample-notes-system-of-record": ["@agent-native/sample-notes-system-of-record@workspace:samples/notes-system-of-record"],
 
     "@agent-native/scaffold": ["@agent-native/scaffold@workspace:packages/scaffold"],
 
