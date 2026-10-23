@@ -141,7 +141,17 @@ test('install places a verified release, renders the unit and firewall rules, an
     const verify = Bun.spawnSync(['systemd-analyze', 'verify', unitPath], { stderr: 'pipe' });
     if (verify.exitCode !== 0) throw new Error(verify.stderr.toString());
     const rules = join(app('etc/agent-native'), 'egress.nft');
-    expect(Bun.spawnSync(['sudo', 'nft', '-c', '-f', rules]).exitCode).toBe(0);
+    // nft resolves the `meta skuid` user name while parsing, so the service account must exist,
+    // as install creates it before loading the rules.
+    const user = /meta skuid != "([^"]+)"/.exec(await readFile(rules, 'utf8'))![1]!;
+    Bun.spawnSync([
+      'sudo',
+      'sh',
+      '-c',
+      `id -u ${user} || useradd --system --no-create-home ${user}`,
+    ]);
+    const check = Bun.spawnSync(['sudo', 'nft', '-c', '-f', rules], { stderr: 'pipe' });
+    if (check.exitCode !== 0) throw new Error(check.stderr.toString());
   }
 });
 
