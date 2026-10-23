@@ -7,6 +7,8 @@ export * from './feature';
 export * from './catalog';
 export { invokesClosure, MAX_INVOKE_DEPTH } from './invokes';
 export {
+  bindingsOf,
+  conditionValues,
   defineWorkflow,
   from,
   isBinding,

@@ -1,0 +1,35 @@
+{
+  "name": "@agent-native/workflows",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Host plugin: runs declared workflows step by step as the person who started them, with retries, waits and compensation.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "directory": "plugins/workflows"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
+  "exports": {
+    "./plugin-screens": "./plugin-screens.tsx",
+    "./*": "./*.ts"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/frame": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@tanstack/react-query": "5.104.1",
+    "lucide-react": "1.52.0",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "react": "19.3.0"
+  }
+}
