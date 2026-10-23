@@ -2,7 +2,9 @@ import { z } from 'zod';
 import type { BlobRef } from '@agent-native/contracts';
 import { implementDataProvider, settleDelivery, targetHandlers } from '@agent-native/integration';
 import { own, type HandlerContribution } from '@agent-native/runtime';
+import { workflowOperations } from '@agent-native/workflows/contracts';
 import { eamAssets, eamTarget, exportTarget, filingOperations as ops } from '../contracts/filing';
+import { captureFileWorkflow, captureToEam } from '../contracts/workflow';
 import type { assetSnapshotSchema } from '../contracts/schemas';
 import type { Filing, SurveyState } from '../domain';
 import {
@@ -105,6 +107,46 @@ function fileNode(ctx: Context, nodeId: string, target: Filing['target'], asset?
   return filingDto(ctx, id);
 }
 
+/**
+ * Undo an accepted EAM filing through the outbox: the EAM retires the asset the filing created,
+ * or restores what it replaced on the asset it updated. The withdrawal is a filing of its own;
+ * withdrawing twice returns it, and a rejected filing changed nothing in the EAM.
+ */
+function withdraw(ctx: Context, id: string) {
+  const filings = filingRecords(ctx);
+  const filing = filings.getExisting(id);
+  if (filing.target !== 'eam' || filing.withdraws) conflict('Only an EAM filing is withdrawn');
+  if (filing.withdrawnBy) return filingDto(ctx, filing.withdrawnBy);
+  if (filing.sync === 'pending') conflict('The EAM has not answered this filing yet');
+  if (filing.sync === 'rejected') return filingDto(ctx, id);
+  const withdrawal = newId(ctx);
+  const resource = filings.resource(withdrawal);
+  const effectId = ctx.enqueue({
+    target: eamTarget.target,
+    type: 'asset.withdraw',
+    resource,
+    payload: { assetId: filing.sorRef!, revert: filing.effectId, created: !filing.assetId },
+  });
+  filings.insert(
+    withdrawal,
+    {
+      id: withdrawal,
+      nodeId: filing.nodeId,
+      designation: filing.designation,
+      target: 'eam',
+      assetId: filing.sorRef!,
+      withdraws: filing.id,
+      effectId,
+      sync: 'pending',
+      filedBy: ctx.context.principalId,
+      filedAt: now(ctx),
+    },
+    'filed',
+  );
+  filings.update(filing.id, { withdrawnBy: withdrawal }, 'withdrawn');
+  return filingDto(ctx, withdrawal);
+}
+
 /** Record a target's outcome on the filing it delivered. */
 function settleFiling(
   ctx: Context,
@@ -143,6 +185,15 @@ export const filingHandlers = (): HandlerContribution<SurveyState, SurveyService
   }),
   handler(ops.file, (input, ctx) => fileNode(ctx, input.nodeId, 'eam', input.assetId)),
   handler(ops.export, (input, ctx) => fileNode(ctx, input.nodeId, 'export')),
+  handler(ops.withdraw, (input, ctx) => withdraw(ctx, input.id)),
+  // The capture is the business key: one instance per capture runs at a time.
+  handler(captureFileWorkflow, (input, ctx) =>
+    ctx.invoke(workflowOperations.start, {
+      workflow: captureToEam.id,
+      input: { captureId: input.id, nodeId: input.nodeId },
+      key: input.id,
+    }),
+  ),
   handler(ops.list, (input, ctx) => ({
     items: filingRecords(ctx)
       .values()
@@ -155,6 +206,13 @@ export const filingHandlers = (): HandlerContribution<SurveyState, SurveyService
     now,
     onOutcome(effect, outcome, ctx) {
       const filing = settleFiling(ctx, effect, outcome);
+      if (filing?.withdraws) {
+        // A withdrawn create leaves the node without an asset, so the next filing creates one.
+        const created = !own(ctx.state.filings, filing.withdraws)?.assetId;
+        if (outcome.status === 'accepted' && created)
+          nodeRecords(ctx).update(filing.nodeId, (node) => void delete node.assetId, 'filed');
+        return;
+      }
       // The EAM names the asset it created or updated; the node remembers it for later filings.
       if (filing && outcome.status === 'accepted' && outcome.externalRef)
         nodeRecords(ctx).update(filing.nodeId, { assetId: outcome.externalRef }, 'filed');

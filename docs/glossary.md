@@ -115,6 +115,12 @@ An authorized write, submitted the same way by every caller. It commits state, r
 
 Do not use: write operation, action (for a command).
 
+### Compensation
+
+The command a declared workflow step names to undo it. When a later step fails for good, or a person cancels the instance, the compensations of the completed steps run in reverse order, as the starter. Its input is read when its step completes. Lives in [`plugins/workflows`](../plugins/workflows/README.md).
+
+Do not use: rollback (for a compensation), undo step.
+
 ### Compliance bundle
 
 The evidence an auditor checks: the security manifest and data flows, a control mapping, a CycloneDX SBOM and a posture monitor. It is generated from the catalog and the deployment policy and re-checked while the application runs. Lives in [`plugins/compliance`](../plugins/compliance/README.md).
@@ -690,6 +696,18 @@ Do not use: shell (for the web frame), layout (for the web frame), app shell, ch
 The dispatcher's hold on one effect: a worker name, an expiry and a fencing token. A claim whose expiry passed reads as the phase before it, and another worker may take the effect over. Lives in [`packages/runtime`](../packages/runtime/README.md).
 
 Do not use: lock (for a claim), lease (alone, for a claim), reservation.
+
+### Workflow
+
+A sequence of capabilities a module declares for agents: prose `text` with the operations it names, and, when declared with `defineWorkflow`, steps that run a command or wait on a query, with their bindings, retries, timeouts and compensations. The catalog checks a declared workflow against the operations it names. Lives in [`packages/contracts`](../packages/contracts/README.md).
+
+Do not use: process (for a workflow; the process port starts child processes), saga, pipeline.
+
+### Workflow instance
+
+One run of a declared workflow, started with `workflow.start` and advanced one step per command by the workflows plugin's runner, as its starter under a grant narrowed to the workflow's operations. It ends succeeded, compensated, failed or cancelled, or stalls for a person. Lives in [`plugins/workflows`](../plugins/workflows/README.md).
+
+Do not use: workflow run, job (for an instance).
 
 ### Workforce sign-in
 

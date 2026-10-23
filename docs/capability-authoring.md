@@ -84,7 +84,48 @@ Each call takes the whole command path for its operation under the caller's cont
 
 A refused call fails the command even when the handler catches the error. The catalog refuses an unknown target, a query that invokes a command, a cycle and a chain deeper than 4. An operation's destinations include those of what it invokes, and the grants of agents and job triggers that list it cover them.
 
-Use a nested call when both writes must commit together as one caller. Use a [trigger](glossary.md#trigger) when the second write may follow later, under a standing grant.
+Use a nested call when both writes must commit together as one caller; see [choosing a composition](#choosing-a-composition) for the alternatives.
+
+## Declared workflows
+
+A sequence that waits on people or systems of record between its steps is a declared [workflow](glossary.md#workflow). `defineWorkflow` lists its steps, the module lists it in `workflows`, and the application composes the [workflows plugin](../plugins/workflows/README.md) to run it.
+
+```ts
+export const captureToEam = defineWorkflow({
+  id: 'survey.capture-to-eam',
+  version: 1,
+  text: 'Place a capture, request its extraction, wait for review, then file and export the node.',
+  input: jsonSchema(z.strictObject({ captureId: recordId, nodeId: recordId })),
+  maxDurationMs: 2 * WEEK,
+  start: 'capture.file-workflow',
+  steps: [
+    step.run('place', 'capture.place', {
+      input: { id: from.input('captureId'), nodeId: from.input('nodeId') },
+    }),
+    step.wait('reviewed', 'capture.get', {
+      input: { id: from.input('captureId') },
+      watch: ['capture'],
+      until: { equals: [from.result('review'), 'reviewed'] },
+      timeoutMs: WEEK,
+    }),
+    step.run('file', 'filing.file', {
+      input: { nodeId: from.input('nodeId') },
+      await: 'effects',
+      compensate: { command: 'filing.withdraw', input: { id: from.step('file', 'id') } },
+    }),
+  ],
+});
+```
+
+Bindings read the input (`from.input`), an earlier step's result (`from.step`), the outcome of an effect an earlier step awaited (`from.effect`) and, in a wait's condition, the query result (`from.result`). The catalog refuses a binding that reads ahead, a wait with neither `watch` nor `recheckMs`, a step that reaches a `workflow.*` operation, an unbound required input and durations out of range.
+
+Each step runs as the starter inside its own `workflow.advance` command, so it passes the application's policy as that person when it runs. A command that starts the workflow for its callers lists `workflow.start` in `invokes` and calls it with a business `key`, which admits one running instance per key.
+
+## Choosing a composition
+
+- A nested call: both writes must commit together, as one caller, in one transaction.
+- A declared workflow: steps follow each other over minutes to weeks, wait on a person or an outbox outcome, and a later failure undoes earlier steps.
+- A [trigger](glossary.md#trigger): work starts on a committed change or a schedule, under a person's standing grant, with no sequence to keep.
 
 ## Collections
 

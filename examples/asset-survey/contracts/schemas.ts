@@ -184,6 +184,10 @@ export const filingSchema = z.strictObject({
   target: z.enum(['eam', 'export']),
   /** Update this existing EAM asset; absent creates one. */
   assetId: z.string().optional(),
+  /** The filing this one withdraws from the EAM. */
+  withdraws: recordId.optional(),
+  /** The filing that withdraws this one. */
+  withdrawnBy: recordId.optional(),
   ...deliveryShape,
   filedBy: z.string(),
   filedAt: timestamp,

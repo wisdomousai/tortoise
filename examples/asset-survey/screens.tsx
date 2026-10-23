@@ -2,6 +2,7 @@ import { Archive, ClipboardList, FileText, ListTree, ScanEye } from 'lucide-reac
 import { defineScreens } from '@agent-native/frame/screens';
 import { complianceScreens } from '@agent-native/compliance/plugin-screens';
 import { deviceLinkScreens } from '@agent-native/device-link/plugin-screens';
+import { workflowsScreens } from '@agent-native/workflows/plugin-screens';
 import manifest from './manifest';
 import { AssignmentsScreen } from './ui/assignments';
 import { CaptureScreen } from './ui/capture';
@@ -43,5 +44,5 @@ export default defineScreens({
     { prefix: 'eam.', to: '/filing' },
   ],
   status: SurveyStatus,
-  plugins: [complianceScreens, deviceLinkScreens],
+  plugins: [complianceScreens, deviceLinkScreens, workflowsScreens],
 });

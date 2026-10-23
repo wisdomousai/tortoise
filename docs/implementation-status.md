@@ -135,6 +135,17 @@ No public release has been made. The entries use these kinds of evidence:
 - A target port that maps effects by `contractVersion` has not been written.
 - The phone's storage stamps versions, but has no staged `migrate`.
 
+### Workflows
+
+**Not shown.** No browser test opens the workflows screen, and no instance has run for days on a live host.
+
+**Limits.**
+
+- Steps run in order; there are no branches or parallel steps.
+- Only a serving host runs instances, and they make no progress while it is stopped.
+- A step's command commits whole, with no savepoint inside it.
+- A changed definition stalls its running instances; nothing migrates them.
+
 ### Authorization and live queries
 
 **Open.** A session revoked during a request does not stop it ([known defects](#known-defects)).

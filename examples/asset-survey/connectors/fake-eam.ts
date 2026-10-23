@@ -59,13 +59,16 @@ const compact = (text: string) => text.replaceAll(' ', '').toUpperCase();
  * Deterministic in-memory EAM for the demo and tests. It refuses to create an asset without a
  * serial number or with the designation of an active asset, attaches the photos it is sent as
  * evidence, and reports every created or updated asset on its feed. Delivery is idempotent by
- * effect ID. Searches use the integration's service account. `unavailable` makes every call
- * fail transiently.
+ * effect ID. A withdrawal retires the asset a filing created, or restores what a filing replaced
+ * on an asset it updated. Searches use the integration's service account. `unavailable` makes
+ * every call fail transiently.
  */
 export class FakeEam implements SystemOfRecordPort<AssetChange, string> {
   unavailable = false;
   readonly assets = new Map<string, EamAsset>();
   private readonly outcomes = new Map<string, EffectOutcome>();
+  /** What each update replaced, by its effect ID, so a withdrawal can restore it. */
+  private readonly replaced = new Map<string, Pick<EamAsset, 'name' | 'attributes' | 'evidence'>>();
   private readonly changes: AssetChange[] = [];
   private next = 2001;
 
@@ -94,7 +97,30 @@ export class FakeEam implements SystemOfRecordPort<AssetChange, string> {
     return outcome;
   }
 
+  private withdraw(payload: { assetId: string; revert: string; created: boolean }): EffectOutcome {
+    const asset = this.assets.get(payload.assetId);
+    const before = this.replaced.get(payload.revert);
+    if (!asset || (!payload.created && !before))
+      return {
+        status: 'rejected',
+        code: 'ASSET_UNKNOWN',
+        message: `Nothing to withdraw from ${payload.assetId}`,
+      };
+    if (payload.created) asset.status = 'retired';
+    else Object.assign(asset, structuredClone(before));
+    this.changes.push({
+      externalId: asset.externalId,
+      designation: asset.designation,
+      status: asset.status,
+    });
+    return { status: 'accepted', externalRef: asset.externalId };
+  }
+
   private async apply(effect: Readonly<Effect>): Promise<EffectOutcome> {
+    if (effect.type === 'asset.withdraw')
+      return this.withdraw(
+        effect.payload as unknown as { assetId: string; revert: string; created: boolean },
+      );
     const payload = effect.payload as unknown as {
       assetId?: string;
       designation: string;
@@ -117,6 +143,14 @@ export class FakeEam implements SystemOfRecordPort<AssetChange, string> {
           code: 'ASSET_UNKNOWN',
           message: `No active asset ${payload.assetId}`,
         };
+      this.replaced.set(
+        effect.id,
+        structuredClone({
+          name: asset.name,
+          attributes: asset.attributes,
+          evidence: asset.evidence,
+        }),
+      );
       Object.assign(asset.attributes, payload.attributes);
       asset.evidence.push(...evidence);
       asset.name = payload.name;

@@ -239,6 +239,12 @@ _A person's recorded, expiring permission for a trigger to act as that principal
 
 implemented · [`plugins/automation`](../plugins/automation/README.md)
 
+### Workflow
+
+_Declared steps that run commands and wait on queries over hours or days, as the person who started them, with retries and compensations._
+
+partial · [`packages/contracts`](../packages/contracts/README.md) [`plugins/workflows`](../plugins/workflows/README.md)
+
 ### Input source
 
 _Device input normalized into events and routed to a command without a model turn._

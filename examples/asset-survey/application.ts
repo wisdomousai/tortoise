@@ -7,6 +7,7 @@ import { networkPlugin } from '@agent-native/network/plugin';
 import { processPlugin } from '@agent-native/process/plugin';
 import { bunProcesses, type NetworkPort } from '@agent-native/host/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
+import { createWorkflowsPlugin, type WorkflowsOptions } from '@agent-native/workflows/plugin';
 import manifest from './manifest';
 import { eamTarget, exportTarget, modelTarget, operations } from './contracts';
 import {
@@ -45,6 +46,8 @@ export function createAssetSurveyApplication(
     eam?: (readBlob: EvidenceReader) => FakeEam;
     services?: SurveyServices;
     members?: Record<string, Role>;
+    /** The workflows plugin's clock and runner interval. */
+    workflows?: WorkflowsOptions;
     /** Called with the connected ports, for tests that inspect or drive them. */
     onConnect?: (ports: { eam: FakeEam; model: ReturnType<typeof createExtractorPort> }) => void;
   } = {},
@@ -75,6 +78,7 @@ export function createAssetSurveyApplication(
       auditPlugin,
       compliancePlugin,
       createDeviceLinkPlugin({ syncOperations: FIELD_SYNC_OPERATIONS }),
+      createWorkflowsPlugin(options.workflows),
     ],
     sources: {
       eam: createRemoteSource({ target: 'eam', port: eam, credentials: eam.credentials }),

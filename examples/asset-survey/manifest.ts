@@ -5,6 +5,7 @@ import { deviceLinkPluginManifest } from '@agent-native/device-link/plugin-manif
 import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
 import { processPluginManifest } from '@agent-native/process/plugin-manifest';
 import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
+import { workflowsPluginManifest } from '@agent-native/workflows/plugin-manifest';
 import { surveyModules } from './contracts';
 
 /** Browser-safe identity of the asset survey hub. */
@@ -19,6 +20,7 @@ export default defineManifest({
     auditPluginManifest,
     compliancePluginManifest,
     deviceLinkPluginManifest,
+    workflowsPluginManifest,
   ],
   targets: ['desktop', 'web'],
 });

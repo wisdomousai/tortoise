@@ -97,6 +97,15 @@ export const filingOperations = {
     forwards: 'export',
     blobs: photoLimits,
   }),
+  withdraw: operation('filing.withdraw', 'command', {
+    input: z.strictObject({ id: recordId }),
+    output: filingSchema,
+    permission: { action: 'file', resourceType: 'Filing' },
+    description:
+      'Withdraw an accepted EAM filing: the EAM retires the asset it created, or restores the attributes it replaced on the asset it updated. Returns the withdrawal, itself a filing the EAM accepts or rejects later. Withdrawing again returns the same withdrawal; a rejected filing has nothing to withdraw and comes back unchanged. Refused with CONFLICT while the EAM has not answered the filing.',
+    dependencies: ['filing', 'node'],
+    forwards: 'eam',
+  }),
   list: operation('filing.list', 'query', {
     input: z.strictObject({ nodeId: recordId.optional() }),
     output: z.strictObject({ items: z.array(filingSchema) }),

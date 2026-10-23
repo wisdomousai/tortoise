@@ -35,13 +35,17 @@ afterEach(async () => {
   for (const step of cleanup.splice(0).reverse()) await step();
 });
 
-/** A hub workspace with three members; `settings` are the plugins' (a site policy, say). */
-export async function open(settings?: PluginSettings) {
+/**
+ * A hub workspace with three members; `settings` are the plugins' (a site policy, say), and `now`
+ * the workflows plugin's clock.
+ */
+export async function open(settings?: PluginSettings, options: { now?: () => number } = {}) {
   const workspacePath = await mkdtemp(join(tmpdir(), 'agent-native-survey-'));
   let eam!: FakeEam;
   const instance = await openEmbeddedInstance(
     createAssetSurveyApplication({
       members: { owner: 'manager', rita: 'reviewer', vic: 'viewer' },
+      ...(options.now ? { workflows: { now: options.now } } : {}),
       onConnect: (ports) => {
         eam = ports.eam;
       },
@@ -84,7 +88,7 @@ export async function open(settings?: PluginSettings) {
       designation,
       name,
     });
-  return { query, command, settle, deliver, retry, photo, node, eam: () => eam };
+  return { application, query, command, settle, deliver, retry, photo, node, eam: () => eam };
 }
 
 /** A generator bay with two breakers, dispatched to device d1. */

@@ -28,6 +28,7 @@ export function FilingPanel({
   const filings = useQuery(live.liveQueryOptions(operations.filingList, { nodeId: node.id }));
   const file = useCommand(transport, operations.filingFile);
   const exportNode = useCommand(transport, operations.filingExport);
+  const withdraw = useCommand(transport, operations.filingWithdraw);
   const waiting = (target: string) =>
     filings.data?.items.some((filing) => filing.target === target && filing.sync === 'pending');
   const pending = waiting('eam');
@@ -119,12 +120,27 @@ export function FilingPanel({
               {filingLabel(filing)}
             </Badge>
             <span className="text-muted-foreground">
+              {filing.withdraws ? 'withdrawal · ' : ''}
               {when(filing.filedAt)}
               {filing.rejection && ` · ${filing.rejection.message}`}
             </span>
+            {filing.target === 'eam' &&
+              filing.sync === 'accepted' &&
+              !filing.withdraws &&
+              !filing.withdrawnBy && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={withdraw.pending}
+                  onClick={() => void quietly(withdraw.execute({ id: filing.id }))}
+                >
+                  Withdraw from the EAM
+                </Button>
+              )}
           </li>
         ))}
       </ul>
+      <ErrorText error={withdraw.error} />
     </section>
   );
 }

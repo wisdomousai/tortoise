@@ -8,6 +8,7 @@ Plugin layer, with the three plugin entrypoints an application lists. It trusts 
 
 ## Primitives
 
+- [Workflow](../../docs/primitives.md#workflow): the instances, runner and screen that run `defineWorkflow` declarations.
 - [Host plugin](../../docs/primitives.md#host-plugin): `createWorkflowsPlugin`, `workflowsPluginManifest`, `workflowsScreens`.
 - [Nested invocation](../../docs/primitives.md#nested-invocation): `workflow.advance` runs each step as a nested call (`invokes: 'any'`), so the step and the instance record commit together.
 
@@ -99,9 +100,10 @@ bun test plugins/workflows
 
 ## Skills
 
-- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md): declaring a workflow next to the commands and queries its steps call.
+- [declare-a-workflow](skills/declare-a-workflow/SKILL.md): declaring a workflow, its start command and compensations, and testing it with the runner.
+- [add-capability](../../packages/runtime/skills/add-capability/SKILL.md): the commands and queries its steps call.
 
 ## References
 
-- [Capability authoring](../../docs/capability-authoring.md#nested-calls)
+- [Capability authoring](../../docs/capability-authoring.md#declared-workflows)
 - [Authorization](../../docs/authorization.md)

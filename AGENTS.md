@@ -52,6 +52,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Add OS handlers, actions and native registrations | [add-os-integration](packages/shell/skills/add-os-integration/SKILL.md) |
 | Extend the mobile host: native plugins, pairing | [extend-mobile-host](packages/mobile/skills/extend-mobile-host/SKILL.md) |
 | Read plant signals from MQTT, Sparkplug B or OPC UA | [observe-plant-signals](packages/observation/skills/observe-plant-signals/SKILL.md) |
+| Declare a durable workflow: steps, waits, compensations, the runner | [declare-a-workflow](plugins/workflows/skills/declare-a-workflow/SKILL.md) |
 | Write a hardware driver | [write-hardware-driver](plugins/connector-driver/skills/write-hardware-driver/SKILL.md) |
 | Run agent tools in a sandbox: bubblewrap, grants, egress | [run-agent-tools-in-a-sandbox](plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) |
 | Serve a local or fine-tuned model: entries, digests, datasets, the gate | [serve-a-local-model](plugins/model-server/skills/serve-a-local-model/SKILL.md) |

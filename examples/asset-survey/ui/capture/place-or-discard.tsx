@@ -9,7 +9,8 @@ import { ErrorText, quietly } from '../shared';
 
 /**
  * Put a capture on the right node, found by designation or name, or discard it with a reason. An
- * unplaced capture can also be placed and sent for extraction in one step.
+ * unplaced capture can also be placed and sent for extraction in one step, or handed to the
+ * capture-to-EAM workflow, which also files and exports the node once its values are accepted.
  */
 export function PlaceOrDiscard({ captureId, placed }: { captureId: string; placed: boolean }) {
   const [q, setQ] = useState('');
@@ -20,6 +21,8 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
   });
   const place = useCommand(transport, operations.capturePlace);
   const placeAndExtract = useCommand(transport, operations.capturePlaceAndExtract);
+  const placeAndFile = useCommand(transport, operations.captureFileWorkflow);
+  const busy = place.pending || placeAndExtract.pending || placeAndFile.pending;
   const discard = useCommand(transport, operations.captureDiscard);
   return (
     <section
@@ -45,7 +48,7 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={place.pending || placeAndExtract.pending}
+                  disabled={busy}
                   onClick={() =>
                     void quietly(
                       place.execute({ id: captureId, nodeId: node.id }).then(() => setQ('')),
@@ -58,7 +61,7 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
                   <Button
                     size="sm"
                     variant="outline"
-                    disabled={place.pending || placeAndExtract.pending}
+                    disabled={busy}
                     onClick={() =>
                       void quietly(
                         placeAndExtract
@@ -68,6 +71,22 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
                     }
                   >
                     Place and extract
+                  </Button>
+                )}
+                {!placed && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() =>
+                      void quietly(
+                        placeAndFile
+                          .execute({ id: captureId, nodeId: node.id })
+                          .then(() => setQ('')),
+                      )
+                    }
+                  >
+                    Place and file
                   </Button>
                 )}
               </span>
@@ -92,7 +111,9 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
           Discard
         </Button>
       </form>
-      <ErrorText error={place.error ?? placeAndExtract.error ?? discard.error} />
+      <ErrorText
+        error={place.error ?? placeAndExtract.error ?? placeAndFile.error ?? discard.error}
+      />
     </section>
   );
 }

@@ -78,6 +78,9 @@ export const surveyPolicy = definePolicy<SurveyState, Role>({
     [operations.extractionAccept.id]: inSurvey(['manager', 'reviewer'], true),
     [operations.filingFile.id]: manage,
     [operations.filingExport.id]: manage,
+    [operations.filingWithdraw.id]: manage,
+    // Starting the workflow is a manager's; each step is authorized as them when it runs.
+    [operations.captureFileWorkflow.id]: manage,
     [operations.filingList.id]: read,
     [eamAssets.search.id]: read,
     [eamAssets.lookup.id]: read,

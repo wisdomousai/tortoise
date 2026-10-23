@@ -127,6 +127,11 @@ bunx playwright test examples/asset-survey/e2e
   - the same device is refused elsewhere;
   - the capture reads the same directly, over HTTP, the CLI and MCP;
   - MCP marks EAM search read-only and filing open-world.
+- `test/capture-to-eam.test.ts`, with the runner driven one pass at a time on a test clock:
+  - `survey.capture-to-eam` places the capture, waits for the review, files the node into the EAM and exports it;
+  - a refused export withdraws the EAM filing, which retires the created asset and clears the node's asset ID;
+  - a cancel during the wait stops the instance;
+  - a review not done within a week fails the instance.
 - `test/ui-bindings.test.ts`: every capability that claims a UI binding is referenced by a screen.
 - `e2e/survey.pw.ts`, in Chromium:
   - build the structure, with a refused designation shown inline;
@@ -168,7 +173,8 @@ Paths are relative to `examples/asset-survey`.
 | [Surface adapters](../../docs/primitives.md#surface-adapter): HTTP, CLI and MCP | Generated from the catalog | `test/conformance.test.ts` |
 | [Capability bindings](../../docs/primitives.md#capability-binding) and [live queries](../../docs/primitives.md#journal-and-live-query) | `ui/*.tsx` | `test/ui-bindings.test.ts`, `e2e/survey.pw.ts` |
 | Compact route variant | `review` route in `screens.tsx`, `ReviewScreenCompact` in `ui/review.tsx` | `e2e/survey.pw.ts`, "the review queue is one column" |
-| [Host plugins](../../docs/primitives.md#host-plugin) site, network, process, audit, compliance, device-link | `manifest.ts`, `application.ts` | `test/conformance.test.ts`, `test/export.test.ts` |
+| [Workflow](../../docs/primitives.md#workflow) with a compensation | `captureToEam` and `captureFileWorkflow` in `contracts/workflow.ts`; `filing.withdraw` in `handlers/filing.ts`; `createWorkflowsPlugin` in `application.ts` | `test/capture-to-eam.test.ts` |
+| [Host plugins](../../docs/primitives.md#host-plugin) site, network, process, audit, compliance, device-link, workflows | `manifest.ts`, `application.ts` | `test/conformance.test.ts`, `test/export.test.ts` |
 
 ## Structure
 
@@ -219,6 +225,19 @@ The extractor port keeps proposals in memory until the hub syncs them. A restart
 8. `createExportPort` in `export/connector.ts` starts the `filing-export` process through the process port. It writes one request line to standard input and reads one answer line, as `export/protocol.ts` defines.
 9. The worker in `export/worker.ts` checks each photo against its digest, writes the folder `<designation>_<filing>` with `record.json` and `photos/<digest>.<ext>` under a temporary name and renames it into place. The folder name becomes the filing's external reference.
 10. When the site binds no `filing-export` process, the start fails. The dispatcher records a transient failure and retries the effect.
+11. `filing.withdraw` undoes an accepted EAM filing with an `asset.withdraw` effect. `FakeEam` retires the asset the filing created, or restores the name, attributes and evidence an update replaced. The withdrawal is a filing of its own; a withdrawn create clears the node's asset ID, so the next filing creates an asset.
+
+## Workflow from capture to EAM
+
+`capture.file-workflow` starts `survey.capture-to-eam` in `contracts/workflow.ts` for an unplaced capture, as the manager who calls it, with the capture ID as its key. The workflows plugin then runs its steps:
+
+1. `capture.place` places the capture on the node.
+2. `extraction.request` sends it to the model.
+3. `capture.get` is checked whenever a capture changes, until its review is `reviewed`; after a week the instance fails.
+4. `filing.file` files the node into the EAM and completes once the EAM accepted it.
+5. `filing.export` exports the node and completes once the folder is written.
+
+When the export is refused, the plugin runs the file step's compensation, `filing.withdraw`, and the instance ends `compensated`. The `/workflows` screen lists instances, and the "Place and file" button in `ui/capture/place-or-discard.tsx` starts one.
 
 ## Implementation steps
 
@@ -375,6 +394,7 @@ The extractor port keeps proposals in memory until the hub syncs them. A restart
 
 ## Skills
 
+- [declare-a-workflow](../../plugins/workflows/skills/declare-a-workflow/SKILL.md)
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
 - [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md)
 

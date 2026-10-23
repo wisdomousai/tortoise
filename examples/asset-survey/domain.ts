@@ -107,6 +107,8 @@ export interface Filing {
   designation: string;
   target: 'eam' | 'export';
   assetId?: string;
+  withdraws?: string;
+  withdrawnBy?: string;
   effectId: string;
   sync: 'pending' | 'accepted' | 'rejected';
   sorRef?: string;

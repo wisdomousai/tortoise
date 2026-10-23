@@ -3,11 +3,13 @@ import { fieldOperations } from './contracts/captures';
 import { extractionOperations, modelTarget } from './contracts/extraction';
 import { eamAssets, eamTarget, exportTarget, filingOperations } from './contracts/filing';
 import { structureOperations } from './contracts/structure';
+import { captureFileWorkflow, captureToEam } from './contracts/workflow';
 
 export { fieldOperations } from './contracts/captures';
 export { extractionOperations, modelTarget, ATTENTION_BELOW } from './contracts/extraction';
 export { eamAssets, eamTarget, exportTarget, filingOperations } from './contracts/filing';
 export { structureOperations } from './contracts/structure';
+export { captureFileWorkflow, captureToEam } from './contracts/workflow';
 
 /** Every operation of the hub by short name, for screens and tests. */
 export const operations = {
@@ -18,10 +20,12 @@ export const operations = {
   extractionStatus: extractionOperations.status,
   capturePlaceAndExtract: extractionOperations.placeAndExtract,
   filingFile: filingOperations.file,
+  filingWithdraw: filingOperations.withdraw,
   filingList: filingOperations.list,
   filingStatus: filingOperations.status,
   filingExport: filingOperations.export,
   filingExportStatus: filingOperations.exportStatus,
+  captureFileWorkflow,
 } as const;
 
 export const structureModule = defineModule({
@@ -92,8 +96,10 @@ export const filingModule = defineModule({
   capabilities: [
     ...eamAssets.capabilities,
     filingOperations.file,
+    filingOperations.withdraw,
     filingOperations.export,
     filingOperations.list,
+    captureFileWorkflow,
     ...eamTarget.capabilities,
     ...exportTarget.capabilities,
   ],
@@ -136,6 +142,7 @@ export const filingModule = defineModule({
       ],
       text: 'For each node with accepted attributes, read structure.node.get, then search eam.asset.search by its designation and its serial. File with filing.file and the matching assetId to update, or without one to create. If the search is unavailable, do not file: an unchecked create can duplicate an asset. Afterwards read filing.list and explain every rejection; do not file the same node again until the cause is fixed.',
     },
+    captureToEam,
   ],
 });
 
