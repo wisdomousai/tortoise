@@ -58,6 +58,8 @@ const driverStart = (device: string) => async (): Promise<DriverProcess> => {
     env: environment({ INSTRUMENT_PORT: device, INSTRUMENT_ID: 'AD-4410' }),
     stdio: 'pipe',
   }) as ChildProcessWithoutNullStreams;
+  // The supervisor drops driver stderr; the test shows it, where an unclassified failure says why.
+  child.stderr.on('data', (chunk: Buffer) => process.stderr.write(chunk));
   await new Promise((done, fail) => child.once('spawn', done).once('error', fail));
   return { child, terminate: () => void child.kill() };
 };
