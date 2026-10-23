@@ -8,6 +8,7 @@ import {
 } from '@agent-native/contracts';
 import type { Effect, EffectOutcome } from '@agent-native/runtime';
 import { createPeerCall, PeerCallError, type PeerCall, type PeerClient } from './peer-call.js';
+import type { PeerDrift } from './peer/drift.js';
 import {
   DeliveryFailure,
   DeliveryUncertain,
@@ -23,9 +24,10 @@ export interface PeerPortOptions {
   readonly target: string;
   /**
    * The client for the peer, asked on every call: pairing can happen after the port is built,
-   * and a client that throws (not paired, unreachable) is a transient failure.
+   * and a client that throws (not paired, unreachable) is a transient failure. A delivery passes
+   * its effect, so a peer link can deliver it on behalf of the person who enqueued it.
    */
-  readonly client: () => PeerClient;
+  readonly client: (effect?: Readonly<Effect>) => PeerClient;
   /** A blob an effect reports with; the application's `readEffectBlob` for this workspace. */
   readonly readBlob: (
     effect: Readonly<Effect>,
@@ -41,6 +43,11 @@ export interface PeerPortOptions {
    * the ID of the record it created. Without it an accepted outcome carries none.
    */
   readonly reference?: (result: unknown, effect: Readonly<Effect>) => string | undefined;
+  /**
+   * The comparison with the peer's contract (`createPeerDrift`). A delivery or pull to an
+   * operation that drifted stays pending, and a peer's `INVALID_INPUT` checks the contract again.
+   */
+  readonly drift?: PeerDrift;
 }
 
 /**
@@ -164,22 +171,41 @@ const rejection = (error: ErrorEnvelope): EffectOutcome => ({
  *   `{ items, next? }`.
  */
 export function createPeerPort<Item = unknown>(options: PeerPortOptions): SystemOfRecordPort<Item> {
-  const peer = createPeerCall({ client: options.client });
+  const service = createPeerCall({ client: () => options.client() });
+  /** Wait while the operation drifted; the next check after the peer's change clears it. */
+  async function current(operation: string) {
+    if (!options.drift) return;
+    await options.drift.check();
+    if (options.drift.blocked(operation))
+      throw new DeliveryFailure(
+        `${operation} changed on ${options.target}; calls wait until the two applications agree`,
+      );
+  }
   return {
     describe: () => ({ target: options.target, idempotentDelivery: true }),
     async deliver(effect, signal): Promise<EffectOutcome> {
+      await current(effect.type);
+      const peer = createPeerCall({ client: () => options.client(effect) });
       const refused = await uploadBlobs(options, peer, effect, signal);
       if (refused) return rejection(refused);
       const sent = await attempt(options, () =>
         peer.command(effect.type, effect.payload, effect.id, signal),
       );
-      if ('rejected' in sent) return rejection(sent.rejected);
+      if ('rejected' in sent) {
+        // Input the peer refuses may mean its contract changed: if so, the effect waits.
+        if (sent.rejected.code === 'INVALID_INPUT' && options.drift) {
+          options.drift.invalidate();
+          await current(effect.type);
+        }
+        return rejection(sent.rejected);
+      }
       const externalRef = options.reference?.(sent.value.result, effect);
       return { status: 'accepted', ...(externalRef ? { externalRef } : {}) };
     },
     async search(request, _access, signal): Promise<SearchPage> {
       try {
-        const page = await peer.query<SearchPage>(request.operation, request.query, signal);
+        await current(request.operation);
+        const page = await service.query<SearchPage>(request.operation, request.query, signal);
         return { items: page.items, ...(page.next ? { next: page.next } : {}) };
       } catch (error) {
         // The peer's refusal, such as a cursor it no longer accepts, reaches the caller as is.
@@ -191,8 +217,9 @@ export function createPeerPort<Item = unknown>(options: PeerPortOptions): System
     ...(options.feed
       ? {
           async pull(cursor: string | undefined, signal: AbortSignal): Promise<PullBatch<Item>> {
+            await current(options.feed!);
             try {
-              return await peer.query<PullBatch<Item>>(
+              return await service.query<PullBatch<Item>>(
                 options.feed!,
                 cursor === undefined ? {} : { cursor },
                 signal,

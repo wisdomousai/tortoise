@@ -1,4 +1,4 @@
-import type { ErrorEnvelope, JsonValue } from '@agent-native/contracts';
+import type { Catalog, ErrorEnvelope, JsonValue } from '@agent-native/contracts';
 
 /** A `fetch` bound to the peer's origin, as `NetworkPort.client` returns it. */
 export interface PeerClient {
@@ -54,6 +54,8 @@ export interface PeerCall {
   upload(mediaType: string, data: Uint8Array, signal?: AbortSignal): Promise<string>;
   blob(digest: string, signal?: AbortSignal): Promise<Uint8Array>;
   post<T = unknown>(path: string, body: JsonValue, signal?: AbortSignal): Promise<T>;
+  /** The contract the peer serves this caller: its application, operations and schema digests. */
+  contract(signal?: AbortSignal): Promise<Catalog>;
 }
 
 /**
@@ -139,6 +141,9 @@ export function createPeerCall(options: PeerCallOptions): PeerCall {
     },
     async post<T>(path: string, body: JsonValue, signal?: AbortSignal) {
       return json<T>(await postJson(path, body, signal));
+    },
+    async contract(signal?: AbortSignal) {
+      return json<Catalog>(await send('/api/v1/contract', { ...(signal ? { signal } : {}) }));
     },
   };
 }

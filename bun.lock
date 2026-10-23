@@ -323,6 +323,7 @@
       "dependencies": {
         "@agent-native/contracts": "workspace:*",
         "@agent-native/runtime": "workspace:*",
+        "@noble/hashes": "2.4.0",
       },
     },
     "packages/kernel": {

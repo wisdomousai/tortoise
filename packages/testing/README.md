@@ -146,6 +146,7 @@ bun run test:conformance
   - a second storage's commit invalidates the first one's cached snapshot;
   - the same cases run against the server.
 - `test/peer-port.test.ts`: the connector cases against the peer port and a peer application served by the HTTP adapter; the reference read from the result, a held idempotency conflict, refused credentials and assertions kept pending, and search.
+- `test/peer-target.test.ts`: a peer target delivering service commands as the service principal and personal ones as the mapped person, unmapped and disconnected effects kept pending, drift blocking until the peer agrees, and a peer source with page cursors bound to the query and the caller.
 - `test/connectors.test.ts`: the connector cases against a conforming in-memory target, and against flawed ones (duplicates on retry, refusals thrown, abort ignored). Each flawed target fails with the rule it breaks.
 - `test/features.test.ts`: the feature cases against a conforming ledger fixture, and against a missing handler, a policy that ignores the access view and a slice JSON cannot keep.
 - `test/agent-scenarios.test.ts`: agent scenarios over a lots fixture, with the deterministic harness and a scripted model harness:

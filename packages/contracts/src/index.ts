@@ -6,6 +6,8 @@ export * from './capability';
 export * from './feature';
 export * from './catalog';
 export * from './contract-digest';
+export * from './peer';
+export * from './peer-target';
 export { invokesClosure, MAX_INVOKE_DEPTH } from './invokes';
 export {
   bindingsOf,

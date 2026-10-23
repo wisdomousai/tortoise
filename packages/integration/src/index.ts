@@ -8,4 +8,5 @@ export * from './data-provider.js';
 export * from './target-handlers.js';
 export * from './peer-call.js';
 export * from './peer-port.js';
+export * from './peer/index.js';
 export * from './convergent.js';

@@ -15,6 +15,7 @@ Framework (`packages/*`). Server only. Domain-neutral: the domain supplies the p
 - [Worker claims](../../docs/primitives.md#worker-claims): every attempt carries the claim's fencing token. For `defineTarget` settle commands, every settlement carries it too.
 - [Reconciliation](../../docs/primitives.md#reconciliation): the dispatcher holds an effect in three cases: its outcome cannot be established, the target lost its acknowledgement, or the recheck denies its original caller. It polls an acknowledged effect instead of resending it.
 - [Inbound sync](../../docs/primitives.md#inbound-sync): `createInboundSync`, `PullBatch`, and upstream versions through `UpstreamVersions` and `newerItems`.
+- [Peer target](../../docs/primitives.md#peer-target): `connectPeerTarget` delivers a peer target's effects through a `PeerLink`, `createPeerSource` with `peerQuery` and `peerList` answers remote queries from the peer, `createCursorSeal` binds their page cursors, and `createPeerDrift` compares the surface with the peer's served contract.
 - [Target](../../docs/primitives.md#target): `targetHandlers`, `TargetHandlerOptions`, `TargetCursor`, `settleDelivery`, `Delivered`, `targetContext`, `targetLane`, `targetRules`, `connectTarget`.
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteSource`, `CallerCredentials` and `RemoteSourceOptions` turn a port's `search` into the runtime's `RemoteSource`. The source resolves the caller's credential first.
 - [Data provider](../../docs/primitives.md#data-provider): `implementDataProvider` supplies a provider's search and lookup handlers from one item mapper.
@@ -27,7 +28,7 @@ Framework (`packages/*`). Server only. Domain-neutral: the domain supplies the p
 | Import                        | Runs in     | Contents                                                                                                                                                                 |
 | ----------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `@agent-native/integration`   | server only | Ports, dispatcher, inbound sync, target integration, remote source, data provider, peer port and convergent delivery.                                                    |
-| `@agent-native/integration/*` | server only | One source file: `port`, `dispatcher`, `drain`, `inbound-sync`, `target`, `target-handlers`, `loop`, `remote-source`, `data-provider`, `peer-call`, `peer-port` or `convergent`. |
+| `@agent-native/integration/*` | server only | One source file: `port`, `dispatcher`, `drain`, `inbound-sync`, `target`, `target-handlers`, `loop`, `remote-source`, `data-provider`, `peer-call`, `peer-port` or `convergent`; `peer/*` holds the peer target pieces. |
 
 ### Convergent delivery
 
@@ -67,6 +68,14 @@ The peer port speaks the peer host's HTTP API through a client the caller suppli
 
 `search` answers a remote query with the peer's query of the same ID, which returns `{ items, next? }`. The peer's refusal reaches the caller with its code.
 
+### Peer applications
+
+`connectPeerTarget` asks the `PeerLink` for a client per delivery. A command on the surface's service list goes as this application's service principal; one on its `onBehalfOf` list goes on behalf of `effect.principalId`, so the peer applies the policy of the person that subject is mapped to there. The subject comes only from the effect or, for a read, from the caller's context, never from input.
+
+A peer source reads as the service principal for a query declared `service` and on behalf of the caller otherwise. It wraps the peer's page cursor with an HMAC over the local operation, the query and the caller, so a cursor pages neither another query nor another person; a restart invalidates cursors.
+
+The drift check reads the peer's contract on first contact, every ten minutes, and after the peer answers `INVALID_INPUT`. It compares each surface operation's schema digest with the served one. A drifted operation is blocked by default: its effects stay pending with a message and its reads are `UNAVAILABLE`, so input the peer would read differently is never sent.
+
 ### Integration grant
 
 The integration grant can settle, sync and read status only. It cannot drive operator commands. A target's settle handler checks, inside the transaction, that the effect belongs to the calling principal's target before it records anything. `settleDelivery` refuses a record that forwarded a different effect.
@@ -75,7 +84,7 @@ The integration grant can settle, sync and read status only. It cannot drive ope
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/runtime`, and `@agent-native/event-log` in tests. The package has no network code. The port implementation reaches the target through the [egress guard](../../docs/glossary.md#egress-guard) the host provides.
+Framework: `@agent-native/contracts`, `@agent-native/runtime`, and `@agent-native/event-log` in tests. External: `@noble/hashes`, for the cursor seal, which also runs on a phone. The package has no network code. The port implementation reaches the target through the [egress guard](../../docs/glossary.md#egress-guard) the host provides.
 
 ## Tests
 
@@ -92,6 +101,7 @@ bun run test:integration
   - Another person's effect reads as missing.
   - Not applied delivers the effect again, applied settles it with the person's reference, and refused settles it as rejected.
   - The domain's `onResolved` runs in each transaction.
+- The peer port and peer target tests live in `packages/testing/test/peer-port.test.ts` and `peer-target.test.ts`, which serve a peer application through the HTTP adapter.
 - `test/convergent.test.ts`: acceptance without acting, the not-ready, precondition and act paths, consecutive reads, interruption and the lookup rules, against a fake instrument.
 - `test/reliability.test.ts`: a paused worker against the one that took over after its claim expired, a kill after the target accepted, and an acknowledged effect polled and drained. It also covers cancel before a claim, the original caller's recheck before the first claim and after revocation, and out-of-order upstream versions.
 

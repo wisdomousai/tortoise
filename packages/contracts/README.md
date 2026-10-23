@@ -11,7 +11,7 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 - [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`, and `jsonValueSchema`. `jsonValueSchema` accepts any JSON value and is the one recursive schema the portability check accepts.
 - [Module](../../docs/primitives.md#module): `defineModule`, `CapabilityModule`.
 - [Feature](../../docs/primitives.md#feature): `defineFeatureManifest`, `FeatureManifest`, `FeatureModules`, the namespace helpers `operationNamespace`, `checkNamespace`, `ownedName` and `unitIdPattern`, and `checkUnitScreens`, which both frames run on feature and plugin screens. A feature's operations start with its id, and its module and target names are its id or start with `<id>-`.
-- [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`.
+- [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`. `describeContract`, `ContractApplication` and `operationSchemaDigest` add what a host serves at `/api/v1/contract`: the application and each operation's schema digest.
 - [Agent definition](../../docs/primitives.md#agent-definition): `defineAgent`, `AgentDefinition`, `AgentBudgets`, `AgentOutput`, `ModelRequirement`, `CatalogAgent`, and the catalog checks `checkAgent` and `catalogAgents`. `agentInstructions` is the text a run's model starts with, and for a requesting agent it lists each command the agent may request approval for with its input schema.
 - Tool schemas: harnesses and surfaces build a capability's tool schema with `operationToolSchema`, or with `toolEnvelopeSchema` and `expectedRevisionsSchema`. These move a recursive input's `$defs` to the envelope's root, so llama.cpp and strict MCP clients resolve them.
 - [Command](../../docs/primitives.md#command): the caller-safe error envelope, `ApplicationError`, `ErrorCode` and `errorEnvelope`.
@@ -20,6 +20,7 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 - [Data provider](../../docs/primitives.md#data-provider): `defineDataProvider`, `DataProvider`, `DataProviderSpec`.
 - [Membership](../../docs/primitives.md#membership): `defineMembership`, `Membership`, `MembershipSpec`, `SetMemberInput`, `SetMemberOutput`.
 - [Target](../../docs/primitives.md#target): `defineTarget`, `Target`, `TargetSpec`, `SyncBatch`, `effectOutcomeSchema`, `EffectOutcomeInput`, `deliveryStatusSchema`, `rejectionSchema`, `deliveryShape`.
+- [Peer target](../../docs/primitives.md#peer-target): `definePeerSurface`, `PeerSurface` and `peerSurfaceOperations`, what an application lets a peer call as its service principal or on behalf of a person; `definePeerTarget`, `PeerTarget` and `PeerEffectRequest`, another application as an outbox target through its surface, with an authenticated destination and effects parsed by the peer's input schemas.
 - [Approval request](../../docs/primitives.md#approval-request): `approvalOperations` under fixed `approval.*` IDs, `approvalModule` and `approvalFeatureManifest`, `approvalRequestSchema` with `Approval request`, `approvalStatusSchema` with `ApprovalStatus`, and the `approval requests` collection.
 - [Reconciliation](../../docs/primitives.md#reconciliation): `reconciliationOperations` for `reconciliation.list` and `reconciliation.resolve`, `reconciliationModule` and `reconciliationFeatureManifest`, `heldEffectSchema` with `HeldEffect`, and `reconciliationDecisionSchema` with `ReconciliationDecision`.
 - [Collection](../../docs/primitives.md#collection): `defineCollection`, `Collection`, `collectionGet`, `collectionList`, `listFilters`, `listSearches`, `recordKeySchema`, `MAX_PAGE`, and the `CollectionPage` output shape.
@@ -59,7 +60,7 @@ Audit events carry references and digests. Input values appear only for the fiel
 
 ## Dependencies
 
-External: `zod`. No framework packages. This package must stay importable by a browser and by the generators. `bun run check:boundaries` rejects host runtimes, provider SDKs and server-only framework packages here.
+External: `zod`, and `@noble/hashes` for the contract digests. No framework packages. This package must stay importable by a browser and by the generators. `bun run check:boundaries` rejects host runtimes, provider SDKs and server-only framework packages here.
 
 ## Tests
 
@@ -72,6 +73,7 @@ bun test packages/contracts
 - `test/tool-envelope.test.ts`: every `$ref` of a wrapped recursive schema resolves from its root, and only commands other than `approval.request` are offered `expectedRevisions`.
 - `test/feature.test.ts`: the built-in feature manifests keep their operation ids, and a feature manifest is refused for an operation, module or target outside its id.
 - `test/contracts.test.ts`: rejects a capability without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
+- `test/peer.test.ts`: a peer surface's operation lists and its refusals of a wrong kind, a command on both lists and blobs on behalf of a person; a peer target's destination, parsed effects, whose an effect is, and a feed that must be a service query.
 - `test/os.test.ts`: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
 
 ## Skills

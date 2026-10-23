@@ -313,6 +313,12 @@ _A system of record declared once: its settle, sync and status capabilities, the
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md)
 
+### Peer target
+
+_Another agent-native application as a target, through the peer surface it publishes: the commands and queries it lets a peer call as a service principal or on behalf of a mapped person._
+
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md)
+
 ### Remote query
 
 _A query that reads another system when the caller runs the query, and stores nothing. The query acts with the caller's credential, or with a service credential where the query declares that fallback._
