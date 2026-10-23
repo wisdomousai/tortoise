@@ -39,7 +39,6 @@ const get = defineCapability({
   input: jsonSchema(z.strictObject({ id: z.string() })),
   output: jsonSchema(z.strictObject({ value: z.number().nullable() })),
   permission: { action: 'read', resourceType: 'item' },
-  invokes: ['item.set'],
   ...fixture,
 });
 const attach = defineCapability({

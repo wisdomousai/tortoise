@@ -128,7 +128,7 @@ describe('generated compliance artifacts', () => {
     expect(markdown).not.toContain('## OS handlers and actions');
   });
 
-  test('an outbox target carried by a child process is listed as a flow through that process', () => {
+  test('an outbox target carried by a child process is listed as a flow through that process, and a command invoking it as nested', () => {
     const forward = defineCapability({
       id: 'chamber.setpoint.set',
       kind: 'command',
@@ -155,12 +155,37 @@ describe('generated compliance artifacts', () => {
     });
     const manifest = securityManifest({
       application: 'agent-native',
-      catalog: buildCatalog([defineModule({ id: 'chamber', capabilities: [forward] })], {
-        components: [driver],
-      }),
+      catalog: buildCatalog(
+        [
+          defineModule({
+            id: 'chamber',
+            capabilities: [
+              forward,
+              {
+                ...forward,
+                id: 'chamber.cycle',
+                integration: undefined,
+                invokes: ['chamber.setpoint.set'],
+              },
+            ],
+          }),
+        ],
+        { components: [driver] },
+      ),
       components: [driver],
     });
     expect(manifest.flows).toEqual([
+      {
+        operation: 'chamber.cycle',
+        kind: 'command',
+        module: 'chamber',
+        path: 'nested',
+        invokes: ['chamber.setpoint.set'],
+        destinations: [],
+        processes: ['chamber-driver'],
+        dataClasses: [],
+        auditFields: [],
+      },
       {
         operation: 'chamber.setpoint.set',
         kind: 'command',
@@ -175,6 +200,9 @@ describe('generated compliance artifacts', () => {
     ]);
     expect(dataFlowsMarkdown(manifest)).toContain(
       '| `chamber.setpoint.set` | chamber | outbox | process `chamber-driver` |',
+    );
+    expect(dataFlowsMarkdown(manifest)).toContain(
+      '| `chamber.cycle` | via `chamber.setpoint.set` | nested | process `chamber-driver` |',
     );
   });
 

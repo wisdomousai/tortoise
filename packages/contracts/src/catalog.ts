@@ -7,6 +7,7 @@ import type {
   RemoteReadDeclaration,
 } from './capability';
 import { catalogAgents, type CatalogAgent } from './agent';
+import { composeInvokes } from './invokes';
 import { canonicalJson, type JsonObject } from './json';
 import { collectOs, osActionTargets, type CatalogOs } from './os-catalog';
 import {
@@ -41,6 +42,11 @@ export interface CatalogOperation {
   readonly folders?: readonly string[];
   readonly audit?: { readonly fields?: readonly string[] };
   readonly blobs?: BlobLimits;
+  /**
+   * The operations its handler may call inside its transaction, or `any`. Its destinations,
+   * processes and folders include those of everything the list reaches.
+   */
+  readonly invokes?: readonly string[] | 'any';
 }
 export interface Catalog {
   readonly formatVersion: 1;
@@ -212,6 +218,7 @@ function catalogOperation(
     ...(folders.length ? { folders } : {}),
     ...(capability.audit ? { audit: capability.audit } : {}),
     ...(capability.blobs ? { blobs: capability.blobs } : {}),
+    ...(capability.invokes ? { invokes: capability.invokes } : {}),
   };
 }
 
@@ -259,14 +266,12 @@ export function buildCatalog(
       );
     }
   }
+  const composed = composeInvokes(operations.sort(byId));
   const catalog: Catalog = {
     formatVersion: 1,
-    operations: operations.sort(byId),
+    operations: composed,
     workflows: catalogWorkflows(modules, seen.ids),
-    agents: catalogAgents(
-      modules,
-      new Map(operations.map((operation) => [operation.id, operation])),
-    ),
+    agents: catalogAgents(modules, new Map(composed.map((operation) => [operation.id, operation]))),
     requirements,
     ...(os ? { os } : {}),
   };

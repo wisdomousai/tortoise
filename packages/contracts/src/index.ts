@@ -5,6 +5,7 @@ export * from './schema';
 export * from './capability';
 export * from './feature';
 export * from './catalog';
+export { invokesClosure, MAX_INVOKE_DEPTH } from './invokes';
 export * from './errors';
 export * from './data-provider';
 export * from './collection';

@@ -1,4 +1,4 @@
-import { ApplicationError, type AnyCapability } from '@agent-native/contracts';
+import { ApplicationError, MAX_INVOKE_DEPTH, type AnyCapability } from '@agent-native/contracts';
 import type { Invocation } from '../types.js';
 import { sameState } from '../state-equality.js';
 import { prepareCommand } from './command-request.js';
@@ -7,7 +7,7 @@ import { createHandlerContext, type HandlerScope } from './handler-context.js';
 import { authorize, project, resolveOperation, type Kernel } from './kernel.js';
 
 /** Deepest nesting below the top-level frame, and most nested calls in one command. */
-export const MAX_DEPTH = 4;
+export const MAX_DEPTH = MAX_INVOKE_DEPTH;
 export const MAX_CALLS = 64;
 
 /** One nested call, in the order the handlers made them. */

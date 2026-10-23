@@ -1,4 +1,5 @@
 import type {
+  CatalogOperation,
   Catalog,
   DeviceRequirement,
   FolderRequirement,
@@ -13,9 +14,15 @@ export interface DataFlow {
   readonly operation: string;
   readonly kind: 'command' | 'query';
   readonly module: string;
-  readonly target: string;
-  /** `outbox`: forwarded after commit. `remote-read`: the request goes out when called; nothing is stored. */
-  readonly path: 'outbox' | 'remote-read';
+  /** The outbox or remote-read target; absent for a `nested` flow. */
+  readonly target?: string;
+  /**
+   * `outbox`: forwarded after commit. `remote-read`: the request goes out when called; nothing is
+   * stored. `nested`: the operation reaches the destinations through the operations it invokes.
+   */
+  readonly path: 'outbox' | 'remote-read' | 'nested';
+  /** For a `nested` flow, the operations it invokes. */
+  readonly invokes?: readonly string[];
   readonly destinations: readonly string[];
   /** Child processes that carry the effects instead, such as a hardware driver over its stdio. */
   readonly processes?: readonly string[];
@@ -91,7 +98,7 @@ export function securityManifest(options: {
   const flows = catalog.operations
     .filter(
       (operation) =>
-        (operation.integration || operation.remote) &&
+        (operation.integration || operation.remote || Array.isArray(operation.invokes)) &&
         (operation.destinations?.length ||
           operation.processes?.length ||
           operation.folders?.length),
@@ -100,8 +107,7 @@ export function securityManifest(options: {
       operation: operation.id,
       kind: operation.kind,
       module: operation.module,
-      target: (operation.integration ?? operation.remote)!.target,
-      path: operation.integration ? ('outbox' as const) : ('remote-read' as const),
+      ...flowPath(operation),
       destinations: [...(operation.destinations ?? [])],
       ...(operation.processes?.length ? { processes: [...operation.processes] } : {}),
       ...(operation.folders?.length ? { folders: [...operation.folders] } : {}),
@@ -146,6 +152,13 @@ export function securityManifest(options: {
 
 const cell = (value: string) => value.replace(/\|/g, '\\|').replace(/\n/g, ' ');
 const node = (id: string) => id.replace(/[^A-Za-z0-9_]/g, '_');
+
+/** Where an operation's flow starts: its own target, or the operations it invokes. */
+function flowPath(operation: CatalogOperation): Pick<DataFlow, 'target' | 'path' | 'invokes'> {
+  const own = operation.integration ?? operation.remote;
+  if (own) return { target: own.target, path: operation.integration ? 'outbox' : 'remote-read' };
+  return { path: 'nested', invokes: [...(operation.invokes as readonly string[])] };
+}
 
 /** The Mermaid flowchart: destinations grouped by scope, then flows and child processes. */
 function flowDiagram(manifest: SecurityManifest): string[] {
@@ -196,13 +209,13 @@ function destinationTables(manifest: SecurityManifest): string[] {
     '',
     '## Operations that leave the host',
     '',
-    'An `outbox` operation is committed locally first and forwarded through the outbox; a receipt proves the local commit, not acceptance by the target. A `remote-read` query sends its request to the target when called, with the caller’s credential, and stores nothing it receives.',
+    'An `outbox` operation is committed locally first and forwarded through the outbox; a receipt proves the local commit, not acceptance by the target. A `remote-read` query sends its request to the target when called, with the caller’s credential, and stores nothing it receives. A `nested` command reaches the destinations of the operations it invokes, which run inside its transaction.',
     '',
     '| Operation | Target | Path | Destinations | Data classes | Audited fields |',
     '| --- | --- | --- | --- | --- | --- |',
     ...manifest.flows.map(
       (flow) =>
-        `| \`${flow.operation}\` | ${flow.target} | ${flow.path} | ${[
+        `| \`${flow.operation}\` | ${flow.target ?? `via ${(flow.invokes ?? []).map((id) => `\`${id}\``).join(', ')}`} | ${flow.path} | ${[
           ...flow.destinations.map((id) => `\`${id}\``),
           ...(flow.processes ?? []).map((id) => `process \`${id}\``),
           ...(flow.folders ?? []).map((id) => `folder \`${id}\``),

@@ -25,7 +25,11 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
    `add collection`, `add target` and `add agent` generate the other parts.
 2. Write the contract in the browser-safe [module](../../../../docs/glossary.md#module) (`contracts.ts`): a stable ID, strict JSON input and output schemas, the permission, and a [UI binding](../../../../docs/glossary.md#ui-binding) or a stated headless exception.
 3. Add workflow text when agents need a sequence of capabilities. It names operation IDs, never transport tool names.
-4. Write the [handler](../../../../docs/glossary.md#handler) in the server entrypoint with `createHandlerFactory`. Declare every changed resource with `ctx.change`.
+4. Write the [handler](../../../../docs/glossary.md#handler) in the server entrypoint with `createHandlerFactory`. Declare every changed resource with `ctx.change`. To run another operation inside the same transaction, as the same caller:
+   - list it in the capability's `invokes`; `'any'` is for a command that runs whatever its input names, such as `approval.approve`;
+   - call `ctx.invoke(capability, input, expectedRevisions?)` or `ctx.query(capability, input)` and await each call before the next;
+   - the catalog refuses an unknown target, a query that invokes a command, a cycle, and a chain deeper than 4;
+   - the operation's destinations, processes and folders, and the grants of agents and job triggers that list it, include what it invokes.
 5. Make no network call inside the transaction. Enqueue an [outbox effect](../../../../docs/glossary.md#effect) with `ctx.enqueue` and declare `integration` on the capability instead. The framework's reconciliation capabilities decide the effects the dispatcher holds, without a new command; the `connect-system-of-record` skill covers them.
 6. Write the policy for the operation, the object, current and proposed fields, and grant scope. Filter rows before paging or counting.
 7. Compose through the application's `manifest.ts` and `application.ts`, never in `apps/*`.

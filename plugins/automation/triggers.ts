@@ -1,5 +1,10 @@
 import type { ModelDemand } from '@agent-native/agents/placement';
-import type { AgentBudgets, Catalog, ModelRequirement } from '@agent-native/contracts';
+import {
+  invokesClosure,
+  type AgentBudgets,
+  type Catalog,
+  type ModelRequirement,
+} from '@agent-native/contracts';
 import { agentGrant } from '@agent-native/runtime';
 import type { TriggerDefinition } from './contracts';
 import type { Job } from './jobs';
@@ -41,8 +46,9 @@ function runOperations(
     return { operations, budgets: agent.budgets, model: agent.model, demand };
   }
   if (!jobs.has(run.job)) throw new Error(`Trigger ${trigger.id} runs unregistered job ${run.job}`);
+  // The job's operations and those they invoke, so its standing grant covers the nested calls.
   return {
-    operations: [...run.operations],
+    operations: invokesClosure(catalog, run.operations),
     budgets: trigger.budgets ?? DEFAULT_JOB_BUDGETS,
   };
 }

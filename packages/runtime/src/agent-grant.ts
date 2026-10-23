@@ -1,4 +1,4 @@
-import { ApplicationError, type Catalog } from '@agent-native/contracts';
+import { ApplicationError, invokesClosure, type Catalog } from '@agent-native/contracts';
 import type { DelegationGrant, ExecutionContext } from './types.js';
 
 export interface AgentGrantOptions {
@@ -14,8 +14,9 @@ const intersect = (allowed: readonly string[], limit: readonly string[] | undefi
 
 /**
  * The delegation grant a run under an agent definition executes with. It only narrows the
- * issuer's own context: operations are the definition's within the issuer's grant (a requesting
- * agent gets its queries and `approval.request` when the catalog has it, never its commands),
+ * issuer's own context: operations are the definition's and those their `invokes` lists reach,
+ * within the issuer's grant (a requesting agent gets its queries and `approval.request` when the
+ * catalog has it, never its commands),
  * resources are the run's starting resources of the definition's types within the issuer's
  * resources, and it expires at the earlier of the issuer's expiry and the definition's wall-time
  * budget. A resource-scoped requesting run may also create approval requests (`creates`). It is bound to
@@ -33,9 +34,13 @@ export function agentGrant(
   const kinds = new Map(catalog.operations.map((operation) => [operation.id, operation.kind]));
   const own =
     agent.output === 'direct'
-      ? agent.operations
+      ? invokesClosure(catalog, agent.operations)
       : [
-          ...agent.operations.filter((id) => kinds.get(id) === 'query'),
+          // A query invokes only queries, so the closure keeps a requesting agent to reads.
+          ...invokesClosure(
+            catalog,
+            agent.operations.filter((id) => kinds.get(id) === 'query'),
+          ),
           ...(kinds.has('approval.request') ? ['approval.request'] : []),
         ];
   const operations = intersect([...new Set(own)], issuer.grant?.operations);

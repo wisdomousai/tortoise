@@ -7,6 +7,7 @@ import {
   defineCapability,
   defineHostComponent,
   defineModule,
+  invokesClosure,
   jsonSchema,
   type NetworkDestination,
 } from '../src/index';
@@ -268,4 +269,75 @@ test('sparse arrays are not JSON, so they cannot reload as null', () => {
   expect(() => assertJson(new Array(1))).toThrow('Sparse array at $[0]');
   expect(() => assertJson({ list: [1, , 3] })).toThrow('Sparse array at $.list[1]');
   expect(() => assertJson([null, 1])).not.toThrow();
+});
+
+describe('declared nested calls', () => {
+  const calling = (id: string, invokes: readonly string[] | 'any', kind = 'command' as const) => ({
+    ...capability(id),
+    kind,
+    invokes,
+  });
+  const query = (id: string, invokes?: readonly string[]) => ({
+    ...capability(id),
+    kind: 'query' as const,
+    ...(invokes ? { invokes } : {}),
+  });
+  const catalogOf = (...capabilities: Parameters<typeof defineModule>[0]['capabilities']) =>
+    buildCatalog([
+      defineModule({ id: 'a', capabilities, requirements: { network: [qualityApi] } }),
+    ]);
+
+  test('targets exist, queries invoke queries, and nothing reaches itself', () => {
+    expect(() => catalogOf(calling('a.outer', ['a.missing']))).toThrow(
+      'Operation a.outer invokes unknown operation a.missing',
+    );
+    expect(() => catalogOf(query('a.read', ['a.write']), capability('a.write'))).toThrow(
+      'Query a.read invokes command a.write',
+    );
+    expect(() =>
+      catalogOf(
+        calling('a.one', ['a.two']),
+        calling('a.two', ['a.three']),
+        calling('a.three', ['a.one']),
+      ),
+    ).toThrow('Operation a.one invokes itself: a.one -> a.two -> a.three -> a.one');
+    // `any` cannot be checked statically; the runtime refuses a call through a running operation.
+    expect(catalogOf(calling('a.any', 'any')).operations[0]?.invokes).toBe('any');
+  });
+
+  test('chains go at most four levels deep', () => {
+    const chain = (length: number) =>
+      Array.from({ length }, (_, step) =>
+        step + 1 < length ? calling(`a.s${step}`, [`a.s${step + 1}`]) : capability(`a.s${step}`),
+      );
+    expect(catalogOf(...chain(5)).operations).toHaveLength(5);
+    expect(() => catalogOf(...chain(6))).toThrow(
+      'Operation a.s0 nests calls more than 4 levels deep',
+    );
+  });
+
+  test('a composite carries the destinations of what it reaches, and grants close over it', () => {
+    const record = {
+      ...capability('a.record'),
+      integration: { target: 'quality-system', delivery: 'outbox' as const },
+    };
+    const catalog = catalogOf(
+      calling('a.composite', ['a.middle']),
+      calling('a.middle', ['a.record', 'a.plain']),
+      capability('a.plain'),
+      record,
+      calling('a.approve', 'any'),
+    );
+    const byId = new Map(catalog.operations.map((operation) => [operation.id, operation]));
+    expect(byId.get('a.composite')?.destinations).toEqual(['quality-api']);
+    expect(byId.get('a.middle')?.destinations).toEqual(['quality-api']);
+    expect(byId.get('a.plain')).not.toHaveProperty('destinations');
+    expect(invokesClosure(catalog, ['a.composite', 'a.plain'])).toEqual([
+      'a.composite',
+      'a.middle',
+      'a.record',
+      'a.plain',
+    ]);
+    expect(invokesClosure(catalog, ['a.approve'])).toEqual(['a.approve']);
+  });
 });

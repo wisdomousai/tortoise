@@ -1,4 +1,4 @@
-import { canonicalJson } from '@agent-native/contracts';
+import { canonicalJson, type CatalogOperation } from '@agent-native/contracts';
 import { commandWords, synopsis } from '@agent-native/adapters/cli-syntax';
 import { loadManifest, readStarterConfig, type ApplicationManifest } from '@agent-native/host';
 import { deploymentCatalog, deploymentComponents } from '@agent-native/host/components';
@@ -45,6 +45,14 @@ export async function applications(): Promise<ApplicationManifest[]> {
 }
 
 export const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
+
+/** The operations a handler may call inside its transaction, as `operations.md` lists them. */
+const invokesLine = (operation: CatalogOperation) =>
+  operation.invokes === 'any'
+    ? '- Invokes: any command its input names, each authorized as the caller.\n'
+    : operation.invokes?.length
+      ? `- Invokes: ${operation.invokes.map((id) => `\`${id}\``).join(', ')}, in the same transaction.\n`
+      : '';
 
 /** Every artifact for one application, by path relative to its reference directory. */
 export function artifacts(manifest: ApplicationManifest) {
@@ -137,7 +145,7 @@ export function artifacts(manifest: ApplicationManifest) {
         catalog.operations
           .map(
             (operation) =>
-              `## ${operation.id}\n\n${operation.description || operation.id}\n\n- Kind: ${operation.kind}\n- MCP: \`${operation.mcpName}\`\n- Permission: \`${operation.permission.action}\` on \`${operation.permission.resourceType}\`\n- UI: ${operation.ui.binding ?? operation.ui.exception}\n${operation.integration ? `- System of record: forwarded to \`${operation.integration.target}\` through the outbox. A receipt proves the local commit, not acceptance by the target.\n` : ''}${operation.remote ? `- System of record: reads \`${operation.remote.target}\` live when called, as ${operation.remote.identity === 'caller' ? 'the caller' : 'the caller, or a service account when the caller has no credential'}. Nothing is stored; the result reports the source status and fetch time.\n` : ''}${agentsOf(catalog, operation.id)}- CLI: \`${synopsis(operation, program)}\`\n\nInput:\n\n\`\`\`json\n${JSON.stringify(operation.inputSchema, null, 2)}\n\`\`\`\n\nOutput:\n\n\`\`\`json\n${JSON.stringify(operation.outputSchema, null, 2)}\n\`\`\`\n`,
+              `## ${operation.id}\n\n${operation.description || operation.id}\n\n- Kind: ${operation.kind}\n- MCP: \`${operation.mcpName}\`\n- Permission: \`${operation.permission.action}\` on \`${operation.permission.resourceType}\`\n- UI: ${operation.ui.binding ?? operation.ui.exception}\n${operation.integration ? `- System of record: forwarded to \`${operation.integration.target}\` through the outbox. A receipt proves the local commit, not acceptance by the target.\n` : ''}${operation.remote ? `- System of record: reads \`${operation.remote.target}\` live when called, as ${operation.remote.identity === 'caller' ? 'the caller' : 'the caller, or a service account when the caller has no credential'}. Nothing is stored; the result reports the source status and fetch time.\n` : ''}${invokesLine(operation)}${agentsOf(catalog, operation.id)}- CLI: \`${synopsis(operation, program)}\`\n\nInput:\n\n\`\`\`json\n${JSON.stringify(operation.inputSchema, null, 2)}\n\`\`\`\n\nOutput:\n\n\`\`\`json\n${JSON.stringify(operation.outputSchema, null, 2)}\n\`\`\`\n`,
           )
           .join('\n'),
     ],

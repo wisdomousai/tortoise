@@ -104,3 +104,55 @@ test('an unknown agent is NOT_FOUND', () => {
     expect.objectContaining({ code: 'NOT_FOUND' }),
   );
 });
+
+test('an agent grant covers what its operations invoke, within the issuer grant', () => {
+  const composite = buildCatalog([
+    defineModule({
+      id: 'lots',
+      capabilities: [
+        { ...operation('lot.release-all', 'command'), invokes: ['lot.release'] },
+        operation('lot.release', 'command'),
+        { ...operation('lot.summary', 'query'), invokes: ['lot.list'] },
+        operation('lot.list', 'query'),
+        operation('approval.request', 'command'),
+      ],
+      agents: [
+        defineAgent({
+          id: 'lot.batch',
+          title: 'Batch',
+          instructions: 'Release every passing lot.',
+          operations: ['lot.release-all'],
+          model: 'local',
+          output: 'direct',
+          budgets,
+        }),
+        defineAgent({
+          id: 'lot.reporter',
+          title: 'Reporter',
+          instructions: 'Summarize the lots.',
+          operations: ['lot.summary', 'lot.release-all'],
+          model: 'local',
+          output: 'request-approval',
+          budgets,
+        }),
+      ],
+    }),
+  ]);
+  expect(agentGrant(composite, 'lot.batch', person, { now: 0 }).operations).toEqual([
+    'lot.release-all',
+    'lot.release',
+  ]);
+  expect(
+    agentGrant(
+      composite,
+      'lot.batch',
+      { ...person, grant: { operations: ['lot.release-all'] } },
+      { now: 0 },
+    ).operations,
+  ).toEqual(['lot.release-all']);
+  expect(agentGrant(composite, 'lot.reporter', person, { now: 0 }).operations).toEqual([
+    'lot.summary',
+    'lot.list',
+    'approval.request',
+  ]);
+});

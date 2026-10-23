@@ -51,7 +51,7 @@ bun test examples/<app>
 bun run generate
 ```
 
-`generate` writes the capability reference, which states for each integrated command that a receipt is not acceptance. Review the destinations in the generated security manifest. Record a run against the real system separately in [implementation status](../../../../docs/implementation-status.md).
+`generate` writes the capability reference, which states for each integrated command that a receipt is not acceptance. Review the destinations in the generated security manifest; a command that invokes an integrated command is listed there as a `nested` flow with the same destinations. Record a run against the real system separately in [implementation status](../../../../docs/implementation-status.md).
 
 ## References
 

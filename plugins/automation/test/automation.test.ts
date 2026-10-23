@@ -1,4 +1,6 @@
 import { describe, expect, test } from 'bun:test';
+import { z } from 'zod';
+import { buildCatalog, defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
 import { defineTrigger } from '../contracts';
 import { resolveTriggers } from '../triggers';
 import type { Harness, HarnessTurn } from '@agent-native/agents/types';
@@ -164,6 +166,35 @@ describe('automation triggers', () => {
       expect(() => resolveTriggers([defineTrigger(trigger as never)], catalog, jobs)).toThrow(
         message,
       );
+  });
+
+  test('a job trigger lists the operations its operations invoke', () => {
+    const lot = (id: string) =>
+      defineCapability({
+        id,
+        kind: 'command',
+        input: jsonSchema(z.strictObject({})),
+        output: jsonSchema(z.strictObject({})),
+        permission: { action: 'update', resourceType: 'lot' },
+        ui: { exception: 'test fixture' },
+      });
+    const catalog = buildCatalog([
+      defineModule({
+        id: 'lots',
+        capabilities: [{ ...lot('lot.batch'), invokes: ['lot.inspect'] }, lot('lot.inspect')],
+      }),
+    ]);
+    const trigger = defineTrigger({
+      id: 't',
+      title: 'T',
+      on: { schedule: { everyMs: 60_000 } },
+      run: { job: 'inspect', operations: ['lot.batch'] },
+    });
+    const jobs = new Map(Object.entries(defaultJobs));
+    expect(resolveTriggers([trigger], catalog, jobs).get('t')?.operations).toEqual([
+      'lot.batch',
+      'lot.inspect',
+    ]);
   });
 
   test('an agent trigger runs on a harness that keeps its model local, as the issuer', async () => {
