@@ -3,6 +3,7 @@ import type { AppState } from './domain';
 import type { Services } from './handlers/context';
 import { deliveryHandlers } from './handlers/delivery';
 import { erpHandlers } from './handlers/erp-target';
+import { qualityHandlers } from './handlers/quality-peer';
 // scaffold:imports
 
 export type { Services } from './handlers/context';
@@ -14,6 +15,7 @@ export function createHandlers(): HandlerContribution<AppState, Services>[] {
   return [
     ...deliveryHandlers(),
     ...erpHandlers(),
+    ...qualityHandlers(),
     // scaffold:handlers
   ];
 }

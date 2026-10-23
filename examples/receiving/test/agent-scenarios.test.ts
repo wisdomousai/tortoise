@@ -36,7 +36,8 @@ beforeAll(async () => {
     { workspacePath: join(directory, 'workspace'), settings: { 'site-policy': policy } },
   );
   await writeFile(join(directory, 'share', erpFolders.inbox, 'asn-1001.csv'), notice);
-  await instance.integrations.sync();
+  // The ERP's notices only: quality inspection is not connected here.
+  await instance.integrations.target('erp').inbound.runOnce();
 });
 afterAll(async () => {
   await instance?.close();

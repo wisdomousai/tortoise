@@ -4,6 +4,8 @@
 
 Records are append-only, and a correction supersedes a result instead of editing it. Inspectors, supervisors and viewers hold roles per plant.
 
+Other agent-native applications call it as peers through the surface in `contracts/peer.ts`. A receiving application announces arrivals of received goods, an inspector closes each with an outcome, and the receiving application reads the outcomes of its own arrivals back. On behalf of a person mapped to someone here, a peer lists and reads lots under that person's plant roles.
+
 ## Layer
 
 Content (`examples/*`). The demo quality system ([`fake-sor.ts`](fake-sor.ts)) lives here, and only this application's `connect` wires it.
@@ -13,7 +15,8 @@ Content (`examples/*`). The demo quality system ([`fake-sor.ts`](fake-sor.ts)) l
 The example is one [application](../../docs/primitives.md#application). It composes:
 
 - a [module](../../docs/primitives.md#module) of `inspection.*` [capabilities](../../docs/primitives.md#capability), plus the `compliance` module from its plugin.
-- the `site`, `network`, `audit`, `compliance`, `process` and `driver` (`connector-driver`) [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance and driver plugins' screens.
+- the `site`, `network`, `audit`, `compliance`, `process`, `driver` (`connector-driver`) and `peer-link` [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance, driver and peers screens.
+- a [peer target](../../docs/primitives.md#peer-target) surface, `qualityPeerSurface`, served by the [peer link](../../docs/primitives.md#peer-link) with the integration and instrument principals reserved.
 - a [driver contract](../../docs/primitives.md#driver-contract) for the capture station's measuring instrument (`contracts/instrument.ts`), and a Python [driver process](../../docs/primitives.md#driver-process) for it in `drivers/instrument/`.
 - [outbox effects](../../docs/primitives.md#outbox-effect) for every captured record, delivered by a [dispatcher](../../docs/primitives.md#dispatcher) through a [connector](../../docs/primitives.md#connector). [Inbound sync](../../docs/primitives.md#inbound-sync) brings in lots and code groups. One [target](../../docs/primitives.md#target) in `contracts/target.ts` declares both directions.
 - [capability bindings](../../docs/primitives.md#capability-binding) for keyboard-first capture: `useCapabilityForm`, capture timing and wedge-scan routing.
@@ -27,7 +30,8 @@ The example is one [application](../../docs/primitives.md#application). It compo
 | --- | --- | --- |
 | `@agent-native/quality-inspection/manifest` | browser and server | Default export: `defineManifest` with ID `quality-inspection`. |
 | `@agent-native/quality-inspection/application` | server only | Default export: `defineApplication`, whose `connect` wires the quality-system target and the instrument's readings. |
-| `@agent-native/quality-inspection/screens` | browser | Default export: `defineScreens` with Inspection, Capture, Synchronization, the sync badge and the plugin screens. |
+| `@agent-native/quality-inspection/screens` | browser | Default export: `defineScreens` with Inspection, Capture, Arrivals, Synchronization, the sync badge and the plugin screens. |
+| `@agent-native/quality-inspection/contracts/peer` | browser and any host | `qualityPeerSurface`, the arrival operations and the feed item schema, for a calling application's `definePeerTarget`. |
 | `@agent-native/quality-inspection/*` | see file | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `fake-sor`. |
 
 `appendResult` in `server/` validates a measurement, picks the sample and queues forwarding, all in the caller's transaction.
@@ -81,11 +85,13 @@ Plant roles come from state. Handlers scope lots and results to the caller's pla
 
 The quality-system integration runs as its own principal (`INTEGRATION_PRINCIPAL`), whose grant can sync and settle but cannot capture. The instrument driver runs as another principal (`INSTRUMENT_PRINCIPAL`), which can only report readings. Readings are visible to people who capture at some plant.
 
+A peer's service principal, `peer:<id>`, may only announce arrivals and read the feed, which answers only the arrivals that peer announced. A peer acting on behalf of a person runs as the person the subject is mapped to, with that person's plant roles, and may only list and read lots. Arrivals belong to no plant: everyone who captures at some plant sees and closes them.
+
 A commit [receipt](../../docs/glossary.md#receipt) proves the local write only. The sync badge and the Synchronization screen show whether the system of record has accepted it. Capture telemetry does not influence authorization.
 
 ## Dependencies
 
-Framework and plugins: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/frame`, `@agent-native/react`, `@agent-native/site`, `@agent-native/network`, `@agent-native/audit`, `@agent-native/compliance`, `@agent-native/process` and `@agent-native/connector-driver`. The tests also use `@agent-native/testing`, `@agent-native/adapters`, `@agent-native/client` and `@agent-native/event-log`.
+Framework and plugins: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/host`, `@agent-native/integration`, `@agent-native/frame`, `@agent-native/react`, `@agent-native/site`, `@agent-native/network`, `@agent-native/audit`, `@agent-native/compliance`, `@agent-native/process`, `@agent-native/connector-driver` and `@agent-native/peer-link`. The tests also use `@agent-native/testing`, `@agent-native/adapters`, `@agent-native/client` and `@agent-native/event-log`.
 
 External: `zod`, `react`, `@tanstack/react-query`, `@tanstack/react-router` and `lucide-react`. The instrument driver needs Python 3.11 or newer and `pyserial`. Content must never import `apps/*`.
 
@@ -110,6 +116,7 @@ bunx playwright test examples/quality-inspection/e2e
 - `test/application.test.ts`: the embedded instance syncs and drains the target it declares.
 - `test/sandbox.test.ts`: the compiled binary with an empty environment runs embedded MCP capture under a grant, returns drain exit codes and runs a grant-bound `serve`.
 - `test/security.test.ts`: auditors read posture over HTTP, and the CLI verifies, reports and detects tampering.
+- `test/arrivals.test.ts`: each peer reads only its own arrivals' outcomes from its cursor, a delivery announced again while open gets its open arrival, and peers, viewers and inspectors are each refused the others' part. The two-host run with a receiving application is `examples/receiving/test/quality-peer.test.ts`.
 - `test/ui-bindings.test.ts`: every capability that claims a UI binding is referenced by a screen.
 - `test/instrument.test.ts`, with the in-process fake driver:
   - an event becomes a reading, an inspector confirms it once, and the forwarded record names the instrument;
@@ -162,6 +169,7 @@ Paths under the packages and scripts directories are relative to the repository 
 | [Requirement declaration](../../docs/primitives.md#requirement-declaration) for the target and the driver | `contracts.ts`; `contracts/instrument.ts` | `test/security.test.ts` |
 | [Deployment policy](../../docs/primitives.md#deployment-policy) and [egress guard](../../docs/primitives.md#egress-guard) export | `site-policy.sandbox.json` | `test/security.test.ts` |
 | [Audit log](../../docs/primitives.md#audit-log) and [compliance bundle](../../docs/primitives.md#compliance-bundle) | The audit and compliance plugins | `test/security.test.ts`; `test/sandbox.test.ts` |
+| [Peer link](../../docs/primitives.md#peer-link) serving a peer surface | `contracts/peer.ts` `qualityPeerSurface`; `application.ts` `qualityPeerLinkPlugin`; `policy.ts` `peerLane`; `handlers/arrivals.ts` | `test/arrivals.test.ts`; [`../receiving/test/quality-peer.test.ts`](../receiving/test/quality-peer.test.ts) |
 | [State migration](../../docs/primitives.md#state-migration) without numbered versions | `application.ts` `upgradeState` | `test/instrument.test.ts`, "state saved before readings existed is upgraded with an empty set" |
 
 ## Structure
@@ -172,7 +180,7 @@ Paths under the packages and scripts directories are relative to the repository 
 | `application.ts` | The application definition: state, handlers, composed policy, plugins, `connect` and the fake quality system configured from environment variables. |
 | `screens.tsx` | Routes, navigation, capability screens, the sync badge and the compliance and driver plugin screens. |
 | `contracts.ts` | The module: all capabilities, the network requirement for the quality system and the agent workflows. |
-| `contracts/` | Browser-safe schemas, the `operation` helper and its descriptions, queries, commands, the lot collection, plant membership, the target and the driver contract. |
+| `contracts/` | Browser-safe schemas, the `operation` helper and its descriptions, queries, commands, the lot collection, plant membership, the target, the driver contract, arrivals and the peer surface. |
 | `domain.ts` | State types, plant roles, evaluation against specification limits, progress and the next open `sample` to measure. |
 | `policy.ts` | `qualityPolicy`, and the mapping from a journal or outbox resource to its lot and plant. |
 | `server.ts`, `server/` | The handler list and the code the handler groups share, including `appendResult`. |
@@ -408,6 +416,7 @@ Follow the [write-hardware-driver](../../plugins/connector-driver/skills/write-h
 - **Measurement age.** The instance refuses a measurement more than 24 hours old. A batch holds at most 100 measurements for one lot.
 - **Held effects.** The example composes no reconciliation capabilities, so a held effect has no screen or command a person can use. The dispatcher holds an effect when the principal that committed it may no longer run its command at the first claim.
 - **Uncertain deliveries.** The fake quality system is idempotent by effect ID and never reports an uncertain outcome. A real connector can also cause held effects for uncertain deliveries and lost acknowledgements.
+- **Arrival plants.** An arrival names no plant, so everyone who captures at some plant sees every arrival.
 - **State versions.** The example declares no numbered state migrations. Its `upgradeState` fills fields that older state lacks.
 
 ## Skills
@@ -416,6 +425,7 @@ Follow the [write-hardware-driver](../../plugins/connector-driver/skills/write-h
 - [write-hardware-driver](../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
 - [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md)
 - [build-screens](../../packages/frame/skills/build-screens/SKILL.md)
+- [connect-two-applications](../../plugins/peer-link/skills/connect-two-applications/SKILL.md)
 
 ## References
 

@@ -1,6 +1,7 @@
 import { defineAgent, defineModule } from '@agent-native/contracts';
 import { deliveryOperations } from './contracts/delivery';
 import { erpSend, erpTarget } from './contracts/erp-target';
+import { qualityLots, qualityPeer } from './contracts/quality-peer';
 // scaffold:imports
 
 /**
@@ -13,6 +14,11 @@ export const operations = {
   erpSync: erpTarget.sync,
   erpStatus: erpTarget.status,
   erpSend,
+  qualitySettle: qualityPeer.settle,
+  qualitySync: qualityPeer.sync,
+  qualityStatus: qualityPeer.status,
+  qualityLotSearch: qualityLots.search,
+  qualityLotLookup: qualityLots.lookup,
   // scaffold:operations
 } as const;
 

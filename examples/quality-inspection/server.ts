@@ -1,5 +1,6 @@
 import type { HandlerContribution } from '@agent-native/runtime';
 import type { QualityState } from './domain';
+import { arrivalHandlers } from './handlers/arrivals';
 import { captureHandlers } from './handlers/capture';
 import { instrumentHandlers } from './handlers/instrument';
 import { integrationHandlers } from './handlers/integration';
@@ -19,6 +20,7 @@ export function createQualityHandlers(): HandlerContribution<QualityState, Quali
     ...supervisionHandlers(),
     ...integrationHandlers(),
     ...instrumentHandlers(),
+    ...arrivalHandlers(),
   ];
 }
 export { qualityInspectionModule } from './contracts';

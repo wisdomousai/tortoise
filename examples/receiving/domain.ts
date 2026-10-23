@@ -27,6 +27,7 @@ export function createState(ownerId: string, members: Record<string, Role> = {})
     members: { ...members, [ownerId]: 'editor' },
     sync: {
       erp: {},
+      quality: {},
       // scaffold:sync
     },
     deliveries: {},

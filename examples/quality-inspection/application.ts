@@ -12,9 +12,11 @@ import {
   type DriverEventIngestOptions,
 } from '@agent-native/connector-driver/connect';
 import { driverServiceOf } from '@agent-native/connector-driver/open';
+import { createPeerLinkPlugin } from '@agent-native/peer-link/plugin';
 import manifest from './manifest';
 import { operations, qualityTarget } from './contracts';
 import { instrumentContract } from './contracts/instrument';
+import { qualityPeerSurface } from './contracts/peer';
 import type { QualityState } from './domain';
 import {
   createQualityHandlers,
@@ -36,6 +38,16 @@ export const INSTRUMENT_PRINCIPAL = 'instrument';
 
 /** The capture station's instrument driver, started through the process plugin when bound. */
 export const instrumentDriverPlugin = createDriverPlugin({ contracts: [instrumentContract] });
+
+/**
+ * The peer link serving `qualityPeerSurface`: receiving applications announce arrivals and
+ * search lots for their people. No subject is ever mapped to the integration or instrument
+ * principal.
+ */
+export const qualityPeerLinkPlugin = createPeerLinkPlugin({
+  surface: qualityPeerSurface,
+  reserved: [INTEGRATION_PRINCIPAL, INSTRUMENT_PRINCIPAL],
+});
 
 const qualityState = (ownerId: string) =>
   createQualityState({
@@ -104,13 +116,16 @@ export function createQualityInspectionApplication(
     createState: (ownerId) => ({ quality: qualityState(ownerId) }),
     upgradeState: (state, ownerId) => {
       const value = (state ?? {}) as Partial<QualityInspectionState>;
-      // State saved before instrument readings existed gains the empty set and its principal.
+      // State saved before instrument readings or arrivals existed gains the empty sets and
+      // the instrument principal.
       return {
         quality: value.quality
           ? {
               ...value.quality,
               instrumentPrincipalId: value.quality.instrumentPrincipalId ?? INSTRUMENT_PRINCIPAL,
               instrumentReadings: value.quality.instrumentReadings ?? {},
+              arrivals: value.quality.arrivals ?? {},
+              arrivalSequence: value.quality.arrivalSequence ?? 0,
             }
           : qualityState(ownerId),
       };
@@ -123,7 +138,7 @@ export function createQualityInspectionApplication(
       authorizationRoute(
         'quality',
         qualityInspectionModule,
-        ['lot', 'result', 'defect', 'plant', 'sync', 'instrument'],
+        ['lot', 'result', 'defect', 'plant', 'sync', 'instrument', 'arrival'],
         qualityPolicy,
       ),
     ]),
@@ -135,6 +150,7 @@ export function createQualityInspectionApplication(
       compliancePlugin,
       processPlugin,
       instrumentDriverPlugin,
+      qualityPeerLinkPlugin,
     ],
     ...(options.services ? { services: options.services } : {}),
     selectableResources: { lot: operations.lotGet.id },

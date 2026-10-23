@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startHost } from '@agent-native/host/host';
+import { startHost, type StartHostOptions } from '@agent-native/host/host';
 import { definePluginManifest } from '@agent-native/host/plugin-manifest';
 import { defaultPorts } from '@agent-native/kernel';
 import type { ApplicationDefinition } from '@agent-native/kernel/application';
@@ -55,6 +55,15 @@ export interface PeerPairOptions {
   readonly subjects?: Readonly<Record<string, string>>;
   /** Stand in for the network between the two; by default every request reaches the callee. */
   readonly reach?: (url: URL, init: RequestInit | undefined, callee: URL) => Promise<Response>;
+  /**
+   * Further host options of each side, such as a fixed port or plugin settings. A caller that
+   * composes the real network plugin and binds the destination in its site policy ignores
+   * `network` and `reach`.
+   */
+  readonly hosts?: {
+    readonly callee?: Omit<StartHostOptions, 'workspacePath' | 'integration'>;
+    readonly caller?: Omit<StartHostOptions, 'workspacePath' | 'integration'>;
+  };
 }
 
 /**
@@ -66,6 +75,7 @@ export async function startPeerPair(options: PeerPairOptions) {
   const directory = await mkdtemp(join(tmpdir(), 'peer-pair-'));
   const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
   const callee = await startHost(options.callee, {
+    ...options.hosts?.callee,
     workspacePath: join(directory, 'callee'),
     integration: false,
   });
@@ -81,6 +91,7 @@ export async function startPeerPair(options: PeerPairOptions) {
   let caller: Awaited<ReturnType<typeof startHost>> | undefined;
   try {
     caller = await startHost(definition, {
+      ...options.hosts?.caller,
       workspacePath: join(directory, 'caller'),
       integration: false,
     });

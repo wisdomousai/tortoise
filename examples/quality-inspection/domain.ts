@@ -1,4 +1,5 @@
 import { own, put } from '@agent-native/runtime';
+import type { Arrival } from './contracts/arrivals';
 
 /**
  * Quality inspection capture on top of an external quality system of record (SoR).
@@ -133,6 +134,10 @@ export interface QualityState {
   defects: Record<string, Defect>;
   codeGroups: Record<string, CodeGroup>;
   instrumentReadings: Record<string, InstrumentReading>;
+  /** Goods other applications announced for incoming inspection, through the peer link. */
+  arrivals: Record<string, Arrival>;
+  /** The feed position of the arrival closed last. */
+  arrivalSequence: number;
   /** SoR watermark of the last applied sync batch. */
   watermark?: string;
   lastSyncAt?: number;
@@ -158,6 +163,8 @@ export function createQualityState(
     defects: {},
     codeGroups: {},
     instrumentReadings: {},
+    arrivals: {},
+    arrivalSequence: 0,
   };
 }
 

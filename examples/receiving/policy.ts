@@ -8,6 +8,7 @@ import {
 import { targetLane, targetRules } from '@agent-native/integration';
 import { operations } from './contracts';
 import { erpTarget } from './contracts/erp-target';
+import { qualityPeer } from './contracts/quality-peer';
 import type { AppState, Role } from './domain';
 // scaffold:imports
 
@@ -25,6 +26,7 @@ const editor: OperationRule<AppState, Role> = {
 export const appPolicy = definePolicy<AppState, Role>({
   integrations: [
     targetLane(erpTarget, (_state, principalId) => principalId === 'erp-integration'),
+    targetLane(qualityPeer, (_state, principalId) => principalId === 'quality-integration'),
     // scaffold:lanes
   ],
   caller: { allow: (state, context) => roleOf(state, context.principalId) !== undefined },
@@ -35,6 +37,10 @@ export const appPolicy = definePolicy<AppState, Role>({
     [operations.deliveryClassify.id]: editor,
     ...targetRules(erpTarget),
     [operations.erpSend.id]: editor,
+    ...targetRules(qualityPeer),
+    // Live reads as the caller's person in quality inspection, whose plant roles decide there.
+    [operations.qualityLotSearch.id]: 'open',
+    [operations.qualityLotLookup.id]: 'open',
     // scaffold:rules
   },
   events: {

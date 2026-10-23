@@ -40,7 +40,13 @@ export function erpPort(
       format: 'csv',
       ...(options.quietMs === undefined ? {} : { quietMs: options.quietMs }),
       map: (row, source) => {
-        const parsed = asnLineSchema.safeParse({ ...row, expected: Number(row.expected) });
+        // An export without the inspect column asks for no inspection.
+        const { inspect, ...line } = row as Record<string, string>;
+        const parsed = asnLineSchema.safeParse({
+          ...line,
+          expected: Number(line.expected),
+          ...(inspect ? { inspect: inspect === 'true' } : {}),
+        });
         if (!parsed.success)
           throw new Error(`${source.file} row ${source.index + 1} is not a notice line`);
         return parsed.data;

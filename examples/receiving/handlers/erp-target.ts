@@ -4,6 +4,7 @@ import { records, type HandlerContribution } from '@agent-native/runtime';
 import { operations } from '../contracts';
 import { deliveries } from '../contracts/delivery';
 import { erpTarget, type AsnLine } from '../contracts/erp-target';
+import { announceArrival } from './quality-peer';
 import { discrepant, type AppState } from '../domain';
 import { handler, now, type Services } from './context';
 
@@ -36,9 +37,15 @@ export function erpHandlers(): HandlerContribution<AppState, Services>[] {
           note: line.note ?? '',
         },
       });
+      // A line the ERP marked for inspection is announced once, and again after a refusal.
+      const inspection =
+        line.inspect && (!line.inspection || line.inspection.sync === 'rejected')
+          ? announceArrival(ctx, line)
+          : undefined;
       store.update(line.id, (record) => {
         record.status = 'posted';
         record.posting = { effectId, sync: 'pending' };
+        if (inspection) record.inspection = { effectId: inspection, sync: 'pending' };
       });
       return { id: line.id, sync: 'pending' as const };
     }),

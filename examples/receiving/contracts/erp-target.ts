@@ -17,6 +17,7 @@ export const asnLineSchema = deliverySchema.pick({
   sku: true,
   description: true,
   expected: true,
+  inspect: true,
 });
 export type AsnLine = z.output<typeof asnLineSchema>;
 

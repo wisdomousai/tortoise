@@ -91,7 +91,9 @@ async function site() {
       instance.integrations
         .target('erp')
         .dispatcher.runOnce(new AbortController().signal, { ignoreBackoff: true });
-    return { ...instance, command, query, line, deliver };
+    // The ERP's notices only: quality inspection is not connected here.
+    const sync = () => instance.integrations.target('erp').inbound.runOnce();
+    return { ...instance, command, query, line, deliver, sync };
   }
   return { directory, path, consumer, open };
 }
@@ -101,7 +103,7 @@ describe('receiving through the ERP exchange folders', () => {
     const share = await site();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
-    await host.integrations.sync();
+    await host.sync();
     expect(
       ((await host.query('delivery.list', { status: 'expected' })).data as any).items.map(
         (item: any) => [item.id, item.expected],
@@ -183,7 +185,7 @@ describe('receiving through the ERP exchange folders', () => {
     const share = await site();
     let host = await share.open({ drop: { disabled: true, reason: 'Share not mounted yet' } });
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
-    await host.integrations.sync();
+    await host.sync();
     await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
     await host.command('erp.send', { id: 'ASN-1001-1' });
     expect(await host.deliver()).toMatchObject({ retried: 1, upstream: 0 });
@@ -203,7 +205,7 @@ describe('receiving through the ERP exchange folders', () => {
     const share = await site();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
-    await host.integrations.sync();
+    await host.sync();
     await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
     await host.command('erp.send', { id: 'ASN-1001-1' });
     await host.deliver();
@@ -234,7 +236,7 @@ describe('receiving through the ERP exchange folders', () => {
     const share = await site();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
-    await host.integrations.sync();
+    await host.sync();
     await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
     await host.command('erp.send', { id: 'ASN-1001-1' });
     await host.deliver();
@@ -257,14 +259,14 @@ describe('receiving through the ERP exchange folders', () => {
     const share = await site();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
-    await host.integrations.sync();
+    await host.sync();
     await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
     await Bun.sleep(20);
     await writeFile(
       join(share.path('inbox'), 'asn-1001.csv'),
       notice.replace(',500', ',480').replace(',600', ',610'),
     );
-    await host.integrations.sync();
+    await host.sync();
     expect((await host.line('ASN-1001-1')).expected).toBe(500);
     expect((await host.line('ASN-1001-2')).expected).toBe(610);
 
@@ -273,7 +275,7 @@ describe('receiving through the ERP exchange folders', () => {
       join(share.path('inbox'), 'asn-1002.csv'),
       'id,purchaseOrder,supplier,sku,description,expected\nASN-1002-1,PO-4712,Acme,M6,Bolt,many',
     );
-    await expect(host.integrations.sync()).rejects.toThrow('asn-1002.csv row 1');
+    await expect(host.sync()).rejects.toThrow('asn-1002.csv row 1');
     await expect(host.line('ASN-1002-1')).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 });

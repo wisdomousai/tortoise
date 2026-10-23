@@ -22,7 +22,7 @@ Plugins (`plugins/*`). Bun only, because the called application is a serving [ho
 | `@agent-native/peer-link/plugin-manifest` | browser and any host | `peerLinkPluginManifest`, with the setting `peer-link-agents`.                                                                   |
 | `@agent-native/peer-link/plugin`          | Bun host             | `createPeerLinkPlugin({ surface?, targets?, agents?, reserved?, now? })`, `peerLinkPlugin` and `peerLinkServiceOf`.             |
 | `@agent-native/peer-link/plugin-screens`  | browser              | `peerLinkScreens`: the peer list, enrollment code, revocation, subject mappings, and the connections to peer targets.            |
-| `@agent-native/peer-link/testing`         | Bun tests            | `startPeerPair` and `peerNetworkFixture`, for tests of two applications on loopback.                                             |
+| `@agent-native/peer-link/testing`         | Bun tests            | `startPeerPair`, which takes each host's options through `hosts`, and `peerNetworkFixture`, for tests of two applications on loopback. |
 
 ### Called application
 

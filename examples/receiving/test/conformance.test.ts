@@ -42,7 +42,8 @@ test('a count over HTTP, then the instance, HTTP, the CLI and MCP read the same 
   try {
     await server.connect(serverTransport);
     await mcp.connect(clientTransport);
-    await host.integrations.sync();
+    // The ERP's notices only: quality inspection is not connected here.
+    await host.integrations.target('erp').inbound.runOnce();
     await owner.command('delivery.receive', { id: 'ASN-1-1', counted: 9 });
     const direct = await host.application.queryRaw(
       { operation: 'delivery.list', input: {} },

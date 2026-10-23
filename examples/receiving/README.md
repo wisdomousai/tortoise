@@ -2,7 +2,7 @@
 
 `receiving` handles goods receiving against an ERP that is reached only through shared folders. The ERP exports advance shipping notices as CSV into an inbox folder, and each line becomes a delivery line. A receiver counts it, gives a reason when the count differs or approves the reason an agent suggests, and posts the goods receipt.
 
-The receipt is written as one CSV file into the ERP's drop folder, and the ERP answers with a receipt file that settles it. The example demonstrates a [system of record](../../docs/systems-of-record.md) reached through [exchange folders](../../docs/glossary.md#exchange-folder), and [approval requests](../../docs/agents.md#approval-requests) from an agent.
+The receipt is written as one CSV file into the ERP's drop folder, and the ERP answers with a receipt file that settles it. A line the ERP marks for inspection is also announced to the [quality inspection](../quality-inspection/README.md) application, called as a peer, which reports the inspector's outcome back. The example demonstrates a [system of record](../../docs/systems-of-record.md) reached through [exchange folders](../../docs/glossary.md#exchange-folder), [approval requests](../../docs/agents.md#approval-requests) from an agent, and another agent-native application as a target through the [peer link](../../plugins/peer-link/README.md).
 
 ## Layer
 
@@ -16,15 +16,17 @@ The example is one [application](../../docs/primitives.md#application). It uses:
 - a [policy](../../docs/primitives.md#policy) built with `definePolicy`;
 - the ERP as a [target](../../docs/primitives.md#target) whose [connector](../../docs/primitives.md#connector) is `fileTargetPort` from [`connector-files`](../../plugins/connector-files/README.md). It runs over three exchange folders, declared as [requirements](../../docs/primitives.md#requirement-declaration) and bound by the [deployment policy](../../docs/primitives.md#deployment-policy);
 - an [agent definition](../../docs/primitives.md#agent-definition), `receiving.discrepancy`, whose [approval requests](../../docs/primitives.md#approval-request) a person approves or rejects;
-- [reconciliation](../../docs/primitives.md#reconciliation) of goods receipts the ERP left unclear, through the `reconciliation` [feature](../../docs/primitives.md#feature) and the Held receipts screen.
+- [reconciliation](../../docs/primitives.md#reconciliation) of goods receipts the ERP left unclear, through the `reconciliation` [feature](../../docs/primitives.md#feature) and the Held receipts screen;
+- quality inspection as a [peer target](../../docs/primitives.md#peer-target), declared from the surface that application publishes and reached through the [peer link](../../docs/primitives.md#peer-link) plugin;
+- a [data provider](../../docs/primitives.md#data-provider), `quality.lot`, that searches quality inspection's lots live as the caller's mapped person there.
 
 ## Entrypoints
 
 | Import | Runs in | Contents |
 | --- | --- | --- |
-| `@agent-native/receiving/manifest` | browser and server | Default export: `defineManifest` with ID `receiving`, its module and the ERP exchange folders. |
+| `@agent-native/receiving/manifest` | browser and server | Default export: `defineManifest` with ID `receiving`, its module, the ERP exchange folders and the quality inspection destination. |
 | `@agent-native/receiving/application` | server only | Default export: the application. |
-| `@agent-native/receiving/screens` | browser | Default export: `defineScreens` with the delivery list, the line screen, approval requests, held receipts and the ERP status. |
+| `@agent-native/receiving/screens` | browser | Default export: `defineScreens` with the delivery list, the line screen, approval requests, held receipts, the ERP status, the Quality screen and the Peers screen. |
 | `@agent-native/receiving/*` | see file | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `erp-port`. |
 
 `createReceivingApplication` takes services, members, an ERP port and the notice quiet period. Lines marked `// scaffold:<list>` are where `scaffold add` inserts capabilities, handlers, rules and routes.
@@ -44,7 +46,7 @@ The example is one [application](../../docs/primitives.md#application). It uses:
 | `erp-goods-receipts` | write | One goods receipt per posted line, as CSV named `<effect id>.csv`. |
 | `erp-receipts` | read | The ERP's answer per file, `<effect id>.json`, as the [connector-files README](../../plugins/connector-files/README.md#delivery) describes. |
 
-The notice CSV has the columns `id`, `purchaseOrder`, `supplier`, `sku`, `description` and `expected`. The goods receipt CSV has the columns `delivery`, `purchaseOrder`, `sku`, `counted`, `reason` and `note`.
+The notice CSV has the columns `id`, `purchaseOrder`, `supplier`, `sku`, `description` and `expected`, and an optional `inspect` column whose value `true` marks the line for incoming inspection. The goods receipt CSV has the columns `delivery`, `purchaseOrder`, `sku`, `counted`, `reason` and `note`.
 
 The deployment policy binds each ID to a directory:
 
@@ -60,17 +62,37 @@ The deployment policy binds each ID to a directory:
 
 Until the folders are bound, no notice is imported and posted receipts wait in the [outbox](../../docs/glossary.md#outbox). They are delivered once a restarted host finds the folders bound.
 
+### Quality inspection
+
+The target `quality` calls the quality inspection application through the surface it publishes in `@agent-native/quality-inspection/contracts/peer`. The deployment policy binds its destination `quality-peer` to that application's address, with `https` off loopback:
+
+```json
+{
+  "destinations": {
+    "quality-peer": {
+      "url": "https://quality.plant.example:4320",
+      "addresses": ["10.20.0.15/32"],
+      "ca": "site-ca.pem"
+    }
+  }
+}
+```
+
+An administrator of quality inspection creates an enrollment code on its Peers screen, and an editor here enters it for `quality` on this application's Peers screen. Quality inspection then maps the people who search lots from here to its own people. Until the target is connected, announced arrivals wait in the outbox with "connect it on the peers screen", and lot searches report it unavailable.
+
 ## Trust boundary
 
 Only workspace members pass the policy's caller gate. Editors count, classify and post, and viewers read. The [integration principal](../../docs/glossary.md#integration-principal) `erp-integration` holds no role and acts only in the ERP target's [policy lane](../../docs/glossary.md#policy-lane).
 
 The `approval` and `reconciliation` features decide their own operations over the access views in `policy.ts`, which apply the same member gate, so `erp-integration` and non-members are refused there too. Any member may request approval. The agent requests approval under the grant of the member who started it, and that grant leaves out `delivery.classify` itself. Approving runs the requested command under the approver, so only an editor's approval commits, and deciding needs a person. Only editors reject approval requests and decide held receipts.
 
+The integration principal `quality-integration` acts only in the quality target's lane. Arrivals are announced as this application's service principal there, which may only announce arrivals and read their outcomes. A lot search runs as the person the caller is mapped to in quality inspection, under that person's plant roles; the subject is the caller's principal ID, never input. A caller nobody is mapped to is refused. Lots from quality inspection are parsed before they are shown, and a malformed one is dropped.
+
 Notice rows are input. A row that does not fit the line schema fails the import, so a malformed export is reported instead of half applied. A later export never overwrites a notice line that someone has counted.
 
 ## Dependencies
 
-The framework packages, the four host plugins and `@agent-native/connector-files`, through the root workspace.
+The framework packages, the site, network, audit, compliance and peer link host plugins, `@agent-native/connector-files`, and the browser-safe contracts of `@agent-native/quality-inspection`, through the root workspace. The two-host test also starts the quality inspection application.
 
 ## Tests
 
@@ -90,6 +112,11 @@ bunx playwright test examples/receiving
 - `test/migration.test.ts` opens a workspace stored at state version 1 and finds its approval requests in the `approval` feature, once. It also refuses `erp-integration` and a non-member on approval requests and held receipts, and a viewer's rejection.
 - `test/agent-scenarios.test.ts` judges the discrepancy agent with [agent scenarios](../../docs/glossary.md#agent-scenario) on the deterministic harness. The agent requests approval for classifications and never commits them.
 - `test/conformance.test.ts` imports a notice through a served host and counts over HTTP. It reads one list directly, over HTTP, the CLI and MCP.
+- `test/quality-peer.test.ts` starts this application and quality inspection on loopback with `startPeerPair`, through a test gateway that the deployment policy binds `quality-peer` to. It covers:
+  - announcing a line marked for inspection as the peer's service principal, the arrival visible only to people who capture there, and the outcome coming back through the feed;
+  - a lot search as the mapped person, limited to that person's plants, and an unmapped person refused;
+  - an arrival kept pending while quality inspection is down, and a lost answer delivered again without a second arrival;
+  - an announce whose schema changed on quality inspection kept pending without reaching it.
 - `test/ui-bindings.test.ts` checks that every bound capability is referenced by a screen.
 - `e2e/receiving.pw.ts` has two tests against the real host with a deployment policy:
   - the first waits for the notice import, then counts, classifies and posts a line in the browser. The test answers as the ERP, and the ERP screen then shows the receipt accepted.
@@ -119,6 +146,9 @@ Paths in this table are relative to the example directory, except those under `p
 | [Surface adapter](../../docs/primitives.md#surface-adapter) parity | Generated from the catalog; no example code | `test/conformance.test.ts`: instance, HTTP, CLI and MCP read one list |
 | [UI registry](../../docs/primitives.md#ui-registry) screens and [capability bindings](../../docs/primitives.md#capability-binding) | `ui/delivery.tsx`; `ui/approvals.tsx`; `ui/reconcile.tsx` | `test/ui-bindings.test.ts`, `e2e/receiving.pw.ts` |
 | [Live query](../../docs/primitives.md#journal-and-live-query) of target status | `ui/erp-target.tsx` (`live.liveQueryOptions`) | `e2e/receiving.pw.ts`: the ERP screen shows the goods receipt accepted |
+| [Peer target](../../docs/primitives.md#peer-target) for quality inspection | `contracts/quality-peer.ts` (`qualityPeer`); `handlers/quality-peer.ts`; `application.ts` (`connectPeerTarget`, `createPeerDrift`) | [`test/quality-peer.test.ts`](test/quality-peer.test.ts) |
+| [Peer link](../../docs/primitives.md#peer-link), calling side | `manifest.ts`; `application.ts` (`createPeerLinkPlugin({ targets })`); the Peers screen | `test/quality-peer.test.ts`: every test connects with a code |
+| [Data provider](../../docs/primitives.md#data-provider) read through a peer | `contracts/quality-peer.ts` (`qualityLots`); `handlers/quality-peer.ts` (`implementDataProvider`); `application.ts` (`createPeerSource`); `ui/quality.tsx` | `test/quality-peer.test.ts`: the lot search test |
 
 ## Structure
 
@@ -128,13 +158,14 @@ Paths in this table are relative to the example directory, except those under `p
 | `contracts.ts` | The `operations` map, the module and the inline `receiving.discrepancy` agent definition. |
 | `contracts/delivery.ts` | The delivery line schema, the `deliveries` collection, its generated reads and the receive and classify commands. |
 | `contracts/erp-target.ts` | The ERP target, the notice line schema, the folder IDs, the `erpExchange` declaration and the `erp.send` command. |
+| `contracts/quality-peer.ts` | The quality inspection peer target and the `quality.lot` data provider. |
 | `domain.ts` | Roles, the state shape, `createState`, the state `migrations`, `upgradeState` and the `discrepant` check. |
 | `policy.ts` | The policy: caller gate, editor rule, the ERP lane and event visibility; the approval and reconciliation access views. |
 | `server.ts` | `createHandlers`, which lists every handler group, and the policy export. |
-| `handlers/` | Delivery lines, the ERP target and the reconciliation hook; `context.ts` binds handlers to the state and services. |
+| `handlers/` | Delivery lines, the ERP target, the quality target with the lot search, and the reconciliation hook; `context.ts` binds handlers to the state and services. |
 | `erp-port.ts` | The ERP connector: CSV encoding of goods receipts and CSV mapping of notice rows. |
 | `application.ts` | `createReceivingApplication`, which mounts the features, composes plugins and connects the ERP target to the folder port. |
-| `screens.tsx`, `ui/` | The screen definitions, the line screen, the approval requests, Held receipts and ERP status screens. |
+| `screens.tsx`, `ui/` | The screen definitions, the line screen, the approval requests, Held receipts, ERP status and Quality screens. |
 | `test/`, `e2e/` | Behavioral, agent scenario, cross-surface and UI binding tests, and the Playwright spec. |
 
 ## Notice import flow
@@ -159,6 +190,14 @@ Paths in this table are relative to the example directory, except those under `p
 8. A receipt file that accepts or rejects the goods receipt settles the effect through `erp.effect.settle`, and the example's outcome hook records the outcome on the line. A rejection sets the line back to counted, so it can be recounted and posted again.
 9. A receipt file that cannot be parsed makes the dispatcher hold the effect. The Held receipts screen lists it through `reconciliation.list`, and an editor decides it there.
 10. The resolve hook in `handlers/reconciliation.ts` records an applied or refused decision on the line's posting. A not-applied decision releases the effect for another delivery, and the posting stays pending.
+
+## Incoming inspection flow
+
+1. `erp.send` on a line marked `inspect` also enqueues `inspection.arrival.announce` for the `quality` target, in the posting's transaction, with the line's purchase order, supplier, SKU, description and counted quantity. Quality inspection's input schema checks the payload there, so a line it would refuse fails the post.
+2. The line's inspection stays pending until the dispatcher delivers the effect as this application's service principal. Quality inspection answers an arrival ID, which settles the inspection as accepted with that ID as `sorRef`. A line posted again after a rejected goods receipt is announced again only if quality inspection refused its arrival.
+3. An inspector closes the arrival there with an outcome and a note.
+4. The quality target's inbound sync reads `inspection.arrival.feed`, which answers only this application's arrivals, and `quality.sync` writes each outcome to the line whose inspection names that arrival.
+5. The Quality screen counts inspections waiting, refused, being inspected, passed and failed through `quality.sync.status`.
 
 ## Implementation steps
 
@@ -280,12 +319,16 @@ The ERP side replaces `FakeFileConsumer` and follows the rules in the [connector
 - **Repeat postings.** A posted line refuses further counts and reasons until its goods receipt is rejected, by the ERP or by a reconciliation decision.
 - **Visibility.** Every member sees every line, approval request and held goods receipt, and roles apply to the whole workspace with no container scoping.
 - **Integration lane.** No example test checks that a person is refused the ERP's sync and settle capabilities.
+- **Quality inspection connection.** While `quality` is not connected, `integrations.sync()` fails at that target after the ERP has synced, so the CLI's `sync` reports an error.
+- **Lot search.** Quality inspection's lot list pages by offset, so a search answers its first 50 lots only.
+- **Peer runs.** The two applications have run as two hosts on one machine only, over loopback and in the peer link's TLS test ([implementation status](../../docs/implementation-status.md)).
 - **No agents marker.** The example's `contracts.ts` has no agents marker, so the scaffold cannot add an agent to it.
 
 ## Skills
 
 - [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md)
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
+- [connect-two-applications](../../plugins/peer-link/skills/connect-two-applications/SKILL.md)
 
 ## References
 
@@ -295,6 +338,7 @@ The ERP side replaces `FakeFileConsumer` and follows the rules in the [connector
 - [create-agent-native-app](../../packages/scaffold/skills/create-agent-native-app/SKILL.md)
 - [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md)
 - [Quality inspection](../quality-inspection/README.md)
+- [Peer link](../../plugins/peer-link/README.md)
 - [CRM capture](../crm-capture/README.md)
 - [Line station](../line-station/README.md)
 - [add-capability](../../packages/runtime/skills/add-capability/SKILL.md)

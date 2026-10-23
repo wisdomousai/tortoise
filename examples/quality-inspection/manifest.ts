@@ -5,6 +5,7 @@ import { networkPluginManifest } from '@agent-native/network/plugin-manifest';
 import { processPluginManifest } from '@agent-native/process/plugin-manifest';
 import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 import { driverPluginManifest } from '@agent-native/connector-driver/plugin-manifest';
+import { peerLinkPluginManifest } from '@agent-native/peer-link/plugin-manifest';
 import { qualityInspectionModule } from './contracts';
 import { instrumentContract } from './contracts/instrument';
 
@@ -20,5 +21,6 @@ export default defineManifest({
     compliancePluginManifest,
     processPluginManifest,
     driverPluginManifest([instrumentContract]),
+    peerLinkPluginManifest,
   ],
 });
