@@ -43,14 +43,12 @@ export async function checkPreconditions<State, Services>(
 /**
  * Run the handler on the draft and refuse writes it did not declare, counting the changes of
  * the commands it invoked. A nested failure fails the frame even when the handler caught it.
- * `continued` marks a command run by `continueWith`, which may not continue again.
  */
 export async function runHandler<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,
   snapshot: WorkspaceSnapshot<State>,
   frame: FrameScope,
-  continued = false,
 ) {
   const previousState = structuredClone(snapshot.state);
   const previousAuthorizationRevision = snapshot.authorizationRevision;
@@ -63,7 +61,6 @@ export async function runHandler<State, Services>(
     changes: new Map(),
     touched: [],
     blobs: [],
-    continued,
     frame,
   };
   const output = await command.handler.handle(command.input, createHandlerContext(kernel, scope));

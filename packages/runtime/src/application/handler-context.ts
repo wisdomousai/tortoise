@@ -47,8 +47,6 @@ export interface HandlerScope<State> {
   readonly touched: Effect[];
   /** The command `continueWith` asked for; set at most once. */
   continuation?: Invocation;
-  /** True inside a continued command, which may not continue again. */
-  readonly continued?: boolean;
   /** Blob references the handler attached or detached, in order. */
   readonly blobs: BlobChange[];
   /** The handler's place in its command's nested calls. */
@@ -182,7 +180,7 @@ export function createHandlerContext<State, Services>(
     },
     continueWith(operation, input, expectedRevisions) {
       writable(scope, 'Queries cannot continue with a command');
-      if (scope.continued || scope.continuation)
+      if (scope.continuation)
         throw new ApplicationError('INTERNAL', 'A command continues with at most one command');
       scope.continuation = {
         operation,

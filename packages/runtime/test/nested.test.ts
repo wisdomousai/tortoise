@@ -56,7 +56,16 @@ const compose = defineCapability({
   input: jsonSchema(z.strictObject({ id: z.string().optional() })),
   output: jsonSchema(jsonValueSchema),
   permission: { action: 'update', resourceType: 'item' },
-  invokes: ['item.set', 'item.get', 'item.attach'],
+  invokes: ['item.set', 'item.get', 'item.attach', 'item.relay'],
+  ...fixture,
+});
+const relay = defineCapability({
+  id: 'item.relay',
+  kind: 'command',
+  input: jsonSchema(z.strictObject({ id: z.string() })),
+  output: jsonSchema(z.strictObject({})),
+  permission: { action: 'update', resourceType: 'item' },
+  invokes: ['item.set'],
   ...fixture,
 });
 const loop = defineCapability({
@@ -81,7 +90,7 @@ const chain = [1, 2, 3, 4, 5, 6].map((step) =>
 );
 const items = defineModule({
   id: 'items',
-  capabilities: [set, get, attach, compose, loop, ...chain],
+  capabilities: [set, get, attach, compose, relay, loop, ...chain],
 });
 
 type State = { items: Record<string, number> };
@@ -138,6 +147,10 @@ function setup(options: { log?: ReturnType<typeof createMemoryEventLog> } = {}) 
       bind(compose, (input, ctx) => {
         runs++;
         return control.compose(input, ctx) as never;
+      }),
+      bind(relay, (input, ctx) => {
+        ctx.continueWith('item.set', { id: input.id, value: 7 });
+        return {};
       }),
       bind(loop, async (_input, ctx) => {
         await ctx.invokeRaw('item.loop', {});
@@ -383,6 +396,52 @@ describe('nested invocation', () => {
       ['item.compose', 'command.recovered'],
       ['item.set', 'command.recovered'],
     ]);
+  });
+});
+
+describe('continuation as a tail frame', () => {
+  test('the continued command runs after the frame and shares its journal entry', async () => {
+    const { control, invoke, seen, snapshot } = setup();
+    control.compose = (_input, ctx) => {
+      ctx.change('item:a');
+      ctx.continueWith('item.set', { id: 'a', value: 2 });
+      return {};
+    };
+    const receipt = await invoke();
+    expect(receipt.continuation).toEqual({ operation: 'item.set', result: { id: 'a', value: 2 } });
+    expect(receipt.revisions).toEqual({ 'item:a': 1 });
+    const { journal } = await snapshot();
+    expect(journal.map(({ operation }) => operation)).toEqual(['item.set']);
+    expect(seen.map((request) => [request.capability.id, request.phase])).toEqual([
+      ['item.compose', 'invoke'],
+      ['item.compose', 'commit'],
+      ['item.set', 'invoke'],
+      ['item.set', 'commit'],
+    ]);
+    expect(seen.at(-1)?.via).toEqual(['item.compose']);
+  });
+
+  test('a continued command may continue once more within the limits', async () => {
+    const { control, invoke, snapshot, refused } = setup();
+    control.compose = async (input, ctx) => {
+      if (input.id === 'nested') await ctx.invoke(relay, { id: 'b' });
+      else ctx.continueWith('item.relay', { id: 'a' });
+      return {};
+    };
+    expect((await invoke()).continuation?.operation).toBe('item.relay');
+    expect((await snapshot()).state.items).toEqual({ a: 7 });
+    // A nested command's continuation commits with it.
+    expect((await invoke({ id: 'nested' })).revisions).toEqual({ 'item:b': 1 });
+    control.compose = (_input, ctx) => (ctx.continueWith('item.loop', {}), {});
+    expect((await refused(invoke())).message).toBe('item.compose does not declare item.loop');
+  });
+
+  test('replay authorizes the continued command again', async () => {
+    const { control, invoke, refused } = setup();
+    control.compose = (_input, ctx) => (ctx.continueWith('item.set', { id: 'a', value: 1 }), {});
+    await invoke({}, owner, 'k1');
+    control.deny = (request) => request.phase === 'replay' && request.capability.id === 'item.set';
+    expect((await refused(invoke({}, owner, 'k1'))).code).toBe('FORBIDDEN');
   });
 });
 

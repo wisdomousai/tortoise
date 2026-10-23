@@ -59,33 +59,31 @@ export function receiptOf<State>(
   };
 }
 
-/** The nested commands of the given trees, as a stored receipt records them for replay. */
-function callsOf(trees: readonly CallTree[]) {
-  return trees.flatMap((tree) =>
-    tree.calls
-      .filter((call) => call.kind === 'command')
-      .map((call) => {
-        assertJson(call.input);
-        return {
-          operation: call.capability.id,
-          input: structuredClone(call.input) as JsonValue,
-          via: [...call.via],
-        };
-      }),
-  );
+/** The nested commands of a call tree, as a stored receipt records them for replay. */
+function callsOf(tree: CallTree) {
+  return tree.calls
+    .filter((call) => call.kind === 'command')
+    .map((call) => {
+      assertJson(call.input);
+      return {
+        operation: call.capability.id,
+        input: structuredClone(call.input) as JsonValue,
+        via: [...call.via],
+      };
+    });
 }
 
 export function storeReceipt<State, Services>(
   snapshot: WorkspaceSnapshot<State>,
   command: Command<State, Services>,
   receipt: CommandReceipt,
-  trees: readonly CallTree[],
+  tree: CallTree,
   continued?: Command<State, Services>,
 ) {
   if (command.key === undefined) return;
   assertJson(command.input);
   if (continued) assertJson(continued.input);
-  const calls = callsOf(trees);
+  const calls = callsOf(tree);
   snapshot.receipts[command.key] = {
     fingerprint: command.fingerprint,
     receipt: structuredClone(receipt),

@@ -63,6 +63,8 @@ export const notificationOperations = {
     input: jsonSchema(z.strictObject({ nonce: id, button: id, handler: id })),
     output: jsonSchema(z.strictObject({ operation })),
     permission: { action: 'redeem', resourceType: 'Notification' },
+    // It continues with whichever command the reply stands for.
+    invokes: 'any',
     ui: {
       exception:
         'Called by the reply consumer when a person chooses a notification action; the notification is the binding.',

@@ -82,18 +82,21 @@ export function closeFrame(frame: FrameScope) {
 export const viaOf = (frame: FrameScope) =>
   frame.depth === 0 ? undefined : frame.stack.slice(0, -1);
 
-/** Refuse a call the limits or the caller's declaration do not allow, before anything runs. */
-function enter<State, Services>(
+/**
+ * The frame of a call from `frame`, refused before anything runs when the caller's declaration
+ * or the limits do not allow it. A command `continueWith` asked for enters the same way.
+ */
+export function enter<State, Services>(
   kernel: Kernel<State, Services>,
-  scope: HandlerScope<State>,
-  operation: string,
+  frame: FrameScope,
   capability: AnyCapability,
   input: unknown,
 ): FrameScope {
-  const { frame } = scope;
-  const declared = kernel.capabilities.get(scope.operation)?.invokes;
+  const caller = frame.stack.at(-1)!;
+  const operation = capability.id;
+  const declared = kernel.capabilities.get(caller)?.invokes;
   if (declared !== 'any' && !declared?.includes(operation))
-    throw new ApplicationError('INTERNAL', `${scope.operation} does not declare ${operation}`);
+    throw new ApplicationError('INTERNAL', `${caller} does not declare ${operation}`);
   if (frame.stack.includes(operation))
     throw new ApplicationError('INTERNAL', 'A nested call cannot reach a running operation');
   if (frame.depth >= MAX_DEPTH)
@@ -140,7 +143,7 @@ async function invokeNested<State, Services>(
   if (scope.query) throw new ApplicationError('INTERNAL', 'Queries cannot invoke commands');
   return guarded(scope, async () => {
     const command = prepareCommand(kernel, request, scope.context, scope.frame.tree.correlationId);
-    const frame = enter(kernel, scope, command.capability.id, command.capability, command.input);
+    const frame = enter(kernel, scope.frame, command.capability, command.input);
     const { run, result } = await runFrame(kernel, command, scope.snapshot, frame);
     for (const [resource, type] of run.changes) scope.changes.set(resource, type);
     scope.touched.push(...run.touched);
@@ -166,7 +169,7 @@ async function queryNested<State, Services>(
     if (capability.remote)
       throw new ApplicationError('INTERNAL', 'A nested call cannot read a remote query');
     const { context, snapshot } = scope;
-    const frame = enter(kernel, scope, capability.id, capability, input);
+    const frame = enter(kernel, scope.frame, capability, input);
     const via = viaOf(frame);
     kernel.guard.active(context, capability.id);
     await authorize(kernel, capability, input, context, snapshot, 'invoke', undefined, via);

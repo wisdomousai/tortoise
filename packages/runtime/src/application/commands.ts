@@ -10,7 +10,7 @@ import type {
 import { actorOf, effectRecords, failureRecord } from './audit.js';
 import { auditAccepted, journalChanges, receiptOf, storeReceipt } from './command-commit.js';
 import { prepareCommand, type Command } from './command-request.js';
-import { replayContinuation, runContinuation } from './continuation.js';
+import { replayContinuation } from './continuation.js';
 import { runFrame } from './frame.js';
 import { authorize, project, type Kernel } from './kernel.js';
 import { topFrame } from './nested.js';
@@ -52,9 +52,7 @@ async function replay<State, Services>(
 
 /**
  * The transaction body of a first execution: the command's frame with the frames of the
- * commands it invoked, then any command the handler continued with in a frame of its own, then
- * journal, receipt and audit for all of them. They share one `fromCursor`, taken before the
- * first journal entry.
+ * commands it invoked and continued with, then journal, receipt and audit for all of them.
  */
 async function execute<State, Services>(
   kernel: Kernel<State, Services>,
@@ -64,28 +62,23 @@ async function execute<State, Services>(
 ): Promise<CommandReceipt> {
   const { capability } = command;
   const frame = topFrame(capability.id, command.correlationId);
-  const { run, result } = await runFrame(kernel, command, snapshot, frame);
-  const next = run.continuation
-    ? await runContinuation(kernel, command, snapshot, run.continuation)
-    : undefined;
+  const { run, result, continuation } = await runFrame(kernel, command, snapshot, frame);
   const fromCursor = snapshot.cursor;
   const revisions = journalChanges(snapshot, run.changes, capability.id, frame.tree);
-  const continued = next
-    ? journalChanges(snapshot, next.run.changes, next.command.capability.id, next.frame.tree)
-    : {};
-  const touched = [...run.touched, ...(next?.run.touched ?? [])];
   const receipt: CommandReceipt = {
-    ...receiptOf(snapshot, capability.id, result, { ...revisions, ...continued }, touched),
-    ...(next
-      ? { continuation: { operation: next.command.capability.id, result: next.result } }
+    ...receiptOf(snapshot, capability.id, result, revisions, run.touched),
+    ...(continuation
+      ? {
+          continuation: {
+            operation: continuation.command.capability.id,
+            result: continuation.result,
+          },
+        }
       : {}),
   };
-  const trees = next ? [frame.tree, next.frame.tree] : [frame.tree];
-  storeReceipt(snapshot, command, receipt, trees, next?.command);
+  storeReceipt(snapshot, command, receipt, frame.tree, continuation?.command);
   await auditAccepted(kernel, command, snapshot, revisions, fromCursor, frame.tree);
-  if (next)
-    await auditAccepted(kernel, next.command, snapshot, continued, fromCursor, next.frame.tree);
-  report(touched, false);
+  report(run.touched, false);
   return receipt;
 }
 

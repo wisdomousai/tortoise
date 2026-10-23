@@ -94,6 +94,8 @@ export const approvalOperations = {
     ),
     permission: { action: 'approve', resourceType: 'ApprovalRequest' },
     dependencies: ['approval-request'],
+    // It continues with whichever command the request names.
+    invokes: 'any',
     ui: { binding: 'approval.approve' },
   }),
   approvalReject: defineCapability({

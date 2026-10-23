@@ -216,12 +216,12 @@ export interface HandlerContext<State, Services> {
    */
   releaseEffect(id: string): Effect;
   /**
-   * After this handler returns, run one more command in the same transaction as the same caller,
-   * for example the command of an approval request. It passes the whole command pipeline (grant,
-   * invoke authorization, `expectedRevisions` as preconditions, its handler, output projection,
-   * commit authorization and audit), so it can never do what the caller could not do directly.
-   * Both commit together or neither does. Commands only; once per command; a continued command
-   * cannot continue again.
+   * After this handler's frame finishes, run one more command in the same transaction as the
+   * same caller, for example the command of an approval request. It runs as a nested frame
+   * (grant, invoke authorization with `via`, `expectedRevisions` as preconditions, its handler,
+   * output projection, commit authorization and audit), so it can never do what the caller could
+   * not do directly. The command must list the operation in its `invokes`, and the nesting
+   * limits apply. Both commit together or neither does. Commands only; once per handler call.
    */
   continueWith(
     operation: string,

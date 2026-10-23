@@ -3,26 +3,30 @@ import type { CommandReceipt, Invocation, StoredReceipt, WorkspaceSnapshot } fro
 import { prepareCommand, type Command } from './command-request.js';
 import { runFrame } from './frame.js';
 import { authorize, project, type Kernel } from './kernel.js';
-import { topFrame } from './nested.js';
+import { enter, type FrameScope } from './nested.js';
 
 /**
- * Run the command a handler continued with, inside the parent command's transaction and under
- * the parent's context, in a frame of its own (see `runFrame`). It has no
- * idempotency key of its own; the parent's receipt covers both, so a retry of the parent never
- * runs it twice. Any refusal throws and rolls back the parent too.
+ * Run the command a handler continued with as a tail frame of the handler's frame: after the
+ * handler's own frame finished, in the same transaction, under the same context and the same
+ * call limits, so the caller must declare it in `invokes`. It has no idempotency key of its own;
+ * the top-level receipt covers it, so a retry never runs it twice. Any refusal throws and rolls
+ * back the caller too.
  */
 export async function runContinuation<State, Services>(
   kernel: Kernel<State, Services>,
   parent: Command<State, Services>,
   snapshot: WorkspaceSnapshot<State>,
+  frame: FrameScope,
   invocation: Invocation,
 ) {
   const { idempotencyKey: _ignored, ...request } = invocation;
   const command = prepareCommand(kernel, request, parent.context, parent.correlationId);
-  if (command.capability.id === parent.capability.id)
-    throw new ApplicationError('INTERNAL', 'A command cannot continue with itself');
-  const frame = topFrame(command.capability.id, parent.correlationId);
-  return { ...(await runFrame(kernel, command, snapshot, frame, true)), frame };
+  return runFrame(
+    kernel,
+    command,
+    snapshot,
+    enter(kernel, frame, command.capability, command.input),
+  );
 }
 
 /**
@@ -41,7 +45,8 @@ export async function replayContinuation<State, Services>(
   const capability = kernel.capabilities.get(continued.operation);
   if (!capability) throw new ApplicationError('NOT_FOUND', 'Unknown command');
   const { input } = continued;
-  await authorize(kernel, capability, input, parent.context, snapshot, 'replay');
+  const via = [parent.capability.id];
+  await authorize(kernel, capability, input, parent.context, snapshot, 'replay', undefined, via);
   const result = await project(
     kernel,
     capability,
