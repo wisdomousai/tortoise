@@ -157,6 +157,9 @@ export class StdioJsonRpc {
       this.stderr = (this.stderr + chunk).slice(-8_000);
     });
     this.child.on('error', (error) => this.fail(error));
+    // A write to a child that has exited emits EPIPE on the stream as well as to the write
+    // callback; unhandled, it would crash the host. After close it is expected and ignored.
+    this.child.stdin.on('error', (error) => this.fail(error));
     this.child.on('exit', (code, signal) => {
       if (!this.closed)
         this.fail(
