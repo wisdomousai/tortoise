@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { resourcePath } from '@agent-native/host/runtime-manifest';
 import { validateLoopbackEndpoint } from '../src/service-lifecycle';
@@ -33,9 +34,10 @@ test('native package extraction rejects traversal and links before writes', () =
   expect(() => readNpmTarball(tar('package/link', '2'))).toThrow('link or special file');
 });
 test('runtime resources and instance endpoints cannot escape their trusted boundary', () => {
-  expect(resourcePath('/safe/resources', 'runtimes/codex')).toBe('/safe/resources/runtimes/codex');
-  for (const value of ['../secret', '/secret'])
-    expect(() => resourcePath('/safe/resources', value)).toThrow();
+  // resolve() puts the root on the current drive on Windows.
+  const root = resolve('/safe/resources');
+  expect(resourcePath(root, 'runtimes/codex')).toBe(resolve(root, 'runtimes', 'codex'));
+  for (const value of ['../secret', '/secret']) expect(() => resourcePath(root, value)).toThrow();
   expect(validateLoopbackEndpoint('http://127.0.0.1:1234')).toBe('http://127.0.0.1:1234');
   for (const value of [
     'https://127.0.0.1',
