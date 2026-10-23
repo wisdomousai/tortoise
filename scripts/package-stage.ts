@@ -53,7 +53,9 @@ export async function stageDesktop(target: DesktopTarget, output?: string) {
       file.endsWith(target.startsWith('win32') ? '/claude.exe' : '/claude'),
   );
   const keyring = find((file) => file.startsWith('runtimes/keyring/') && file.endsWith('.node'));
-  const entry = resolve(stage, 'service-entry.ts');
+  // writeApplicationEntry writes `service-entry.ts` in the stage, so this wrapper needs its own
+  // name: on the same path it would overwrite the application entry and import itself.
+  const entry = resolve(stage, 'packaged-service.ts');
   // Direct .node require is statically visible to Bun, unlike npm's dynamic platform
   // loader. Initialization precedes importing the service composition root.
   await writeFile(
