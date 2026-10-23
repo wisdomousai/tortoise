@@ -38,6 +38,14 @@ import serial
 from agent_native_driver import Device, Driver, Reading, Refusal
 from instrument_contract import CONTRACT, DIGEST
 
+try:
+    from termios import error as TermiosError
+except ImportError:  # Windows: pyserial does not use termios there.
+    TermiosError = OSError
+
+# pyserial lets termios.error, which is not an OSError, escape from configuring a port.
+PORT_ERRORS = (serial.SerialException, OSError, TermiosError)
+
 VERSION = "1.0.0"
 HEADERS = ("ST", "US", "OL", "QT")
 NUMBER = re.compile(r"([+-]?\d+(?:\.\d+)?)\s*(\S{1,16})?")
@@ -90,7 +98,7 @@ class Instrument:
         while not self.closed.is_set():
             try:
                 raw = self.port.readline()
-            except (serial.SerialException, OSError) as error:
+            except PORT_ERRORS as error:
                 # A health check reports it; the host then restarts the driver.
                 self.failure = f"The instrument port failed: {error}"
                 return
@@ -128,7 +136,7 @@ def create(environ: dict[str, str] | None = None) -> Driver:
         if instrument.port is None:
             try:
                 instrument.open(path, int(environ.get("INSTRUMENT_BAUD", "2400")), environ.get("INSTRUMENT_FRAME", "7E1"))
-            except (serial.SerialException, OSError, KeyError, IndexError, ValueError) as error:
+            except (*PORT_ERRORS, KeyError, IndexError, ValueError) as error:
                 raise Refusal("transient", f"The instrument port could not be opened: {error}") from error
         return [Device(serial=environ.get("INSTRUMENT_ID") or None)]
 

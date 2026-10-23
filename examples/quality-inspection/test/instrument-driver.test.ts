@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -65,13 +65,10 @@ const driverStart = (device: string) => async (): Promise<DriverProcess> => {
 };
 
 let root = '';
-let sim: Awaited<ReturnType<typeof simulator>> | undefined;
 beforeAll(async () => {
   root = await mkdtemp(join(tmpdir(), 'instrument-driver-'));
-  if (python) sim = await simulator();
 });
 afterAll(async () => {
-  sim?.close();
   await rm(root, { recursive: true, force: true });
 });
 
@@ -100,6 +97,14 @@ describe.skipIf(!python3)('the instrument driver stub', () => {
 });
 
 describe.skipIf(!python)('the instrument driver on a pty pair', () => {
+  // A fresh pty for each case, as a newly plugged-in instrument. Linux (seen on 6.17) refuses to
+  // reconfigure a pty slave a second time: the next open fails in tcsetattr with EINVAL.
+  let sim: Awaited<ReturnType<typeof simulator>> | undefined;
+  beforeEach(async () => {
+    sim = await simulator();
+  });
+  afterEach(() => sim?.close());
+
   test('its unit tests pass', () => {
     const run = spawnSync(
       python![0]!,
