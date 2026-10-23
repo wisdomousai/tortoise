@@ -1,0 +1,41 @@
+{
+  "name": "@agent-native/peer-link",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Peer link host plugin: two agent-native applications enroll with each other and call each other's peer surface as a service principal or on behalf of a mapped person.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "directory": "plugins/peer-link"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
+  "exports": {
+    "./contracts": "./src/contracts.ts",
+    "./assertion": "./src/assertion.ts",
+    "./plugin-manifest": "./src/plugin-manifest.ts",
+    "./plugin": "./src/plugin.ts",
+    "./plugin-screens": "./src/plugin-screens.tsx"
+  },
+  "dependencies": {
+    "@agent-native/adapters": "workspace:*",
+    "@agent-native/contracts": "workspace:*",
+    "@agent-native/frame": "workspace:*",
+    "@agent-native/host": "workspace:*",
+    "@agent-native/integration": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@tanstack/react-query": "5.104.1",
+    "lucide-react": "1.52.0",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "react": "19.3.0"
+  }
+}

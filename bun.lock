@@ -688,6 +688,25 @@
         "@agent-native/os": "workspace:*",
       },
     },
+    "plugins/peer-link": {
+      "name": "@agent-native/peer-link",
+      "version": "0.1.0",
+      "dependencies": {
+        "@agent-native/adapters": "workspace:*",
+        "@agent-native/contracts": "workspace:*",
+        "@agent-native/frame": "workspace:*",
+        "@agent-native/host": "workspace:*",
+        "@agent-native/integration": "workspace:*",
+        "@agent-native/kernel": "workspace:*",
+        "@agent-native/runtime": "workspace:*",
+        "@tanstack/react-query": "5.104.1",
+        "lucide-react": "1.52.0",
+        "zod": "4.6.5",
+      },
+      "peerDependencies": {
+        "react": "19.3.0",
+      },
+    },
     "plugins/process": {
       "name": "@agent-native/process",
       "version": "0.1.0",
@@ -898,6 +917,8 @@
     "@agent-native/os": ["@agent-native/os@workspace:plugins/os"],
 
     "@agent-native/os-shortcuts": ["@agent-native/os-shortcuts@workspace:plugins/os-shortcuts"],
+
+    "@agent-native/peer-link": ["@agent-native/peer-link@workspace:plugins/peer-link"],
 
     "@agent-native/process": ["@agent-native/process@workspace:plugins/process"],
 

@@ -319,6 +319,12 @@ _Another agent-native application as a target, through the peer surface it publi
 
 partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md)
 
+### Peer link
+
+_Enrollment of another agent-native application, which then calls the peer surface as its service principal or, with a signed subject assertion, as a mapped person._
+
+partial · [`plugins/peer-link`](../plugins/peer-link/README.md) [`packages/integration`](../packages/integration/README.md)
+
 ### Remote query
 
 _A query that reads another system when the caller runs the query, and stores nothing. The query acts with the caller's credential, or with a service credential where the query declares that fallback._
