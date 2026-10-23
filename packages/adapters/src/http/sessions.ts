@@ -21,6 +21,8 @@ export type CredentialSource = 'bearer' | 'cookie';
 export type TokenAuthenticator = (
   token: string,
   via: CredentialSource,
+  /** The request that carried the token, for a credential that also signs the request. */
+  request?: Request,
 ) => Promise<HostSession | undefined>;
 
 /** Trusted hosts mint credentials. Request bodies never select principals or roles. */

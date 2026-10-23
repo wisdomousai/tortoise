@@ -16,7 +16,7 @@ Building the [catalog](glossary.md#catalog) loads no handlers, storage or provid
 
 Operation IDs are the same on every surface. An MCP name replaces dots and hyphens with underscores, up to 64 characters.
 
-Each handler is registered against its exact capability, and the typed `invoke` and `query` follow from the composed modules. Surface adapters use the raw variants, which run the same validation and authorization. Types are never reconstructed from runtime discovery. Discovery marks capabilities outside the caller's [grant](glossary.md#grant) as denied, and every call still authorizes on its own.
+Each handler is registered against its exact capability, and the typed `invoke` and `query` follow from the composed modules. Surface adapters use the raw variants, which run the same validation and authorization. Types are never reconstructed from runtime discovery. Discovery marks capabilities outside the caller's [grant](glossary.md#grant) as denied, and every call still authorizes on its own. `/api/v1/contract` also names the `application` (its ID, contract version and a digest of every operation) and gives each operation a `schemaDigest` (`operationSchemaDigest`), so a caller learns when an operation it was built for changed.
 
 ## UI bindings
 
@@ -41,7 +41,7 @@ Shared error codes distinguish invalid input or output, unknown operations, forb
 
 ## Versions and idempotency
 
-The contract version defaults to `1.0.0`. Give a breaking change to a capability's input or output a new version and a migration note. The idempotency fingerprint covers the contract version, operation ID, validated input, expected revisions, run and grant. A key is scoped to the workspace and [principal](glossary.md#principal), and a key reused with a different fingerprint conflicts. A replay rechecks current access and projects the stored result again, without running the handler.
+The contract version defaults to `1.0.0`. Give a breaking change to a capability's input or output a new version and a migration note. The idempotency fingerprint covers the contract version, operation ID, validated input, expected revisions, run and grant. A key is scoped to the workspace and [principal](glossary.md#principal), and a key reused with a different fingerprint conflicts. A call a peer application makes for one of its people (`ExecutionContext.peer.subject`) is scoped to the peer instead, and its fingerprint adds the principal it was mapped to, so a retry after the mapping changed conflicts instead of running again. A replay rechecks current access and projects the stored result again, without running the handler.
 
 HTTP and MCP require a key for a command, the CLI generates one, and direct calls may omit it.
 

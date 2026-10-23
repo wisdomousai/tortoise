@@ -56,3 +56,48 @@ test('a cookie is offered only as a cookie and a bearer only as a bearer, on eve
   expect((await get({ cookie: `agent_session=${minted.token}` })).status).toBe(403);
   expect(sessions.get(minted.token)).toBeUndefined();
 });
+
+/** A peer acting for a person reaches operations only, and its resolver sees the signed request. */
+test('a call on behalf of a person opens no launch session or event stream', async () => {
+  const application = createApplication({
+    modules: [],
+    storage: createMemoryStorage({}),
+    services: {},
+    authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
+    handlers: [],
+  });
+  const origin = 'http://127.0.0.1:4100';
+  const requests: string[] = [];
+  const handler = createHttpHandler({
+    application,
+    sessions: new Sessions(),
+    origin: () => origin,
+    authenticateToken: async (token, via, request) => {
+      requests.push(request?.headers.get('agent-native-subject') ?? '');
+      const subject = request?.headers.get('agent-native-subject');
+      const context = {
+        workspaceId: 'w',
+        principalId: subject ? 'ann' : 'peer:receiving',
+        peer: { id: 'receiving', ...(subject ? { subject } : {}) },
+      };
+      return { token, context, expiresAt: Infinity, credential: token, via };
+    },
+  });
+  const call = (path: string, method: string, subject?: string) =>
+    handler(
+      new Request(`${origin}${path}`, {
+        method,
+        headers: {
+          host: '127.0.0.1:4100',
+          authorization: 'Bearer peer',
+          ...(subject ? { 'agent-native-subject': subject } : {}),
+        },
+      }),
+    );
+  expect((await call('/api/v1/launch', 'POST', 'v1.rita')).status).toBe(403);
+  expect((await call('/api/v1/events', 'GET', 'v1.rita')).status).toBe(403);
+  expect((await call('/api/v1/contract', 'GET', 'v1.rita')).status).toBe(200);
+  // As its own service principal, the peer may still open a launch session.
+  expect((await call('/api/v1/launch', 'POST')).status).toBe(200);
+  expect(requests).toEqual(['v1.rita', 'v1.rita', 'v1.rita', '']);
+});

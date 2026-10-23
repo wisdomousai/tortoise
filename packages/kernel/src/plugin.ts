@@ -175,9 +175,11 @@ export interface PluginInstance {
    * Serving host only: the caller a bearer token stands for when it is not a host session, such
    * as a paired device; undefined when this plugin did not issue the token. The host asks on
    * every request, so a revoked credential stops working at the next one. The returned context
-   * is trusted like a session's, so the plugin decides its principal and grant.
+   * is trusted like a session's, so the plugin decides its principal and grant. `request` is the
+   * request that carried it, for a credential that also signs the request, such as a peer's
+   * subject assertion; read its body only from a clone.
    */
-  authenticate?(token: string): Promise<ExecutionContext | undefined>;
+  authenticate?(token: string, request?: Request): Promise<ExecutionContext | undefined>;
   /**
    * Serving host only: the caller an `agent_session` cookie stands for when it is not a host
    * session, such as a person signed in through the plugin's own public routes. Kept apart from

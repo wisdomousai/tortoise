@@ -41,7 +41,7 @@ Each surface adapter calls the instance's command and query entry points with a 
 
 ### HTTP
 
-The HTTP adapter checks the Host and Origin headers, and refuses a cross-origin browser write. A browser gets its session through the [launch exchange](glossary.md#launch-exchange). Errors return the error envelope with a matching status code.
+The HTTP adapter checks the Host and Origin headers, and refuses a cross-origin browser write. A browser gets its session through the [launch exchange](glossary.md#launch-exchange). A call a peer application makes for one of its people is refused at `/api/v1/launch` and `/api/v1/events`, so it reaches that person's operations and nothing that outlives the request. Errors return the error envelope with a matching status code.
 
 [Cursors](glossary.md#cursor) are encrypted and bound to the session. A restart changes the key, so a [live query](glossary.md#live-query) takes a fresh snapshot. The event stream rechecks the session before each pull and delivers one batch per pull. Each batch is authorized and enqueued inside the storage read boundary, so a permission change cannot commit between the access check and the enqueue. An adapter forwards events through that boundary, never as a batch it authorized earlier.
 

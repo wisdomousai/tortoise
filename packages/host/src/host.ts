@@ -43,8 +43,8 @@ interface Running {
  */
 const pluginCredential =
   (instance: Instance): TokenAuthenticator =>
-  async (token, via) => {
-    const context = await instance.plugins.authenticate(token, via);
+  async (token, via, request) => {
+    const context = await instance.plugins.authenticate(token, via, request);
     return (
       context && { token, context, expiresAt: Number.POSITIVE_INFINITY, credential: token, via }
     );

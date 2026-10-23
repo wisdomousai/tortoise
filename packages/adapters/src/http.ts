@@ -43,9 +43,13 @@ export interface HttpHandlerOptions {
  * A stored session with its credential's current context, or undefined once the credential is
  * refused, which also ends the stored session.
  */
-async function current(options: HttpHandlerOptions, session: HostSession) {
+async function current(options: HttpHandlerOptions, session: HostSession, request: Request) {
   if (session.credential === undefined) return session;
-  const resolved = await options.authenticateToken?.(session.credential, session.via ?? 'bearer');
+  const resolved = await options.authenticateToken?.(
+    session.credential,
+    session.via ?? 'bearer',
+    request,
+  );
   if (resolved) return { ...session, context: resolved.context };
   options.sessions.revoke(session.token);
   return undefined;
@@ -71,11 +75,11 @@ async function authenticate(
     throw new ApplicationError('FORBIDDEN', 'Browser writes require same-origin validation');
   const stored = options.sessions.get(bearer ?? cookie ?? '');
   const session = stored
-    ? await current(options, stored)
+    ? await current(options, stored, request)
     : bearer
-      ? await options.authenticateToken?.(bearer, 'bearer')
+      ? await options.authenticateToken?.(bearer, 'bearer', request)
       : cookie
-        ? await options.authenticateToken?.(cookie, 'cookie')
+        ? await options.authenticateToken?.(cookie, 'cookie', request)
         : undefined;
   if (!session)
     throw new ApplicationError('FORBIDDEN', 'Local session required', { credential: 'rejected' });

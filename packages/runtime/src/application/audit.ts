@@ -47,7 +47,23 @@ export const actorOf = (context: ExecutionContext) => ({
   workspaceId: context.workspaceId,
   ...(context.runId === undefined ? {} : { runId: context.runId }),
   ...(context.channel === undefined ? {} : { via: context.channel }),
+  ...(context.peer ? { peer: context.peer.id } : {}),
+  ...(context.peer?.subject === undefined ? {} : { subject: context.peer.subject }),
 });
+
+/**
+ * Whose idempotency keys a call uses: its principal's, or the peer's for a call on behalf of a
+ * peer's person. A peer keeps its key when the person it maps to changes, so a retry after a
+ * mapping change meets the first receipt and conflicts instead of running the command again.
+ */
+export const receiptScope = (actor: {
+  readonly principalId: string;
+  readonly peer?: string;
+  readonly subject?: string;
+}) =>
+  actor.peer !== undefined && actor.subject !== undefined
+    ? `peer:${actor.peer}`
+    : actor.principalId;
 
 /**
  * Inputs are logged as a digest plus field names. Only fields the capability allow-lists in

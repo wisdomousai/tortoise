@@ -161,11 +161,12 @@ export async function openPlugins(
     async authenticate(
       token: string,
       via: CredentialSource = 'bearer',
+      request?: Request,
     ): Promise<ExecutionContext | undefined> {
       for (const { instance } of opened) {
         const context = await (via === 'cookie'
           ? instance.authenticateCookie?.(token)
-          : instance.authenticate?.(token));
+          : instance.authenticate?.(token, request));
         if (context) return context;
       }
       return undefined;

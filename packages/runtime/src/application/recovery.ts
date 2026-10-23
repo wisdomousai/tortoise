@@ -1,5 +1,6 @@
 import { canonicalJson, type AuditEvent, type AuditRecord } from '@agent-native/contracts';
 import type { WorkspaceSnapshot } from '../types.js';
+import { receiptScope } from './audit.js';
 import type { Kernel } from './kernel.js';
 
 /**
@@ -29,7 +30,7 @@ function committedIn<State>(
     );
   const keyed = group.find((event) => typeof dataOf(event).idempotencyKey === 'string');
   if (keyed) {
-    const key = canonicalJson([keyed.actor!.principalId, dataOf(keyed).idempotencyKey]);
+    const key = canonicalJson([receiptScope(keyed.actor!), dataOf(keyed).idempotencyKey]);
     const stored = Object.hasOwn(snapshot.receipts, key) ? snapshot.receipts[key] : undefined;
     return stored?.receipt.operation === keyed.operation && stored?.receipt.cursor === keyed.cursor;
   }

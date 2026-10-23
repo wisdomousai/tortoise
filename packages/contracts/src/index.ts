@@ -5,6 +5,7 @@ export * from './schema';
 export * from './capability';
 export * from './feature';
 export * from './catalog';
+export * from './contract-digest';
 export { invokesClosure, MAX_INVOKE_DEPTH } from './invokes';
 export {
   bindingsOf,

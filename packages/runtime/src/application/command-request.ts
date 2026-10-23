@@ -1,5 +1,6 @@
 import { ApplicationError, canonicalJson, type AnyCapability } from '@agent-native/contracts';
 import type { ExecutionContext, HandlerContribution, Invocation } from '../types.js';
+import { actorOf, receiptScope } from './audit.js';
 import { resolveOperation, type Kernel } from './kernel.js';
 
 /** One command after validation; everything the transaction needs besides the snapshot. */
@@ -61,6 +62,8 @@ function fingerprintOf(
     expectedRevisions: expected,
     runId: context.runId ?? null,
     grant,
+    // A peer's receipts are keyed by the peer: the person it acted for makes it another request.
+    ...(context.peer?.subject === undefined ? {} : { principalId: context.principalId }),
   });
 }
 
@@ -86,6 +89,6 @@ export function prepareCommand<State, Services>(
     key:
       request.idempotencyKey === undefined
         ? undefined
-        : canonicalJson([context.principalId, request.idempotencyKey]),
+        : canonicalJson([receiptScope(actorOf(context)), request.idempotencyKey]),
   };
 }

@@ -29,6 +29,9 @@ export interface AuditActor {
   readonly workspaceId?: string;
   readonly runId?: string;
   readonly via?: AuditChannel;
+  /** The peer application that made the call, and its name for the person it acted for. */
+  readonly peer?: string;
+  readonly subject?: string;
 }
 
 /** What an emitter supplies. The log assigns `seq`, `at` (if absent), `source`, `prev` and `hash`. */

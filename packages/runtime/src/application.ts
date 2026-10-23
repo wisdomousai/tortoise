@@ -1,5 +1,6 @@
 import {
   ApplicationError,
+  describeContract,
   type AnyCapability,
   type CapabilitiesOf,
   type CapabilityById,
@@ -55,11 +56,16 @@ export function createRemoteQueryFactory<State, Services>() {
 
 /** The catalog as this context may use it: operations outside a live grant are `denied`. */
 function createDiscovery<State, Services>(kernel: Kernel<State, Services>) {
+  const contract = describeContract(
+    kernel.catalog,
+    kernel.options.id ?? 'application',
+    kernel.options.contractVersion ?? '1.0.0',
+  );
   return function discover(context: ExecutionContext) {
     kernel.guard.trusted(context);
     return {
-      ...kernel.catalog,
-      operations: kernel.catalog.operations.map((operation) => ({
+      ...contract,
+      operations: contract.operations.map((operation) => ({
         ...operation,
         availability: grantPermits(context.grant, kernel.now(), operation.id)
           ? ('conditional' as const)

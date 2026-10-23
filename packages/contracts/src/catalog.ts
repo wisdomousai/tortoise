@@ -10,6 +10,7 @@ import { catalogAgents, type CatalogAgent } from './agent';
 import { composeInvokes } from './invokes';
 import type { CatalogWorkflow } from './workflow';
 import { catalogWorkflow } from './workflow-catalog';
+import type { ContractApplication } from './contract-digest';
 import { canonicalJson, type JsonObject } from './json';
 import { collectOs, osActionTargets, type CatalogOs } from './os-catalog';
 import {
@@ -44,6 +45,8 @@ export interface CatalogOperation {
   readonly folders?: readonly string[];
   readonly audit?: { readonly fields?: readonly string[] };
   readonly blobs?: BlobLimits;
+  /** `operationSchemaDigest`; present in a contract a host serves, absent from a built catalog. */
+  readonly schemaDigest?: string;
   /**
    * The operations its handler may call inside its transaction, or `any`. Its destinations,
    * processes and folders include those of everything the list reaches.
@@ -60,6 +63,8 @@ export interface Catalog {
   readonly agents: readonly CatalogAgent[];
   /** OS handlers and actions; absent when nothing is declared. */
   readonly os?: CatalogOs;
+  /** The application a host serves the contract of; absent from a built catalog. */
+  readonly application?: ContractApplication;
 }
 
 /** Generators consume this pure representation, never application handlers or host services. */

@@ -33,6 +33,8 @@ export interface ApplicationOptions<State, Services, Modules extends readonly Ca
   readonly services: Services;
   readonly now?: () => number;
   readonly contractVersion?: string;
+  /** The application's ID, which the contract a host serves names. */
+  readonly id?: string;
   /** Outbox effect identifiers; they must be globally unique because targets deduplicate by them. */
   readonly newEffectId?: () => string;
   /**

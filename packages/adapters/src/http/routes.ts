@@ -65,6 +65,15 @@ export async function routeAuthenticated(
   context: ExecutionContext,
 ): Promise<Response | undefined> {
   const { pathname } = new URL(request.url);
+  // A peer acting for a person reaches that person's operations only: no browser session, no stream.
+  if (
+    context.peer?.subject !== undefined &&
+    ['/api/v1/launch', '/api/v1/events'].includes(pathname)
+  )
+    throw new ApplicationError(
+      'FORBIDDEN',
+      'A call on behalf of a person opens no session or stream',
+    );
   if (pathname === '/api/v1/launch' && request.method === 'POST')
     return jsonResponse({ launch: routes.sessions.launch(session) });
   if (pathname === '/api/v1/contract' && request.method === 'GET')

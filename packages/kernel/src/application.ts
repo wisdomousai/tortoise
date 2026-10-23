@@ -208,6 +208,7 @@ export function createApplicationRuntime(
     ...(definition.sources ? { sources: definition.sources } : {}),
     ...(options.now ? { now: options.now } : {}),
     ...(definition.contractVersion ? { contractVersion: definition.contractVersion } : {}),
+    id: definition.manifest.id,
     ...(options.newEffectId ? { newEffectId: options.newEffectId } : {}),
     ...(options.eventLog ? { eventLog: options.eventLog } : {}),
     ...(options.blobStore ? { blobStore: options.blobStore } : {}),

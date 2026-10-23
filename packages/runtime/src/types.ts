@@ -37,6 +37,12 @@ export interface ExecutionContext {
   readonly signal?: AbortSignal;
   /** Surface that carried the request, for audit events. Set by the host adapter, never by callers. */
   readonly channel?: AuditChannel;
+  /**
+   * The peer application that made the call, set only by the host plugin that authenticated it.
+   * `subject` is the peer's own name for the person the call acts for; `principalId` is then the
+   * person it is mapped to here. Receipts of such calls are keyed by the peer, not the person.
+   */
+  readonly peer?: { readonly id: string; readonly subject?: string };
 }
 export interface ChangeEvent {
   readonly cursor: number;
