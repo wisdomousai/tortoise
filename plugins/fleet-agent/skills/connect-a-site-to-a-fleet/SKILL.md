@@ -10,6 +10,8 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 ## Before writing
 
 - The site side needs a provided network port, so startup refuses an application without one.
+- The site acts at the fleet as one device-link principal, never on behalf of a person. Two applications that call each other for people use the peer link instead, as the `connect-two-applications` skill (`plugins/peer-link/skills/connect-two-applications/SKILL.md`) describes.
+- The `fleet` destination is declared `authenticated`, so the site check refuses a plain-text binding off loopback.
 
 ## Steps
 

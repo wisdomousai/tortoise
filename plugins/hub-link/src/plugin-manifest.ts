@@ -17,6 +17,7 @@ export const hubDestinationComponent = defineHostComponent({
         direction: 'egress',
         scope: 'site',
         protocol: 'https',
+        authenticated: true,
         dataClasses: ['field-record', 'photo'],
         availability: 'optional',
         offline: 'queue',

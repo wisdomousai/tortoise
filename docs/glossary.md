@@ -467,6 +467,26 @@ Do not use: queue (for the outbox), message queue, job queue.
 
 The local owner is the principal `owner`. Where the identity policy admits it, the host issues it a session and a connection file, and an embedded call without a grant file acts as it. An application may also declare an `owner` role in a container. Lives in [`packages/kernel`](../packages/kernel/README.md).
 
+### Peer
+
+Another agent-native application enrolled with this one through the peer link. It calls the peer surface as its service principal, `peer:<id>`, or on behalf of a person through a subject assertion. Lives in [`plugins/peer-link`](../plugins/peer-link/README.md).
+
+Do not use: partner, remote application, federation (for a peer).
+
+### Peer link
+
+Enrollment of, and calls between, two agent-native applications. An administrator of the called application creates a one-use enrollment code. The calling application exchanges it for a bearer credential and registers an Ed25519 public key. Lives in [`plugins/peer-link`](../plugins/peer-link/README.md); explained in [systems of record](systems-of-record.md#peer-applications).
+
+Do not use: device link (for a peer link; a device link pairs a phone with a hub).
+
+### Peer surface
+
+The commands and queries an application lets a peer call: those its service principal may call, and those a peer may call on behalf of a mapped person. Declared with `definePeerSurface` in [`packages/contracts`](../packages/contracts/README.md). A peer surface is not a [surface](#surface).
+
+### Peer target
+
+A target that is another agent-native application, declared with `definePeerTarget` from the peer surface that application publishes. It adds a network destination, effect requests parsed by the peer commands' input schemas, and a feed from a service query of the surface. Declared in [`packages/contracts`](../packages/contracts/README.md); connected with `connectPeerTarget` from [`packages/integration`](../packages/integration/README.md).
+
 ### Perception source
 
 An extractor for screen captures in `workstations/screen-bridge/src/perception`: the accessibility tree, a perception worker process speaking JSON lines, or a vision model behind an OpenAI-compatible endpoint. A vision endpoint must be loopback or explicitly allowlisted. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
@@ -637,9 +657,17 @@ The port for the instance's transactional state. The memory adapter is in `packa
 
 Do not use: database (for the port), persistence layer, store (alone).
 
+### Subject assertion
+
+The signed `Agent-Native-Subject` header with which a peer names the person a request is made for. The key the peer enrolled signs the audience, the subject, the request line, the body digest and a lifetime of at most 120 seconds. The called application accepts each assertion once. Lives in [`plugins/peer-link`](../plugins/peer-link/README.md).
+
+### Subject mapping
+
+The called application's table from a peer's subject IDs to its own principals. A call on behalf of an unmapped subject is refused, and no subject maps to a `peer:` or `device:` principal or a reserved principal. Managed with `peer.subject.map` in [`plugins/peer-link`](../plugins/peer-link/README.md).
+
 ### Surface
 
-One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. A surface adapter maps one surface onto the instance's command and query entry points. Lives in [`packages/adapters`](../packages/adapters/README.md).
+One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. A surface adapter maps one surface onto the instance's command and query entry points. Lives in [`packages/adapters`](../packages/adapters/README.md). A [peer surface](#peer-surface) is unrelated.
 
 Do not use: transport (for a surface), channel (for a surface), interface (for a surface), API (alone).
 

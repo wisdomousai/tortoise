@@ -204,6 +204,24 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 - Two dispatcher processes cannot share a local workspace, because the OS lock refuses the second (`packages/adapters/src/ownership.test.ts`). Dispatchers race only within one process, which the reliability tests cover, or across hosted instances under the fenced lease.
 - Capture timings come from synthetic runs.
 
+### Peer applications
+
+**Not shown.**
+
+- **Live:** receiving and quality-inspection have connected only in the two-host tests on loopback. Nobody has connected them through `bun run dev` and the Peers screens, and no pair has run across two machines.
+- **Browser:** no browser test opens the Peers screen.
+- **Mobile:** the field application's drift check has run only under Bun, not in a Hermes build.
+
+**Limits.**
+
+- No mTLS client certificate binds a peer at the transport, and a peer's key cannot be rotated.
+- The `jti` cache is in memory ([security and compliance](security-and-compliance.md#peer-applications)).
+- The Peers screen does not show drift status. Only an effect's pending message and an unavailable read report a drifted operation.
+- An assertion says `act: agent` only when the effect or the read carries a run ID.
+- A peer target with no connection makes `integrations.sync()` and the CLI `sync` fail at that target, after the targets before it have synced.
+- Receiving's lot search returns the first 50 lots. Arrivals carry no plant, so everyone who captures at some plant sees all of them.
+- `asset-survey` and `asset-survey-field` keep the device link: a phone has no egress guard, and Ed25519 signing on Hermes is unproven.
+
 ### Connector plugins
 
 **By hand.** On 17 October 2026, on macOS, against independent implementations started from the uv cache.

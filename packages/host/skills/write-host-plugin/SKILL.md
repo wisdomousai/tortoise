@@ -24,9 +24,11 @@ A [host plugin](../../../../docs/glossary.md#host-plugin) is a [feature](../../.
 6. Implement the lifecycle hooks it needs: `open`, `ready`, `start` and `close`. [Lifecycle](../../../../docs/architecture.md#lifecycle) says when each runs; `open` may refuse startup.
 7. Reach the network, ingress, identity, processes, exchange folders and the [audit log](../../../../docs/glossary.md#audit-log) only through `HostPorts`. Never reach them through another plugin's imports.
 8. Write from a loop or job only through the plugin's own commands, as a caller under a [delegated grant](../../../../docs/glossary.md#grant). Never write into application state.
-9. For a plugin that issues its own credentials, as the device link does:
+9. For a plugin that issues its own credentials, as the device link and the peer link do:
    - pair by a one-use code with `@agent-native/host/enrollment` (`newEnrollmentCode`, `newCredential`, `credentialDigest`, `createAttemptLimit`) and store only digests;
+   - serve the code exchange from `publicRoute`, which runs before the session check;
    - resolve the credential on every request in `authenticate(token, request)`, which returns the caller's context and grant;
+   - read the request body in `authenticate` only from `request.clone()`, so the handler can still read it;
    - declare a destination the plugin sends its credential to with `authenticated: true`, so the site check refuses plain text off loopback.
 10. Add CLI verbs as `PluginCommand` entries in `commands`. They run before any workspace opens.
 11. Add a step to `state.migrations` when the slice shape changes.

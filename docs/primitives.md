@@ -317,13 +317,13 @@ implemented · [`packages/contracts`](../packages/contracts/README.md) [`package
 
 _Another agent-native application as a target, through the peer surface it publishes: the commands and queries it lets a peer call as a service principal or on behalf of a mapped person._
 
-partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md)
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md) [`examples/receiving`](../examples/receiving/README.md) [`examples/asset-survey-field`](../examples/asset-survey-field/README.md)
 
 ### Peer link
 
 _Enrollment of another agent-native application, which then calls the peer surface as its service principal or, with a signed subject assertion, as a mapped person._
 
-partial · [`plugins/peer-link`](../plugins/peer-link/README.md) [`packages/integration`](../packages/integration/README.md)
+partial · [`plugins/peer-link`](../plugins/peer-link/README.md) [`packages/integration`](../packages/integration/README.md) [`examples/quality-inspection`](../examples/quality-inspection/README.md) [`examples/receiving`](../examples/receiving/README.md)
 
 ### Remote query
 

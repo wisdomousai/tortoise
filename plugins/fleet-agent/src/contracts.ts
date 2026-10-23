@@ -170,6 +170,7 @@ export const fleetLinkComponent = defineHostComponent({
         direction: 'egress',
         scope: 'internet',
         protocol: 'https',
+        authenticated: true,
         dataClasses: ['site-health', 'audit-event', 'release-bundle', 'remote-access'],
         availability: 'optional',
         offline: 'queue',

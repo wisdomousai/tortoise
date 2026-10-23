@@ -1,6 +1,6 @@
 ---
 name: deploy-to-site
-description: Prepare an agent-native application for a site, plant or customer machine. Use when writing or checking a deployment policy (profile, destination bindings, exchange folder bindings, TLS or mTLS ingress, identity, workforce sign-in, process bindings with path and hash), building and signing a site bundle, installing, checking or removing a release with site install, exporting firewall or orchestrator rules, or producing compliance evidence. Covers plugins/site, plugins/network, plugins/process, plugins/audit, plugins/compliance and packages/bundle.
+description: Prepare an agent-native application for a site, plant or customer machine. Use when writing or checking a deployment policy (profile, destination bindings, exchange folder bindings, TLS or mTLS ingress, peer destinations, identity, workforce sign-in, process bindings with path and hash), building and signing a site bundle, installing, checking or removing a release with site install, exporting firewall or orchestrator rules, or producing compliance evidence. Covers plugins/site, plugins/network, plugins/process, plugins/audit, plugins/compliance and packages/bundle.
 ---
 
 # Deploy to a site
@@ -28,17 +28,18 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 2. In connected mode, bind or explicitly disable every required destination.
 3. Bind each declared folder ID under `folders` to an absolute directory: a POSIX path, a Windows drive path or a UNC share. Or disable it with `{ "disabled": true, "reason" }`. Two folders may not share a directory. A directory that does not exist yet is a warning, because a share may mount later.
 4. Bind a broker or OPC UA server as a `tcp` destination, `tcp://host:port`. Add `tls: true` for a broker on 8883.
-5. Bind each declared process ID under `processes` to an absolute `executable`, fixed `args`, an absolute `cwd`, `env`, and a `sha256` pin. A driver's ID and contract digest come from `app driver list`, as the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`) describes.
-6. Check the policy offline with `app site check --site <file>`. It exits 2 on any error finding. In a checkout, the application CLI is `bun run cli`.
-7. Export rules for the paths the in-process egress guard cannot see: `app network export --site <file> --format nftables|windows-firewall|k8s-networkpolicy|k8s-pod|compose|systemd|json`.
-8. Create a signing key with `bun run bundle keygen --out key.json`.
-9. Build and sign a [site bundle](../../../../docs/glossary.md#site-bundle) with `bun run bundle create --key key.json --out <dir>`. `create` writes the contract, security manifest and SBOM from the catalog into the bundle.
-10. Verify the bundle with `bun run bundle verify <dir> --trust key.pub.json`.
-11. Admit it with `bun run bundle admit <dir> --trust key.pub.json --approval <file>`.
-12. Install with the bundled binary: `site install <bundle> --trust key.pub.json --approval <file>`. Stage it under `--prefix` first, then apply it with `--apply`. A refused admission, policy check, render or migration leaves the previous release current.
-13. Use `site status` to check the active release. It exits 1 when that release no longer verifies.
-14. Remove a release with `site uninstall`. It keeps data unless `--purge` is given.
-15. Produce evidence with `app audit verify --log <dir>` and `app compliance report --log <dir> --site <file> --format markdown`. A running host re-checks posture, including certificate validity, on every check.
+5. Bind a peer application's destination, which `definePeerTarget` declares `authenticated`, to the peer's `https` origin, with `ca` when its certificate chains to the site CA. The check refuses plain text off loopback. An `mtls` listener on the called application refuses the peer, because the peer link presents no client certificate.
+6. Bind each declared process ID under `processes` to an absolute `executable`, fixed `args`, an absolute `cwd`, `env`, and a `sha256` pin. A driver's ID and contract digest come from `app driver list`, as the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`) describes.
+7. Check the policy offline with `app site check --site <file>`. It exits 2 on any error finding. In a checkout, the application CLI is `bun run cli`.
+8. Export rules for the paths the in-process egress guard cannot see: `app network export --site <file> --format nftables|windows-firewall|k8s-networkpolicy|k8s-pod|compose|systemd|json`.
+9. Create a signing key with `bun run bundle keygen --out key.json`.
+10. Build and sign a [site bundle](../../../../docs/glossary.md#site-bundle) with `bun run bundle create --key key.json --out <dir>`. `create` writes the contract, security manifest and SBOM from the catalog into the bundle.
+11. Verify the bundle with `bun run bundle verify <dir> --trust key.pub.json`.
+12. Admit it with `bun run bundle admit <dir> --trust key.pub.json --approval <file>`.
+13. Install with the bundled binary: `site install <bundle> --trust key.pub.json --approval <file>`. Stage it under `--prefix` first, then apply it with `--apply`. A refused admission, policy check, render or migration leaves the previous release current.
+14. Use `site status` to check the active release. It exits 1 when that release no longer verifies.
+15. Remove a release with `site uninstall`. It keeps data unless `--purge` is given.
+16. Produce evidence with `app audit verify --log <dir>` and `app compliance report --log <dir> --site <file> --format markdown`. A running host re-checks posture, including certificate validity, on every check.
 
 ## Checks
 

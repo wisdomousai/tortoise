@@ -4,7 +4,7 @@ An application declares what it may reach, the host enforces that, actions are r
 
 ## Concepts
 
-Terms: [requirement declarations](glossary.md#requirement-declaration), [destinations](glossary.md#destination), [exchange folders](glossary.md#exchange-folder), the [deployment policy](glossary.md#deployment-policy), [hardening profiles](glossary.md#hardening-profile), the [egress guard](glossary.md#egress-guard), the [audit log](glossary.md#audit-log) and the [compliance bundle](glossary.md#compliance-bundle).
+Terms: [requirement declarations](glossary.md#requirement-declaration), [destinations](glossary.md#destination), [exchange folders](glossary.md#exchange-folder), the [deployment policy](glossary.md#deployment-policy), [hardening profiles](glossary.md#hardening-profile), the [egress guard](glossary.md#egress-guard), the [audit log](glossary.md#audit-log), the [compliance bundle](glossary.md#compliance-bundle) and the [peer link](glossary.md#peer-link).
 
 ## Controls and plugins
 
@@ -190,6 +190,31 @@ Two relays are the sandbox's only way out. One reaches the host API with a token
 
 The [model server plugin](../plugins/model-server/README.md) hashes the weights before every start. It refuses files that differ from the [model entry](glossary.md#model-entry), and a fine-tune without a passing activation for its exact digests. Its runs record the measured digests with `verified: true`, so an auditor can trace an approval request to the base weights, the adapter and the dataset. A harness for a model server run outside the host records the digests it was given as unverified. The [approval dataset](glossary.md#approval-dataset) export applies redaction before its digest, so only what the exporting caller may see leaves the host for training.
 
+## Peer applications
+
+The [peer link](glossary.md#peer-link) admits another application to the [peer surface](glossary.md#peer-surface) an application declares. Each threat and the control that meets it:
+
+| Threat | Control |
+| --- | --- |
+| A stranger who reaches the listener enrolls | The enrollment route redeems only a one-use code, valid for ten minutes, with ten failed exchanges per minute for all callers together. |
+| A peer calls beyond the surface | The service principal's grant holds the surface's service operations, or the narrower list the enrollment named. Its policy lane reads no journal events. |
+| A peer acts as any person | A call on behalf of a person needs a [subject assertion](glossary.md#subject-assertion) signed by the key enrolled with the credential, and a [subject mapping](glossary.md#subject-mapping). No subject maps to a `peer:` or `device:` principal or to a reserved principal. |
+| A peer does what the person may not | The mapped person's own policy applies within the surface's on-behalf-of operations, and a person-only rule refuses the call. An assertion with `act: agent` is refused unless the application allows agents. |
+| A captured assertion is replayed or moved | The assertion binds the audience, the request line and the body digest. It lives at most 120 seconds, and its `jti` is accepted once. |
+| A peer opens a session as the person | A call on behalf of a person opens no browser session and no event stream. |
+| A revoked peer or unmapped subject keeps calling | Every request resolves the credential and the mapping again, so a revocation or an unmapping applies to the next request. |
+| The calling host leaks its credential | The credential and private key stay in the secret store, or without one in a 0600 file in a 0700 directory, outside state, receipts and the journal. The peer clients send them only to the target's destination, refuse redirects and drop caller-set `Authorization`, `Cookie` and `Agent-Native-Subject` headers. |
+| The credential crosses the network in clear text | A peer destination is declared `authenticated`, so the site plugin refuses a plaintext binding to it off loopback. |
+| A changed peer misreads input | The drift check blocks an operation whose schema digest differs from the one the peer serves, so its effects wait. |
+
+`plugins/peer-link/test/security.test.ts` covers the controls on the called side, `test/link.test.ts` those on the calling side, and `test/tls.test.ts` a pair over TLS with a site CA.
+
+These risks remain:
+
+- The `jti` cache is in memory. An assertion captured within two minutes before a restart can be presented once more after it, still only with the peer's bearer credential.
+- A stolen credential together with the private key can assert any mapped subject, within the surface and that person's policy.
+- The one-use code stays in the stored receipt of `peer.enrollment.create`, worthless once redeemed or expired.
+
 ## Audit log
 
 The audit log records these events in one chain:
@@ -265,6 +290,7 @@ A site connected to a fleet keeps working while the fleet is unreachable ([hosti
 - A process running as the workspace owner can read the workspace and the audit log. Chaining detects edits but cannot stop deletion of the newest entries; off-host forwarding covers that.
 - Workforce sign-in supports OpenID Connect only, with no LDAP or SAML.
 - The host checks certificates for expiry but never issues or rotates them.
+- The peer link uses no mTLS client certificate and cannot rotate a peer's key.
 - The isolated-test trap does not cover child processes.
 - Devices are declared but not mediated. The systemd export needs explicit allowances for declared devices.
 
@@ -279,4 +305,5 @@ A site connected to a fleet keeps working while the fleet is unreachable ([hosti
 - [Implementation status](implementation-status.md)
 - [`examples/quality-inspection/site-policy.sandbox.json`](../examples/quality-inspection/site-policy.sandbox.json)
 - [Site plugin's trust boundary](../plugins/site/README.md#trust-boundary)
+- [Peer link's trust boundary](../plugins/peer-link/README.md#trust-boundary)
 - [Systems of record](systems-of-record.md#exit-codes)

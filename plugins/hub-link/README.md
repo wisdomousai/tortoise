@@ -26,7 +26,7 @@ Plugins (`plugins/*`). Runs on Android, iOS and Bun; `src/` is portable source.
 
 ### Pairing
 
-The application names the outbox [target](../../docs/glossary.md#target) `hub` for [effects](../../docs/glossary.md#effect) meant for the hub. The destination component declares it with `offline: 'queue'`, so records queue while the device is unpaired or offline.
+The application names the outbox [target](../../docs/glossary.md#target) `hub` for [effects](../../docs/glossary.md#effect) meant for the hub. The destination component declares it `authenticated`, with `offline: 'queue'`, so records queue while the device is unpaired or offline.
 
 Device management can set `hub-url` and `enrollment-code` (environment `AGENT_NATIVE_HUB_URL` and `AGENT_NATIVE_ENROLLMENT_CODE`). When both are set and the device is not paired, the plugin pairs in the background once the [instance](../../docs/glossary.md#instance) is ready. A failure is recorded as the pairing error, and startup continues. Otherwise a person pairs on the screen, which calls the service through the native frame's [plugin services](../../docs/glossary.md#plugin-service).
 
