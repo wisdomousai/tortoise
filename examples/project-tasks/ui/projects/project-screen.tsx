@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
 import { operations } from '../../contracts';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { useUiSession } from '@/lib/ui-session';
 import { AgentPanel } from './agent-panel';
 import { PreparedTask } from './prepared-task';
 import { ProjectAccess } from './project-access';
-import { message, projectPath, taskProjectPath, useProjectId, type Project } from './shared';
+import { message, useProjectId, type Project } from './shared';
 import { TaskGroup } from './task-group';
 
 /** One action at a time for the screen: `busy` while it runs, its failure as `error`. */
@@ -32,24 +31,12 @@ function useAction() {
 }
 
 /**
- * Share the open project with agent runs, and follow a run that navigates: to a project, or to
- * the project of a task it names.
+ * Share the open project with agent runs. A run that opens a project or a task follows the
+ * application's `resources` paths; the screen has no selection of its own to change.
  */
 function useProjectSession(project: Project | undefined) {
-  const navigate = useNavigate();
   return useUiSession(
     project ? { id: `project:${project.id}`, revision: project.revision } : undefined,
-    async (resource) => {
-      const [type, id] = resource.split(':');
-      const to =
-        type === 'project' && id
-          ? projectPath(id)
-          : type === 'task' && id
-            ? await taskProjectPath(id)
-            : undefined;
-      if (!to) throw new Error('Unknown resource');
-      await navigate({ to });
-    },
   );
 }
 

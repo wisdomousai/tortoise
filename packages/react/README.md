@@ -11,7 +11,7 @@ Framework (`packages/*`). Browser-safe. The bindings trust the [instance](../../
 - [Capability binding](../../docs/primitives.md#capability-binding): `useCapabilityForm`, `useCommand`, `useLiveQuery`.
 - [Remote query](../../docs/primitives.md#remote-query): `remoteQueryOptions` and `remoteInfiniteQueryOptions` from `createLiveBindings`, and `REMOTE_STALE_MS`.
 - [Journal and live query](../../docs/primitives.md#journal-and-live-query): `createLiveBindings`, `changedResourceTypes`, `isAffected`.
-- [UI session context](../../docs/primitives.md#ui-session-context): `captureUiContext`, `UiSessions`, `UiContext`, `UiIntent`.
+- [UI session context](../../docs/primitives.md#ui-session-context): `captureUiContext`, `UiContext`, and `UiIntent` from `@agent-native/contracts`.
 
 The quality-inspection capture screen ([`examples/quality-inspection/ui/capture-station.tsx`](../../examples/quality-inspection/ui/capture-station.tsx)) uses the form and capture bindings together.
 
@@ -19,7 +19,7 @@ The quality-inspection capture screen ([`examples/quality-inspection/ui/capture-
 
 | Import                        | Runs in | Contents                                                                                  |
 | ----------------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `@agent-native/react`         | browser | `useLiveQuery`, `useCommand`, `captureUiContext`, `UiSessions`.                           |
+| `@agent-native/react`         | browser | `useLiveQuery`, `useCommand`, `captureUiContext`.                           |
 | `@agent-native/react/*`       | browser | One source file from `src/`. The root re-exports `hooks` and `ui-context`.              |
 | `@agent-native/react/form`    | browser | `useCapabilityForm`: a TanStack Form bound to one command capability.                     |
 | `@agent-native/react/query`   | browser | `createLiveBindings`: TanStack Query bindings for one authenticated transport.            |

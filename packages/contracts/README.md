@@ -9,6 +9,8 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 ## Primitives
 
 - [Capability](../../docs/primitives.md#capability): `defineCapability`, `jsonSchema`, `PermissionRequirement`, `IntegrationDeclaration`, `RemoteReadDeclaration`, and `jsonValueSchema`. `jsonValueSchema` accepts any JSON value and is the one recursive schema the portability check accepts.
+- [Display metadata](../../docs/primitives.md#display-metadata): `DisplayDeclaration`, `DisplayField`, a capability's `display`; `checkDisplay`, which the catalog build runs; and `displayRecord`, the record schema an output holds.
+- [UI session context](../../docs/primitives.md#ui-session-context): `UiIntent` and `uiResourcePattern`, the `<kind>:<id>` form of a named resource.
 - [Module](../../docs/primitives.md#module): `defineModule`, `CapabilityModule`.
 - [Feature](../../docs/primitives.md#feature): `defineFeatureManifest`, `FeatureManifest`, `FeatureModules`, the namespace helpers `operationNamespace`, `checkNamespace`, `ownedName` and `unitIdPattern`, and `checkUnitScreens`, which both frames run on feature and plugin screens. A feature's operations start with its id, and its module and target names are its id or start with `<id>-`.
 - [Catalog](../../docs/primitives.md#catalog): `buildCatalog`, `Catalog`, `CatalogOperation`. `describeContract`, `ContractApplication` and `operationSchemaDigest` add what a host serves at `/api/v1/contract`: the application and each operation's schema digest.

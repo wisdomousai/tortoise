@@ -13,7 +13,7 @@ import {
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { canonicalJson } from '@agent-native/contracts';
 import { addDependency, addWorkspace, type GeneratedContent } from './content';
-import { excludedExamples, pruneLockfile, type ExcludedExample } from './examples';
+import { emptiedLayers, excludedExamples, pruneLockfile, type ExcludedExample } from './examples';
 import { binaryFile, collect } from './file-rules';
 import {
   frameworkFile,
@@ -141,7 +141,8 @@ async function applicationOf(options: ScaffoldOptions, sourceRoot: string, displ
     appId: `dev.agentnative.${options.name}`,
     ...(hosted ? { application: hosted } : {}),
   };
-  return { application, excluded };
+  const dropped = excluded.length ? await emptiedLayers(sourceRoot, excluded) : [];
+  return { application, excluded, dropped };
 }
 
 interface ExportContext {
@@ -150,6 +151,8 @@ interface ExportContext {
   readonly displayName: string;
   readonly application: ScaffoldManifest['application'];
   readonly excluded: readonly ExcludedExample[];
+  /** Workspace patterns the export leaves out because every workspace in them is excluded. */
+  readonly dropped: readonly string[];
   readonly content?: GeneratedContent;
   readonly framework?: PublishedFramework;
 }
@@ -167,9 +170,12 @@ function exportedContent(path: string, source: string, context: ExportContext): 
   if (path === 'app.config.json') content = JSON.stringify(context.application, null, 2) + '\n';
   if (path === 'package.json' && excluded.length) {
     const root = JSON.parse(content) as {
+      workspaces?: string[];
       dependencies?: Record<string, string>;
       scripts?: Record<string, string>;
     };
+    if (root.workspaces)
+      root.workspaces = root.workspaces.filter((pattern) => !context.dropped.includes(pattern));
     for (const { packageName } of excluded) delete root.dependencies?.[packageName];
     // A script that runs a left-out example's files, such as one example's sandbox test.
     if (root.scripts)
@@ -275,13 +281,18 @@ export async function scaffold(options: ScaffoldOptions): Promise<ScaffoldManife
   const framework = options.published
     ? await publishedFramework(locations.sourceRoot, options.published.registry)
     : undefined;
-  const { application, excluded } = await applicationOf(options, locations.sourceRoot, displayName);
+  const { application, excluded, dropped } = await applicationOf(
+    options,
+    locations.sourceRoot,
+    displayName,
+  );
   const files = await exportedFiles(locations, {
     sourceName: sourcePackage.name,
     name: options.name,
     displayName,
     application,
     excluded,
+    dropped,
     ...(options.content ? { content: options.content } : {}),
     ...(framework ? { framework } : {}),
   });

@@ -17,6 +17,7 @@ Framework (`packages/*`). The starter's `apps/service` calls it. Content calls o
 - [Shell port](../../docs/primitives.md#shell-port): the shell routes and the delivery routes, listed under [Shell and delivery routes](#shell-and-delivery-routes).
 - [State migration](../../docs/primitives.md#state-migration): `migrate [--dry-run]`, described under [Migrate command](#migrate-command).
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
+- [UI session context](../../docs/primitives.md#ui-session-context): a run started from a UI session gets the `ui.open`, `ui.select` and `ui.request-review` tools, which send intents to that session through `UiSessionStore.sendFromRun`. The host checks each named resource under the run's grant and against `selectableResources`.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus the host components that the generators read.
 
 Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/project-tasks/application.ts`](../../examples/project-tasks/application.ts).

@@ -1,6 +1,7 @@
 import type { WorkflowDeclaration } from './workflow';
 import type { AgentDefinition } from './agent';
 import type { BlobLimits } from './blob';
+import type { DisplayDeclaration } from './display';
 import type { Schema } from './schema';
 import type { OsDeclarations } from './os';
 import type { Requirements } from './requirements';
@@ -50,6 +51,8 @@ export interface Capability<
   readonly permission: PermissionRequirement;
   readonly dependencies?: readonly string[];
   readonly ui?: { readonly binding?: string; readonly exception?: string };
+  /** How the capability and its result are presented. See `DisplayDeclaration`. */
+  readonly display?: DisplayDeclaration;
   readonly errors?: readonly string[];
   readonly integration?: IntegrationDeclaration;
   /** Queries only: read `target` at call time. See `RemoteReadDeclaration`. */

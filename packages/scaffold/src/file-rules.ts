@@ -23,6 +23,7 @@ const sourceDirectories = new Set([
   'sdks',
   'apps',
   'examples',
+  'samples',
   'scripts',
   'skills',
   'docs',

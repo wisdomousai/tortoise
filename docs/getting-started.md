@@ -47,6 +47,13 @@ In the same directory, `bun run dev:web` serves the browser instead. When an exa
 
 `asset-survey-field` runs on a phone or emulator instead; its README has the steps.
 
+The [samples](glossary.md#sample) in `samples/*` run the same way, on ports 4350 to 4354:
+
+```sh
+cd samples/notes
+bun run dev:web
+```
+
 ### Quality inspection run
 
 `quality-inspection` captures measurements and delivers them to a deterministic fake quality system. Set `DEMO_QUALITY_LOCKED_LOTS` to make the fake system reject results for a lot.
@@ -179,3 +186,4 @@ The scaffold installs no global agent configuration. A coding agent shapes the g
 - [Development and testing](development-and-testing.md)
 - [Architecture](architecture.md#embedded-and-attached-modes)
 - [Architecture](architecture.md#examples)
+- [Samples](samples.md)

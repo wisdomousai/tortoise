@@ -58,9 +58,9 @@ const browserRoots = [
 ];
 // Content's browser entrypoints: contracts, the manifest, screens and their components.
 const browserContent =
-  /^examples\/[^/]+\/(?:contracts\.ts|contracts\/|manifest\.ts|screens\.tsx|ui\/)/;
+  /^(?:examples|samples)\/[^/]+\/(?:contracts\.ts|contracts\/|manifest\.ts|screens\.tsx|ui\/)/;
 // Layers by directory: framework `packages/*`, workstations `workstations/*`, plugins `plugins/*`,
-// shell `apps/*`, content `examples/*`, and driver SDKs `sdks/*`.
+// shell `apps/*`, content `examples/*` and `samples/*`, and driver SDKs `sdks/*`.
 // Imports resolve through relative paths and workspace package names alike, so an alias such as
 // `@agent-native/line-station` cannot bypass a rule that a relative path would break.
 type Layer = 'framework' | 'workstation' | 'plugin' | 'shell' | 'content' | 'sdk';
@@ -70,6 +70,7 @@ const layerDirectories: Record<string, Layer> = {
   plugins: 'plugin',
   apps: 'shell',
   examples: 'content',
+  samples: 'content',
   sdks: 'sdk',
 };
 const packageLayers = new Map<string, Layer>();
@@ -226,14 +227,13 @@ for (const exemption of Object.keys(egressExemptions))
 // Bundling each application with the starter's real config catches transitive host dependencies
 // as well as direct ones: the boundary plugin in apps/web/vite.config.ts fails the graph.
 const applications = [];
-for (const entry of await readdir(resolve(root, 'examples'), { withFileTypes: true }).catch(
-  () => [],
-))
-  if (
-    entry.isDirectory() &&
-    (await Bun.file(resolve(root, 'examples', entry.name, 'screens.tsx')).exists())
-  )
-    applications.push(resolve(root, 'examples', entry.name));
+for (const layer of ['examples', 'samples'])
+  for (const entry of await readdir(resolve(root, layer), { withFileTypes: true }).catch(() => []))
+    if (
+      entry.isDirectory() &&
+      (await Bun.file(resolve(root, layer, entry.name, 'screens.tsx')).exists())
+    )
+      applications.push(resolve(root, layer, entry.name));
 const configured = process.env.AGENT_NATIVE_APPLICATION;
 for (const application of applications) {
   process.env.AGENT_NATIVE_APPLICATION = application;

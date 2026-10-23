@@ -1,6 +1,9 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+/** Directories that hold applications: the examples and the concept samples. */
+const contentLayers = ['examples', 'samples'] as const;
+
 export interface ExcludedExample {
   readonly directory: string;
   readonly packageName: string;
@@ -53,33 +56,55 @@ async function keptExamples(
 }
 
 /**
- * The examples an export leaves out, with the package and application ids that the root
- * manifest, lockfile and generated references name: every example except `keep` and the
- * examples it imports, or every example when `keep` is undefined (a new application). Reads
- * text only; no content code is loaded.
+ * The examples and samples an export leaves out, with the package and application ids that the
+ * root manifest, lockfile and generated references name: every one except the example `keep` and
+ * those it imports, or all of them when `keep` is undefined (a new application). Reads text only;
+ * no content code is loaded.
  */
 export async function excludedExamples(
   sourceRoot: string,
   keep: string | undefined,
 ): Promise<ExcludedExample[]> {
-  const entries = await readdir(join(sourceRoot, 'examples'), { withFileTypes: true }).catch(
-    () => [],
-  );
-  if (keep !== undefined && !entries.some((entry) => entry.isDirectory() && entry.name === keep))
-    throw new Error(`Unknown example "${keep}"`);
   const examples: ExcludedExample[] = [];
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const directory = `examples/${entry.name}`;
-    const manifest = JSON.parse(await readFile(join(sourceRoot, directory, 'package.json'), 'utf8'))
-      .name as string;
-    const id = (
-      await readFile(join(sourceRoot, directory, 'manifest.ts'), 'utf8').catch(() => '')
-    ).match(/\bid:\s*'([a-z0-9-]+)'/)?.[1];
-    examples.push({ directory, packageName: manifest, ...(id ? { applicationId: id } : {}) });
+  for (const layer of contentLayers) {
+    const entries = await readdir(join(sourceRoot, layer), { withFileTypes: true }).catch(() => []);
+    if (
+      layer === 'examples' &&
+      keep !== undefined &&
+      !entries.some((entry) => entry.isDirectory() && entry.name === keep)
+    )
+      throw new Error(`Unknown example "${keep}"`);
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const directory = `${layer}/${entry.name}`;
+      const manifest = JSON.parse(
+        await readFile(join(sourceRoot, directory, 'package.json'), 'utf8'),
+      ).name as string;
+      const id = (
+        await readFile(join(sourceRoot, directory, 'manifest.ts'), 'utf8').catch(() => '')
+      ).match(/\bid:\s*'([a-z0-9-]+)'/)?.[1];
+      examples.push({ directory, packageName: manifest, ...(id ? { applicationId: id } : {}) });
+    }
   }
   const kept = keep === undefined ? new Set() : await keptExamples(sourceRoot, examples, keep);
   return examples.filter((example) => !kept.has(example.directory));
+}
+
+/**
+ * The sample layer's workspace pattern when the export leaves out every sample, so the
+ * exported root lists no empty layer. The examples layer always stays: it holds the application.
+ */
+export async function emptiedLayers(
+  sourceRoot: string,
+  excluded: readonly ExcludedExample[],
+): Promise<string[]> {
+  const entries = await readdir(join(sourceRoot, 'samples'), { withFileTypes: true }).catch(
+    () => [],
+  );
+  const samples = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  return samples.every((name) => excluded.some(({ directory }) => directory === `samples/${name}`))
+    ? ['samples/*']
+    : [];
 }
 
 /** Drop excluded workspaces from Bun's text lockfile so `--frozen-lockfile` installs still pass. */

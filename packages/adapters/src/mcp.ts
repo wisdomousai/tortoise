@@ -40,13 +40,32 @@ export function toolInputSchema(operation: CatalogOperation) {
 type McpClient = Transport & { catalog(): Promise<Catalog> };
 type CallToolRequest = { params: { name: string; arguments?: Record<string, unknown> } };
 
+/**
+ * The tool description: the capability's own, then what its display declaration says about the
+ * records the result holds, so an agent knows which resource each one is and which field names it.
+ */
+function toolDescription(operation: CatalogOperation): string {
+  const base = operation.description || operation.id;
+  const display = operation.display;
+  if (!display?.resource && !display?.titleField && !display?.fields) return base;
+  const parts = [
+    display.resource
+      ? `Each record is the resource ${display.resource}:<${display.key ?? 'id'}>.`
+      : '',
+    display.titleField ? `${display.titleField} names a record.` : '',
+    display.fields ? `Shown fields: ${display.fields.map((field) => field.name).join(', ')}.` : '',
+  ];
+  return `${base}\n\n${parts.filter(Boolean).join(' ')}`;
+}
+
 /** One tool per catalog operation, annotated with its kind and whether it leaves the host. */
 async function listTools(client: McpClient) {
   const catalog = await client.catalog();
   return {
     tools: catalog.operations.map((operation) => ({
       name: operation.mcpName,
-      description: operation.description || operation.id,
+      ...(operation.display?.label ? { title: operation.display.label } : {}),
+      description: toolDescription(operation),
       inputSchema: toolInputSchema(operation),
       annotations: {
         readOnlyHint: operation.kind === 'query',

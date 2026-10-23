@@ -52,6 +52,11 @@
         "@agent-native/react": "workspace:*",
         "@agent-native/receiving": "workspace:*",
         "@agent-native/runtime": "workspace:*",
+        "@agent-native/sample-notes": "workspace:*",
+        "@agent-native/sample-notes-agents": "workspace:*",
+        "@agent-native/sample-notes-host-plugin": "workspace:*",
+        "@agent-native/sample-notes-operations": "workspace:*",
+        "@agent-native/sample-notes-system-of-record": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
         "@agent-native/screen-bridge": "workspace:*",
         "@agent-native/share-target": "workspace:*",
@@ -793,6 +798,26 @@
         "react": "19.3.0",
       },
     },
+    "samples/notes": {
+      "name": "@agent-native/sample-notes",
+      "version": "0.1.0",
+    },
+    "samples/notes-agents": {
+      "name": "@agent-native/sample-notes-agents",
+      "version": "0.1.0",
+    },
+    "samples/notes-host-plugin": {
+      "name": "@agent-native/sample-notes-host-plugin",
+      "version": "0.1.0",
+    },
+    "samples/notes-operations": {
+      "name": "@agent-native/sample-notes-operations",
+      "version": "0.1.0",
+    },
+    "samples/notes-system-of-record": {
+      "name": "@agent-native/sample-notes-system-of-record",
+      "version": "0.1.0",
+    },
     "sdks/driver-dotnet": {
       "name": "@agent-native/driver-sdk-dotnet",
       "version": "0.1.0",
@@ -932,6 +957,16 @@
     "@agent-native/receiving": ["@agent-native/receiving@workspace:examples/receiving"],
 
     "@agent-native/runtime": ["@agent-native/runtime@workspace:packages/runtime"],
+
+    "@agent-native/sample-notes": ["@agent-native/sample-notes@workspace:samples/notes"],
+
+    "@agent-native/sample-notes-agents": ["@agent-native/sample-notes-agents@workspace:samples/notes-agents"],
+
+    "@agent-native/sample-notes-host-plugin": ["@agent-native/sample-notes-host-plugin@workspace:samples/notes-host-plugin"],
+
+    "@agent-native/sample-notes-operations": ["@agent-native/sample-notes-operations@workspace:samples/notes-operations"],
+
+    "@agent-native/sample-notes-system-of-record": ["@agent-native/sample-notes-system-of-record@workspace:samples/notes-system-of-record"],
 
     "@agent-native/scaffold": ["@agent-native/scaffold@workspace:packages/scaffold"],
 

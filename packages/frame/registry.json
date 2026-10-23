@@ -192,18 +192,27 @@
       "name": "ui-session",
       "type": "registry:lib",
       "title": "UI session",
-      "description": "Registers the screen's selection with the instance so an agent run captures what the person sees, and receives intents the agent sends back.",
-      "dependencies": ["@agent-native/react"],
+      "description": "Registers the screen's selection with the instance so an agent run captures what the person sees, and applies the intents the run sends back: open a resource's screen, select it on the current screen, or show a review.",
+      "dependencies": ["@tanstack/react-router", "@agent-native/contracts"],
       "files": [
         {
           "path": "src/lib/ui-session.ts",
           "type": "registry:lib"
         },
         {
+          "path": "src/lib/ui-intents.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "src/lib/host-client.ts",
           "type": "registry:lib"
+        },
+        {
+          "path": "src/screens-context.tsx",
+          "type": "registry:lib"
         }
-      ]
+      ],
+      "registryDependencies": ["@agent-native/screens"]
     },
     {
       "name": "os-deliveries",

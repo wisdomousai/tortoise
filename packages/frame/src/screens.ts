@@ -44,8 +44,9 @@ export interface ApplicationScreens {
   readonly routes: readonly ScreenRoute[];
   readonly navigation: readonly NavigationItem[];
   /**
-   * The screen path that shows a selectable resource, by kind, for an OS link or file that opens
-   * `kind:id`. A kind without an entry cannot be opened that way. Runs in the frame's query
+   * The screen path that shows a selectable resource, by kind, for an OS link or file or an
+   * agent's `openResource` intent that opens `kind:id`. A kind without an entry cannot be opened
+   * that way. Runs in the frame's query
    * context, so it may read an authorized query, such as a task's project.
    */
   readonly resources?: Readonly<Record<string, (id: string) => string | Promise<string>>>;
@@ -111,4 +112,12 @@ export function screenForCapability(screens: ApplicationScreens, id: string) {
   return (screens.capabilityScreens ?? [])
     .filter((entry) => id.startsWith(entry.prefix))
     .sort((a, b) => b.prefix.length - a.prefix.length)[0]?.to;
+}
+
+/** The screen path that shows `kind:id`, from `screens.resources`; throws for a kind without one. */
+export async function resourcePath(screens: ApplicationScreens, resource: string) {
+  const [kind, ...rest] = resource.split(':');
+  const resolve = kind ? screens.resources?.[kind] : undefined;
+  if (!resolve) throw new Error(`No screen opens ${kind} resources`);
+  return resolve(rest.join(':'));
 }

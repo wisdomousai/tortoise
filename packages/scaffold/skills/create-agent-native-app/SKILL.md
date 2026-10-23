@@ -33,6 +33,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | `examples/crm-capture` | live search of a CRM and adoption of its records |
 | `examples/line-station` | an operator workstation over workstation application reached through its screen or a .NET driver |
 | `examples/asset-survey` and `examples/asset-survey-field` | a hub with blob evidence and a paired mobile field application |
+| `samples/*` | one concept each on a notes application: a system of record, agents and UI intents, a host plugin, a migration and telemetry. Exports leave them out |
 
 | Task | Skill |
 | --- | --- |

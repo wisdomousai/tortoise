@@ -59,11 +59,14 @@ export function CommandPalette({
             return (
               <CommandItem
                 key={operation.id}
-                value={`${operation.id} ${operation.description ?? ''}`}
+                value={`${operation.display?.label ?? ''} ${operation.id} ${operation.description ?? ''}`}
                 disabled={!screen}
                 onSelect={() => screen && go(screen)}
               >
                 <div className="flex min-w-0 flex-col">
+                  {operation.display?.label && (
+                    <span className="text-sm">{operation.display.label}</span>
+                  )}
                   <span className="font-mono text-xs">{operation.id}</span>
                   <span className="truncate text-xs text-muted-foreground">
                     {operation.description}

@@ -563,3 +563,104 @@ test('run history is grant-scoped and free-form output disappears after authoriz
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('a run started from a UI session reaches that screen through the ui tools', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'agent-ui-intents-'));
+  const seen: { tools: string[]; result?: unknown; error?: string }[] = [];
+  let target = '';
+  const screen: Harness = {
+    id: 'screen-intents',
+    features: { questions: false, approvals: false, resume: false },
+    async availability() {
+      return { available: true };
+    },
+    async *run(turn) {
+      const entry: (typeof seen)[number] = {
+        tools: (turn.tools.definitions ?? []).map((tool) => tool.operation),
+      };
+      seen.push(entry);
+      try {
+        entry.result = await turn.tools.execute(
+          'ui.open',
+          { input: { resource: target } },
+          { runId: turn.runId, signal: turn.signal, idempotencyKey: 'open' },
+        );
+      } catch (error) {
+        entry.error = (error as { code?: string }).code;
+      }
+    },
+  };
+  const host = await startHost(projectTasks, {
+    workspacePath: directory,
+    harnesses: [screen],
+    pollMs: 1,
+  });
+  const owner = host.sessions.create({ principalId: 'owner', workspaceId: 'local' });
+  const call = async (path: string, body?: unknown) =>
+    fetch(host.url + path, {
+      method: body === undefined ? 'GET' : 'POST',
+      headers: {
+        authorization: `Bearer ${owner.token}`,
+        ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+  const settled = async (id: string) => {
+    for (let i = 0; i < 200; i++) {
+      const run = await host.supervisor.get(id);
+      if (run && ['failed', 'cancelled', 'succeeded'].includes(run.state)) return run.state;
+      await Bun.sleep(5);
+    }
+  };
+  try {
+    const created = await host.application.invokeRaw(
+      { operation: 'project.create', input: { name: 'Screen project' }, idempotencyKey: 'p' },
+      owner.context,
+    );
+    target = `project:${(created.result as { id: string }).id}`;
+    const ui = (await (
+      await call('/api/v1/ui/sessions', {
+        selectedResources: [target],
+        observedRevisions: { [target]: 1 },
+      })
+    ).json()) as { sessionId: string };
+
+    const fromScreen = (await (
+      await call('/api/v1/runs', {
+        harnessId: screen.id,
+        prompt: 'Open it',
+        uiSessionId: ui.sessionId,
+      })
+    ).json()) as { id: string };
+    await settled(fromScreen.id);
+    expect(seen[0]?.tools).toEqual(expect.arrayContaining(['ui.open', 'ui.request-review']));
+    expect(seen[0]?.result).toMatchObject({ status: 'pending' });
+    expect(await (await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`)).json()).toMatchObject([
+      { intent: { type: 'openResource', resource: target } },
+    ]);
+
+    const headless = (await (
+      await call('/api/v1/runs', { harnessId: screen.id, prompt: 'No screen' })
+    ).json()) as { id: string };
+    await settled(headless.id);
+    expect(seen[1]?.tools).not.toContain('ui.open');
+    expect(seen[1]?.error).toBe('NOT_FOUND');
+
+    target = 'project:missing';
+    const unreadable = (await (
+      await call('/api/v1/runs', {
+        harnessId: screen.id,
+        prompt: 'Open a project that does not exist',
+        uiSessionId: ui.sessionId,
+      })
+    ).json()) as { id: string };
+    await settled(unreadable.id);
+    expect(seen[2]?.error).toBeDefined();
+    expect(await (await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`)).json()).toHaveLength(
+      1,
+    );
+  } finally {
+    await host.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+});

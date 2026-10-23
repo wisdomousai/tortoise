@@ -2,6 +2,11 @@
  * never from model arguments, and recheck cancellation at their commit boundary. */
 export interface ToolPort {
   readonly definitions?: readonly ToolDefinition[];
+  /**
+   * The tools one run sees, from the context the host captured when it started, such as tools
+   * that exist only for a run started from a UI selection. Absent: `definitions`.
+   */
+  definitionsFor?(context: Readonly<Record<string, unknown>>): readonly ToolDefinition[];
   execute(operation: string, input: unknown, context: ToolExecutionContext): Promise<unknown>;
 }
 export interface ToolDefinition {
@@ -140,16 +145,21 @@ export const terminalStates = new Set<RunState>([
  * captured from their screen when the run started. Only resource references and the revisions the
  * user saw leave the run context; identity, grant, provider selection and the UI session ID stay
  * with the host. The host validated each reference with an authorized query at capture, and the
- * model reads contents only through application tools, which authorize at call time. A context
- * without a well-formed selection adds nothing.
+ * model reads contents only through application tools, which authorize at call time. A run
+ * started from a UI session also learns that the `ui.*` tools reach that screen. A context
+ * without a UI session adds nothing.
  */
 export function modelPrompt(turn: Pick<HarnessTurn, 'prompt' | 'context'>): string {
   const ui = turn.context.uiContext as
-    { selectedResources?: unknown; observedRevisions?: unknown } | undefined;
+    { sessionId?: unknown; selectedResources?: unknown; observedRevisions?: unknown } | undefined;
+  const screen =
+    typeof ui?.sessionId === 'string'
+      ? '\n\nThis request was made from an application screen. ui.open and ui.select show a resource there, and ui.request-review asks the person to review records such as your approval requests; they change no records.'
+      : '';
   const selected = Array.isArray(ui?.selectedResources)
     ? ui.selectedResources.filter((resource): resource is string => typeof resource === 'string')
     : [];
-  if (!selected.length) return turn.prompt;
+  if (!selected.length) return `${turn.prompt}${screen}`;
   const revisions = (
     typeof ui?.observedRevisions === 'object' && ui.observedRevisions !== null
       ? ui.observedRevisions
@@ -159,7 +169,7 @@ export function modelPrompt(turn: Pick<HarnessTurn, 'prompt' | 'context'>): stri
     const revision = revisions[resource];
     return typeof revision === 'number' ? `- ${resource} (revision ${revision})` : `- ${resource}`;
   });
-  return `${turn.prompt}\n\nSelected in the application when this request was made (read them with the application tools before acting; they may have changed since):\n${lines.join('\n')}`;
+  return `${turn.prompt}\n\nSelected in the application when this request was made (read them with the application tools before acting; they may have changed since):\n${lines.join('\n')}${screen}`;
 }
 
 /** Native providers have tighter naming rules than capability IDs. The hexadecimal

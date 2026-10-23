@@ -11,6 +11,7 @@ A [host plugin](../../../../docs/glossary.md#host-plugin) is a [feature](../../.
 
 - Decide whether the concern is a plugin. Domain behavior for one application is a [capability](../../../../docs/glossary.md#capability) in that application; follow the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`). A reusable domain part that needs no port, setting or lifecycle hook, and reads the application through an access view, is a feature; follow the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`).
 - Put generic host or frame behavior that every application needs in the framework packages.
+- `samples/notes-host-plugin/plugins/activity` is a plugin with no network, device or process, written next to the application that composes it.
 - Look in `plugins/*` and in [primitives](../../../../docs/primitives.md#host-plugin) for a plugin that already covers the concern.
 - A plugin imports the framework and the plugins it requires. It never imports `apps/*` or `examples/*`.
 
@@ -57,3 +58,4 @@ Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/
 ## References
 
 - [Architecture](../../../../docs/architecture.md#host-plugins)
+- [Notes host plugin sample](../../../../samples/notes-host-plugin/README.md)

@@ -1,6 +1,6 @@
 ---
 name: add-capability
-description: Add or change a command or query in an agent-native application, with its contract, handler, policy rule, screen binding and behavioral test. Use when a user action, agent tool, CLI subcommand or API call needs new domain behavior, when a stored record shape changes and needs a state migration, or when a trigger should run a job. Covers examples/<app>/contracts.ts, handlers, policy and tests.
+description: Add or change a command or query in an agent-native application, with its contract, handler, policy rule, screen binding and behavioral test. Use when a user action, agent tool, CLI subcommand or API call needs new domain behavior, when a stored record shape changes and needs a state migration, or when a trigger should run a job. Covers examples/<app> and samples/<name> contracts.ts, handlers, policy and tests.
 ---
 
 # Add a capability
@@ -23,7 +23,7 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
    ```
 
    `add collection`, `add target` and `add agent` generate the other parts.
-2. Write the contract in the browser-safe [module](../../../../docs/glossary.md#module) (`contracts.ts`): a stable ID, strict JSON input and output schemas, the permission, and a [UI binding](../../../../docs/glossary.md#ui-binding) or a stated headless exception.
+2. Write the contract in the browser-safe [module](../../../../docs/glossary.md#module) (`contracts.ts`): a stable ID, strict JSON input and output schemas, the permission, and a [UI binding](../../../../docs/glossary.md#ui-binding) or a stated headless exception. For a capability whose output is a record or a list of records, declare `display`: a label, the resource kind, the title field and the shown fields.
 3. Add workflow text when agents need a sequence of capabilities. It names operation IDs, never transport tool names. A declared workflow (`defineWorkflow` with `step.run` and `step.wait`) adds steps that run over hours or days; the catalog checks its bindings, waits and durations, and the application lists the [workflows plugin](../../../../plugins/workflows/README.md) to run them. A `compensate` command undoes a step when a later one fails for good.
 4. Write the [handler](../../../../docs/glossary.md#handler) in the server entrypoint with `createHandlerFactory`. Declare every changed resource with `ctx.change`. To run another operation inside the same transaction, as the same caller:
    - list it in the capability's `invokes`; `'any'` is for a command that runs whatever its input names, such as `approval.approve`;
@@ -36,8 +36,8 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
 8. Declare what it reaches: network destinations, exchange folders, devices, child processes, and the input fields safe to log in plain text.
 9. Bind it to a [screen](../../../../docs/glossary.md#screen) with the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`). Keep `useCapabilityForm`, so a retry reuses one [idempotency key](../../../../docs/glossary.md#idempotency-key).
 10. Prove it with a [behavioral scenario](../../../../docs/glossary.md#behavioral-scenario): permitted and denied access, a stale revision, a repeated idempotency key, and the change visible to another process. Use `packages/testing` for cross-surface scenarios.
-11. When a stored shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. The `packages/kernel` README and [state migration](../../../../docs/primitives.md#state-migration) describe the steps.
-12. For a scheduled or event-driven job, declare a [trigger](../../../../docs/glossary.md#trigger) from `plugins/automation`. It submits commands under its standing grant like any caller.
+11. When a stored shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. The `packages/kernel` README and [state migration](../../../../docs/primitives.md#state-migration) describe the steps; `samples/notes-operations/migrations.ts` has one.
+12. For a scheduled or event-driven job, declare a [trigger](../../../../docs/glossary.md#trigger) from `plugins/automation`. It submits commands under its standing grant like any caller. `samples/notes-agents/automation.ts` runs a job that requests approval instead of committing.
 13. When an agent definition gains or loses a capability, or a capability an agent uses changes, add or update the agent's scenarios in `examples/<app>/test/agent-scenarios.test.ts` with `runAgentScenarios` from `@agent-native/testing/agent-scenarios`. A scenario holds:
     - a task and fixture state;
     - the commits and approval requests expected;
@@ -66,3 +66,4 @@ After `generate`, read the application's security manifest and data flows in `di
 - [Capability authoring](../../../../docs/capability-authoring.md)
 - [`examples/project-tasks`](../../../../examples/project-tasks/README.md)
 - [Authorization](../../../../docs/authorization.md)
+- [Samples](../../../../docs/samples.md)
