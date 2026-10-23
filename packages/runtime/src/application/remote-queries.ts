@@ -14,6 +14,7 @@ import type {
 import { sameState } from '../state-equality.js';
 import { createHandlerContext } from './handler-context.js';
 import { authorize, project, type Kernel } from './kernel.js';
+import { topFrame } from './nested.js';
 
 /** The source's items, next-page cursor and status; an unavailable source has neither. */
 interface Answer {
@@ -42,6 +43,8 @@ function pure<State, Services, T>(
     changes: new Map(),
     touched: [],
     blobs: [],
+    // A remote query reads outside any transaction, so it has no draft to make nested calls on.
+    frame: topFrame(operation, '', 'A remote query makes no nested calls'),
   });
   const result = fn(handlerContext);
   if (!sameState(snapshot.state, before))

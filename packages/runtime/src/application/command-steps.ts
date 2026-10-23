@@ -5,6 +5,7 @@ import type { Command } from './command-request.js';
 import { grantCoversResource } from './delegation.js';
 import { createHandlerContext, type HandlerScope } from './handler-context.js';
 import type { Kernel } from './kernel.js';
+import { closeFrame, type FrameScope } from './nested.js';
 import { revisionOf } from './records.js';
 
 /**
@@ -40,13 +41,15 @@ export async function checkPreconditions<State, Services>(
 }
 
 /**
- * Run the handler on the draft and refuse writes it did not declare. `continued` marks a command
- * run by `continueWith`, which may not continue again.
+ * Run the handler on the draft and refuse writes it did not declare, counting the changes of
+ * the commands it invoked. A nested failure fails the frame even when the handler caught it.
+ * `continued` marks a command run by `continueWith`, which may not continue again.
  */
 export async function runHandler<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,
   snapshot: WorkspaceSnapshot<State>,
+  frame: FrameScope,
   continued = false,
 ) {
   const previousState = structuredClone(snapshot.state);
@@ -61,8 +64,10 @@ export async function runHandler<State, Services>(
     touched: [],
     blobs: [],
     continued,
+    frame,
   };
   const output = await command.handler.handle(command.input, createHandlerContext(kernel, scope));
+  closeFrame(frame);
   // Outbox writes ride on a declared business change so subscribers observe the same commit.
   if (scope.touched.some((effect) => !scope.changes.has(effect.resource)))
     throw new ApplicationError('INTERNAL', 'Effects require a declared changed resource');

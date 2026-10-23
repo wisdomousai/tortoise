@@ -13,9 +13,14 @@ import { prepareCommand, type Command } from './command-request.js';
 import { replayContinuation, runContinuation } from './continuation.js';
 import { runFrame } from './frame.js';
 import { authorize, project, type Kernel } from './kernel.js';
+import { topFrame } from './nested.js';
 
 type Report = (effects: Effect[], replay: boolean) => void;
-/** A retry returns the stored receipt, reprojected for the caller's current grants. */
+/**
+ * A retry returns the stored receipt, reprojected for the caller's current grants. Every nested
+ * command the first execution made is authorized again with the input it ran with, so a caller
+ * who lost one of them cannot read the receipt.
+ */
 async function replay<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,
@@ -29,6 +34,11 @@ async function replay<State, Services>(
       'IDEMPOTENCY_CONFLICT',
       'Idempotency key was used for another request',
     );
+  for (const call of stored.calls ?? []) {
+    const nested = kernel.capabilities.get(call.operation);
+    if (!nested) throw new ApplicationError('NOT_FOUND', 'Unknown command');
+    await authorize(kernel, nested, call.input, context, snapshot, 'replay', undefined, call.via);
+  }
   const result = await project(kernel, capability, input, context, snapshot, stored.receipt.result);
   const continuation = await replayContinuation(kernel, command, snapshot, stored);
   await authorize(kernel, capability, input, context, snapshot, 'replay');
@@ -41,9 +51,10 @@ async function replay<State, Services>(
 }
 
 /**
- * The transaction body of a first execution: the command's frame, then any command the handler
- * continued with in a frame of its own, then journal, receipt and audit for both. The parent's
- * journal entries come first, so its audit `fromCursor` covers both commands.
+ * The transaction body of a first execution: the command's frame with the frames of the
+ * commands it invoked, then any command the handler continued with in a frame of its own, then
+ * journal, receipt and audit for all of them. They share one `fromCursor`, taken before the
+ * first journal entry.
  */
 async function execute<State, Services>(
   kernel: Kernel<State, Services>,
@@ -52,13 +63,15 @@ async function execute<State, Services>(
   report: Report,
 ): Promise<CommandReceipt> {
   const { capability } = command;
-  const { run, result } = await runFrame(kernel, command, snapshot);
+  const frame = topFrame(capability.id, command.correlationId);
+  const { run, result } = await runFrame(kernel, command, snapshot, frame);
   const next = run.continuation
     ? await runContinuation(kernel, command, snapshot, run.continuation)
     : undefined;
-  const revisions = journalChanges(snapshot, run.changes, capability.id);
+  const fromCursor = snapshot.cursor;
+  const revisions = journalChanges(snapshot, run.changes, capability.id, frame.tree);
   const continued = next
-    ? journalChanges(snapshot, next.run.changes, next.command.capability.id)
+    ? journalChanges(snapshot, next.run.changes, next.command.capability.id, next.frame.tree)
     : {};
   const touched = [...run.touched, ...(next?.run.touched ?? [])];
   const receipt: CommandReceipt = {
@@ -67,10 +80,11 @@ async function execute<State, Services>(
       ? { continuation: { operation: next.command.capability.id, result: next.result } }
       : {}),
   };
-  storeReceipt(snapshot, command, receipt, next?.command);
-  const changeCount = run.changes.size + (next?.run.changes.size ?? 0);
-  await auditAccepted(kernel, command, snapshot, revisions, changeCount);
-  if (next) await auditAccepted(kernel, next.command, snapshot, continued, next.run.changes.size);
+  const trees = next ? [frame.tree, next.frame.tree] : [frame.tree];
+  storeReceipt(snapshot, command, receipt, trees, next?.command);
+  await auditAccepted(kernel, command, snapshot, revisions, fromCursor, frame.tree);
+  if (next)
+    await auditAccepted(kernel, next.command, snapshot, continued, fromCursor, next.frame.tree);
   report(touched, false);
   return receipt;
 }

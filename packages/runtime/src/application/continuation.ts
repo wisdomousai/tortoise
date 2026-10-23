@@ -3,6 +3,7 @@ import type { CommandReceipt, Invocation, StoredReceipt, WorkspaceSnapshot } fro
 import { prepareCommand, type Command } from './command-request.js';
 import { runFrame } from './frame.js';
 import { authorize, project, type Kernel } from './kernel.js';
+import { topFrame } from './nested.js';
 
 /**
  * Run the command a handler continued with, inside the parent command's transaction and under
@@ -20,7 +21,8 @@ export async function runContinuation<State, Services>(
   const command = prepareCommand(kernel, request, parent.context, parent.correlationId);
   if (command.capability.id === parent.capability.id)
     throw new ApplicationError('INTERNAL', 'A command cannot continue with itself');
-  return runFrame(kernel, command, snapshot, true);
+  const frame = topFrame(command.capability.id, parent.correlationId);
+  return { ...(await runFrame(kernel, command, snapshot, frame, true)), frame };
 }
 
 /**

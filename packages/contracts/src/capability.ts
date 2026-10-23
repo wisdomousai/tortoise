@@ -61,6 +61,12 @@ export interface Capability<
    * without it cannot attach blobs. See `BlobLimits`.
    */
   readonly blobs?: BlobLimits;
+  /**
+   * Operations this command's handler calls through `ctx.invoke` and `ctx.query`, or `'any'`
+   * for a command that runs whatever its input names, such as approving an approval request.
+   * A call to an operation this does not list fails with INTERNAL.
+   */
+  readonly invokes?: readonly string[] | 'any';
 }
 export type AnyCapability = Capability<string, 'command' | 'query', unknown, unknown>;
 export type InputOf<C> =

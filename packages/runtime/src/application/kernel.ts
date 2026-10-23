@@ -129,7 +129,10 @@ export function resolveOperation<State, Services>(
   return { capability, input, handler: kernel.handlers.get(capability.id)! };
 }
 
-/** Policy decision for one phase; the context is rechecked after the await. */
+/**
+ * Policy decision for one phase; the context is rechecked after the await. `via` lists the
+ * enclosing operations of a nested call.
+ */
 export async function authorize<State, Services>(
   kernel: Kernel<State, Services>,
   capability: AnyCapability,
@@ -138,6 +141,7 @@ export async function authorize<State, Services>(
   snapshot: WorkspaceSnapshot<State>,
   phase: 'invoke' | 'commit' | 'replay' | 'dispatch',
   previousState?: State,
+  via?: readonly string[],
 ) {
   kernel.guard.active(context, capability.id);
   const decision = await kernel.options.authorization.authorize({
@@ -147,6 +151,7 @@ export async function authorize<State, Services>(
     state: snapshot.state,
     phase,
     ...(previousState === undefined ? {} : { previousState }),
+    ...(via === undefined ? {} : { via }),
   });
   kernel.guard.active(context, capability.id);
   if (!decision.allowed)

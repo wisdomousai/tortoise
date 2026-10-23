@@ -1,22 +1,41 @@
-import { assertJson, type JsonValue } from '@agent-native/contracts';
+import {
+  assertJson,
+  type AnyCapability,
+  type AuditRecord,
+  type JsonObject,
+  type JsonValue,
+} from '@agent-native/contracts';
 import type { CommandReceipt, Effect, WorkspaceSnapshot } from '../types.js';
 import { actorOf, describeInput } from './audit.js';
 import type { Command } from './command-request.js';
 import type { Kernel } from './kernel.js';
+import type { CallTree } from './nested.js';
 import { byCodePoint, defineOwn, revisionOf } from './records.js';
 
-/** Assign the next revision of each declared resource and journal it, in code-point order. */
+/**
+ * Assign the next revision of each declared resource and journal it, in code-point order: one
+ * entry per resource, with the type and operation of the innermost frame that declared it.
+ */
 export function journalChanges<State>(
   snapshot: WorkspaceSnapshot<State>,
   changes: ReadonlyMap<string, string>,
   operation: string,
+  tree?: CallTree,
 ): Record<string, number> {
   const revisions: Record<string, number> = {};
-  for (const [resource, type] of [...changes].sort(([a], [b]) => byCodePoint(a, b))) {
+  for (const [resource, declared] of [...changes].sort(([a], [b]) => byCodePoint(a, b))) {
     const revision = revisionOf(snapshot, resource) + 1;
+    const held = tree?.attribution.get(resource);
+    const type = held?.type ?? declared;
     defineOwn(snapshot.resourceRevisions, resource, revision);
     defineOwn(revisions, resource, revision);
-    snapshot.journal.push({ cursor: ++snapshot.cursor, resource, revision, type, operation });
+    snapshot.journal.push({
+      cursor: ++snapshot.cursor,
+      resource,
+      revision,
+      type,
+      operation: held?.operation ?? operation,
+    });
     if (type === 'authorization.changed') snapshot.authorizationRevision++;
   }
   return revisions;
@@ -40,15 +59,33 @@ export function receiptOf<State>(
   };
 }
 
+/** The nested commands of the given trees, as a stored receipt records them for replay. */
+function callsOf(trees: readonly CallTree[]) {
+  return trees.flatMap((tree) =>
+    tree.calls
+      .filter((call) => call.kind === 'command')
+      .map((call) => {
+        assertJson(call.input);
+        return {
+          operation: call.capability.id,
+          input: structuredClone(call.input) as JsonValue,
+          via: [...call.via],
+        };
+      }),
+  );
+}
+
 export function storeReceipt<State, Services>(
   snapshot: WorkspaceSnapshot<State>,
   command: Command<State, Services>,
   receipt: CommandReceipt,
+  trees: readonly CallTree[],
   continued?: Command<State, Services>,
 ) {
   if (command.key === undefined) return;
   assertJson(command.input);
   if (continued) assertJson(continued.input);
+  const calls = callsOf(trees);
   snapshot.receipts[command.key] = {
     fingerprint: command.fingerprint,
     receipt: structuredClone(receipt),
@@ -63,37 +100,65 @@ export function storeReceipt<State, Services>(
           },
         }
       : {}),
+    ...(calls.length ? { calls } : {}),
   };
 }
 
 /**
  * Last step inside the transaction: nothing commits unless this append is durable (when
- * required). `fromCursor` lets recovery find this command's journal entries.
+ * required). One `command.accepted` for the command and one for each nested command it invoked,
+ * with `depth` and the calling operation as `parent`, each listing the resources journaled under
+ * it. All share the correlation ID and `fromCursor`, which lets recovery find the journal
+ * entries of the whole transaction.
  */
 export async function auditAccepted<State, Services>(
   kernel: Kernel<State, Services>,
   command: Command<State, Services>,
   snapshot: WorkspaceSnapshot<State>,
   revisions: Record<string, number>,
-  changeCount: number,
+  fromCursor: number,
+  tree: CallTree,
 ) {
   const { capability, input, context, request } = command;
-  const described = describeInput(capability, input);
-  await kernel.audit.append(kernel.audit.commandMode(), [
-    {
+  const resources = (call: number) =>
+    Object.keys(revisions)
+      .filter((resource) => (tree.attribution.get(resource)?.call ?? -1) === call)
+      .sort();
+  const accepted = (
+    operation: AnyCapability,
+    operationInput: unknown,
+    call: number,
+    data: JsonObject,
+  ): AuditRecord => {
+    const described = describeInput(operation, operationInput);
+    return {
       kind: 'command.accepted',
       outcome: 'accepted',
-      operation: capability.id,
+      operation: operation.id,
       actor: actorOf(context),
       correlationId: command.correlationId,
       cursor: snapshot.cursor,
-      resources: Object.keys(revisions).sort(),
+      resources: resources(call),
       inputDigest: described.inputDigest,
-      data: {
-        ...described.data,
-        fromCursor: snapshot.cursor - changeCount,
-        ...(request.idempotencyKey === undefined ? {} : { idempotencyKey: request.idempotencyKey }),
-      },
-    },
+      data: { ...described.data, fromCursor, ...data },
+    };
+  };
+  await kernel.audit.append(kernel.audit.commandMode(), [
+    accepted(
+      capability,
+      input,
+      -1,
+      request.idempotencyKey === undefined ? {} : { idempotencyKey: request.idempotencyKey },
+    ),
+    ...tree.calls.flatMap((call, index) =>
+      call.kind === 'command'
+        ? [
+            accepted(call.capability, call.input, index, {
+              depth: call.depth,
+              parent: call.via.at(-1)!,
+            }),
+          ]
+        : [],
+    ),
   ]);
 }

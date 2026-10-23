@@ -63,6 +63,12 @@ export interface StoredReceipt {
   readonly input: JsonValue;
   /** The command this one continued with, and its input. */
   readonly continuation?: { readonly operation: string; readonly input: JsonValue };
+  /** The nested calls its handlers made, in order; replay authorizes each of them again. */
+  readonly calls?: readonly {
+    readonly operation: string;
+    readonly input: JsonValue;
+    readonly via: readonly string[];
+  }[];
 }
 /**
  * A blob the workspace holds and the resources that reference it. A blob is readable by a caller
@@ -117,6 +123,11 @@ export interface AuthorizationRequest<State> {
    * current state. A denial holds the effect for reconciliation instead of sending it.
    */
   readonly phase: 'invoke' | 'commit' | 'replay' | 'dispatch';
+  /**
+   * For a nested call (`ctx.invoke`, `ctx.query`), the operations that enclose it, outermost
+   * first. Set at the `invoke`, `commit` and `replay` phases, never at `dispatch`.
+   */
+  readonly via?: readonly string[];
 }
 export interface Decision {
   readonly allowed: boolean;
@@ -217,7 +228,32 @@ export interface HandlerContext<State, Services> {
     input: unknown,
     expectedRevisions?: Readonly<Record<string, number>>,
   ): void;
-  /** Read outbox state, for example to summarize synchronization in a query. */
+  /**
+   * Run another command inside this command's transaction, as the same caller, and return its
+   * projected output. The command must list the operation in its `invokes`. The call passes the
+   * whole frame: grant, invoke authorization with `via`, `expectedRevisions` as preconditions,
+   * its handler, projection, blob references and commit authorization. A refusal throws and
+   * fails the whole transaction, even when this handler catches it. Commands only; one call at
+   * a time; at most 4 levels deep and 64 calls per command; never an operation already running.
+   */
+  invoke<C extends AnyCapability>(
+    capability: C,
+    input: InputOf<C>,
+    expectedRevisions?: Readonly<Record<string, number>>,
+  ): Promise<OutputOf<C>>;
+  /**
+   * Run a query against this transaction's draft, so it sees the writes made so far, and return
+   * its projected output. Listed in `invokes` like a command; a remote query is refused.
+   */
+  query<C extends AnyCapability>(capability: C, input: InputOf<C>): Promise<OutputOf<C>>;
+  /** `invoke` by operation ID, with the IDs of the pending outbox effects the call enqueued. */
+  invokeRaw(
+    operation: string,
+    input: unknown,
+    expectedRevisions?: Readonly<Record<string, number>>,
+  ): Promise<{ readonly result: unknown; readonly effects: readonly string[] }>;
+  /** `query` by operation ID. */
+  queryRaw(operation: string, input: unknown): Promise<unknown>;
   /**
    * Reference a blob from a changed resource, in this command's transaction. The command must
    * declare `blobs` limits the reference fits, and the resource must also be declared through
@@ -228,6 +264,7 @@ export interface HandlerContext<State, Services> {
   attach(resource: string, ref: BlobRef): void;
   /** Drop a resource's reference to a blob; an unreferenced blob is later swept from the store. */
   detach(resource: string, digest: string): void;
+  /** Read outbox state, for example to summarize synchronization in a query. */
   effects(filter?: {
     readonly status?: Effect['status'];
     readonly target?: string;

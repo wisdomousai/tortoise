@@ -30,6 +30,7 @@ import {
   settledEffect,
 } from './effects.js';
 import type { Kernel } from './kernel.js';
+import { attribute, nestedMethods, type FrameScope } from './nested.js';
 import { revisionOf } from './records.js';
 
 /** What one handler call may touch. Queries get a scope whose writes all fail. */
@@ -50,6 +51,8 @@ export interface HandlerScope<State> {
   readonly continued?: boolean;
   /** Blob references the handler attached or detached, in order. */
   readonly blobs: BlobChange[];
+  /** The handler's place in its command's nested calls. */
+  readonly frame: FrameScope;
 }
 
 function writable(scope: HandlerScope<unknown>, refusal: string): void {
@@ -175,6 +178,7 @@ export function createHandlerContext<State, Services>(
       )
         throw new ApplicationError('FORBIDDEN', 'Delegation does not permit changed resource');
       scope.changes.set(resource, type);
+      attribute(scope.frame, resource, type, scope.operation);
     },
     continueWith(operation, input, expectedRevisions) {
       writable(scope, 'Queries cannot continue with a command');
@@ -188,6 +192,7 @@ export function createHandlerContext<State, Services>(
     },
     ...outboxMethods(kernel, scope),
     ...blobMethods(kernel, scope),
+    ...nestedMethods(kernel, scope),
     effects: (filter) => readEffects(snapshot, filter),
   };
 }
