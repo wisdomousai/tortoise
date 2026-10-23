@@ -51,6 +51,12 @@ test('new writes one generated application and copies no example', async () => {
     expect(await read(join(app, path))).not.toContain('{{');
   expect(await read(join(app, 'manifest.ts'))).toContain('title: "Field notes"');
   expect(await read(join(app, 'test/conformance.test.ts'))).toContain("name: 'note_list'");
+  // The overview map cites the examples the export leaves out; the page keeps its prose.
+  expect(await readdir(join(target, 'scripts'))).not.toContain('overview.ts');
+  expect(await readdir(join(target, 'docs/.vitepress/theme'))).not.toContain('overview');
+  const page = await read(join(target, 'docs/overview.md'));
+  expect(page).toContain('## Request path');
+  expect(page).not.toContain('<OverviewView');
   // The skeleton ships as templates in the export, so the export can run `scaffold new` again.
   expect(await read(join(target, 'packages/scaffold/templates/application/policy.ts.tpl'))).toBe(
     await read(join(import.meta.dir, '../templates/application/policy.ts.tpl')),

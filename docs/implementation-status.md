@@ -392,8 +392,6 @@ Control mappings are indicative.
 
 ## Known defects
 
-`bun run generate` fails in a `scaffold new` export: `scripts/overview.ts` checks paths under examples the export leaves out. `bun run test:scaffold:full` fails at that step.
-
 A session revoked during a request does not stop the request. HTTP authenticates each request once. If a session is revoked or expires while its command waits, the command's context stays live and the command commits. New requests with that token are refused.
 
 These were fixed by inspection only and have no regression test:

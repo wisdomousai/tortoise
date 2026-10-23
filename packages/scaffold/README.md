@@ -42,6 +42,8 @@ bun run scaffold versions [<application-directory>]
 - **`add`** extends that application with a collection, a [capability](../../docs/glossary.md#capability), a [target](../../docs/glossary.md#target), an agent or a [feature](../../docs/glossary.md#feature).
 - **`versions`** checks that an installed application has one framework version.
 
+An export that leaves out examples (`--example`, `new`) or the framework source (`--published`) leaves out the [overview](../../docs/overview.md) map, whose claims cite files in both: `scripts/overview.ts`, `scripts/overview-curated.ts` and its VitePress view and data loader. `docs/overview.md` keeps its prose without the views, and `bun run generate` writes no `overview.json`.
+
 ### Published-framework export
 
 With `--published` or `--registry <url>`, `new` leaves the framework source out and depends on the framework packages at the checkout's version. The export:

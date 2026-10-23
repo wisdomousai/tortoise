@@ -185,6 +185,8 @@ function exportedContent(path: string, source: string, context: ExportContext): 
     content = JSON.stringify(root, null, 2) + '\n';
   }
   if (path === 'bun.lock' && excluded.length) content = pruneLockfile(content, excluded);
+  if (path === 'docs/overview.md' && withoutOverview(context))
+    content = content.replace(/^<OverviewView [^>]*\/>\n\n?/gm, '');
   if (context.content && path === 'package.json')
     content = addDependency(content, context.content.packageName);
   if (context.content && path === 'bun.lock') content = addWorkspace(content, context.content);
@@ -196,13 +198,32 @@ function exportedContent(path: string, source: string, context: ExportContext): 
 const leftOut = (path: string, excluded: readonly ExcludedExample[]) =>
   excluded.some(({ directory }) => path.startsWith(`${directory}/`));
 
+/**
+ * The overview map, which checks its claims against the framework packages and every reference
+ * example. An export that leaves out examples or the framework leaves it out too, and keeps the
+ * prose of `docs/overview.md` without its views.
+ */
+const overviewFiles = new Set([
+  'scripts/overview.ts',
+  'scripts/overview-curated.ts',
+  'docs/.vitepress/overview.data.ts',
+  'docs/.vitepress/theme/OverviewView.vue',
+]);
+const overviewFile = (path: string) =>
+  overviewFiles.has(path) || path.startsWith('docs/.vitepress/theme/overview/');
+const withoutOverview = (context: ExportContext) =>
+  context.excluded.length > 0 || context.framework !== undefined;
+
 async function exportedFiles(
   locations: { requestedSourceRoot: string; sourceRoot: string },
   context: ExportContext,
 ) {
   const { sourceRoot, requestedSourceRoot } = locations;
   const paths = (await collect(sourceRoot)).filter(
-    (path) => !leftOut(path, context.excluded) && !(context.framework && frameworkFile(path)),
+    (path) =>
+      !leftOut(path, context.excluded) &&
+      !(context.framework && frameworkFile(path)) &&
+      !(withoutOverview(context) && overviewFile(path)),
   );
   const files: { path: string; content: string | Uint8Array; sha256: string }[] = [];
   for (const path of paths) {
