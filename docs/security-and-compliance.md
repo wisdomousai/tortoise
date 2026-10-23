@@ -110,10 +110,13 @@ A hardening profile is a floor. Startup refuses a policy below its floor (`plugi
 | --- | --- | --- | --- |
 | Network default | Isolated | Isolated | Isolated |
 | Plain HTTP or WebSocket off the host | Allowed if declared | Refused | Refused; TLS with a CA bundle or pins |
+| A credential off the host (`authenticated` destination) | TLS | TLS | TLS with a CA bundle or pins |
 | Ingress | Loopback only | Loopback, TLS or mTLS | Loopback or mTLS |
 | Identity | Any | site-hub: any; sandbox: launcher grant or external | External only |
 | Audit log | Fail-closed or best-effort | Fail-closed | Fail-closed and forwarded off the host |
 | Delegated grants | Within `grants.maxTtlSeconds` when set | `grants.maxTtlSeconds` required | At most one hour |
+
+A destination declared `https` or `wss` may be bound to plain text on loopback, such as a second instance on the same machine; the site check warns with `LOOPBACK_PLAINTEXT`. An `authenticated` destination, which carries a bearer credential or a signed assertion, is refused with `PLAINTEXT_CREDENTIAL` when it is bound to plain text off loopback, whatever the profile.
 
 `site-hub` is for a [hub](glossary.md#hub) that paired phones and tablets reach over the site network. It has the sandbox's floors, except that the person running the hub may act as the local [owner](glossary.md#owner). Devices authenticate with the credentials that the [device-link plugin](../plugins/device-link/README.md) issues.
 

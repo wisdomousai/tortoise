@@ -7,7 +7,8 @@ import {
   type DeviceLinkService,
   type DeviceLinkServices,
 } from './hub/handlers';
-import { createAttemptLimit, enroll, type LinkCaller } from './hub/routes';
+import { createAttemptLimit } from '@agent-native/host/enrollment';
+import { enroll, type LinkCaller } from './hub/routes';
 import { createDeviceLinkState, type DeviceLinkState } from './hub/state';
 import { deviceLinkPluginManifest } from './plugin-manifest';
 

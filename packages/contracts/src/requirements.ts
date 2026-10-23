@@ -39,6 +39,11 @@ export interface NetworkDestination {
   readonly targets?: readonly string[];
   /** Targets whose remote queries read over this destination (`RemoteReadDeclaration`). */
   readonly reads?: readonly string[];
+  /**
+   * The caller presents a credential there, such as a bearer token or a signed assertion. The
+   * site check then refuses an unencrypted binding off loopback in every profile.
+   */
+  readonly authenticated?: boolean;
   /** Classes of data sent to this destination, for the data-flow inventory. */
   readonly dataClasses: readonly string[];
   readonly availability: Availability;

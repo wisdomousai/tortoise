@@ -1,10 +1,8 @@
 import type { ExecutionContext } from '@agent-native/runtime';
 import { deviceLinkModule, deviceLinkOperations as ops } from '../contracts';
 import type { LinkCaller } from './routes';
-import { digestOf, type DeviceKind } from './state';
-
-/** The shape `newDeviceToken` produces; anything else is not a device credential. */
-const tokenPattern = /^[A-Za-z0-9_-]{43}$/;
+import { credentialDigest, credentialPattern } from '@agent-native/host/enrollment';
+import type { DeviceKind } from './state';
 const linkOperations = new Set<string>(deviceLinkModule.capabilities.map((c) => c.id));
 
 interface ResolvedDevice {
@@ -28,9 +26,9 @@ export async function authenticateDevice(
   caller: LinkCaller | undefined,
   options: { readonly syncOperations: readonly string[]; readonly operations: ReadonlySet<string> },
 ): Promise<ExecutionContext | undefined> {
-  if (!caller || !tokenPattern.test(token)) return undefined;
+  if (!caller || !credentialPattern.test(token)) return undefined;
   const result = await caller.application.queryRaw(
-    { operation: ops.credentialResolve.id, input: { tokenDigest: digestOf(token) } },
+    { operation: ops.credentialResolve.id, input: { tokenDigest: credentialDigest(token) } },
     caller.context,
   );
   const device = (result.data as { device: ResolvedDevice | null }).device;

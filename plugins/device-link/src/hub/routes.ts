@@ -3,7 +3,7 @@ import { jsonResponse, readJsonBody } from '@agent-native/adapters/http';
 import type { HostedApplication } from '@agent-native/kernel/application';
 import type { ExecutionContext } from '@agent-native/runtime';
 import { deviceLinkOperations as ops } from '../contracts';
-import { digestOf, newDeviceToken } from './state';
+import { credentialDigest, newCredential, type AttemptLimit } from '@agent-native/host/enrollment';
 
 /** What the routes need once the host listens; undefined before `start`. */
 export interface LinkCaller {
@@ -11,29 +11,6 @@ export interface LinkCaller {
   readonly workspaceId: string;
   /** The local owner narrowed to the redeem and resolve operations. */
   readonly context: ExecutionContext;
-}
-
-/**
- * Failed exchanges allowed per window, for all callers together. A code has about 49 bits, so
- * at this rate guessing one within its ten minutes is out of reach; a person mistyping still
- * gets several tries.
- */
-export function createAttemptLimit(now: () => number, limit = 10, windowMs = 60_000) {
-  let windowStart = 0;
-  let failures = 0;
-  return {
-    check() {
-      if (now() - windowStart >= windowMs) {
-        windowStart = now();
-        failures = 0;
-      }
-      if (failures >= limit)
-        throw new ApplicationError('UNAVAILABLE', 'Too many failed enrollments; try again shortly');
-    },
-    fail() {
-      failures++;
-    },
-  };
 }
 
 /**
@@ -45,19 +22,19 @@ export function createAttemptLimit(now: () => number, limit = 10, windowMs = 60_
 export async function enroll(
   request: Request,
   caller: LinkCaller | undefined,
-  limit: ReturnType<typeof createAttemptLimit>,
+  limit: AttemptLimit,
 ) {
   if (request.method !== 'POST') throw new ApplicationError('NOT_FOUND', 'Unknown route');
   if (!caller) throw new ApplicationError('UNAVAILABLE', 'The hub is starting');
   limit.check();
   const body = await readJsonBody(request);
   const code = typeof body.code === 'string' ? body.code : '';
-  const token = newDeviceToken();
+  const token = newCredential();
   try {
     const receipt = await caller.application.invokeRaw(
       {
         operation: ops.enrollmentRedeem.id,
-        input: { code, tokenDigest: digestOf(token) },
+        input: { code, tokenDigest: credentialDigest(token) },
         idempotencyKey: `enroll:${crypto.randomUUID()}`,
       },
       { ...caller.context, channel: 'http' },

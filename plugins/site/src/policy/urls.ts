@@ -8,6 +8,11 @@ export const schemes: Record<NetworkProtocol, string> = {
   tcp: 'tcp:',
   udp: 'udp:',
 };
+/** The plain-text scheme of an encrypted protocol, accepted on loopback with a warning. */
+export const plaintextOf: Partial<Record<NetworkProtocol, string>> = {
+  https: 'http:',
+  wss: 'ws:',
+};
 const defaultPorts: Partial<Record<string, number>> = {
   'https:': 443,
   'http:': 80,

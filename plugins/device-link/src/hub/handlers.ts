@@ -2,13 +2,11 @@ import { ApplicationError, type InputOf } from '@agent-native/contracts';
 import type { AuthorizationPort, HandlerContext, HandlerContribution } from '@agent-native/runtime';
 import { deviceLinkModule, deviceLinkOperations as ops } from '../contracts';
 import {
-  digestOf,
+  credentialDigest as digestOf,
   newEnrollmentCode,
-  newId,
   normalizeCode,
-  type DeviceLinkState,
-  type DeviceRecord,
-} from './state';
+} from '@agent-native/host/enrollment';
+import { newId, type DeviceLinkState, type DeviceRecord } from './state';
 
 /** What the hub plugin hands its handlers, from its settings and the composed catalog. */
 export interface DeviceLinkService {

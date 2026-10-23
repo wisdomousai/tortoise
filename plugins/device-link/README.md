@@ -57,9 +57,10 @@ Only the plugin's admins create codes and list, rename and revoke devices. The a
   - `@agent-native/contracts` and `@agent-native/runtime`;
   - `@agent-native/kernel`: `plugin`, `plugin-manifest` and `application`;
   - `@agent-native/adapters`: `http`, for the JSON helpers;
+  - `@agent-native/host`: `enrollment`, for codes, credentials and the attempt limit;
   - `@agent-native/frame`, for the screens.
-- External: `@noble/hashes`, `zod`, `react`, `@tanstack/react-query` and `lucide-react`.
-- Tests also compose `@agent-native/hub-link`, `@agent-native/mobile`, `@agent-native/host`, `@agent-native/site`, `@agent-native/network` and `@agent-native/audit`.
+- External: `zod`, `react`, `@tanstack/react-query` and `lucide-react`.
+- Tests also compose `@agent-native/hub-link`, `@agent-native/mobile`, `@agent-native/site`, `@agent-native/network` and `@agent-native/audit`.
 
 ## Tests
 

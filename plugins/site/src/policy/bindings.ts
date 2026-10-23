@@ -2,7 +2,7 @@ import { cidrIsPrivate, isLoopbackHost, parseCidr, type Cidr } from '../cidr';
 import type { Declared, ResolvedBinding } from '../policy';
 import type { Findings } from './findings';
 import type { SitePolicy } from './schema';
-import { encrypted, plaintextApplication, portOf, schemes } from './urls';
+import { encrypted, plaintextApplication, plaintextOf, portOf, schemes } from './urls';
 
 type Binding = Exclude<SitePolicy['destinations'][string], { disabled: true }>;
 interface BindingScope {
@@ -29,16 +29,24 @@ function boundUrl(id: string, binding: Binding, { error }: Findings): URL | unde
 
 /** The URL must match what the destination declares: protocol, host, port and scope. */
 function checkDeclaration(id: string, destination: Declared, url: URL, scope: BindingScope) {
-  const { error } = scope.report;
-  if (url.protocol !== schemes[destination.protocol])
-    error('PROTOCOL_MISMATCH', `Destination ${id} is declared ${destination.protocol}`, id);
+  const { error, warn } = scope.report;
+  const loopback = isLoopbackHost(url.hostname);
+  if (url.protocol !== schemes[destination.protocol]) {
+    // A local server, such as a second instance on this machine, rarely has a certificate.
+    if (loopback && plaintextOf[destination.protocol] === url.protocol)
+      warn(
+        'LOOPBACK_PLAINTEXT',
+        `Destination ${id} is declared ${destination.protocol} and bound to plain text on loopback`,
+        id,
+      );
+    else error('PROTOCOL_MISMATCH', `Destination ${id} is declared ${destination.protocol}`, id);
+  }
   if (destination.host && url.hostname !== destination.host)
     error('HOST_MISMATCH', `Destination ${id} is declared for host ${destination.host}`, id);
   const port = portOf(url);
   if (destination.port && port !== destination.port)
     error('PORT_MISMATCH', `Destination ${id} is declared for port ${destination.port}`, id);
   if (port === undefined) error('PORT_REQUIRED', `Destination ${id} needs an explicit port`, id);
-  const loopback = isLoopbackHost(url.hostname);
   if (destination.scope === 'loopback' && !loopback)
     error('SCOPE_MISMATCH', `Loopback destination ${id} is bound to ${url.hostname}`, id);
   if (scope.policy.mode === 'isolated' && !loopback)
@@ -73,12 +81,16 @@ function boundAddresses(
 /** Profile floors. Plain-text protocols leave the host only on desktop-local. */
 function checkTransport(
   id: string,
+  destination: Declared,
   url: URL,
   binding: Binding,
   loopback: boolean,
   scope: BindingScope,
 ) {
   const { policy, report } = scope;
+  // A credential sent in plain text off this machine can be read and replayed on the way.
+  if (destination.authenticated && !loopback && !encrypted(url, binding))
+    report.error('PLAINTEXT_CREDENTIAL', `${id} carries a credential and needs TLS`, id);
   const strict = policy.profile !== 'desktop-local';
   const zeroTrust = policy.profile === 'zero-trust';
   if (strict && !loopback && plaintextApplication(url))
@@ -113,7 +125,7 @@ export function resolveBinding(
   if (!url) return undefined;
   const loopback = checkDeclaration(id, destination, url, scope);
   const addresses = boundAddresses(id, destination, binding, loopback, scope.report);
-  checkTransport(id, url, binding, loopback, scope);
+  checkTransport(id, destination, url, binding, loopback, scope);
   return {
     destination,
     url,

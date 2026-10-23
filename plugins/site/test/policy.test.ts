@@ -36,6 +36,8 @@ const requirements = collectRequirements([
         site('legacy-tcp', { protocol: 'tcp' }),
         site('loopback-tcp', { scope: 'loopback', protocol: 'tcp', dataClasses: [] }),
         site('workforce-idp', { scope: 'internet', dataClasses: ['identity'] }),
+        site('quality-peer', { authenticated: true, protocol: 'http' }),
+        site('quality-tls', { authenticated: true }),
       ],
       folders: [
         {
@@ -123,6 +125,28 @@ describe('site policy', () => {
     expect(disabled.consequences.find((item) => item.destination === 'mes-api')?.reason).toBe(
       'disabled',
     );
+  });
+
+  test('a credential travels in plain text only on loopback, where an https declaration warns', () => {
+    const findings = (destinations: SitePolicyInput['destinations']) =>
+      policy({
+        mode: 'connected',
+        destinations: { 'mes-api': { disabled: true }, ...destinations },
+      }).findings.map(({ level, code }) => [level, code]);
+    // desktop-local allows plain text elsewhere, never with a credential.
+    expect(
+      findings({ 'quality-peer': { url: 'http://10.0.0.7:4300', addresses: ['10.0.0.7/32'] } }),
+    ).toEqual([['error', 'PLAINTEXT_CREDENTIAL']]);
+    expect(findings({ 'quality-peer': { url: 'http://127.0.0.1:4300' } })).toEqual([]);
+    expect(findings({ 'quality-tls': { url: 'http://127.0.0.1:4300' } })).toEqual([
+      ['warning', 'LOOPBACK_PLAINTEXT'],
+    ]);
+    expect(
+      findings({ 'quality-tls': { url: 'http://10.0.0.7:4300', addresses: ['10.0.0.7/32'] } }),
+    ).toEqual([
+      ['error', 'PROTOCOL_MISMATCH'],
+      ['error', 'PLAINTEXT_CREDENTIAL'],
+    ]);
   });
 
   test('hostname-only bindings are flagged for firewall export and rebinding', () => {

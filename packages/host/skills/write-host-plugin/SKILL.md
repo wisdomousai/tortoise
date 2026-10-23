@@ -24,13 +24,17 @@ A [host plugin](../../../../docs/glossary.md#host-plugin) is a [feature](../../.
 6. Implement the lifecycle hooks it needs: `open`, `ready`, `start` and `close`. [Lifecycle](../../../../docs/architecture.md#lifecycle) says when each runs; `open` may refuse startup.
 7. Reach the network, ingress, identity, processes, exchange folders and the [audit log](../../../../docs/glossary.md#audit-log) only through `HostPorts`. Never reach them through another plugin's imports.
 8. Write from a loop or job only through the plugin's own commands, as a caller under a [delegated grant](../../../../docs/glossary.md#grant). Never write into application state.
-9. Add CLI verbs as `PluginCommand` entries in `commands`. They run before any workspace opens.
-10. Add a step to `state.migrations` when the slice shape changes.
-11. Declare the browser `plugin-screens` entrypoint with `definePluginScreens`, its routes and navigation. The `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers screens.
-12. For native screens and Expo modules, follow the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).
-13. Compose the plugin in an application's `manifest.ts`, `application.ts` and `screens.tsx`, after the plugins it requires.
-14. Write the README sections a package README has: Layer, Primitives, Entrypoints, Trust boundary, Dependencies, Tests and Skills. State what the plugin trusts and how it fails.
-15. Add the plugin's entry to `docs/primitives.md` when it is a new building block.
+9. For a plugin that issues its own credentials, as the device link does:
+   - pair by a one-use code with `@agent-native/host/enrollment` (`newEnrollmentCode`, `newCredential`, `credentialDigest`, `createAttemptLimit`) and store only digests;
+   - resolve the credential on every request in `authenticate(token, request)`, which returns the caller's context and grant;
+   - declare a destination the plugin sends its credential to with `authenticated: true`, so the site check refuses plain text off loopback.
+10. Add CLI verbs as `PluginCommand` entries in `commands`. They run before any workspace opens.
+11. Add a step to `state.migrations` when the slice shape changes.
+12. Declare the browser `plugin-screens` entrypoint with `definePluginScreens`, its routes and navigation. The `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers screens.
+13. For native screens and Expo modules, follow the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).
+14. Compose the plugin in an application's `manifest.ts`, `application.ts` and `screens.tsx`, after the plugins it requires.
+15. Write the README sections a package README has: Layer, Primitives, Entrypoints, Trust boundary, Dependencies, Tests and Skills. State what the plugin trusts and how it fails.
+16. Add the plugin's entry to `docs/primitives.md` when it is a new building block.
 
 ## Checks
 

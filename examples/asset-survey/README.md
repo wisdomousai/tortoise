@@ -54,7 +54,7 @@ For live extraction:
 
 - set `ASSET_SURVEY_MODEL` to a vision model's ID;
 - set `ASSET_SURVEY_MODEL_API_KEY` to its key;
-- bind `model-api` in the deployment policy to an OpenAI-compatible chat completions base URL, such as `https://api.openai.com/v1`. The destination is declared `https`, so the site check refuses a plain `http` URL such as a local server's.
+- bind `model-api` in the deployment policy to an OpenAI-compatible chat completions base URL, such as `https://api.openai.com/v1`. The destination is declared `https`, so the site check refuses a plain `http` URL off this machine, and warns for one on loopback, such as a local server's.
 
 The application reads nothing else: no other variable, key store or provider login.
 
