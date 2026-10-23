@@ -1,6 +1,7 @@
 import { targetRules } from '@agent-native/integration';
 import { definePolicy, type OperationRule } from '@agent-native/runtime';
 import { eamAssets, eamTarget, exportTarget, modelTarget, operations } from './contracts';
+import { fieldSurface } from './contracts/peer';
 import { DEVICE_PREFIX, roleOf, type Role, type SurveyState } from './domain';
 
 /** The whole survey is one container; a member's role there decides. */
@@ -36,11 +37,7 @@ export const surveyPolicy = definePolicy<SurveyState, Role>({
     },
     {
       is: (_state, principalId) => principalId.startsWith(DEVICE_PREFIX),
-      operations: [
-        operations.assignmentFeed.id,
-        operations.assignmentReturn.id,
-        operations.captureIngest.id,
-      ],
+      operations: fieldSurface.serviceOperations,
       // A device reads no journal: it learns of new work through its feed.
       events: () => false,
     },

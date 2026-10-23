@@ -1,5 +1,7 @@
 import { z } from 'zod';
-import { defineModule, defineTarget, rejectionSchema } from '@agent-native/contracts';
+import { defineModule, definePeerTarget, rejectionSchema } from '@agent-native/contracts';
+import { fieldOperations as hubOperations } from '@agent-native/asset-survey/contracts/captures';
+import { fieldSurface } from '@agent-native/asset-survey/contracts/peer';
 import { operation } from '@agent-native/asset-survey/contracts/operation';
 import {
   captureInputSchema,
@@ -13,21 +15,36 @@ import {
 export const hubSync = z.enum(['pending', 'accepted', 'rejected']);
 
 /**
- * The paired hub as a target. Captures and returns go out through the outbox to the hub's own
- * commands (`capture.ingest`, `assignment.return`), and the hub's `assignment.feed` brings the
- * assignments dispatched to this device with their structure slices.
+ * The paired hub as a peer target, through the field surface it publishes. Captures and returns
+ * go out through the outbox to the hub's own commands (`capture.ingest`, `assignment.return`),
+ * with payloads parsed by those commands' input schemas, and the hub's `assignment.feed` brings
+ * the assignments dispatched to this device with their structure slices. Hub-link declares the
+ * `hub` destination and carries the device credential, so the manifest lists no peer component.
  */
-export const hubTarget = defineTarget({
+export const hubTarget = definePeerTarget({
   target: 'hub',
   resourceType: 'HubSync',
+  surface: fieldSurface,
   operations: { settle: 'field.hub.settle', sync: 'field.hub.sync', status: 'field.hub.status' },
   settles: ['capture', 'assignment'],
-  feed: { item: fieldAssignmentSchema, max: 50, changes: ['assignment'] },
+  feed: {
+    query: hubOperations.assignmentFeed,
+    item: fieldAssignmentSchema,
+    max: 50,
+    changes: ['assignment'],
+  },
   status: { pending: z.number().int(), accepted: z.number().int(), rejected: z.number().int() },
   descriptions: {
     settle: 'Integration principal only: record whether the hub took a capture or a return.',
     sync: 'Integration principal only: apply the assignments the hub sent to this device.',
     status: 'Records waiting for the hub, taken and refused, and when assignments last arrived.',
+  },
+  destination: {
+    id: 'hub',
+    purpose: 'Deliver field records and their photos to the hub, and read assignments.',
+    dataClasses: ['field-record', 'photo'],
+    availability: 'optional',
+    offline: 'queue',
   },
 });
 

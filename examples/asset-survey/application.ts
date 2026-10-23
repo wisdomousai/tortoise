@@ -10,6 +10,7 @@ import { sitePlugin } from '@agent-native/site/plugin';
 import { createWorkflowsPlugin, type WorkflowsOptions } from '@agent-native/workflows/plugin';
 import manifest from './manifest';
 import { eamTarget, exportTarget, modelTarget, operations } from './contracts';
+import { fieldSurface } from './contracts/peer';
 import {
   createExtractorPort,
   nameplateTextExtractor,
@@ -25,12 +26,8 @@ import { createSurveyHandlers, surveyPolicy, type SurveyServices } from './serve
 /** The model, EAM and export integrations' principal; distinct from every person and device. */
 export const INTEGRATION_PRINCIPAL = 'integration';
 
-/** What a paired field device may call: read its work, return it, and hand over captures. */
-export const FIELD_SYNC_OPERATIONS = [
-  operations.assignmentFeed.id,
-  operations.assignmentReturn.id,
-  operations.captureIngest.id,
-];
+/** What a paired field device may call: the service operations of the field surface. */
+export const FIELD_SYNC_OPERATIONS = fieldSurface.serviceOperations;
 
 /**
  * The asset survey hub. Demo defaults: the nameplate-text extractor instead of a model, and an

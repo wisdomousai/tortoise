@@ -74,13 +74,22 @@ function memorySecrets(): SecretStore {
 /**
  * The field app on the mobile platform with Bun's SQLite and files. Device management hands it
  * the hub's address and an enrollment code, so it pairs on its own once it opens. `link.offline`
- * drops the network as airplane mode would.
+ * drops the network as airplane mode would; `link.drifted` makes the hub's contract read as a
+ * newer release's, whose `capture.ingest` input changed.
  */
 async function openPhone(origin: string, code: string, workspace = 'phone-1') {
-  const link = { offline: false };
+  const link = { offline: false, drifted: false };
   const phoneFetch = (async (input: string | URL | Request, init?: RequestInit) => {
     if (link.offline) throw new TypeError('Network is unreachable');
-    return fetch(input, init);
+    const answer = await fetch(input, init);
+    const path = new URL(input instanceof Request ? input.url : input).pathname;
+    if (!link.drifted || path !== '/api/v1/contract') return answer;
+    const contract = (await answer.json()) as {
+      operations: { id: string; schemaDigest?: string }[];
+    };
+    for (const operation of contract.operations)
+      if (operation.id === 'capture.ingest') operation.schemaDigest = 'sha256:newer';
+    return Response.json(contract);
   }) as typeof fetch;
   const sandbox = mkdtempSync(join(tmpdir(), 'survey-phone-'));
   const platform = createMobilePlatform({
@@ -321,4 +330,42 @@ test('the phone shows a capture the hub refused, and keeps only its own work', a
     rejection: { code: 'CONFLICT' },
   });
   expect(await two.query('field.hub.status')).toMatchObject({ rejected: 1, pending: 0 });
+});
+
+test('a capture waits while the hub serves a changed capture.ingest', async () => {
+  const survey = await startHub();
+  const g1 = await survey.node(undefined, '=G1', 'Generator 1');
+  const assignment = await survey.command<{ id: string }>('assignment.create', {
+    title: 'Generator 1',
+    roots: [g1.id],
+    kinds: ['nameplate'],
+  });
+  const field = await openPhone(survey.hub.url, await survey.enrollment('Phone 1'));
+  // The first call to the hub reads its contract.
+  field.link.drifted = true;
+  await survey.command('assignment.dispatch', { id: assignment.id, deviceId: field.deviceId });
+  await field.sync();
+  expect((await field.query<Rows>('field.assignment.list')).items).toHaveLength(1);
+
+  await field.command('field.capture.record', {
+    id: 'cap-1',
+    assignmentId: assignment.id,
+    nodeId: g1.id,
+    kind: 'nameplate',
+    codes: [],
+    note: '',
+    takenAt: 1_000,
+    photos: [await field.photo({ serial: 'A' })],
+  });
+  expect(await field.deliver()).toMatchObject({ accepted: 0 });
+  expect(
+    (
+      await field.phone.instance.application.pendingEffects(
+        { workspaceId: LOCAL_WORKSPACE, principalId: 'integration' },
+        { target: 'hub' },
+      )
+    ).map((effect) => effect.lastFailure),
+  ).toEqual(['capture.ingest changed on hub; calls wait until the two applications agree']);
+  expect((await survey.query<Rows>('capture.list')).items).toEqual([]);
+  expect(await field.query('field.hub.status')).toMatchObject({ pending: 1, accepted: 0 });
 });

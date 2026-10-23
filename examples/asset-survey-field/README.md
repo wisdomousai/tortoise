@@ -16,9 +16,11 @@ The example is one [application](../../docs/primitives.md#application), targetin
   - record a capture;
   - list captures;
   - return an assignment.
-- a [target](../../docs/primitives.md#target), `hub`, wired with `connectTarget` over the peer [connector](../../docs/primitives.md#connector) `createPeerPort`. It works in two directions:
-  - captures and returns go out through the [outbox](../../docs/glossary.md#outbox) to the hub's own `capture.ingest` and `assignment.return`;
+- a [peer target](../../docs/primitives.md#peer-target), `hub`, declared with `definePeerTarget` through the hub's field surface and wired with `connectTarget` over the peer [connector](../../docs/primitives.md#connector) `createPeerPort`. It works in two directions:
+  - captures and returns go out through the [outbox](../../docs/glossary.md#outbox) to the hub's own `capture.ingest` and `assignment.return`, as `hubTarget.effect` payloads parsed by those commands' input schemas;
   - the hub's `assignment.feed` comes back through [inbound sync](../../docs/glossary.md#inbound-sync).
+
+  A drift check (`createPeerDrift`) reads the contract the hub serves the device and compares each surface operation's schema digest. While one differs, its effects stay pending. Hub-link declares the `hub` destination, so the manifest does not list the target's peer component.
 - [blob references](../../docs/primitives.md#blob-store): photos are stored on the device when taken. `field.capture.record` attaches them, so the peer connector uploads them before the record.
 - three [host plugins](../../docs/primitives.md#host-plugin):
   - `hub-link` pairs the device and is its network port;
@@ -94,6 +96,7 @@ bun run typecheck
 - The second test covers refusals with two phones:
   - a node outside an assignment is refused on the phone;
   - a capture the hub refuses (`CONFLICT`) is shown as rejected with the hub's code.
+- The third test serves a hub contract whose `capture.ingest` changed: the capture stays pending with the drift reason, and the hub receives nothing.
 
 `test/ui-bindings.test.ts` checks that a native screen references every field capability that claims a UI binding.
 
@@ -115,14 +118,15 @@ Paths in this table are relative to `examples/asset-survey-field`.
 | --- | --- | --- |
 | [Application](../../docs/primitives.md#application) that targets mobile | `manifest.ts`: `fieldManifest` with `targets: ['mobile']` | `defineManifest` checks plugin platforms when a test loads the manifest; `apps/mobile/test/entry.test.ts` tests the `mobile:prepare` refusal |
 | Embedded instance on the mobile [host platform](../../docs/primitives.md#host-platform) | `field-application.ts`: `createFieldApplication`; `apps/mobile` opens it with `openMobileInstance` | `openPhone` in `test/pipeline.test.ts` |
-| Field [module](../../docs/primitives.md#module) | `contracts.ts`: `fieldModule`, `fieldOperations` | Both tests in `test/pipeline.test.ts` |
+| Field [module](../../docs/primitives.md#module) | `contracts.ts`: `fieldModule`, `fieldOperations` | The tests in `test/pipeline.test.ts` |
 | Browser-safe [capability](../../docs/primitives.md#capability) schemas shared with the hub | `contracts.ts` imports `@agent-native/asset-survey/contracts/schemas` | First pipeline test: the hub's `capture.ingest` accepts the field payload |
-| [Target](../../docs/primitives.md#target) with settle, sync and status | `contracts.ts`: `hubTarget`; `handlers.ts`: `targetHandlers` | `field.hub.status` counts in both pipeline tests |
-| [Outbox effect](../../docs/primitives.md#outbox-effect) per capture and return | `handlers.ts`: `ctx.enqueue` in the capture and return handlers | First pipeline test: `retried: 3` offline, `accepted: 3` online |
+| [Peer target](../../docs/primitives.md#peer-target) with settle, sync and status | `contracts.ts`: `hubTarget`; `handlers.ts`: `targetHandlers` | `field.hub.status` counts in the pipeline tests |
+| [Outbox effect](../../docs/primitives.md#outbox-effect) per capture and return | `handlers.ts`: `ctx.enqueue(hubTarget.effect(...))` in the capture and return handlers | First pipeline test: `retried: 3` offline, `accepted: 3` online |
 | Peer [connector](../../docs/primitives.md#connector) | `field-application.ts`: `createPeerPort` inside `connectTarget` | `plugins/device-link/test/link.test.ts` (resend after a lost answer); second pipeline test (`CONFLICT` settles as rejected) |
+| Drift check against the hub's contract | `field-application.ts`: `createPeerDrift` passed to `createPeerPort` | Third pipeline test |
 | [Inbound sync](../../docs/primitives.md#inbound-sync) of the hub's feed | `handlers.ts`: `applyBatch` | First test: assignment and node tree arrive; the return closes the assignment |
 | [Blob](../../docs/primitives.md#blob-store) attached to the forwarded resource | `handlers.ts`: `ctx.attach`; `field-application.ts`: `readEffectBlob` | First test: the hub reads the photo by digest |
-| [Policy](../../docs/primitives.md#policy) with one owner and an integration lane | `policy.ts`: `fieldPolicy` | Settlement and sync in both tests; no denial test on the device |
+| [Policy](../../docs/primitives.md#policy) with one owner and an integration lane | `policy.ts`: `fieldPolicy` | Settlement and sync in the pipeline tests; no denial test on the device |
 | [Device link](../../docs/primitives.md#device-link) and the hub-link network port | `field-application.ts`: `createHubLinkPlugin` | `paired()` in `test/pipeline.test.ts` |
 | Managed configuration [host plugin](../../docs/primitives.md#host-plugin) as a settings provider | `application.ts`: `managedConfigPlugin` | `openPhone` composes `createManagedConfigPlugin` with fixed values |
 | Intent scanner [input source](../../docs/primitives.md#input-source) | `ui-native/shared.tsx`: `scannerProfile`, `useScans` | Type check only; `plugins/intent-scanner/test/source.test.ts` covers the source |
@@ -135,7 +139,7 @@ Paths in this table are relative to `examples/asset-survey-field`.
 
 | Path | Holds |
 | --- | --- |
-| [`contracts.ts`](contracts.ts) | The `hub` target and the field capabilities, built with the hub's `operation` helper, which sets the UI binding and maps `forwards` to the outbox declaration |
+| [`contracts.ts`](contracts.ts) | The `hub` peer target and the field capabilities, built with the hub's `operation` helper, which sets the UI binding and maps `forwards` to the outbox declaration |
 | [`domain.ts`](domain.ts) | `FieldState`: assignment copies, captures, returns and the feed cursor; tree order and designation search |
 | [`handlers.ts`](handlers.ts) | Capability handlers and the target handlers |
 | [`policy.ts`](policy.ts) | Owner role, integration lane and event access |

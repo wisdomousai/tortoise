@@ -1,8 +1,12 @@
 import type { z } from 'zod';
-import { connectTarget, createPeerPort } from '@agent-native/integration';
+import {
+  connectTarget,
+  createPeerCall,
+  createPeerDrift,
+  createPeerPort,
+} from '@agent-native/integration';
 import { defineApplication } from '@agent-native/kernel/application';
 import type { AnyHostPlugin } from '@agent-native/kernel/plugin';
-import { operations as hubOperations } from '@agent-native/asset-survey/contracts';
 import type { fieldAssignmentSchema } from '@agent-native/asset-survey/contracts/schemas';
 import { createHubLinkPlugin } from '@agent-native/hub-link/plugin';
 import { hubTarget } from './contracts';
@@ -39,23 +43,33 @@ export function createFieldApplication(
     authorization: fieldPolicy,
     ...(options.services ? { services: options.services } : {}),
     plugins,
-    connect: ({ application, workspaceId, network }) => ({
-      integrations: [
-        connectTarget<z.output<typeof fieldAssignmentSchema>>({
-          application,
-          workspaceId,
-          principalId: INTEGRATION_PRINCIPAL,
-          target: hubTarget,
-          // The hub's own API, as this device: the hub authorizes every record again.
-          port: createPeerPort({
-            target: hubTarget.target,
-            client: () => network.client(hubTarget.target),
-            readBlob: (effect, digest) =>
-              application.readEffectBlob(workspaceId, effect.id, digest),
-            feed: hubOperations.assignmentFeed.id,
+    connect: ({ application, workspaceId, network }) => {
+      const client = () => network.client(hubTarget.target);
+      // The hub's contract as this device reads it; a hub release that changed one of the field
+      // surface's operations keeps captures and returns pending instead of misreading them.
+      const drift = createPeerDrift({
+        surface: hubTarget.surface,
+        contract: () => createPeerCall({ client }).contract(),
+      });
+      return {
+        integrations: [
+          connectTarget<z.output<typeof fieldAssignmentSchema>>({
+            application,
+            workspaceId,
+            principalId: INTEGRATION_PRINCIPAL,
+            target: hubTarget,
+            // The hub's own API, as this device: the hub authorizes every record again.
+            port: createPeerPort({
+              target: hubTarget.target,
+              client,
+              readBlob: (effect, digest) =>
+                application.readEffectBlob(workspaceId, effect.id, digest),
+              feed: hubTarget.feedQuery,
+              drift,
+            }),
           }),
-        }),
-      ],
-    }),
+        ],
+      };
+    },
   });
 }

@@ -23,7 +23,8 @@ The example is one [application](../../docs/primitives.md#application). It compo
 - three [targets](../../docs/primitives.md#target), wired with `connectTarget`. `model` sends requests through the [outbox](../../docs/glossary.md#outbox) and returns proposals through its feed. `eam` sends filings and returns asset snapshots, and `export` sends filings as folders with no feed.
 - a [data provider](../../docs/primitives.md#data-provider), `eam.asset`, for live EAM search and lookup with the integration's service account.
 - [requirement declarations](../../docs/primitives.md#requirement-declaration) for the `model-api` (internet) and `eam-api` (site) destinations, both `offline: 'queue'`. The optional `filing-export` process carries the `export` target.
-- the `site`, `network`, `process`, `audit`, `compliance` and `device-link` [host plugins](../../docs/primitives.md#host-plugin). Device link pairs phones and authenticates them as `device:<id>`, and the application passes `FIELD_SYNC_OPERATIONS` as its default grant.
+- the `site`, `network`, `process`, `audit`, `compliance` and `device-link` [host plugins](../../docs/primitives.md#host-plugin). Device link pairs phones and authenticates them as `device:<id>`, and the application passes `FIELD_SYNC_OPERATIONS`, the service operations of the field surface, as its default grant.
+- a peer surface, `fieldSurface` in [`contracts/peer.ts`](contracts/peer.ts): `capture.ingest`, `assignment.return` and `assignment.feed`. The field application declares the hub as a [peer target](../../docs/primitives.md#peer-target) through it and checks the hub's served contract against it.
 - [capability bindings](../../docs/primitives.md#capability-binding) on every screen, and a `compact` variant of the review queue for tablets.
 
 The structure names nodes by reference designations: IEC 81346, KKS and ANSI/IEEE C37.2 device numbers. The scheme tables in [`contracts/schemes.ts`](contracts/schemes.ts) hold the common class letters and device numbers, not the full standards.
@@ -182,7 +183,7 @@ Paths are relative to `examples/asset-survey`.
 | --- | --- |
 | `manifest.ts` | The browser-safe manifest: ID `asset-survey`, the four modules and the plugin manifests. |
 | `contracts.ts` | The modules, their workflow text and requirement declarations, and `operations` by short name. |
-| `contracts/` | Capabilities by concern, record schemas, designation schemes and the `operation` helper. The field application imports these. |
+| `contracts/` | Capabilities by concern, record schemas, designation schemes, the `operation` helper and the field surface (`peer.ts`). The field application imports these. |
 | `domain.ts` | State shape, initial state, roles, the device principal prefix, subtrees and the derived assignment stage. |
 | `handlers/` | Handlers for structure, field work, review and filing; `context.ts` holds collections, services and error helpers. |
 | `server.ts` | `createSurveyHandlers` and the re-exports `application.ts` composes. |

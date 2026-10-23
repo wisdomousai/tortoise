@@ -7,6 +7,7 @@ import {
 } from '@agent-native/contracts';
 import { targetHandlers } from '@agent-native/integration';
 import { own, records, type HandlerContext, type HandlerContribution } from '@agent-native/runtime';
+import { fieldOperations as hubOperations } from '@agent-native/asset-survey/contracts/captures';
 import type { fieldAssignmentSchema } from '@agent-native/asset-survey/contracts/schemas';
 import { fieldOperations as ops, hubTarget } from './contracts';
 import { isClosed, matches, slice, type FieldAssignment, type FieldState } from './domain';
@@ -93,12 +94,12 @@ export const createFieldHandlers = (): HandlerContribution<FieldState, FieldServ
     // The photos stay readable through the capture, so the hub connector can upload them.
     for (const photo of input.photos) ctx.attach(resource, photo);
     // The payload is the hub's `capture.ingest` input, so the peer port delivers it unchanged.
-    const effectId = ctx.enqueue({
-      target: hubTarget.target,
-      type: 'capture.ingest',
-      resource,
-      payload: { ...input, photos: input.photos.map((photo) => ({ ...photo })) },
-    });
+    const effectId = ctx.enqueue(
+      hubTarget.effect(hubOperations.captureIngest, {
+        resource,
+        payload: { ...input, photos: input.photos.map((photo) => ({ ...photo })) },
+      }),
+    );
     const capture = captures.insert(
       input.id,
       compact({ ...input, effectId, sync: 'pending' as const }),
@@ -121,12 +122,12 @@ export const createFieldHandlers = (): HandlerContribution<FieldState, FieldServ
     const resource = assignmentRecords(ctx).resource(assignment.id);
     // Enqueued after every capture of the assignment. The dispatcher delivers in that order
     // while no delivery fails, so the hub normally sees the captures before the return.
-    const effectId = ctx.enqueue({
-      target: hubTarget.target,
-      type: 'assignment.return',
-      resource,
-      payload: { id: assignment.id },
-    });
+    const effectId = ctx.enqueue(
+      hubTarget.effect(hubOperations.assignmentReturn, {
+        resource,
+        payload: { id: assignment.id },
+      }),
+    );
     ctx.state.returns[assignment.id] = { effectId, sync: 'pending' };
     assignmentRecords(ctx).touch(assignment.id);
     return assignmentDto(ctx.state, assignment);
