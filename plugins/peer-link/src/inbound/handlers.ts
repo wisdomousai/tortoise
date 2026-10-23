@@ -12,33 +12,14 @@ import {
   type PeerLinkState,
   type PeerRecord,
   type SubjectMappingRecord,
-} from './state';
-
-/** What the plugin hands its handlers, from its options and the peer surface. */
-export interface PeerLinkService {
-  readonly now: () => number;
-  /** This application's manifest ID; audiences name it. */
-  readonly application: string;
-  readonly serviceOperations: ReadonlySet<string>;
-  readonly onBehalfOfOperations: ReadonlySet<string>;
-  /** Whether a principal is never a peer's subject: a service, device or integration principal. */
-  readonly reserved: (principalId: string) => boolean;
-}
-export interface PeerLinkServices {
-  readonly 'peer-link'?: PeerLinkService;
-}
+} from '../state';
+import { serviceOf, type PeerLinkServices } from '../service';
 
 type Context = HandlerContext<PeerLinkState, PeerLinkServices>;
 
 export const enrollmentLifetimeMs = 10 * 60_000;
 /** Used or expired enrollments are kept this long for the list, then dropped. */
 const enrollmentRetentionMs = 24 * 3_600_000;
-
-function serviceOf(ctx: Context): PeerLinkService {
-  const service = ctx.services['peer-link'];
-  if (!service) throw new ApplicationError('UNAVAILABLE', 'Peer link is not open');
-  return service;
-}
 
 export const publicPeer = ({ tokenDigest: _, publicKey: __, ...peer }: PeerRecord) => peer;
 

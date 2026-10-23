@@ -21,7 +21,8 @@
     "./assertion": "./src/assertion.ts",
     "./plugin-manifest": "./src/plugin-manifest.ts",
     "./plugin": "./src/plugin.ts",
-    "./plugin-screens": "./src/plugin-screens.tsx"
+    "./plugin-screens": "./src/plugin-screens.tsx",
+    "./testing": "./src/testing.ts"
   },
   "dependencies": {
     "@agent-native/adapters": "workspace:*",

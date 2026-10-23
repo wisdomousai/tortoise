@@ -10,6 +10,7 @@ export interface PeerLink {
   /**
    * The peer's API on behalf of a local person, named by their principal ID here. Every request
    * carries a fresh signed subject assertion; the peer maps the subject to one of its people.
+   * `run` says an agent or job run made the call, which the peer refuses unless it allows runs.
    */
-  onBehalfOf(subject: string): PeerClient;
+  onBehalfOf(subject: string, options?: { readonly run?: boolean }): PeerClient;
 }

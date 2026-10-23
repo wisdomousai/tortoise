@@ -21,6 +21,11 @@ export interface Effect extends EffectRequest {
   readonly id: string;
   readonly operation: string;
   readonly principalId: string;
+  /**
+   * The agent or job run that enqueued it, when one did. A peer link signs an on-behalf-of
+   * delivery of such an effect as made by a run, which the peer refuses unless it allows runs.
+   */
+  readonly runId?: string;
   readonly createdAt: number;
   /**
    * The application's `contractVersion` when the command enqueued it. An upgrade never rewrites a

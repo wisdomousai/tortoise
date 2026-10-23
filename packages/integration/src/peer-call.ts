@@ -78,6 +78,8 @@ export function createPeerCall(options: PeerCallOptions): PeerCall {
         redirect: 'error',
       });
     } catch (error) {
+      // A client may refuse with its own outcome, such as a link whose connection was removed.
+      if (error instanceof PeerCallError) throw error;
       throw new PeerCallError((error as Error).message, 'unreachable');
     }
   }

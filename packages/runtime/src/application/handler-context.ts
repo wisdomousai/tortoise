@@ -80,6 +80,7 @@ function outboxMethods<State, Services>(
           id,
           operation,
           principalId: context.principalId,
+          ...(context.runId === undefined ? {} : { runId: context.runId }),
           createdAt: kernel.now(),
           ...(kernel.options.contractVersion === undefined
             ? {}

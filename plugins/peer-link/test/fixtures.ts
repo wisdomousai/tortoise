@@ -6,10 +6,13 @@ import {
   defineCapability,
   defineModule,
   definePeerSurface,
+  definePeerTarget,
   jsonSchema,
 } from '@agent-native/contracts';
 import { peerLane } from '@agent-native/integration';
 import { defineApplication } from '@agent-native/kernel/application';
+import type { AnyHostPlugin } from '@agent-native/kernel/plugin';
+import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import { defineManifest } from '@agent-native/kernel/manifest';
 import { startHost } from '@agent-native/host/host';
@@ -24,6 +27,7 @@ import {
 } from '../src/assertion';
 import { enrollPath, subjectHeader } from '../src/contracts';
 import { createPeerLinkPlugin, type PeerLinkOptions } from '../src/plugin';
+import type { PeerNetworkFixture } from '../src/testing';
 import { peerLinkPluginManifest } from '../src/plugin-manifest';
 
 const fixture = { ui: { exception: 'test fixture' } } as const;
@@ -124,7 +128,10 @@ export const qualityPolicy = definePolicy<QualityState, Role>({
  * The called application: Ann inspects, Bob views, the owner is a member; the peer link serves
  * `surface`, and `erp-integration` is reserved.
  */
-export function qualityApplication(options: PeerLinkOptions = {}) {
+export function qualityApplication(
+  options: PeerLinkOptions = {},
+  before: readonly PluginEntry[] = [],
+) {
   return defineApplication<QualityState>({
     manifest: defineManifest({
       id: 'quality',
@@ -132,7 +139,7 @@ export function qualityApplication(options: PeerLinkOptions = {}) {
       modules: [
         defineModule({ id: 'quality', capabilities: [announce, whoami, hold, release, purge] }),
       ],
-      plugins: [peerLinkPluginManifest],
+      plugins: [...before.map((entry) => entry.manifest), peerLinkPluginManifest],
     }),
     createState: () => ({
       members: { [LOCAL_OWNER]: 'inspector', ann: 'inspector', bob: 'viewer' },
@@ -150,7 +157,10 @@ export function qualityApplication(options: PeerLinkOptions = {}) {
       })),
     ],
     authorization: qualityPolicy,
-    plugins: [createPeerLinkPlugin({ reserved: ['erp-integration'], surface, ...options })],
+    plugins: [
+      ...before.map((entry) => entry.plugin),
+      createPeerLinkPlugin({ reserved: ['erp-integration'], surface, ...options }),
+    ],
   });
 }
 
@@ -299,4 +309,55 @@ export async function refusal(response: Response) {
   };
   if (!body.error) throw new Error(`expected a refusal, got ${response.status}`);
   return { status: response.status, ...body.error };
+}
+
+/** The calling application's view of the quality application. */
+export const qualityTarget = definePeerTarget({
+  target: 'quality',
+  resourceType: 'QualitySync',
+  surface,
+  settles: ['delivery'],
+  status: {},
+  descriptions: { settle: 'Settle a quality effect.', status: 'Quality sync status.' },
+  destination: {
+    id: 'quality-api',
+    purpose: 'Quality inspection',
+    dataClasses: ['lot'],
+    availability: 'optional',
+    offline: 'queue',
+  },
+  reads: true,
+});
+
+/** A plugin and its manifest, composed before the peer link. */
+export interface PluginEntry {
+  readonly manifest: PluginManifest;
+  readonly plugin: AnyHostPlugin;
+}
+
+/**
+ * The calling application: the peer link calling the quality application, after the plugins
+ * that give it a network (the fixture network, or the site and network plugins).
+ */
+export function receivingApplication(network: PluginEntry | readonly PluginEntry[]) {
+  const entries: readonly PluginEntry[] = 'manifest' in network ? [network] : network;
+  return defineApplication<Record<string, never>>({
+    manifest: defineManifest({
+      id: 'receiving',
+      title: 'Receiving',
+      modules: [],
+      components: [qualityTarget.component],
+      plugins: [...entries.map((entry) => entry.manifest), peerLinkPluginManifest],
+    }),
+    createState: () => ({}),
+    handlers: [],
+    authorization: {
+      authorize: () => ({ allowed: false, reason: 'NO_POLICY' }),
+      canReadEvent: () => false,
+    },
+    plugins: [
+      ...entries.map((entry) => entry.plugin),
+      createPeerLinkPlugin({ targets: [qualityTarget] }),
+    ],
+  });
 }

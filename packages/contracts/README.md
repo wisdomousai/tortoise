@@ -20,7 +20,7 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 - [Data provider](../../docs/primitives.md#data-provider): `defineDataProvider`, `DataProvider`, `DataProviderSpec`.
 - [Membership](../../docs/primitives.md#membership): `defineMembership`, `Membership`, `MembershipSpec`, `SetMemberInput`, `SetMemberOutput`.
 - [Target](../../docs/primitives.md#target): `defineTarget`, `Target`, `TargetSpec`, `SyncBatch`, `effectOutcomeSchema`, `EffectOutcomeInput`, `deliveryStatusSchema`, `rejectionSchema`, `deliveryShape`.
-- [Peer target](../../docs/primitives.md#peer-target): `definePeerSurface`, `PeerSurface` and `peerSurfaceOperations`, what an application lets a peer call as its service principal or on behalf of a person; `definePeerTarget`, `PeerTarget` and `PeerEffectRequest`, another application as an outbox target through its surface, with an authenticated destination and effects parsed by the peer's input schemas.
+- [Peer target](../../docs/primitives.md#peer-target): `definePeerSurface`, `PeerSurface` and `peerSurfaceOperations`, what an application lets a peer call as its service principal or on behalf of a person; `definePeerTarget`, `PeerTarget` and `PeerEffectRequest`, another application as an outbox target through its surface, with an authenticated destination, a host component requiring it, and effects parsed by the peer's input schemas.
 - [Approval request](../../docs/primitives.md#approval-request): `approvalOperations` under fixed `approval.*` IDs, `approvalModule` and `approvalFeatureManifest`, `approvalRequestSchema` with `Approval request`, `approvalStatusSchema` with `ApprovalStatus`, and the `approval requests` collection.
 - [Reconciliation](../../docs/primitives.md#reconciliation): `reconciliationOperations` for `reconciliation.list` and `reconciliation.resolve`, `reconciliationModule` and `reconciliationFeatureManifest`, `heldEffectSchema` with `HeldEffect`, and `reconciliationDecisionSchema` with `ReconciliationDecision`.
 - [Collection](../../docs/primitives.md#collection): `defineCollection`, `Collection`, `collectionGet`, `collectionList`, `listFilters`, `listSearches`, `recordKeySchema`, `MAX_PAGE`, and the `CollectionPage` output shape.
@@ -73,7 +73,7 @@ bun test packages/contracts
 - `test/tool-envelope.test.ts`: every `$ref` of a wrapped recursive schema resolves from its root, and only commands other than `approval.request` are offered `expectedRevisions`.
 - `test/feature.test.ts`: the built-in feature manifests keep their operation ids, and a feature manifest is refused for an operation, module or target outside its id.
 - `test/contracts.test.ts`: rejects a capability without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
-- `test/peer.test.ts`: a peer surface's operation lists and its refusals of a wrong kind, a command on both lists and blobs on behalf of a person; a peer target's destination, parsed effects, whose an effect is, and a feed that must be a service query.
+- `test/peer.test.ts`: a peer surface's operation lists and its refusals of a wrong kind, a command on both lists and blobs on behalf of a person; a peer target's destination and component, parsed effects, whose an effect is, and a feed that must be a service query.
 - `test/os.test.ts`: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
 
 ## Skills

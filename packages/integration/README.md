@@ -60,8 +60,9 @@ The peer port speaks the peer host's HTTP API through a client the caller suppli
 
 `INVALID_INPUT`, `NOT_FOUND`, `FORBIDDEN` and `CONFLICT` settle the effect as rejected. These are `DeliveryFailure`s instead, and the effect stays pending with a message saying why:
 
-- a `FORBIDDEN` that refuses the credential itself (`details.credential`): the record waits for a new pairing;
+- a `FORBIDDEN` that refuses the credential itself (`details.credential`): the record waits for a new pairing, or with `reconnect` set, for the connection the `reconnect` message names;
 - a `FORBIDDEN` that refuses a subject assertion (`details.assertion`): an expired or replayed assertion is signed again on the next attempt, and an unmapped person waits until the peer maps them;
+- a `FORBIDDEN` that refuses an `agent` assertion: the peer takes no calls on behalf of a person that a run made;
 - no client, an unreachable peer and a server error.
 
 `IDEMPOTENCY_CONFLICT` means the peer holds a different command under the effect's key, so the port reports `DeliveryUncertain` and the dispatcher holds the effect.
@@ -70,7 +71,7 @@ The peer port speaks the peer host's HTTP API through a client the caller suppli
 
 ### Peer applications
 
-`connectPeerTarget` asks the `PeerLink` for a client per delivery. A command on the surface's service list goes as this application's service principal; one on its `onBehalfOf` list goes on behalf of `effect.principalId`, so the peer applies the policy of the person that subject is mapped to there. The subject comes only from the effect or, for a read, from the caller's context, never from input.
+`connectPeerTarget` asks the `PeerLink` for a client per delivery. A command on the surface's service list goes as this application's service principal; one on its `onBehalfOf` list goes on behalf of `effect.principalId`, so the peer applies the policy of the person that subject is mapped to there. The subject comes only from the effect or, for a read, from the caller's context, never from input. The assertion says `act: agent` when the effect's `runId` or the read context's `runId` is set, so an agent or job run is told apart from the person. A `PeerLink` from `@agent-native/peer-link` says "connect it on the peers screen" for a missing or refused connection.
 
 A peer source reads as the service principal for a query declared `service` and on behalf of the caller otherwise. It wraps the peer's page cursor with an HMAC over the local operation, the query and the caller, so a cursor pages neither another query nor another person; a restart invalidates cursors.
 
@@ -108,6 +109,7 @@ bun run test:integration
 ## Skills
 
 - [connect-system-of-record](skills/connect-system-of-record/SKILL.md): connect a system of record with outbox delivery and settlement, held effects, inbound sync, a remote query or a new `SystemOfRecordPort`.
+- [connect-two-applications](../../plugins/peer-link/skills/connect-two-applications/SKILL.md): a peer surface and a peer target served and connected through `@agent-native/peer-link`.
 
 ## References
 

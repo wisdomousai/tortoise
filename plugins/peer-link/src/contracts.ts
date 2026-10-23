@@ -4,6 +4,13 @@ import { defineCapability, defineModule, jsonSchema } from '@agent-native/contra
 /** The callee route a peer posts its enrollment code to; it answers the peer credential once. */
 export const enrollPath = '/api/v1/peer/enroll';
 
+/**
+ * The calling application's route that connects to a peer with a code its owner read out: it
+ * enrolls through the network port, keeps the credential in the secret store and records the
+ * connection. A person signed in here posts `{ target, code }`.
+ */
+export const connectPath = '/api/v1/peer/connect';
+
 /** The header that carries a signed subject assertion on a call on behalf of a person. */
 export const subjectHeader = 'Agent-Native-Subject';
 
@@ -66,6 +73,17 @@ export const subjectMappingSchema = z.strictObject({
   operations: z.array(operation).optional(),
   mappedBy: z.string(),
   mappedAt: timestamp,
+});
+
+export const connectionSchema = z.strictObject({
+  /** The peer target this application delivers to and reads through the connection. */
+  target: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/),
+  /** The peer's own ID for this application. */
+  peerId: id,
+  audience: z.string(),
+  contract: contractSchema,
+  connectedBy: z.string(),
+  connectedAt: timestamp,
 });
 
 export const peerLinkOperations = {
@@ -170,6 +188,51 @@ export const peerLinkOperations = {
     output: jsonSchema(z.strictObject({ mappings: z.array(subjectMappingSchema) })),
     permission: { action: 'read', resourceType: 'Peer' },
     ui: { binding: 'peer-subject-list' },
+  }),
+  connectionRecord: defineCapability({
+    id: 'peer.connection.record',
+    kind: 'command',
+    description:
+      "Record a connection to a peer after its enrollment answered, replacing any earlier one for the target. Called only by the plugin's connect route, as the person who connected, once the credential is in the secret store.",
+    input: jsonSchema(connectionSchema.omit({ connectedBy: true, connectedAt: true })),
+    output: jsonSchema(z.strictObject({ connection: connectionSchema })),
+    permission: { action: 'connect', resourceType: 'Peer' },
+    ui: {
+      exception:
+        'Recorded by the connect route the peers screen posts to, which must first enroll over the network; the record alone connects nothing.',
+    },
+    audit: { fields: ['target', 'peerId'] },
+  }),
+  connectionList: defineCapability({
+    id: 'peer.connection.list',
+    kind: 'query',
+    description:
+      'List the peer targets this application calls and their connections, without credentials or keys.',
+    input: jsonSchema(z.strictObject({})),
+    output: jsonSchema(
+      z.strictObject({
+        targets: z.array(
+          z.strictObject({
+            target: z.string(),
+            application: z.string(),
+            connection: connectionSchema.nullable(),
+          }),
+        ),
+      }),
+    ),
+    permission: { action: 'read', resourceType: 'Peer' },
+    ui: { binding: 'peer-connection-list' },
+  }),
+  connectionRemove: defineCapability({
+    id: 'peer.connection.remove',
+    kind: 'command',
+    description:
+      'Remove the connection to a peer target: its next call fails as not connected, effects for it stay pending, and the plugin deletes the credential. The peer still lists this application until its owner revokes it.',
+    input: jsonSchema(z.strictObject({ target: z.string() })),
+    output: jsonSchema(z.strictObject({ removed: z.boolean() })),
+    permission: { action: 'disconnect', resourceType: 'Peer' },
+    ui: { binding: 'peer-connection-remove' },
+    audit: { fields: ['target'] },
   }),
   credentialResolve: defineCapability({
     id: 'peer.credential.resolve',

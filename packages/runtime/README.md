@@ -27,7 +27,7 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 - [Membership](../../docs/primitives.md#membership): `membershipHandler`, `membershipRule`, `roleIn`, `MembershipStore`.
 - [Storage](../../docs/primitives.md#storage): the `Storage` port, `WorkspaceSnapshot`, `createMemoryStorage`, `createWorkspaceSnapshot`.
 - [Journal and live query](../../docs/primitives.md#journal-and-live-query): `ChangeEvent`, `EventBatch`.
-- [Outbox effect](../../docs/primitives.md#outbox-effect): `Effect`, `EffectRequest`, `EffectOutcome`, and on `HandlerContext` the methods `enqueue`, `settleEffect` (with a fencing token) and `cancelEffect`.
+- [Outbox effect](../../docs/primitives.md#outbox-effect): `Effect` (with the `runId` of the agent or job run that enqueued it), `EffectRequest`, `EffectOutcome`, and on `HandlerContext` the methods `enqueue`, `settleEffect` (with a fencing token) and `cancelEffect`.
 - [Worker claims](../../docs/primitives.md#worker-claims): `EffectClaim`, the host-only `claimEffect` (`ClaimResult`) and `recordAttempt` (`AttemptRecord`, with `fence` and `upstream`). The `dispatch` authorization phase is checked before the first claim.
 - [Reconciliation](../../docs/primitives.md#reconciliation):
   - `effectPhase` and `EffectPhase`: the phases an effect passes through and the transitions the outbox allows;
@@ -86,7 +86,7 @@ bun test packages/runtime
 ```
 
 - `test/runtime.test.ts`: undeclared changes, lost updates, scoped idempotency, current authorization on retries.
-- `test/outbox.test.ts`: effects commit with the command and are not re-enqueued on replay; delivery phases.
+- `test/outbox.test.ts`: effects commit with the command and the run that enqueued them, and are not re-enqueued on replay; delivery phases.
 - `test/remote-query.test.ts`:
   - paging passes the cursor in and `next` out, even for a page that scoping emptied;
   - a denied caller does not reach the source, and a revocation during the call drops the result;

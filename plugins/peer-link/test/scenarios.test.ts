@@ -8,7 +8,7 @@ import {
   type BehavioralScenario,
 } from '@agent-native/testing/scenarios';
 import { peerLinkOperations as ops } from '../src/contracts';
-import type { PeerLinkService } from '../src/inbound/handlers';
+import type { PeerLinkService } from '../src/service';
 import { announce, hold, qualityApplication, surface, whoami } from './fixtures';
 
 const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
@@ -156,6 +156,13 @@ test('behavioural scenarios through the direct driver', async () => {
     serviceOperations: new Set(surface.serviceOperations),
     onBehalfOfOperations: new Set(surface.onBehalfOfOperations),
     reserved: (principalId) => principalId.includes(':'),
+    targets: new Map(),
+    link: () => {
+      throw new Error('No peer targets in scenarios');
+    },
+    connect: async () => {
+      throw new Error('No peer targets in scenarios');
+    },
   };
   const application = createApplicationRuntime(definition, {
     storage: createMemoryStorage(definition.createState(LOCAL_OWNER)),

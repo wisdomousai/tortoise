@@ -45,6 +45,16 @@ export interface SubjectMappingRecord {
   mappedAt: number;
 }
 
+/** A connection to a peer target. Its credential and key are in the secret store, not here. */
+export interface ConnectionRecord {
+  target: string;
+  peerId: string;
+  audience: string;
+  contract: { id: string; contractVersion: string; digest: string };
+  connectedBy: string;
+  connectedAt: number;
+}
+
 /** The plugin's slice, under `state['peer-link']`. */
 export interface PeerLinkState {
   /** Principals who enroll, map, list and revoke peers: the local owner. */
@@ -53,6 +63,8 @@ export interface PeerLinkState {
   enrollments: Record<string, PeerEnrollmentRecord>;
   /** By `mappingKey(peerId, subject)`. */
   subjects: Record<string, SubjectMappingRecord>;
+  /** Outbound: by target. */
+  connections: Record<string, ConnectionRecord>;
 }
 
 export const createPeerLinkState = (ownerId: string): PeerLinkState => ({
@@ -60,6 +72,7 @@ export const createPeerLinkState = (ownerId: string): PeerLinkState => ({
   peers: {},
   enrollments: {},
   subjects: {},
+  connections: {},
 });
 
 export const mappingKey = (peerId: string, subject: string) =>

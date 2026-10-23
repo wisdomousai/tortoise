@@ -48,7 +48,14 @@ export interface PeerPortOptions {
    * operation that drifted stays pending, and a peer's `INVALID_INPUT` checks the contract again.
    */
   readonly drift?: PeerDrift;
+  /**
+   * What a person does about a missing or refused connection, ending the effect's message. For a
+   * paired device by default: `pair the device first` and `pair the device again`.
+   */
+  readonly reconnect?: { readonly missing: string; readonly refused: string };
 }
+
+const deviceReconnect = { missing: 'pair the device first', refused: 'pair the device again' };
 
 /**
  * Codes the peer answers for a business refusal; delivering again would get the same answer.
@@ -93,8 +100,9 @@ const isRefusal = (error: ErrorEnvelope | undefined): error is ErrorEnvelope =>
  */
 function failureOf(options: PeerPortOptions, error: unknown): never {
   if (!(error instanceof PeerCallError)) throw error;
+  const reconnect = options.reconnect ?? deviceReconnect;
   if (error.kind === 'disconnected')
-    throw new DeliveryFailure(`No connection to ${options.target}; pair the device first`);
+    throw new DeliveryFailure(`No connection to ${options.target}; ${reconnect.missing}`);
   if (error.kind === 'unreachable') throw new DeliveryFailure('The peer is unreachable');
   if (error.code === 'IDEMPOTENCY_CONFLICT')
     throw new DeliveryUncertain(
@@ -102,12 +110,18 @@ function failureOf(options: PeerPortOptions, error: unknown): never {
     );
   if (refusedCredential(error.envelope))
     throw new DeliveryFailure(
-      'The peer did not accept this device credential; pair the device again',
+      options.reconnect
+        ? `${options.target} did not accept this application's credential; ${reconnect.refused}`
+        : 'The peer did not accept this device credential; pair the device again',
     );
   const assertion = refusedAssertion(error.envelope);
   if (assertion === 'unmapped')
     throw new DeliveryFailure(
       `${options.target} maps no person to the caller; ask its owner to map them`,
+    );
+  if (assertion === 'agent')
+    throw new DeliveryFailure(
+      `${options.target} takes no calls an agent or job run makes on behalf of a person`,
     );
   if (assertion)
     throw new DeliveryFailure(`${options.target} refused the subject assertion (${assertion})`);

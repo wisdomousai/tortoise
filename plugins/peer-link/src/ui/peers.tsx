@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { OutputOf } from '@agent-native/contracts';
-import { peerLinkOperations as ops } from '../contracts';
+import { connectPath, peerLinkOperations as ops } from '../contracts';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { client, live } from '@/lib/session';
 
 type Peer = OutputOf<typeof ops.list>['peers'][number];
 type Created = OutputOf<typeof ops.enrollmentCreate>;
+type Called = OutputOf<typeof ops.connectionList>['targets'][number];
 
 const time = (at: number) => new Date(at).toLocaleString();
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
@@ -251,6 +252,109 @@ function Subjects({
   );
 }
 
+/** Connect with the code the other application's owner created; the route enrolls over the network. */
+async function connectTo(target: string, code: string) {
+  const response = await fetch(connectPath, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ target, code }),
+  });
+  if (response.ok) return;
+  const body = (await response.json().catch(() => undefined)) as
+    { error?: { message?: string } } | undefined;
+  throw new Error(body?.error?.message ?? `Connecting answered ${response.status}`);
+}
+
+function CalledRow({ called, onError }: { called: Called; onError: (message: string) => void }) {
+  const [code, setCode] = useState('');
+  const { connection } = called;
+  return (
+    <TableRow>
+      <TableCell>{called.target}</TableCell>
+      <TableCell>
+        {connection
+          ? `${connection.contract.id} ${connection.contract.contractVersion}`
+          : called.application}
+      </TableCell>
+      <TableCell>
+        {connection ? (
+          `Connected ${time(connection.connectedAt)} by ${connection.connectedBy}`
+        ) : (
+          <Badge variant="outline">Not connected</Badge>
+        )}
+      </TableCell>
+      <TableCell>
+        {connection ? (
+          <Button
+            variant="destructive"
+            onClick={() =>
+              void client
+                .command(ops.connectionRemove, { target: called.target })
+                .catch((error) => onError(message(error)))
+            }
+          >
+            Remove
+          </Button>
+        ) : (
+          <form
+            className="flex gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void connectTo(called.target, code)
+                .then(() => setCode(''))
+                .catch((error) => onError(message(error)));
+            }}
+          >
+            <Input
+              aria-label={`Code from ${called.target}`}
+              placeholder="ABCDE-FGHJK"
+              value={code}
+              maxLength={20}
+              onChange={(event) => setCode(event.target.value)}
+              required
+            />
+            <Button type="submit">Connect</Button>
+          </form>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+/** The applications this one calls (`peer.connection.list`): connect with a code, or remove. */
+function Calling({ onError }: { onError: (message: string) => void }) {
+  const listed = useQuery(live.liveQueryOptions(ops.connectionList, {}));
+  if (!listed.data?.targets.length) return null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Applications this one calls</CardTitle>
+        <CardDescription>
+          Ask the other application's owner for an enrollment code and enter it here.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Target</TableHead>
+              <TableHead>Application</TableHead>
+              <TableHead>Connection</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {listed.data.targets.map((called) => (
+              <CalledRow key={called.target} called={called} onError={onError} />
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
 /**
  * Applications that call this one (`peer.list`): create an enrollment code, revoke a peer, and
  * map its subjects to people. Revocation and unmapping apply to the peer's next request.
@@ -265,6 +369,7 @@ export function PeersScreen() {
           {error}
         </p>
       ) : null}
+      <Calling onError={setError} />
       <Enroll onError={setError} />
       <Card>
         <CardHeader>

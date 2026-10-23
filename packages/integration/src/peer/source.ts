@@ -75,6 +75,11 @@ function answer(target: string, error: unknown): never {
       'FORBIDDEN',
       `${target} maps no person to you; ask its owner to map you`,
     );
+  if (assertion === 'agent')
+    throw new ApplicationError(
+      'FORBIDDEN',
+      `${target} takes no reads an agent or job run makes on behalf of a person`,
+    );
   if (error.kind === 'answered' && error.envelope && !assertion && error.status! < 500)
     throw new ApplicationError(error.envelope.code as ErrorCode, error.envelope.message);
   throw new ApplicationError('UNAVAILABLE', `${target} could not be read`);
@@ -93,7 +98,9 @@ export function createPeerSource(options: PeerSourceOptions): RemoteSource {
   const seal = options.seal ?? createCursorSeal();
   const clientFor = (call: SourceCall): PeerClient => {
     const link = options.link();
-    return call.identity === 'service' ? link.client() : link.onBehalfOf(call.context.principalId);
+    return call.identity === 'service'
+      ? link.client()
+      : link.onBehalfOf(call.context.principalId, { run: call.context.runId !== undefined });
   };
   return {
     async search(request, call) {

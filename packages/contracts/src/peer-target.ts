@@ -9,6 +9,7 @@ import type {
   NetworkScope,
   OfflineBehavior,
 } from './requirements';
+import { defineHostComponent } from './requirements';
 import { defineTarget, type TargetSpec } from './target';
 
 type SurfaceCommand<S extends PeerSurface> =
@@ -27,7 +28,8 @@ export interface PeerEffectRequest {
  * publishes. Besides the target's settle, sync and status operations it gives:
  *
  * - `destination`: an `https`, `authenticated` egress destination that carries the target and
- *   its remote reads, for the application's requirements;
+ *   its remote reads, and `component`, a host component requiring it, for the manifest's
+ *   `components`;
  * - `effect(command, { resource, payload })`: the effect request for one surface command, with
  *   the payload parsed by the command's own input schema, so a payload the peer would refuse
  *   fails the enqueuing command instead;
@@ -95,6 +97,11 @@ export function definePeerTarget<
     ...defined,
     surface,
     destination,
+    component: defineHostComponent({
+      id: `${spec.target}-peer`,
+      description: `${surface.application}, called as a peer: ${declared.purpose}`,
+      requirements: { network: [destination] },
+    }),
     feedQuery: spec.feed?.query.id,
     onBehalfOf: (type: string) => personal.has(type),
     effect<C extends SurfaceCommand<S>>(

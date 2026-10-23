@@ -40,12 +40,16 @@ export function connectPeerTarget<Item>(options: PeerTargetOptions<Item>): Targe
       target: target.target,
       client: (effect) =>
         effect && target.onBehalfOf(effect.type)
-          ? options.link().onBehalfOf(effect.principalId)
+          ? options.link().onBehalfOf(effect.principalId, { run: effect.runId !== undefined })
           : options.link().client(),
       readBlob: options.readBlob,
       ...(target.feedQuery ? { feed: target.feedQuery } : {}),
       ...(options.reference ? { reference: options.reference } : {}),
       ...(options.drift ? { drift: options.drift } : {}),
+      reconnect: {
+        missing: 'connect it on the peers screen',
+        refused: 'connect it again on the peers screen',
+      },
     }),
   });
 }

@@ -97,6 +97,10 @@ describe('peer target', () => {
       targets: ['quality'],
       reads: ['quality'],
     });
+    expect(target.component).toMatchObject({
+      id: 'quality-peer',
+      requirements: { network: [target.destination] },
+    });
     expect(target.feedQuery).toBe(feed.id);
     expect(target.sync?.id).toBe('quality.sync');
   });

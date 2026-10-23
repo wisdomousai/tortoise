@@ -125,6 +125,20 @@ describe('transactional outbox', () => {
     });
   });
 
+  test('an effect records the run that enqueued it, and a person enqueues without one', async () => {
+    const { app } = fixture();
+    await app.invoke(
+      { operation: 'result.record', input: { id: 'r1', value: 1 }, idempotencyKey: 'k1' },
+      { ...owner, runId: 'run-1' },
+    );
+    await app.invoke(
+      { operation: 'result.record', input: { id: 'r2', value: 2 }, idempotencyKey: 'k2' },
+      owner,
+    );
+    const pending = await app.pendingEffects(integration, { target: 'sor' });
+    expect(pending.map((effect) => effect.runId)).toEqual(['run-1', undefined]);
+  });
+
   test('an idempotent replay returns the stored receipt without enqueuing again', async () => {
     const { app } = fixture();
     const request = {

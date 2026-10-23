@@ -84,6 +84,7 @@ export function enqueuedEffect(
     id: string;
     operation: string;
     principalId: string;
+    runId?: string;
     createdAt: number;
     contractVersion?: string;
     input?: JsonValue;
@@ -97,6 +98,7 @@ export function enqueuedEffect(
     payload: structuredClone(request.payload),
     operation: meta.operation,
     principalId: meta.principalId,
+    ...(meta.runId === undefined ? {} : { runId: meta.runId }),
     createdAt: meta.createdAt,
     ...(meta.contractVersion === undefined ? {} : { contractVersion: meta.contractVersion }),
     status: 'pending',

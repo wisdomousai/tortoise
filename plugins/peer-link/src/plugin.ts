@@ -1,24 +1,29 @@
-import type { PeerSurface } from '@agent-native/contracts';
+import type { PeerSurface, PeerTarget } from '@agent-native/contracts';
 import { createAttemptLimit } from '@agent-native/host/enrollment';
 import { defineHostPlugin } from '@agent-native/kernel/plugin';
-import { enrollPath, peerLinkOperations as ops } from './contracts';
+import { connectPath, enrollPath, peerLinkOperations as ops } from './contracts';
 import { authenticatePeer, createReplayCache } from './inbound/credentials';
-import {
-  peerLinkHandlers,
-  peerLinkPolicy,
-  type PeerLinkService,
-  type PeerLinkServices,
-} from './inbound/handlers';
+import { peerLinkHandlers, peerLinkPolicy } from './inbound/handlers';
 import { enroll, type PeerCaller } from './inbound/routes';
-import { createPeerLinkState, type PeerLinkState } from './inbound/state';
+import { connectionHandlers } from './outbound/handlers';
+import { createOutbound } from './outbound/link';
+import { connect, connectRoute, type ConnectOptions } from './outbound/routes';
+import { connectionSecrets } from './outbound/secrets';
+import type { OutboundTarget, PeerLinkService, PeerLinkServices } from './service';
+import { createPeerLinkState, type PeerLinkState } from './state';
 import { peerLinkPluginManifest } from './plugin-manifest';
+
+export type { OutboundTarget, PeerLinkService, PeerLinkServices } from './service';
+export { peerLinkServiceOf } from './service';
 
 export interface PeerLinkOptions {
   /** What peers may call here. Without one this application takes no calls from peers. */
   readonly surface?: PeerSurface;
+  /** The peer targets this application calls (`definePeerTarget`). */
+  readonly targets?: readonly Pick<PeerTarget, 'target' | 'destination' | 'surface'>[];
   /**
-   * Whether a call on behalf of a person that a delegated run (an agent or a job) made on the
-   * caller is accepted. `refuse` by default; the `peer-link-agents` setting replaces it.
+   * Whether a call on behalf of a person that an agent or job run made on the caller is
+   * accepted. `refuse` by default; the `peer-link-agents` setting replaces it.
    */
   readonly agents?: 'refuse' | 'allow';
   /**
@@ -32,26 +37,37 @@ export interface PeerLinkOptions {
 const empty: readonly string[] = [];
 
 /**
- * The peer link on a serving host. Its slice holds peers, enrollments and subject mappings, and
- * keeps only digests of codes and credentials. Once the host listens it serves the enrollment
- * route and resolves peer credentials and subject assertions on every request; before that both
- * answer as unavailable. Startup refuses a surface of another application or one that names
- * operations the catalog does not contain.
+ * The peer link on a serving host, with both sides in one plugin.
+ *
+ * - Called side: its slice holds peers, enrollments and subject mappings, with only digests of
+ *   codes and credentials. Once the host listens it serves the enrollment route and resolves
+ *   peer credentials and subject assertions on every request; before that both answer as
+ *   unavailable. Startup refuses a surface of another application or one that names operations
+ *   the catalog does not contain.
+ * - Calling side: the connect route enrolls with a peer target through the network port, the
+ *   secret store keeps the credential and key, and `services['peer-link'].link(target)` gives
+ *   `connectPeerTarget` and `createPeerSource` their clients.
  */
 export function createPeerLinkPlugin(options: PeerLinkOptions = {}) {
   const now = options.now ?? Date.now;
   const reservedIds = new Set(options.reserved ?? []);
   const reserved = (principalId: string) =>
     principalId.includes(':') || reservedIds.has(principalId);
+  const targets = new Map<string, OutboundTarget>(
+    (options.targets ?? []).map((target) => [
+      target.target,
+      { application: target.surface.application, destination: target.destination.id },
+    ]),
+  );
   return defineHostPlugin<PeerLinkState, PeerLinkServices>({
     manifest: peerLinkPluginManifest,
     state: { create: createPeerLinkState },
-    handlers: peerLinkHandlers,
+    handlers: [...peerLinkHandlers, ...connectionHandlers],
     authorization: {
-      resourceTypes: ['peer', 'peer-enrollment'],
+      resourceTypes: ['peer', 'peer-enrollment', 'peer-connection'],
       port: peerLinkPolicy,
     },
-    async open({ catalog, manifest, settings }) {
+    async open({ catalog, manifest, settings, secrets, workspacePath, ports }) {
       const { surface } = options;
       if (surface && surface.application !== manifest.id)
         throw new Error(
@@ -71,16 +87,34 @@ export function createPeerLinkPlugin(options: PeerLinkOptions = {}) {
       const agents = setting ?? options.agents ?? 'refuse';
       const serviceOperations = surface?.serviceOperations ?? empty;
       const onBehalfOfOperations = surface?.onBehalfOfOperations ?? empty;
+      const limit = createAttemptLimit(now);
+      const replay = createReplayCache();
+      const stored = connectionSecrets(secrets, workspacePath);
+      let caller: PeerCaller | undefined;
+      const outbound = createOutbound({
+        targets,
+        secrets: stored,
+        network: () => ports.network,
+        caller: () => caller,
+        now,
+      });
+      const connecting: ConnectOptions = {
+        targets,
+        secrets: stored,
+        network: () => ports.network,
+        outbound,
+        caller: () => caller,
+      };
       const service: PeerLinkService = {
         now,
         application: manifest.id,
         serviceOperations: new Set(serviceOperations),
         onBehalfOfOperations: new Set(onBehalfOfOperations),
         reserved,
+        targets,
+        link: (target) => outbound.link(target),
+        connect: (request, context) => connect(request, context, connecting),
       };
-      const limit = createAttemptLimit(now);
-      const replay = createReplayCache();
-      let caller: PeerCaller | undefined;
       return {
         service,
         async start(context) {
@@ -88,13 +122,21 @@ export function createPeerLinkPlugin(options: PeerLinkOptions = {}) {
             application: context.application,
             workspaceId: context.workspaceId,
             context: context.delegate({
-              operations: [ops.enrollmentRedeem.id, ops.credentialResolve.id],
+              operations: [
+                ops.enrollmentRedeem.id,
+                ops.credentialResolve.id,
+                ops.connectionList.id,
+              ],
             }),
           };
           return [{ stop: async () => void (caller = undefined) }];
         },
         publicRoute: async (request) =>
           new URL(request.url).pathname === enrollPath ? enroll(request, caller, limit) : undefined,
+        route: async (request, context) =>
+          new URL(request.url).pathname === connectPath
+            ? connectRoute(request, context, connecting)
+            : undefined,
         authenticate: (token, request) =>
           authenticatePeer(token, request, caller, {
             now,
@@ -103,7 +145,11 @@ export function createPeerLinkPlugin(options: PeerLinkOptions = {}) {
             agents,
             replay,
           }),
-        describe: () => ({ serves: [...serviceOperations, ...onBehalfOfOperations], agents }),
+        describe: () => ({
+          serves: [...serviceOperations, ...onBehalfOfOperations],
+          calls: [...targets.keys()],
+          agents,
+        }),
       };
     },
   });
