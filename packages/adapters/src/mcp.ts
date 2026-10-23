@@ -12,6 +12,7 @@ import {
   errorEnvelope,
   expectedRevisionsSchema,
   toolEnvelopeSchema,
+  workflowMarkdown,
   type Catalog,
   type CatalogAgent,
   type CatalogOperation,
@@ -143,7 +144,7 @@ async function readResource(client: McpClient, uri: string) {
     return { contents: [{ uri, mimeType: 'text/markdown', text: agentText(catalog, agent) }] };
   const workflow = catalog.workflows.find((item) => `app://workflows/${item.id}` === uri);
   if (!workflow) throw new Error('Unknown resource');
-  return { contents: [{ uri, mimeType: 'text/markdown', text: workflow.text }] };
+  return { contents: [{ uri, mimeType: 'text/markdown', text: workflowMarkdown(workflow) }] };
 }
 
 /** Real MCP protocol server. All tool calls attach to the same HTTP instance as the frontend. */

@@ -8,6 +8,8 @@ import type {
 } from './capability';
 import { catalogAgents, type CatalogAgent } from './agent';
 import { composeInvokes } from './invokes';
+import type { CatalogWorkflow } from './workflow';
+import { catalogWorkflow } from './workflow-catalog';
 import { canonicalJson, type JsonObject } from './json';
 import { collectOs, osActionTargets, type CatalogOs } from './os-catalog';
 import {
@@ -52,11 +54,8 @@ export interface Catalog {
   readonly formatVersion: 1;
   readonly operations: readonly CatalogOperation[];
   readonly requirements: CatalogRequirements;
-  readonly workflows: readonly {
-    readonly id: string;
-    readonly operations: readonly string[];
-    readonly text: string;
-  }[];
+  /** Prose workflows for agents, and declared workflows with the steps the workflows plugin runs. */
+  readonly workflows: readonly CatalogWorkflow[];
   /** Agent definitions with their module, sorted by ID. */
   readonly agents: readonly CatalogAgent[];
   /** OS handlers and actions; absent when nothing is declared. */
@@ -222,17 +221,17 @@ function catalogOperation(
   };
 }
 
-function catalogWorkflows(modules: readonly CapabilityModule[], ids: ReadonlySet<string>) {
+function catalogWorkflows(
+  modules: readonly CapabilityModule[],
+  operations: readonly CatalogOperation[],
+) {
   const workflowIds = new Set<string>();
   return modules
     .flatMap((module) => module.workflows ?? [])
     .map((workflow) => {
       if (workflowIds.has(workflow.id)) throw new Error(`Duplicate workflow: ${workflow.id}`);
       workflowIds.add(workflow.id);
-      for (const id of workflow.operations)
-        if (!ids.has(id))
-          throw new Error(`Workflow ${workflow.id} references unknown operation ${id}`);
-      return workflow;
+      return catalogWorkflow(workflow, operations);
     })
     .sort(byId);
 }
@@ -270,7 +269,7 @@ export function buildCatalog(
   const catalog: Catalog = {
     formatVersion: 1,
     operations: composed,
-    workflows: catalogWorkflows(modules, seen.ids),
+    workflows: catalogWorkflows(modules, composed),
     agents: catalogAgents(modules, new Map(composed.map((operation) => [operation.id, operation]))),
     requirements,
     ...(os ? { os } : {}),

@@ -24,7 +24,7 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
 
    `add collection`, `add target` and `add agent` generate the other parts.
 2. Write the contract in the browser-safe [module](../../../../docs/glossary.md#module) (`contracts.ts`): a stable ID, strict JSON input and output schemas, the permission, and a [UI binding](../../../../docs/glossary.md#ui-binding) or a stated headless exception.
-3. Add workflow text when agents need a sequence of capabilities. It names operation IDs, never transport tool names.
+3. Add workflow text when agents need a sequence of capabilities. It names operation IDs, never transport tool names. A declared workflow (`defineWorkflow` with `step.run` and `step.wait`) adds steps that run over hours or days; the catalog checks its bindings, waits and durations.
 4. Write the [handler](../../../../docs/glossary.md#handler) in the server entrypoint with `createHandlerFactory`. Declare every changed resource with `ctx.change`. To run another operation inside the same transaction, as the same caller:
    - list it in the capability's `invokes`; `'any'` is for a command that runs whatever its input names, such as `approval.approve`;
    - call `ctx.invoke(capability, input, expectedRevisions?)` or `ctx.query(capability, input)` and await each call before the next;

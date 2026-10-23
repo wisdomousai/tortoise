@@ -1,10 +1,12 @@
+import { workflowMarkdown, type CatalogWorkflow } from '@agent-native/contracts';
 import { CliText } from './types';
 
 /** Render a value for humans. Snapshot and receipt envelopes show their payload. */
 export function formatText(value: unknown): string {
   if (value instanceof CliText) return value.text;
+  // A workflow: its text, and the steps of a declared one.
   if (value && typeof value === 'object' && 'text' in value && 'operations' in value)
-    return String((value as { text: unknown }).text);
+    return workflowMarkdown(value as CatalogWorkflow);
   const payload =
     value && typeof value === 'object' && 'cursor' in value
       ? 'data' in value

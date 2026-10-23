@@ -1,4 +1,4 @@
-import { canonicalJson, type CatalogOperation } from '@agent-native/contracts';
+import { canonicalJson, workflowMarkdown, type CatalogOperation } from '@agent-native/contracts';
 import { commandWords, synopsis } from '@agent-native/adapters/cli-syntax';
 import { loadManifest, readStarterConfig, type ApplicationManifest } from '@agent-native/host';
 import { deploymentCatalog, deploymentComponents } from '@agent-native/host/components';
@@ -155,7 +155,7 @@ export function artifacts(manifest: ApplicationManifest) {
         catalog.workflows
           .map(
             (workflow) =>
-              `## ${workflow.id}\n\n${workflow.text}\n\nOperations: ${workflow.operations.map((id) => `\`${id}\``).join(', ')}.\n`,
+              `## ${workflow.id}\n\n${workflowMarkdown(workflow)}\n\nOperations: ${workflow.operations.map((id) => `\`${id}\``).join(', ')}.\n`,
           )
           .join('\n'),
     ],

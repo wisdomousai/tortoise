@@ -1,3 +1,4 @@
+import type { WorkflowDeclaration } from './workflow';
 import type { AgentDefinition } from './agent';
 import type { BlobLimits } from './blob';
 import type { Schema } from './schema';
@@ -89,11 +90,8 @@ export interface CapabilityModule<C extends readonly AnyCapability[] = readonly 
   readonly requirements?: Requirements;
   /** URL, file, share and intent handlers and the OS actions this module uses. See `OsDeclarations`. */
   readonly os?: OsDeclarations;
-  readonly workflows?: readonly {
-    readonly id: string;
-    readonly operations: readonly string[];
-    readonly text: string;
-  }[];
+  /** Prose workflows for agents, and declared ones (`defineWorkflow`) the workflows plugin runs. */
+  readonly workflows?: readonly WorkflowDeclaration[];
   /** Agents that work with this module's operations. See `defineAgent`. */
   readonly agents?: readonly AgentDefinition[];
 }
