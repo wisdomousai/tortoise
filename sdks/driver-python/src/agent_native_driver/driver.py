@@ -39,6 +39,7 @@ import json
 import sys
 import threading
 import time
+import traceback
 import uuid
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import asdict, dataclass, field
@@ -347,6 +348,7 @@ class Driver:
             raise
         except Exception as error:
             print(f"{name} failed while acting: {error!r}", file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
             raise Refusal("uncertain", f"{name} failed while acting") from error
         finally:
             self._inflight.discard(effect_id)
@@ -428,6 +430,7 @@ class Driver:
             )
         except Exception as error:
             print(f"{method} failed: {error!r}", file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
             self._writer.send(
                 {"id": request_id, "error": {"code": -32603, "message": f"{method} failed", "data": {"kind": "transient"}}}
             )
