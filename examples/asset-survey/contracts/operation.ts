@@ -14,6 +14,8 @@ export function operation<const Id extends string, const Kind extends 'command' 
     forwards?: string;
     blobs?: BlobLimits;
     exception?: string;
+    /** Operations the handler runs inside its transaction. */
+    invokes?: readonly string[];
   },
 ) {
   return defineCapability({
@@ -26,6 +28,7 @@ export function operation<const Id extends string, const Kind extends 'command' 
     dependencies: spec.dependencies,
     ui: spec.exception ? { exception: spec.exception } : { binding: id },
     ...(spec.blobs ? { blobs: spec.blobs } : {}),
+    ...(spec.invokes ? { invokes: spec.invokes } : {}),
     ...(spec.forwards
       ? { integration: { target: spec.forwards, delivery: 'outbox' as const } }
       : {}),

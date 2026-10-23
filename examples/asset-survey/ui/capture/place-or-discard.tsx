@@ -7,7 +7,10 @@ import { live, transport } from '@/lib/session';
 import { operations } from '../../contracts';
 import { ErrorText, quietly } from '../shared';
 
-/** Put a capture on the right node, found by designation or name, or discard it with a reason. */
+/**
+ * Put a capture on the right node, found by designation or name, or discard it with a reason. An
+ * unplaced capture can also be placed and sent for extraction in one step.
+ */
 export function PlaceOrDiscard({ captureId, placed }: { captureId: string; placed: boolean }) {
   const [q, setQ] = useState('');
   const [reason, setReason] = useState('');
@@ -16,6 +19,7 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
     enabled: q.trim().length > 0,
   });
   const place = useCommand(transport, operations.capturePlace);
+  const placeAndExtract = useCommand(transport, operations.capturePlaceAndExtract);
   const discard = useCommand(transport, operations.captureDiscard);
   return (
     <section
@@ -37,18 +41,36 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
               <span>
                 <span className="font-mono">{node.designation}</span> {node.name}
               </span>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={place.pending}
-                onClick={() =>
-                  void quietly(
-                    place.execute({ id: captureId, nodeId: node.id }).then(() => setQ('')),
-                  )
-                }
-              >
-                Place here
-              </Button>
+              <span className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={place.pending || placeAndExtract.pending}
+                  onClick={() =>
+                    void quietly(
+                      place.execute({ id: captureId, nodeId: node.id }).then(() => setQ('')),
+                    )
+                  }
+                >
+                  Place here
+                </Button>
+                {!placed && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={place.pending || placeAndExtract.pending}
+                    onClick={() =>
+                      void quietly(
+                        placeAndExtract
+                          .execute({ id: captureId, nodeId: node.id })
+                          .then(() => setQ('')),
+                      )
+                    }
+                  >
+                    Place and extract
+                  </Button>
+                )}
+              </span>
             </li>
           ))}
         </ul>
@@ -70,7 +92,7 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
           Discard
         </Button>
       </form>
-      <ErrorText error={place.error ?? discard.error} />
+      <ErrorText error={place.error ?? placeAndExtract.error ?? discard.error} />
     </section>
   );
 }

@@ -8,6 +8,7 @@ import {
   modelTarget,
   type proposalSchema,
 } from '../contracts/extraction';
+import { fieldOperations } from '../contracts/captures';
 import type { SurveyState } from '../domain';
 import {
   captureRecords,
@@ -40,6 +41,12 @@ function extractionDto(ctx: Context, captureId: string) {
  * never writes attributes; only `extraction.accept`, run by a person, does.
  */
 export const reviewHandlers = (): HandlerContribution<SurveyState, SurveyServices>[] => [
+  // Both calls run in this command's transaction, each with its own authorization.
+  handler(ops.placeAndExtract, async (input, ctx) => {
+    const capture = await ctx.invoke(fieldOperations.capturePlace, input);
+    const extraction = await ctx.invoke(ops.request, { captureId: input.id });
+    return { capture, extraction };
+  }),
   handler(ops.request, (input, ctx) => {
     const capture = captureRecords(ctx).getExisting(input.captureId);
     if (capture.review !== 'new') conflict(`Capture is ${capture.review}`);

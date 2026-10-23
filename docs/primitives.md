@@ -75,6 +75,12 @@ _An authorized read that changes nothing._
 
 implemented · [`packages/runtime`](../packages/runtime/README.md)
 
+### Nested invocation
+
+_A command or query run by another command's handler inside the same transaction, each authorized on its own._
+
+implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/contracts`](../packages/contracts/README.md)
+
 ### Collection
 
 _A typed set of records a module keeps in its state slice, with generated reads._

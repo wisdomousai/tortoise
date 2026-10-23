@@ -22,7 +22,7 @@ Any failure rolls everything back. A handler that changes state without declarin
 
 ## Revisions
 
-A command increments the revision of each resource it declares changed. Optimistic concurrency is opt-in: a command names the revisions it expects, and a changed one conflicts. Two callers holding the same revision cannot both overwrite it. The authorization revision counts the workspace's policy changes.
+A command increments the revision of each resource it declares changed. A commit gives each resource one revision and one journal entry, even when several [nested invocations](glossary.md#nested-invocation) of the command declared it; the entry carries the type and operation of the innermost one. Optimistic concurrency is opt-in: a command names the revisions it expects, and a changed one conflicts. Two callers holding the same revision cannot both overwrite it. The authorization revision counts the workspace's policy changes.
 
 ## Snapshots and storage
 

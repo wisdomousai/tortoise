@@ -154,6 +154,88 @@ for (const kind of ['memory', 'sqlite'] as const)
         await rm(directory, { recursive: true, force: true });
       }
     });
+    test('a nested call needs its own grant and policy, commits with its caller and is rechecked at replay', async () => {
+      const directory = await mkdtemp(join(tmpdir(), 'security-nested-'));
+      const schema = jsonSchema(z.strictObject({ value: z.number().int() }));
+      const write = defineCapability({
+        id: 'security.write',
+        kind: 'command',
+        input: schema,
+        output: schema,
+        permission: { action: 'write', resourceType: 'Counter' },
+        ui: { exception: 'security fixture' },
+      });
+      const batch = defineCapability({
+        id: 'security.batch',
+        kind: 'command',
+        input: schema,
+        output: schema,
+        permission: { action: 'write', resourceType: 'Counter' },
+        ui: { exception: 'security fixture' },
+        invokes: ['security.write'],
+      });
+      let denied: string | undefined;
+      const authorization: AuthorizationPort<{ value: number }> = {
+        authorize: ({ capability }) => ({ allowed: capability.id !== denied }),
+        canReadEvent: () => true,
+      };
+      const storage =
+        kind === 'memory'
+          ? createMemoryStorage({ value: 0 })
+          : new SQLiteStorage(join(directory, 'state.sqlite'), () => ({ value: 0 }));
+      const factory = createHandlerFactory<{ value: number }, {}>();
+      const app = createApplication({
+        modules: [defineModule({ id: 'security', capabilities: [write, batch] })],
+        handlers: [
+          factory(write, (input, ctx) => {
+            ctx.state.value = input.value;
+            ctx.change('counter:one');
+            return { value: input.value };
+          }),
+          factory(batch, async (input, ctx) => {
+            const { value } = await ctx.invoke(write, input);
+            ctx.change('counter:batch');
+            return { value };
+          }),
+        ],
+        storage,
+        authorization,
+        services: {},
+      });
+      const request = { operation: batch.id, input: { value: 3 }, idempotencyKey: 'nested' };
+      const untouched = () =>
+        storage.read(owner.workspaceId, async (snapshot) => {
+          expect(snapshot.state.value).toBe(0);
+          expect(snapshot.journal).toEqual([]);
+          expect(snapshot.receipts).toEqual({});
+        });
+      try {
+        await expect(
+          app.invokeRaw(request, { ...owner, grant: { operations: [batch.id] } }),
+        ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        denied = write.id;
+        await expect(app.invokeRaw(request, owner)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        await untouched();
+        denied = undefined;
+        const first = await app.invokeRaw(request, owner);
+        await storage.read(owner.workspaceId, async (snapshot) => {
+          expect(snapshot.journal.map(({ resource, operation }) => [resource, operation])).toEqual([
+            ['counter:batch', 'security.batch'],
+            ['counter:one', 'security.write'],
+          ]);
+          expect(Object.values(snapshot.receipts)[0]?.calls).toEqual([
+            { operation: 'security.write', input: { value: 3 }, via: ['security.batch'] },
+          ]);
+        });
+        expect((await app.invokeRaw(request, owner)).revisions).toEqual(first.revisions);
+        // Losing the nested operation refuses the retry, though the caller's own rule allows it.
+        denied = write.id;
+        await expect(app.invokeRaw(request, owner)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+      } finally {
+        if (storage instanceof SQLiteStorage) await storage.close();
+        await rm(directory, { recursive: true, force: true });
+      }
+    });
     for (const interruption of ['cancel', 'expiry', 'policy'] as const)
       test(`${interruption} during awaited output projection cannot commit or leak a query`, async () => {
         const directory = await mkdtemp(join(tmpdir(), 'security-late-'));

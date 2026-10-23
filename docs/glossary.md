@@ -145,7 +145,7 @@ Do not use: scope (for a container).
 
 ### Continuation
 
-A command a handler continues with, run inside the parent command's transaction under the parent's context. It has no idempotency key of its own; the parent's receipt covers both. A refusal rolls back the parent. Lives in [`packages/runtime`](../packages/runtime/README.md).
+A command a handler asks for with `continueWith`, run after the handler's frame as a [nested invocation](#nested-invocation) in the same transaction under the same context. The caller lists it in `invokes`, and the nesting limits apply. It has no idempotency key of its own; the top-level receipt covers it. A refusal rolls back the caller. Lives in [`packages/runtime`](../packages/runtime/README.md).
 
 ### Credential vault
 
@@ -424,6 +424,12 @@ Do not use: model config, checkpoint (for a model entry), model registration.
 The browser-safe unit a domain contributes to the catalog: capabilities, requirement declarations, OS declarations, workflows and agent definitions, declared with `defineModule`. Its handlers, state slice and policy are server code supplied with the application definition or the host plugin. Lives in [`packages/contracts`](../packages/contracts/README.md).
 
 Do not use: capability module, domain module, bounded context, package (for a module).
+
+### Nested invocation
+
+A command or query that a handler runs with `ctx.invoke` or `ctx.query` inside its own command's transaction, under the same context. The capability lists the operations it may call in `invokes`. Each call is authorized on its own, with `via` naming the enclosing operations, and a refusal rolls back the whole command. Calls go at most 4 levels deep and 64 per command. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [capability authoring](capability-authoring.md#nested-calls).
+
+Do not use: sub-command (for a nested invocation).
 
 ### Observation
 

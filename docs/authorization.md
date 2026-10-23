@@ -22,7 +22,9 @@ The runtime checks a command in this order (`packages/runtime/src/application/co
 4. Project and validate the output.
 5. Ask the policy again, on the state before the command and on the proposed state.
 
-The context, cancellation included, is checked again after every awaited step and before the commit. Any failure rolls the whole command back. A query is authorized again after projection. `packages/runtime/test/runtime.test.ts` covers the rechecks.
+The context, cancellation included, is checked again after every awaited step and before the commit. Any failure rolls the whole command back.
+
+A [nested invocation](glossary.md#nested-invocation) (`ctx.invoke`, `ctx.query`, `continueWith`) takes steps 1 to 5 for its own operation under the same context. The grant must list that operation, and the calling capability must list it in `invokes`. The policy request carries `via`, the enclosing operations, outermost first, at the `invoke`, `commit` and `replay` phases. A refusal fails the whole command, even when the calling handler catches it. A query is authorized again after projection. `packages/runtime/test/runtime.test.ts` covers the rechecks.
 
 ## Policy port
 
@@ -58,7 +60,7 @@ Effective access is the principal's current policy intersected with the grant. A
 
 A grant scoped to resources may change only those records. Its `creates` list lets it add records of a named type, which a run cannot name before they exist. A requesting agent on a selection gets `creates: ['approval-request']`, and `approval.request` refuses an [approval request](glossary.md#approval-request) outside the selection.
 
-A retry with the same [idempotency key](glossary.md#idempotency-key) returns the stored [receipt](glossary.md#receipt) after current authorization and projection, without running the handler again. A revoked record or a newly restricted field therefore cannot be recovered through an old receipt.
+A retry with the same [idempotency key](glossary.md#idempotency-key) returns the stored [receipt](glossary.md#receipt) after current authorization and projection, without running the handler again. The receipt records the nested commands with their inputs, and the retry authorizes each of them again in the `replay` phase with its `via`. A revoked record, a newly restricted field or a lost nested operation therefore cannot be recovered through an old receipt.
 
 Before the [dispatcher](glossary.md#dispatcher) first claims an [outbox effect](glossary.md#effect), the person who committed it is authorized again in the `dispatch` phase. The check runs without the delegation the command ran under. `definePolicy` answers it from containers and roles only, because the command's preconditions no longer hold after it committed. A denial holds the effect for a person. Later claims are not rechecked, so a target's answer is still recorded, and the principal who lost access does not see it (`packages/integration/test/reliability.test.ts`).
 

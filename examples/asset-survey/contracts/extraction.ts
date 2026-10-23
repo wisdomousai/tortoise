@@ -3,6 +3,7 @@ import { defineTarget } from '@agent-native/contracts';
 import { operation } from './operation';
 import {
   attributeName,
+  captureSchema,
   extractionSchema,
   nodeSchema,
   photoLimits,
@@ -70,6 +71,15 @@ export const extractionOperations = {
     description:
       'Accept a proposal for a placed capture: write the given values as attributes of its node, each recording the capture and whether it was edited. Check every value flagged attention against the photo first. The capture is then reviewed.',
     dependencies: ['extraction', 'capture', 'node'],
+  }),
+  placeAndExtract: operation('capture.place-and-extract', 'command', {
+    input: z.strictObject({ id: recordId, nodeId: recordId }),
+    output: z.strictObject({ capture: captureSchema, extraction: extractionSchema }),
+    permission: { action: 'review', resourceType: 'Capture' },
+    description:
+      'Place a capture on a node and ask the extraction model to read it, in one step: both happen or neither does. Refused as a whole when either one would be.',
+    dependencies: ['capture', 'extraction'],
+    invokes: ['capture.place', 'extraction.request'],
   }),
   status: modelTarget.status,
   sync: modelTarget.sync,

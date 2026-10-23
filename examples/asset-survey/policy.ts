@@ -73,6 +73,8 @@ export const surveyPolicy = definePolicy<SurveyState, Role>({
     [operations.capturePlace.id]: review,
     [operations.captureDiscard.id]: review,
     [operations.extractionRequest.id]: review,
+    // Each nested call is authorized on its own as well; this rule admits the composite.
+    [operations.capturePlaceAndExtract.id]: review,
     [operations.extractionAccept.id]: inSurvey(['manager', 'reviewer'], true),
     [operations.filingFile.id]: manage,
     [operations.filingExport.id]: manage,

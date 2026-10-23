@@ -58,6 +58,34 @@ A handler reports a failure with `ApplicationError`, whose message and details m
 
 A command that changes access calls `ctx.invalidateAuthorization()` or declares a change of type `authorization.changed`. Either increments the authorization revision in the same transaction.
 
+## Nested calls
+
+A command whose writes must commit together with another operation's runs that operation inside its own transaction. The capability lists what it calls in `invokes`, and the handler calls `ctx.invoke` or `ctx.query` with the imported capability, so input and output are typed. `invokeRaw` and `queryRaw` take an operation ID and suit a command that runs whatever its input names, declared with `invokes: 'any'`.
+
+```ts
+export const placeAndExtract = operation('capture.place-and-extract', 'command', {
+  // ...
+  invokes: ['capture.place', 'extraction.request'],
+});
+
+handler(placeAndExtract, async (input, ctx) => {
+  const capture = await ctx.invoke(capturePlace, input);
+  const extraction = await ctx.invoke(extractionRequest, { captureId: input.id });
+  return { capture, extraction };
+});
+```
+
+Each call takes the whole command path for its operation under the caller's context: grant, policy with `via`, expected revisions, handler, projection, its own blob limits and the commit-phase policy. Its changes and effects count as the caller's. A nested query reads the writes made so far. The runtime refuses:
+
+- an operation the capability does not list;
+- a chain deeper than 4, more than 64 calls in one command, and a call that reaches an operation already running;
+- two calls at once, and a call still running when the handler returns;
+- a query that invokes a command, and a nested remote query.
+
+A refused call fails the command even when the handler catches the error. The catalog refuses an unknown target, a query that invokes a command, a cycle and a chain deeper than 4. An operation's destinations include those of what it invokes, and the grants of agents and job triggers that list it cover them.
+
+Use a nested call when both writes must commit together as one caller. Use a [trigger](glossary.md#trigger) when the second write may follow later, under a standing grant.
+
 ## Collections
 
 For keyed records, declare a collection and use its records helper, which does the own-property lookup, raises `NOT_FOUND` and declares the change.

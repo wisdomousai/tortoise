@@ -16,6 +16,7 @@ export const operations = {
   extractionRequest: extractionOperations.request,
   extractionAccept: extractionOperations.accept,
   extractionStatus: extractionOperations.status,
+  capturePlaceAndExtract: extractionOperations.placeAndExtract,
   filingFile: filingOperations.file,
   filingList: filingOperations.list,
   filingStatus: filingOperations.status,
@@ -50,6 +51,7 @@ export const extractionModule = defineModule({
   capabilities: [
     extractionOperations.request,
     extractionOperations.accept,
+    extractionOperations.placeAndExtract,
     ...modelTarget.capabilities,
   ],
   requirements: {
