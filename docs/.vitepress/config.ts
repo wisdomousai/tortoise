@@ -85,9 +85,7 @@ export default withMermaid(
       ],
       sidebar: sidebar(),
       search: { provider: 'local' },
-      socialLinks: [
-        { icon: 'github', link: 'https://github.com/wisdomousai/agent-native-desktop-starter' },
-      ],
+      socialLinks: [{ icon: 'github', link: repository }],
       outline: [2, 3],
     },
   }),
