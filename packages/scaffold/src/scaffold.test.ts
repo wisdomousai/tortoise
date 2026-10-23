@@ -402,7 +402,8 @@ test('authored summary is available through the exported HTTP host', async () =>
       await rm(directory, { recursive: true, force: true });
     }
   },
-  120_000,
+  // A full copy runs install, typecheck, generate, build and the whole test suite.
+  600_000,
 );
 
 test('exports a certificate but refuses a file holding a private key', async () => {
