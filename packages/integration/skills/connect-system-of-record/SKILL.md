@@ -34,7 +34,7 @@ The application owns its working set and its pending [outbox effects](../../../.
    - Add the frame's `reconciliation-review` [UI registry](../../../../docs/glossary.md#ui-registry) item to a screen.
    - In the `onResolved` hook, record the outcome on the domain record as the target's `onOutcome` would. It receives the application's handler context last and commits with the decision.
 10. Write a domain command of your own for a held effect only when the decision changes more than the effect and its record (`examples/line-station/handlers/attention.ts`).
-11. For live search, declare search and lookup queries with `defineDataProvider` (`examples/crm-capture/contracts/providers.ts`). Implement them with `implementDataProvider`, and back them with `createRemoteSource`, which resolves the caller's own credential first.
+11. For live search, declare search and lookup queries with `defineDataProvider` (`examples/crm-capture/contracts/providers.ts`). Implement them with `implementDataProvider`, and back them with `createRemoteSource`, which resolves the caller's own credential first. A provider declared `identity: 'service'` reads with the service credential only.
 12. Write adoption of a search result as a domain command that enqueues a follow effect.
 13. For a target that can only be observed and acted on, such as a screen or an instrument, use convergent delivery from `packages/integration/src/convergent/`. Follow the `bridge-station-screen` skill (`workstations/screen-bridge/skills/bridge-station-screen/SKILL.md`) or `write-hardware-driver` (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`).
 
@@ -42,7 +42,7 @@ Never give the integration principal more than settle, sync and status. Never gi
 
 ## Checks
 
-- Run `connectorConformance` from `@agent-native/testing/connectors` against the port. It covers idempotent delivery or lookup, rejection, lost replies and pull. `plugins/connector-driver/test/conformance.test.ts`, `plugins/connector-http/test/connector-http.test.ts` and `plugins/connector-files/test/connector-files.test.ts` show callers.
+- Run `connectorConformance` from `@agent-native/testing/connectors` against the port. It covers idempotent delivery or lookup, rejection, lost replies and pull. `plugins/connector-driver/test/conformance.test.ts`, `plugins/connector-http/test/connector-http.test.ts` and `plugins/connector-files/test/connector-files.test.ts` and `packages/testing/test/peer-port.test.ts` show callers.
 - Test a lost reply, a rejection, a held effect released and settled, and a stale sync range. `packages/integration/test/reliability.test.ts` covers them in the framework. `examples/receiving/test/receiving.test.ts` shows application tests for a rejected receipt, a held posting and a malformed export.
 
 ```sh

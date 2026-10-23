@@ -10,7 +10,7 @@ import { DeliveryFailure, type SearchAccess, type SystemOfRecordPort } from './p
 export interface CallerCredentials<Credential = unknown> {
   /** The principal's own credential in the target, or `undefined` when none is connected. */
   forPrincipal(principalId: string, signal: AbortSignal): Promise<Credential | undefined>;
-  /** A technical account, used only for capabilities that declare `caller-or-service`. */
+  /** A technical account, used only for capabilities that declare `caller-or-service` or `service`. */
   service?(signal: AbortSignal): Promise<Credential | undefined>;
 }
 
@@ -24,15 +24,19 @@ export interface RemoteSourceOptions<Credential> {
 async function access<Credential>(
   options: RemoteSourceOptions<Credential>,
   principalId: string,
-  identity: 'caller' | 'caller-or-service',
+  identity: 'caller' | 'caller-or-service' | 'service',
   signal: AbortSignal,
 ): Promise<SearchAccess<Credential>> {
-  const own = await options.credentials.forPrincipal(principalId, signal);
-  if (own !== undefined) return { credential: own, identity: 'caller' };
-  if (identity === 'caller-or-service' && options.credentials.service) {
+  if (identity !== 'service') {
+    const own = await options.credentials.forPrincipal(principalId, signal);
+    if (own !== undefined) return { credential: own, identity: 'caller' };
+  }
+  if (identity !== 'caller' && options.credentials.service) {
     const service = await options.credentials.service(signal);
     if (service !== undefined) return { credential: service, identity: 'service' };
   }
+  if (identity === 'service')
+    throw new ApplicationError('UNAVAILABLE', `${options.target} has no service credential`);
   throw new ApplicationError('FORBIDDEN', `Connect your ${options.target} account to search it`);
 }
 
@@ -42,7 +46,8 @@ async function access<Credential>(
  * Identity: the credential belongs to the context's principal. A delegated agent's context
  * carries the delegating person's principal, so an agent searches with that person's access
  * and never more. A `service` credential is used only when the capability declares
- * `caller-or-service`; local policy still projects the rows.
+ * `caller-or-service` or `service`, and `service` never asks for the caller's own; local policy
+ * still projects the rows.
  *
  * Failures: `DeliveryFailure` text is caller-safe and becomes an `unavailable` status; any other
  * port error is reported generically by the runtime, so endpoints and tokens never leak.

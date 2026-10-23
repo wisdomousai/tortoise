@@ -67,6 +67,20 @@ describe('remote source', () => {
     );
   });
 
+  test('a service read never asks for the caller credential', async () => {
+    seen.length = 0;
+    const source = createRemoteSource({ target: 'crm', port, credentials: credentials('svc') });
+    expect(await source.search(request, call('alice', 'service'))).toMatchObject({
+      identity: 'service',
+    });
+    expect(seen.map((access) => access.credential)).toEqual(['svc']);
+    const noService = createRemoteSource({ target: 'crm', port, credentials: credentials() });
+    await expect(noService.search(request, call('alice', 'service'))).rejects.toMatchObject({
+      code: 'UNAVAILABLE',
+      message: 'crm has no service credential',
+    });
+  });
+
   test('a delivery failure is a safe unavailable message; a port without search is unavailable', async () => {
     const failing = createRemoteSource({
       target: 'crm',

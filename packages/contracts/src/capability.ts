@@ -30,9 +30,11 @@ export interface RemoteReadDeclaration {
   /**
    * `caller`: the source must act with the caller's own credential in the target, so the target's
    * sharing rules apply. `caller-or-service`: it may fall back to a service credential when the
-   * caller has none. Local policy projects the rows in both cases.
+   * caller has none. `service`: it always acts with the service credential, such as a peer
+   * application's service principal that is mapped to no person. Local policy projects the rows
+   * in every case.
    */
-  readonly identity: 'caller' | 'caller-or-service';
+  readonly identity: 'caller' | 'caller-or-service' | 'service';
 }
 export interface Capability<
   Id extends string = string,

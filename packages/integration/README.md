@@ -10,7 +10,7 @@ Framework (`packages/*`). Server only. Domain-neutral: the domain supplies the p
 
 ## Primitives
 
-- [Connector](../../docs/primitives.md#connector): `SystemOfRecordPort` (with optional `search`), `SearchAccess`, `SearchPage`, `TargetDescription`, `DeliveryResult`, `UpstreamPending`, `LookupResult`, `DeliveryFailure`, `DeliveryUncertain`. `createPeerPort`, `PeerPortOptions`, `PeerClient` and `payloadBlobs` serve a target that is another agent-native host.
+- [Connector](../../docs/primitives.md#connector): `SystemOfRecordPort` (with optional `search`), `SearchAccess`, `SearchPage`, `TargetDescription`, `DeliveryResult`, `UpstreamPending`, `LookupResult`, `DeliveryFailure`, `DeliveryUncertain`. `createPeerPort`, `PeerPortOptions`, `PeerClient` and `payloadBlobs` serve a target that is another agent-native host. `createPeerCall`, `PeerCall`, `PeerCallOptions`, `PeerReceipt` and `PeerCallError` are the HTTP mapping to such a host that the peer port and the fleet agent share.
 - [Dispatcher](../../docs/primitives.md#dispatcher): `createEffectDispatcher` (with `worker`, `leaseMs` and `recheck`), `createTargetIntegration`, `drainTargets`, `TargetBacklog`, `DispatchReport`.
 - [Worker claims](../../docs/primitives.md#worker-claims): every attempt carries the claim's fencing token. For `defineTarget` settle commands, every settlement carries it too.
 - [Reconciliation](../../docs/primitives.md#reconciliation): the dispatcher holds an effect in three cases: its outcome cannot be established, the target lost its acknowledgement, or the recheck denies its original caller. It polls an acknowledged effect instead of resending it.
@@ -27,7 +27,7 @@ Framework (`packages/*`). Server only. Domain-neutral: the domain supplies the p
 | Import                        | Runs in     | Contents                                                                                                                                                                 |
 | ----------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `@agent-native/integration`   | server only | Ports, dispatcher, inbound sync, target integration, remote source, data provider, peer port and convergent delivery.                                                    |
-| `@agent-native/integration/*` | server only | One source file: `port`, `dispatcher`, `drain`, `inbound-sync`, `target`, `target-handlers`, `loop`, `remote-source`, `data-provider`, `peer-port` or `convergent`. |
+| `@agent-native/integration/*` | server only | One source file: `port`, `dispatcher`, `drain`, `inbound-sync`, `target`, `target-handlers`, `loop`, `remote-source`, `data-provider`, `peer-call`, `peer-port` or `convergent`. |
 
 ### Convergent delivery
 
@@ -49,21 +49,23 @@ A business rejection is data and is not retried. The connector reports an outcom
 
 ### Remote sources
 
-A remote source resolves the caller's own credential through `CallerCredentials`. It uses the service credential only when the query declares `caller-or-service`. Without either credential it refuses with `FORBIDDEN` and does not call the port.
+A remote source resolves the caller's own credential through `CallerCredentials`. It uses the service credential only when the query declares `caller-or-service`. Without either credential it refuses with `FORBIDDEN` and does not call the port. A query that declares `service` acts with the service credential only, such as a peer application's service principal, and is `UNAVAILABLE` without one.
 
 A port's `search` returns a `SearchPage`. Its `next` cursor must be bound to the query and credential that produced it, and only the port can enforce that. A `DeliveryFailure` from `search` becomes a caller-safe `UNAVAILABLE`, so provider error text is not passed on. Only the runtime calls `search`, for a remote query; the dispatcher does not use it.
 
 ### Peer port
 
-The peer port speaks the peer host's HTTP API through a client the caller supplies, such as a paired device's network port. The peer therefore authorizes every call as that client's credential. The port uploads each blob the payload references and checks the stored digest. It then invokes the command named by the effect type, with the effect ID as idempotency key. The peer's receipt makes a repeat after a lost response return the first result.
+The peer port speaks the peer host's HTTP API through a client the caller supplies, such as a paired device's network port. The peer therefore authorizes every call as that client's credential. The port uploads each blob the payload references and checks the stored digest. It then invokes the command named by the effect type, with the effect ID as idempotency key. The peer's receipt makes a repeat after a lost response return the first result. An accepted outcome carries the external reference that the `reference` option reads from the command's result, and none without it. Requests follow no redirect.
 
-`INVALID_INPUT`, `NOT_FOUND`, `FORBIDDEN`, `CONFLICT` and `IDEMPOTENCY_CONFLICT` settle the effect as rejected. These are `DeliveryFailure`s instead:
+`INVALID_INPUT`, `NOT_FOUND`, `FORBIDDEN` and `CONFLICT` settle the effect as rejected. These are `DeliveryFailure`s instead, and the effect stays pending with a message saying why:
 
-- a `FORBIDDEN` that refuses the credential itself (`details.credential`);
-- an unreachable peer;
-- a server error.
+- a `FORBIDDEN` that refuses the credential itself (`details.credential`): the record waits for a new pairing;
+- a `FORBIDDEN` that refuses a subject assertion (`details.assertion`): an expired or replayed assertion is signed again on the next attempt, and an unmapped person waits until the peer maps them;
+- no client, an unreachable peer and a server error.
 
-The record then waits for a new pairing instead of being rejected.
+`IDEMPOTENCY_CONFLICT` means the peer holds a different command under the effect's key, so the port reports `DeliveryUncertain` and the dispatcher holds the effect.
+
+`search` answers a remote query with the peer's query of the same ID, which returns `{ items, next? }`. The peer's refusal reaches the caller with its code.
 
 ### Integration grant
 
@@ -81,7 +83,7 @@ Framework: `@agent-native/contracts`, `@agent-native/runtime`, and `@agent-nativ
 bun run test:integration
 ```
 
-- `test/remote-source.test.ts`: the caller's credential first, a declared service fallback, refusal otherwise, a port without `search` as unavailable, safe failure messages, and the page cursor passing through in both directions.
+- `test/remote-source.test.ts`: the caller's credential first, a declared service fallback, a service read that never asks for the caller's, refusal otherwise, a port without `search` as unavailable, safe failure messages, and the page cursor passing through in both directions.
 - `test/dispatcher.test.ts`: delivery outside the transaction, backoff, rejection as data, lookup before resend, integration-grant limits, watermark-bound sync, `drain` while the target stays down, and a loop stopped right after it started.
 - `test/target.test.ts`: a declared target's derived IDs and grant, delivery and feed through `connectTarget`, the watermark conflict and side lists, and settling another target's effect. It also covers the lane closing settle and sync to everyone else, `settleDelivery` on a mismatched record, and a target without a feed connected with an idle inbound side.
 - `test/held.test.ts`: effects with unknown outcomes are held and not resent, including on shutdown; only held effects can be released; drain deadlines and cross-target accounting.

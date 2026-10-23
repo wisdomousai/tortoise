@@ -161,7 +161,7 @@ function remoteDestinations(
   if (
     capability.kind !== 'query' ||
     !remote.target ||
-    !['caller', 'caller-or-service'].includes(remote.identity)
+    !['caller', 'caller-or-service', 'service'].includes(remote.identity)
   )
     throw new Error(`Remote read requires a query with a target and identity: ${capability.id}`);
   // Like outbox targets: the data-flow manifest and egress guard must cover every remote read.

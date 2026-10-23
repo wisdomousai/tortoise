@@ -31,6 +31,7 @@
     "@agent-native/contracts": "workspace:*",
     "@agent-native/event-log": "workspace:*",
     "@agent-native/host": "workspace:*",
+    "@agent-native/integration": "workspace:*",
     "@agent-native/kernel": "workspace:*",
     "zod": "4.6.5"
   }

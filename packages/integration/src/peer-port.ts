@@ -1,16 +1,22 @@
 import {
+  ApplicationError,
   isBlobRef,
+  type ErrorCode,
   type BlobRef,
   type ErrorEnvelope,
   type JsonValue,
 } from '@agent-native/contracts';
 import type { Effect, EffectOutcome } from '@agent-native/runtime';
-import { DeliveryFailure, type PullBatch, type SystemOfRecordPort } from './port.js';
+import { createPeerCall, PeerCallError, type PeerCall, type PeerClient } from './peer-call.js';
+import {
+  DeliveryFailure,
+  DeliveryUncertain,
+  type PullBatch,
+  type SearchPage,
+  type SystemOfRecordPort,
+} from './port.js';
 
-/** A `fetch` bound to the peer's origin, as `NetworkPort.client` returns it. */
-export interface PeerClient {
-  readonly fetch: (input: string | URL, init?: RequestInit) => Promise<Response>;
-}
+export type { PeerClient } from './peer-call.js';
 
 export interface PeerPortOptions {
   /** The outbox target this port delivers, such as `hub`. */
@@ -30,16 +36,19 @@ export interface PeerPortOptions {
    * `{ items, cursor, more? }`. Without it the port does not pull.
    */
   readonly feed?: string;
+  /**
+   * The external reference of an accepted delivery, read from the peer command's result, such as
+   * the ID of the record it created. Without it an accepted outcome carries none.
+   */
+  readonly reference?: (result: unknown, effect: Readonly<Effect>) => string | undefined;
 }
 
-/** Codes the peer answers for a business refusal; delivering again would get the same answer. */
-const refusals = new Set([
-  'INVALID_INPUT',
-  'NOT_FOUND',
-  'FORBIDDEN',
-  'CONFLICT',
-  'IDEMPOTENCY_CONFLICT',
-]);
+/**
+ * Codes the peer answers for a business refusal; delivering again would get the same answer.
+ * `IDEMPOTENCY_CONFLICT` is not one: the peer holds a different command under the effect's key,
+ * so whether this effect was applied is unknown, and the effect is held.
+ */
+const refusals = new Set(['INVALID_INPUT', 'NOT_FOUND', 'FORBIDDEN', 'CONFLICT']);
 
 /** Every blob reference in a payload, once each, in payload order. */
 export function payloadBlobs(payload: JsonValue): BlobRef[] {
@@ -53,146 +62,144 @@ export function payloadBlobs(payload: JsonValue): BlobRef[] {
   return [...found.values()];
 }
 
-async function call(client: PeerClient, path: string, init: RequestInit, signal: AbortSignal) {
-  let response: Response;
-  try {
-    response = await client.fetch(path, { ...init, signal });
-  } catch (error) {
-    if (error instanceof DeliveryFailure) throw error;
-    throw new DeliveryFailure('The peer is unreachable');
-  }
-  const body = (await response.json().catch(() => undefined)) as
-    { readonly error?: ErrorEnvelope } | undefined;
-  return { response, body, error: response.ok ? undefined : body?.error };
-}
-
 /** The peer refused the credential itself (see the HTTP adapter), not the operation. */
-const refusedCredential = (error: ErrorEnvelope | undefined) =>
-  error?.code === 'FORBIDDEN' &&
-  typeof error.details === 'object' &&
-  error.details !== null &&
-  'credential' in error.details;
+const refusedCredential = (error: ErrorEnvelope | undefined) => detail(error, 'credential');
+/**
+ * The peer refused the signed subject assertion an on-behalf-of call carries. An expired or
+ * replayed assertion is signed again on the next attempt; an unmapped subject waits until the
+ * peer maps the person.
+ */
+const refusedAssertion = (error: ErrorEnvelope | undefined) => detail(error, 'assertion');
+function detail(error: ErrorEnvelope | undefined, key: string): string | undefined {
+  if (error?.code !== 'FORBIDDEN' || typeof error.details !== 'object' || error.details === null)
+    return undefined;
+  const value = (error.details as Record<string, unknown>)[key];
+  return typeof value === 'string' ? value : value === undefined ? undefined : String(value);
+}
 const isRefusal = (error: ErrorEnvelope | undefined): error is ErrorEnvelope =>
-  !!error && refusals.has(error.code) && !refusedCredential(error);
+  !!error && refusals.has(error.code) && !refusedCredential(error) && !refusedAssertion(error);
 
 /**
- * A missing or revoked credential is not the record's fault: keep it pending until the device is
- * paired again. Anything that is not a business refusal is retried.
+ * Map a call that failed to the dispatcher's terms. A missing or revoked credential and a refused
+ * assertion are not the record's fault: the effect stays pending with a message saying why.
+ * Anything that is not a business refusal is retried.
  */
-function failureOf(error: ErrorEnvelope | undefined): never {
-  throw new DeliveryFailure(
-    refusedCredential(error)
-      ? 'The peer did not accept this device credential; pair the device again'
-      : 'The peer could not accept the delivery now',
-  );
+function failureOf(options: PeerPortOptions, error: unknown): never {
+  if (!(error instanceof PeerCallError)) throw error;
+  if (error.kind === 'disconnected')
+    throw new DeliveryFailure(`No connection to ${options.target}; pair the device first`);
+  if (error.kind === 'unreachable') throw new DeliveryFailure('The peer is unreachable');
+  if (error.code === 'IDEMPOTENCY_CONFLICT')
+    throw new DeliveryUncertain(
+      `${options.target} holds a different command under this effect's key`,
+    );
+  if (refusedCredential(error.envelope))
+    throw new DeliveryFailure(
+      'The peer did not accept this device credential; pair the device again',
+    );
+  const assertion = refusedAssertion(error.envelope);
+  if (assertion === 'unmapped')
+    throw new DeliveryFailure(
+      `${options.target} maps no person to the caller; ask its owner to map them`,
+    );
+  if (assertion)
+    throw new DeliveryFailure(`${options.target} refused the subject assertion (${assertion})`);
+  throw new DeliveryFailure('The peer could not accept the delivery now');
 }
 
-const clientOf = (options: PeerPortOptions) => {
+/** Run a call; a business refusal comes back as the rejection it settles the effect with. */
+async function attempt<T>(
+  options: PeerPortOptions,
+  run: () => Promise<T>,
+): Promise<{ value: T } | { rejected: ErrorEnvelope }> {
   try {
-    return options.client();
-  } catch {
-    throw new DeliveryFailure(`No connection to ${options.target}; pair the device first`);
-  }
-};
-
-/** The peer refused a blob for a business reason; the effect is settled as rejected. */
-class BlobRefused extends Error {
-  constructor(readonly envelope: ErrorEnvelope) {
-    super(envelope.message);
+    return { value: await run() };
+  } catch (error) {
+    if (error instanceof PeerCallError && isRefusal(error.envelope))
+      return { rejected: error.envelope };
+    return failureOf(options, error);
   }
 }
 
 /** Upload each blob the payload references; the peer stores it by digest, so a retry is cheap. */
 async function uploadBlobs(
   options: PeerPortOptions,
-  client: PeerClient,
+  peer: PeerCall,
   effect: Readonly<Effect>,
   signal: AbortSignal,
-) {
+): Promise<ErrorEnvelope | undefined> {
   for (const ref of payloadBlobs(effect.payload)) {
     const blob = await options.readBlob(effect, ref.digest);
     // The command would refuse an unknown digest; refusing here names the cause.
     if (!blob) throw new DeliveryFailure('A photo this record references is missing on the device');
-    const { response, body, error } = await call(
-      client,
-      '/api/v1/blobs',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': blob.ref.mediaType },
-        body: blob.data as Uint8Array<ArrayBuffer>,
-      },
-      signal,
-    );
-    if (isRefusal(error)) throw new BlobRefused(error);
-    if (!response.ok) failureOf(error);
-    if ((body as { digest?: string } | undefined)?.digest !== ref.digest)
+    const stored = await attempt(options, () => peer.upload(blob.ref.mediaType, blob.data, signal));
+    if ('rejected' in stored) return stored.rejected;
+    if (stored.value !== ref.digest)
       throw new DeliveryFailure('The peer stored a different blob than the record references');
   }
+  return undefined;
 }
+
+const rejection = (error: ErrorEnvelope): EffectOutcome => ({
+  status: 'rejected',
+  code: error.code,
+  message: error.message,
+});
 
 /**
  * The port to another agent-native host, such as a hub a field device is paired with. It speaks
  * the peer's own HTTP API with the credential the client carries, so the peer authorizes every
- * call as that device.
+ * call as that caller.
  *
  * - `deliver` uploads the blobs the effect's payload references, then invokes the peer command
  *   named by the effect's `type` with the payload as input and the effect id as idempotency key.
  *   The peer's receipts make a repeated delivery after a lost response return the first result,
- *   so delivery is idempotent.
+ *   so delivery is idempotent. `reference` names the external reference from that result.
  * - A business refusal from the peer (invalid input, not found, conflict, denied) settles the
- *   effect as `rejected` with the peer's code and message. A refused credential, an unreachable
- *   peer or a server error is a `DeliveryFailure` and is retried.
+ *   effect as `rejected` with the peer's code and message. A refused credential or assertion, an
+ *   unreachable peer or a server error is a `DeliveryFailure` and is retried. An idempotency
+ *   conflict holds the effect for reconciliation.
  * - `pull` reads the peer's feed query from the stored cursor.
+ * - `search` answers a remote query with the peer query of the same ID, which returns
+ *   `{ items, next? }`.
  */
 export function createPeerPort<Item = unknown>(options: PeerPortOptions): SystemOfRecordPort<Item> {
+  const peer = createPeerCall({ client: options.client });
   return {
     describe: () => ({ target: options.target, idempotentDelivery: true }),
     async deliver(effect, signal): Promise<EffectOutcome> {
-      const client = clientOf(options);
-      try {
-        await uploadBlobs(options, client, effect, signal);
-      } catch (error) {
-        if (error instanceof BlobRefused)
-          return { status: 'rejected', code: error.envelope.code, message: error.envelope.message };
-        throw error;
-      }
-      const { response, body, error } = await call(
-        client,
-        `/api/v1/commands/${encodeURIComponent(effect.type)}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input: effect.payload, idempotencyKey: effect.id }),
-        },
-        signal,
+      const refused = await uploadBlobs(options, peer, effect, signal);
+      if (refused) return rejection(refused);
+      const sent = await attempt(options, () =>
+        peer.command(effect.type, effect.payload, effect.id, signal),
       );
-      if (response.ok) {
-        const receipt = body as { operation?: string; cursor?: number } | undefined;
-        return {
-          status: 'accepted',
-          ...(receipt?.cursor === undefined
-            ? {}
-            : { externalRef: `${effect.type}@${receipt.cursor}` }),
-        };
+      if ('rejected' in sent) return rejection(sent.rejected);
+      const externalRef = options.reference?.(sent.value.result, effect);
+      return { status: 'accepted', ...(externalRef ? { externalRef } : {}) };
+    },
+    async search(request, _access, signal): Promise<SearchPage> {
+      try {
+        const page = await peer.query<SearchPage>(request.operation, request.query, signal);
+        return { items: page.items, ...(page.next ? { next: page.next } : {}) };
+      } catch (error) {
+        // The peer's refusal, such as a cursor it no longer accepts, reaches the caller as is.
+        if (error instanceof PeerCallError && isRefusal(error.envelope))
+          throw new ApplicationError(error.envelope.code as ErrorCode, error.envelope.message);
+        return failureOf(options, error);
       }
-      if (isRefusal(error)) return { status: 'rejected', code: error.code, message: error.message };
-      return failureOf(error);
     },
     ...(options.feed
       ? {
           async pull(cursor: string | undefined, signal: AbortSignal): Promise<PullBatch<Item>> {
-            const { response, body, error } = await call(
-              clientOf(options),
-              `/api/v1/queries/${encodeURIComponent(options.feed!)}`,
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ input: cursor === undefined ? {} : { cursor } }),
-              },
-              signal,
-            );
-            if (!response.ok) failureOf(error);
-            return (body as { data: PullBatch<Item> }).data;
+            try {
+              return await peer.query<PullBatch<Item>>(
+                options.feed!,
+                cursor === undefined ? {} : { cursor },
+                signal,
+              );
+            } catch (error) {
+              return failureOf(options, error);
+            }
           },
         }
       : {}),
