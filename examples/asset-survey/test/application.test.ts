@@ -317,6 +317,13 @@ describe('asset survey', () => {
     });
   });
 
+  test('the model and EAM feeds sync as one principal before either reported anything', async () => {
+    const survey = await open();
+    await survey.settle();
+    await survey.settle();
+    expect(await survey.query('filing.status', {})).toMatchObject({ pending: 0, accepted: 0 });
+  });
+
   test('a filing waits while the EAM is unreachable and goes out once it is back', async () => {
     const survey = await open();
     const { query, command, photo, settle } = survey;

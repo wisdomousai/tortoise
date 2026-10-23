@@ -348,7 +348,7 @@ describe('inbound sync', () => {
       toInput: (batch) => ({ ...batch, items: [...batch.items] }),
     });
     expect(await inbound.runOnce()).toEqual({ batches: 2, items: 3 });
-    expect(keys).toEqual(['sync::2', 'sync:2:3']);
+    expect(keys).toEqual(['sync:catalog.sync::2', 'sync:catalog.sync:2:3']);
     expect(await inbound.runOnce()).toEqual({ batches: 0, items: 0 });
   });
 });

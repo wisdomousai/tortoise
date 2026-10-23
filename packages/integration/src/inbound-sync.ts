@@ -44,7 +44,9 @@ export function createInboundSync<Item>(options: InboundSyncOptions<Item>) {
             to: batch.cursor,
             items: batch.items,
           }),
-          idempotencyKey: `sync:${from ?? ''}:${batch.cursor}`,
+          // Named by the operation too: one integration principal syncs several targets, and two
+          // empty feeds would otherwise send the same key for different commands.
+          idempotencyKey: `sync:${options.syncOperation}:${from ?? ''}:${batch.cursor}`,
         },
         options.context,
       );
