@@ -51,6 +51,7 @@ const browserRoots = [
   'packages/client/',
   'packages/react/',
   'packages/devices/src/',
+  'packages/assignments/src/',
   'packages/operator-ui/',
   'packages/frame/src/',
   'packages/host/src/manifest.ts',

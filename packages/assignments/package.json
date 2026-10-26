@@ -1,0 +1,30 @@
+{
+  "name": "@agent-native/assignments",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Work handed to a person, an agent, a device, a peer application or a service, and the reports it returns for review.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wisdomousai/agent-native-desktop-starter.git",
+    "directory": "packages/assignments"
+  },
+  "files": [
+    "**/*",
+    "!test/**",
+    "!scripts/**",
+    "!**/*.test.ts",
+    "!**/*.test.tsx"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "devDependencies": {
+    "@agent-native/testing": "workspace:*"
+  },
+  "dependencies": {
+    "@agent-native/contracts": "workspace:*",
+    "zod": "4.6.5"
+  }
+}

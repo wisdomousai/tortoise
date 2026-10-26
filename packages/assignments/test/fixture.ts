@@ -1,0 +1,92 @@
+import { z } from 'zod';
+import {
+  blobRefSchema,
+  defineCapability,
+  defineHostComponent,
+  defineModule,
+  definePeerSurface,
+  jsonSchema,
+  recordKeySchema,
+} from '@agent-native/contracts';
+import { defineAssignmentKind, defineAssignments } from '../src';
+
+/** A review of notes: a person, an agent or the checker service reads them and gives a verdict. */
+export const review = defineAssignmentKind({
+  id: 'review',
+  title: 'Review',
+  description: 'Read the notes in the brief and give one verdict per note.',
+  scope: z.strictObject({ notes: z.array(recordKeySchema).min(1).max(20) }),
+  brief: z.strictObject({
+    notes: z.array(z.strictObject({ id: recordKeySchema, title: z.string(), body: z.string() })),
+  }),
+  report: z.strictObject({
+    verdict: z.enum(['keep', 'revise']),
+    comment: z.string().max(2000),
+  }),
+  accept: z.strictObject({ comment: z.string().max(2000).optional() }),
+  subject: 'note',
+  lanes: ['person', 'agent', 'target'],
+  target: 'checker',
+  invokes: ['notes.note.update'],
+  changes: ['note'],
+});
+
+/** Field work: a device or a peer photographs the nodes in scope. */
+export const survey = defineAssignmentKind({
+  id: 'field-survey',
+  title: 'Field survey',
+  description: 'Photograph each node in the brief and note its condition.',
+  scope: z.strictObject({ roots: z.array(recordKeySchema).min(1).max(10) }),
+  brief: z.strictObject({
+    nodes: z.array(z.strictObject({ id: recordKeySchema, designation: z.string() })),
+  }),
+  report: z.strictObject({
+    photos: z.array(blobRefSchema).max(8),
+    condition: z.enum(['good', 'fair', 'poor']).optional(),
+  }),
+  subject: 'node',
+  blobs: { report: { maxBytes: 8_000_000, mediaTypes: ['image/jpeg'] } },
+  lanes: ['device', 'peer', 'person'],
+});
+
+export const assignments = defineAssignments({ kinds: [review, survey] });
+
+/** The checker service the review kind's target lane travels over. */
+export const checker = defineHostComponent({
+  id: 'checker',
+  description: 'The checker service, which reviews notes.',
+  requirements: {
+    network: [
+      {
+        id: 'checker-api',
+        purpose: 'Offer notes for review and read the verdicts.',
+        direction: 'egress',
+        scope: 'site',
+        protocol: 'https',
+        targets: ['assignment-checker'],
+        dataClasses: ['note'],
+        availability: 'optional',
+        offline: 'queue',
+      },
+    ],
+  },
+});
+
+/** What the issuer publishes to peers and devices: the lane operations. */
+export const issuerSurface = definePeerSurface({
+  application: 'issuer',
+  commands: assignments.lanes.peer.commands,
+  queries: assignments.lanes.peer.queries,
+});
+
+/** The application command the review kind's accept hook calls. */
+export const noteUpdate = defineCapability({
+  id: 'notes.note.update',
+  kind: 'command',
+  input: jsonSchema(z.strictObject({ id: recordKeySchema, comment: z.string().max(2000) })),
+  output: jsonSchema(z.strictObject({ id: recordKeySchema, comments: z.array(z.string()) })),
+  permission: { action: 'write', resourceType: 'Note' },
+  dependencies: ['note'],
+  ui: { exception: 'test fixture' },
+});
+export const notesModule = defineModule({ id: 'notes', capabilities: [noteUpdate] });

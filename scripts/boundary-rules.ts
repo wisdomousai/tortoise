@@ -6,7 +6,7 @@
  * resolved-path rule in `hostSourcePath`, so no plugin is named here.
  */
 export const forbiddenBrowserImport =
-  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|observation)(?:\/|$)|@agent-native\/screen-bridge(?!\/requirements$)(?:\/|$)|@agent-native\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
+  /^(?:node:|bun:|@agent-native\/(?:runtime|agents|adapters|integration|event-log|observation)(?:\/|$)|@agent-native\/screen-bridge(?!\/requirements$)(?:\/|$)|@agent-native\/(?:host|kernel)(?!\/(?:manifest|plugin-manifest)$)(?:\/|$)|@agent-native\/devices\/server$|@agent-native\/assignments\/server(?:\/|$)|@anthropic-ai\/|@napi-rs\/|electron$|ai$)/;
 /**
  * Every plugin in `plugins/*` follows one layout: `plugin-manifest`, `plugin-screens`,
  * `contracts` and the `ui/` and `components/` folders are browser code, at the package root or
@@ -19,7 +19,7 @@ export const pluginBrowserSource =
 export const pluginBrowserEntry = /^(?:plugin-manifest|plugin-screens|contracts)$/;
 /** Resolved source paths of server-only framework and plugin packages. */
 export const hostSourcePath =
-  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|observation)[\\/]src[\\/]|(?:host|kernel)[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$)|(?:^|[\\/])workstations[\\/]screen-bridge[\\/]src[\\/](?!requirements\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?(?:plugins[\\/][^\\/]+|workstations[\\/]sign-in)[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
+  /(?:^|[\\/])packages[\\/](?:(?:agents|adapters|runtime|integration|event-log|observation)[\\/]src[\\/]|(?:host|kernel)[\\/]src[\\/](?!(?:manifest|plugin-manifest)\.ts$)|devices[\\/]src[\\/]server\.ts$|assignments[\\/]src[\\/]server[\\/])|(?:^|[\\/])workstations[\\/]screen-bridge[\\/]src[\\/](?!requirements\.ts$)|^(?!.*[\\/]node_modules[\\/])(?:.*[\\/])?(?:plugins[\\/][^\\/]+|workstations[\\/]sign-in)[\\/](?!(?:src[\\/])?(?:(?:plugin-manifest|contracts)(?:\.ts)?$|plugin-screens(?:\.tsx)?$|(?:contracts|ui|components)(?:[\\/]|$)))[^\\/]+(?:[\\/].*)?$/;
 
 /**
  * Framework libraries the composition (`packages/kernel`) and the Bun host (`packages/host`) must not
@@ -62,7 +62,7 @@ export const directEgress: readonly { readonly api: string; readonly pattern: Re
 export const serverSource =
   /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|plugins\/|workstations\/|(?:examples|samples)\/)/;
 export const browserSource =
-  /^(?:packages\/(?:contracts|client|react|operator-ui|frame)\/|packages\/devices\/src\/(?!server\.ts$)|(?:examples|samples)\/[^/]+\/(?:ui\/|screens\.tsx$))/;
+  /^(?:packages\/(?:contracts|client|react|operator-ui|frame)\/|packages\/devices\/src\/(?!server\.ts$)|packages\/assignments\/src\/(?!server\/)|(?:examples|samples)\/[^/]+\/(?:ui\/|screens\.tsx$))/;
 
 /**
  * Reviewed exceptions, each with the reason it is safe. Keep this list short: it is what an
@@ -119,7 +119,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
  * reach Node or Bun, nor a server-only package, so the mobile bundle never pulls one in.
  */
 export const portableSource =
-  /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native|shell)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/devices\/src\/scanner\/(?:decode|profile|source|gs1|symbology|layouts)\.ts$|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/)|(?:examples|samples)\/[^/]+\/(?:screens-native\.tsx$|ui-native\/))/;
+  /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native|shell|assignments)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/devices\/src\/scanner\/(?:decode|profile|source|gs1|symbology|layouts)\.ts$|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/)|(?:examples|samples)\/[^/]+\/(?:screens-native\.tsx$|ui-native\/))/;
 /** Imports portable source may not make: Node and Bun built-ins and the Bun-only packages. */
 export const portableForbiddenImport =
   /^(?:node:|bun:|@agent-native\/(?:host|agents|station)(?:\/|$)|@agent-native\/(?:site|network)(?!\/(?:plugin-manifest|plugin-screens|contracts)$)(?:\/|$)|@agent-native\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@agent-native\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;
