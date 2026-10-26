@@ -15,7 +15,7 @@ import {
   targetOf,
   type Camel,
 } from './operations';
-import { targetAnswerSchemaOf } from './schemas';
+import { targetAnswerSchema } from './schemas';
 
 /** The feature's ID: its state key, operation namespace and module ID. */
 export const ASSIGNMENT_FEATURE = 'assignment';
@@ -28,7 +28,7 @@ export const ASSIGNMENT_FEATURE = 'assignment';
 export const offerEventType = (agentId: string) => `offer.${agentId}`;
 
 /** A target lane: the target whose feed answers offers, with its settle, sync and status. */
-export function targetLane(lane: string, kinds: readonly AnyAssignmentKind[]) {
+export function targetLane(lane: string) {
   return defineTarget({
     target: targetOf(lane),
     resourceType: ASSIGNMENT,
@@ -39,7 +39,7 @@ export function targetLane(lane: string, kinds: readonly AnyAssignmentKind[]) {
     },
     settles: ['assignment'],
     feed: {
-      item: targetAnswerSchemaOf(kinds),
+      item: targetAnswerSchema,
       max: 50,
       changes: ['assignment', 'assignment-report'],
     },
@@ -107,13 +107,7 @@ export function defineAssignments<const K extends AnyAssignmentKind>(spec: {
   const generic = genericOperations(kinds);
   const lanes = [...new Set(kinds.flatMap((kind) => (kind.target ? [kind.target] : [])))];
   const targets: Record<string, TargetLane> = Object.fromEntries(
-    lanes.map((lane) => [
-      lane,
-      targetLane(
-        lane,
-        kinds.filter((kind) => kind.target === lane),
-      ),
-    ]),
+    lanes.map((lane) => [lane, targetLane(lane)]),
   );
   const operations = Object.freeze({ ...flat, ...generic }) as KindsOperations<K> & typeof generic;
   const module = defineModule({

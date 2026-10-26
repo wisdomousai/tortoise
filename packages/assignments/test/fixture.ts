@@ -10,14 +10,21 @@ import {
 } from '@agent-native/contracts';
 import { defineAssignmentKind, defineAssignments } from '../src';
 
-/** A review of notes: a person, an agent or the checker service reads them and gives a verdict. */
+/**
+ * A review of notes and their attached text: a person, an agent or the checker service reads them
+ * and gives a verdict.
+ */
 export const review = defineAssignmentKind({
   id: 'review',
   title: 'Review',
   description: 'Read the notes in the brief and give one verdict per note.',
-  scope: z.strictObject({ notes: z.array(recordKeySchema).min(1).max(20) }),
+  scope: z.strictObject({
+    notes: z.array(recordKeySchema).min(1).max(20),
+    attachments: z.array(blobRefSchema).max(4).optional(),
+  }),
   brief: z.strictObject({
     notes: z.array(z.strictObject({ id: recordKeySchema, title: z.string(), body: z.string() })),
+    attachments: z.array(blobRefSchema).max(4).optional(),
   }),
   report: z.strictObject({
     verdict: z.enum(['keep', 'revise']),
@@ -25,6 +32,7 @@ export const review = defineAssignmentKind({
   }),
   accept: z.strictObject({ comment: z.string().max(2000).optional() }),
   subject: 'note',
+  blobs: { brief: { maxBytes: 100_000, mediaTypes: ['text/plain'] } },
   lanes: ['person', 'agent', 'target'],
   target: 'checker',
   invokes: ['notes.note.update'],

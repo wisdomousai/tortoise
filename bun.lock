@@ -225,6 +225,10 @@
       "version": "0.1.0",
       "dependencies": {
         "@agent-native/contracts": "workspace:*",
+        "@agent-native/integration": "workspace:*",
+        "@agent-native/kernel": "workspace:*",
+        "@agent-native/runtime": "workspace:*",
+        "@noble/hashes": "2.4.0",
         "zod": "4.6.5",
       },
       "devDependencies": {

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   deliveryStatusSchema,
+  jsonValueSchema,
   recordKeySchema,
   rejectionSchema,
   type JsonValue,
@@ -176,24 +177,23 @@ export function anyFeedItemSchema<K extends AnyAssignmentKind, Extra extends z.Z
 
 /**
  * What a target answers one offer with, as an item of its feed: the reports, each under an ID
- * the target chose. Applying it marks the assignment done.
+ * the target chose. Applying it marks the assignment done. Each body is checked against the
+ * assignment's kind when the answer applies, so one malformed report does not hold back the lane.
  */
-export function targetAnswerSchemaOf(kinds: readonly AnyAssignmentKind[]) {
-  return z.strictObject({
-    assignmentId: recordKeySchema,
-    /** The offer this answers; an answer to an older offer is ignored. */
-    effectId: z.string().min(1).max(128),
-    reports: z
-      .array(
-        z.strictObject({
-          id: recordKeySchema,
-          subject: recordKeySchema.optional(),
-          body: unionOf(kinds.map((kind) => kind.report)),
-        }),
-      )
-      .max(MAX_TARGET_REPORTS),
-  });
-}
+export const targetAnswerSchema = z.strictObject({
+  assignmentId: recordKeySchema,
+  /** The offer this answers; an answer to an older offer is ignored. */
+  effectId: z.string().min(1).max(128),
+  reports: z
+    .array(
+      z.strictObject({
+        id: recordKeySchema,
+        subject: recordKeySchema.optional(),
+        body: z.record(z.string(), jsonValueSchema),
+      }),
+    )
+    .max(MAX_TARGET_REPORTS),
+});
 
 type Common<Shape extends z.ZodRawShape> = z.output<z.ZodObject<Shape>>;
 /** An assignment of kind `K`. */

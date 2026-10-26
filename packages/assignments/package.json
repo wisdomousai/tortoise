@@ -18,6 +18,7 @@
   ],
   "exports": {
     ".": "./src/index.ts",
+    "./server": "./src/server/index.ts",
     "./*": "./src/*.ts"
   },
   "devDependencies": {
@@ -25,6 +26,10 @@
   },
   "dependencies": {
     "@agent-native/contracts": "workspace:*",
+    "@agent-native/integration": "workspace:*",
+    "@agent-native/kernel": "workspace:*",
+    "@agent-native/runtime": "workspace:*",
+    "@noble/hashes": "2.4.0",
     "zod": "4.6.5"
   }
 }
