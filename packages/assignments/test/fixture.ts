@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   blobRefSchema,
+  defineAgent,
   defineCapability,
   defineHostComponent,
   defineModule,
@@ -97,4 +98,26 @@ export const noteUpdate = defineCapability({
   dependencies: ['note'],
   ui: { exception: 'test fixture' },
 });
-export const notesModule = defineModule({ id: 'notes', capabilities: [noteUpdate] });
+
+/**
+ * An agent that takes review assignments: a run scoped to one assignment reads it, reports on
+ * its notes and completes it. `notes.other` may call the same operations but is not the assignee.
+ */
+const reviewerOf = (id: string) =>
+  defineAgent({
+    id,
+    title: 'Note reviewer',
+    instructions: 'Read the notes in the brief, report one verdict per note, then complete.',
+    operations: ['assignment.get', 'assignment.review.report', 'assignment.complete'],
+    resourceTypes: ['assignment'],
+    creates: ['assignment-report'],
+    model: 'any',
+    output: 'direct',
+    budgets: { turns: 10, toolCalls: 10, wallTimeMs: 60_000 },
+  });
+export const reviewer = reviewerOf('notes.reviewer');
+export const notesModule = defineModule({
+  id: 'notes',
+  capabilities: [noteUpdate],
+  agents: [reviewer, reviewerOf('notes.other')],
+});

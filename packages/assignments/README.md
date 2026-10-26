@@ -11,7 +11,7 @@ Framework (`packages/*`). The contracts are browser-safe. The package imports fr
 - Assignment kind: `defineAssignmentKind`, `AssignmentKind`, `AssignmentLane`. A kind lists the lanes that may take it: `person`, `agent`, `device`, `peer` and `target`.
 - Assignments: `defineAssignments` returns the feature manifest, the generated operations, one [target](../../docs/glossary.md#target) per target lane (`assignment-<lane>`) and what the device and peer lanes may call.
 - Worklist: `defineWorklist` returns the assignee's module, its operations and a [peer target](../../docs/glossary.md#peer-target) whose [feed](../../docs/glossary.md#feed) is the issuer's `assignment.feed`.
-- `offerEventType(agentId)`: the [journal](../../docs/glossary.md#journal) event type of an assignment sent to an agent, which a trigger filters on.
+- `offerEventType(agentId)`: the [journal](../../docs/glossary.md#journal) event type of an assignment sent to an agent, which a trigger filters on. The agent definition lists `assignment.get`, the kind's report command and `assignment.complete`, with `resourceTypes: ['assignment']` and `creates: ['assignment-report']`, so a run scoped to the assignment can store its reports.
 - Feature: `assignmentFeature(assignments, { targets })` from `./server` is the server part. Its slice keeps assignments, reports and each target lane's watermark. The application mounts it with an `AssignmentAccess` view and, optionally, `AssignmentHooks`; `byKind` builds the hooks from one implementation per kind.
 - Target lane port: `assignmentTargetPort({ lane, readBlob, work })` runs a function, such as a model call, once per offer and hands its reports to the lane's sync.
 
@@ -67,7 +67,7 @@ bun test packages/assignments
 - `test/operations.test.ts`: the generated operation IDs in a catalog, per-kind targets, blobs and invokes, the generic reads across two kinds, the lane surfaces, and the worklist's operations and refusals.
 - `test/conformance.test.ts`: the feature conformance suite: deny-all refuses every command, allow-all admits each operation, accepting is person-only, and events route to the feature's policy.
 - `test/lifecycle.test.ts`: the person lane from create to close on a fixture application; drafts; refusals by lane, scope and subject; an accept hook that refuses and writes nothing; repeated and conflicting reports; withdrawal; discard.
-- `test/lanes.test.ts`: the target lane through the feature's `connect`: the offer with its brief blob, the answer applied for review, a refused offer, an answer for a withdrawn assignment, and a withdrawn offer cancelled before delivery.
+- `test/lanes.test.ts`: the target lane through the feature's `connect`: the offer with its brief blob, the answer applied for review, a refused offer, an answer for a withdrawn assignment, and a withdrawn offer cancelled before delivery. The agent lane through the deterministic harness: the offer's event type, a run of another agent refused, and the assigned agent's report carrying its run.
 
 `bun run test:portable` runs the same tests without the web globals.
 

@@ -22,6 +22,7 @@
     "./*": "./src/*.ts"
   },
   "devDependencies": {
+    "@agent-native/agents": "workspace:*",
     "@agent-native/testing": "workspace:*"
   },
   "dependencies": {

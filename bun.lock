@@ -232,6 +232,7 @@
         "zod": "4.6.5",
       },
       "devDependencies": {
+        "@agent-native/agents": "workspace:*",
         "@agent-native/testing": "workspace:*",
       },
     },

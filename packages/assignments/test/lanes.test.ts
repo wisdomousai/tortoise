@@ -1,6 +1,13 @@
 import { describe, expect, test } from 'bun:test';
+import { deterministicHarness } from '@agent-native/agents';
 import type { BlobRef } from '@agent-native/contracts';
 import type { ExecutionContext } from '@agent-native/runtime';
+import {
+  assertAgentScenarios,
+  runAgentScenarios,
+  type AgentScenario,
+} from '@agent-native/testing/agent-scenarios';
+import { offerEventType } from '../src';
 import { assignmentTargetPort, type TargetWork } from '../src/server';
 import { createFixture, INTEGRATION, planner, worker, WORKSPACE } from './application';
 
@@ -147,5 +154,91 @@ describe('target lane', () => {
     await run('assignment.withdraw', { id: 'a1' });
     await lane.dispatcher.runOnce();
     expect(offers).toEqual([]);
+  });
+});
+
+describe('agent lane', () => {
+  const verdict = { verdict: 'revise', comment: 'Name the seal type.' };
+  // Each run is scoped to the assignment, as a trigger on the offer event scopes it.
+  const scenarios: AgentScenario[] = [
+    {
+      name: 'a run of another agent is refused, even with the assignment in its scope',
+      agent: 'notes.other',
+      task: 'Review assignment a1.',
+      issuer: planner,
+      resources: ['assignment:a1'],
+      script: {
+        commands: [
+          {
+            operation: 'assignment.review.report',
+            input: { id: 'r0', assignmentId: 'a1', subject: 'n1', body: verdict },
+          },
+        ],
+      },
+      expect: {
+        commits: [],
+        refused: [{ operation: 'assignment.review.report', code: 'FORBIDDEN' }],
+      },
+    },
+    {
+      name: 'the assigned agent reads its assignment, reports and completes it',
+      agent: 'notes.reviewer',
+      task: 'Review assignment a1.',
+      issuer: planner,
+      resources: ['assignment:a1'],
+      script: {
+        commands: [
+          { operation: 'assignment.get', input: { id: 'a1' } },
+          {
+            operation: 'assignment.review.report',
+            input: { id: 'r1', assignmentId: 'a1', subject: 'n1', body: verdict },
+          },
+          { operation: 'assignment.complete', input: { id: 'a1' } },
+        ],
+      },
+      expect: {
+        commits: [
+          { operation: 'assignment.review.report', input: { id: 'r1' } },
+          { operation: 'assignment.complete', input: { id: 'a1' } },
+        ],
+        outcome: 'succeeded',
+      },
+    },
+  ];
+
+  test('an assignment sent to an agent is taken by a run of that agent only', async () => {
+    const { application } = createFixture();
+    await application.invokeRaw(
+      {
+        operation: 'assignment.review.create',
+        input: {
+          title: 'Week 3',
+          scope: { notes: ['n1'] },
+          assignee: { type: 'agent', id: 'notes.reviewer' },
+        },
+      },
+      planner,
+    );
+    const { events } = await application.events(0, planner);
+    expect(events.map((event) => [event.resource, event.type])).toEqual([
+      ['assignment:a1', offerEventType('notes.reviewer')],
+    ]);
+
+    assertAgentScenarios(
+      await runAgentScenarios(scenarios, { application, harness: deterministicHarness }),
+    );
+    const read = async (operation: string, input: object) =>
+      (await application.queryRaw({ operation, input }, planner)).data;
+    expect(await read('assignment.get', { id: 'a1' })).toMatchObject({
+      status: 'done',
+      reports: 1,
+    });
+    const [report] = ((await read('assignment.report.list', {})) as { items: object[] }).items;
+    expect(report).toMatchObject({ id: 'r1', reportedBy: 'pat', review: 'new' });
+    expect((report as { runId?: string }).runId).toStartWith('scenario-');
+    await application.invokeRaw(
+      { operation: 'assignment.review.accept', input: { id: 'r1' } },
+      planner,
+    );
   });
 });
