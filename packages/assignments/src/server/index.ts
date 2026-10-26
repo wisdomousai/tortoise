@@ -19,3 +19,13 @@ export {
   type TargetReport,
   type TargetWork,
 } from './target-port';
+export {
+  connectWorklist,
+  createWorklistSlice,
+  worklistHandlers,
+  worklistRules,
+  type WorklistAssignment,
+  type WorklistHandlerOptions,
+  type WorklistReport,
+  type WorklistSlice,
+} from './worklist';

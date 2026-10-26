@@ -83,7 +83,7 @@ export const checker = defineHostComponent({
 
 /** What the issuer publishes to peers and devices: the lane operations. */
 export const issuerSurface = definePeerSurface({
-  application: 'issuer',
+  application: 'assignments-fixture',
   commands: assignments.lanes.peer.commands,
   queries: assignments.lanes.peer.queries,
 });

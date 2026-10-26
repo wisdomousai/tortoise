@@ -28,6 +28,11 @@ const sync = { sync: deliveryStatusSchema, rejection: rejectionSchema.optional()
 
 /** An assignment as the assignee holds it: the issuer's feed item and what was done here. */
 const localAssignmentShape = {
+  /**
+   * Whether it takes reports: the issuer still lists it as sent and it is not done here. The
+   * issuer stops listing an assignment it withdrew, closed or marked done itself.
+   */
+  open: z.boolean(),
   /** Reports recorded here for it. */
   reports: z.number().int().min(0),
   /** Marked done here; no further reports are taken. */
@@ -60,6 +65,7 @@ export type LocalReportOf<K extends AnyAssignmentKind> = {
 };
 type AnyLocalReportOf<K> = K extends AnyAssignmentKind ? LocalReportOf<K> : never;
 export type LocalAssignmentOf<K> = AnyFeedItemOf<K> & {
+  readonly open: boolean;
   readonly reports: number;
   readonly done: boolean;
   readonly doneSync?: z.output<typeof deliveryStatusSchema>;

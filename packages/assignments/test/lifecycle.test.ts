@@ -157,7 +157,7 @@ describe('assignment lifecycle', () => {
     expect(updated.comments).toEqual(['Replace both.', 'x']);
   });
 
-  test('a repeated report is harmless, a different one under its ID conflicts, and a finished assignment takes none', async () => {
+  test('a repeated report is harmless, a different one under its ID conflicts, and a closed assignment takes none', async () => {
     const fixture = createFixture();
     await run(fixture, planner, 'assignment.review.create', { ...review, assignee: toWes });
     const report = { id: 'r1', assignmentId: 'a1', subject: 'n1', body: body('Leaks.') };
@@ -170,8 +170,11 @@ describe('assignment lifecycle', () => {
     expect(await run(fixture, worker, 'assignment.complete', { id: 'a1' })).toMatchObject({
       status: 'done',
     });
+    // A report delivered after the done mark is still taken.
+    await run(fixture, worker, 'assignment.review.report', { ...report, id: 'r2' });
+    await run(fixture, planner, 'assignment.close', { id: 'a1' });
     await expect(
-      run(fixture, worker, 'assignment.review.report', { ...report, id: 'r2' }),
+      run(fixture, worker, 'assignment.review.report', { ...report, id: 'r3' }),
     ).rejects.toMatchObject({ code: 'CONFLICT' });
     expect(await run(fixture, worker, 'assignment.review.report', report)).toEqual(first);
   });

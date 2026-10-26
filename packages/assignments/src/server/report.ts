@@ -37,8 +37,10 @@ export interface ReportEntry {
 }
 
 /**
- * Store one report on a sent assignment. The same report again returns the stored one and
- * changes nothing; a different one under the same ID conflicts. `attach` attaches the body's
+ * Store one report on a sent or done assignment. A done one still takes reports, because an
+ * assignee's report can reach the issuer after its done mark when its delivery was retried. The
+ * same report again returns the stored one and changes nothing; a different one under the same
+ * ID conflicts. `attach` attaches the body's
  * blobs to the report, which only a command declaring the kind's report blob limits may do.
  */
 export function storeReport(
@@ -57,7 +59,7 @@ export function storeReport(
     if (!same) throw conflict('A different report has this ID');
     return existing;
   }
-  if (assignment.status !== 'sent')
+  if (assignment.status !== 'sent' && assignment.status !== 'done')
     throw conflict(`The assignment is ${assignment.status}; it takes no reports`);
   const report: StoredReport = {
     id: entry.id,
