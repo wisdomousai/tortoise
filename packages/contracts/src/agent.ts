@@ -41,6 +41,12 @@ export interface AgentDefinition<Ops extends readonly string[] = readonly string
    * not resource-scoped and the operations' own authorization applies.
    */
   readonly resourceTypes?: readonly string[];
+  /**
+   * Record types a resource-scoped run may create, for example `['assignment-report']`. A run
+   * cannot list a record before it exists, so its grant names these types instead; changing an
+   * existing record of them still needs the record in the run's resources.
+   */
+  readonly creates?: readonly string[];
   readonly model: ModelRequirement;
   /**
    * Model entries this agent may run on, by ID, for a `local` agent that needs a particular base
@@ -117,7 +123,7 @@ export function checkAgent(
     if (agent.output === 'direct' && operation.kind === 'command' && !operation.ui.binding)
       throw new Error(`Direct agent ${agent.id} runs ${id}, which has no UI binding`);
   }
-  for (const type of agent.resourceTypes ?? [])
+  for (const type of [...(agent.resourceTypes ?? []), ...(agent.creates ?? [])])
     if (!/^[A-Za-z][A-Za-z0-9-]*$/.test(type))
       throw new Error(`Agent ${agent.id} resource type ${type} is not a resource type name`);
   checkBudgets(agent);

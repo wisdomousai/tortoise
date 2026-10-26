@@ -67,6 +67,7 @@ test('a direct agent gets its operations, bound to the issuer and the run', () =
     principalId: 'ann',
     workspaceId: 'plant',
     runId: 'run-1',
+    agent: 'lot.releaser',
   });
   expect(grantPermits(grant, 2_000, 'lot.release', 'lot:7')).toBe(true);
   expect(grantPermits(grant, 2_000, 'lot.release', 'lot:8')).toBe(false);
@@ -97,6 +98,62 @@ test('a requesting agent runs its queries and records approvals instead of its c
   expect(grant.resources).toBeUndefined();
   // Not scoped to resources, so it needs no `creates` to record its approval requests.
   expect(grant.creates).toBeUndefined();
+});
+
+test('a scoped run may create records of the types its definition declares', () => {
+  const scoped = buildCatalog([
+    defineModule({
+      id: 'lots',
+      capabilities: [
+        operation('lot.get', 'query'),
+        operation('lot.note', 'command'),
+        operation('approval.request', 'command'),
+      ],
+      agents: [
+        defineAgent({
+          id: 'lot.noter',
+          title: 'Noter',
+          instructions: 'Note what you find on a lot.',
+          operations: ['lot.get', 'lot.note'],
+          resourceTypes: ['lot'],
+          creates: ['lot-note'],
+          model: 'any',
+          output: 'request-approval',
+          budgets,
+        }),
+      ],
+    }),
+  ]);
+  const grant = agentGrant(scoped, 'lot.noter', person, { resources: ['lot:7'], now: 0 });
+  expect(grant.creates).toEqual(['lot-note', 'approval-request']);
+  expect(grant.agent).toBe('lot.noter');
+  // Started on no resources, the run changes no existing record but may still create its own.
+  const empty = agentGrant(scoped, 'lot.noter', person, { now: 0 });
+  expect(empty.resources).toEqual([]);
+  expect(empty.creates).toEqual(['lot-note', 'approval-request']);
+});
+
+test('an agent that creates a malformed type is refused', () => {
+  expect(() =>
+    buildCatalog([
+      defineModule({
+        id: 'lots',
+        capabilities: [operation('lot.get', 'query')],
+        agents: [
+          defineAgent({
+            id: 'lot.bad',
+            title: 'Bad',
+            instructions: 'Read lots.',
+            operations: ['lot.get'],
+            creates: ['lot:7'],
+            model: 'any',
+            output: 'direct',
+            budgets,
+          }),
+        ],
+      }),
+    ]),
+  ).toThrow('is not a resource type name');
 });
 
 test('an unknown agent is NOT_FOUND', () => {

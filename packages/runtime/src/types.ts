@@ -27,6 +27,11 @@ export interface DelegationGrant {
   readonly principalId?: string;
   readonly workspaceId?: string;
   readonly runId?: string;
+  /**
+   * The agent definition a run executes under, set by `agentGrant`. Policy may match it, for
+   * example to let the run report on work handed to that agent; it never widens the grant.
+   */
+  readonly agent?: string;
 }
 /** Supplied by a trusted host; transports must never construct this from tool arguments. */
 export interface ExecutionContext {
