@@ -228,6 +228,26 @@
       ]
     },
     {
+      "name": "worklist",
+      "type": "registry:component",
+      "title": "Worklist",
+      "description": "The work an issuer sent here, live, with a report form per kind, Done, and every report with whether the issuer took it; the counts and last feed from the worklist target's status.",
+      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "registryDependencies": [
+        "badge",
+        "button",
+        "@agent-native/assignment-reports",
+        "@agent-native/my-assignments",
+        "@agent-native/session"
+      ],
+      "files": [
+        {
+          "path": "src/components/worklist.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "run-panel",
       "type": "registry:component",
       "title": "Agent run panel",

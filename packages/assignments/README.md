@@ -74,6 +74,8 @@ bun test packages/assignments
 
 `bun run test:portable` runs the same tests without the web globals.
 
+The samples test the lanes that need plugins: `samples/notes-assignments` runs the agent lane from an automation trigger, and `samples/notes-worklist` runs the peer lane between two hosts.
+
 ## Limits
 
 - `assignmentTargetPort` keeps answers in memory until the lane's sync applies them. If the host stops in between, the offer stays settled without its answer, and the planner withdraws the assignment and sends it again.
@@ -88,3 +90,5 @@ None yet. The skill for declaring assignment kinds comes with the worklist and t
 - [Feature](../../docs/glossary.md#feature)
 - [Peer target](../../docs/glossary.md#peer-target)
 - [Target](../../docs/primitives.md#target)
+- [Notes assignments sample](../../samples/notes-assignments/README.md)
+- [Notes worklist sample](../../samples/notes-worklist/README.md)

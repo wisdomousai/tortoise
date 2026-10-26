@@ -55,14 +55,17 @@ function typed(fields: Field[], values: Record<string, string>) {
   return body;
 }
 
-/** The report body's fields, generated from the report command's input schema. */
-function GeneratedForm({
+/**
+ * The report body's fields, generated from the report command's input schema, and the subject
+ * when the kind names one. The worklist's screen uses it too.
+ */
+export function GeneratedReportForm({
   item,
   kind,
   submit,
 }: {
-  item: FeedItem;
-  kind: MyKind;
+  item: { id: string; title: string };
+  kind: { kind: MyKind['kind']; report: Command };
   submit: SubmitReport;
 }) {
   const schema = (kind.report.input.jsonSchema.properties as Record<string, JsonObject>).body!;
@@ -210,7 +213,7 @@ function Item({
         (kind.form ? (
           kind.form(item, submit)
         ) : (
-          <GeneratedForm item={item} kind={kind} submit={submit} />
+          <GeneratedReportForm item={item} kind={kind} submit={submit} />
         ))}
       <div className="flex items-center gap-3">
         <Button size="sm" onClick={() => void run(complete, { id: item.id })}>

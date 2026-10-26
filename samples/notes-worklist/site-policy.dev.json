@@ -1,0 +1,7 @@
+{
+  "profile": "desktop-local",
+  "audit": { "mode": "best-effort" },
+  "destinations": {
+    "reviews-peer": { "url": "http://127.0.0.1:4355", "addresses": ["127.0.0.1/32"] }
+  }
+}

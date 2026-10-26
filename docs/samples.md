@@ -1,6 +1,6 @@
 # Samples
 
-The [samples](glossary.md#sample) in `samples/*` are small applications on one notes domain. `samples/notes` is the base application. Each other sample imports the base's module, handlers, policy and screens unchanged and adds one concern next to them.
+The [samples](glossary.md#sample) in `samples/*` are small applications on one notes domain. `samples/notes` is the base application. Each other sample imports the base's module, handlers, policy and screens unchanged and adds one concern next to them. `notes-worklist` also imports the contracts of `notes-assignments`, the application it takes work from.
 
 ## Concepts
 
@@ -34,6 +34,8 @@ An extension sample composes the base in each entrypoint:
 | `notes-agents` | 4352 | Title suggestions as approval requests, a trigger, UI intents from a run | `defineAgent`, `approvalHandlers`, `defineTrigger`, `useUiSession` |
 | `notes-host-plugin` | 4353 | An `activity` host plugin written in the sample | `definePluginManifest`, `defineHostPlugin`, `definePluginScreens` |
 | `notes-operations` | 4354 | A versioned state migration and telemetry on a site | `StateMigrations`, the site, network, audit and telemetry plugins |
+| `notes-assignments` | 4355 | Note reviews as assignments to a member, an agent or a peer application, accepted into the note | `defineAssignmentKind`, `assignmentFeature`, `defineTrigger`, `definePeerSurface`, `assignment-board` |
+| `notes-worklist` | 4356 | The reviews notes-assignments sends it, reported on and sent back over the peer link | `defineWorklist`, `worklistHandlers`, `connectWorklist`, `worklist` |
 
 Each sample's README lists its files, its trust boundary and one line per test file.
 
@@ -53,7 +55,7 @@ bun test samples/notes-agents
 bun test samples
 ```
 
-A sample with a `dev.ts` starts its fake system first. `notes-system-of-record` starts a fake publisher on port 4361. `notes-operations` expects an OpenTelemetry Collector on port 4318.
+A sample with a `dev.ts` starts its fake system first or binds its destinations. `notes-system-of-record` starts a fake publisher on port 4361. `notes-operations` expects an OpenTelemetry Collector on port 4318. `notes-worklist` reaches notes-assignments on port 4355, so start that one first.
 
 ## Limits
 
@@ -68,5 +70,7 @@ A sample with a `dev.ts` starts its fake system first. `notes-system-of-record` 
 - [Notes agents](../samples/notes-agents/README.md)
 - [Notes host plugin](../samples/notes-host-plugin/README.md)
 - [Notes operations](../samples/notes-operations/README.md)
+- [Notes assignments](../samples/notes-assignments/README.md)
+- [Notes worklist](../samples/notes-worklist/README.md)
 - [Architecture](architecture.md)
 - [Capability authoring](capability-authoring.md)
