@@ -83,7 +83,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/co
 
 ### Collection
 
-_A typed set of records a module keeps in its state slice, with generated reads._
+_A typed set of records a module keeps in its state slice, with generated reads, generated create, update, move and retire commands, and for a tree collection a tree read._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md)
 

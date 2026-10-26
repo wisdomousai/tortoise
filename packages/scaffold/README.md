@@ -11,7 +11,7 @@ Framework (`packages/*`). Server-side CLI. The scaffold trusts the source checko
 - [Scaffold](../../docs/primitives.md#scaffold): `scaffold`, `scaffoldNew`, `scaffoldAdd`, `ScaffoldOptions`, `ScaffoldManifest`, `NewOptions`, `AddRequest`, `AddOptions`.
 - [Framework release](../../docs/primitives.md#framework-release): `installedFramework`, the check behind `bun run check:framework`.
 
-Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` [UI registry](../../docs/primitives.md#ui-registry) item.
+Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` and `collection-tree` [UI registry](../../docs/primitives.md#ui-registry) items.
 
 Skills live in each package's `skills/` directory and travel with it. A source export copies them, and an installed-framework export gets them from the installed packages. Neither carries the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
 
@@ -29,7 +29,7 @@ The commands run from `src/cli.ts`:
 ```sh
 bun run scaffold <absent-target-directory> --name <app-name> [--display-name <label>] [--example <name>]
 bun run scaffold new <absent-target-directory> --name <app-name> [--display-name <label>] [--collection <type>] [--published | --registry <url>]
-bun run scaffold add collection <type> [--app <directory>]
+bun run scaffold add collection <type> [--tree] [--app <directory>]
 bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
 bun run scaffold add target <name> --collection <type> [--app <directory>]
 bun run scaffold add agent <name> --collection <type> [--app <directory>]
@@ -57,6 +57,8 @@ With `--published` or `--registry <url>`, `new` leaves the framework source out 
 `--registry` writes a `bunfig.toml` that installs the `@agent-native` scope from that URL. The first `bun install` writes the lockfile; commit it. Only `new` supports a published-framework export, because the examples' own tests read plugin and SDK source by path.
 
 ### Generated parts
+
+`add collection <type>` writes the collection's contract with generated reads and create and update commands, their handlers, list and record screens, and a test. The handlers set the fields a person does not choose: the status, the author and the creation time. With `--tree`, the collection also gets a parent, generated move, retire and tree operations, and a tree screen with search.
 
 `add agent` writes an agent definition that reads the collection and requests approval for `<type>.update`. Its agent scenarios are played by the deterministic harness. The first agent also:
 

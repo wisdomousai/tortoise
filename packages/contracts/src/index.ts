@@ -34,6 +34,7 @@ export {
 export * from './errors';
 export * from './data-provider';
 export * from './collection';
+export * from './collection-commands';
 export * from './membership';
 export * from './target';
 export * from './agent';

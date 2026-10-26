@@ -13,7 +13,7 @@ import { target } from './templates/target';
 
 /** What `scaffold add` generates into an application created by `scaffold new`. */
 export type AddRequest =
-  | { readonly kind: 'collection'; readonly name: string }
+  | { readonly kind: 'collection'; readonly name: string; readonly tree?: boolean }
   | ({ readonly kind: 'capability' } & CapabilitySpec)
   | { readonly kind: 'target'; readonly name: string; readonly collection: string }
   | { readonly kind: 'agent'; readonly name: string; readonly collection: string }
@@ -67,7 +67,8 @@ async function readAppNames(directory: string): Promise<AppNames> {
 }
 
 async function partFor(request: AddRequest, app: AppNames, directory: string): Promise<Generated> {
-  if (request.kind === 'collection') return collection(app, names(request.name, 'Collection type'));
+  if (request.kind === 'collection')
+    return collection(app, names(request.name, 'Collection type'), request.tree === true);
   if (request.kind === 'capability') return capability(app, request);
   if (request.kind === 'feature')
     return featurePart(app, names(request.name, 'Feature ID'), request.screens === true);

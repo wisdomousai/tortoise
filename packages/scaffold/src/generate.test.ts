@@ -117,7 +117,15 @@ test('add extends the application at its markers and refuses to overwrite a part
   );
   expect(added).toMatchObject({ directory: 'examples/field-notes' });
   expect(added.written).toContain('contracts/note-archive.ts');
-  await scaffoldAdd({ kind: 'collection', name: 'site' }, { root: target });
+  await scaffoldAdd({ kind: 'collection', name: 'site', tree: true }, { root: target });
+  const sites = await read(join(app, 'contracts/site.ts'));
+  for (const key of [
+    "parent: 'parentId',",
+    'siteTree: collectionTree(',
+    'siteMove: collectionMove(',
+  ])
+    expect(sites).toContain(key);
+  expect(await read(join(app, 'ui/site.tsx'))).toContain('<CollectionTree');
   const ledger = await scaffoldAdd(
     { kind: 'target', name: 'ledger', collection: 'note' },
     { root: target },
@@ -140,6 +148,8 @@ test('add extends the application at its markers and refuses to overwrite a part
   ).toHaveLength(1);
   const policy = await read(join(app, 'policy.ts'));
   expect(policy).toContain('[operations.noteArchive.id]: editor,');
+  expect(policy).toContain("[operations.siteTree.id]: 'open',");
+  expect(policy).toContain('[operations.siteRetire.id]: editor,');
   expect(policy).toContain('targetLane(ledgerTarget');
   expect(await read(join(app, 'screens.tsx'))).toContain(
     "{ path: 'ledger', component: LedgerScreen }",
@@ -348,7 +358,7 @@ acceptance(
     };
     await run(['bun', 'install', '--frozen-lockfile', '--ignore-scripts']);
     const cli = ['bun', 'run', 'scaffold', 'add'];
-    await run([...cli, 'collection', 'site']);
+    await run([...cli, 'collection', 'site', '--tree']);
     await run([
       ...cli,
       'capability',

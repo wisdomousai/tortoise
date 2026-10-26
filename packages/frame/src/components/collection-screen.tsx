@@ -5,8 +5,9 @@ import type { AnyCapability, DisplayDeclaration, JsonObject } from '@agent-nativ
 import { CapabilityForm } from '@/components/capability-form';
 import { LiveDataTable, type LiveColumn } from '@/components/live-data-table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { live } from '@/lib/session';
+import { client, live } from '@/lib/session';
 
 type Row = Record<string, unknown>;
 type Query = AnyCapability & { kind: 'query' };
@@ -146,21 +147,57 @@ export function CollectionScreen({
   );
 }
 
+/** Retire one record: a button, and the instance's refusal when it has children or changed. */
+function RetireButton({ retire, id }: { retire: Command; id: string }) {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string>();
+  const run = async () => {
+    setBusy(true);
+    setMessage(undefined);
+    try {
+      await client.command(retire, { id } as never);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The record was not retired.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="space-y-2">
+      <Button variant="outline" size="sm" disabled={busy} onClick={() => void run()}>
+        {retire.display?.label ?? 'Retire'}
+      </Button>
+      {message && (
+        <p role="alert" className="text-sm text-destructive">
+          {message}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /**
  * One record of a collection: its fields from the generated `get` query, in display order when
- * the query declares display fields, and a form for its update command with the record's key
- * fixed. The heading names the record by its display title field when there is one. A record the
- * caller may not see is `NOT_FOUND` from the instance and shows as unavailable.
+ * the query declares display fields, and forms for its update and move commands with the record's
+ * key fixed, and a retire button. The heading names the record by its display title field when
+ * there is one. A record the caller may not see is `NOT_FOUND` from the instance and shows as
+ * unavailable; the instance refuses a change to a retired record.
  */
 export function RecordScreen({
   title,
   get,
   update,
+  move,
+  retire,
   param = 'id',
 }: {
   title: string;
   get: Query;
   update?: Command;
+  /** A generated `move` command; its form takes the new parent's key. */
+  move?: Command;
+  /** A generated `retire` command. */
+  retire?: Command;
   /** The route parameter holding the record key, `$id` by default. */
   param?: string;
 }) {
@@ -191,6 +228,13 @@ export function RecordScreen({
           <CapabilityForm capability={update} fixed={{ id } as never} submitLabel="Save" />
         </section>
       )}
+      {move && record && (
+        <section aria-label={move.description ?? 'Move'} className="space-y-3">
+          <h2 className="text-base font-medium">Move</h2>
+          <CapabilityForm capability={move} fixed={{ id } as never} submitLabel="Move" />
+        </section>
+      )}
+      {retire && record && <RetireButton retire={retire} id={id} />}
     </div>
   );
 }

@@ -11,6 +11,7 @@ description: Build or change the web screens of an agent-native application, fea
 
 - Start from a [UI registry](../../../../docs/glossary.md#ui-registry) item before writing a component. The items live in `packages/frame/src/components`:
   - `collection-screen` builds list and record screens from a collection's generated capabilities;
+  - `collection-tree` shows a tree collection's generated `tree` read with search over its `list`;
   - `capability-form` renders any command;
   - `live-data-table` pages after the instance scopes rows.
 - Declare [display metadata](../../../../docs/glossary.md#display-metadata) on the capability before writing columns or labels in a screen. `collection-screen`, `capability-form` and the command palette read it. A collection passes it as `titleField` and `fields`.

@@ -78,7 +78,7 @@
       "name": "collection-screen",
       "type": "registry:component",
       "title": "Collection screens",
-      "description": "Default list and record screens for a collection's generated get and list queries and its create and update commands, with a delivery-status column; replace them one route at a time.",
+      "description": "Default list and record screens for a collection's generated get and list queries and its create, update, move and retire commands, with a delivery-status column; replace them one route at a time.",
       "dependencies": [
         "@tanstack/react-query",
         "@tanstack/react-router",
@@ -86,6 +86,7 @@
       ],
       "registryDependencies": [
         "badge",
+        "button",
         "input",
         "@agent-native/capability-form",
         "@agent-native/live-data-table",
@@ -94,6 +95,29 @@
       "files": [
         {
           "path": "src/components/collection-screen.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "collection-tree",
+      "type": "registry:component",
+      "title": "Collection tree",
+      "description": "A tree collection depth first from its generated tree query, indented by depth, with a slot for per-record badges and actions, a search box over its list, and a form for its create command.",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@tanstack/react-router",
+        "@agent-native/contracts"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "@agent-native/capability-form",
+        "@agent-native/session"
+      ],
+      "files": [
+        {
+          "path": "src/components/collection-tree.tsx",
           "type": "registry:component"
         }
       ]
