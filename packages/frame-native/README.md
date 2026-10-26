@@ -13,7 +13,7 @@ Framework (`packages/*`). The mobile starter in `apps/mobile` renders `NativeFra
 - [OS handler](../../docs/primitives.md#os-handler): `OsDeliveries`, `OsDeliverySource`, `applyOsDelivery`, `usePreparedInput`, `PreparedInput`, `useShownProvenance`, `OsProvenanceNotice`, `ShownProvenance`, and `NativeApplicationScreens.resources`, the screen that shows each selectable resource kind.
 - [Feature](../../docs/primitives.md#feature): `defineFeatureNativeScreens`, `FeatureNativeScreens`. `defineNativeScreens({ manifest, features })` merges a feature's screens, tabs and capability screens before its checks.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginNativeScreens`, `PluginNativeScreens`, the same shape. `defineNativeScreens({ manifest, plugins })` merges plugin screens after feature screens.
-- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native-native` registry in [`registry.json`](registry.json): `native-theme`, `hold-button` with `useHold`, `status-pill` with `StatusPill` and `Signal`, and `list-row` with `ListRow`.
+- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native-native` registry in [`registry.json`](registry.json): `native-theme`, `hold-button` with `useHold`, `status-pill` with `StatusPill` and `Signal`, `list-row` with `ListRow`, `worklist-list` with `WorklistList`, and `worklist-sync` with `WorklistSync` and `SyncPill`.
 
 ## Entrypoints
 
@@ -26,7 +26,7 @@ Framework (`packages/*`). The mobile starter in `apps/mobile` renders `NativeFra
 | `@agent-native/frame-native/session`        | React Native | `SessionProvider`, `useSession`, `NativeSession`.                                                |
 | `@agent-native/frame-native/os-deliveries`  | React Native | `OsDeliveries`, `applyOsDelivery`, `usePreparedInput`, `useShownProvenance`.                     |
 | `@agent-native/frame-native/os-provenance`  | React Native | `OsProvenanceNotice`, `ShownProvenance`.                                                         |
-| `@agent-native/frame-native/components/*`   | React Native | Registry components: `hold-button`, `status-pill`, `list-row`.                                   |
+| `@agent-native/frame-native/components/*`   | React Native | Registry components: `hold-button`, `status-pill`, `list-row`, `worklist-list`, `worklist-sync`. |
 | `@agent-native/frame-native/theme.css`      | build time   | The native theme: signal colors for light and dark appearance, glove target and text sizes.      |
 
 ### Navigation and session
@@ -41,7 +41,7 @@ Screens read the session with `useSession()`. Web screens import it from `@/lib/
 
 `scripts/build-operator-registry.ts` generates `theme.css` from the operator registry's manifest, so a signal has the same color on a phone and at a station. Uniwind has no attribute selectors, so the native theme fixes the glove density instead of switching it. The starter's own palette (background, foreground, primary, muted, border) is in `apps/mobile/global.css`.
 
-The components import only `react`, `react-native`, `uniwind` and `lucide-react-native`. They never import each other or an `@/` path, so each pulls into an application as one file. `useHold` repeats the operator registry's `usePressAndHold` rules on React Native press events. Lifting early or sliding off aborts, and the finger must lift before the button can confirm again. Screen readers activate the button directly.
+The components import only `react`, `react-native`, `uniwind` and `lucide-react-native`. They never import an `@/` path. `worklist-list` and `worklist-sync` import `list-row` and `status-pill` by relative path and list them in `registryDependencies`, so shadcn adds them to the same folder; every other component is one file. `useHold` repeats the operator registry's `usePressAndHold` rules on React Native press events. Lifting early or sliding off aborts, and the finger must lift before the button can confirm again. Screen readers activate the button directly.
 
 Build the registry into `dist/registry/native`:
 

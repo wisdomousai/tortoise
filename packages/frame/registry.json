@@ -164,6 +164,70 @@
       ]
     },
     {
+      "name": "assignment-board",
+      "type": "registry:component",
+      "title": "Assignment board",
+      "description": "Assignments, live, with stage, assignee and report counts; a form per kind that creates a draft or sends at once, with a slot for the scope editor; and Send, Withdraw and Close where the stage allows them.",
+      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "registryDependencies": [
+        "badge",
+        "button",
+        "input",
+        "label",
+        "native-select",
+        "textarea",
+        "@agent-native/session"
+      ],
+      "files": [
+        {
+          "path": "src/components/assignment-board.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "assignment-reports",
+      "type": "registry:component",
+      "title": "Assignment reports",
+      "description": "Reports, live, with body, reporter and review state; place a report on a subject, discard it, or accept it with the reviewer's input, with slots for the body view and the accept form.",
+      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "registryDependencies": [
+        "badge",
+        "button",
+        "input",
+        "@agent-native/capability-form",
+        "@agent-native/session"
+      ],
+      "files": [
+        {
+          "path": "src/components/assignment-reports.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "my-assignments",
+      "type": "registry:component",
+      "title": "My assignments",
+      "description": "The assignments sent to the signed-in person, live, each with its brief, a report form generated from the kind's report or the application's own, and Done.",
+      "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
+      "registryDependencies": [
+        "button",
+        "input",
+        "label",
+        "native-select",
+        "textarea",
+        "@agent-native/capability-form",
+        "@agent-native/session"
+      ],
+      "files": [
+        {
+          "path": "src/components/my-assignments.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "run-panel",
       "type": "registry:component",
       "title": "Agent run panel",
@@ -185,7 +249,7 @@
       "name": "command-palette",
       "type": "registry:component",
       "title": "Capability palette",
-      "description": "\u2318K palette over the discovered contract: the human mirror of an agent's tool list.",
+      "description": "⌘K palette over the discovered contract: the human mirror of an agent's tool list.",
       "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "cmdk"],
       "registryDependencies": [
         "command",
@@ -303,7 +367,7 @@
       "name": "app-shell",
       "type": "registry:component",
       "title": "App shell",
-      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (\u2318K); a bar and menu sheet on a narrow viewport. Exports NavigationCount, SidebarSection and SidebarLink.",
+      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (⌘K); a bar and menu sheet on a narrow viewport. Exports NavigationCount, SidebarSection and SidebarLink.",
       "dependencies": ["@tanstack/react-router", "lucide-react"],
       "registryDependencies": [
         "kbd",

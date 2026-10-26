@@ -23,7 +23,12 @@
       "description": "Full-width glove-sized button that confirms after a hold, with a fill bar; lifting or sliding off aborts. Exports useHold for custom controls.",
       "dependencies": ["uniwind"],
       "registryDependencies": ["@agent-native-native/native-theme"],
-      "files": [{ "path": "src/components/hold-button.tsx", "type": "registry:component" }]
+      "files": [
+        {
+          "path": "src/components/hold-button.tsx",
+          "type": "registry:component"
+        }
+      ]
     },
     {
       "name": "status-pill",
@@ -32,7 +37,12 @@
       "description": "A station signal (ok, pending, attention, fault, idle) as icon plus word.",
       "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
       "registryDependencies": ["@agent-native-native/native-theme"],
-      "files": [{ "path": "src/components/status-pill.tsx", "type": "registry:component" }]
+      "files": [
+        {
+          "path": "src/components/status-pill.tsx",
+          "type": "registry:component"
+        }
+      ]
     },
     {
       "name": "list-row",
@@ -41,7 +51,48 @@
       "description": "A glove-sized pressable list row with a wrapping title, a detail line and a trailing slot.",
       "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
       "registryDependencies": ["@agent-native-native/native-theme"],
-      "files": [{ "path": "src/components/list-row.tsx", "type": "registry:component" }]
+      "files": [
+        {
+          "path": "src/components/list-row.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "worklist-list",
+      "type": "registry:component",
+      "title": "Worklist list",
+      "description": "A worklist's assignments, open ones first, as glove-sized rows with the report count and where each stands: done and waiting for the issuer, done, done refused with the reason, or closed by the issuer.",
+      "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
+      "registryDependencies": [
+        "@agent-native-native/native-theme",
+        "@agent-native-native/list-row",
+        "@agent-native-native/status-pill"
+      ],
+      "files": [
+        {
+          "path": "src/components/worklist-list.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "worklist-sync",
+      "type": "registry:component",
+      "title": "Worklist sync",
+      "description": "A worklist target's counts of reports and done marks waiting, taken and refused, when assignments last arrived, and every report with its state and the issuer's reason for a refusal.",
+      "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
+      "registryDependencies": [
+        "@agent-native-native/native-theme",
+        "@agent-native-native/list-row",
+        "@agent-native-native/status-pill"
+      ],
+      "files": [
+        {
+          "path": "src/components/worklist-sync.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }
