@@ -26,7 +26,7 @@ export interface ApprovalDatasetRow {
   readonly operation: string;
   readonly input: unknown;
   readonly rationale: string;
-  readonly outcome: 'accepted' | 'rejected' | 'expired';
+  readonly outcome: 'approved' | 'rejected' | 'expired';
   readonly reason?: string;
   readonly confidence?: number;
   /** The requester's own label for its model; the run's recorded identity is the trusted one. */
