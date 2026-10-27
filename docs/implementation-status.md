@@ -192,7 +192,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 - **field-service:** live updates from an external MCP process, drafts that keep their base revision, and paging past the first page.
 - **quality-inspection:** keyboard-only capture, and a draft that keeps its sample when another caller records it first.
-- **crm-capture:** search, follow and log.
+- **crm-capture:** search, follow and log. On 27 October 2026, `bun run dev:web` in Chrome on macOS: after Acme Robotics was followed, the sidebar counted the follow effect and the requested account as waiting. Once the feed delivered the account, it showed as following and the sidebar showed the CRM in sync.
 - **review:** on 27 October 2026, `bun run dev:web` in Chrome on macOS. As the local owner, an approval of the request `dev.ts` submitted as a second technician showed live. After a method change it was marked as on an earlier revision, and the owner signed the new revision. A second signature of that revision and a signature of the owner's own request were refused with their messages.
 - **signals:** on 27 October 2026, `bun run dev:web` in Chrome on macOS, against the plant stand-in that `dev.ts` starts. A test request placed in chamber 2 showed the chamber's temperature from OPC UA and humidity from Sparkplug B, updating live. When the humidity drifted to 64.7 % RH, the chambers screen marked chamber 2 out of tolerance while chamber 1 stayed conditioned. The audit log recorded the egress to both destinations.
 
@@ -255,9 +255,11 @@ On 27 October 2026, `showcase/patterns/local-model` ran with `bun run dev:web` i
 
 ### Peer applications
 
+**By hand, browser.** On 27 October 2026, receiving and quality-inspection ran with `bun run dev:web` in Chrome on macOS, on loopback. Receiving's site policy bound the three ERP folders to temporary directories and `quality-peer` to quality-inspection's address. An enrollment code from quality-inspection's Peers screen, entered for `quality` on receiving's Peers screen, connected the pair. Posting the goods receipt of a notice line marked for inspection sent an inspection request, which showed on the Inspection requests screen as requested by receiving's service principal. Closed there as accepted, it showed as passed on receiving's Quality screen after the next outcome import.
+
 **Not shown.**
 
-- **Live:** receiving and quality-inspection have connected only in the two-host tests on loopback. Nobody has connected them through `bun run dev` and the Peers screens. Only the two assignment patterns have connected that way ([assignments](#assignments)), and no pair has run across two machines.
+- **Live:** no pair has run across two machines. Besides receiving and quality-inspection, only the two assignment patterns have connected through `bun run dev` and the Peers screens ([assignments](#assignments)).
 - **Browser:** no browser test opens the Peers screen.
 - **Mobile:** the field application's drift check has run only under Bun, not in a Hermes build.
 
@@ -395,6 +397,8 @@ Control mappings are indicative.
 - A reminder asked for in the page shows as waiting for the desktop or phone application.
 - The web manifest lists the New task shortcut. Its launch page shows an empty prefilled task opened from a shortcut.
 - Open map opens the OpenStreetMap search for the site in a new browsing context without an opener. The test serves that URL locally. Send summary passes the work order's title and summary text to `navigator.share`, which the test replaces with a recorder.
+
+**By hand, browser.** On 27 October 2026, field-service ran with `bun run dev:web` in Chrome on macOS. A top-level cross-site navigation to `/?os=` with the link of a task in another work order was served the launch page. It opened that task's work order with "Opened from a link" and cleared the address.
 
 **Not shown.** Nothing has been registered with, received from or performed through a real OS.
 
