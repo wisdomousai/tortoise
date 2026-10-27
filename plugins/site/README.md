@@ -43,6 +43,7 @@ Data lives in `var/lib/agent-native/<app>`, outside every release, so switching 
 | `@agent-native/site/cidr`            | server only        | CIDR parsing and address checks, shared with the network plugin's guard.                           |
 | `@agent-native/site/policy-file`     | server only        | `sitePolicyFor` and `policyErrors`, which offline CLI verbs of other plugins use to read a policy. |
 | `@agent-native/site/cli`             | server only        | `site check`, the install verbs and `POLICY_REJECTED_EXIT_CODE`.                                   |
+| `@agent-native/site/testing` | server (tests, development) | `createIdentityProvider` and `startIdentityProvider`: a stand-in OpenID Connect provider for workforce sign-in. |
 
 What the plugin does at each lifecycle hook:
 
@@ -85,6 +86,8 @@ Workforce sign-in is a public OpenID Connect client with PKCE (S256):
 - The session token is the plugin's own. It goes only into an `HttpOnly; SameSite=Strict` cookie, `Secure` on HTTPS.
 - The token is offered only to `authenticateCookie`, never to `authenticate`, so a device's bearer credential never works from a cookie.
 - Sign-out checks the Origin itself, because public routes run before the host's origin check.
+
+`startIdentityProvider` in `@agent-native/site/testing` stands in for the provider in tests and development launches. It serves discovery, its keys, a page that signs in one of the configured people, and the token endpoint with the PKCE check. It serves one client and redirects only to loopback. It is never part of a deployment.
 
 ### Install verbs
 
@@ -160,6 +163,8 @@ With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the ins
 - a one-use state, sign-out and session expiry;
 - refusals for another audience, an unverified email and a discovery document naming another issuer;
 - which callers `external` admits.
+
+`test/identity-provider.test.ts` signs in through the same routes against the stand-in provider, called in process. It covers the sign-in page and the principal, and refusals for an unknown person, a redirect off loopback and a code spent by a wrong verifier.
 
 ## Skills
 

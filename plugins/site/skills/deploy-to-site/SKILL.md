@@ -25,6 +25,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
    - `ca` or `certificatePins` where required;
    - `audit`;
    - `identity`, either `grant-file` or `external` with `workforce` for [workforce sign-in](../../../../docs/glossary.md#workforce-sign-in);
+     Bind `workforce-idp` to the provider's `https` origin. Before a real provider is configured, `startIdentityProvider` from `@agent-native/site/testing` stands in for it with a certificate the binding's `ca` trusts;
    - `grants.maxTtlSeconds`;
    - the listener for TLS or mTLS.
 2. In connected mode, bind or explicitly disable every required destination.

@@ -4086,7 +4086,12 @@
     "./src/policy resolveSitePolicy",
     "./src/policy sitePolicySchema",
     "./src/policy-file policyErrors",
-    "./src/policy-file sitePolicyFor"
+    "./src/policy-file sitePolicyFor",
+    "./src/testing IdentityProvider",
+    "./src/testing IdentityProviderOptions",
+    "./src/testing StandInPerson",
+    "./src/testing createIdentityProvider",
+    "./src/testing startIdentityProvider"
   ],
   "plugins/telemetry": [
     ". TELEMETRY_DESTINATION",
