@@ -13,7 +13,7 @@ import {
 /**
  * The activation gate for a local model: before a new base model or fine-tune may serve, it
  * runs the agent scenarios of the definitions it would serve, and its results are compared with
- * the model it replaces, as the golden-frame gate does for station extractors. The result is a
+ * the model it replaces, as the golden test does for station extractors. The result is a
  * `ModelActivation` that a managed model server checks against the digests it measures.
  */
 export interface ModelGateOptions {
