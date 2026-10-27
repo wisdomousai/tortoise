@@ -237,7 +237,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md)
 
 _Work handed to a person, an agent, a paired device, a peer application or a target, with a brief, and the structured reports the assignee sends back for a person to accept or discard. The `assignment` feature keeps assignments and reports._
 
-implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame`](../packages/frame/README.md) [`showcase/examples/asset-survey`](../showcase/examples/asset-survey/README.md)
+implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame`](../packages/frame/README.md) [`showcase/patterns/assignments`](../showcase/patterns/assignments/README.md) [`showcase/examples/asset-survey`](../showcase/examples/asset-survey/README.md)
 
 ### Trigger
 
@@ -341,7 +341,7 @@ partial · [`plugins/peer-link`](../plugins/peer-link/README.md) [`packages/inte
 
 _The assignee side of assignments in another application: the open assignments from the issuer's feed, and the reports and done marks recorded locally and delivered to the issuer through the outbox._
 
-implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`showcase/examples/asset-survey-field`](../showcase/examples/asset-survey-field/README.md)
+implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`showcase/patterns/worklist`](../showcase/patterns/worklist/README.md) [`showcase/examples/asset-survey-field`](../showcase/examples/asset-survey-field/README.md)
 
 ### Remote query
 

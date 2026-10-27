@@ -275,9 +275,11 @@ On 27 October 2026, `showcase/patterns/local-model` ran with `bun run dev:web` i
 
 ### Assignments
 
+**Shown, browser.** On 27 October 2026, `showcase/patterns/assignments/e2e/rounds.pw.ts` ran person assignees in headless Chromium against the real host, from picking a round's transformers to linking an unlinked report and accepting samples into test requests. `showcase/patterns/worklist/e2e/worklist.pw.ts` ran a peer assignee between two hosts, from the enrollment code to accepting the field crew's sample.
+
 **Not shown.**
 
-- **Browser:** no pattern runs person, agent or peer assignees. The notes applications that ran them by hand and in Playwright on 27 October 2026 were left out when the content moved to test requests, and have not been rebuilt there. The asset survey's screens have not run assignments in a browser.
+- **Browser:** no pattern has an agent assignee, because the sampling kind takes people and peers only. The asset survey's screens have not run assignments in a browser.
 - **Agent:** an agent assignee has run only with the deterministic harness (`packages/assignments/test/assignees.test.ts`). No model has read a brief and reported.
 - **Target:** an assignment target has run only in tests, against a function port.
 - **Screens:** an application that fills no slots still shows the brief as JSON and takes the scope and a report's subject as typed record keys.

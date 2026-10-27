@@ -1,0 +1,7 @@
+{
+  "profile": "desktop-local",
+  "audit": { "mode": "best-effort" },
+  "destinations": {
+    "lab-peer": { "url": "http://127.0.0.1:4362", "addresses": ["127.0.0.1/32"] }
+  }
+}
