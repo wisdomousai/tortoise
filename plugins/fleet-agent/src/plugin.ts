@@ -139,6 +139,7 @@ export function createFleetAgentPlugin(options: FleetAgentOptions = {}) {
             ...(status.staged
               ? { staged: { release: status.staged.release, version: status.staged.version } }
               : {}),
+            ...(context.build?.bestBefore ? { bestBefore: context.build.bestBefore } : {}),
           });
           await fleet.command(
             fleetSiteOperations.report.id,

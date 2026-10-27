@@ -80,6 +80,8 @@ No public release has been made. The entries use these kinds of evidence:
 
 **By hand, 17 October 2026.** A rerun after the bundle began writing its contract, security manifest and SBOM from the catalog. The signature verified, and `admit` listed the requirements to approve.
 
+**By hand, 27 October 2026.** `bun run bundle create` signed the [best-before date](glossary.md#best-before-date) 2027-04-25 into a project-tasks bundle with a shelf life of 180 days, and `verify` printed it.
+
 **Not shown.**
 
 - `site install` consumes a bundle ([site install](#site-install)), but nothing verifies one again at launch.
@@ -91,11 +93,23 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Added, not yet run.** The `site-install` CI job on Ubuntu runs `plugins/site/test/install.test.ts`. It applies `systemd-analyze verify` to the unit and `nft -c -f` to the rules.
 
+**By hand, 27 October 2026.** On macOS arm64, `site install` placed that project-tasks bundle in a staged prefix with `--service none` and an approval of its requirements. `site status` reported the release verified, with its best-before date. `site uninstall --purge --trust` ran the installed release's `drain` and then removed the release, configuration and data directories.
+
 **Not shown.**
 
 - No `--apply` run has loaded a service or firewall on a real host, on Linux or Windows.
 - The Windows path (WinSW XML, Windows Firewall script) has only been rendered, never run.
 - No kiosk client mode exists.
+- No purge has run against a service with undelivered effects on a real host.
+
+### Application lifecycle
+
+**By hand, 27 October 2026.** A project-tasks CLI compiled with a build time of 1 January 2026 served with a best-before date of 30 June 2026. In headless Chromium the web frame showed the date in the status box and the notice that the date has passed. `project create` committed, and `compliance report` on the instance's audit log reported the `best-before` check as `warn` and exited 0.
+
+**Not shown.**
+
+- No Playwright spec covers the frame's best-before notice.
+- No fleet has received a best-before date from a site across a real network.
 
 ### Workforce sign-in
 

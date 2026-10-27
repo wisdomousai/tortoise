@@ -495,9 +495,15 @@ _A signed, versioned package with declared requirements and staged activation. A
 
 partial · [`packages/bundle`](../packages/bundle/README.md) [`scripts/bundle.ts`](../scripts/bundle.ts) [`plugins/site/src/install`](../plugins/site/src/install)
 
+### Shelf life
+
+_The days each build stays within its best-before date. The manifest declares it, the build stamps the build time, and a site bundle signs the date. Hosts, site status, posture and fleet health show it, and nothing is refused after it._
+
+implemented · [`packages/kernel/src/build.ts`](../packages/kernel/src/build.ts) [`packages/bundle`](../packages/bundle/README.md) [`plugins/site/src/install`](../plugins/site/src/install) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/frame`](../packages/frame/README.md)
+
 ### Fleet agent
 
-_A site's outbound-only link to a fleet: health reports with the outbox backlog by target, audit forwarding, verified release staging and a remote-access relay that adds no credential._
+_A site's outbound-only link to a fleet: health reports with the outbox backlog by target and the build's best-before date, audit forwarding, verified release staging and a remote-access relay that adds no credential._
 
 partial · [`plugins/fleet-agent`](../plugins/fleet-agent/README.md)
 

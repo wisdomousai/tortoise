@@ -37,6 +37,8 @@ export const siteSchema = z.strictObject({
   auditBroken: z.string().max(200).optional(),
   /** The release the site staged, by fleet release ID. */
   staged: z.string().max(128).optional(),
+  /** The best-before date of the build the site runs, as it reported it. */
+  bestBefore: siteReportSchema.shape.bestBefore,
 });
 export type Site = z.output<typeof siteSchema>;
 
@@ -53,7 +55,14 @@ export const healthSchema = z.strictObject({
   issues: z.array(
     z.strictObject({
       site: recordKeySchema,
-      kind: z.enum(['stale', 'held', 'audit-broken', 'audit-behind', 'release-drift']),
+      kind: z.enum([
+        'stale',
+        'held',
+        'audit-broken',
+        'audit-behind',
+        'release-drift',
+        'past-best-before',
+      ]),
       detail: z.string().max(200),
     }),
   ),
@@ -88,11 +97,23 @@ export const siteOperations = {
     dependencies: ['site', 'channel'],
     ui: { binding: 'site.update' },
   }),
+  siteRemove: defineCapability({
+    id: 'site.remove',
+    kind: 'command',
+    description:
+      'Remove a decommissioned site: its record and its remote-access requests. The audit events it forwarded stay. Revoke its device link first, or its next report adds it again. People only, operators only.',
+    input: jsonSchema(z.strictObject({ id: recordKeySchema })),
+    output: jsonSchema(z.strictObject({ removed: z.boolean() })),
+    permission: { action: 'write', resourceType: 'Site' },
+    dependencies: ['site', 'relay'],
+    ui: { binding: 'site.remove' },
+    audit: { fields: ['id'] },
+  }),
   fleetHealth: defineCapability({
     id: 'fleet.health',
     kind: 'query',
     description:
-      'Sites that need a look: not reported for 15 minutes, effects held for reconciliation, a broken audit chain, audit forwarding far behind, or a staged release other than its channel’s.',
+      'Sites that need a look: not reported for 15 minutes, effects held for reconciliation, a broken audit chain, audit forwarding far behind, a staged release other than its channel’s, or a build past its best-before date.',
     input: jsonSchema(z.strictObject({})),
     output: jsonSchema(healthSchema),
     permission: { action: 'read', resourceType: 'Site' },

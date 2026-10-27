@@ -16,6 +16,7 @@ import { fleetNetworkFixture } from '@agent-native/fleet-agent/testing';
 import { defineApplication } from '@agent-native/host/application';
 import { startHost } from '@agent-native/host/host';
 import { defineManifest } from '@agent-native/host/manifest';
+import { stampBuild } from '@agent-native/kernel/build';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
 import { createHandlerFactory } from '@agent-native/runtime';
 import { sitePlugin } from '@agent-native/site/plugin';
@@ -62,11 +63,13 @@ const bind = createHandlerFactory<PlantState, unknown>();
 
 export const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
 
-function plantApplication(network: ReturnType<typeof fleetNetworkFixture>) {
-  return defineApplication<PlantState>({
+/** The plant as a built binary would run it: a 30-day shelf life from `builtAt`. */
+function plantApplication(network: ReturnType<typeof fleetNetworkFixture>, builtAt: string) {
+  const definition = defineApplication<PlantState>({
     manifest: defineManifest({
       id: 'plant',
       title: 'Plant',
+      shelfLifeDays: 30,
       modules: [defineModule({ id: 'notes', capabilities: [noteAdd, noteCount] })],
       components: [erp],
       plugins: [
@@ -105,6 +108,7 @@ function plantApplication(network: ReturnType<typeof fleetNetworkFixture>) {
       createFleetAgentPlugin({ intervalMs: 3_600_000, relayMs: 3_600_000 }),
     ],
   });
+  return stampBuild(definition, builtAt);
 }
 
 /**
@@ -114,7 +118,7 @@ function plantApplication(network: ReturnType<typeof fleetNetworkFixture>) {
  */
 export async function startPlant(
   reach: (url: URL, init?: RequestInit) => Promise<Response>,
-  settings: { code: string; trust?: string; relay?: boolean },
+  settings: { code: string; trust?: string; relay?: boolean; builtAt?: string },
 ) {
   const directory = await mkdtemp(join(tmpdir(), 'plant-'));
   const releases = join(directory, 'releases');
@@ -128,7 +132,8 @@ export async function startPlant(
     }),
   );
   const network = fleetNetworkFixture(reach);
-  const host = await startHost(plantApplication(network), {
+  const builtAt = settings.builtAt ?? new Date().toISOString();
+  const host = await startHost(plantApplication(network, builtAt), {
     workspacePath: join(directory, 'workspace'),
     integration: false,
     settings: {

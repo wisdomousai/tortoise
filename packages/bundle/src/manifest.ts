@@ -34,6 +34,11 @@ export interface BundleManifest {
   /** The platform the binary runs on, for example `linux-x64`. */
   readonly platform: string;
   readonly createdAt: string;
+  /**
+   * `YYYY-MM-DD`: the build date plus the application's shelf life, when it declares one. Signed
+   * with the rest, so a site shows it and cannot change it; nothing refuses a bundle past it.
+   */
+  readonly bestBefore?: string;
   /** Storage schema version the build writes; a site refuses one its storage cannot read. */
   readonly storageSchema: number;
   /** SHA-256 of the canonical catalog, so a site can tell builds of one contract apart. */
@@ -58,6 +63,11 @@ export function parseBundleManifest(value: unknown): BundleManifest {
   if (!isRecord(value) || value.format !== 1) throw new Error('Unsupported bundle format');
   for (const key of ['application', 'version', 'platform', 'createdAt'] as const)
     if (typeof value[key] !== 'string' || !value[key]) throw new Error(`Bundle ${key} is missing`);
+  if (
+    value.bestBefore !== undefined &&
+    (typeof value.bestBefore !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value.bestBefore))
+  )
+    throw new Error('Bundle best-before date is invalid');
   if (!Number.isInteger(value.storageSchema)) throw new Error('Bundle storage schema is missing');
   if (typeof value.catalogDigest !== 'string' || !digest.test(value.catalogDigest))
     throw new Error('Bundle catalog digest is invalid');

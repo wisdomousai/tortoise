@@ -27,6 +27,7 @@ export const guides: ReadonlyArray<readonly [file: string, text: string]> = [
   ['hardware-drivers', 'Hardware drivers'],
   ['agents', 'Agents'],
   ['hosting', 'Hosting'],
+  ['application-lifecycle', 'Application lifecycle'],
   ['providers', 'Providers'],
   ['security-and-compliance', 'Security and compliance'],
   ['desktop', 'Desktop'],

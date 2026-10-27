@@ -1,6 +1,7 @@
 import type { JsonValue } from '@agent-native/contracts';
 import type { ExecutionContext } from '@agent-native/runtime';
 import type { AnyApplicationDefinition, HostedApplication, Observer } from '../application';
+import { buildFacts } from '../build';
 import { deploymentCatalog } from '../components';
 import { assertPlatformSupports, scopedSecrets, type HostPlatform } from '../platform';
 import type { CredentialSource, HostPorts, PluginInstance, PluginStartContext } from '../plugin';
@@ -40,6 +41,7 @@ async function openEach(
   const manifest = definition.manifest;
   const { platform } = options;
   const catalog = deploymentCatalog(manifest, platform.components);
+  const build = buildFacts(manifest, definition.build);
   const services: Record<string, unknown> = {};
   const opened: Opened[] = [];
   const late = latePorts();
@@ -55,6 +57,7 @@ async function openEach(
             component: options.component,
             instance: options.instance,
             serving: options.serving,
+            ...(build ? { build } : {}),
             settings: settingsFor(plugin.manifest, settings),
             ...(platform.secrets
               ? { secrets: scopedSecrets(platform.secrets, options.workspacePath, id) }

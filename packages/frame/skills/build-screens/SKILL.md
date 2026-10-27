@@ -37,7 +37,7 @@ description: Build or change the web screens of an agent-native application, fea
 10. Never hand-edit the generated `registry.json` or `src/styles/operator.css`.
 11. Rebuild the frame registry with `bun run build:registry`.
 12. For framework capabilities, wrap the registry screen in an application screen that passes the capabilities and a `describe` label, as `examples/receiving/ui/reconcile.tsx` does. `approval-review` takes `approvalOperations`, and `reconciliation-review` takes `reconciliationOperations`.
-13. Change the starter's look in `apps/web`. A file at the same `src/` path as a frame file replaces it.
+13. Change the starter's look in `apps/web`. A file at the same `src/` path as a frame file replaces it. A replacement `app-shell` shows the build's [best-before date](../../../../docs/glossary.md#best-before-date) only if it calls `useBuild` from `@/lib/build`.
 14. Add stock primitives to `apps/web` with `shadcn add`. Keep domain screens in the application, never in the starter.
 15. For native screens, use `defineNativeScreens` from `packages/frame-native` and follow the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).
 

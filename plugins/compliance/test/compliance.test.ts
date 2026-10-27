@@ -403,6 +403,31 @@ describe('posture', () => {
     expect(check(notAfter + 1)).toMatchObject({ status: 'fail' });
     expect(assessPosture({ policy: withCertificate, now: notAfter + 1 }).status).toBe('failing');
   });
+
+  test('a build warns from 30 days before its best-before date and never fails for it', async () => {
+    const policy = await sandboxPolicy();
+    const check = (now: number, bestBefore?: string) =>
+      assessPosture({ policy, now, ...(bestBefore ? { bestBefore } : {}) }).checks.find(
+        (item) => item.id === 'best-before',
+      )!;
+    expect(check(10)).toMatchObject({ status: 'info' });
+    // The date is the last day the build is within its shelf life.
+    const lastDay = Date.UTC(2031, 0, 1);
+    expect(check(lastDay - 40 * 86_400_000, '2031-01-01')).toEqual({
+      id: 'best-before',
+      status: 'pass',
+      summary: 'Best before 2031-01-01',
+    });
+    expect(check(lastDay - 5 * 86_400_000, '2031-01-01')).toMatchObject({ status: 'warn' });
+    expect(check(lastDay + 86_400_000, '2031-01-01')).toEqual({
+      id: 'best-before',
+      status: 'warn',
+      summary: 'Past its best-before date of 2031-01-01',
+    });
+    expect(
+      assessPosture({ policy, now: lastDay + 86_400_000, bestBefore: '2031-01-01' }).status,
+    ).not.toBe('failing');
+  });
 });
 
 /** A live log with denials, deep data and a monitor reading it, as the host wires it. */

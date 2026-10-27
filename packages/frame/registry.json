@@ -279,9 +279,10 @@
       "name": "app-shell",
       "type": "registry:component",
       "title": "App shell",
-      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (\u2318K); a bar and menu sheet on a narrow viewport. Exports NavigationCount, SidebarSection and SidebarLink.",
-      "dependencies": ["@tanstack/react-router", "lucide-react"],
+      "description": "Sidebar with the application's title, context, a section slot, navigation with count badges and a status slot, and the capability palette (\u2318K); a bar and menu sheet on a narrow viewport. Shows the build's best-before date, and a notice once it has passed. Exports NavigationCount, SidebarSection and SidebarLink.",
+      "dependencies": ["@tanstack/react-query", "@tanstack/react-router", "lucide-react"],
       "registryDependencies": [
+        "alert",
         "kbd",
         "@agent-native/command-palette",
         "@agent-native/native-dialog",
@@ -293,6 +294,14 @@
         {
           "path": "src/components/app-shell.tsx",
           "type": "registry:component"
+        },
+        {
+          "path": "src/lib/build.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "src/lib/host-client.ts",
+          "type": "registry:lib"
         }
       ]
     },

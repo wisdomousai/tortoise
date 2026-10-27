@@ -32,6 +32,7 @@ This section is advice; depart from it when the code is better for it, and say w
 - Move a domain concept into the framework when a second application needs it. Reusable UI ships as a shadcn registry built from stock primitives.
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.
+- An application serves one site's task for a limited time. Keep its code to the domain, deliver what it captures through a target, give the manifest a shelf life, and add no owner, term or renewal records.
 - Each workspace has a README saying what it is for, what it trusts, and how to run its tests. Comment the non-obvious: transaction and authorization ordering, trust boundaries, failure behavior.
 - When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and the known gaps; don't restate what tests prove.
 
@@ -59,6 +60,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Run agent tools in a sandbox: bubblewrap, grants, egress | [run-agent-tools-in-a-sandbox](plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) |
 | Serve a local or fine-tuned model: entries, digests, datasets, the gate | [serve-a-local-model](plugins/model-server/skills/serve-a-local-model/SKILL.md) |
 | Deploy to a site: policy, signed bundles, install | [deploy-to-site](plugins/site/skills/deploy-to-site/SKILL.md) |
+| Decommission an application: shelf life, drain, purge, fleet removal | [decommission-an-application](plugins/site/skills/decommission-an-application/SKILL.md) |
 | Run a hosted instance: Postgres storage, the workspace lease, TLS and workforce sign-in | [run-a-hosted-instance](packages/host/skills/run-a-hosted-instance/SKILL.md) |
 | Connect a site to a fleet: enrollment, reports, audit forwarding, release staging, relay | [connect-a-site-to-a-fleet](plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md) |
 | Export OpenTelemetry metrics and traces | [export-telemetry](plugins/telemetry/skills/export-telemetry/SKILL.md) |

@@ -6,6 +6,7 @@ import {
   readlink,
   rename,
   rm,
+  rmdir,
   symlink,
   writeFile,
 } from 'node:fs/promises';
@@ -21,13 +22,16 @@ import {
 import { ApplicationError } from '@agent-native/contracts';
 import type { ApplicationManifest } from '@agent-native/host/manifest';
 import { policyErrors, sitePolicyFor } from '../policy-file';
+import { pastBestBefore } from '@agent-native/kernel/build';
 import {
+  binaryOf,
   installLayout,
   type InstallLayout,
   type InstallRecord,
   type ServiceManager,
 } from './layout';
 import { loadCommands, nftTableOf, runCommand, stopCommands, unloadCommands } from './native';
+import { remainingEffects, undeliveredRefusal, type RemainingEffects } from './outbox';
 import { windowsServiceXml } from './windows';
 
 export interface InstallOptions {
@@ -52,13 +56,6 @@ async function readRecord(layout: InstallLayout): Promise<InstallRecord | undefi
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
     throw error;
   }
-}
-
-/** The one executable a bundle carries under `bin/`. */
-function binaryOf(bundle: BundleManifest): string {
-  const binaries = bundle.files.filter((file) => file.path.startsWith('bin/'));
-  if (binaries.length !== 1) throw refuse('A bundle must carry exactly one executable under bin/');
-  return binaries[0]!.path;
 }
 
 /**
@@ -155,7 +152,7 @@ export async function installBundle(
   await mkdir(layout.audit, { recursive: true, mode: 0o700 });
   await cp(options.policy, layout.policy);
   await chmod(layout.policy, 0o640);
-  const binaryPath = join('files', binaryOf(bundle));
+  const binaryPath = binaryOf(bundle);
   const binary = join(release, binaryPath);
   const generated = await renderService(layout, options, binary, join(layout.current, binaryPath));
   const firewallTable =
@@ -191,7 +188,8 @@ export async function installBundle(
 
 /**
  * `site status`: the install record, the release `current` points at, and whether that release
- * still verifies against the trusted keys (a changed file on disk shows here).
+ * still verifies against the trusted keys (a changed file on disk shows here). A verified release
+ * that carries a best-before date reports it and whether it has passed; nothing is refused for it.
  */
 export async function installStatus(
   manifest: ApplicationManifest,
@@ -202,48 +200,84 @@ export async function installStatus(
   const record = await readRecord(layout);
   if (!record) return { installed: false as const, application: manifest.id };
   const current = await readlink(layout.current).catch(() => undefined);
-  let verified = true;
+  let bundle: BundleManifest | undefined;
   let refusal: string | undefined;
   try {
     if (current !== layout.release(record.version))
       throw new Error('current is not the recorded release');
-    await verifyBundle(current, trusted);
+    bundle = await verifyBundle(current, trusted);
   } catch (error) {
-    verified = false;
     refusal = (error as Error).message;
   }
   return {
     installed: true as const,
     ...record,
     current,
-    verified,
+    verified: bundle !== undefined,
     ...(refusal ? { refusal } : {}),
+    ...(bundle?.bestBefore
+      ? { bestBefore: bundle.bestBefore, pastBestBefore: pastBestBefore(bundle.bestBefore) }
+      : {}),
   };
+}
+
+export interface UninstallOptions {
+  readonly prefix: string;
+  /** Stop and unregister the service and remove its firewall rules. */
+  readonly apply: boolean;
+  /** Delete the data directory too: the workspace, the audit log and the record. */
+  readonly purge: boolean;
+  /** Purge even when the outbox still holds effects; the result lists what was deleted. */
+  readonly discardUndelivered?: boolean;
+  /** Keys the installed release must verify against before a purge runs its `drain`. */
+  readonly trusted?: readonly TrustedKey[];
 }
 
 /**
  * `site uninstall`: with `apply`, stop and unregister the service and remove its firewall rules;
  * then remove the releases, `current`, the configuration and the record. The workspace and the
  * audit log stay unless `purge` is set, so uninstalling never deletes business records by default.
+ *
+ * Before a purge, the installed release drains the outbox (see `remainingEffects`), after the
+ * service is stopped and before anything is removed. Effects that are still pending, held or
+ * awaiting the target's decision exist only in the workspace, so the purge is refused while any
+ * remain, unless `discardUndelivered` is set. A refusal leaves every file in place; with `apply`
+ * the service stays stopped.
  */
-export async function uninstall(
-  manifest: ApplicationManifest,
-  options: { readonly prefix: string; readonly apply: boolean; readonly purge: boolean },
-) {
+export async function uninstall(manifest: ApplicationManifest, options: UninstallOptions) {
   const layout = installLayout(options.prefix, manifest.id);
   const record = await readRecord(layout);
   if (!record) return { removed: false, application: manifest.id };
+  if (options.discardUndelivered && !options.purge)
+    throw new ApplicationError('INVALID_INPUT', '--discard-undelivered applies only with --purge');
+  if (options.purge && !options.trusted)
+    throw new ApplicationError(
+      'INVALID_INPUT',
+      '--trust is required with --purge, to verify the release that reads the outbox',
+    );
   if (options.apply)
-    for (const command of [
-      ...stopCommands(layout, record.service),
-      ...unloadCommands(layout, record.service, record.firewallTable),
-    ])
+    for (const command of stopCommands(layout, record.service)) runCommand(command);
+  let discarded: RemainingEffects[] = [];
+  if (options.purge) {
+    const remaining = await remainingEffects(manifest, layout, record, options.trusted!);
+    if (remaining.length && !options.discardUndelivered) throw undeliveredRefusal(remaining);
+    discarded = remaining;
+  }
+  if (options.apply)
+    for (const command of unloadCommands(layout, record.service, record.firewallTable))
       runCommand(command);
   for (const file of record.generated) await rm(file, { force: true });
   await rm(layout.current, { force: true });
   await rm(layout.releases, { recursive: true, force: true });
+  // Only when empty: a file someone else put there stays.
+  await rmdir(dirname(layout.releases)).catch(() => undefined);
   await rm(layout.config, { recursive: true, force: true });
   await rm(layout.record, { force: true });
   if (options.purge) await rm(layout.data, { recursive: true, force: true });
-  return { removed: true, application: manifest.id, purged: options.purge };
+  return {
+    removed: true,
+    application: manifest.id,
+    purged: options.purge,
+    ...(discarded.length ? { discarded } : {}),
+  };
 }

@@ -21,6 +21,14 @@ export {
   type ApplicationTarget,
 } from './manifest';
 export {
+  bestBeforeDate,
+  buildFacts,
+  pastBestBefore,
+  stampBuild,
+  type BuildFacts,
+  type BuildStamp,
+} from './build';
+export {
   checkFeature,
   defineFeature,
   mountFeature,

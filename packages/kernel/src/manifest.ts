@@ -57,6 +57,12 @@ export interface ApplicationManifest<
    * plugins' config plugins. Only for an application that targets mobile. Pure data.
    */
   readonly expoPlugins?: readonly ExpoPluginEntry[];
+  /**
+   * Days a build of the application is expected to serve its task. Each build's best-before date
+   * is its build date plus this; hosts, site status, compliance posture and the fleet show it, and
+   * nothing is refused after it. Absent: builds carry no best-before date.
+   */
+  readonly shelfLifeDays?: number;
 }
 
 /** One Expo config plugin by module specifier, with the options Expo passes it at prebuild. */
@@ -89,6 +95,9 @@ export function defineManifest<
 > {
   if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(manifest.id))
     throw new Error(`Invalid application id "${manifest.id}"`);
+  const { shelfLifeDays } = manifest;
+  if (shelfLifeDays !== undefined && !(Number.isSafeInteger(shelfLifeDays) && shelfLifeDays > 0))
+    throw new Error(`Shelf life of "${manifest.id}" must be a positive whole number of days`);
   const features: readonly FeatureManifest[] = manifest.features ?? [];
   const plugins: readonly PluginManifest[] = manifest.plugins ?? [];
   checkUnitIds(features, plugins);

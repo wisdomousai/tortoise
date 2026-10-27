@@ -3,7 +3,7 @@
 This package creates and checks the [site bundle](../../docs/glossary.md#site-bundle): one signed, versioned artifact per application and platform, checked before a [site](../../docs/glossary.md#site) installs it. A bundle is a directory with three parts:
 
 - `files/` holds the payload: the compiled binary, the web build, the generated security manifest and contract, and an SBOM written from the lockfile when the bundle is created.
-- `bundle.json` lists every file with its SHA-256 and size. It also names the application, version, platform, storage schema, catalog digest and declared requirements.
+- `bundle.json` lists every file with its SHA-256 and size. It also names the application, version, platform, storage schema, catalog digest and declared requirements, and the [best-before date](../../docs/glossary.md#best-before-date) when the application has a shelf life.
 - `bundle.sig` is an Ed25519 signature over the canonical manifest.
 
 ## Layer
@@ -19,7 +19,7 @@ Framework (`packages/*`). Server only. It trusts only the keys a site lists and 
   - signing: `generateSigningKey`, `signManifest`, `verifyManifestSignature`, `SigningKey`, `TrustedKey`, `BundleSignature`;
   - admission: `admissionRefusals`, `requirementChanges`, `RequirementChange`, `requirementsDigest`, `SiteApproval`, `SiteTarget`.
 
-The root script `bun run bundle` (`scripts/bundle.ts`) works on the configured application with the verbs `keygen`, `create`, `verify` and `admit`. The script builds the security manifest, contract and SBOM from the catalog and lockfile at that moment. This package therefore never imports the compliance plugin.
+The root script `bun run bundle` (`scripts/bundle.ts`) works on the configured application with the verbs `keygen`, `create`, `verify` and `admit`. The script builds the security manifest, contract and SBOM from the catalog and lockfile at that moment. `create` stamps the binary and the bundle with one build time, so both carry the same best-before date, and `verify` prints the date. This package therefore never imports the compliance plugin.
 
 ## Entrypoints
 
@@ -34,7 +34,7 @@ The root script `bun run bundle` (`scripts/bundle.ts`) works on the configured a
 
 Nothing in a bundle is used before `verifyBundle` passes. The signature must come from a key the site lists. A key's ID is recomputed from its bytes, so a listing cannot pair a trusted ID with another key. The manifest is checked as signed. Then `files/` must hold exactly the listed files with the listed digests, and no extra file, link or special file.
 
-Paths are relative with no `..` segment.
+Paths are relative with no `..` segment. A best-before date is a signed `YYYY-MM-DD`; admission ignores it, so a bundle past its date installs like any other.
 
 ### Admission
 
@@ -66,10 +66,12 @@ bun test packages/bundle
 - another key, and a key listed under a foreign ID;
 - an added file, a replaced file and a changed manifest;
 - a link in the payload and a path that escapes;
-- another platform, an unreadable storage schema and another application.
+- another platform, an unreadable storage schema and another application;
+- a changed or malformed best-before date.
 
 It also requires an approval of the exact requirements for a first install or a widening.
 
 ## Skills
 
 - [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md): deployment policy, signed bundles and install.
+- [decommission-an-application](../../plugins/site/skills/decommission-an-application/SKILL.md): the best-before date a bundle carries, and removal.

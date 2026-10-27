@@ -17,6 +17,7 @@ const kinds: Record<string, string> = {
   'audit-broken': 'Audit chain broken',
   'audit-behind': 'Audit behind',
   'release-drift': 'Release drift',
+  'past-best-before': 'Past best-before date',
 };
 
 /** Every site that needs a look, and why. */

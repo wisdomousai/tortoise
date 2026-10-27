@@ -1,5 +1,6 @@
 import { mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
+import { buildFacts } from '@agent-native/kernel/build';
 import { bunPlatform } from './platform/bun';
 import {
   createHttpHandler,
@@ -192,10 +193,12 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       : undefined;
     let running: Running | undefined;
     const close = createClose(() => running!);
+    const build = buildFacts(definition.manifest, definition.build);
     const routes: HostRouteContext = {
       ...ui,
       ...agents,
       harnesses: options.harnesses,
+      ...(build ? { build } : {}),
       shutdown: { ownerSession, instance: ownership.instance, close },
     };
     const handler = createHttpHandler({
@@ -239,6 +242,8 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       services: instance.plugins.services,
       /** Facts each plugin reports for the `listening` record, keyed by plugin id. */
       plugins: instance.plugins.describe(),
+      /** When the binary was built and its best-before date; undefined for a run from source. */
+      build,
       supervisor: agents.supervisor,
       integrations: instance.integrations,
       close,

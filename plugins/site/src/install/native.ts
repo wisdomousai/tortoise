@@ -1,18 +1,28 @@
 import { ApplicationError } from '@agent-native/contracts';
 import type { InstallLayout, ServiceManager } from './layout';
 
+/** Run one command to completion and return its exit code and output, whatever it exited with. */
+export function spawnCommand(command: readonly string[]) {
+  const result = Bun.spawnSync([...command], { stdout: 'pipe', stderr: 'pipe' });
+  return {
+    exitCode: result.exitCode,
+    stdout: result.stdout.toString(),
+    stderr: result.stderr.toString(),
+  };
+}
+
 /**
  * Run one command to completion and return its standard output. A non-zero exit fails with the
  * command and its error output, which an operator reads to see what refused.
  */
 export function runCommand(command: readonly string[]): string {
-  const result = Bun.spawnSync([...command], { stdout: 'pipe', stderr: 'pipe' });
+  const result = spawnCommand(command);
   if (result.exitCode !== 0)
     throw new ApplicationError(
       'UNAVAILABLE',
-      `${command.join(' ')} exited with ${result.exitCode}: ${result.stderr.toString().trim()}`,
+      `${command.join(' ')} exited with ${result.exitCode}: ${result.stderr.trim()}`,
     );
-  return result.stdout.toString();
+  return result.stdout;
 }
 
 /** The nftables table a rendered rule file declares; reloading or removing it replaces it whole. */

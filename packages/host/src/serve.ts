@@ -32,6 +32,7 @@ export async function serve(
       connectionFile: host.connectionFile,
       ...(options.agentConnection ? { agentConnectionFile: options.agentConnection.path } : {}),
       instance: host.instance,
+      ...(host.build ? { build: host.build } : {}),
       plugins: host.plugins,
     }),
   );

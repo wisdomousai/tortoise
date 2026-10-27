@@ -37,7 +37,7 @@ Compose the plugin after the site plugin, the network plugin and, for audit forw
 ## Trust boundary
 
 - **Fleet outages.** The plugin writes nothing to the workspace. A failed cycle records its reason in `status().lastError`, and the site keeps committing and delivering while the fleet is unreachable.
-- **Reports.** The plugin reads the outbox with the host's trusted identity (`pendingEffects`). Only [effect](../../docs/glossary.md#effect) counts per target leave the site.
+- **Reports.** The plugin reads the outbox with the host's trusted identity (`pendingEffects`). Only [effect](../../docs/glossary.md#effect) counts per target leave the site, with the build's [best-before date](../../docs/glossary.md#best-before-date) from the open context when it has one. `examples/fleet/test/fleet.test.ts` covers the date reaching the fleet.
 - **Audit forwarding.** The site keeps no forwarding state and sends events unchanged, so the fleet can check the hash chain.
 - **Releases.** Each file is checked against the signed manifest as it arrives, and the whole bundle is verified with `verifyBundle` against `fleet-trust`. Only then is the temporary directory renamed into `fleet-releases/<release id>`.
 - **Activation.** Activation stays with the site operator's `site install`. The instance never replaces itself.

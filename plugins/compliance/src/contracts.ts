@@ -125,7 +125,7 @@ export const complianceOperations = {
     id: 'compliance.posture.get',
     kind: 'query',
     description:
-      'Read the current security posture: hardening profile, network mode, every declared destination with whether it is bound, disabled or isolated and how often it was used or denied, policy findings, audit-chain integrity and audit forwarding health. Use it to answer what this installation can reach and whether its audit trail is intact.',
+      'Read the current security posture: hardening profile, network mode, every declared destination with whether it is bound, disabled or isolated and how often it was used or denied, policy findings, audit-chain integrity, audit forwarding health and the running build’s best-before date. Use it to answer what this installation can reach and whether its audit trail is intact.',
     input: jsonSchema(z.strictObject({})),
     output: jsonSchema(postureSchema),
     permission: auditRead,

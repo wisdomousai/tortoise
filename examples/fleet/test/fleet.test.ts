@@ -42,7 +42,7 @@ async function startFleet() {
     ).result as Record<string, any>;
   const query = async (operation: string, input: unknown = {}) =>
     (await fleet.application.queryRaw({ operation, input }, owner)).data as Record<string, any>;
-  const plant = async (settings: { trust?: string; relay?: boolean } = {}) => {
+  const plant = async (settings: { trust?: string; relay?: boolean; builtAt?: string } = {}) => {
     const { code } = await command('link.enrollment.create', {
       label: 'Plant',
       kind: 'field-sync',
@@ -82,6 +82,53 @@ test('a site reports its outbox, and the health view flags held, stale and silen
   expect((await query('fleet.health')).issues).toEqual([
     expect.objectContaining({ site: site.id, kind: 'stale' }),
   ]);
+});
+
+test('a site reports its best-before date, and the health view flags a build past it', async () => {
+  const { clock, query, plant } = await startFleet();
+  // Built 40 days ago with a 30-day shelf life.
+  const builtAt = new Date(clock.now - 40 * 86_400_000).toISOString();
+  const site = await plant({ builtAt });
+  const { bestBefore } = await query('site.get', { id: site.id });
+  expect(bestBefore).toBe(
+    new Date(Date.parse(builtAt) + 30 * 86_400_000).toISOString().slice(0, 10),
+  );
+  expect((await query('fleet.health')).issues).toEqual([
+    {
+      site: site.id,
+      kind: 'past-best-before',
+      detail: `Runs a build past its best-before date of ${bestBefore}`,
+    },
+  ]);
+  // The site keeps reporting and its records keep flowing; the date only informs.
+  await site.addNote('still running');
+  await site.agent.sync();
+  expect(await query('site.get', { id: site.id })).toMatchObject({ pending: 1 });
+});
+
+test('an operator removes a decommissioned site, and its forwarded audit events stay', async () => {
+  const { command, query, plant } = await startFleet();
+  const site = await plant();
+  await site.addNote('audited');
+  await site.agent.sync();
+  await command('relay.request', {
+    site: site.id,
+    method: 'GET',
+    path: '/api/v1/queries/notes.count',
+  });
+  const forwarded = (await query('audit-event.list', { site: site.id, limit: 100 })).total;
+  expect(forwarded).toBeGreaterThan(0);
+  const devices = (await query('link.device.list')).devices as { id: string }[];
+  await command('link.device.revoke', { deviceId: devices.at(-1)!.id });
+
+  expect(await command('site.remove', { id: site.id })).toEqual({ removed: true });
+  expect((await query('site.list')).items).toEqual([]);
+  expect((await query('relay.list', { site: site.id })).items).toEqual([]);
+  expect((await query('fleet.health')).issues).toEqual([]);
+  expect((await query('audit-event.list', { site: site.id, limit: 100 })).total).toBe(forwarded);
+  // Its credential is revoked, so it does not report its way back.
+  await site.agent.sync();
+  expect((await query('site.list')).items).toEqual([]);
 });
 
 async function publish(

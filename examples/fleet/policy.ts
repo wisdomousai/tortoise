@@ -32,6 +32,8 @@ export const appPolicy = definePolicy<AppState, Role>({
     [operations.siteList.id]: 'open',
     [operations.siteGet.id]: 'open',
     [operations.siteUpdate.id]: operator,
+    // Removing a site is a person's act, like remote access.
+    [operations.siteRemove.id]: { ...operator, person: true },
     [operations.fleetHealth.id]: 'open',
     [operations.releaseList.id]: 'open',
     [operations.releaseGet.id]: 'open',

@@ -1,10 +1,12 @@
 import type { AuditRecord } from '@agent-native/contracts';
+import type { BuildFacts } from '@agent-native/kernel/build';
 import type { ResolvedPolicy } from '@agent-native/site/policy';
 
 /**
  * What is running: `config.loaded` carries the executable, catalog and policy digests so an
- * auditor can match this instance to the SBOM and manifest; `policy.loaded` lists the findings
- * and what isolation or unbound destinations disable.
+ * auditor can match this instance to the SBOM and manifest, and the build time and best-before
+ * date of a built binary; `policy.loaded` lists the findings and what isolation or unbound
+ * destinations disable.
  */
 export function attestationRecords(
   policy: ResolvedPolicy,
@@ -13,6 +15,7 @@ export function attestationRecords(
     readonly executableDigest: string;
     readonly catalogDigest: string;
     readonly forwardTo?: string;
+    readonly build?: BuildFacts;
   },
   extra: AuditRecord['data'],
 ): AuditRecord[] {
@@ -30,6 +33,8 @@ export function attestationRecords(
         networkMode: policy.mode,
         auditMode: policy.policy.audit.mode,
         ...(facts.forwardTo ? { auditForwardTo: facts.forwardTo } : {}),
+        ...(facts.build ? { builtAt: facts.build.builtAt } : {}),
+        ...(facts.build?.bestBefore ? { bestBefore: facts.build.bestBefore } : {}),
       },
     },
     {

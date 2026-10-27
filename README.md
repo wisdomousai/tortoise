@@ -1,6 +1,8 @@
 # Agent-native desktop starter
 
-A single-user application on the expert's own machine responds at once, works without a network, and composes with the other programs there, including the control software that runs equipment. Agent harnesses such as Claude Code and Codex run on the same machine and act through its CLIs and MCP servers. This repository is a reference architecture and [framework](docs/glossary.md#framework) for that paradigm. It provides reusable building blocks for agent-native, hyper-specialized applications for the edge workforce. People and agents operate each application together, and it delivers their work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES.
+Global process change is slow, so a site builds software for one task at one place. Such an application runs at the edge in two senses: at the last step before the physical work, and far from corporate IT governance, where software becomes shadow IT. It costs little to build, pays back quickly and is removed once it stops paying. A single-user application on the expert's own machine responds at once, works without a network, and composes with the other programs there, including the control software that runs equipment. Agent harnesses such as Claude Code and Codex run on the same machine and act through its CLIs and MCP servers.
+
+This repository is a reference architecture and [framework](docs/glossary.md#framework) for agent-native, hyper-specialized applications for the edge workforce. The framework is the part under active maintenance; each application built on it serves one task for a limited time. People and agents operate each application together. An application declares what it reaches, records what it does in an audit log and delivers its work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES. Each build carries a [best-before date](docs/glossary.md#best-before-date).
 
 ## Capabilities and surfaces
 
@@ -47,6 +49,8 @@ The framework includes ChatGPT plan connection code, Claude execution with an AP
 
 The framework is local-first. A [hosted instance](docs/hosting.md#hosted-instance) keeps its workspace in a shared Postgres database under a [workspace lease](docs/glossary.md#workspace-lease). Managed cloud hosting, multi-device synchronization, more than one application per instance, publication to a public registry and signed distribution are outside the framework.
 
+The site decides when an application is built, kept or removed. The framework records no owner, term or approval for an application, and a release past its best-before date keeps running.
+
 Each [storage](docs/glossary.md#storage) transaction receives the whole workspace state in memory, and the CPU time of a commit grows with that state (`packages/adapters/src/row-storage.ts`). A large application may need a storage design that does not load the whole workspace. The storage port imposes no record model on module state.
 
 ## Guides
@@ -64,6 +68,7 @@ Each [storage](docs/glossary.md#storage) transaction receives the whole workspac
 - [Hardware drivers](docs/hardware-drivers.md)
 - [Agents](docs/agents.md) and [providers](docs/providers.md)
 - [Hosting](docs/hosting.md)
+- [Application lifecycle](docs/application-lifecycle.md)
 - [Desktop](docs/desktop.md)
 - [Mobile](docs/mobile.md)
 - [Security and compliance](docs/security-and-compliance.md)

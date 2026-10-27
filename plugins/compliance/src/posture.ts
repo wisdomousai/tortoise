@@ -1,6 +1,7 @@
 import type { AuditEvent } from '@agent-native/contracts';
 import { judgeCertificates, type ResolvedPolicy } from '@agent-native/site/policy';
 import type { ForwardingStats, VerificationReport } from '@agent-native/event-log';
+import { pastBestBefore } from '@agent-native/kernel/build';
 import type { DestinationPosture, Posture, PostureCheck } from './contracts';
 
 /** Per-destination egress use, accumulated from `egress.*` audit events. */
@@ -34,6 +35,8 @@ export interface PostureInput {
   readonly forwarding?: ForwardingStats;
   readonly usage?: ReadonlyMap<string, EgressUsage>;
   readonly attestation?: { readonly catalogDigest?: string; readonly executableDigest?: string };
+  /** The running build's best-before date, `YYYY-MM-DD`, when it carries one. */
+  readonly bestBefore?: string;
   readonly now: number;
 }
 
@@ -76,6 +79,32 @@ function certificateCheck(policy: ResolvedPolicy, now: number): PostureCheck {
           status: 'pass',
           summary: `${policy.certificates.length} certificate(s) valid; the first expires ${new Date(soonest).toISOString().slice(0, 10)}`,
         };
+}
+
+/** A best-before date this close or closer turns its check to `warn`. */
+const BEST_BEFORE_WARNING_MS = 30 * 86_400_000;
+
+/**
+ * The build's best-before date, judged at the time of this check. A build past it, or within 30
+ * days of it, is a `warn` for a reviewer; it is never a `fail`, because nothing is refused for it.
+ */
+function bestBeforeCheck(bestBefore: string | undefined, now: number): PostureCheck {
+  if (!bestBefore)
+    return {
+      id: 'best-before',
+      status: 'info',
+      summary:
+        'This build has no best-before date: the application declares no shelf life, or runs from source',
+    };
+  if (pastBestBefore(bestBefore, now))
+    return {
+      id: 'best-before',
+      status: 'warn',
+      summary: `Past its best-before date of ${bestBefore}`,
+    };
+  return pastBestBefore(bestBefore, now + BEST_BEFORE_WARNING_MS)
+    ? { id: 'best-before', status: 'warn', summary: `Best before ${bestBefore}, within 30 days` }
+    : { id: 'best-before', status: 'pass', summary: `Best before ${bestBefore}` };
 }
 
 function auditChainCheck(verification: VerificationReport | undefined): PostureCheck {
@@ -209,6 +238,7 @@ export function assessPosture(input: PostureInput): Posture {
   const checks: PostureCheck[] = [
     policyCheck(policy),
     certificateCheck(policy, input.now),
+    bestBeforeCheck(input.bestBefore, input.now),
     auditChainCheck(verification),
     forwardingCheck(forwardTo, forwarding),
     ...egressChecks(policy, usage),

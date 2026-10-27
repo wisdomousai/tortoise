@@ -23,6 +23,7 @@ import { projectPlannerModule, projectTasksModule } from './contracts';
 export default defineManifest({
   id: 'project-tasks',
   title: 'Project tasks',
+  shelfLifeDays: 180,
   modules: [projectTasksModule, projectPlannerModule],
   features: [approvalFeatureManifest],
   plugins: [

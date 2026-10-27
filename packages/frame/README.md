@@ -21,6 +21,7 @@ Framework (`packages/*`). Browser code, plus a build-time Vite plugin. The frame
 - [Generator](../../docs/primitives.md#generator): the `frame` Vite plugin writes `icon.svg` and `manifest.webmanifest`, with the name, the icon, and the protocol handlers, file handlers and shortcuts from `webManifestOs`.
 - [Feature](../../docs/primitives.md#feature): `defineFeatureScreens`, `FeatureScreens`. `defineScreens({ manifest, features })` merges a feature's routes, navigation and capability screens before its checks.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginScreens`, `PluginScreens`, the same shape. `defineScreens({ manifest, plugins })` merges plugin screens after feature screens.
+- [Shelf life](../../docs/primitives.md#shelf-life): `useBuild` (`src/lib/build.ts`) reads `GET /api/v1/build` every hour. `app-shell` shows the build's best-before date under the status slot and, once the date has passed, a notice above the screen. Nothing is disabled.
 
 A worked `screens` entrypoint is [`examples/project-tasks/screens.tsx`](../../examples/project-tasks/screens.tsx).
 
@@ -33,7 +34,7 @@ A worked `screens` entrypoint is [`examples/project-tasks/screens.tsx`](../../ex
 | `@agent-native/frame/plugin-screens` | browser    | `definePluginScreens`, `PluginScreens`: a plugin's routes, navigation and capability screens.                           |
 | `@agent-native/frame/vite`           | build time | `frame({ appSource, configPath, outRoot })`: Vite plugins and the output directory `dist/web/<application id>`.         |
 | `@agent-native/frame/components/*`   | browser    | Registry components under `src/components/`, for example `run-panel` or `ui/native-dialog`.                             |
-| `@agent-native/frame/lib/*`          | browser    | `session` (transport, client, live bindings, query client), `ui-session`, `os-deliveries`, `os-browser`, `host-client`. |
+| `@agent-native/frame/lib/*`          | browser    | `session` (transport, client, live bindings, query client), `ui-session`, `os-deliveries`, `os-browser`, `host-client`, `build`. |
 
 Inside a Vite build that uses the plugin, frame files are imported through the `@/` alias exactly as they will be after `shadcn add`: `@/frame`, `@/launch`, `@/components/run-panel`, `@/lib/session`. The alias resolves against the starter's `src` first, then this package, then the operator registry. A starter file at the same path therefore replaces the frame's.
 
