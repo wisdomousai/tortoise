@@ -57,6 +57,7 @@
         "@agent-native/sample-lab-requests-host-plugin": "workspace:*",
         "@agent-native/sample-lab-requests-operations": "workspace:*",
         "@agent-native/sample-lab-requests-review": "workspace:*",
+        "@agent-native/sample-lab-requests-signals": "workspace:*",
         "@agent-native/sample-lab-requests-system-of-record": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
         "@agent-native/screen-bridge": "workspace:*",
@@ -819,6 +820,10 @@
       "name": "@agent-native/sample-lab-requests-review",
       "version": "0.1.0",
     },
+    "samples/lab-requests-signals": {
+      "name": "@agent-native/sample-lab-requests-signals",
+      "version": "0.1.0",
+    },
     "samples/lab-requests-system-of-record": {
       "name": "@agent-native/sample-lab-requests-system-of-record",
       "version": "0.1.0",
@@ -972,6 +977,8 @@
     "@agent-native/sample-lab-requests-operations": ["@agent-native/sample-lab-requests-operations@workspace:samples/lab-requests-operations"],
 
     "@agent-native/sample-lab-requests-review": ["@agent-native/sample-lab-requests-review@workspace:samples/lab-requests-review"],
+
+    "@agent-native/sample-lab-requests-signals": ["@agent-native/sample-lab-requests-signals@workspace:samples/lab-requests-signals"],
 
     "@agent-native/sample-lab-requests-system-of-record": ["@agent-native/sample-lab-requests-system-of-record@workspace:samples/lab-requests-system-of-record"],
 

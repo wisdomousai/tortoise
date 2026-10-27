@@ -19,7 +19,7 @@ Plugin layer, as a library without plugin entrypoints. `./contracts` is browser-
 | `@agent-native/connector-mqtt/client` | server | `createMqttSubscriber`: clean session, QoS 1 subscriptions, keep-alive, reconnect with backoff up to 60 seconds. |
 | `@agent-native/connector-mqtt/sparkplug` | server | `decodePayload`, `parseTopic`, `DataType` and `SparkplugState`. |
 | `@agent-native/connector-mqtt/observe` | server | `createMqttObserver`, `filtersFor`. |
-| `@agent-native/connector-mqtt/testing` | server (tests) | `FakeBroker`, `encodeSparkplug`, `matches`. |
+| `@agent-native/connector-mqtt/testing` | server (tests and development launches) | `FakeBroker` on a free or given loopback port, `encodeSparkplug`, `matches`. |
 
 `FakeBroker` is a loopback broker that records connects and anything published to it.
 

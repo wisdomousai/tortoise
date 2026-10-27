@@ -41,10 +41,11 @@ export class FakeOpcUaServer {
   private sessions = new Set<string>();
   private nextToken = 1;
 
-  start(): number {
+  /** Listen on 127.0.0.1 at `port`, a free one by default; returns the port. */
+  start(port = 0): number {
     this.listener = Bun.listen<{ buffer: Uint8Array }>({
       hostname: '127.0.0.1',
-      port: 0,
+      port,
       socket: {
         open: (socket) => {
           socket.data = { buffer: new Uint8Array(0) };

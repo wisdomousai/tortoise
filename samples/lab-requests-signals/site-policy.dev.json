@@ -1,0 +1,8 @@
+{
+  "profile": "desktop-local",
+  "audit": { "mode": "best-effort" },
+  "destinations": {
+    "chamber-gateway": { "url": "tcp://127.0.0.1:4374" },
+    "chamber-broker": { "url": "tcp://127.0.0.1:4373" }
+  }
+}

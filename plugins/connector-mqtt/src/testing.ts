@@ -87,10 +87,11 @@ export class FakeBroker {
   /** Refuse the next CONNECT with this return code. */
   refuseNext?: number;
 
-  start(): number {
+  /** Listen on 127.0.0.1 at `port`, a free one by default; returns the port. */
+  start(port = 0): number {
     this.listener = Bun.listen<{ reader: PacketReader; filters: string[] }>({
       hostname: '127.0.0.1',
-      port: 0,
+      port,
       socket: {
         open: (socket) => {
           socket.data = { reader: new PacketReader(), filters: [] };

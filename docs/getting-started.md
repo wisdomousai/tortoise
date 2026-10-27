@@ -47,7 +47,7 @@ In the same directory, `bun run dev:web` serves the browser instead. When an exa
 
 `asset-survey-field` runs on a phone or emulator instead; its README has the steps.
 
-The [samples](glossary.md#sample) in `samples/*` run the same way, on ports 4350 to 4355:
+The [samples](glossary.md#sample) in `samples/*` run the same way, on ports 4350 to 4356:
 
 ```sh
 cd samples/lab-requests
