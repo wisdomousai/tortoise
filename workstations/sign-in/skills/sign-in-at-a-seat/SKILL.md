@@ -13,6 +13,7 @@ A [seat](../../../../docs/glossary.md#seat) is a principal whose screen may sign
 - Decide how long a session lasts (`station-sign-in-minutes`, 15 by default) and how long the seat may sit idle before it signs the operator out (`idleMs`, two minutes by default).
 - Make every person who signs in a member under the application's policy, with the role their work needs. The operator acts with their own permissions, never the seat's.
 - Write the badge format as a regular expression. A scan that does not match it shows "Not a badge".
+- `samples/lab-requests-sign-in` composes the plugin and its screens at a lab bench, with a technician and a viewer.
 
 ## Steps
 
@@ -39,7 +40,7 @@ For a PIN entry of your own, pass `code` and `masked` to the operator registry's
 5. Run the tests:
 
    ```sh
-   bun test workstations/sign-in
+   bun test workstations/sign-in samples/lab-requests-sign-in
    ```
 
 6. Run the seat by hand with `bun run dev:web` and a keyboard-wedge scanner, or by typing the badge as a burst with no field focused. Record the run in [implementation status](../../../../docs/implementation-status.md).
@@ -49,4 +50,5 @@ For a PIN entry of your own, pass `code` and `masked` to the operator registry's
 
 - [`@agent-native/workstation-sign-in`](../../README.md)
 - [Operator workstations: workstation sign-in](../../../../docs/operator-workstations.md#workstation-sign-in)
+- [Lab requests sign-in sample](../../../../samples/lab-requests-sign-in/README.md)
 - [`@agent-native/operator-ui`](../../../../packages/operator-ui/README.md)

@@ -96,6 +96,8 @@ bun test workstations/sign-in
 
 `test/scenarios.test.ts` runs the capabilities through the direct driver. `test/ui-bindings.test.ts` checks that the badge screen references `station.badge.list` and `station.badge.revoke`.
 
+`samples/lab-requests-sign-in` runs the seat and badge screens in a browser launch.
+
 ## Skills
 
 - [sign-in-at-a-seat](skills/sign-in-at-a-seat/SKILL.md): composing the plugin and its screens, the work an operator does at the seat, and badge enrollment.

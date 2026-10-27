@@ -122,10 +122,13 @@ No public release has been made. The entries use these kinds of evidence:
 - revoking a badge ends its sessions;
 - neither the badge value nor the PIN reaches the workspace database.
 
+**By hand, browser.** On 27 October 2026, `samples/lab-requests-sign-in` ran with `bun run dev:web` in Chrome on macOS, with badges typed as keyboard-wedge bursts. Badges enrolled on the badge screen showed live. At the seat, a specimen label was refused as not a badge. A technician signed in with a PIN starting with zero, scanned a specimen label into the bench screen and submitted a request that recorded the technician as requester. A wrong PIN for the viewer's badge got "Badge or PIN not recognized". After the viewer signed in, the technician's session was gone and the viewer's submission was refused. Leaving the seat screen ended the viewer's session at the host, and so did two idle minutes in a second run.
+
 **Not shown.**
 
-- No physical badge reader has been tested, and no screen at a station signs people in yet.
+- No physical badge reader has been tested.
 - Signing in does not move a seat that an agent holds.
+- A page reload loses the operator token, and its session stays open until it expires.
 
 ### State migrations
 

@@ -37,6 +37,7 @@ An extension sample composes the base in each entrypoint:
 | `lab-requests-review` | 4355 | A four-eyes review of a test request, written as a feature with an access view and hooks | `defineFeatureManifest`, `defineFeature`, `mountFeature`, `defineFeatureScreens`, `featureConformance` |
 | `lab-requests-signals` | 4356 | Climate chamber temperature over OPC UA and humidity from Sparkplug B edge nodes, recorded through an ingest command | `opcUaServer`, `mqttBroker`, `createOpcUaObserver`, `createMqttObserver`, the site, network and audit plugins |
 | `lab-requests-local-model` | 4357 | The method suggester run by a trigger on a measured local model, a dataset of decided suggestions and a gated fine-tune | `defineModelEntry`, `createModelServer`, `createAutomationPlugin`, `exportApprovalDataset`, `gateModel` |
+| `lab-requests-sign-in` | 4358 | Technicians sign in at a shared bench with a badge and PIN and submit test requests as themselves; the owner enrolls badges | `createStationSignInPlugin`, `stationSignInScreens`, `useOperatorSession`, `useScanner`, `numeric-pad` |
 
 Each sample's README lists its files, its trust boundary and one line per test file.
 
@@ -73,5 +74,6 @@ A sample with a `dev.ts` starts its fake system or seeds records first. `lab-req
 - [Lab requests review](../samples/lab-requests-review/README.md)
 - [Lab requests signals](../samples/lab-requests-signals/README.md)
 - [Lab requests local model](../samples/lab-requests-local-model/README.md)
+- [Lab requests sign-in](../samples/lab-requests-sign-in/README.md)
 - [Architecture](architecture.md)
 - [Capability authoring](capability-authoring.md)
