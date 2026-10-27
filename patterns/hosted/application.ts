@@ -1,0 +1,53 @@
+import { authorizationRoute, composeAuthorization, sliceHandlers } from '@agent-native/runtime';
+import { defineApplication } from '@agent-native/host/application';
+import { networkPlugin } from '@agent-native/network/plugin';
+import { sitePlugin } from '@agent-native/site/plugin';
+import {
+  createTestRequestsHandlers,
+  createTestRequestsState,
+  testRequestsModule,
+  testRequestsPolicy,
+  type TestRequestsServices,
+  type TestRequestsState,
+  type Role,
+} from '@agent-native/pattern-base/server';
+import manifest from './manifest';
+
+export interface TestRequestsHostedRoot {
+  testRequests: TestRequestsState;
+}
+
+/**
+ * The lab's staff and their roles. Under workforce sign-in the principal is the email the
+ * identity provider verified, so the members are keyed by email.
+ */
+export const labStaff: Readonly<Record<string, Role>> = {
+  'ana@lab.example': 'technician',
+  'ben@lab.example': 'viewer',
+};
+
+/**
+ * The test requests pattern as a hosted instance. Nothing here names Postgres: the launch picks the
+ * hosted platform (`--hosted-workspace`), and the deployment policy picks external identity.
+ */
+export function createTestRequestsHostedApplication(
+  options: { members?: Record<string, Role> } = {},
+) {
+  const members = options.members ?? labStaff;
+  return defineApplication<TestRequestsHostedRoot, TestRequestsServices>({
+    manifest,
+    createState: (ownerId) => ({
+      testRequests: createTestRequestsState(ownerId, { ...members }),
+    }),
+    handlers: sliceHandlers<TestRequestsHostedRoot, 'testRequests', TestRequestsServices>(
+      'testRequests',
+      createTestRequestsHandlers(),
+    ),
+    authorization: composeAuthorization<TestRequestsHostedRoot>([
+      authorizationRoute('testRequests', testRequestsModule, ['test-request'], testRequestsPolicy),
+    ]),
+    plugins: [sitePlugin, networkPlugin],
+  });
+}
+
+export default createTestRequestsHostedApplication();

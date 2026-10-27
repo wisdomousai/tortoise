@@ -43,10 +43,10 @@ test('new writes one generated application and copies no example', async () => {
   expect(lock).not.toContain('examples/field-service');
   // The patterns go too, with their workspace entry and root dependencies.
   expect(await readdir(target)).not.toContain('patterns');
-  expect(lock).not.toContain('patterns/lab-requests');
+  expect(lock).not.toContain('patterns/base');
   const root = JSON.parse(await read(join(target, 'package.json')));
   expect(root.workspaces).not.toContain('patterns/*');
-  expect(root.dependencies).not.toHaveProperty('@agent-native/pattern-lab-requests');
+  expect(root.dependencies).not.toHaveProperty('@agent-native/pattern-base');
   for (const path of ['manifest.ts', 'policy.ts', 'contracts/note.ts', 'ui/note.tsx'])
     expect(await read(join(app, path))).not.toContain('{{');
   expect(await read(join(app, 'manifest.ts'))).toContain('title: "Field notes"');

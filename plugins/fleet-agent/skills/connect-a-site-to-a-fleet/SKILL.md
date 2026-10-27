@@ -12,7 +12,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 - The site side needs a provided network port, so startup refuses an application without one.
 - The site acts at the fleet as one device-link principal, never on behalf of a person. Two applications that call each other for people use the peer link instead, as the `connect-two-applications` skill (`plugins/peer-link/skills/connect-two-applications/SKILL.md`) describes.
 - The `fleet` destination is declared `authenticated`, so the site check refuses a plain-text binding off loopback.
-- `patterns/lab-requests-site` composes the site side against `examples/fleet`. Its `publish-release.ts` publishes a signed bundle to a channel, and its README installs the staged release.
+- `patterns/site` composes the site side against `examples/fleet`. Its `publish-release.ts` publishes a signed bundle to a channel, and its README installs the staged release.
 
 ## Steps
 
@@ -44,7 +44,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 
    ```sh
    bun test plugins/fleet-agent
-   bun test patterns/lab-requests-site/
+   bun test patterns/site/
    ```
 
 2. Put a new protocol capability in `src/contracts.ts` and in the fixture fleet in `test/fixtures.ts`.
@@ -59,4 +59,4 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 - [Hosting](../../../../docs/hosting.md#fleet)
 - [`@agent-native/fleet-agent`](../../README.md#trust-boundary)
 - [`examples/fleet`](../../../../examples/fleet/README.md)
-- [Lab requests site pattern](../../../../patterns/lab-requests-site/README.md)
+- [Site pattern](../../../../patterns/site/README.md)

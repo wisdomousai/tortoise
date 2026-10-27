@@ -11,7 +11,7 @@ A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [h
 
 - Check that the application can be hosted. A `site`-scoped destination, a device, an exchange folder or a station process pins it to a [site](../../../../docs/glossary.md#site). The generated security manifest (`bun run generate`) shows its placement.
 - Decide the instance layout. One process serves one workspace. Several workspaces run one instance each, behind a router that sends each workspace's requests to its instance.
-- `patterns/lab-requests-hosted` is a hosted instance with workforce sign-in against a stand-in provider, and its test races two instances on PGlite.
+- `patterns/hosted` is a hosted instance with workforce sign-in against a stand-in provider, and its test races two instances on PGlite.
 - Decide where the instance's local directory (`--workspace`) lives. It still holds blobs, agent run history, the [audit log](../../../../docs/glossary.md#audit-log) and the plugins' files. Put it on a volume that follows the instance, or accept that a takeover on another machine starts without them.
 
 ## Steps
@@ -44,4 +44,4 @@ The second line runs the same cases against a real server, with a database made 
 
 - [Hosting](../../../../docs/hosting.md#hosted-instance)
 - [Adapters](../../../../docs/adapters.md#storage)
-- [Lab requests hosted pattern](../../../../patterns/lab-requests-hosted/README.md)
+- [Hosted pattern](../../../../patterns/hosted/README.md)

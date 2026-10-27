@@ -14,7 +14,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 - Pick the hardening profile from where the host runs: `desktop-local`, `site-hub` (paired devices over the site network), `sandbox` or `zero-trust`.
 - The site issues and renews certificates. The host only reads them and warns 30 days before expiry.
 - A secret never goes into the policy or a process environment by hand.
-- `patterns/lab-requests-site` carries a connected `site-hub` policy, and its README runs steps 9 to 14 on a release a fleet staged.
+- `patterns/site` carries a connected `site-hub` policy, and its README runs steps 9 to 14 on a release a fleet staged.
 
 ## Steps
 
@@ -52,7 +52,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
    bun test plugins/site plugins/network plugins/process
    bun test plugins/compliance
    bun test apps/desktop/test/site-policy.test.ts
-   bun test patterns/lab-requests-site/
+   bun test patterns/site/
    bun run test:sandbox
    ```
 
@@ -70,4 +70,4 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 - [`@agent-native/site`](../../README.md)
 - [Profiles table](../../../../docs/security-and-compliance.md#hardening-profiles)
 - [Desktop](../../../../docs/desktop.md)
-- [Lab requests site pattern](../../../../patterns/lab-requests-site/README.md)
+- [Site pattern](../../../../patterns/site/README.md)

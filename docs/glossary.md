@@ -507,7 +507,7 @@ The local owner is the principal `owner`. Where the identity policy admits it, t
 
 ### Pattern
 
-A small application under `patterns/` that shows one technical concern, such as a system of record, an agent or a sandbox. `patterns/lab-requests` is the base, and every other pattern composes it unchanged and adds one concern. Listed in [patterns](patterns.md). An [example](#example) is a whole application instead.
+A small application under `patterns/` that shows one technical concern, such as a system of record, an agent or a sandbox. `patterns/base` is the base, and every other pattern composes it unchanged and adds one concern. Listed in [patterns](patterns.md). An [example](#example) is a whole application instead.
 
 Do not use: sample, demo (for a pattern).
 

@@ -14,7 +14,7 @@ A broker or an OPC UA server is a source that can be read but not queried for hi
   - a plain topic and JSON pointer;
   - an OPC UA node ID such as `ns=2;s=Press.Temperature`.
 - Decide what an `uncertain` reading means in the domain. A stale Sparkplug value, an uncertain or bad OPC UA status, and a lost connection all arrive as `uncertain`. Route them to a person, not to a record.
-- `patterns/lab-requests-signals` reads climate chamber temperature over OPC UA and humidity from Sparkplug B edge nodes into one ingest command, and shows the steps below in a running application.
+- `patterns/signals` reads climate chamber temperature over OPC UA and humidity from Sparkplug B edge nodes into one ingest command, and shows the steps below in a running application.
 - Both connectors only read. A write to a controller is a declared procedure with readback, which these connectors do not offer. For actions on equipment, see the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`).
 
 ## Steps
@@ -31,7 +31,7 @@ A broker or an OPC UA server is a source that can be read but not queried for hi
 
 ## Checks
 
-- Test against the fakes: `FakeBroker` with `encodeSparkplug` from `@agent-native/connector-mqtt/testing`, or `FakeOpcUaServer` from `@agent-native/connector-opcua/testing`. `start()` listens on a free loopback port and `start(port)` on a fixed one for a development launch. `plugins/connector-mqtt/test/connector-mqtt.test.ts` and `plugins/connector-opcua/test/connector-opcua.test.ts` show the wiring with a stub network port. `patterns/lab-requests-signals/test/signals.test.ts` goes through an embedded instance's network port with a site policy that binds the fakes. Cover:
+- Test against the fakes: `FakeBroker` with `encodeSparkplug` from `@agent-native/connector-mqtt/testing`, or `FakeOpcUaServer` from `@agent-native/connector-opcua/testing`. `start()` listens on a free loopback port and `start(port)` on a fixed one for a development launch. `plugins/connector-mqtt/test/connector-mqtt.test.ts` and `plugins/connector-opcua/test/connector-opcua.test.ts` show the wiring with a stub network port. `patterns/signals/test/signals.test.ts` goes through an embedded instance's network port with a site policy that binds the fakes. Cover:
   - a value becoming a reading;
   - a death or lost connection making it `uncertain`;
   - the ingest command's handling of both.
@@ -49,4 +49,4 @@ Record a run against a real broker, edge node or server separately in [implement
 - [`@agent-native/observation`](../../README.md)
 - [MQTT](../../../../plugins/connector-mqtt/README.md)
 - [OPC UA](../../../../plugins/connector-opcua/README.md)
-- [Lab requests signals pattern](../../../../patterns/lab-requests-signals/README.md)
+- [Signals pattern](../../../../patterns/signals/README.md)

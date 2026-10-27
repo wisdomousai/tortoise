@@ -9,13 +9,13 @@ const people = [{ email: 'ana@lab.example', name: 'Ana' }, { email: 'ben@lab.exa
 const setup = async () => {
   const idp = await createIdentityProvider({
     issuer: 'https://idp.test',
-    clientId: 'lab-requests',
+    clientId: 'test-requests',
     people,
   });
   const signIn = createWorkforceSignIn(
     {
       issuer: idp.issuer,
-      clientId: 'lab-requests',
+      clientId: 'test-requests',
       principalClaim: 'email',
       scopes: ['openid', 'email'],
       sessionMinutes: 60,
@@ -43,7 +43,7 @@ test('a person picked on the page signs in as their email', async () => {
   const { idp, signIn, authorize, choose } = await setup();
   const location = await authorize();
   const page = await (await idp.fetch(location)).text();
-  expect(page).toContain('Sign in to lab-requests');
+  expect(page).toContain('Sign in to test-requests');
   expect(page).toContain('value="ana@lab.example"');
 
   const chosen = await choose(location, 'ana@lab.example');
@@ -80,7 +80,7 @@ test('the provider refuses an unknown person, a foreign redirect and a replayed 
         grant_type: 'authorization_code',
         code,
         code_verifier: verifier,
-        client_id: 'lab-requests',
+        client_id: 'test-requests',
         redirect_uri: location.searchParams.get('redirect_uri')!,
       }),
     });

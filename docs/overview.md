@@ -39,7 +39,7 @@ An outbox effect is in one phase at a time.
 | Operator at a screen | Glove-sized parts of the operator registry call commands. | [`packages/operator-ui`](../packages/operator-ui/README.md) | `line-station`, `quality-inspection` |
 | Instrument or controller | A driver process reports readings and runs declared actions. | [`plugins/connector-driver`](../plugins/connector-driver/README.md), [`sdks/driver-python`](../sdks/driver-python/README.md), [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md) | `quality-inspection`, `line-station` |
 | Workstation application | The screen bridge reads the workstation application's screen and runs declared procedures. | [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) | `line-station` |
-| Plant signals | MQTT, Sparkplug B or OPC UA readings pass the observation gate into an ingest command. | [`packages/observation`](../packages/observation/README.md), [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md), [`plugins/connector-opcua`](../plugins/connector-opcua/README.md) | `lab-requests-signals` pattern |
+| Plant signals | MQTT, Sparkplug B or OPC UA readings pass the observation gate into an ingest command. | [`packages/observation`](../packages/observation/README.md), [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md), [`plugins/connector-opcua`](../plugins/connector-opcua/README.md) | `signals` pattern |
 | Files | An inbox folder feeds inbound sync, and delivered files settle from receipt files. | [`plugins/connector-files`](../plugins/connector-files/README.md) | `receiving` |
 | Phone | A paired phone takes [assignments](glossary.md#assignment) from its [hub](glossary.md#hub), captures offline and delivers the reports. | [`packages/mobile`](../packages/mobile/README.md), [`packages/assignments`](../packages/assignments/README.md), [`plugins/device-link`](../plugins/device-link/README.md), [`plugins/hub-link`](../plugins/hub-link/README.md) | `asset-survey-field` |
 | Operating system | A link, file, share, Android intent, launcher shortcut or notification reply opens a screen or prefills a form that a person confirms. | [`packages/shell`](../packages/shell/README.md), [`plugins/os`](../plugins/os/README.md), [`plugins/share-target`](../plugins/share-target/README.md), [`plugins/os-shortcuts`](../plugins/os-shortcuts/README.md), [`plugins/android-intents`](../plugins/android-intents/README.md), [`plugins/notifications`](../plugins/notifications/README.md) | `field-service`, `asset-survey-field` |
@@ -67,7 +67,7 @@ A [deployment policy](glossary.md#deployment-policy) binds the destinations, chi
 ## Limits
 
 - Nothing in the framework is safety-rated. The screen bridge never talks to the PLC, and a driver acts only through declared actions under its [bridge mode](glossary.md#bridge-mode) and [hazard class](glossary.md#hazard-class).
-- The MQTT and OPC UA connectors only read. Only the `lab-requests-signals` pattern composes them.
+- The MQTT and OPC UA connectors only read. Only the `signals` pattern composes them.
 - The [execution host](glossary.md#execution-host) sandbox runs only on Linux with bubblewrap, and no harness launches its tools through it yet ([agents](agents.md#limits)).
 - The [egress guard](glossary.md#egress-guard) runs in the host process. Containing other processes needs the [generated rules](security-and-compliance.md#generated-rules).
 - One instance hosts one application, and a workspace is not synchronized across devices ([hosting](hosting.md)).

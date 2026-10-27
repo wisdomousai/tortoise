@@ -47,18 +47,18 @@
         "@agent-native/operator-ui": "workspace:*",
         "@agent-native/os": "workspace:*",
         "@agent-native/os-shortcuts": "workspace:*",
-        "@agent-native/pattern-lab-requests": "workspace:*",
-        "@agent-native/pattern-lab-requests-agents": "workspace:*",
-        "@agent-native/pattern-lab-requests-host-plugin": "workspace:*",
-        "@agent-native/pattern-lab-requests-hosted": "workspace:*",
-        "@agent-native/pattern-lab-requests-local-model": "workspace:*",
-        "@agent-native/pattern-lab-requests-operations": "workspace:*",
-        "@agent-native/pattern-lab-requests-review": "workspace:*",
-        "@agent-native/pattern-lab-requests-sandbox": "workspace:*",
-        "@agent-native/pattern-lab-requests-sign-in": "workspace:*",
-        "@agent-native/pattern-lab-requests-signals": "workspace:*",
-        "@agent-native/pattern-lab-requests-site": "workspace:*",
-        "@agent-native/pattern-lab-requests-system-of-record": "workspace:*",
+        "@agent-native/pattern-agents": "workspace:*",
+        "@agent-native/pattern-base": "workspace:*",
+        "@agent-native/pattern-host-plugin": "workspace:*",
+        "@agent-native/pattern-hosted": "workspace:*",
+        "@agent-native/pattern-local-model": "workspace:*",
+        "@agent-native/pattern-operations": "workspace:*",
+        "@agent-native/pattern-review": "workspace:*",
+        "@agent-native/pattern-sandbox": "workspace:*",
+        "@agent-native/pattern-sign-in": "workspace:*",
+        "@agent-native/pattern-signals": "workspace:*",
+        "@agent-native/pattern-site": "workspace:*",
+        "@agent-native/pattern-system-of-record": "workspace:*",
         "@agent-native/peer-link": "workspace:*",
         "@agent-native/process": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
@@ -457,52 +457,52 @@
         "@electric-sql/pglite": "0.5.8",
       },
     },
-    "patterns/lab-requests": {
-      "name": "@agent-native/pattern-lab-requests",
+    "patterns/agents": {
+      "name": "@agent-native/pattern-agents",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-agents": {
-      "name": "@agent-native/pattern-lab-requests-agents",
+    "patterns/base": {
+      "name": "@agent-native/pattern-base",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-host-plugin": {
-      "name": "@agent-native/pattern-lab-requests-host-plugin",
+    "patterns/host-plugin": {
+      "name": "@agent-native/pattern-host-plugin",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-hosted": {
-      "name": "@agent-native/pattern-lab-requests-hosted",
+    "patterns/hosted": {
+      "name": "@agent-native/pattern-hosted",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-local-model": {
-      "name": "@agent-native/pattern-lab-requests-local-model",
+    "patterns/local-model": {
+      "name": "@agent-native/pattern-local-model",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-operations": {
-      "name": "@agent-native/pattern-lab-requests-operations",
+    "patterns/operations": {
+      "name": "@agent-native/pattern-operations",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-review": {
-      "name": "@agent-native/pattern-lab-requests-review",
+    "patterns/review": {
+      "name": "@agent-native/pattern-review",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-sandbox": {
-      "name": "@agent-native/pattern-lab-requests-sandbox",
+    "patterns/sandbox": {
+      "name": "@agent-native/pattern-sandbox",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-sign-in": {
-      "name": "@agent-native/pattern-lab-requests-sign-in",
+    "patterns/sign-in": {
+      "name": "@agent-native/pattern-sign-in",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-signals": {
-      "name": "@agent-native/pattern-lab-requests-signals",
+    "patterns/signals": {
+      "name": "@agent-native/pattern-signals",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-site": {
-      "name": "@agent-native/pattern-lab-requests-site",
+    "patterns/site": {
+      "name": "@agent-native/pattern-site",
       "version": "0.1.0",
     },
-    "patterns/lab-requests-system-of-record": {
-      "name": "@agent-native/pattern-lab-requests-system-of-record",
+    "patterns/system-of-record": {
+      "name": "@agent-native/pattern-system-of-record",
       "version": "0.1.0",
     },
     "plugins/android-intents": {
@@ -1009,29 +1009,29 @@
 
     "@agent-native/os-shortcuts": ["@agent-native/os-shortcuts@workspace:plugins/os-shortcuts"],
 
-    "@agent-native/pattern-lab-requests": ["@agent-native/pattern-lab-requests@workspace:patterns/lab-requests"],
+    "@agent-native/pattern-agents": ["@agent-native/pattern-agents@workspace:patterns/agents"],
 
-    "@agent-native/pattern-lab-requests-agents": ["@agent-native/pattern-lab-requests-agents@workspace:patterns/lab-requests-agents"],
+    "@agent-native/pattern-base": ["@agent-native/pattern-base@workspace:patterns/base"],
 
-    "@agent-native/pattern-lab-requests-host-plugin": ["@agent-native/pattern-lab-requests-host-plugin@workspace:patterns/lab-requests-host-plugin"],
+    "@agent-native/pattern-host-plugin": ["@agent-native/pattern-host-plugin@workspace:patterns/host-plugin"],
 
-    "@agent-native/pattern-lab-requests-hosted": ["@agent-native/pattern-lab-requests-hosted@workspace:patterns/lab-requests-hosted"],
+    "@agent-native/pattern-hosted": ["@agent-native/pattern-hosted@workspace:patterns/hosted"],
 
-    "@agent-native/pattern-lab-requests-local-model": ["@agent-native/pattern-lab-requests-local-model@workspace:patterns/lab-requests-local-model"],
+    "@agent-native/pattern-local-model": ["@agent-native/pattern-local-model@workspace:patterns/local-model"],
 
-    "@agent-native/pattern-lab-requests-operations": ["@agent-native/pattern-lab-requests-operations@workspace:patterns/lab-requests-operations"],
+    "@agent-native/pattern-operations": ["@agent-native/pattern-operations@workspace:patterns/operations"],
 
-    "@agent-native/pattern-lab-requests-review": ["@agent-native/pattern-lab-requests-review@workspace:patterns/lab-requests-review"],
+    "@agent-native/pattern-review": ["@agent-native/pattern-review@workspace:patterns/review"],
 
-    "@agent-native/pattern-lab-requests-sandbox": ["@agent-native/pattern-lab-requests-sandbox@workspace:patterns/lab-requests-sandbox"],
+    "@agent-native/pattern-sandbox": ["@agent-native/pattern-sandbox@workspace:patterns/sandbox"],
 
-    "@agent-native/pattern-lab-requests-sign-in": ["@agent-native/pattern-lab-requests-sign-in@workspace:patterns/lab-requests-sign-in"],
+    "@agent-native/pattern-sign-in": ["@agent-native/pattern-sign-in@workspace:patterns/sign-in"],
 
-    "@agent-native/pattern-lab-requests-signals": ["@agent-native/pattern-lab-requests-signals@workspace:patterns/lab-requests-signals"],
+    "@agent-native/pattern-signals": ["@agent-native/pattern-signals@workspace:patterns/signals"],
 
-    "@agent-native/pattern-lab-requests-site": ["@agent-native/pattern-lab-requests-site@workspace:patterns/lab-requests-site"],
+    "@agent-native/pattern-site": ["@agent-native/pattern-site@workspace:patterns/site"],
 
-    "@agent-native/pattern-lab-requests-system-of-record": ["@agent-native/pattern-lab-requests-system-of-record@workspace:patterns/lab-requests-system-of-record"],
+    "@agent-native/pattern-system-of-record": ["@agent-native/pattern-system-of-record@workspace:patterns/system-of-record"],
 
     "@agent-native/peer-link": ["@agent-native/peer-link@workspace:plugins/peer-link"],
 

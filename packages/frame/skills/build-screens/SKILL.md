@@ -27,7 +27,7 @@ description: Build or change the web screens of an agent-native application, fea
 2. On a record screen, call `useUiSession(resource, handlers)` from `@/lib/ui-session` with the record's `<kind>:<id>` and revision, so a run started from the screen captures it. List the kind in the application's `selectableResources`.
    - An `openResource` intent navigates through `screens.resources` unless the handlers pass `open`.
    - Pass `select` when the screen can change its selection without navigating; without it, `selectResource` is rejected.
-   - Render the returned `review` and call `acknowledgeReview` when the person has seen it. `patterns/lab-requests-agents/ui/methods.tsx` does both.
+   - Render the returned `review` and call `acknowledgeReview` when the person has seen it. `patterns/agents/ui/methods.tsx` does both.
 3. Give a station's screen `layout: 'full'`. Declare `compact` on a route for phone and portrait-tablet widths.
 4. Declare a feature's screens with `defineFeatureScreens` from `@agent-native/frame/feature-screens`, and a plugin's with `definePluginScreens` in its `plugin-screens` entrypoint. Capability screen prefixes start with the unit's operation namespace and a dot.
 5. Merge them with `defineScreens({ manifest, features, plugins })`, listed in the manifest's order. It fails on duplicate routes, on targets no route declares, and on unit screens that the manifest does not compose, are out of its order, or open capabilities outside the unit's namespace.
@@ -64,5 +64,5 @@ description: Build or change the web screens of an agent-native application, fea
 - [`@agent-native/frame`](../../README.md)
 - [`examples/field-service/screens.tsx`](../../../../examples/field-service/screens.tsx)
 - [`examples/quality-inspection/ui/capture-station.tsx`](../../../../examples/quality-inspection/ui/capture-station.tsx)
-- [Lab requests agents pattern](../../../../patterns/lab-requests-agents/README.md)
+- [Agents pattern](../../../../patterns/agents/README.md)
 - [Interaction contract](../../../../docs/interaction-contract.md#ui-intents)
