@@ -31,8 +31,8 @@ The Bun [host](docs/glossary.md#host) keeps the [workspace](docs/glossary.md#wor
 - workstation packages in `workstations/*`;
 - host plugins in `plugins/*`;
 - the starter in `apps/*`, which hosts the one application named in `app.config.json`;
-- the examples in `examples/*`, whole applications for real-world cases;
-- the patterns in `patterns/*`, one technical concern each on an oil lab's test requests for power transformers in service;
+- the examples in `showcase/examples/*`, whole applications for real-world cases;
+- the patterns in `showcase/patterns/*`, one technical concern each on an oil lab's test requests for power transformers in service;
 - driver SDKs for other languages in `sdks/*`.
 
 ## First run

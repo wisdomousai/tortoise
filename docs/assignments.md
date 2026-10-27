@@ -8,8 +8,8 @@ Terms: [assignment](glossary.md#assignment), [assignment kind](glossary.md#assig
 
 An [outbox effect](glossary.md#effect) asks a [system of record](glossary.md#system-of-record) to change its records, and the system of record decides. An assignment asks an assignee to do work and report what it found. A person in the issuing application decides what each report changes. These applications use assignments:
 
-- `examples/asset-survey`: a survey of part of the plant structure goes to a paired phone or a person, and each capture is a report on one node. An extraction sends one capture to the model or a person to read.
-- `examples/asset-survey-field`: the phone's worklist of surveys.
+- `showcase/examples/asset-survey`: a survey of part of the plant structure goes to a paired phone or a person, and each capture is a report on one node. An extraction sends one capture to the model or a person to read.
+- `showcase/examples/asset-survey-field`: the phone's worklist of surveys.
 
 ## Assignment kinds
 
@@ -80,7 +80,7 @@ Run the tests of the package and the asset survey:
 
 ```sh
 bun test packages/assignments
-bun test examples/asset-survey examples/asset-survey-field
+bun test showcase/examples/asset-survey showcase/examples/asset-survey-field
 ```
 
 ## Limits
@@ -94,7 +94,7 @@ bun test examples/asset-survey examples/asset-survey-field
 
 - [Assignments package](../packages/assignments/README.md)
 - [assign-work](../packages/assignments/skills/assign-work/SKILL.md)
-- [Asset survey example](../examples/asset-survey/README.md)
-- [Asset survey field example](../examples/asset-survey-field/README.md)
+- [Asset survey example](../showcase/examples/asset-survey/README.md)
+- [Asset survey field example](../showcase/examples/asset-survey-field/README.md)
 - [Agents](agents.md)
 - [Systems of record](systems-of-record.md)

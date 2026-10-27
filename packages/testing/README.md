@@ -33,7 +33,7 @@ Framework (`packages/*`). Test code; production code does not import it. Scenari
 
 A `ScenarioDriver` sends commands and queries for one transport. The package ships `directDriver`, which calls the application's `invokeRaw` and `queryRaw`. `runScenarios` runs a list of scenarios on one driver. `assertEquivalent` compares two outcomes as canonical JSON.
 
-Every example's `examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty. Five examples also have a `test/conformance.test.ts` that reads the same result through the instance, HTTP, the CLI and MCP. Those tests call the surfaces directly and do not use this package.
+Every example's `showcase/examples/<name>/test/ui-bindings.test.ts` expects `unboundOperations` to be empty. Five examples also have a `test/conformance.test.ts` that reads the same result through the instance, HTTP, the CLI and MCP. Those tests call the surfaces directly and do not use this package.
 
 ### Connector conformance
 
@@ -159,8 +159,8 @@ bun run test:conformance
 Elsewhere:
 
 - `plugins/model-server` runs the gate against a managed server.
-- `examples/receiving/test/agent-scenarios.test.ts` runs the discrepancy agent's scenarios.
-- The behavioral scenario helpers have no suite of their own. `examples/field-service/test/storage-conformance.test.ts` and the scenario tests of the webhook, device-link, hub-link, station-sign-in and compliance plugins exercise them.
+- `showcase/examples/receiving/test/agent-scenarios.test.ts` runs the discrepancy agent's scenarios.
+- The behavioral scenario helpers have no suite of their own. `showcase/examples/field-service/test/storage-conformance.test.ts` and the scenario tests of the webhook, device-link, hub-link, station-sign-in and compliance plugins exercise them.
 - The UI-binding helpers are exercised by the UI-binding test of every example.
 
 ## Skills

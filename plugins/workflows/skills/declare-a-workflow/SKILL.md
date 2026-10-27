@@ -31,7 +31,7 @@ A [workflow](../../../../docs/glossary.md#workflow) is a sequence of steps over 
 
 ## Checks
 
-Drive the runner one pass at a time on a test clock, with `passOnce` from `@agent-native/workflows/runner`, as `examples/asset-survey/test/capture-to-eam.test.ts` does. The kernel checks grant expiry on its own clock, so start the test clock at `Date.now()`. Cover:
+Drive the runner one pass at a time on a test clock, with `passOnce` from `@agent-native/workflows/runner`, as `showcase/examples/asset-survey/test/capture-to-eam.test.ts` does. The kernel checks grant expiry on its own clock, so start the test clock at `Date.now()`. Cover:
 
 - the instance reaching `succeeded`, and the records each step wrote;
 - a rejected effect or a permanent failure running the compensations, latest first;
@@ -39,7 +39,7 @@ Drive the runner one pass at a time on a test clock, with `passOnce` from `@agen
 - a starter without a role a step needs being refused.
 
 ```sh
-bun test examples/<app>
+bun test showcase/examples/<app>
 bun test plugins/workflows
 ```
 
@@ -49,4 +49,4 @@ Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/
 
 - [Workflows plugin](../../README.md)
 - [Capability authoring](../../../../docs/capability-authoring.md#declared-workflows)
-- [`examples/asset-survey`](../../../../examples/asset-survey/README.md)
+- [`showcase/examples/asset-survey`](../../../../showcase/examples/asset-survey/README.md)

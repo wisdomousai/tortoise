@@ -2,11 +2,11 @@
 
 {{displayName}}. Created by `scaffold new`; extend it with `bun run scaffold add collection|capability|target <name>` and replace the default screens one route at a time.
 
-Layer: content (`examples/*`).
+Layer: content (`showcase/examples/*`).
 
 ## Primitives
 
-This is one [Application](../../docs/primitives.md#application). Its [Module](../../docs/primitives.md#module) holds [collections](../../docs/primitives.md#collection) with generated reads, commands written over `records`, and a [Policy](../../docs/primitives.md#policy) built with `definePolicy`. Systems of record are declared as [targets](../../docs/primitives.md#target). The `site`, `network`, `audit` and `compliance` [host plugins](../../docs/primitives.md#host-plugin) are listed in each entrypoint.
+This is one [Application](../../../docs/primitives.md#application). Its [Module](../../../docs/primitives.md#module) holds [collections](../../../docs/primitives.md#collection) with generated reads, commands written over `records`, and a [Policy](../../../docs/primitives.md#policy) built with `definePolicy`. Systems of record are declared as [targets](../../../docs/primitives.md#target). The `site`, `network`, `audit` and `compliance` [host plugins](../../../docs/primitives.md#host-plugin) are listed in each entrypoint.
 
 ## Entrypoints
 
@@ -30,7 +30,7 @@ Framework packages and the four host plugins, through the root workspace.
 ## Tests
 
 ```sh
-bun test examples/{{app.kebab}}
+bun test showcase/examples/{{app.kebab}}
 ```
 
-`test/conformance.test.ts` reads one list through the instance, HTTP, the CLI and MCP; `test/ui-bindings.test.ts` checks that every bound operation is referenced by a screen; `e2e/default-screens.pw.ts` creates, opens and edits a {{one.words}} through the default screens in a browser (`bunx playwright test examples/{{app.kebab}}`); each generated part has its own behavioral test.
+`test/conformance.test.ts` reads one list through the instance, HTTP, the CLI and MCP; `test/ui-bindings.test.ts` checks that every bound operation is referenced by a screen; `e2e/default-screens.pw.ts` creates, opens and edits a {{one.words}} through the default screens in a browser (`bunx playwright test showcase/examples/{{app.kebab}}`); each generated part has its own behavioral test.

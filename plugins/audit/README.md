@@ -55,15 +55,15 @@ Framework: `@agent-native/contracts`, `@agent-native/event-log`, `@agent-native/
 ## Tests
 
 ```sh
-bun test examples/field-service/test/security.test.ts examples/quality-inspection/test/security.test.ts
+bun test showcase/examples/field-service/test/security.test.ts showcase/examples/quality-inspection/test/security.test.ts
 bun run test:sandbox
 ```
 
 The package has no tests of its own. Applications that compose it exercise it:
 
-- `examples/field-service/test/security.test.ts` covers attestation, audit records over HTTP and the embedded instance, the writer lock and crash recovery;
-- `examples/quality-inspection/test/security.test.ts` covers `audit verify` and tamper detection;
-- `examples/quality-inspection/test/sandbox.test.ts`, run by `test:sandbox`, verifies the compiled binary's chain.
+- `showcase/examples/field-service/test/security.test.ts` covers attestation, audit records over HTTP and the embedded instance, the writer lock and crash recovery;
+- `showcase/examples/quality-inspection/test/security.test.ts` covers `audit verify` and tamper detection;
+- `showcase/examples/quality-inspection/test/sandbox.test.ts`, run by `test:sandbox`, verifies the compiled binary's chain.
 
 `packages/runtime/test/audit.test.ts` covers the fail-closed rollback in required mode.
 

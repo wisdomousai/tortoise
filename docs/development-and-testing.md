@@ -72,7 +72,7 @@ Split a file that `check:size` lists only when it holds a second responsibility.
 | ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
 | `bun run docs:dev`, `docs:build`, `docs:preview` | The VitePress site of the guides, READMEs and skills in `dist/docs`, published by `.github/workflows/docs.yml` on push to main. |
 | `bun run dev` / `dev:web`                        | Open the configured application in the desktop window, or in a browser.                         |
-| `cd examples/<name> && bun run dev`              | One example on its own port and workspace.                                                      |
+| `cd showcase/examples/<name> && bun run dev`              | One example on its own port and workspace.                                                      |
 | `bun run cli`, `bun run mcp`                     | Run `apps/service/src/cli.ts` or `packages/adapters/src/mcp.ts` from source.                    |
 | `bun run build:cli`                              | Compile the configured application's CLI.                                                       |
 | `bun run build:web`                              | Build the web frame for the configured application.                                             |
@@ -101,7 +101,7 @@ Subprocess tests use temporary workspaces and stop only the processes the tests 
 
 ## Browser and desktop
 
-Browser specs live with the application in `examples/<name>/e2e/` or `patterns/<name>/e2e/`. The specs start a host through the shared e2e helper. Playwright's setup builds the web frame of every example and of each pattern with an `e2e` directory.
+Browser specs live with the application in `showcase/examples/<name>/e2e/` or `showcase/patterns/<name>/e2e/`. The specs start a host through the shared e2e helper. Playwright's setup builds the web frame of every example and of each pattern with an `e2e` directory.
 
 Packaged desktop tests need a built application. Set `DESKTOP_EXECUTABLE` and run:
 
@@ -113,7 +113,7 @@ Without `DESKTOP_EXECUTABLE` the tests skip.
 
 ## Station bridge demo and opt-in perception
 
-A line-station host starts a station bridge only when `STATION_HMI_URL` is set. `cd examples/line-station && bun run dev` starts the fake HMI in the same process and sets that variable. It also sets simulator mode unless a vision model or perception worker is configured. To bridge another HMI, set the URL yourself.
+A line-station host starts a station bridge only when `STATION_HMI_URL` is set. `cd showcase/examples/line-station && bun run dev` starts the fake HMI in the same process and sets that variable. It also sets simulator mode unless a vision model or perception worker is configured. To bridge another HMI, set the URL yourself.
 
 The fake HMI shows its counters only as pixels, so reading them needs a [perception source](glossary.md#perception-source):
 

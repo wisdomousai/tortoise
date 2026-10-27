@@ -58,7 +58,7 @@ A file is read once, after its size is checked against the handler's limit, and 
 
 ## Dependencies
 
-Framework: `@agent-native/host` (`config` and `runtime-manifest`), `@agent-native/shell` and `@agent-native/contracts`. External: `electron`, and `electron-builder` for packaging. The package must never import `examples/*`.
+Framework: `@agent-native/host` (`config` and `runtime-manifest`), `@agent-native/shell` and `@agent-native/contracts`. External: `electron`, and `electron-builder` for packaging. The package must never import `showcase/examples/*`.
 
 ## Tests
 

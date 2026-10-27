@@ -1,6 +1,6 @@
 ---
 name: extend-mobile-host
-description: Run an agent-native application on Android or iOS, or extend what it can do there. Use when an application should target mobile, when writing a host plugin with Kotlin or Swift code (an Expo module and config plugin), when an application needs its own Expo config plugin (camera, permissions), when writing native screens or native registry components, when pairing phones and tablets with a hub (plugins/device-link, plugins/hub-link), or when device management should supply settings (plugins/managed-config). Covers packages/mobile, packages/frame-native, apps/mobile and examples/asset-survey-field.
+description: Run an agent-native application on Android or iOS, or extend what it can do there. Use when an application should target mobile, when writing a host plugin with Kotlin or Swift code (an Expo module and config plugin), when an application needs its own Expo config plugin (camera, permissions), when writing native screens or native registry components, when pairing phones and tablets with a hub (plugins/device-link, plugins/hub-link), or when device management should supply settings (plugins/managed-config). Covers packages/mobile, packages/frame-native, apps/mobile and showcase/examples/asset-survey-field.
 ---
 
 # Extend the mobile host
@@ -27,7 +27,7 @@ The Expo project in `apps/mobile` runs one [application](../../../../docs/glossa
    - call `pluginNativeModule(manifest)` in `open`;
    - keep the logic in a module that takes the native module as a parameter, so Bun tests use a fake;
    - keep Expo imports under `src/expo/`, which `tsconfig.native.json` checks.
-8. For a build-time permission or resource of the application's own, list `expoPlugins` with options in its manifest, as `examples/asset-survey-field/manifest.ts` does for `expo-camera`.
+8. For a build-time permission or resource of the application's own, list `expoPlugins` with options in its manifest, as `showcase/examples/asset-survey-field/manifest.ts` does for `expo-camera`.
 9. Compose `plugins/device-link` on the hub. Set `device-link-sync-operations`, or pass `syncOperations` to `createDeviceLinkPlugin`.
 10. Compose `plugins/hub-link` on the device. The device names its outbox [target](../../../../docs/glossary.md#target) `hub` and reaches it through `createPeerPort` in `packages/integration`. The hub's feed comes back through [inbound sync](../../../../docs/glossary.md#inbound-sync).
 11. Compose `plugins/managed-config` so that MDM values such as `hub-url` and `enrollment-code` become settings. A managed device then pairs on first start.
@@ -48,7 +48,7 @@ The Expo project in `apps/mobile` runs one [application](../../../../docs/glossa
 bun run typecheck             # includes tsconfig.native.json
 bun run test:portable
 bun test packages/mobile apps/mobile plugins/<plugin>
-bun test plugins/device-link examples/asset-survey-field
+bun test plugins/device-link showcase/examples/asset-survey-field
 bun run check:mobile-bundle   # Metro bundle of the starter's fixture; not part of bun run check
 ```
 
@@ -57,6 +57,6 @@ Bun tests run the mobile instance on Bun's SQLite and files with fake device bin
 ## References
 
 - [Mobile host](../../../../docs/mobile.md)
-- [`examples/asset-survey-field`](../../../../examples/asset-survey-field/README.md)
+- [`showcase/examples/asset-survey-field`](../../../../showcase/examples/asset-survey-field/README.md)
 - [`plugins/intent-scanner`](../../../../plugins/intent-scanner/README.md)
 - [`plugins/managed-config`](../../../../plugins/managed-config/README.md)

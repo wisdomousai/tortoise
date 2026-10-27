@@ -129,7 +129,7 @@ The policy's `identity` is `local-owner`, `grant-file` or `external`:
 - **`grant-file`:** the host issues no local owner session and writes no owner credential. It admits only a launcher's [delegated grant](glossary.md#grant) within the maximum lifetime, including for embedded CLI and MCP calls.
 - **`external`:** people sign in through [workforce sign-in](glossary.md#workforce-sign-in) with the OpenID Connect provider named in `workforce`, using the authorization code flow with PKCE. The provider's issuer must be on the origin bound to the `workforce-idp` destination. The host issues the local owner no session, and embedded calls need a launcher grant.
 
-Under `external`, the host never falls back to the local owner. `examples/field-service/test/hardening.test.ts` covers the identity floors.
+Under `external`, the host never falls back to the local owner. `showcase/examples/field-service/test/hardening.test.ts` covers the identity floors.
 
 ### Ingress and certificates
 
@@ -235,7 +235,7 @@ The composition's audit log port keeps no log. Once `plugins/audit` is composed,
 
 A command's acceptance is recorded inside its transaction, after final authorization. If that record fails, nothing commits. A record written after the commit would allow commits that were never recorded. In fail-closed mode, a query whose record fails returns no data, and a connection whose record fails does not open.
 
-If the process dies before the commit is recorded, startup resolves the open entry against the [receipts](glossary.md#receipt). A site can trade this for availability with `best-effort`, and every profile except `desktop-local` refuses that setting. `packages/runtime/test/audit.test.ts` covers the rollback, and `examples/field-service/test/security.test.ts` covers crash recovery.
+If the process dies before the commit is recorded, startup resolves the open entry against the [receipts](glossary.md#receipt). A site can trade this for availability with `best-effort`, and every profile except `desktop-local` refuses that setting. `packages/runtime/test/audit.test.ts` covers the rollback, and `showcase/examples/field-service/test/security.test.ts` covers crash recovery.
 
 ### Attestation and forwarding
 
@@ -304,7 +304,7 @@ A site connected to a fleet keeps working while the fleet is unreachable ([hosti
 - [Desktop](desktop.md)
 - [Mobile](mobile.md)
 - [Implementation status](implementation-status.md)
-- [`examples/quality-inspection/site-policy.sandbox.json`](../examples/quality-inspection/site-policy.sandbox.json)
+- [`showcase/examples/quality-inspection/site-policy.sandbox.json`](../showcase/examples/quality-inspection/site-policy.sandbox.json)
 - [Site plugin's trust boundary](../plugins/site/README.md#trust-boundary)
 - [Peer link's trust boundary](../plugins/peer-link/README.md#trust-boundary)
 - [Systems of record](systems-of-record.md#exit-codes)

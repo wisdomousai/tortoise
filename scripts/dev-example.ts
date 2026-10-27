@@ -2,8 +2,8 @@
  * Prepare one development launch of the starter.
  *
  *   bun run dev
- *   cd examples/quality-inspection && bun run dev
- *   bun scripts/dev-desktop.ts examples/quality-inspection --port 4322
+ *   cd showcase/examples/quality-inspection && bun run dev
+ *   bun scripts/dev-desktop.ts showcase/examples/quality-inspection --port 4322
  *
  * From an example directory (or an example path), that package becomes the starter's
  * application through `AGENT_NATIVE_APPLICATION` for the web build and the service.

@@ -120,13 +120,13 @@ test('an example export keeps only that example and configures it as the hosted 
   const source = join(directory, 'source');
   try {
     for (const name of ['alpha', 'beta']) {
-      await mkdir(join(source, 'examples', name), { recursive: true });
+      await mkdir(join(source, 'showcase', 'examples', name), { recursive: true });
       await writeFile(
-        join(source, 'examples', name, 'package.json'),
+        join(source, 'showcase', 'examples', name, 'package.json'),
         JSON.stringify({ name: `@scope/${name}` }),
       );
       await writeFile(
-        join(source, 'examples', name, 'manifest.ts'),
+        join(source, 'showcase', 'examples', name, 'manifest.ts'),
         `export default defineManifest({ id: '${name}-app', title: 'T', modules: [] });`,
       );
     }
@@ -158,16 +158,16 @@ test('an example export keeps only that example and configures it as the hosted 
         '        "@scope/beta": "workspace:*",',
         '      },',
         '    },',
-        '    "examples/alpha": {',
+        '    "showcase/examples/alpha": {',
         '      "name": "@scope/alpha",',
         '    },',
-        '    "examples/beta": {',
+        '    "showcase/examples/beta": {',
         '      "name": "@scope/beta",',
         '    },',
         '  },',
         '  "packages": {',
-        '    "@scope/alpha": ["@scope/alpha@workspace:examples/alpha"],',
-        '    "@scope/beta": ["@scope/beta@workspace:examples/beta"],',
+        '    "@scope/alpha": ["@scope/alpha@workspace:showcase/examples/alpha"],',
+        '    "@scope/beta": ["@scope/beta@workspace:showcase/examples/beta"],',
         '  }',
         '}',
       ].join('\n'),
@@ -183,9 +183,9 @@ test('an example export keeps only that example and configures it as the hosted 
     expect(manifest.files.map((file) => file.path)).toEqual([
       'app.config.json',
       'bun.lock',
-      'examples/beta/manifest.ts',
-      'examples/beta/package.json',
       'package.json',
+      'showcase/examples/beta/manifest.ts',
+      'showcase/examples/beta/package.json',
     ]);
     expect(JSON.parse(await readFile(join(target, 'app.config.json'), 'utf8')).application).toBe(
       '@scope/beta',
@@ -196,7 +196,7 @@ test('an example export keeps only that example and configures it as the hosted 
     });
     const lock = await readFile(join(target, 'bun.lock'), 'utf8');
     expect(lock).not.toContain('alpha');
-    expect(lock).toContain('"examples/beta"');
+    expect(lock).toContain('"showcase/examples/beta"');
     await expect(
       scaffold({
         sourceRoot: source,
@@ -206,17 +206,17 @@ test('an example export keeps only that example and configures it as the hosted 
       }),
     ).rejects.toThrow('Unknown example');
     // An example that imports another, as a field app imports its hub's domain, keeps it.
-    await mkdir(join(source, 'examples', 'gamma', 'ui'), { recursive: true });
+    await mkdir(join(source, 'showcase', 'examples', 'gamma', 'ui'), { recursive: true });
     await writeFile(
-      join(source, 'examples', 'gamma', 'package.json'),
+      join(source, 'showcase', 'examples', 'gamma', 'package.json'),
       JSON.stringify({ name: '@scope/gamma' }),
     );
     await writeFile(
-      join(source, 'examples', 'gamma', 'ui', 'screen.tsx'),
+      join(source, 'showcase', 'examples', 'gamma', 'ui', 'screen.tsx'),
       "import { schema } from '@scope/alpha/domain';",
     );
     expect((await excludedExamples(source, 'gamma')).map((example) => example.directory)).toEqual([
-      'examples/beta',
+      'showcase/examples/beta',
     ]);
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -298,7 +298,7 @@ standalone(
         '<title>Fresh Application</title>',
       );
       // Exercise authoring in the exported application, not in the original checkout.
-      const contractsPath = join(target, 'examples/field-service/contracts.ts');
+      const contractsPath = join(target, 'showcase/examples/field-service/contracts.ts');
       let contracts = await readFile(contractsPath, 'utf8');
       contracts = patched(
         contracts,
@@ -308,7 +308,7 @@ standalone(
       );
       contracts = patched(contracts, /('task\.set-status')(,?\s*\])/, "$1, 'work-order.summary'$2");
       await writeFile(contractsPath, contracts);
-      const handlersPath = join(target, 'examples/field-service/handlers/work-orders.ts');
+      const handlersPath = join(target, 'showcase/examples/field-service/handlers/work-orders.ts');
       const handlers = patched(
         await readFile(handlersPath, 'utf8'),
         '>[] => [',
@@ -317,7 +317,7 @@ standalone(
       );
       await writeFile(handlersPath, handlers);
       // Unknown operations fail closed, so the new query needs its own policy rule.
-      const policyPath = join(target, 'examples/field-service/policy.ts');
+      const policyPath = join(target, 'showcase/examples/field-service/policy.ts');
       await writeFile(
         policyPath,
         patched(
@@ -327,7 +327,7 @@ standalone(
         ),
       );
       await writeFile(
-        join(target, 'examples/field-service/scaffold-extension.test.ts'),
+        join(target, 'showcase/examples/field-service/scaffold-extension.test.ts'),
         `import { expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -355,7 +355,7 @@ test('authored summary is available through the exported HTTP host', async () =>
         ['bun', 'run', 'check:format'],
         ['bun', 'run', 'generate'],
         ['bun', 'run', 'typecheck'],
-        ['bun', 'test', 'examples/field-service/scaffold-extension.test.ts'],
+        ['bun', 'test', 'showcase/examples/field-service/scaffold-extension.test.ts'],
       ]) {
         const result = Bun.spawn(command, { cwd: target, env, stdout: 'pipe', stderr: 'pipe' });
         const [stdout, stderr, code] = await Promise.all([

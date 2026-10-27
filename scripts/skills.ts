@@ -15,8 +15,8 @@ export const layers = [
   'workstations',
   'plugins',
   'apps',
-  'examples',
-  'patterns',
+  'showcase/examples',
+  'showcase/patterns',
   'sdks',
 ] as const;
 

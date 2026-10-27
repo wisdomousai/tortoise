@@ -120,13 +120,13 @@ Run the deterministic tests:
 bun run test:harness
 bun test plugins/automation
 bun test plugins/model-server
-bun test examples/<app>/test/agent-scenarios.test.ts
+bun test showcase/examples/<app>/test/agent-scenarios.test.ts
 ```
 
 Run the scenarios against a configured model, or the model server against real weights:
 
 ```sh
-AGENT_SCENARIOS=live bun test examples/<app>/test/agent-scenarios.test.ts
+AGENT_SCENARIOS=live bun test showcase/examples/<app>/test/agent-scenarios.test.ts
 LOCAL_MODEL_GGUF=~/models/gemma-4-E4B-it-Q4_0.gguf bun test plugins/model-server/test/live.test.ts
 ```
 
@@ -148,4 +148,4 @@ No host route starts an agent run from an agent definition. Definitions run thro
 - [add-capability skill](../packages/runtime/skills/add-capability/SKILL.md)
 - [serve-a-local-model skill](../plugins/model-server/skills/serve-a-local-model/SKILL.md)
 - [run-agent-tools-in-a-sandbox skill](../plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md)
-- [`examples/field-service/job.ts`](../examples/field-service/job.ts)
+- [`showcase/examples/field-service/job.ts`](../showcase/examples/field-service/job.ts)

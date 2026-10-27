@@ -99,7 +99,7 @@ bun test plugins/notifications
 - an undeclared category or button, and an action the site turned off, which settle as rejected;
 - startup refused without the plugin, and a carried target without a settle command refused.
 
-`examples/field-service/test/os.test.ts` covers the desktop path over HTTP, from the Electron relay to the reply. `examples/asset-survey-field/test/os.test.ts` covers a phone: a notice without buttons that inbound sync queues, shown once per new assignment and settled.
+`showcase/examples/field-service/test/os.test.ts` covers the desktop path over HTTP, from the Electron relay to the reply. `showcase/examples/asset-survey-field/test/os.test.ts` covers a phone: a notice without buttons that inbound sync queues, shown once per new assignment and settled.
 
 ## Skills
 

@@ -39,7 +39,7 @@ bun run scaffold versions [<application-directory>]
 ```
 
 - **Export** with `--example <name>` exports one [example](../../docs/glossary.md#example) as the hosted application, with the examples it imports. A field application keeps the hub application whose modules it shares. The export leaves the other examples, their reference sets, root dependencies and lockfile entries out.
-- **`new`** exports no example and generates one application in `examples/<name>`. Its manifest sets a [shelf life](../../docs/glossary.md#shelf-life) of 180 days.
+- **`new`** exports no example and generates one application in `showcase/examples/<name>`. Its manifest sets a [shelf life](../../docs/glossary.md#shelf-life) of 180 days.
 - **`add`** extends that application with a collection, a [capability](../../docs/glossary.md#capability), a [target](../../docs/glossary.md#target), an agent, an [assignment kind](../../docs/glossary.md#assignment-kind) or a [feature](../../docs/glossary.md#feature).
 - **`versions`** checks that an installed application has one framework version.
 
@@ -51,7 +51,7 @@ With `--published` or `--registry <url>`, `new` leaves the framework source out 
 
 - leaves out `packages/*`, `workstations/*`, `plugins/*`, `sdks/*`, the lockfile and the release scripts;
 - makes the root manifest depend on every framework package at the checkout's framework version;
-- sets the `workspaces` field to `apps/*` and `examples/*`;
+- sets the `workspaces` field to `apps/*` and `showcase/examples/*`;
 - drops root scripts that test or release framework source, and removes them from chains such as `check`;
 - points the starter's relative references to framework files (tsconfig paths, stylesheets, README links) into `node_modules`.
 

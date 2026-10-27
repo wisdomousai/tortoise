@@ -237,7 +237,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md)
 
 _Work handed to a person, an agent, a paired device, a peer application or a target, with a brief, and the structured reports the assignee sends back for a person to accept or discard. The `assignment` feature keeps assignments and reports._
 
-implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame`](../packages/frame/README.md) [`examples/asset-survey`](../examples/asset-survey/README.md)
+implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame`](../packages/frame/README.md) [`showcase/examples/asset-survey`](../showcase/examples/asset-survey/README.md)
 
 ### Trigger
 
@@ -267,7 +267,7 @@ implemented · [`packages/devices`](../packages/devices/README.md) [`plugins/int
 
 _A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or notification reply, and where its requests go._
 
-partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/shell`](../packages/shell/README.md) [`plugins/os`](../plugins/os/README.md) [`plugins/share-target`](../plugins/share-target/README.md) [`plugins/notifications`](../plugins/notifications/README.md) [`plugins/android-intents`](../plugins/android-intents/README.md) [`plugins/os-shortcuts`](../plugins/os-shortcuts/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`packages/mobile`](../packages/mobile/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`apps/desktop`](../apps/desktop/README.md) [`apps/mobile`](../apps/mobile/README.md) [`examples/field-service`](../examples/field-service/README.md)
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/shell`](../packages/shell/README.md) [`plugins/os`](../plugins/os/README.md) [`plugins/share-target`](../plugins/share-target/README.md) [`plugins/notifications`](../plugins/notifications/README.md) [`plugins/android-intents`](../plugins/android-intents/README.md) [`plugins/os-shortcuts`](../plugins/os-shortcuts/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`packages/mobile`](../packages/mobile/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`apps/desktop`](../apps/desktop/README.md) [`apps/mobile`](../apps/mobile/README.md) [`showcase/examples/field-service`](../showcase/examples/field-service/README.md)
 
 ### OS action
 
@@ -329,31 +329,31 @@ implemented · [`packages/contracts`](../packages/contracts/README.md) [`package
 
 _Another agent-native application as a target, through the peer surface it publishes: the commands and queries it lets a peer call as a service principal or on behalf of a mapped person._
 
-partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md) [`examples/receiving`](../examples/receiving/README.md) [`examples/asset-survey-field`](../examples/asset-survey-field/README.md)
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md) [`showcase/examples/receiving`](../showcase/examples/receiving/README.md) [`showcase/examples/asset-survey-field`](../showcase/examples/asset-survey-field/README.md)
 
 ### Peer link
 
 _Enrollment of another agent-native application, which then calls the peer surface as its service principal or, with a signed subject assertion, as a mapped person._
 
-partial · [`plugins/peer-link`](../plugins/peer-link/README.md) [`packages/integration`](../packages/integration/README.md) [`examples/quality-inspection`](../examples/quality-inspection/README.md) [`examples/receiving`](../examples/receiving/README.md)
+partial · [`plugins/peer-link`](../plugins/peer-link/README.md) [`packages/integration`](../packages/integration/README.md) [`showcase/examples/quality-inspection`](../showcase/examples/quality-inspection/README.md) [`showcase/examples/receiving`](../showcase/examples/receiving/README.md)
 
 ### Worklist
 
 _The assignee side of assignments in another application: the open assignments from the issuer's feed, and the reports and done marks recorded locally and delivered to the issuer through the outbox._
 
-implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`examples/asset-survey-field`](../examples/asset-survey-field/README.md)
+implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`showcase/examples/asset-survey-field`](../showcase/examples/asset-survey-field/README.md)
 
 ### Remote query
 
 _A query that reads another system when the caller runs the query, and stores nothing. The query acts with the caller's credential, or with a service credential where the query declares that fallback._
 
-partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/host`](../packages/host/README.md) [`packages/react`](../packages/react/README.md) [`examples/crm-capture`](../examples/crm-capture/README.md)
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/host`](../packages/host/README.md) [`packages/react`](../packages/react/README.md) [`showcase/examples/crm-capture`](../showcase/examples/crm-capture/README.md)
 
 ### Data provider
 
 _One declaration of what a system of record can be searched for, which becomes ordinary catalog entries for every surface._
 
-partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md) [`examples/crm-capture`](../examples/crm-capture/README.md)
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md) [`showcase/examples/crm-capture`](../showcase/examples/crm-capture/README.md)
 
 ### Observation
 
@@ -371,13 +371,13 @@ implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/READ
 
 _A driver's state fields, its actions with delivery mode and hazard class, and its events, as data with a digest the driver must echo at its handshake._
 
-partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`examples/quality-inspection`](../examples/quality-inspection/README.md) [`examples/line-station`](../examples/line-station/README.md)
+partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`showcase/examples/quality-inspection`](../showcase/examples/quality-inspection/README.md) [`showcase/examples/line-station`](../showcase/examples/line-station/README.md)
 
 ### Driver process
 
 _A supervised child process that controls or reads equipment, speaking JSON-RPC over its standard streams and started through the process port. Its events can enter as ingest commands._
 
-partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/process`](../plugins/process/README.md) [`examples/quality-inspection`](../examples/quality-inspection/README.md) [`examples/line-station`](../examples/line-station/README.md)
+partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/process`](../plugins/process/README.md) [`showcase/examples/quality-inspection`](../showcase/examples/quality-inspection/README.md) [`showcase/examples/line-station`](../showcase/examples/line-station/README.md)
 
 ### Driver SDK
 
@@ -389,7 +389,7 @@ partial · [`sdks/driver-python`](../sdks/driver-python/README.md) [`sdks/driver
 
 _A tracked state and procedure for outcomes no one can establish automatically. The `reconciliation` feature serves the decisions._
 
-implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/frame`](../packages/frame/README.md) [`examples/receiving`](../examples/receiving/README.md) [`examples/line-station`](../examples/line-station/README.md)
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/frame`](../packages/frame/README.md) [`showcase/examples/receiving`](../showcase/examples/receiving/README.md) [`showcase/examples/line-station`](../showcase/examples/line-station/README.md)
 
 ### Worker claims
 

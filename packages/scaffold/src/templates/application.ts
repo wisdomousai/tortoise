@@ -22,8 +22,8 @@ const packageJson = ({ packageName }: AppNames) =>
       private: true,
       type: 'module',
       scripts: {
-        dev: 'bun ../../scripts/dev-desktop.ts --port 4330',
-        'dev:web': 'bun ../../scripts/dev-example.ts --port 4330',
+        dev: 'bun ../../../scripts/dev-desktop.ts --port 4330',
+        'dev:web': 'bun ../../../scripts/dev-example.ts --port 4330',
       },
       exports: { './screens': './screens.tsx', './*': './*.ts' },
     },

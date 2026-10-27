@@ -1,6 +1,6 @@
 ---
 name: add-capability
-description: Add or change a command or query in an agent-native application, with its contract, handler, policy rule, screen binding and behavioral test. Use when a user action, agent tool, CLI subcommand or API call needs new domain behavior, when a stored record shape changes and needs a state migration, or when a trigger should run a job. Covers examples/<app> and patterns/<name> contracts.ts, handlers, policy and tests.
+description: Add or change a command or query in an agent-native application, with its contract, handler, policy rule, screen binding and behavioral test. Use when a user action, agent tool, CLI subcommand or API call needs new domain behavior, when a stored record shape changes and needs a state migration, or when a trigger should run a job. Covers showcase/examples/<app> and showcase/patterns/<name> contracts.ts, handlers, policy and tests.
 ---
 
 # Add a capability
@@ -42,9 +42,9 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
 9. Declare what it reaches: network destinations, exchange folders, devices, child processes, and the input fields safe to log in plain text.
 10. Bind it to a [screen](../../../../docs/glossary.md#screen) with the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`). Keep `useCapabilityForm`, so a retry reuses one [idempotency key](../../../../docs/glossary.md#idempotency-key).
 11. Prove it with a [behavioral scenario](../../../../docs/glossary.md#behavioral-scenario): permitted and denied access, a stale revision, a repeated idempotency key, and the change visible to another process. Use `packages/testing` for cross-surface scenarios.
-12. When a stored shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. The `packages/kernel` README and [state migration](../../../../docs/primitives.md#state-migration) describe the steps; `patterns/operations/migrations.ts` has one.
-13. For a scheduled or event-driven job, declare a [trigger](../../../../docs/glossary.md#trigger) from `plugins/automation`. It submits commands under its standing grant like any caller. `patterns/agents/automation.ts` runs a job that requests approval instead of committing.
-14. When an agent definition gains or loses a capability, or a capability an agent uses changes, add or update the agent's scenarios in `examples/<app>/test/agent-scenarios.test.ts` with `runAgentScenarios` from `@agent-native/testing/agent-scenarios`. A scenario holds:
+12. When a stored shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. The `packages/kernel` README and [state migration](../../../../docs/primitives.md#state-migration) describe the steps; `showcase/patterns/operations/migrations.ts` has one.
+13. For a scheduled or event-driven job, declare a [trigger](../../../../docs/glossary.md#trigger) from `plugins/automation`. It submits commands under its standing grant like any caller. `showcase/patterns/agents/automation.ts` runs a job that requests approval instead of committing.
+14. When an agent definition gains or loses a capability, or a capability an agent uses changes, add or update the agent's scenarios in `showcase/examples/<app>/test/agent-scenarios.test.ts` with `runAgentScenarios` from `@agent-native/testing/agent-scenarios`. A scenario holds:
     - a task and fixture state;
     - the commits and approval requests expected;
     - the calls that must be refused.
@@ -61,8 +61,8 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
 ```sh
 bun run format && bun run generate
 bun run typecheck
-bun test examples/<app>
-bunx playwright test examples/<app>/e2e
+bun test showcase/examples/<app>
+bunx playwright test showcase/examples/<app>/e2e
 ```
 
 After `generate`, read the application's security manifest and data flows in `dist/reference/<id>/` for the destinations the change added. Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) for the rest and for how to report what passed.
@@ -70,6 +70,6 @@ After `generate`, read the application's security manifest and data flows in `di
 ## References
 
 - [Capability authoring](../../../../docs/capability-authoring.md)
-- [`examples/field-service`](../../../../examples/field-service/README.md)
+- [`showcase/examples/field-service`](../../../../showcase/examples/field-service/README.md)
 - [Authorization](../../../../docs/authorization.md)
 - [Patterns](../../../../docs/patterns.md)

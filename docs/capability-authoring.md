@@ -184,7 +184,7 @@ A [trigger](glossary.md#trigger) runs a job or an agent definition on a committe
 
 ## Scenarios
 
-Write a behavioral scenario for each capability: permitted and denied access, a stale revision, a replayed [idempotency key](glossary.md#idempotency-key) and the change visible to another caller. [`packages/testing`](../packages/testing/README.md) runs it against the instance directly. `examples/field-service/test/transport-conformance.test.ts` checks the same behavior over HTTP, the CLI and MCP. When an agent definition gains or loses a capability, update its [agent scenarios](glossary.md#agent-scenario).
+Write a behavioral scenario for each capability: permitted and denied access, a stale revision, a replayed [idempotency key](glossary.md#idempotency-key) and the change visible to another caller. [`packages/testing`](../packages/testing/README.md) runs it against the instance directly. `showcase/examples/field-service/test/transport-conformance.test.ts` checks the same behavior over HTTP, the CLI and MCP. When an agent definition gains or loses a capability, update its [agent scenarios](glossary.md#agent-scenario).
 
 ## Use
 

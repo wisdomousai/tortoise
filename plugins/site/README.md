@@ -125,7 +125,7 @@ External: `zod` for the policy schema, and `jose` for the provider's key set.
 ## Tests
 
 ```sh
-bun test examples/field-service/test/hardening.test.ts examples/field-service/test/security.test.ts
+bun test showcase/examples/field-service/test/hardening.test.ts showcase/examples/field-service/test/security.test.ts
 bun test plugins/network
 bun test apps/desktop/test/site-policy.test.ts
 bun test plugins/site

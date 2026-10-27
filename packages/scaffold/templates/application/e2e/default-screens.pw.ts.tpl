@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startService } from '../../../tests/e2e/service';
+import { startService } from '../../../../tests/e2e/service';
 
 test('the default {{many.words}} screens create, list, open and edit a {{one.words}}', async ({ page }) => {
   const workspace = await mkdtemp(join(tmpdir(), '{{app.kebab}}-screens-'));

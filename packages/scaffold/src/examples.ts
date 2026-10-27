@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 /** Directories that hold applications: the examples and the concept patterns. */
-const contentLayers = ['examples', 'patterns'] as const;
+const contentLayers = ['showcase/examples', 'showcase/patterns'] as const;
 
 export interface ExcludedExample {
   readonly directory: string;
@@ -38,8 +38,8 @@ async function keptExamples(
   examples: readonly ExcludedExample[],
   keep: string,
 ): Promise<Set<string>> {
-  const kept = new Set([`examples/${keep}`]);
-  const pending = [`examples/${keep}`];
+  const kept = new Set([`showcase/examples/${keep}`]);
+  const pending = [`showcase/examples/${keep}`];
   while (pending.length) {
     const files = await sourceFiles(join(sourceRoot, pending.pop()!));
     const sources = await Promise.all(files.map((file) => readFile(file, 'utf8')));
@@ -69,7 +69,7 @@ export async function excludedExamples(
   for (const layer of contentLayers) {
     const entries = await readdir(join(sourceRoot, layer), { withFileTypes: true }).catch(() => []);
     if (
-      layer === 'examples' &&
+      layer === 'showcase/examples' &&
       keep !== undefined &&
       !entries.some((entry) => entry.isDirectory() && entry.name === keep)
     )
@@ -91,21 +91,21 @@ export async function excludedExamples(
 }
 
 /**
- * The `patterns/*` workspace entry when the export leaves out every pattern, so the
+ * The `showcase/patterns/*` workspace entry when the export leaves out every pattern, so the
  * exported root lists no empty layer. The examples layer always stays: it holds the application.
  */
 export async function emptiedLayers(
   sourceRoot: string,
   excluded: readonly ExcludedExample[],
 ): Promise<string[]> {
-  const entries = await readdir(join(sourceRoot, 'patterns'), { withFileTypes: true }).catch(
-    () => [],
-  );
+  const entries = await readdir(join(sourceRoot, 'showcase', 'patterns'), {
+    withFileTypes: true,
+  }).catch(() => []);
   const patterns = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
   return patterns.every((name) =>
-    excluded.some(({ directory }) => directory === `patterns/${name}`),
+    excluded.some(({ directory }) => directory === `showcase/patterns/${name}`),
   )
-    ? ['patterns/*']
+    ? ['showcase/patterns/*']
     : [];
 }
 

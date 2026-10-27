@@ -50,7 +50,7 @@ Framework: `@agent-native/contracts`, `@agent-native/runtime` (types), `@agent-n
 
 External: `zod`, `react`, `@tanstack/react-query` and `lucide-react`. The status screen uses the starter's `@/components/ui` primitives and `@/lib/session`.
 
-A plugin never imports `apps/*` or `examples/*`; its tests use a fixture notes application.
+A plugin never imports `apps/*` or `showcase/examples/*`; its tests use a fixture notes application.
 
 ## Tests
 
@@ -66,7 +66,7 @@ bun test plugins/webhook
 - startup refused for an unknown operation ID;
 - a behavioral scenario through the direct driver.
 
-`examples/field-service/test/ui-bindings.test.ts` checks the status screen's binding.
+`showcase/examples/field-service/test/ui-bindings.test.ts` checks the status screen's binding.
 
 ## Skills
 

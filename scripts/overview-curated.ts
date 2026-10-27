@@ -100,7 +100,7 @@ export const paths: readonly RequestPath[] = [
         sources: ['packages/adapters/src', 'packages/host/src'],
         tests: [
           {
-            file: 'examples/field-service/test/transport-conformance.test.ts',
+            file: 'showcase/examples/field-service/test/transport-conformance.test.ts',
             test: 'direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors and idempotent commits',
           },
         ],
@@ -154,7 +154,7 @@ export const paths: readonly RequestPath[] = [
             test: 'delivers outside the transaction and settles through the domain command',
           },
           {
-            file: 'examples/quality-inspection/domain.test.ts',
+            file: 'showcase/examples/quality-inspection/domain.test.ts',
             test: 'an unavailable SoR leaves captured data committed and visibly retrying',
           },
         ],
@@ -371,7 +371,7 @@ export const properties: readonly Property[] = [
         test: 'delivers outside the transaction and settles through the domain command',
       },
       {
-        file: 'examples/quality-inspection/domain.test.ts',
+        file: 'showcase/examples/quality-inspection/domain.test.ts',
         test: 'an unavailable SoR leaves captured data committed and visibly retrying',
       },
     ],
@@ -394,7 +394,7 @@ export const properties: readonly Property[] = [
     doc: 'architecture#surfaces-and-identity',
     tests: [
       {
-        file: 'examples/field-service/test/transport-conformance.test.ts',
+        file: 'showcase/examples/field-service/test/transport-conformance.test.ts',
         test: 'direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors and idempotent commits',
       },
     ],
@@ -561,7 +561,10 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
   'quality-inspection': {
     input: 'Keyboard and wedge-scanner capture, and a serial gauge driver that only observes.',
     record: 'A fake quality system over HTTP, with outbox delivery and inbound sync of lots.',
-    sources: ['examples/quality-inspection/fake-sor.ts', 'examples/quality-inspection/drivers'],
+    sources: [
+      'showcase/examples/quality-inspection/fake-sor.ts',
+      'showcase/examples/quality-inspection/drivers',
+    ],
   },
   'line-station': {
     input:
@@ -569,40 +572,40 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
     record:
       'A homebrew MES for orders and stops, and the workstation application through its screen.',
     sources: [
-      'examples/line-station/fake-mes.ts',
-      'examples/line-station/fake-hmi',
-      'examples/line-station/drivers',
+      'showcase/examples/line-station/fake-mes.ts',
+      'showcase/examples/line-station/fake-hmi',
+      'showcase/examples/line-station/drivers',
     ],
   },
   receiving: {
     input: 'Counts on the receiving screen and advance shipping notices from an inbox folder.',
     record: 'An ERP reached only through exchange folders, settled from receipt files.',
-    sources: ['examples/receiving/erp-port.ts'],
+    sources: ['showcase/examples/receiving/erp-port.ts'],
   },
   'crm-capture': {
     input: "A remote query of the CRM with the caller's access, then adoption of accounts.",
     record: 'A fake CRM, with adoption through the outbox and updates from its feed.',
-    sources: ['examples/crm-capture/fake-crm.ts'],
+    sources: ['showcase/examples/crm-capture/fake-crm.ts'],
   },
   'asset-survey': {
     input: 'Nameplate photos from paired phones, read by an extractor or a vision model.',
     record: 'A fake EAM that files the reviewed assets.',
-    sources: ['examples/asset-survey/connectors/fake-eam.ts'],
+    sources: ['showcase/examples/asset-survey/connectors/fake-eam.ts'],
   },
   'asset-survey-field': {
     input: 'Camera photos and scans on a phone, captured offline.',
     record: 'The asset-survey hub, reached through the peer connector.',
-    sources: ['examples/asset-survey-field/ui-native/capture.tsx'],
+    sources: ['showcase/examples/asset-survey-field/ui-native/capture.tsx'],
   },
   'field-service': {
     input:
       'Screens, OS links and files, the share target, launcher shortcuts and reminder replies.',
     record: 'None; a notification target, and a webhook to the customer portal.',
-    sources: ['examples/field-service/os.ts'],
+    sources: ['showcase/examples/field-service/os.ts'],
   },
   fleet: {
     input: 'Reports and audit events from enrolled sites.',
     record: 'None; the fleet keeps its own records.',
-    sources: ['examples/fleet/domain.ts'],
+    sources: ['showcase/examples/fleet/domain.ts'],
   },
 };

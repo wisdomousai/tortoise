@@ -1,6 +1,6 @@
 # Patterns
 
-The [patterns](glossary.md#pattern) in `patterns/*` show one technical concern each, such as a system of record, an agent, a sandbox or plant signals. The [examples](glossary.md#example) in `examples/*` are whole applications for real-world cases instead. The patterns are small applications for one case: a manufacturer of power transformers whose oil lab tests samples drawn from transformers in service. `patterns/base` is the base application. A technician submits a test request for an oil sample with its transformer and a description, a technician assigns the test method, and viewers read the requests. Each other pattern imports the base's module, handlers, policy and screens unchanged and adds one concern next to them.
+The [patterns](glossary.md#pattern) in `showcase/patterns/*` show one technical concern each, such as a system of record, an agent, a sandbox or plant signals. The [examples](glossary.md#example) in `showcase/examples/*` are whole applications for real-world cases instead. The patterns are small applications for one case: a manufacturer of power transformers whose oil lab tests samples drawn from transformers in service. `showcase/patterns/base` is the base application. A technician submits a test request for an oil sample with its transformer and a description, a technician assigns the test method, and viewers read the requests. Each other pattern imports the base's module, handlers, policy and screens unchanged and adds one concern next to them.
 
 ## Concepts
 
@@ -10,11 +10,11 @@ Terms: [pattern](glossary.md#pattern), [application](glossary.md#application), [
 
 | File | Holds |
 | --- | --- |
-| `patterns/base/contracts.ts` | The `test-requests` module: the test request collection with its display metadata, `test-request.submit` and `test-request.update` |
-| `patterns/base/domain.ts`, `handlers.ts`, `policy.ts` | The `testRequests` state slice, the handlers and the technician and viewer policy |
-| `patterns/base/server.ts` | What an extension imports on the server |
-| `patterns/base/ui/requests.tsx` | The test request routes, navigation and capability screens that an extension spreads |
-| `patterns/base/application.ts`, `manifest.ts`, `screens.tsx` | The three entrypoints of the base application on its own |
+| `showcase/patterns/base/contracts.ts` | The `test-requests` module: the test request collection with its display metadata, `test-request.submit` and `test-request.update` |
+| `showcase/patterns/base/domain.ts`, `handlers.ts`, `policy.ts` | The `testRequests` state slice, the handlers and the technician and viewer policy |
+| `showcase/patterns/base/server.ts` | What an extension imports on the server |
+| `showcase/patterns/base/ui/requests.tsx` | The test request routes, navigation and capability screens that an extension spreads |
+| `showcase/patterns/base/application.ts`, `manifest.ts`, `screens.tsx` | The three entrypoints of the base application on its own |
 
 The base keeps its state in a `testRequests` slice from the start, so an extension adds a slice beside it instead of moving it.
 
@@ -226,14 +226,14 @@ The generator, the scaffold and the framework release are tools that run on cont
 Run a pattern in the browser from its directory:
 
 ```sh
-cd patterns/agents
+cd showcase/patterns/agents
 bun run dev:web
 ```
 
 Run the tests of one pattern, or of all of them:
 
 ```sh
-bun test patterns/agents/
+bun test showcase/patterns/agents/
 bun test patterns
 ```
 
@@ -252,18 +252,18 @@ A pattern with a `dev.ts` starts its fake system or seeds records first. `system
 
 ## References
 
-- [Base pattern](../patterns/base/README.md)
-- [System of record pattern](../patterns/system-of-record/README.md)
-- [Agents pattern](../patterns/agents/README.md)
-- [Host plugin pattern](../patterns/host-plugin/README.md)
-- [Operations pattern](../patterns/operations/README.md)
-- [Review pattern](../patterns/review/README.md)
-- [Signals pattern](../patterns/signals/README.md)
-- [Local model pattern](../patterns/local-model/README.md)
-- [Sign-in pattern](../patterns/sign-in/README.md)
-- [Site pattern](../patterns/site/README.md)
-- [Sandbox pattern](../patterns/sandbox/README.md)
-- [Hosted pattern](../patterns/hosted/README.md)
+- [Base pattern](../showcase/patterns/base/README.md)
+- [System of record pattern](../showcase/patterns/system-of-record/README.md)
+- [Agents pattern](../showcase/patterns/agents/README.md)
+- [Host plugin pattern](../showcase/patterns/host-plugin/README.md)
+- [Operations pattern](../showcase/patterns/operations/README.md)
+- [Review pattern](../showcase/patterns/review/README.md)
+- [Signals pattern](../showcase/patterns/signals/README.md)
+- [Local model pattern](../showcase/patterns/local-model/README.md)
+- [Sign-in pattern](../showcase/patterns/sign-in/README.md)
+- [Site pattern](../showcase/patterns/site/README.md)
+- [Sandbox pattern](../showcase/patterns/sandbox/README.md)
+- [Hosted pattern](../showcase/patterns/hosted/README.md)
 - [Architecture](architecture.md)
 - [Capability authoring](capability-authoring.md)
 - [Primitives](primitives.md)

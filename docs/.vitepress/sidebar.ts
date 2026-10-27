@@ -42,8 +42,8 @@ const layers: ReadonlyArray<readonly [directory: string, text: string]> = [
   ['packages', 'Packages'],
   ['plugins', 'Plugins'],
   ['apps', 'Apps'],
-  ['examples', 'Examples'],
-  ['patterns', 'Patterns'],
+  ['showcase/examples', 'Examples'],
+  ['showcase/patterns', 'Patterns'],
   ['sdks', 'SDKs'],
 ];
 

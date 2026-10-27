@@ -35,7 +35,7 @@ A test of an agent definition: a task, fixture state and the commits, approval r
 
 ### Application
 
-One unit of content that a host runs: a browser-safe manifest, an application definition and screens, with their tests. The examples under `examples/` are applications. Explained in [architecture](architecture.md#application-entrypoints).
+One unit of content that a host runs: a browser-safe manifest, an application definition and screens, with their tests. The examples under `showcase/examples/` are applications. Explained in [architecture](architecture.md#application-entrypoints).
 
 Do not use: app (in prose; `app` stays in file names and commands).
 
@@ -269,7 +269,7 @@ Do not use: in-process mode, standalone mode, local mode.
 
 ### Example
 
-A whole application under `examples/` for a real-world case in one of the covered domains, such as field service work orders or goods receiving. It also serves as a test fixture. Listed in [architecture](architecture.md#examples). A [pattern](#pattern) shows one technical concern instead.
+A whole application under `showcase/examples/` for a real-world case in one of the covered domains, such as field service work orders or goods receiving. It also serves as a test fixture. Listed in [architecture](architecture.md#examples). A [pattern](#pattern) shows one technical concern instead.
 
 Do not use: demo app, reference app.
 
@@ -309,7 +309,7 @@ A number that grows with each new holder of a worker claim or a workspace lease.
 
 ### Fleet
 
-An application that sites report to: enrollment, health, signed releases, forwarded audit events and relayed remote access. The fleet agent is the site-side plugin. Lives in [`examples/fleet`](../examples/fleet/README.md) and [`plugins/fleet-agent`](../plugins/fleet-agent/README.md); explained in [hosting](hosting.md#fleet).
+An application that sites report to: enrollment, health, signed releases, forwarded audit events and relayed remote access. The fleet agent is the site-side plugin. Lives in [`showcase/examples/fleet`](../showcase/examples/fleet/README.md) and [`plugins/fleet-agent`](../plugins/fleet-agent/README.md); explained in [hosting](hosting.md#fleet).
 
 Do not use: control plane, management server, central server.
 
@@ -507,7 +507,7 @@ The local owner is the principal `owner`. Where the identity policy admits it, t
 
 ### Pattern
 
-A small application under `patterns/` that shows one technical concern, such as a system of record, an agent or a sandbox. `patterns/base` is the base, and every other pattern composes it unchanged and adds one concern. Listed in [patterns](patterns.md). An [example](#example) is a whole application instead.
+A small application under `showcase/patterns/` that shows one technical concern, such as a system of record, an agent or a sandbox. `showcase/patterns/base` is the base, and every other pattern composes it unchanged and adds one concern. Listed in [patterns](patterns.md). An [example](#example) is a whole application instead.
 
 Do not use: sample, demo (for a pattern).
 

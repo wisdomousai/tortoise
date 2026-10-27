@@ -43,6 +43,10 @@ export async function scaffoldNew(options: NewOptions): Promise<ScaffoldManifest
     displayName,
     ...(options.sourceRoot ? { sourceRoot: options.sourceRoot } : {}),
     ...(options.published ? { published: options.published } : {}),
-    content: { directory: `examples/${app.app.kebab}`, packageName: app.packageName, files },
+    content: {
+      directory: `showcase/examples/${app.app.kebab}`,
+      packageName: app.packageName,
+      files,
+    },
   });
 }

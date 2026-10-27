@@ -20,7 +20,7 @@ A scan is input data from the person who scans, and it grants nothing by itself.
 2. To suggest a profile, run calibration (`calibrate`) on a single scan of the calibration barcode.
 3. Map scans to intents with `createScanRouter`. A route matches a GS1 application identifier or a regular expression, optionally limited to symbologies. The first match wins.
 4. List `deviceFeatureManifest` from `@agent-native/devices/contracts` in `defineManifest({ features })`.
-5. Mount `deviceFeature()` from `@agent-native/devices/server` with `mountFeature`, with an access view whose `relation(context, station)` returns `administer`, `read` or nothing from the application's own station roles. It must refuse non-members and integration principals; `deviceAccess` in `examples/line-station/policy.ts` is one. The `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) covers mounting and adopting existing configuration.
+5. Mount `deviceFeature()` from `@agent-native/devices/server` with `mountFeature`, with an access view whose `relation(context, station)` returns `administer`, `read` or nothing from the application's own station roles. It must refuse non-members and integration principals; `deviceAccess` in `showcase/examples/line-station/policy.ts` is one. The `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) covers mounting and adopting existing configuration.
 6. Remove any application policy rule for `device.*` operations and any event rule for `device`.
 7. Declare each source other than the wedge with `scannerDevicesComponent`, so the security manifest lists serial, HID and camera access. Web Serial, WebHID and camera access start only from a person's click or key press, as browsers require.
 8. Write a new transport as a `ScannerSource` that decodes through `decodeScan`. Prefixes, AIM identifiers and GS1 parsing then follow the profile.
@@ -54,4 +54,4 @@ No physical scanner has been checked yet. A scanner type counts as supported onl
 
 - [Point-of-work input](../../../../docs/point-of-work-input.md)
 - [`@agent-native/intent-scanner`](../../../../plugins/intent-scanner/README.md)
-- [`examples/asset-survey-field`](../../../../examples/asset-survey-field/README.md)
+- [`showcase/examples/asset-survey-field`](../../../../showcase/examples/asset-survey-field/README.md)

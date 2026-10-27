@@ -12,7 +12,7 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 - Pick the runtime: `llama-server` for GGUF files and LoRA adapters, or `vllm` for Hugging Face directories and LoRA modules.
 - Ollama is not managed. Run it outside the host as an unverified `localModel`.
 - Decide which agents may use the model. A fine-tune made for one task lists those agents in the entry's `agents`. Each such agent lists the entry in its definition's `models`, with `model: 'local'`.
-- `patterns/local-model` runs an agent from a trigger on a served entry, exports a dataset from its decided approval requests and gates a fine-tune on it.
+- `showcase/patterns/local-model` runs an agent from a trigger on a served entry, exports a dataset from its decided approval requests and gates a fine-tune on it.
 - Compute the digests the entry names with `measure(path)` from `@agent-native/model-server/measure`, or with `sha256sum` for a single file.
 
 ## Steps
@@ -47,8 +47,8 @@ In tests and development launches, bind the process to Bun with `llamaServerStan
 
    ```sh
    bun test plugins/model-server
-   bun test patterns/local-model/
-   bun test examples/<app>/test/agent-scenarios.test.ts
+   bun test showcase/patterns/local-model/
+   bun test showcase/examples/<app>/test/agent-scenarios.test.ts
    LOCAL_MODEL_GGUF=<weights.gguf> bun test plugins/model-server/test/live.test.ts
    ```
 
@@ -59,4 +59,4 @@ In tests and development launches, bind the process to Bun with `llamaServerStan
 
 - [Agents](../../../../docs/agents.md#local-models)
 - [`@agent-native/model-server`](../../README.md)
-- [Local model pattern](../../../../patterns/local-model/README.md)
+- [Local model pattern](../../../../showcase/patterns/local-model/README.md)

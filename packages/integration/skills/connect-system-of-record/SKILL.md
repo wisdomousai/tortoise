@@ -1,6 +1,6 @@
 ---
 name: connect-system-of-record
-description: Connect an agent-native application to another system that keeps its own records (ERP, QMS, CRM, EAM, a peer host). Use when a command's write must be accepted by that system, when master data must be pulled in, when a screen or agent needs a live search over it, or when writing or testing a SystemOfRecordPort. Covers defineTarget, outbox effects and settlement, held and upstream effects, inbound sync, remote sources and data providers in packages/integration and examples/<app>/contracts/target.ts.
+description: Connect an agent-native application to another system that keeps its own records (ERP, QMS, CRM, EAM, a peer host). Use when a command's write must be accepted by that system, when master data must be pulled in, when a screen or agent needs a live search over it, or when writing or testing a SystemOfRecordPort. Covers defineTarget, outbox effects and settlement, held and upstream effects, inbound sync, remote sources and data providers in packages/integration and showcase/examples/<app>/contracts/target.ts.
 ---
 
 # Connect a system of record
@@ -16,7 +16,7 @@ The application owns its working set and its pending [outbox effects](../../../.
 
 ## Steps
 
-1. Declare the target once with `defineTarget` in the browser-safe contracts (`examples/quality-inspection/contracts/target.ts`). It produces the settle, sync and status capabilities, the [integration principal](../../../../docs/glossary.md#integration-principal)'s grant and its [policy lane](../../../../docs/glossary.md#policy-lane).
+1. Declare the target once with `defineTarget` in the browser-safe contracts (`showcase/examples/quality-inspection/contracts/target.ts`). It produces the settle, sync and status capabilities, the [integration principal](../../../../docs/glossary.md#integration-principal)'s grant and its [policy lane](../../../../docs/glossary.md#policy-lane).
 2. Declare how the application reaches the target:
    - a network destination that reads the target and queues while offline;
    - or, for a system reached through shared folders, the exchange folders with `fileExchange` from `@agent-native/connector-files/contracts`.
@@ -24,17 +24,17 @@ The application owns its working set and its pending [outbox effects](../../../.
 4. Implement the settle and sync handlers with `targetHandlers`. They say how an outcome changes the forwarded record, how a feed item changes local state, and which records a caller may count.
 5. Pass `versions` to `targetHandlers` when the feed can deliver an older version after a newer one.
 6. Implement the [connector](../../../../docs/glossary.md#connector) (`SystemOfRecordPort`) as the only code that talks to the target. It reaches the target through the network port or the folder port. Start from a ready-made port when one fits:
-   - `httpTargetPort` (`plugins/connector-http`) for a REST system, with requests and rejection rules as data. `patterns/system-of-record/lims-port.ts` adds a pending status, a lookup and a feed;
+   - `httpTargetPort` (`plugins/connector-http`) for a REST system, with requests and rejection rules as data. `showcase/patterns/system-of-record/lims-port.ts` adds a pending status, a lookup and a feed;
    - `fileTargetPort` (`plugins/connector-files`) for a file drop with receipts or an archive, and an inbox of result exports.
 7. Return a business rejection as data, `DeliveryUncertain` when the outcome cannot be established, and `pending` when the target acknowledged but has not decided.
-8. Connect the target in `application.ts` with `connectTarget` (`examples/quality-inspection/application.ts`). A target without a feed only delivers.
+8. Connect the target in `application.ts` with `connectTarget` (`showcase/examples/quality-inspection/application.ts`). A target without a feed only delivers.
 9. Compose reconciliation for held effects. The dispatcher holds an effect whose outcome cannot be established, whose acknowledgement was lost or whose recheck was denied. It polls `upstream` effects. Only a domain command moves an effect out of `held`: settle it when the target applied or refused it, release it when it did not.
-   - Mount `reconciliationFeature()` from `@agent-native/runtime`: list `reconciliationFeatureManifest` in `defineManifest({ features })` and mount it with `mountFeature` in `application.ts`, as `examples/receiving/application.ts` does and the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) describes.
+   - Mount `reconciliationFeature()` from `@agent-native/runtime`: list `reconciliationFeatureManifest` in `defineManifest({ features })` and mount it with `mountFeature` in `application.ts`, as `showcase/examples/receiving/application.ts` does and the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) describes.
    - In the access view, `allows(context, action)` applies the application's membership gate and integration lanes, and `sees(context, effect)` decides which held effects a caller may see and decide.
    - Add the frame's `reconciliation-review` [UI registry](../../../../docs/glossary.md#ui-registry) item to a screen.
    - In the `onResolved` hook, record the outcome on the domain record as the target's `onOutcome` would. It receives the application's handler context last and commits with the decision.
-10. Write a domain command of your own for a held effect only when the decision changes more than the effect and its record (`examples/line-station/handlers/attention.ts`).
-11. For live search, declare search and lookup queries with `defineDataProvider` (`examples/crm-capture/contracts/providers.ts`). Implement them with `implementDataProvider`, and back them with `createRemoteSource`, which resolves the caller's own credential first. A provider declared `identity: 'service'` reads with the service credential only.
+10. Write a domain command of your own for a held effect only when the decision changes more than the effect and its record (`showcase/examples/line-station/handlers/attention.ts`).
+11. For live search, declare search and lookup queries with `defineDataProvider` (`showcase/examples/crm-capture/contracts/providers.ts`). Implement them with `implementDataProvider`, and back them with `createRemoteSource`, which resolves the caller's own credential first. A provider declared `identity: 'service'` reads with the service credential only.
 12. Write adoption of a search result as a domain command that enqueues a follow effect.
 13. For a target that is another agent-native application, import the peer surface it publishes with `definePeerSurface` and declare the target with `definePeerTarget` instead of `defineTarget`. Build effects with `target.effect(command, { resource, payload })`, so the peer's input schema checks the payload when the command enqueues. Add `target.destination` to the requirements. Connect it with `connectPeerTarget`, and answer remote queries from the peer with `createPeerSource`, `peerQuery` and `peerList`. Pass one `createPeerDrift` to both, so a peer operation whose schema changed waits instead of receiving input the peer would read differently. `packages/testing/test/peer-target.test.ts` shows the wiring. The called application serves its surface with `createPeerLinkPlugin({ surface })` from `@agent-native/peer-link/plugin` and adds `peerLane(surface)` to its policy's lanes, with an `integration` rule for each service operation (`plugins/peer-link/test/fixtures.ts`). The [connect-two-applications](../../../../plugins/peer-link/skills/connect-two-applications/SKILL.md) skill covers both sides, connecting with a code and the two-host tests.
 14. For a target that can only be observed and acted on, such as a screen or an instrument, use convergent delivery from `packages/integration/src/convergent/`. Follow the `bridge-station-screen` skill (`workstations/screen-bridge/skills/bridge-station-screen/SKILL.md`) or `write-hardware-driver` (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`).
@@ -44,11 +44,11 @@ Never give the integration principal more than settle, sync and status. Never gi
 ## Checks
 
 - Run `connectorConformance` from `@agent-native/testing/connectors` against the port. It covers idempotent delivery or lookup, rejection, lost replies and pull. `plugins/connector-driver/test/conformance.test.ts`, `plugins/connector-http/test/connector-http.test.ts` and `plugins/connector-files/test/connector-files.test.ts` and `packages/testing/test/peer-port.test.ts` show callers.
-- Test a lost reply, a rejection, a held effect released and settled, and a stale sync range. `packages/integration/test/reliability.test.ts` covers them in the framework. `examples/receiving/test/receiving.test.ts` shows application tests for a rejected receipt, a held posting and a malformed export.
+- Test a lost reply, a rejection, a held effect released and settled, and a stale sync range. `packages/integration/test/reliability.test.ts` covers them in the framework. `showcase/examples/receiving/test/receiving.test.ts` shows application tests for a rejected receipt, a held posting and a malformed export.
 
 ```sh
 bun run test:integration
-bun test examples/<app>
+bun test showcase/examples/<app>
 bun run generate
 ```
 
@@ -57,6 +57,6 @@ bun run generate
 ## References
 
 - [Systems of record](../../../../docs/systems-of-record.md)
-- [`examples/quality-inspection`](../../../../examples/quality-inspection/README.md)
-- [`examples/crm-capture`](../../../../examples/crm-capture/README.md)
-- [System of record pattern](../../../../patterns/system-of-record/README.md)
+- [`showcase/examples/quality-inspection`](../../../../showcase/examples/quality-inspection/README.md)
+- [`showcase/examples/crm-capture`](../../../../showcase/examples/crm-capture/README.md)
+- [System of record pattern](../../../../showcase/patterns/system-of-record/README.md)

@@ -1,0 +1,14 @@
+{
+  "name": "@agent-native/receiving",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun ../../../scripts/dev-desktop.ts --port 4330",
+    "dev:web": "bun ../../../scripts/dev-example.ts --port 4330"
+  },
+  "exports": {
+    "./screens": "./screens.tsx",
+    "./*": "./*.ts"
+  }
+}

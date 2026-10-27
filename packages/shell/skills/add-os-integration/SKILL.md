@@ -1,11 +1,11 @@
 ---
 name: add-os-integration
-description: Let the operating system reach an agent-native application, or let the application ask the OS for something. Use when adding a link, file type, share target, Android intent, launcher shortcut or notification reply as an OS handler, or an open, share, notify or intent OS action; when composing plugins/os, plugins/share-target, plugins/os-shortcuts, plugins/android-intents or plugins/notifications; or when the generated platform registrations (Expo, electron-builder, the web manifest, association files) need to change. Covers examples/<app>/os.ts, packages/contracts/src/os.ts and packages/shell.
+description: Let the operating system reach an agent-native application, or let the application ask the OS for something. Use when adding a link, file type, share target, Android intent, launcher shortcut or notification reply as an OS handler, or an open, share, notify or intent OS action; when composing plugins/os, plugins/share-target, plugins/os-shortcuts, plugins/android-intents or plugins/notifications; or when the generated platform registrations (Expo, electron-builder, the web manifest, association files) need to change. Covers showcase/examples/<app>/os.ts, packages/contracts/src/os.ts and packages/shell.
 ---
 
 # Add an OS integration
 
-An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its [module](../../../../docs/glossary.md#module). The first kind is an [OS handler](../../../../docs/glossary.md#os-handler), the second an [OS action](../../../../docs/glossary.md#os-action). `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. [Host plugins](../../../../docs/glossary.md#host-plugin) serve each kind. `examples/field-service/os.ts` declares one of nearly every kind and is the worked reference; its work order screen runs the open and share actions with `runOsAction`. `examples/asset-survey-field/os.ts` is the phone reference: an intent handler that opens a resource, and intent, share and notify actions that native screens and inbound sync use.
+An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its [module](../../../../docs/glossary.md#module). The first kind is an [OS handler](../../../../docs/glossary.md#os-handler), the second an [OS action](../../../../docs/glossary.md#os-action). `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. [Host plugins](../../../../docs/glossary.md#host-plugin) serve each kind. `showcase/examples/field-service/os.ts` declares one of nearly every kind and is the worked reference; its work order screen runs the open and share actions with `runOsAction`. `showcase/examples/asset-survey-field/os.ts` is the phone reference: an intent handler that opens a resource, and intent, share and notify actions that native screens and inbound sync use.
 
 ## Before writing
 
@@ -50,13 +50,13 @@ An application declares what the OS may send it and what it may ask of the OS as
 ```sh
 bun test packages/shell
 bun test plugins/os plugins/<plugin>
-bun test examples/<app>
-bunx playwright test examples/<app>/e2e
+bun test showcase/examples/<app>
+bunx playwright test showcase/examples/<app>/e2e
 ```
 
 - Each serving plugin's `test/mobile.test.ts` runs the mobile instance with Bun bindings for the device.
-- `examples/field-service/test/os.test.ts` covers the desktop path over HTTP.
-- `examples/asset-survey-field/test/os.test.ts` covers a phone with faked bindings: an intent, a notice queued by inbound sync, an intent action and a share.
-- `examples/field-service/e2e/os.pw.ts` covers the browser, including an open action in a new browsing context and a share through the Web Share API.
+- `showcase/examples/field-service/test/os.test.ts` covers the desktop path over HTTP.
+- `showcase/examples/asset-survey-field/test/os.test.ts` covers a phone with faked bindings: an intent, a notice queued by inbound sync, an intent action and a share.
+- `showcase/examples/field-service/e2e/os.pw.ts` covers the browser, including an open action in a new browsing context and a share through the Web Share API.
 
 The Kotlin module of `plugins/android-intents` and the Expo config plugins compile only in a native build. Record a device or emulator run in [implementation status](../../../../docs/implementation-status.md#os-integration), separately from the Bun tests.

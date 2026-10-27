@@ -1,6 +1,6 @@
 ---
 name: decommission-an-application
-description: Remove an agent-native application from a site without losing records, or give an application a shelf life. Use when retiring or uninstalling an application, purging its data directory with app uninstall --purge, a purge refused because the outbox still holds effects, deciding held effects before removal, removing a site from a fleet with site.remove, or setting shelfLifeDays and reading the best-before date in app status, posture or fleet health. Covers plugins/site, packages/kernel/src/build.ts and examples/fleet.
+description: Remove an agent-native application from a site without losing records, or give an application a shelf life. Use when retiring or uninstalling an application, purging its data directory with app uninstall --purge, a purge refused because the outbox still holds effects, deciding held effects before removal, removing a site from a fleet with site.remove, or setting shelfLifeDays and reading the best-before date in app status, posture or fleet health. Covers plugins/site, packages/kernel/src/build.ts and showcase/examples/fleet.
 ---
 
 # Decommission an application
@@ -34,7 +34,7 @@ An application keeps records its [systems of record](../../../../docs/glossary.m
    ```sh
    bun test plugins/site/test/install.test.ts
    bun test packages/kernel/test/build.test.ts
-   bun test examples/fleet
+   bun test showcase/examples/fleet
    ```
 
 2. A change to the purge check keeps the install tests' refusal, settle and override cases.
