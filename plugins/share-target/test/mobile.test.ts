@@ -112,7 +112,7 @@ test('items another app shared prefill the form; a share action opens the share 
   expect(shown).toHaveLength(2);
 
   expect(
-    await instance.instance.ports.shell.perform(instance.context, {
+    await connection.perform({
       action: 'notes.share',
       params: { text: 'Buy milk', url: 'https://example.com/n/1' },
     }),

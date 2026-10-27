@@ -88,7 +88,7 @@ Each shortcut is a VIEW intent to `<package>.MainActivity` with the shortcut lin
 
 ### Shell port
 
-`connectMobileShell` attaches the mobile shell adapter to the [shell port](../../docs/glossary.md#shell-port) in-process, as the device's owner. The OS runs in the same process as the instance, so there is no shell route on the device. A link or file the OS opens the starter with is submitted to the port. What the port delivers is held until the frame subscribes, at most 16 deliveries with the oldest dropped.
+`connectMobileShell` attaches the mobile shell adapter to the [shell port](../../docs/glossary.md#shell-port) in-process, as the device's owner. The OS runs in the same process as the instance, so there is no shell route on the device. A link or file the OS opens the starter with is submitted to the port. What the port delivers is held until the frame subscribes, at most 16 deliveries with the oldest dropped. The connection's `perform` asks the port for a declared OS action as the owner, and `apps/mobile` passes it to `NativeFrame` for `useOsAction`.
 
 An opened resource is checked readable by the owner with its kind's read query before it is shown. A blob file is staged in the instance's blob store as the owner, and staged blobs do not survive a restart. Without a plugin that provides the shell port, nothing is attached, read or submitted.
 

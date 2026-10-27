@@ -11,6 +11,7 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { Transport } from '@agent-native/client';
+import { OsActionsProvider, type PerformOsAction } from './os-actions';
 import { OsDeliveries, type OsDeliverySource } from './os-deliveries';
 import { ShownProvenance } from './os-provenance';
 import { nativeScreenForCapability, type NativeApplicationScreens } from './screens';
@@ -69,13 +70,14 @@ function Tabs({ screens }: { screens: NativeApplicationScreens }) {
  * and as a rail on tablets; every other screen is pushed on a stack above them. The status slot
  * renders above every screen. The session (query cache and live invalidation) follows `transport`.
  * With `os`, what OS requests asked for opens once navigation is ready, under a notice that says
- * where it came from.
+ * where it came from. With `osActions`, screens ask for OS actions through `useOsAction`.
  */
 export function NativeFrame({
   screens,
   transport,
   services,
   os,
+  osActions,
 }: {
   screens: NativeApplicationScreens;
   transport: Transport;
@@ -83,6 +85,8 @@ export function NativeFrame({
   services?: PluginServices;
   /** Deliveries from the mobile host's OS connection. */
   os?: OsDeliverySource;
+  /** The same connection's `perform`, for `useOsAction`. */
+  osActions?: PerformOsAction;
 }) {
   const tabs = useMemo(() => new Set(screens.navigation.map((item) => item.to)), [screens]);
   const navigation = useMemo(() => createNavigationContainerRef<ParamListBase>(), []);
@@ -96,32 +100,34 @@ export function NativeFrame({
   return (
     <SafeAreaProvider>
       <SessionProvider transport={transport} {...(services ? { services } : {})}>
-        <ScreensContext.Provider value={screens}>
-          <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-            {Status ? <Status /> : null}
-            {os ? <ShownProvenance /> : null}
-            {os && ready ? <OsDeliveries source={os} screens={screens} open={open} /> : null}
-            <View style={{ flex: 1 }}>
-              <NavigationContainer ref={navigation} onReady={() => setReady(true)}>
-                <Stack.Navigator>
-                  <Stack.Screen name={TABS} options={{ headerShown: false }}>
-                    {() => <Tabs screens={screens} />}
-                  </Stack.Screen>
-                  {screens.routes
-                    .filter((route) => !tabs.has(route.path))
-                    .map((route) => (
-                      <Stack.Screen
-                        key={route.path}
-                        name={route.path}
-                        component={route.component}
-                        options={{ title: route.title, headerShown: route.title !== undefined }}
-                      />
-                    ))}
-                </Stack.Navigator>
-              </NavigationContainer>
-            </View>
-          </SafeAreaView>
-        </ScreensContext.Provider>
+        <OsActionsProvider {...(osActions ? { perform: osActions } : {})}>
+          <ScreensContext.Provider value={screens}>
+            <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+              {Status ? <Status /> : null}
+              {os ? <ShownProvenance /> : null}
+              {os && ready ? <OsDeliveries source={os} screens={screens} open={open} /> : null}
+              <View style={{ flex: 1 }}>
+                <NavigationContainer ref={navigation} onReady={() => setReady(true)}>
+                  <Stack.Navigator>
+                    <Stack.Screen name={TABS} options={{ headerShown: false }}>
+                      {() => <Tabs screens={screens} />}
+                    </Stack.Screen>
+                    {screens.routes
+                      .filter((route) => !tabs.has(route.path))
+                      .map((route) => (
+                        <Stack.Screen
+                          key={route.path}
+                          name={route.path}
+                          component={route.component}
+                          options={{ title: route.title, headerShown: route.title !== undefined }}
+                        />
+                      ))}
+                  </Stack.Navigator>
+                </NavigationContainer>
+              </View>
+            </SafeAreaView>
+          </ScreensContext.Provider>
+        </OsActionsProvider>
       </SessionProvider>
     </SafeAreaProvider>
   );

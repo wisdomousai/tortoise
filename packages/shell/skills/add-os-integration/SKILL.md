@@ -31,7 +31,7 @@ An application declares what the OS may send it and what it may ask of the OS as
    - a `<target>.effect.settle` command per target;
    - a command that enqueues an `OsNotificationPayload` with the replies it offers.
 5. Declare the data classes an action carries. Notification text leaves the [instance](../../../../docs/glossary.md#instance) for the lock screen.
-6. Show the delivery on the screen. The web frame and `packages/frame-native` apply deliveries and show provenance (`describeProvenance`) above a prefilled form.
+6. Show the delivery on the screen. The web frame and `packages/frame-native` apply deliveries and show provenance (`describeProvenance`) above a prefilled form. A screen asks for an action with `runOsAction` from the web frame's `@/lib/os-browser`, or `useOsAction` from `@agent-native/frame-native/os-actions` on a device.
 7. Write no platform registration by hand. The generators in `@agent-native/shell/registrations` turn the same declarations into platform files:
    - `nativeOsConfig` runs in `bun run mobile:prepare` (`scripts/mobile-entry.ts`) and adds the Expo config plugins for shares, notifications, intent filters and shortcuts;
    - `desktopOsConfig` runs in `bun run package:stage` for the electron-builder scheme and file associations;
