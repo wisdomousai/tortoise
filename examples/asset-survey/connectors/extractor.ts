@@ -48,9 +48,9 @@ export const nameplateTextExtractor: Extractor = {
 };
 
 /**
- * The extraction model as the assignments' `model` target lane: each offer carries one
- * capture's photos, and the port answers with one reading. A photo no longer stored refuses the
- * offer, which the planner sees on the extraction. The lane port keeps answers in memory until
+ * The extraction model as the assignments' `model` target: each offer carries one
+ * capture's photos, and the port responds with one reading. A photo no longer stored refuses the
+ * offer, which the planner sees on the extraction. The target port keeps readings in memory until
  * the hub syncs them (see `assignmentTargetPort`).
  */
 export function createExtractionPort(options: {
@@ -58,7 +58,7 @@ export function createExtractionPort(options: {
   readonly readBlob: (effectId: string, digest: string) => Promise<Photo | undefined>;
 }) {
   return assignmentTargetPort<typeof extraction>({
-    lane: 'model',
+    target: 'model',
     readBlob: options.readBlob,
     async work(offer, { readBlob, signal }) {
       const photos: Photo[] = [];

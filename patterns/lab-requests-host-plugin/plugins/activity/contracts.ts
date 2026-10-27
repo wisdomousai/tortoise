@@ -2,13 +2,13 @@ import { z } from 'zod';
 import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
 
 const count = z.number().int().min(0);
-const tally = z.array(z.strictObject({ operation: z.string(), count }));
+const counts = z.array(z.strictObject({ operation: z.string(), count }));
 
 export const activitySummarySchema = z.strictObject({
   /** Journal cursor up to which commands were counted. */
   cursor: count,
   /** Committed commands per operation, most frequent first. */
-  operations: tally,
+  operations: counts,
   /** Modules whose commands are counted, from the launcher setting. */
   modules: z.array(z.string()),
 });
@@ -30,7 +30,7 @@ export const activityOperations = {
     kind: 'command',
     description:
       'Add one counting pass to the activity summary: the journal cursor reached and the commands counted per operation. Called by the plugin counting loop as a delegated caller.',
-    input: jsonSchema(z.strictObject({ cursor: count, counted: tally })),
+    input: jsonSchema(z.strictObject({ cursor: count, counted: counts })),
     output: jsonSchema(activitySummarySchema.omit({ modules: true })),
     permission: { action: 'write', resourceType: 'Activity' },
     ui: {

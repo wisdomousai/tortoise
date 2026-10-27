@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { BlobRef } from '@agent-native/contracts';
-import { implementDataProvider, settleDelivery, targetHandlers } from '@agent-native/integration';
+import { implementDataProvider, completeDelivery, targetHandlers } from '@agent-native/integration';
 import { own, type HandlerContribution } from '@agent-native/runtime';
 import { workflowOperations } from '@agent-native/workflows/contracts';
 import { eamAssets, eamTarget, exportTarget, filingOperations as ops } from '../contracts/filing';
@@ -119,7 +119,7 @@ function withdraw(ctx: Context, id: string) {
   const filing = filings.getExisting(id);
   if (filing.target !== 'eam' || filing.withdraws) conflict('Only an EAM filing is withdrawn');
   if (filing.withdrawnBy) return filingDto(ctx, filing.withdrawnBy);
-  if (filing.sync === 'pending') conflict('The EAM has not answered this filing yet');
+  if (filing.sync === 'pending') conflict('The EAM has not responded to this filing yet');
   if (filing.sync === 'rejected') return filingDto(ctx, id);
   const withdrawal = newId(ctx);
   const resource = filings.resource(withdrawal);
@@ -150,14 +150,14 @@ function withdraw(ctx: Context, id: string) {
 }
 
 /** Record a target's outcome on the filing it delivered. */
-function settleFiling(
+function completeFiling(
   ctx: Context,
-  effect: Parameters<typeof settleDelivery>[1],
-  outcome: Parameters<typeof settleDelivery>[2],
+  effect: Parameters<typeof completeDelivery>[1],
+  outcome: Parameters<typeof completeDelivery>[2],
 ) {
   const id = effect.resource.slice('filing:'.length);
   const filing = filingRecords(ctx).get(id);
-  settleDelivery(filing, effect, outcome);
+  completeDelivery(filing, effect, outcome);
   filingRecords(ctx).touch(id);
   return filing;
 }
@@ -207,7 +207,7 @@ export const filingHandlers = (): HandlerContribution<SurveyState, SurveyService
     cursor: (state) => state.cursors.eam,
     now,
     onOutcome(effect, outcome, ctx) {
-      const filing = settleFiling(ctx, effect, outcome);
+      const filing = completeFiling(ctx, effect, outcome);
       if (filing?.withdraws) {
         // A withdrawn create leaves the node without an asset, so the next filing creates one.
         const created = !own(ctx.state.filings, filing.withdraws)?.assetId;
@@ -237,7 +237,7 @@ export const filingHandlers = (): HandlerContribution<SurveyState, SurveyService
     // No feed: the written folder is the whole outcome.
     cursor: () => ({}),
     now,
-    onOutcome: (effect, outcome, ctx) => void settleFiling(ctx, effect, outcome),
+    onOutcome: (effect, outcome, ctx) => void completeFiling(ctx, effect, outcome),
     status: (ctx) => filingCounts(ctx, 'export'),
   }),
 ];

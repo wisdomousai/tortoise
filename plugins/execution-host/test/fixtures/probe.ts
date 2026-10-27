@@ -25,7 +25,7 @@ function tcp(host: string, port: number): Promise<string> {
   });
 }
 
-/** The status line a CONNECT through the sandbox's proxy answers, and the first bytes after. */
+/** The status line a CONNECT through the sandbox's proxy returns, and the first bytes after. */
 function proxyConnect(target: string): Promise<{ status: string; body?: string }> {
   const proxy = new URL(process.env.HTTPS_PROXY!);
   const auth = Buffer.from(

@@ -21,12 +21,12 @@ const outcome = z.union([
   z.strictObject({ status: z.literal('accepted'), externalRef: z.string().optional() }),
   z.strictObject({ status: z.literal('rejected'), code: z.string(), message: z.string() }),
 ]);
-const settle = defineCapability({
-  id: 'result.settle',
+const complete = defineCapability({
+  id: 'result.complete',
   kind: 'command',
   input: jsonSchema(z.strictObject({ effectId: z.string(), outcome })),
   output: jsonSchema(z.strictObject({ status: z.string() })),
-  permission: { action: 'settle', resourceType: 'result' },
+  permission: { action: 'complete', resourceType: 'result' },
   ui: { exception: 'integration principal' },
 });
 const status = defineCapability({
@@ -39,7 +39,7 @@ const status = defineCapability({
 });
 const module = defineModule({
   id: 'results',
-  capabilities: [record, settle, status],
+  capabilities: [record, complete, status],
   requirements: {
     network: [
       {
@@ -84,8 +84,8 @@ function fixture(options: { declareChange?: boolean; invalidOutput?: boolean } =
           ? (null as unknown as { id: string; effectId: string })
           : { id: input.id, effectId };
       }),
-      bind(settle, (input, ctx) => {
-        const effect = ctx.settleEffect(input.effectId, input.outcome as EffectOutcome);
+      bind(complete, (input, ctx) => {
+        const effect = ctx.completeEffect(input.effectId, input.outcome as EffectOutcome);
         const id = effect.resource.slice('result:'.length);
         ctx.state.results[id]!.sync = effect.status;
         ctx.change(effect.resource);
@@ -167,15 +167,15 @@ describe('transactional outbox', () => {
     expect(await storage.read('w', async (snapshot) => snapshot.effects)).toEqual({});
   });
 
-  test('settlement commits the outcome with its domain update exactly once', async () => {
+  test('completion commits the outcome with its domain update exactly once', async () => {
     const { app } = fixture();
     await app.invoke({ operation: 'result.record', input: { id: 'r1', value: 1 } }, owner);
     await app.invoke({ operation: 'result.record', input: { id: 'r2', value: 2 } }, owner);
     const accepted = await app.invoke(
       {
-        operation: 'result.settle',
+        operation: 'result.complete',
         input: { effectId: 'effect-1', outcome: { status: 'accepted', externalRef: 'QM-1' } },
-        idempotencyKey: 'settle:effect-1',
+        idempotencyKey: 'complete:effect-1',
       },
       integration,
     );
@@ -183,7 +183,7 @@ describe('transactional outbox', () => {
     expect(accepted.effects).toBeUndefined();
     await app.invoke(
       {
-        operation: 'result.settle',
+        operation: 'result.complete',
         input: {
           effectId: 'effect-2',
           outcome: { status: 'rejected', code: 'LOT_LOCKED', message: 'Inspection lot is locked' },
@@ -198,7 +198,7 @@ describe('transactional outbox', () => {
     await expect(
       app.invoke(
         {
-          operation: 'result.settle',
+          operation: 'result.complete',
           input: { effectId: 'effect-1', outcome: { status: 'accepted' } },
         },
         integration,
@@ -207,7 +207,7 @@ describe('transactional outbox', () => {
     await expect(
       app.invoke(
         {
-          operation: 'result.settle',
+          operation: 'result.complete',
           input: { effectId: 'missing', outcome: { status: 'accepted' } },
         },
         integration,
@@ -222,7 +222,7 @@ describe('transactional outbox', () => {
     await expect(
       app.invoke(
         {
-          operation: 'result.settle',
+          operation: 'result.complete',
           input: { effectId: 'effect-1', outcome: { status: 'rejected', code: '', message: 'x' } },
         },
         integration,
@@ -252,7 +252,7 @@ describe('transactional outbox', () => {
     // An editor holding the observed revision is not given a false conflict by retry metadata.
     await app.invoke(
       {
-        operation: 'result.settle',
+        operation: 'result.complete',
         input: { effectId: 'effect-1', outcome: { status: 'accepted' } },
         expectedRevisions: { 'result:r1': receipt.revisions['result:r1']! },
       },

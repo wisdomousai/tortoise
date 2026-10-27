@@ -35,7 +35,7 @@ function instanceClient(endpoint: string, token: string): DesktopShellClient {
     });
     if (response.status === 503) return undefined;
     if (response.status === 204) return null;
-    if (!response.ok) throw new Error(`Shell API answered ${response.status}`);
+    if (!response.ok) throw new Error(`Shell API returned ${response.status}`);
     return response.json();
   }
   return {
@@ -43,7 +43,7 @@ function instanceClient(endpoint: string, token: string): DesktopShellClient {
     submit: (request) => call('shell/requests', { platform, request }),
     perform: (request) => call('shell/actions', request),
     next: (signal) => call(`shell/actions?platform=${platform}`, undefined, signal),
-    answer: async (id, result) => void (await call(`shell/actions/${id}/result`, result)),
+    respond: async (id, result) => void (await call(`shell/actions/${id}/result`, result)),
     // A refused upload (no blob store, or no operation this session may invoke accepts it)
     // leaves the file unsubmitted; the shell reports it.
     async upload(bytes, mediaType) {

@@ -1,6 +1,6 @@
 import { assertJson } from '@agent-native/contracts';
 import type { StateUpgrade, Storage, WorkspaceSnapshot } from '@agent-native/runtime';
-import { emptyRows, loadRows, readMeta, type Loaded } from './row-storage/load';
+import { loadRows, readMeta, type Loaded } from './row-storage/load';
 import { persistRows, type WriteStats } from './row-storage/persist';
 import { openSchema, type SqlRowsDriver } from './row-storage/schema';
 
@@ -40,29 +40,13 @@ export function retain<State>(snapshot: WorkspaceSnapshot<State>, retention: Ret
       delete snapshot.receipts[key];
 }
 
-/** A version 1 document as a complete snapshot; older documents lack the outbox and blobs. */
-function fromDocument<State>(document: string): WorkspaceSnapshot<State> {
-  const stored = JSON.parse(document) as Partial<WorkspaceSnapshot<State>>;
-  return {
-    ...stored,
-    state: stored.state as State,
-    cursor: stored.cursor ?? 0,
-    authorizationRevision: stored.authorizationRevision ?? 0,
-    resourceRevisions: stored.resourceRevisions ?? {},
-    receipts: stored.receipts ?? {},
-    journal: stored.journal ?? [],
-    effects: stored.effects ?? {},
-    blobs: stored.blobs ?? {},
-  };
-}
-
 /**
  * Workspace persistence over a `SqlRowsDriver` with one row per record: feature state split to
  * `depth` object levels, and one row per resource revision, receipt, effect, blob reference and
  * journal entry. A commit diffs the snapshot against the rows it started from and writes only
  * what changed, inside one SQLite transaction, so it stays atomic. Reads and transactions run
- * one after another on the shared connection, like `SnapshotStorage`. A version 1 file (one JSON
- * document per workspace) is converted on open. Portable: the driver supplies the database.
+ * one after another on the shared connection, like `SnapshotStorage`. A file from another
+ * storage schema version is refused on open. Portable: the driver supplies the database.
  *
  * The last committed snapshot stays in memory with its generation. A transaction whose stored
  * generation still matches starts from it instead of reloading; another connection's commit
@@ -84,10 +68,7 @@ export class RowStorage<State> implements Storage<State> {
     private readonly options: RowStorageOptions<State> = {},
   ) {
     this.depth = options.depth ?? 3;
-    openSchema(driver, (workspaceId, document) => {
-      const before = { rows: emptyRows(), generation: 0, journalMax: 0 };
-      persistRows(driver, workspaceId, fromDocument<State>(document), before, this.depth);
-    });
+    openSchema(driver);
   }
   private serialize<T>(fn: () => Promise<T>): Promise<T> {
     const next = this.tail.then(fn, fn);
@@ -170,7 +151,7 @@ export class RowStorage<State> implements Storage<State> {
         .map((row) => row.workspace_id),
     );
   }
-  /** Close after every queued read and transaction has settled. */
+  /** Close after every queued read and transaction has completed. */
   async close(): Promise<void> {
     await this.tail;
     this.driver.close();

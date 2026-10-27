@@ -115,7 +115,7 @@ test('direct receipts carry committed outbox effects like HTTP receipts', async 
       defineModule({
         id: 'notes',
         capabilities: [post],
-        // An outbox target must travel over a declared, queuing destination.
+        // An outbox target must use a declared, queuing destination.
         requirements: {
           network: [
             {

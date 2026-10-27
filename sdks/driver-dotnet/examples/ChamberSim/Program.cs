@@ -7,7 +7,7 @@
 //
 // CHAMBER_SIM_DIR holds what a real chamber would keep across a driver restart (its setpoint and
 // door), the driver's journal, and test controls: an empty `fail-next` file makes the next action
-// fail before it acts, and `crash-next` makes it act and then exit before answering. Applied
+// fail before it acts, and `crash-next` makes it act and then exit before responding. Applied
 // actions are counted in applied.json.
 using System.Text.Json;
 using AgentNative.Driver;
@@ -53,7 +53,7 @@ void Act(string effectId, string? field = null, object? value = null)
 
 void BeforeActing()
 {
-    if (Control("fail-next")) throw new Refusal(RefusalKind.Transient, "The chamber did not answer");
+    if (Control("fail-next")) throw new Refusal(RefusalKind.Transient, "The chamber did not respond");
 }
 
 void RefuseMarked(object input)

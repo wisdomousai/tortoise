@@ -7,7 +7,7 @@ import {
   revision,
   station,
   bridgeModeSchema,
-  seatSchema,
+  controlHolderSchema,
   syncSchema,
   observationSchema,
   readingSchema,
@@ -67,11 +67,11 @@ export const commandOperations = {
     { action: 'administer', resourceType: 'StationBridge' },
     { dependencies: ['station'], binding: 'line.station.bridge' },
   ),
-  seatRequest: operation(
-    'line.seat.request',
+  controlRequest: operation(
+    'line.control.request',
     'command',
-    z.strictObject({ station: id, seat: z.enum(['operator', 'agent']) }),
-    z.strictObject({ station: id, seat: seatSchema }),
+    z.strictObject({ station: id, holder: z.enum(['operator', 'agent']) }),
+    z.strictObject({ station: id, holder: controlHolderSchema }),
     operate,
     { dependencies: ['station'] },
   ),
@@ -93,5 +93,5 @@ export const commandOperations = {
     },
   ),
   mesSync: mesTarget.sync,
-  effectSettle: mesTarget.settle,
+  effectComplete: mesTarget.complete,
 } as const;

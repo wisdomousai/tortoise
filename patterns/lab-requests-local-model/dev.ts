@@ -48,7 +48,7 @@ writeFileSync(
       profile: 'desktop-local',
       mode: 'connected',
       audit: { mode: 'best-effort' },
-      // A model that reasons before it answers can take longer than the guard's 30 s default.
+      // A model that reasons before it responds can take longer than the guard's 30 s default.
       destinations: { 'local-inference': { url: `http://127.0.0.1:${port}`, timeoutMs: 300_000 } },
       processes: { llm },
     },

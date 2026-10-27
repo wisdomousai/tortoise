@@ -25,9 +25,9 @@ export const heldEffectSchema = z.strictObject({
 export type HeldEffect = z.output<typeof heldEffectSchema>;
 
 /**
- * `applied`: the target did it, so the effect settles as accepted. `not-applied`: it did not,
+ * `applied`: the target did it, so the effect completes as accepted. `not-applied`: it did not,
  * so the effect is released and delivered again. `refused`: the target will not do it, so the
- * effect settles as rejected.
+ * effect completes as rejected.
  */
 export const reconciliationDecisionSchema = z.enum(['applied', 'not-applied', 'refused']);
 export type ReconciliationDecision = z.output<typeof reconciliationDecisionSchema>;
@@ -58,7 +58,7 @@ export const reconciliationOperations = {
     id: 'reconciliation.resolve',
     kind: 'command',
     description:
-      'Decide a held effect after checking the target: applied settles it as accepted (with the reference you found there, if any), not-applied delivers it again, refused settles it as rejected with your reason.',
+      'Decide a held effect after checking the target: applied completes it as accepted (with the reference you found there, if any), not-applied delivers it again, refused completes it as rejected with your reason.',
     input: jsonSchema(
       z.strictObject({
         effectId: z.string().min(1).max(256),

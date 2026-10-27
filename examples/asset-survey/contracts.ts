@@ -9,10 +9,10 @@ export { captureOperations } from './contracts/captures';
 export {
   assignmentOperations,
   assignments,
-  modelLane,
+  modelTarget,
   ATTENTION_BELOW,
   extraction,
-  reportPlace,
+  reportLink,
   survey,
 } from './contracts/kinds';
 export { eamAssets, eamTarget, exportTarget, filingOperations } from './contracts/filing';
@@ -45,7 +45,7 @@ export const structureModule = defineModule({
   ],
 });
 
-/** Captures are survey reports; the extraction model is the assignments' `model` target lane. */
+/** Captures are survey reports; the extraction model is the assignments' `model` target. */
 export const reviewModule = defineModule({
   id: 'survey-review',
   capabilities: Object.values(captureOperations),
@@ -72,12 +72,12 @@ export const reviewModule = defineModule({
         'capture.list',
         'capture.get',
         'structure.node.search',
-        'assignment.report.place',
+        'assignment.report.link',
         'assignment.extraction.create',
         'assignment.extraction.accept',
         'assignment.report.discard',
       ],
-      text: 'Work through capture.list with review new. Open each with capture.get. Place an unplaced capture with assignment.report.place after finding its node through structure.node.search on a scanned code or the designation on the photo. Send a nameplate without a reading to the model with assignment.extraction.create, scope reportId and assignee the model target. When the reading arrives, compare every value flagged attention with the photo region and correct what is wrong; then a person accepts it with assignment.extraction.accept. An agent prepares and reports which captures are ready and which values it doubts; it cannot accept. Discard unusable captures with assignment.report.discard and the reason.',
+      text: 'Work through capture.list with review new. Open each with capture.get. Link an unlinked capture with assignment.report.link after finding its node through structure.node.search on a scanned code or the designation on the photo. Send a nameplate without a reading to the model with assignment.extraction.create, scope reportId and assignee the model target. When the reading is recorded, compare every value flagged attention with the photo region and correct what is wrong; then a person accepts it with assignment.extraction.accept. An agent prepares and reports which captures are ready and which values it doubts; it cannot accept. Discard unusable captures with assignment.report.discard and the reason.',
     },
   ],
 });

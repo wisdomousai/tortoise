@@ -6,7 +6,7 @@ import { operations } from '../contracts';
 import { Empty, filingLabel, Page, when } from './shared';
 
 /**
- * Every filing with its target's answer: the asset the EAM created or updated, the folder the
+ * Every filing with its target's response: the asset the EAM created or updated, the folder the
  * export wrote, or why it was refused.
  */
 export function FilingScreen() {

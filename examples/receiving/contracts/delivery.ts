@@ -20,7 +20,7 @@ export const deliverySchema = z.strictObject({
   sku: z.string().min(1).max(40),
   description: z.string().max(200),
   expected: z.number().int().nonnegative(),
-  /** The ERP asks for incoming inspection: posting the line announces it to quality inspection. */
+  /** The ERP asks for incoming inspection: posting the line sends it to quality inspection. */
   inspect: z.boolean().optional(),
   counted: z.number().int().nonnegative().optional(),
   reason: reasonSchema.optional(),
@@ -30,7 +30,7 @@ export const deliverySchema = z.strictObject({
   /** The goods receipt sent to the ERP and its outcome. */
   posting: z.strictObject({ effectId: z.string(), ...deliveryShape }).optional(),
   /**
-   * The arrival announced to quality inspection (`sorRef` is its ID there), and its outcome once
+   * The inspection request sent to quality inspection (`sorRef` is its ID there), and its outcome once
    * an inspector closed it.
    */
   inspection: z
@@ -41,7 +41,7 @@ export const deliverySchema = z.strictObject({
       note: z.string().max(500).optional(),
     })
     .optional(),
-  arrivedAt: z.number().int().nonnegative(),
+  importedAt: z.number().int().nonnegative(),
 });
 export type Delivery = z.output<typeof deliverySchema>;
 

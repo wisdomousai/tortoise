@@ -6,7 +6,7 @@ export type DriverErrorKind = 'rejected' | 'precondition' | 'transient' | 'uncer
 /**
  * A request that did not produce a result. `kind` is the driver's own classification, or
  * `exited` when the process ended with the request in flight, `timeout` when the deadline passed
- * and `protocol` when the answer was malformed. `code` is a driver-supplied business code for a
+ * and `protocol` when the response was malformed. `code` is a driver-supplied business code for a
  * rejection.
  */
 export class DriverError extends Error {
@@ -60,8 +60,8 @@ interface Pending {
 }
 
 /**
- * JSON-RPC 2.0 over newline-delimited JSON. One request per line, answered by id; notifications
- * have no id. Aborting a request sends `$/cancel` and rejects it at once; a late answer is
+ * JSON-RPC 2.0 over newline-delimited JSON. One request per line, replied to by id; notifications
+ * have no id. Aborting a request sends `$/cancel` and rejects it at once; a late response is
  * dropped. A line that is not a JSON-RPC message goes to `onMalformed`, never to a caller.
  * `close` rejects everything in flight with the given error.
  */
@@ -106,26 +106,26 @@ export function createRpcConnection(
       return Promise.reject(new DriverError('cancelled', `${method} was cancelled`));
     const id = nextId++;
     return new Promise<T>((resolve, reject) => {
-      const settle = () => (
+      const complete = () => (
         clearTimeout(timer),
         options.signal?.removeEventListener('abort', cancel)
       );
       const cancel = () => {
         pending.delete(id);
-        settle();
+        complete();
         write({ method: '$/cancel', params: { id } });
         reject(new DriverError('cancelled', `${method} was cancelled`));
       };
       const timer = setTimeout(() => {
         pending.delete(id);
-        settle();
+        complete();
         write({ method: '$/cancel', params: { id } });
-        reject(new DriverError('timeout', `${method} did not answer in time`));
+        reject(new DriverError('timeout', `${method} did not respond in time`));
       }, options.timeoutMs);
       options.signal?.addEventListener('abort', cancel, { once: true });
       pending.set(id, {
-        resolve: (value) => (settle(), resolve(value as T)),
-        reject: (error) => (settle(), reject(error)),
+        resolve: (value) => (complete(), resolve(value as T)),
+        reject: (error) => (complete(), reject(error)),
       });
       write({ id, method, params });
     });

@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { implementDataProvider, settleDelivery, targetHandlers } from '@agent-native/integration';
+import { implementDataProvider, completeDelivery, targetHandlers } from '@agent-native/integration';
 import { own, records, type HandlerContribution } from '@agent-native/runtime';
 import {
-  arrivalOperations,
-  type ArrivalResult,
+  inspectionRequestOperations,
+  type ClosedInspectionRequest,
 } from '@agent-native/quality-inspection/contracts/peer';
 import { deliveries, type Delivery } from '../contracts/delivery';
 import { qualityLots, qualityPeer } from '../contracts/quality-peer';
@@ -11,12 +11,12 @@ import type { AppState } from '../domain';
 import { now, type Context, type Services } from './context';
 
 /**
- * Enqueue the arrival of a counted line for quality inspection, in the posting's transaction.
+ * Enqueue an inspection request for a counted line in quality inspection, in the posting's transaction.
  * The peer's own input schema checks the payload here, so a line it would refuse fails the post.
  */
-export function announceArrival(ctx: Context, line: Delivery): string {
+export function requestInspection(ctx: Context, line: Delivery): string {
   return ctx.enqueue(
-    qualityPeer.effect(arrivalOperations.arrivalAnnounce, {
+    qualityPeer.effect(inspectionRequestOperations.inspectionRequestCreate, {
       resource: deliveries.resource(line.id),
       payload: {
         delivery: line.id,
@@ -31,7 +31,7 @@ export function announceArrival(ctx: Context, line: Delivery): string {
 }
 
 /**
- * What quality inspection's lot list answers, as far as this application shows it. Parsed here
+ * What quality inspection's lot list returns, as far as this application shows it. Parsed here
  * because the peer is outside this application's trust: a malformed lot is dropped.
  */
 const lotRecord = z.object({
@@ -45,23 +45,23 @@ const lotRecord = z.object({
   status: z.enum(['open', 'decided', 'closed']),
 });
 
-/** The quality target's settle, feed and status handlers, and the live lot search. */
+/** The quality target's complete, feed and status handlers, and the live lot search. */
 export function qualityHandlers(): HandlerContribution<AppState, Services>[] {
   return [
-    ...targetHandlers<AppState, Services, ArrivalResult>(qualityPeer, {
+    ...targetHandlers<AppState, Services, ClosedInspectionRequest>(qualityPeer, {
       cursor: (state) => state.sync.quality!,
       now,
       onOutcome(effect, outcome, ctx) {
         const id = effect.resource.slice('delivery:'.length);
         records(ctx, deliveries, ctx.state.deliveries).update(id, (record) =>
-          settleDelivery(record.inspection, effect, outcome),
+          completeDelivery(record.inspection, effect, outcome),
         );
       },
       applyBatch(batch, ctx) {
         const store = records(ctx, deliveries, ctx.state.deliveries);
         let applied = 0;
         for (const result of batch.items) {
-          // Only the arrival this line announced last; an older one's outcome is stale.
+          // Only the request this line sent last; an older one's outcome is stale.
           if (own(ctx.state.deliveries, result.delivery)?.inspection?.sorRef !== result.id)
             continue;
           store.update(result.delivery, (record) => {

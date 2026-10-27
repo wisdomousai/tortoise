@@ -22,7 +22,7 @@ function committedIn<State>(
   const from = froms.length ? Math.min(...froms) : undefined;
   const to = tos.length ? Math.max(...tos) : undefined;
   const operations = new Set(group.map((event) => event.operation));
-  // Retention removed the entries that would show it; a receipt may still answer below.
+  // Retention removed the entries that would show it; a receipt may still show it below.
   const compacted = from !== undefined && from < (snapshot.journalFloor ?? 0);
   if (from !== undefined && to !== undefined && to > from && !compacted)
     return snapshot.journal.some(

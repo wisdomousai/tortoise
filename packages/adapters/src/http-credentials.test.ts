@@ -44,19 +44,19 @@ test('a cookie is offered only as a cookie and a bearer only as a bearer, on eve
   await get({ authorization: 'Bearer device', cookie: cookie('person') });
   expect(seen).toEqual([['device', 'bearer']]);
 
-  // A browser session minted from a cookie credential rechecks it as a cookie.
-  const minted = sessions.create(
+  // A browser session created from a cookie credential rechecks it as a cookie.
+  const created = sessions.create(
     { workspaceId: 'w', principalId: 'person' },
     undefined,
     'person',
     'cookie',
   );
   seen.length = 0;
-  expect((await get({ cookie: cookie(minted.token) })).status).toBe(200);
+  expect((await get({ cookie: cookie(created.token) })).status).toBe(200);
   expect(seen).toEqual([['person', 'cookie']]);
   delete issued.person;
-  expect((await get({ cookie: cookie(minted.token) })).status).toBe(403);
-  expect(sessions.get(minted.token)).toBeUndefined();
+  expect((await get({ cookie: cookie(created.token) })).status).toBe(403);
+  expect(sessions.get(created.token)).toBeUndefined();
 });
 
 /** Browsers send one host's cookies to every port on it, so each port names its own session. */

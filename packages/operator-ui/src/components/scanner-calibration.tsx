@@ -147,7 +147,8 @@ function CalibrationCard({
       <CardHeader>
         <CardTitle className="text-(length:--operator-text-lg)">1 · Calibrate</CardTitle>
         <CardDescription className="text-(length:--operator-text)">
-          Press start, then scan this code once. Settings are worked out from what arrives.
+          Press start, then scan this code once. Settings are worked out from what the scanner
+          sends.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-(--operator-gap) text-(length:--operator-text)">

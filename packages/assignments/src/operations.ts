@@ -32,8 +32,8 @@ import {
 export const ASSIGNMENT = 'Assignment';
 export const ASSIGNMENT_REPORT = 'AssignmentReport';
 
-/** The target an assignment kind's target lane forwards to: `assignment-<lane>`. */
-export const targetOf = (lane: string) => `assignment-${lane}`;
+/** The outbox target of an assignment target named `name`: `assignment-<name>`. */
+export const targetOf = (name: string) => `assignment-${name}`;
 
 /** `field-work` as `fieldWork`, the key prefix of a kind's operations. */
 export type Camel<S extends string> = S extends `${infer Head}-${infer Tail}`
@@ -113,7 +113,7 @@ export function kindOperations<const K extends AnyAssignmentKind>(kind: K) {
       kind: 'command',
       description: `Report on a ${one} assignment you were given. ${kind.description} One report per call, under an ID you choose: the same report again is harmless, and a different one under the same ID conflicts. Refused once the assignment is withdrawn or closed; a report after your done mark is still taken.${
         kind.subject
-          ? ` Name the ${kind.subject} the report is about as subject; one the assignment does not cover is refused, or from a device or a peer application kept unplaced for a person to place.`
+          ? ` Name the ${kind.subject} the report is about as subject; one the assignment does not cover is refused, or from a device or a peer application kept unlinked for a person to link.`
           : ''
       }`,
       input: jsonSchema(
@@ -210,7 +210,7 @@ export function genericOperations<const K extends AnyAssignmentKind>(kinds: read
   return {
     withdraw: command('assignment.withdraw', {
       description:
-        'Withdraw an assignment that is not done: the assignee no longer sees it, and a report sent after this is refused. A target that already took the offer may still answer; the answer is ignored.',
+        'Withdraw an assignment that is not done: the assignee no longer sees it, and a report sent after this is refused. A target that already took the offer may still return a result; the result is ignored.',
       input: withdrawInput,
       output: assignment,
       resourceType: ASSIGNMENT,
@@ -275,7 +275,7 @@ export function genericOperations<const K extends AnyAssignmentKind>(kinds: read
       id: 'assignment.feed',
       kind: 'query',
       description:
-        'The assignments sent to you that are not done, with their briefs: all of them at once. Pass the cursor of your last read; an unchanged set answers no items and the same cursor.',
+        'The assignments sent to you that are not done, with their briefs: all of them at once. Pass the cursor of your last read; an unchanged set returns no items and the same cursor.',
       input: jsonSchema(z.strictObject({ cursor: z.string().max(256).optional() })),
       output: jsonSchema(
         z.strictObject({
@@ -334,22 +334,22 @@ export function genericOperations<const K extends AnyAssignmentKind>(kinds: read
     }),
     ...((subjects
       ? {
-          reportPlace: command('assignment.report.place', {
+          reportLink: command('assignment.report.link', {
             description:
               'Say which record a report not yet reviewed is about, for one that named none or the wrong one. The record must be one the assignment covers.',
             input: z.strictObject({ id: recordKeySchema, subject: recordKeySchema }),
             output: report,
             resourceType: ASSIGNMENT_REPORT,
             action: 'review',
-            label: 'Place',
+            label: 'Link',
             resource: 'assignment-report',
           }),
         }
-      : {}) as { readonly reportPlace?: PlaceCapability<K> }),
+      : {}) as { readonly reportLink?: LinkCapability<K> }),
   };
 }
-type PlaceCapability<K extends AnyAssignmentKind> = Capability<
-  'assignment.report.place',
+type LinkCapability<K extends AnyAssignmentKind> = Capability<
+  'assignment.report.link',
   'command',
   { readonly id: string; readonly subject: string },
   AnyReportOf<K>

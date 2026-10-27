@@ -39,7 +39,7 @@ test('a request without a method gets one only after a technician approves the t
       )
     ).data;
 
-  // A trigger does nothing until a person issues a standing grant for it.
+  // A trigger does nothing until a person issues a trigger grant for it.
   await submit('Coupon 0', 'Tensile test before the grant', '', 'before');
   const grant = await application.invokeRaw(
     {

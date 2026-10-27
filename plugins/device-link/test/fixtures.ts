@@ -43,7 +43,7 @@ const outcomeSchema = z.union([
 const empty = jsonSchema(z.strictObject({}));
 const fixture = { ui: { exception: 'test fixture' } } as const;
 
-// The hub: captures arrive from field devices; the owner adds assignments that devices read.
+// The hub: field devices deliver captures; the owner adds assignments that devices read.
 const ingest = defineCapability({
   id: 'captures.ingest',
   kind: 'command',
@@ -183,12 +183,12 @@ const fieldList = defineCapability({
   permission: { action: 'read', resourceType: 'Capture' },
   ...fixture,
 });
-const settle = defineCapability({
-  id: 'capture.settle',
+const complete = defineCapability({
+  id: 'capture.complete',
   kind: 'command',
   input: jsonSchema(z.strictObject({ effectId: z.string(), outcome: outcomeSchema })),
   output: empty,
-  permission: { action: 'settle', resourceType: 'Capture' },
+  permission: { action: 'complete', resourceType: 'Capture' },
   ...fixture,
 });
 const sync = defineCapability({
@@ -224,7 +224,7 @@ export function fieldApplication(options: { fetch?: typeof fetch } = {}) {
       id: 'field',
       title: 'Field',
       modules: [
-        defineModule({ id: 'field', capabilities: [record, fieldList, settle, sync, status] }),
+        defineModule({ id: 'field', capabilities: [record, fieldList, complete, sync, status] }),
       ],
       plugins: [hubLinkPluginManifest],
       targets: ['mobile'],
@@ -252,9 +252,9 @@ export function fieldApplication(options: { fetch?: typeof fetch } = {}) {
         })),
         assignments: ctx.state.assignments,
       })),
-      fieldBind(settle, async (input, ctx) => {
+      fieldBind(complete, async (input, ctx) => {
         const outcome: EffectOutcome = input.outcome;
-        const effect = ctx.settleEffect(input.effectId, outcome);
+        const effect = ctx.completeEffect(input.effectId, outcome);
         const capture = ctx.state.captures.find((item) => item.effectId === effect.id)!;
         capture.sync = outcome.status;
         if (outcome.status === 'rejected') capture.code = outcome.code;
@@ -286,7 +286,7 @@ export function fieldApplication(options: { fetch?: typeof fetch } = {}) {
             feed: feed.id,
           }),
           context: { workspaceId, principalId: 'integration' },
-          settleOperation: settle.id,
+          completeOperation: complete.id,
           syncOperation: sync.id,
           statusOperation: status.id,
           toInput: (batch) => batch,

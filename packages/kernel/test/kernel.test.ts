@@ -18,23 +18,23 @@ import { fakePlatform } from './fake-platform';
 
 const empty = jsonSchema(z.strictObject({}));
 const count = jsonSchema(z.strictObject({ count: z.number() }));
-const tallyBump = defineCapability({
-  id: 'tally.bump',
+const scoreIncrement = defineCapability({
+  id: 'score.increment',
   kind: 'command',
   input: empty,
   output: count,
-  permission: { action: 'write', resourceType: 'Tally' },
+  permission: { action: 'write', resourceType: 'Score' },
   ui: { exception: 'test fixture' },
 });
-const tallyGet = defineCapability({
-  id: 'tally.get',
+const scoreGet = defineCapability({
+  id: 'score.get',
   kind: 'query',
   input: empty,
   output: count,
-  permission: { action: 'read', resourceType: 'Tally' },
+  permission: { action: 'read', resourceType: 'Score' },
   ui: { exception: 'test fixture' },
 });
-const tallyModule = defineModule({ id: 'tally', capabilities: [tallyBump, tallyGet] });
+const scoreModule = defineModule({ id: 'score', capabilities: [scoreIncrement, scoreGet] });
 const openPolicy: AuthorizationPort<unknown> = {
   authorize: () => ({ allowed: true }),
   canReadEvent: () => true,
@@ -84,24 +84,24 @@ function plugin(
 }
 
 function application(plugins: ReturnType<typeof plugin>[] = []) {
-  return defineApplication<{ tally: { count: number } }>({
+  return defineApplication<{ score: { count: number } }>({
     manifest: defineManifest({
-      id: 'tally-app',
-      title: 'Tally',
-      modules: [tallyModule],
+      id: 'score-app',
+      title: 'Score',
+      modules: [scoreModule],
       plugins: plugins.map((entry) => entry.manifest),
     }),
-    createState: () => ({ tally: { count: 0 } }),
+    createState: () => ({ score: { count: 0 } }),
     handlers: [
       {
-        capability: tallyBump,
+        capability: scoreIncrement,
         handle: async (_input, ctx) => {
-          ctx.state.tally.count++;
-          ctx.change('tally:main');
-          return { count: ctx.state.tally.count };
+          ctx.state.score.count++;
+          ctx.change('score:main');
+          return { count: ctx.state.score.count };
         },
       },
-      { capability: tallyGet, handle: async (_input, ctx) => ctx.state.tally },
+      { capability: scoreGet, handle: async (_input, ctx) => ctx.state.score },
     ],
     authorization: openPolicy,
     plugins,
@@ -135,7 +135,7 @@ test('an instance opens on a platform without Node or Bun and keeps state across
   const definition = application([plugin('field', { platforms: ['android', 'ios'], calls })]);
   const first = await open(definition, fake);
   const receipt = await first.instance.application.invokeRaw(
-    { operation: 'tally.bump', input: {}, idempotencyKey: 'bump-1' },
+    { operation: 'score.increment', input: {}, idempotencyKey: 'bump-1' },
     owner,
   );
   expect(receipt.result).toEqual({ count: 1 });
@@ -148,7 +148,7 @@ test('an instance opens on a platform without Node or Bun and keeps state across
 
   const second = await open(definition, fake);
   const read = await second.instance.application.queryRaw(
-    { operation: 'tally.get', input: {} },
+    { operation: 'score.get', input: {} },
     owner,
   );
   expect(read.data).toEqual({ count: 1 });

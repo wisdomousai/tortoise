@@ -23,7 +23,7 @@ const stateTone = {
   stopped: 'outline',
   'backing-off': 'destructive',
 } as const;
-const hazardTone = {
+const riskTone = {
   none: 'secondary',
   low: 'outline',
   'operator-present': 'destructive',
@@ -53,7 +53,7 @@ function Actions({ driver }: { driver: Driver }) {
         <TableRow>
           <TableHead>Action</TableHead>
           <TableHead>Delivery</TableHead>
-          <TableHead>Hazard</TableHead>
+          <TableHead>Risk</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -65,7 +65,7 @@ function Actions({ driver }: { driver: Driver }) {
             </TableCell>
             <TableCell>{action.delivery}</TableCell>
             <TableCell>
-              <Badge variant={hazardTone[action.hazard]}>{action.hazard}</Badge>
+              <Badge variant={riskTone[action.risk]}>{action.risk}</Badge>
             </TableCell>
           </TableRow>
         ))}
@@ -110,7 +110,7 @@ function DriverCard({ driver }: { driver: Driver }) {
 
 /**
  * Read-only status of the application's hardware drivers: process state, the units each driver
- * reported, and each action's delivery mode and hazard class. Nothing here acts on equipment.
+ * reported, and each action's delivery mode and risk level. Nothing here acts on equipment.
  */
 export function DriverScreen() {
   const status = useQuery({

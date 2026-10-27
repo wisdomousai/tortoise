@@ -18,13 +18,13 @@ CONTRACT = {
     "title": "Press",
     "state": {"force": {"type": "number"}, "door": {"type": "enum", "options": ["open", "closed"]}},
     "actions": {
-        "stamp": {"title": "Stamp", "delivery": "once", "hazard": "operator-present", "timeoutMs": 1000,
+        "stamp": {"title": "Stamp", "delivery": "once", "risk": "operator-present", "timeoutMs": 1000,
                   "input": {"type": "object", "properties": {"part": {"type": "string"},
                             "presence": {"type": "object", "properties": {"confirmedBy": {"type": "string"}},
                                          "required": ["confirmedBy"]}}, "required": ["part"]}},
-        "label": {"title": "Label", "delivery": "idempotent", "hazard": "none", "timeoutMs": 1000,
+        "label": {"title": "Label", "delivery": "idempotent", "risk": "none", "timeoutMs": 1000,
                   "input": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}},
-        "force.set": {"title": "Set force", "delivery": "convergent", "hazard": "low", "timeoutMs": 1000,
+        "force.set": {"title": "Set force", "delivery": "convergent", "risk": "low", "timeoutMs": 1000,
                       "input": {"type": "object", "properties": {"force": {"type": "number"}}, "required": ["force"]},
                       "readback": [{"field": "force", "equals": "$input.force"}]},
     },
@@ -92,15 +92,15 @@ class PressTest(unittest.TestCase):
         return caught.exception
 
     def test_handshake_reports_units_and_refuses_another_contract(self):
-        answer = run(self.driver.handle("initialize", {"protocol": "1", "contract": {"id": "press"}}))
-        self.assertEqual(answer["devices"], [{"serial": "P-1"}])
-        self.assertEqual(answer["contract"], {"digest": contract_digest(CONTRACT)})
+        result = run(self.driver.handle("initialize", {"protocol": "1", "contract": {"id": "press"}}))
+        self.assertEqual(result["devices"], [{"serial": "P-1"}])
+        self.assertEqual(result["contract"], {"digest": contract_digest(CONTRACT)})
         with self.assertRaises(Refusal):
             run(self.driver.handle("initialize", {"protocol": "1", "contract": {"id": "oven"}}))
 
-    def test_state_answers_only_declared_fields_that_were_asked(self):
-        answer = run(self.driver.handle("state.read", {"fields": ["force", "noise"]}))
-        self.assertEqual(answer["values"], {"force": 3.5})
+    def test_state_returns_only_declared_fields_that_were_asked(self):
+        result = run(self.driver.handle("state.read", {"fields": ["force", "noise"]}))
+        self.assertEqual(result["values"], {"force": 3.5})
 
     def test_mode_and_presence_are_enforced_before_the_handler(self):
         self.assertEqual(self.refusal("label", {"text": "x"}, mode="monitor-only").kind, "refused")
@@ -180,8 +180,8 @@ class ServeTest(unittest.TestCase):
             writer.write(b"not json\n" + b"".join(json.dumps(r).encode() + b"\n" for r in requests))
         with os.fdopen(host_to_driver_read, "rb") as input, os.fdopen(driver_to_host_write, "wb") as output:
             asyncio.run(driver.serve(input, output))
-        with os.fdopen(driver_to_host_read, "rb") as answers:
-            messages = [json.loads(line) for line in answers.read().splitlines()]
+        with os.fdopen(driver_to_host_read, "rb") as output:
+            messages = [json.loads(line) for line in output.read().splitlines()]
         by_id = {message.get("id"): message for message in messages}
         self.assertEqual(by_id[1]["error"]["data"]["kind"], "transient")
         self.assertEqual(by_id[3]["result"]["values"], {"force": 1})

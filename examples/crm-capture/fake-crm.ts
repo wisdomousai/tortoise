@@ -37,9 +37,9 @@ const matches = (q: string, ...fields: string[]) =>
 
 /**
  * Deterministic in-memory CRM. Sharing: a CRM user sees the accounts they own and public ones;
- * the service account sees everything. Search answers with the CRM user behind the credential;
+ * the service account sees everything. Search runs as the CRM user behind the credential;
  * a follow request checks the requesting principal's own access; the feed delivers followed
- * accounts. Search answers in pages of `PAGE_SIZE` (see `fake-crm/cursor`). `latencyMs` makes search slow and `unavailable` makes every call fail transiently.
+ * accounts. Search returns pages of `PAGE_SIZE` (see `fake-crm/cursor`). `latencyMs` makes search slow and `unavailable` makes every call fail transiently.
  */
 export class FakeCrm implements SystemOfRecordPort<CrmFeedItem, string> {
   latencyMs = 0;

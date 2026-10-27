@@ -17,9 +17,9 @@ test('the compliance screen shows posture and a new denial without a reload', as
     await expect(page.getByText('chain verified', { exact: false })).toBeVisible();
     await expect(page.getByText('Nothing has been denied.')).toBeVisible();
 
-    // Settling outbox effects belongs to the integration principal, so the owner is refused.
+    // Completing outbox effects belongs to the integration principal, so the owner is refused.
     const refused = await page.request.post(
-      `${host.origin}/api/v1/commands/inspection.effect.settle`,
+      `${host.origin}/api/v1/commands/inspection.effect.complete`,
       {
         headers: { Origin: host.origin },
         data: {
@@ -31,7 +31,7 @@ test('the compliance screen shows posture and a new denial without a reload', as
     expect(refused.status()).toBe(403);
     // The screen polls the audit log; the denial appears on its own.
     const denial = page.getByRole('row', { name: /command\.denied/ });
-    await expect(denial).toContainText('inspection.effect.settle', { timeout: 10_000 });
+    await expect(denial).toContainText('inspection.effect.complete', { timeout: 10_000 });
     await expect(page.getByText('Nothing has been denied.')).toHaveCount(0);
   } finally {
     await host.stop();

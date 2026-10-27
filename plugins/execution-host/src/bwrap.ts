@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 /**
  * The bubblewrap argument vector for one sandbox. Everything is passed through `--args` on an
  * inherited descriptor, so neither the layout nor the proxy credential appears on the host's
- * process list, and the files the sandbox reads (`--file`) never land on the host disk.
+ * process list, and the files the sandbox reads (`--file`) are never written to the host disk.
  */
 
 /** Where the sandbox finds what the host gives it. */

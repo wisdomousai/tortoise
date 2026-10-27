@@ -92,7 +92,7 @@ async function handle(options: HttpHandlerOptions, cursors: Cursors, request: Re
   const origin = options.origin();
   if (url.origin !== origin || request.headers.get('host') !== new URL(origin).host)
     return jsonResponse({ error: { code: 'FORBIDDEN', message: 'Untrusted host' } }, 403);
-  // OAuth top-level callbacks arrive cross-site. The sole public callback owns its
+  // OAuth top-level callbacks are cross-site requests. The sole public callback owns its
   // state/nonce/session checks and still passes the instance Host check above.
   const publicResponse = await options.publicRoute?.(request);
   if (publicResponse) return publicResponse;
@@ -117,7 +117,7 @@ async function handle(options: HttpHandlerOptions, cursors: Cursors, request: Re
 }
 
 /**
- * Loopback adapter with Host/Origin checks, one-use launch exchange and bounded pull-based SSE.
+ * Loopback adapter with Host/Origin checks, one-use launch key exchange and bounded pull-based SSE.
  * Cursor/event authorization is evaluated immediately before enqueue. Each enqueue is one batch;
  * slow readers are disconnected instead of accumulating sensitive snapshots in a host queue.
  */

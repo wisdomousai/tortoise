@@ -16,7 +16,7 @@ export interface LinkCaller {
 /**
  * POST /api/v1/link/enroll `{ code }`: the device's half of pairing, before it has a credential.
  * The route generates the credential, redeems the code with the credential's digest through the
- * runtime, and answers the credential once. A crash between commit and answer leaves a device
+ * runtime, and returns the credential once. A crash between commit and response leaves a device
  * record whose credential nobody holds; the person enrolls again and revokes it.
  */
 export async function enroll(

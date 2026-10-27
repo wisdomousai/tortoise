@@ -15,7 +15,7 @@ import {
 import {
   createDesktopShell,
   desktopArguments,
-  landingRequest,
+  launchRequest,
   openActionFor,
   receivedArguments,
   type DesktopShellClient,
@@ -126,16 +126,16 @@ describe('desktop arguments', () => {
   });
 });
 
-describe('browser landing', () => {
-  test('exactly one landing parameter becomes a request; anything else is ignored', () => {
-    expect(landingRequest('?os=web%2Bnotes%3A%2F%2Fnotes%2Fn-1')).toEqual({
+describe('launch URL', () => {
+  test('exactly one launch parameter becomes a request; anything else is ignored', () => {
+    expect(launchRequest('?os=web%2Bnotes%3A%2F%2Fnotes%2Fn-1')).toEqual({
       kind: 'url',
       url: 'web+notes://notes/n-1',
     });
-    expect(landingRequest('?os-shortcut=new-note')).toEqual({ kind: 'shortcut', id: 'new-note' });
+    expect(launchRequest('?os-shortcut=new-note')).toEqual({ kind: 'shortcut', id: 'new-note' });
     for (const search of ['', '?os=a&os=b', '?os=a&next=b', '?other=1', '?os-shortcut=New Note'])
-      expect(landingRequest(search)).toBeUndefined();
-    expect(landingRequest(`?os=${'a'.repeat(2049)}`)).toBeUndefined();
+      expect(launchRequest(search)).toBeUndefined();
+    expect(launchRequest(`?os=${'a'.repeat(2049)}`)).toBeUndefined();
   });
 });
 
@@ -162,7 +162,7 @@ describe('open action lookup', () => {
 
 function fakeClient(outcome: OsActionOutcome | undefined) {
   const submitted: RawOsRequest[] = [];
-  const answers: unknown[] = [];
+  const responses: unknown[] = [];
   const relayed: { id: string; instruction: OsInstruction }[] = [];
   const uploads: { size: number; mediaType: string }[] = [];
   const client: DesktopShellClient = {
@@ -175,13 +175,13 @@ function fakeClient(outcome: OsActionOutcome | undefined) {
       await new Promise((resolve) => signal.addEventListener('abort', resolve, { once: true }));
       return undefined;
     },
-    answer: async (id, result) => void answers.push({ id, result }),
+    respond: async (id, result) => void responses.push({ id, result }),
     upload: async (bytes, mediaType) => (
       uploads.push({ size: bytes.byteLength, mediaType }),
       { digest: `sha256:${'a'.repeat(64)}`, size: bytes.byteLength, mediaType }
     ),
   };
-  return { client, submitted, answers, relayed, uploads };
+  return { client, submitted, responses, relayed, uploads };
 }
 
 describe('desktop shell', () => {
@@ -254,7 +254,7 @@ describe('desktop shell', () => {
     });
     await desktop.connect();
     await Bun.sleep(5);
-    expect(fake.answers).toMatchObject([
+    expect(fake.responses).toMatchObject([
       { id: 'a', result: { ok: true } },
       { id: 'b', result: { ok: false } },
       { id: 'c', result: { ok: false } },
@@ -317,7 +317,7 @@ describe('desktop shell', () => {
     });
     await desktop.connect();
     await Bun.sleep(5);
-    expect(fake.answers).toMatchObject([{ id: 'n', result: { ok: true } }]);
+    expect(fake.responses).toMatchObject([{ id: 'n', result: { ok: true } }]);
     expect(shown).toEqual([
       {
         id: 'effect-1',

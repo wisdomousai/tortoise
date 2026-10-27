@@ -104,8 +104,8 @@ function ModeCard({ bridge, onMode }: { bridge: Bridge; onMode: (mode: Bridge['m
       <CardHeader>
         <CardTitle>Mode</CardTitle>
         <CardDescription>
-          Monitor-only observes. Assist runs hazard-free procedures. Actuate runs every declared
-          procedure; those marked operator-present still need a person to start them.
+          Monitor-only observes. Assist runs procedures of risk level none. Actuate runs every
+          declared procedure; those marked operator-present still need a person to start them.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
@@ -120,8 +120,8 @@ function ModeCard({ bridge, onMode }: { bridge: Bridge; onMode: (mode: Bridge['m
           </Button>
         ))}
         <p className="w-full text-sm text-muted-foreground">
-          Screen held by <strong>{bridge.seat}</strong>
-          {bridge.seatChangedBy ? ` (set by ${bridge.seatChangedBy})` : ''}
+          Screen held by <strong>{bridge.controlHolder}</strong>
+          {bridge.controlChangedBy ? ` (set by ${bridge.controlChangedBy})` : ''}
           {bridge.localInputAt
             ? ` · last local input ${new Date(bridge.localInputAt).toLocaleTimeString()}`
             : ''}

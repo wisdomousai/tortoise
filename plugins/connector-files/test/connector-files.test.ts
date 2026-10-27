@@ -157,7 +157,7 @@ describe('file drop', () => {
     });
   });
 
-  test('a rejection receipt settles the effect as rejected with its code', async () => {
+  test('a rejection receipt completes the effect as rejected with its code', async () => {
     const folders = await temporaryFolders(['drop', 'receipts']);
     cleanups.push(folders.remove);
     const port = fileDropPort({
@@ -231,7 +231,7 @@ describe('file drop', () => {
 });
 
 describe('folder feed', () => {
-  test('reads only quiet files, skips hidden and foreign ones, and pages by arrival', async () => {
+  test('reads only quiet files, skips hidden and foreign ones, and pages by received time', async () => {
     const folders = await temporaryFolders(['inbox']);
     cleanups.push(folders.remove);
     let now = Date.now() + 60_000;
@@ -275,7 +275,7 @@ describe('folder feed', () => {
     const first = await pull(undefined, signal());
     expect(first.items).toEqual([{ n: 1 }]);
     await Bun.sleep(20);
-    // A copy tool keeps the source's modification time; the status-change time is the arrival.
+    // A copy tool keeps the source's modification time; the status-change time is the received time.
     await writeFile(join(inbox, 'a.ndjson'), '{"n":2}\n');
     const old = new Date(Date.now() - 86_400_000);
     await utimes(join(inbox, 'a.ndjson'), old, old);

@@ -1,4 +1,4 @@
-/** What a web share target POST carried, held until the landing session claims it. */
+/** What a web share target POST carried, held until the launch page session claims it. */
 export interface HeldShare {
   readonly title?: string;
   readonly text?: string;
@@ -8,7 +8,7 @@ export interface HeldShare {
 
 /** Shares held at once; the oldest is dropped beyond this. */
 const heldLimit = 8;
-/** How long a code stays claimable. The redirect lands within a second when nothing is wrong. */
+/** How long a code stays claimable. The redirect completes within a second when nothing is wrong. */
 const heldMs = 120_000;
 
 /** 128 random bits as base64url, so a code cannot be guessed by another page. */

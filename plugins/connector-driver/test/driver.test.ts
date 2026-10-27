@@ -10,13 +10,13 @@ import { chamber, chamberConnector, chamberDriver } from './fixture';
 const effect = (type: string, payload: object, id = `${type}-1`) =>
   conformanceEffect({ id, target: 'chamber', type, payload: payload as never });
 const signal = () => new AbortController().signal;
-const settle = () => new Promise((resolve) => setTimeout(resolve, 5));
+const complete = () => new Promise((resolve) => setTimeout(resolve, 5));
 
 describe('driver contracts', () => {
   const action = {
     title: 'Move',
     input: jsonSchema(z.strictObject({})),
-    hazard: 'low' as const,
+    risk: 'low' as const,
     timeoutMs: 100,
   };
   const base = {
@@ -102,14 +102,14 @@ describe('driver supervisor', () => {
     });
     driver.emit('reading', { setpoint: 20 });
     driver.emit('reading', { setpoint: 21 }, 2);
-    await settle();
+    await complete();
     expect(events).toEqual([
       ['reading', { setpoint: 20 }, 'CH-0042'],
       ['reading', { setpoint: 21 }, 'CH-0042'],
     ]);
     expect(problems).toEqual(['Driver events 1 to 2 were missed']);
     driver.crash();
-    await settle();
+    await complete();
     expect(supervisor.status().state).toBe('stopped');
     await supervisor.read(['setpoint']);
     expect(sessions).toEqual(['s1', 's2']);

@@ -3,7 +3,7 @@ import type { StandInMessage, StandInResponder } from '@agent-native/model-serve
 
 /**
  * The stand-in model for tests and the development launch, loaded by the llama-server stand-in
- * through `FIXTURE_RESPONDER`. It plays what a model fine-tuned on the lab's decisions answers:
+ * through `FIXTURE_RESPONDER`. It replies as a model fine-tuned on the lab's decisions would:
  * it reads the test request the trigger names, then requests approval for the method its
  * description asks for. A real model gets the same tools and messages.
  */

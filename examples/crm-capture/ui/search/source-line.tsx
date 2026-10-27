@@ -23,8 +23,8 @@ export function SourceLine({
       >
         <CloudOff className="mt-0.5 size-4 shrink-0" aria-hidden />
         <p>
-          <strong>CRM unavailable.</strong> {source.message ?? 'The CRM did not answer.'} Showing
-          accounts you already adopted.
+          <strong>CRM unavailable.</strong> {source.message ?? 'The CRM did not respond.'} Showing
+          accounts you already follow.
         </p>
       </div>
     );

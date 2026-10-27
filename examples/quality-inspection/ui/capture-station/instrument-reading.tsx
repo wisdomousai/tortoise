@@ -14,7 +14,7 @@ const time = (at: number) =>
 
 /**
  * The newest reading the station's instrument sent, offered for the current sample. Nothing is
- * shown until a reading arrives, so a station without an instrument looks as before. Using it is
+ * shown until a reading is received, so a station without an instrument looks as before. Using it is
  * the inspector's confirmation that the reading belongs to this sample.
  */
 export function InstrumentReadingOffer({

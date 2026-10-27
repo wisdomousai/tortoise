@@ -6,12 +6,12 @@ import { toolName } from '@agent-native/agents/types';
 import { startHost } from '@agent-native/host/host';
 import { lotsApplication, person, reviewOnReceive } from './fixture';
 
-// An OpenAI-compatible model server on loopback. Its first answer requests approval for inspecting the lot
+// An OpenAI-compatible model server on loopback. Its first response requests approval for inspecting the lot
 // named in the prompt; once the tool result is back it says done.
 const completions: { tools: string[]; prompt: string }[] = [];
 const chunk = (delta: unknown, finish: string | null = null) =>
   `data: ${JSON.stringify({ id: 'c', object: 'chat.completion.chunk', created: 0, model: 'qwen-local', choices: [{ index: 0, delta, finish_reason: finish }] })}\n\n`;
-async function answer(request: Request) {
+async function respond(request: Request) {
   const { pathname } = new URL(request.url);
   if (pathname === '/v1/models') return Response.json({ data: [{ id: 'qwen-local' }] });
   if (pathname !== '/v1/chat/completions') return new Response('not found', { status: 404 });
@@ -54,7 +54,7 @@ async function answer(request: Request) {
     headers: { 'content-type': 'text/event-stream' },
   });
 }
-const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: answer });
+const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: respond });
 afterAll(() => server.stop(true));
 
 async function until(check: () => Promise<boolean>) {

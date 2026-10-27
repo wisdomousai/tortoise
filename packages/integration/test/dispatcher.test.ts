@@ -34,12 +34,12 @@ const record = defineCapability({
   ui: { exception: 'test fixture' },
   integration: { target: 'erp', delivery: 'outbox' },
 });
-const settle = defineCapability({
-  id: 'reading.settle',
+const complete = defineCapability({
+  id: 'reading.complete',
   kind: 'command',
   input: jsonSchema(z.strictObject({ effectId: z.string(), outcome })),
   output: jsonSchema(z.strictObject({ status: z.string() })),
-  permission: { action: 'settle', resourceType: 'reading' },
+  permission: { action: 'complete', resourceType: 'reading' },
   ui: { exception: 'integration principal' },
 });
 const sync = defineCapability({
@@ -61,18 +61,18 @@ const operator = { workspaceId: 'w', principalId: 'operator' };
 const integration = {
   workspaceId: 'w',
   principalId: 'integration',
-  grant: { operations: ['reading.settle', 'catalog.sync'] },
+  grant: { operations: ['reading.complete', 'catalog.sync'] },
 };
 
-function application(options: { failSettlements?: number; now?: () => number } = {}) {
-  let failures = options.failSettlements ?? 0;
+function application(options: { failCompletions?: number; now?: () => number } = {}) {
+  let failures = options.failCompletions ?? 0;
   let ids = 0;
   const bind = createHandlerFactory<State, {}>();
   const app = createApplication({
     modules: [
       defineModule({
         id: 'readings',
-        capabilities: [record, settle, sync],
+        capabilities: [record, complete, sync],
         requirements: {
           network: [
             {
@@ -95,7 +95,7 @@ function application(options: { failSettlements?: number; now?: () => number } =
     newEffectId: () => `e${++ids}`,
     ...(options.now ? { now: options.now } : {}),
     authorization: {
-      // The integration principal may only settle and sync; operators may only record.
+      // The integration principal may only complete and sync; operators may only record.
       authorize: ({ capability, context }) => ({
         allowed:
           context.principalId === 'integration'
@@ -116,9 +116,9 @@ function application(options: { failSettlements?: number; now?: () => number } =
         ctx.change(`reading:${input.id}`);
         return { id: input.id };
       }),
-      bind(settle, (input, ctx) => {
-        if (failures-- > 0) throw new ApplicationError('INTERNAL', 'Simulated settlement failure');
-        const effect = ctx.settleEffect(input.effectId, input.outcome as EffectOutcome);
+      bind(complete, (input, ctx) => {
+        if (failures-- > 0) throw new ApplicationError('INTERNAL', 'Simulated completion failure');
+        const effect = ctx.completeEffect(input.effectId, input.outcome as EffectOutcome);
         ctx.state.readings[effect.resource.slice(8)]!.sync = effect.status;
         ctx.change(effect.resource);
         return { status: effect.status };
@@ -172,7 +172,7 @@ function target(
 }
 
 describe('effect dispatcher', () => {
-  test('delivers outside the transaction and settles through the domain command', async () => {
+  test('delivers outside the transaction and completes through the domain command', async () => {
     const app = application();
     await app.invokeRaw({ operation: 'reading.record', input: { id: 'r1', value: 4.2 } }, operator);
     const erp = target();
@@ -180,7 +180,7 @@ describe('effect dispatcher', () => {
       application: app,
       port: erp.port,
       context: integration,
-      settleOperation: 'reading.settle',
+      completeOperation: 'reading.complete',
     });
     expect(await dispatcher.runOnce()).toEqual({
       accepted: 1,
@@ -188,7 +188,7 @@ describe('effect dispatcher', () => {
       retried: 0,
       deferred: 0,
       held: 0,
-      upstream: 0,
+      acknowledged: 0,
     });
     expect(erp.deliveries).toEqual(['e1']);
     expect(await app.pendingEffects(integration)).toEqual([]);
@@ -198,7 +198,7 @@ describe('effect dispatcher', () => {
       retried: 0,
       deferred: 0,
       held: 0,
-      upstream: 0,
+      acknowledged: 0,
     });
   });
 
@@ -220,7 +220,7 @@ describe('effect dispatcher', () => {
       application: app,
       port: erp.port,
       context: integration,
-      settleOperation: 'reading.settle',
+      completeOperation: 'reading.complete',
       now: () => clock,
       backoff: () => 5_000,
     });
@@ -235,28 +235,28 @@ describe('effect dispatcher', () => {
     expect((await dispatcher.runOnce()).accepted).toBe(2);
   });
 
-  test('a target rejection settles as business data instead of retrying', async () => {
+  test('a target rejection completes as business data instead of retrying', async () => {
     const app = application();
     await app.invokeRaw({ operation: 'reading.record', input: { id: 'r1', value: 1 } }, operator);
     const dispatcher = createEffectDispatcher({
       application: app,
       port: target({ reject: () => true }).port,
       context: integration,
-      settleOperation: 'reading.settle',
+      completeOperation: 'reading.complete',
     });
     expect((await dispatcher.runOnce()).rejected).toBe(1);
     expect(await app.pendingEffects(integration)).toEqual([]);
   });
 
-  test('a failed settlement redelivers without duplicating an idempotent target record', async () => {
-    const app = application({ failSettlements: 1 });
+  test('a failed completion redelivers without duplicating an idempotent target record', async () => {
+    const app = application({ failCompletions: 1 });
     await app.invokeRaw({ operation: 'reading.record', input: { id: 'r1', value: 1 } }, operator);
     const erp = target();
     const dispatcher = createEffectDispatcher({
       application: app,
       port: erp.port,
       context: integration,
-      settleOperation: 'reading.settle',
+      completeOperation: 'reading.complete',
     });
     expect((await dispatcher.runOnce()).retried).toBe(1);
     expect((await dispatcher.runOnce(undefined, { ignoreBackoff: true })).accepted).toBe(1);
@@ -267,14 +267,14 @@ describe('effect dispatcher', () => {
   });
 
   test('a non-idempotent target is looked up before every send', async () => {
-    const app = application({ failSettlements: 1 });
+    const app = application({ failCompletions: 1 });
     await app.invokeRaw({ operation: 'reading.record', input: { id: 'r1', value: 1 } }, operator);
     const erp = target({ idempotent: false });
     const dispatcher = createEffectDispatcher({
       application: app,
       port: erp.port,
       context: integration,
-      settleOperation: 'reading.settle',
+      completeOperation: 'reading.complete',
     });
     await dispatcher.runOnce();
     await dispatcher.runOnce(undefined, { ignoreBackoff: true });
@@ -286,7 +286,7 @@ describe('effect dispatcher', () => {
         application: app,
         port: { ...erp.port, lookup: undefined },
         context: integration,
-        settleOperation: 'reading.settle',
+        completeOperation: 'reading.complete',
       }),
     ).toThrow('needs lookup');
   });
@@ -298,19 +298,19 @@ describe('effect dispatcher', () => {
       application: app,
       port: target({ fail: () => new DeliveryFailure('offline') }).port,
       context: integration,
-      settleOperation: 'reading.settle',
+      completeOperation: 'reading.complete',
     });
     expect(await down.drain(30, 5)).toBe(1);
     const up = createEffectDispatcher({
       application: app,
       port: target().port,
       context: integration,
-      settleOperation: 'reading.settle',
+      completeOperation: 'reading.complete',
     });
     expect(await up.drain(1_000, 5)).toBe(0);
   });
 
-  test('the integration grant cannot drive operator commands', async () => {
+  test('the integration grant cannot call operator commands', async () => {
     const app = application();
     await expect(
       app.invokeRaw({ operation: 'reading.record', input: { id: 'x', value: 1 } }, integration),

@@ -25,7 +25,7 @@ public sealed record JournalEntry(
 /// <summary>
 /// What the driver did per effect ID, so retries and lookups survive a driver restart. The host
 /// may send an effect again after a lost reply, and asks <c>action.lookup</c> before resending a
-/// <c>once</c> action; both answers have to come from what the equipment was told, not from memory
+/// <c>once</c> action; both responses have to come from what the equipment was told, not from memory
 /// a crash erased. <c>Started</c> is written and flushed to disk before the driver acts, and the
 /// outcome after. An effect that started and has no outcome reads as uncertain.
 ///
@@ -47,7 +47,7 @@ public sealed class Journal : IDisposable
             foreach (var line in File.ReadAllLines(full, Encoding.UTF8))
             {
                 // A torn last line from a crash mid-write is skipped: its effect stays started,
-                // which reads as uncertain, the safe answer.
+                // which reads as uncertain, the safe result.
                 var entry = Parse(line);
                 if (entry is not null) _entries[entry.EffectId] = entry;
             }

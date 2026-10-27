@@ -96,7 +96,7 @@ function prune(ctx: Context) {
   }
 }
 
-/** Readings arrive from the instrument principal and wait for an inspector to confirm one. */
+/** Readings are submitted by the instrument principal and wait for an inspector to confirm one. */
 export const instrumentHandlers = (): HandlerContribution<QualityState, QualityServices>[] => [
   handler(operations.instrumentIngest, (input, ctx) => {
     if (input.observedAt - now(ctx) > MAX_CLOCK_SKEW_MS)

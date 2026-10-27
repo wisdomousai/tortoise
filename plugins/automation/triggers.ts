@@ -11,7 +11,7 @@ import type { Job } from './jobs';
 
 /** A trigger checked against the catalog, with the operations its runs may call. */
 export interface ResolvedTrigger extends TriggerDefinition {
-  /** What a standing grant for it lists: the job's operations or the agent's grant. */
+  /** What a trigger grant for it lists: the job's operations or the agent's grant. */
   readonly operations: readonly string[];
   readonly budgets: Pick<AgentBudgets, 'toolCalls' | 'wallTimeMs'> & { readonly turns?: number };
   /** For an agent trigger, where the agent's model may run. */
@@ -46,7 +46,7 @@ function runOperations(
     return { operations, budgets: agent.budgets, model: agent.model, demand };
   }
   if (!jobs.has(run.job)) throw new Error(`Trigger ${trigger.id} runs unregistered job ${run.job}`);
-  // The job's operations and those they invoke, so its standing grant covers the nested calls.
+  // The job's operations and those they invoke, so its trigger grant covers the nested calls.
   return {
     operations: invokesClosure(catalog, run.operations),
     budgets: trigger.budgets ?? DEFAULT_JOB_BUDGETS,

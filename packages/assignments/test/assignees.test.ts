@@ -15,14 +15,14 @@ type Fixture = ReturnType<typeof createFixture>;
 type Row = Record<string, unknown>;
 const toChecker = { type: 'target', id: 'checker' } as const;
 
-/** The fixture with the checker lane connected through the feature's own `connect`. */
+/** The fixture with the checker target connected through the feature's own `connect`. */
 function withChecker(work: Parameters<typeof assignmentTargetPort>[0]['work']) {
   const fixture = createFixture({
     targets: {
       checker: {
         principalId: INTEGRATION,
         port: (context) =>
-          assignmentTargetPort({ lane: 'checker', readBlob: context.readBlob, work }),
+          assignmentTargetPort({ target: 'checker', readBlob: context.readBlob, work }),
       },
     },
   });
@@ -34,21 +34,21 @@ function withChecker(work: Parameters<typeof assignmentTargetPort>[0]['work']) {
     folders: {} as never,
     services: {},
   });
-  const [lane] = connections.integrations!;
+  const [checker] = connections.integrations!;
   const run = async (operation: string, input: object, as: ExecutionContext = planner) =>
     (await fixture.application.invokeRaw({ operation, input }, as)).result as Row;
   const read = async (operation: string, input: object, as: ExecutionContext = planner) =>
     (await fixture.application.queryRaw({ operation, input }, as)).data as Row;
-  return { fixture, lane: lane!, run, read };
+  return { fixture, checker: checker!, run, read };
 }
 
 const attach = (fixture: Fixture, text: string): Promise<BlobRef> =>
   fixture.application.putBlob(new TextEncoder().encode(text), 'text/plain', planner);
 
-describe('target lane', () => {
+describe('assignment target', () => {
   test('the checker reads the brief and its attachment, and its reports come back for review', async () => {
     const offers: Row[] = [];
-    const { fixture, lane, run, read } = withChecker(async (offer, tools) => {
+    const { fixture, checker, run, read } = withChecker(async (offer, tools) => {
       offers.push(offer as Row);
       const [ref] = offer.brief.attachments as BlobRef[];
       const text = new TextDecoder().decode((await tools.readBlob(ref!.digest))!.data);
@@ -67,7 +67,7 @@ describe('target lane', () => {
     expect(sent).toMatchObject({ status: 'sent', delivery: 'pending' });
     expect(await read('assignment.checker.status', {})).toEqual({ waiting: 1, refused: 0 });
 
-    expect(await lane.dispatcher.runOnce()).toMatchObject({ accepted: 1 });
+    expect(await checker.dispatcher.runOnce()).toMatchObject({ accepted: 1 });
     expect(offers).toEqual([
       {
         assignmentId: 'a1',
@@ -78,7 +78,7 @@ describe('target lane', () => {
     ]);
     expect(await read('assignment.get', { id: 'a1' })).toMatchObject({ delivery: 'accepted' });
 
-    await lane.inbound.runOnce();
+    await checker.inbound.runOnce();
     expect(await read('assignment.get', { id: 'a1' })).toMatchObject({
       status: 'done',
       doneBy: INTEGRATION,
@@ -100,15 +100,15 @@ describe('target lane', () => {
     });
   });
 
-  test('a refused offer settles as rejected and the planner sees why', async () => {
+  test('a refused offer completes as rejected and the planner sees why', async () => {
     const refused: TargetWork = { refused: { code: 'TOO_LONG', message: 'Over 10 notes.' } };
-    const { lane, run, read } = withChecker(async () => refused);
+    const { checker, run, read } = withChecker(async () => refused);
     await run('assignment.review.create', {
       title: 'Week 3',
       scope: { notes: ['n1'] },
       assignee: toChecker,
     });
-    expect(await lane.dispatcher.runOnce()).toMatchObject({ rejected: 1 });
+    expect(await checker.dispatcher.runOnce()).toMatchObject({ rejected: 1 });
     expect(await read('assignment.get', { id: 'a1' })).toMatchObject({
       status: 'sent',
       delivery: 'rejected',
@@ -118,8 +118,8 @@ describe('target lane', () => {
     expect(await run('assignment.withdraw', { id: 'a1' })).toMatchObject({ status: 'withdrawn' });
   });
 
-  test('an answer for a withdrawn assignment is dropped, and only the integration principal syncs', async () => {
-    const { lane, run, read } = withChecker(async () => [
+  test('a result for a withdrawn assignment is dropped, and only the integration principal syncs', async () => {
+    const { checker, run, read } = withChecker(async () => [
       { subject: 'n1', body: { verdict: 'keep', comment: 'Fine.' } },
     ]);
     await run('assignment.review.create', {
@@ -127,9 +127,9 @@ describe('target lane', () => {
       scope: { notes: ['n1'] },
       assignee: toChecker,
     });
-    await lane.dispatcher.runOnce();
+    await checker.dispatcher.runOnce();
     await run('assignment.withdraw', { id: 'a1' });
-    await lane.inbound.runOnce();
+    await checker.inbound.runOnce();
     expect(await read('assignment.get', { id: 'a1' })).toMatchObject({
       status: 'withdrawn',
       reports: 0,
@@ -142,7 +142,7 @@ describe('target lane', () => {
 
   test('a withdrawn offer the target has not taken is cancelled in the outbox', async () => {
     const offers: unknown[] = [];
-    const { lane, run } = withChecker(async (offer) => {
+    const { checker, run } = withChecker(async (offer) => {
       offers.push(offer);
       return [];
     });
@@ -152,12 +152,12 @@ describe('target lane', () => {
       assignee: toChecker,
     });
     await run('assignment.withdraw', { id: 'a1' });
-    await lane.dispatcher.runOnce();
+    await checker.dispatcher.runOnce();
     expect(offers).toEqual([]);
   });
 });
 
-describe('agent lane', () => {
+describe('agent assignee', () => {
   const verdict = { verdict: 'revise', comment: 'Name the seal type.' };
   // Each run is scoped to the assignment, as a trigger on the offer event scopes it.
   const scenarios: AgentScenario[] = [

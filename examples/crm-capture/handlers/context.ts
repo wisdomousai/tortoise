@@ -11,7 +11,7 @@ import type { CrmState, LocalAccount } from '../domain';
 
 export interface CrmServices {
   newId?: () => string;
-  /** Instance clock for adoption, recording and occurredAt bounds. */
+  /** Instance clock for follows, recording and occurredAt bounds. */
   now?: () => number;
 }
 export type Context = HandlerContext<CrmState, CrmServices>;

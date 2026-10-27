@@ -486,7 +486,7 @@ describe('posture monitor', () => {
       afterSeq: denied.nextAfterSeq,
     });
     expect(next.items.map((event) => event.kind)).toEqual(['command.denied']);
-    // The published schema has two levels; deeper values arrive as JSON text.
+    // The published schema has two levels; deeper values are written as JSON text.
     expect(next.items[0]!.data).toEqual({
       fields: ['lot'],
       deep: { level: '{"too":{"far":1}}' },

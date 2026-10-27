@@ -7,7 +7,7 @@ import {
 } from '@agent-native/contracts';
 import type { DriverContract } from './define';
 
-/** The protocol version this host speaks; a driver answering another is refused. */
+/** The protocol version this host speaks; a driver reporting another is refused. */
 export const driverProtocolVersion = '1';
 
 /**

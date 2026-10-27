@@ -43,7 +43,7 @@ export interface ReportEntry {
  * Store one report on a sent or done assignment. A done one still takes reports, because an
  * assignee's report can reach the issuer after its done mark when its delivery was retried. The
  * same report again, from the same reporter with the same body, returns the stored one and
- * changes nothing, even after a reviewer placed it on another subject; a different one under the
+ * changes nothing, even after a reviewer linked it to another subject; a different one under the
  * same ID conflicts. `attach` attaches the body's blobs to the report, which only a command
  * declaring the kind's report blob limits may do.
  */
@@ -102,7 +102,7 @@ export function kindReportHandlers(assignments: Assignments, kind: AnyAssignment
         const { subject, ...entry } = input;
         const covered = subject === undefined || covers(ctx, kind.id, subject, assignment);
         // A record that left the assignment after a device or a peer copied the brief keeps its
-        // report, unplaced, for a person to place; a caller on this instance is refused instead.
+        // report, unlinked, for a person to link; a caller on this instance is refused instead.
         if (!covered && !remote(assignment))
           throw invalid('The assignment does not cover this record', 'subject');
         return presentReport(
@@ -132,7 +132,7 @@ export function kindReportHandlers(assignments: Assignments, kind: AnyAssignment
   ];
 }
 
-/** The report reads, placing and discarding. */
+/** The report reads, linking and discarding. */
 export function genericReportHandlers(assignments: Assignments): Handler[] {
   const ops = assignments.operations;
   const kinds = new Map(assignments.kinds.map((kind) => [kind.id, kind]));
@@ -179,9 +179,9 @@ export function genericReportHandlers(assignments: Assignments): Handler[] {
       ctx.change(assignmentResource(report.assignmentId), 'reviewed');
       return presentReport(report);
     }),
-    ...(ops.reportPlace
+    ...(ops.reportLink
       ? [
-          handler<{ id: string; subject: string }>(ops.reportPlace, (input, ctx) => {
+          handler<{ id: string; subject: string }>(ops.reportLink, (input, ctx) => {
             const report = review(ctx, input.id);
             if (kinds.get(report.kind)?.subject === undefined)
               throw invalid('Reports of this kind name no record', 'id');
@@ -189,7 +189,7 @@ export function genericReportHandlers(assignments: Assignments): Handler[] {
             if (!covers(ctx, report.kind, input.subject, assignment))
               throw invalid('The assignment does not cover this record', 'subject');
             report.subject = input.subject;
-            ctx.change(reportResource(report.id), 'placed');
+            ctx.change(reportResource(report.id), 'linked');
             return presentReport(report);
           }),
         ]

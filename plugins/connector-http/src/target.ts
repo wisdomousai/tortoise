@@ -10,7 +10,7 @@ import type { Effect } from '@agent-native/runtime';
 import { readPointer } from './pointer';
 
 /**
- * How the system answers a refusal, as data: which statuses are business rejections and where
+ * How the system reports a refusal, as data: which statuses are business rejections and where
  * their code and message are in the body. Any status not listed here and not 2xx is transient.
  */
 export interface RejectionRule {
@@ -43,8 +43,8 @@ export interface HttpTargetOptions<Item> {
   /** Statuses that acknowledge without deciding, such as 202 for an approval queue. */
   readonly pendingStatus?: readonly number[];
   /**
-   * Find an earlier delivery by effect ID: a GET whose 200 answer is the record (accepted, or
-   * pending when `pendingWhen` matches), 404 no trace, and any other answer transient.
+   * Find an earlier delivery by effect ID: a GET whose 200 response is the record (accepted, or
+   * pending when `pendingWhen` matches), 404 no trace, and any other response transient.
    */
   readonly lookup?: {
     readonly path: (effectId: string) => string;
@@ -63,7 +63,7 @@ export interface HttpTargetOptions<Item> {
   readonly timeoutMs?: number;
 }
 
-const transient = (status: number) => new DeliveryFailure(`The system answered ${status}`);
+const transient = (status: number) => new DeliveryFailure(`The system returned ${status}`);
 
 async function bodyOf(response: Response): Promise<unknown> {
   // A reply cut off mid-body is as unknown as one never received.
@@ -93,7 +93,7 @@ const textAt = (body: unknown, pointer: string | undefined, limit: number) => {
  * Outcomes are data: a 2xx is accepted (or pending for `pendingStatus`), a status a rejection
  * rule lists is rejected with the code and message it names, and everything else, including a
  * dropped connection, throws a transient failure. A transient failure after the request may
- * have arrived is safe to resend only because the idempotency header or the lookup before
+ * have been received is safe to resend only because the idempotency header or the lookup before
  * resend finds the earlier request, so one of the two is required.
  */
 export function httpTargetPort<Item = unknown>(
@@ -114,7 +114,7 @@ export function httpTargetPort<Item = unknown>(
       if (signal.aborted) throw error;
       throw new DeliveryFailure(
         timeout.aborted
-          ? `${options.target} did not answer within ${timeoutMs} ms`
+          ? `${options.target} did not respond within ${timeoutMs} ms`
           : `${options.target} could not be reached`,
       );
     }
@@ -145,7 +145,7 @@ export function httpTargetPort<Item = unknown>(
         const next = readPointer(body, feed.cursor);
         if (!Array.isArray(items) || typeof next !== 'string')
           throw new DeliveryFailure(
-            `${options.target} answered a feed page without items or a cursor`,
+            `${options.target} returned a feed page without items or a cursor`,
           );
         const more = feed.more ? readPointer(body, feed.more) === true : false;
         return { items: items.map(feed.map), cursor: next, more };

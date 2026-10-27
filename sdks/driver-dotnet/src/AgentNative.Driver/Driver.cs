@@ -17,16 +17,16 @@ public sealed record DriverOptions
 
 /// <summary>
 /// One driver for one contract. The host starts it as a child process and speaks JSON-RPC to it
-/// over stdin and stdout; this class answers the protocol so a driver author writes only what
+/// over stdin and stdout; this class implements the protocol so a driver author writes only what
 /// touches the equipment. Register handlers, then call <see cref="RunAsync"/>.
 ///
 /// What it enforces, whatever the handlers do:
 /// - the mode the host sends with each action: monitor-only refuses every action, assist refuses
-///   any hazard other than none, and an operator-present action needs presence.confirmedBy;
+///   any risk level other than none, and an operator-present action needs presence.confirmedBy;
 /// - an action whose deadline passed is refused before it runs;
 /// - idempotent and once actions run at most once per effect ID: a repeat returns the recorded
-///   outcome and action.lookup answers from the journal; an effect that started and has no outcome
-///   answers uncertain, never unknown;
+///   outcome and action.lookup returns the journal's record; an effect that started and has no outcome
+///   returns uncertain, never unknown;
 /// - stdout carries only protocol messages: Console output goes to stderr while the driver runs.
 /// </summary>
 public sealed class Driver : IDisposable
@@ -151,7 +151,7 @@ public sealed class Driver : IDisposable
 
     // Requests ---------------------------------------------------------------------------------
 
-    /// <summary>Answer one request. Throws <see cref="Refusal"/> for a classified failure.</summary>
+    /// <summary>Handle one request. Throws <see cref="Refusal"/> for a classified failure.</summary>
     public async Task<JsonNode> HandleAsync(string method, JsonObject parameters, CancellationToken cancellation = default)
     {
         if (method == "initialize") return await OnHandler(() => InitializeAsync(parameters));
@@ -223,12 +223,12 @@ public sealed class Driver : IDisposable
     /// <summary>The host's own checks, repeated, so a driver is safe even behind a faulty host.</summary>
     private static void Gate(string name, JsonObject spec, JsonNode? input, DriverMode? mode, double? deadline)
     {
-        var hazard = Text(spec["hazard"]) ?? "operator-present";
+        var risk = Text(spec["risk"]) ?? "operator-present";
         if (mode is null or DriverMode.MonitorOnly)
             throw new Refusal(RefusalKind.Refused, $"This mode does not allow {name}");
-        if (mode == DriverMode.Assist && hazard != "none")
+        if (mode == DriverMode.Assist && risk != "none")
             throw new Refusal(RefusalKind.Refused, $"{name} needs actuate mode");
-        if (hazard == "operator-present" && string.IsNullOrEmpty(Text(input?["presence"]?["confirmedBy"])))
+        if (risk == "operator-present" && string.IsNullOrEmpty(Text(input?["presence"]?["confirmedBy"])))
             throw new Refusal(RefusalKind.Precondition, $"{name} needs a person at the machine to confirm");
         if (deadline is { } at && Wire.NowMs() > at)
             throw new Refusal(RefusalKind.Transient, $"The deadline for {name} passed before it ran");
@@ -246,7 +246,7 @@ public sealed class Driver : IDisposable
             throw new Refusal(RefusalKind.Rejected, $"Effect {effectId} was used for {entry.Action}", "EFFECT_REUSED");
         return entry.Status switch
         {
-            JournalStatus.Accepted => InvokeAnswer(entry.Ref, entry.Result),
+            JournalStatus.Accepted => InvokeResponse(entry.Ref, entry.Result),
             JournalStatus.Rejected => throw new Refusal(RefusalKind.Rejected, entry.Message ?? "Rejected", entry.Code),
             _ => throw new Refusal(RefusalKind.Uncertain, $"The driver stopped while running {name} for this effect"),
         };
@@ -298,7 +298,7 @@ public sealed class Driver : IDisposable
         }
         var result = outcome?.Result is null ? null : JsonSerializer.SerializeToNode(outcome.Result);
         Journal.Record(new JournalEntry(effectId, name, JournalStatus.Accepted, outcome?.Ref, result));
-        return InvokeAnswer(outcome?.Ref, result);
+        return InvokeResponse(outcome?.Ref, result);
     }
 
     private JsonNode Lookup(JsonObject parameters)
@@ -307,9 +307,9 @@ public sealed class Driver : IDisposable
         if (entry is null || entry.Status == JournalStatus.Released) return new JsonObject { ["status"] = "unknown" };
         if (entry.Status == JournalStatus.Accepted)
         {
-            var answer = new JsonObject { ["status"] = "accepted" };
-            if (!string.IsNullOrEmpty(entry.Ref)) answer["ref"] = entry.Ref;
-            return answer;
+            var response = new JsonObject { ["status"] = "accepted" };
+            if (!string.IsNullOrEmpty(entry.Ref)) response["ref"] = entry.Ref;
+            return response;
         }
         if (entry.Status == JournalStatus.Rejected)
             return new JsonObject
@@ -325,12 +325,12 @@ public sealed class Driver : IDisposable
         };
     }
 
-    private static JsonObject InvokeAnswer(string? reference, JsonNode? result)
+    private static JsonObject InvokeResponse(string? reference, JsonNode? result)
     {
-        var answer = new JsonObject();
-        if (!string.IsNullOrEmpty(reference)) answer["ref"] = Refusal.Truncate(reference, 256);
-        if (result is not null) answer["result"] = result.DeepClone();
-        return answer;
+        var response = new JsonObject();
+        if (!string.IsNullOrEmpty(reference)) response["ref"] = Refusal.Truncate(reference, 256);
+        if (result is not null) response["result"] = result.DeepClone();
+        return response;
     }
 
     private static string? Text(JsonNode? node) =>
@@ -338,7 +338,7 @@ public sealed class Driver : IDisposable
 
     // Serving ----------------------------------------------------------------------------------
 
-    /// <summary>Answer requests from <paramref name="input"/> until shutdown or end of input.</summary>
+    /// <summary>Handle requests from <paramref name="input"/> until shutdown or end of input.</summary>
     public async Task ServeAsync(Stream input, Stream output)
     {
         _writer = new LineWriter(output);
@@ -365,7 +365,7 @@ public sealed class Driver : IDisposable
             stopping = method == "shutdown";
             var key = Key(id)!;
             var cancel = new CancellationTokenSource();
-            var task = Task.Run(() => AnswerAsync(id, method, parameters, cancel.Token));
+            var task = Task.Run(() => RespondAsync(id, method, parameters, cancel.Token));
             running[key] = (task, cancel);
             _ = task.ContinueWith(_ => { running.TryRemove(key, out var done); done.Cancel?.Dispose(); }, TaskScheduler.Default);
         }
@@ -382,7 +382,7 @@ public sealed class Driver : IDisposable
         Journal.Dispose();
     }
 
-    private async Task AnswerAsync(JsonNode id, string method, JsonObject parameters, CancellationToken cancellation)
+    private async Task RespondAsync(JsonNode id, string method, JsonObject parameters, CancellationToken cancellation)
     {
         JsonObject Error(int code, string message, JsonObject data) => new()
         {

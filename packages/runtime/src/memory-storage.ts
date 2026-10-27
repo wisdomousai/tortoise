@@ -36,7 +36,7 @@ function refuseSharedMemory(state: unknown): void {
     throw new ApplicationError('INTERNAL', 'Feature state must not hold shared memory');
 }
 
-/** Serialize callbacks per workspace: each waits for the previous one to settle. */
+/** Serialize callbacks per workspace: each waits for the previous one to complete. */
 function createWorkspaceLocks() {
   const tails = new Map<string, Promise<void>>();
   return async function locked<T>(id: string, action: () => Promise<T>): Promise<T> {

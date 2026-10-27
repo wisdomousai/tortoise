@@ -26,14 +26,14 @@ const noteAdd = defineCapability({
   permission: { action: 'write', resourceType: 'Note' },
   ui: { exception: 'test fixture' },
 });
-const noteSettle = defineCapability({
-  id: 'note.settle',
+const noteComplete = defineCapability({
+  id: 'note.complete',
   kind: 'command',
   input: jsonSchema(
     z.strictObject({ effectId: z.string(), status: z.enum(['accepted', 'rejected']) }),
   ),
   output: jsonSchema(z.strictObject({})),
-  permission: { action: 'settle', resourceType: 'Note' },
+  permission: { action: 'complete', resourceType: 'Note' },
   ui: { exception: 'test fixture' },
 });
 
@@ -66,7 +66,7 @@ export function telemetryApplication() {
     manifest: defineManifest({
       id: 'plant',
       title: 'Plant',
-      modules: [defineModule({ id: 'notes', capabilities: [noteAdd, noteSettle] })],
+      modules: [defineModule({ id: 'notes', capabilities: [noteAdd, noteComplete] })],
       components: [erp],
       plugins: [
         sitePluginManifest,
@@ -89,12 +89,12 @@ export function telemetryApplication() {
         });
         return { id };
       }),
-      bind(noteSettle, async (input, ctx) => {
+      bind(noteComplete, async (input, ctx) => {
         const outcome: EffectOutcome =
           input.status === 'accepted'
             ? { status: 'accepted' }
             : { status: 'rejected', code: 'DUPLICATE', message: 'Already there' };
-        ctx.change(ctx.settleEffect(input.effectId, outcome).resource);
+        ctx.change(ctx.completeEffect(input.effectId, outcome).resource);
         return {};
       }),
     ],

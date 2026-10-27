@@ -40,8 +40,8 @@ import {
 /** The model, EAM and export integrations' principal; distinct from every person and device. */
 export const INTEGRATION_PRINCIPAL = 'integration';
 
-/** What a paired field device may call: the device lane of the survey assignments. */
-export const FIELD_SYNC_OPERATIONS = assignments.lanes.device.operations;
+/** What a paired field device may call: the device assignee operations of the survey assignments. */
+export const FIELD_SYNC_OPERATIONS = assignments.assignees.device.operations;
 
 /**
  * The asset survey hub. Demo defaults: the nameplate-text extractor instead of a model, and an
@@ -91,7 +91,7 @@ export function createAssetSurveyApplication(
           targets: {
             model: {
               principalId: INTEGRATION_PRINCIPAL,
-              // The assignment feature connects the model's lane when a workspace opens.
+              // The assignment feature connects the model target when a workspace opens.
               port: ({ readBlob, network }) => {
                 const model = createExtractionPort({
                   extractor: typeof extractor === 'function' ? extractor(network) : extractor,

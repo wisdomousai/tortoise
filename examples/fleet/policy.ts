@@ -11,7 +11,7 @@ const operator: OperationRule<AppState, Role> = {
 /**
  * Fleet policy. People pass the caller gate only as workspace members; operators change things,
  * viewers read. An enrolled site is the device-link principal `device:<id>`: it holds no role and
- * calls only the fleet protocol, whose handlers answer about the calling site alone. Of the
+ * calls only the fleet protocol, whose handlers return data about the calling site alone. Of the
  * fleet's records it may read only the release its channel assigns, which is what lets it fetch
  * that release's files and no other blob. An operation this policy does not list is denied.
  */

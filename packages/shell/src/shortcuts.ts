@@ -23,7 +23,7 @@ export function shortcutLink(scheme: string, id: string): string {
 /**
  * The shortcut id a link stands for, or `undefined` when it is not a shortcut link in one of
  * `schemes`: no host, an empty path, no credentials or fragment, and exactly one `os-shortcut`
- * parameter holding an id. Anyone can send such a link, as anyone can open the web landing; a
+ * parameter holding an id. Anyone can send such a link, as anyone can open the launch page; a
  * shortcut only opens or prefills.
  */
 export function shortcutIdOf(raw: string, schemes: readonly string[]): string | undefined {

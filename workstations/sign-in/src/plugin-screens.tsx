@@ -1,29 +1,29 @@
 import { IdCard, ScanLine } from 'lucide-react';
 import { definePluginScreens } from '@agent-native/frame/plugin-screens';
 import { BadgesScreen } from './ui/badges';
-import { SeatScreen, type SeatOptions } from './ui/seat';
+import { TerminalScreen, type TerminalOptions } from './ui/terminal';
 
 export {
   useOperatorSession,
   type OperatorSession,
   type OperatorSessionRecord,
 } from './ui/operator-session';
-export type { SeatOptions } from './ui/seat';
+export type { TerminalOptions } from './ui/terminal';
 
 /**
- * The seat screen at `/seat`, where operators sign in with badge and PIN and then work as
+ * The terminal screen at `/terminal`, where operators sign in with badge and PIN and then work as
  * themselves on `options.work`, and the badge screen at `/badges`, where the admin enrolls and
  * revokes badges.
  */
-export function stationSignInScreens(options: SeatOptions) {
+export function stationSignInScreens(options: TerminalOptions) {
   return definePluginScreens({
     id: 'station-sign-in',
     routes: [
-      { path: 'seat', component: () => <SeatScreen {...options} /> },
+      { path: 'terminal', component: () => <TerminalScreen {...options} /> },
       { path: 'badges', component: BadgesScreen },
     ],
     navigation: [
-      { to: '/seat', label: 'Seat', icon: ScanLine },
+      { to: '/terminal', label: 'Terminal', icon: ScanLine },
       { to: '/badges', label: 'Badges', icon: IdCard },
     ],
     capabilityScreens: [{ prefix: 'station.', to: '/badges' }],

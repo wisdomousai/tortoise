@@ -19,8 +19,8 @@ export function bunSqlDriver(path: string): SqlRowsDriver {
 }
 
 /**
- * Workspace persistence in one SQLite file, one row per record (`RowStorage`). A file written as
- * one JSON document per workspace is converted on open. Features can replace this with
+ * Workspace persistence in one SQLite file, one row per record (`RowStorage`). A file from
+ * another storage schema version is refused on open. Features can replace this with
  * transaction-bound repositories.
  */
 export class SQLiteStorage<State> extends RowStorage<State> {

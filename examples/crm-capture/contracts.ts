@@ -24,7 +24,7 @@ export const crmCaptureModule = defineModule({
       {
         id: 'crm-api',
         purpose:
-          'Search accounts and contacts live with the caller’s CRM access, follow adopted accounts, forward logged activities and pull followed accounts.',
+          'Search accounts and contacts live with the caller’s CRM access, keep followed accounts current, forward logged activities and pull followed accounts.',
         direction: 'egress',
         scope: 'internet',
         protocol: 'https',
@@ -43,11 +43,11 @@ export const crmCaptureModule = defineModule({
         'crm.account.search',
         'crm.contact.search',
         'crm.account.lookup',
-        'crm.account.adopt',
+        'crm.account.follow',
         'crm.account.get',
         'crm.activity.log',
       ],
-      text: 'Find the account with crm.account.search (or a contact with crm.contact.search, then its accountId). Results come live from the CRM and are not stored. Adopt the account with crm.account.adopt unless local already says following or adopted, then log the activity against it with crm.activity.log using the time from the source. If source.status is unavailable, use crm.account.list for accounts already adopted and say the CRM could not be searched; never invent CRM IDs.',
+      text: 'Find the account with crm.account.search (or a contact with crm.contact.search, then its accountId). Results come live from the CRM and are not stored. Follow the account with crm.account.follow unless local already says requested or following, then log the activity against it with crm.activity.log using the time from the source. If source.status is unavailable, use crm.account.list for accounts already followed and say the CRM could not be searched; never invent CRM IDs.',
     },
     {
       id: 'review-sync',

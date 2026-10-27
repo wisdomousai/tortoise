@@ -43,19 +43,19 @@ function ShareButton({ report, onError }: { report: Report; onError: (error: unk
 }
 
 /**
- * Captures taken without a node. The hub places them during review; the device keeps them as
+ * Captures taken without a node. The hub links them during review; the device keeps them as
  * sent. Each can be shared as text.
  */
-export function UnplacedScreen() {
+export function UnlinkedScreen() {
   const { live } = useSession();
   const reports = useQuery(live.liveQueryOptions(ops.reportList, {}));
   const [error, setError] = useState<unknown>();
-  const unplaced = (reports.data?.items ?? []).filter((report) => report.subject === undefined);
+  const unlinked = (reports.data?.items ?? []).filter((report) => report.subject === undefined);
   return (
     <Screen>
       <ErrorText error={reports.error ?? error} />
       <FlatList
-        data={unplaced}
+        data={unlinked}
         keyExtractor={(report) => report.id}
         renderItem={({ item }) => (
           <ListRow
@@ -69,7 +69,7 @@ export function UnplacedScreen() {
             }
           />
         )}
-        ListEmptyComponent={<Empty>No unplaced captures.</Empty>}
+        ListEmptyComponent={<Empty>No unlinked captures.</Empty>}
       />
     </Screen>
   );

@@ -155,7 +155,7 @@ export function CaptureScreen() {
   return (
     <ScrollView contentContainerClassName="gap-4 p-4" className="flex-1 bg-background">
       <Text className="text-operator font-semibold text-foreground">
-        {node ? `${node.designation} · ${node.name}` : 'Unplaced: the hub places it later'}
+        {node ? `${node.designation} · ${node.name}` : 'Unlinked: the hub links it later'}
       </Text>
       <CameraView ref={camera} style={{ height: 320, borderRadius: 12 }} facing="back" />
       <ActionButton

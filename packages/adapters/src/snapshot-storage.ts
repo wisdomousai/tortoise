@@ -1,5 +1,6 @@
 import { assertJson } from '@agent-native/contracts';
 import type { StateUpgrade, Storage, WorkspaceSnapshot } from '@agent-native/runtime';
+import { schemaVersionError, STORAGE_SCHEMA_VERSION } from './schema-version';
 import type { SqlDriver } from './sql-driver';
 
 /** A workspace that has never committed: no history, the initial state and empty records. */
@@ -39,8 +40,16 @@ export class SnapshotStorage<State> implements Storage<State> {
     try {
       driver.exec('CREATE TABLE IF NOT EXISTS framework_schema (version INTEGER NOT NULL);');
       const version = driver.get<{ version: number }>('SELECT version FROM framework_schema');
-      if (version && version.version !== 1) throw new Error('Unsupported storage schema version');
-      if (!version) driver.exec('INSERT INTO framework_schema VALUES (1)');
+      if (version && version.version !== STORAGE_SCHEMA_VERSION)
+        throw schemaVersionError(version.version);
+      // Row storage writes the same version, so its tables tell its files apart.
+      if (
+        driver.get(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'workspace_rows'",
+        )
+      )
+        throw new Error('The database holds row storage, not snapshot storage');
+      if (!version) driver.exec(`INSERT INTO framework_schema VALUES (${STORAGE_SCHEMA_VERSION})`);
       driver.exec(
         'CREATE TABLE IF NOT EXISTS workspace_snapshots (workspace_id TEXT PRIMARY KEY, document TEXT NOT NULL)',
       );
@@ -69,7 +78,7 @@ export class SnapshotStorage<State> implements Storage<State> {
       ? (JSON.parse(row.document) as WorkspaceSnapshot<State>)
       : emptySnapshot(structuredClone(this.initialState()));
     // Documents written before the transactional outbox or blob references existed load with
-    // empty ones. The next commit persists the fields; the schema version stays compatible.
+    // empty ones. The next commit persists the fields.
     if (!Object.hasOwn(snapshot, 'effects')) snapshot.effects = {};
     if (!Object.hasOwn(snapshot, 'blobs')) snapshot.blobs = {};
     const { upgrade } = this.options;
@@ -120,7 +129,7 @@ export class SnapshotStorage<State> implements Storage<State> {
       }
     });
   }
-  /** Close after every queued read and transaction has settled. */
+  /** Close after every queued read and transaction has completed. */
   async close(): Promise<void> {
     await this.tail;
     this.driver.close();

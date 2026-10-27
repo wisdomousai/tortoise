@@ -22,14 +22,14 @@ export {
   type StationProfile,
 } from './profile';
 export {
-  StabilityGate,
-  createPerception,
+  Debouncer,
+  createRecognizer,
   evaluate,
   valueMatches,
-  type Perception,
+  type Recognizer,
   type Reading,
   type View,
-} from './perceive';
+} from './recognize';
 export { createStationObserver, type Observation, type StationObserverOptions } from './observer';
 export {
   createStationConnector,
@@ -38,18 +38,18 @@ export {
 } from './controller';
 export { createScriptedDriver } from './scripted-driver';
 export { runGolden, type GoldenFieldReport, type GoldenFrame, type GoldenReport } from './golden';
-export { createAccessibilityExtractor, parseDisplayed } from './perception/accessibility';
-export { createFixtureExtractor } from './perception/fixture';
+export { createAccessibilityExtractor, parseDisplayed } from './recognition/accessibility';
+export { createFixtureExtractor } from './recognition/fixture';
 export {
   createWorkerExtractor,
   type WorkerExtractorOptions,
   type WorkerProcess,
-} from './perception/worker';
+} from './recognition/worker';
 export {
   createOpenAiCompatibleVisionExtractor,
   visionEndpoint,
   type VisionExtractorOptions,
-} from './perception/openai-compatible-vision';
+} from './recognition/openai-compatible-vision';
 export {
   createPlaywrightTransport,
   toAccessibility,

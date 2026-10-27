@@ -51,8 +51,8 @@ function Enroll({ onError }: { onError: (message: string) => void }) {
       <CardHeader>
         <CardTitle>Enroll a badge</CardTitle>
         <CardDescription>
-          The person signs in at a seat with this badge and PIN. Scan the badge into its field or
-          type its number.
+          The person signs in at a terminal with this badge and PIN. Scan the badge into its field
+          or type its number.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -71,7 +71,7 @@ function Enroll({ onError }: { onError: (message: string) => void }) {
                 if (response.ok) return setForm(empty);
                 const body = (await response.json().catch(() => undefined)) as
                   { error?: { message?: string } } | undefined;
-                onError(body?.error?.message ?? `Enrollment answered ${response.status}`);
+                onError(body?.error?.message ?? `Enrollment returned ${response.status}`);
               })
               .catch((error) => onError(message(error)))
               .finally(() => setPending(false));
@@ -174,13 +174,13 @@ export function BadgesScreen() {
         </CardHeader>
         <CardContent>
           {sessions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nobody is signed in at a seat.</p>
+            <p className="text-sm text-muted-foreground">Nobody is signed in at a terminal.</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Person</TableHead>
-                  <TableHead>Seat</TableHead>
+                  <TableHead>Terminal</TableHead>
                   <TableHead>Since</TableHead>
                   <TableHead>Until</TableHead>
                 </TableRow>
@@ -189,7 +189,7 @@ export function BadgesScreen() {
                 {sessions.map((session) => (
                   <TableRow key={session.id}>
                     <TableCell>{session.principalId}</TableCell>
-                    <TableCell>{session.seat}</TableCell>
+                    <TableCell>{session.terminal}</TableCell>
                     <TableCell>{time(session.startedAt)}</TableCell>
                     <TableCell>{time(session.expiresAt)}</TableCell>
                   </TableRow>

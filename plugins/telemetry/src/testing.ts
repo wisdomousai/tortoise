@@ -9,7 +9,7 @@ const KEEP = 1_000;
 
 /**
  * An OTLP/HTTP JSON collector on loopback that keeps the newest requests it receives, for tests
- * and development. Setting `control.down` makes it answer 503, as an unreachable collector would.
+ * and development. Setting `control.down` makes it return 503, as an unreachable collector would.
  * `port` defaults to a free one; a fixed port that is taken throws `EADDRINUSE`.
  */
 export function startCollector(options: { port?: number } = {}) {

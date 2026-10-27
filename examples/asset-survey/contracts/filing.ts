@@ -16,8 +16,8 @@ import {
 export const eamTarget = defineTarget({
   target: 'eam',
   resourceType: 'Filing',
-  operations: { settle: 'filing.settle', sync: 'filing.sync', status: 'filing.status' },
-  settles: ['filing'],
+  operations: { complete: 'filing.complete', sync: 'filing.sync', status: 'filing.status' },
+  changes: ['filing'],
   feed: { item: assetSnapshotSchema, max: 200, changes: ['node'] },
   status: {
     pending: z.number().int(),
@@ -25,7 +25,7 @@ export const eamTarget = defineTarget({
     rejected: z.number().int(),
   },
   descriptions: {
-    settle: 'Integration principal only: record the EAM outcome of a filing.',
+    complete: 'Integration principal only: record the EAM outcome of a filing.',
     sync: 'Integration principal only: apply EAM asset snapshots and advance the watermark.',
     status: 'Filing with the EAM: filings waiting, accepted and rejected, and the last feed sync.',
   },
@@ -40,15 +40,15 @@ export const eamTarget = defineTarget({
 export const exportTarget = defineTarget({
   target: 'export',
   resourceType: 'Filing',
-  operations: { settle: 'filing.export.settle', status: 'filing.export.status' },
-  settles: ['filing'],
+  operations: { complete: 'filing.export.complete', status: 'filing.export.status' },
+  changes: ['filing'],
   status: {
     pending: z.number().int(),
     accepted: z.number().int(),
     rejected: z.number().int(),
   },
   descriptions: {
-    settle:
+    complete:
       'Integration principal only: record whether a filing was written to the export directory.',
     status: 'Filing to the export directory: filings waiting, written and refused.',
   },
@@ -102,7 +102,7 @@ export const filingOperations = {
     output: filingSchema,
     permission: { action: 'file', resourceType: 'Filing' },
     description:
-      'Withdraw an accepted EAM filing: the EAM retires the asset it created, or restores the attributes it replaced on the asset it updated. Returns the withdrawal, itself a filing the EAM accepts or rejects later. Withdrawing again returns the same withdrawal; a rejected filing has nothing to withdraw and comes back unchanged. Refused with CONFLICT while the EAM has not answered the filing.',
+      'Withdraw an accepted EAM filing: the EAM retires the asset it created, or restores the attributes it replaced on the asset it updated. Returns the withdrawal, itself a filing the EAM accepts or rejects later. Withdrawing again returns the same withdrawal; a rejected filing has nothing to withdraw and comes back unchanged. Refused with CONFLICT while the EAM has not responded to the filing.',
     dependencies: ['filing', 'node'],
     forwards: 'eam',
   }),
@@ -116,7 +116,7 @@ export const filingOperations = {
   }),
   status: eamTarget.status,
   sync: eamTarget.sync,
-  settle: eamTarget.settle,
+  complete: eamTarget.complete,
   exportStatus: exportTarget.status,
-  exportSettle: exportTarget.settle,
+  exportComplete: exportTarget.complete,
 } as const;

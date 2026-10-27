@@ -13,7 +13,7 @@ const usage = {
   inputTokens: { total: 10, noCache: 10, cacheRead: undefined, cacheWrite: undefined },
   outputTokens: { total: 20, text: 20, reasoning: undefined },
 };
-const answer = {
+const modelOutput = {
   fields: [
     { name: 'manufacturer', value: ' Norvik ', confidence: 0.97, photo: 0, region: null },
     {
@@ -40,7 +40,7 @@ describe('model extractor', () => {
         doGenerate: async (options) => {
           calls.push(options.prompt);
           return {
-            content: [{ type: 'text', text: JSON.stringify(answer) }],
+            content: [{ type: 'text', text: JSON.stringify(modelOutput) }],
             finishReason: { unified: 'stop', raw: undefined },
             usage,
             warnings: [],
@@ -89,7 +89,7 @@ describe('model extractor', () => {
             choices: [
               {
                 index: 0,
-                message: { role: 'assistant', content: JSON.stringify(answer) },
+                message: { role: 'assistant', content: JSON.stringify(modelOutput) },
                 finish_reason: 'stop',
               },
             ],

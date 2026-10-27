@@ -133,7 +133,7 @@ describe('calibration', () => {
   test('a US scanner on a Swiss host is identified by key codes and needs no changes', () => {
     const result = calibrate(simulateWedge(CALIBRATION_CODE, 'us', 'de-ch'));
     expect(result.suggested.scannerLayout).toBe('us');
-    expect(result.issues.filter((issue) => issue.includes('arrives as'))).toEqual([]);
+    expect(result.issues.filter((issue) => issue.includes('is received as'))).toEqual([]);
   });
 
   test('a lost group separator, a substitute, prefix, suffix and Tab are inferred', () => {

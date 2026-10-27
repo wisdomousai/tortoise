@@ -15,7 +15,7 @@ const field = 'min-h-target rounded-xl border border-border px-4 text-operator t
 /**
  * One survey's structure as a tree from its brief, with designation search. A scanned tag
  * searches the same way and opens the capture screen when it matches exactly one node. A tag
- * another app sent arrives as `q`. Marking the survey done ends its field work on this device.
+ * another app sent is passed as `q`. Marking the survey done ends its field work on this device.
  */
 export function AssignmentScreen() {
   const { assignmentId, q: sent } = useRoute().params as { assignmentId: string; q?: string };

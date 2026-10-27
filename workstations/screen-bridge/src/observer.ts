@@ -1,12 +1,12 @@
 import {
   createObserver,
-  gateReadings,
-  StabilityGate,
+  debounceReadings,
+  Debouncer,
   type ObservedReading,
   type ObserverOptions,
 } from '@agent-native/observation';
 import type { Extractor, ScreenTransport } from './ports';
-import { createPerception } from './perceive';
+import { createRecognizer } from './recognize';
 import type { StationProfile } from './profile';
 
 /**
@@ -60,17 +60,17 @@ const declarationOf = (field: StationProfile['fields'][number]): FieldDeclaratio
  * the station names the source in its keys.
  */
 export function createStationObserver(options: StationObserverOptions) {
-  const perception = createPerception(options.profile, options.extractors);
-  const gate = new StabilityGate();
+  const recognizer = createRecognizer(options.profile, options.extractors);
+  const debouncer = new Debouncer();
   const fieldOf = (id: string) => {
-    const field = perception.field(id);
+    const field = recognizer.field(id);
     return field && { ...field, declared: declarationOf(field) };
   };
   let lastObservedAt: number | undefined;
 
   async function sample(signal: AbortSignal): Promise<Observation> {
     const frame = await options.transport.capture(signal);
-    const view = await perception.view(frame, signal);
+    const view = await recognizer.view(frame, signal);
     const localInput =
       lastObservedAt !== undefined && options.transport.localInputSince
         ? await options.transport.localInputSince(lastObservedAt, signal)
@@ -83,7 +83,7 @@ export function createStationObserver(options: StationObserverOptions) {
       observedAt: frame.capturedAt,
       frameDigest: frame.digest,
       localInput,
-      readings: gateReadings(gate, view.readings.values(), fieldOf),
+      readings: debounceReadings(debouncer, view.readings.values(), fieldOf),
     };
   }
 

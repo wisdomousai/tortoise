@@ -29,7 +29,7 @@ function present(definition: ChamberDefinition, ctx: Context): Chamber {
 }
 
 /**
- * The next condition after one gated reading, or `undefined` when nothing changes. An observed
+ * The next condition after one debounced reading, or `undefined` when nothing changes. An observed
  * number replaces the value; an uncertain reading keeps the last observed value and only marks it
  * uncertain, so a flapping connection never writes a value the source did not confirm.
  */

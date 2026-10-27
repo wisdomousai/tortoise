@@ -13,7 +13,7 @@ import {
   type EffectOutcome,
 } from '@agent-native/runtime';
 import { createStationConnector, type BridgeControl } from '../src/controller';
-import { createAccessibilityExtractor } from '../src/perception/accessibility';
+import { createAccessibilityExtractor } from '../src/recognition/accessibility';
 import { createScriptedDriver } from '../src/scripted-driver';
 import type { Extractor } from '../src/ports';
 import { parseProfile } from '../src/profile';
@@ -33,7 +33,7 @@ function connectorFixture(
     onRead?: (reads: number) => Partial<BridgeControl> | void;
   } = {
     mode: 'actuate',
-    seat: 'agent',
+    holder: 'agent',
     ...initial,
   };
   let reads = 0;
@@ -47,7 +47,7 @@ function connectorFixture(
     driver: createScriptedDriver(),
     control: async () => {
       Object.assign(control, control.onRead?.(++reads) ?? {});
-      return { mode: control.mode, seat: control.seat };
+      return { mode: control.mode, holder: control.holder };
     },
     now: () => hmi.state.clock,
     sleep: async () => {
@@ -100,11 +100,11 @@ test('unmet preconditions and missing presence are rejected without acting', asy
   expect(hmi.state.actions).toHaveLength(0);
 });
 
-test('monitor-only, assist for hazardous procedures, and an operator seat block without acting', async () => {
+test('monitor-only, assist for procedures above risk none, and an operator holding control block without acting', async () => {
   for (const control of [
     { mode: 'monitor-only' as const },
     { mode: 'assist' as const },
-    { seat: 'operator' as const },
+    { holder: 'operator' as const },
   ]) {
     const { hmi, connector, signal } = connectorFixture(control);
     const attempt = connector.deliver(effect(present), signal);
@@ -217,7 +217,7 @@ test('the runtime refuses a resolved point inside a forbidden region', async () 
 });
 
 test('lookup: converged is accepted, untouched attempts and fresh effects deliver', async () => {
-  const { hmi, connector, control, signal } = connectorFixture({ seat: 'operator' });
+  const { hmi, connector, control, signal } = connectorFixture({ holder: 'operator' });
   await expect(connector.deliver(effect(present), signal)).rejects.toBeInstanceOf(DeliveryFailure);
   hmi.state.screen = 'recipe';
   // Attempted by this process but never touched the screen: safe to deliver again.
@@ -233,7 +233,7 @@ test('lookup: converged is accepted, untouched attempts and fresh effects delive
   expect(await restarted.connector.lookup!('e1', signal, effect(present))).toBeUndefined();
   hmi.state.screen = 'main';
   hmi.state.recipe = 'R-12';
-  control.seat = 'agent';
+  control.holder = 'agent';
   expect(await connector.lookup!('e1', signal, effect(present, { attempts: 3 }))).toMatchObject({
     status: 'accepted',
   });
@@ -252,12 +252,12 @@ const start = defineCapability({
   ui: { exception: 'test fixture' },
   integration: { target: 'legacy-hmi', delivery: 'outbox' },
 });
-const settle = defineCapability({
-  id: 'recipe.settle',
+const complete = defineCapability({
+  id: 'recipe.complete',
   kind: 'command',
   input: jsonSchema(z.strictObject({ effectId: z.string(), outcome })),
   output: jsonSchema(z.strictObject({ status: z.string() })),
-  permission: { action: 'settle', resourceType: 'station' },
+  permission: { action: 'complete', resourceType: 'station' },
   ui: { exception: 'integration principal' },
 });
 const reconcile = defineCapability({
@@ -276,7 +276,7 @@ test('operator takeover mid-procedure holds the effect until a person reconciles
     modules: [
       defineModule({
         id: 'station',
-        capabilities: [start, settle, reconcile],
+        capabilities: [start, complete, reconcile],
         requirements: {
           network: [
             {
@@ -300,7 +300,8 @@ test('operator takeover mid-procedure holds the effect until a person reconciles
     authorization: {
       authorize: ({ capability, context }) => ({
         allowed:
-          (context.principalId === 'station-bridge:line-1') === (capability.id === 'recipe.settle'),
+          (context.principalId === 'station-bridge:line-1') ===
+          (capability.id === 'recipe.complete'),
       }),
       canReadEvent: () => true,
     },
@@ -316,15 +317,15 @@ test('operator takeover mid-procedure holds the effect until a person reconciles
           }),
         };
       }),
-      bind(settle, (input, ctx) => {
-        const settled = ctx.settleEffect(input.effectId, input.outcome as EffectOutcome);
-        ctx.state.status = settled.status;
-        ctx.change(settled.resource);
-        return { status: settled.status };
+      bind(complete, (input, ctx) => {
+        const completed = ctx.completeEffect(input.effectId, input.outcome as EffectOutcome);
+        ctx.state.status = completed.status;
+        ctx.change(completed.resource);
+        return { status: completed.status };
       }),
       bind(reconcile, (input, ctx) => {
         const resolved = input.applied
-          ? ctx.settleEffect(input.effectId, { status: 'accepted', externalRef: 'operator' })
+          ? ctx.completeEffect(input.effectId, { status: 'accepted', externalRef: 'operator' })
           : ctx.releaseEffect(input.effectId);
         ctx.change(resolved.resource);
         return { status: resolved.status };
@@ -335,12 +336,12 @@ test('operator takeover mid-procedure holds the effect until a person reconciles
   const bridge = { workspaceId: 'w', principalId: 'station-bridge:line-1' };
   const { hmi, control, connector } = connectorFixture();
   // The operator presses "Take over" while the agent is between the dialog's click and typing.
-  control.onRead = (reads) => (reads === 4 ? { seat: 'operator' } : undefined);
+  control.onRead = (reads) => (reads === 4 ? { holder: 'operator' } : undefined);
   const dispatcher = createEffectDispatcher({
     application: app,
     port: connector,
     context: bridge,
-    settleOperation: 'recipe.settle',
+    completeOperation: 'recipe.complete',
   });
   const { result } = await app.invoke(
     {
@@ -357,7 +358,7 @@ test('operator takeover mid-procedure holds the effect until a person reconciles
 
   // Held effects are not redelivered, even after the operator hands back.
   control.onRead = undefined;
-  control.seat = 'agent';
+  control.holder = 'agent';
   expect(await dispatcher.runOnce(undefined, { ignoreBackoff: true })).toMatchObject({
     held: 0,
     accepted: 0,

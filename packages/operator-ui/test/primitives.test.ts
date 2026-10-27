@@ -101,7 +101,7 @@ describe('key burst filter', () => {
   test('a single key press fires after the window', () => {
     const filter = new KeyBurstFilter(50);
     expect(filter.push('3', 1000)).toBe('defer');
-    expect(filter.settle(1050)).toBe('3');
+    expect(filter.complete(1050)).toBe('3');
     expect(filter.push('PageDown', 2000)).toBe('fire');
   });
 
@@ -112,10 +112,10 @@ describe('key burst filter', () => {
     );
     expect(verdicts[0]).toBe('defer');
     expect(verdicts.slice(1).every((verdict) => verdict === 'drop')).toBe(true);
-    expect(filter.settle(1100)).toBeUndefined();
+    expect(filter.complete(1100)).toBeUndefined();
     // A deliberate key after the burst works again.
     expect(filter.push('1', 1500)).toBe('defer');
-    expect(filter.settle(1550)).toBe('1');
+    expect(filter.complete(1550)).toBe('1');
   });
 });
 

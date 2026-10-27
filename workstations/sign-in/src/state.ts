@@ -19,13 +19,13 @@ export interface BadgeRecord {
   lockedUntil?: number;
 }
 
-/** An operator signed in at a seat. Only the digest of its token is kept. */
+/** An operator signed in at a terminal. Only the digest of its token is kept. */
 export interface SessionRecord {
   id: string;
   badgeId: string;
   principalId: string;
-  seatPrincipal: string;
-  seat: string;
+  terminalPrincipal: string;
+  terminal: string;
   tokenDigest: string;
   startedAt: number;
   expiresAt: number;
@@ -51,7 +51,7 @@ export const digestOf = (text: string) => bytesToHex(sha256(utf8ToBytes(text)));
 
 /**
  * scrypt of a PIN. A PIN has few possible values, so the hash alone does not keep it secret
- * from someone who reads the workspace; the lockout is what stops guessing at a seat.
+ * from someone who reads the workspace; the lockout is what stops guessing at a terminal.
  */
 const hashPin = (pin: string, salt: string) =>
   bytesToHex(scrypt(utf8ToBytes(pin), hexToBytes(salt), { N: 2 ** 14, r: 8, p: 1, dkLen: 32 }));

@@ -61,7 +61,7 @@ async function readRecord(layout: InstallLayout): Promise<InstallRecord | undefi
 /**
  * Copy a verified bundle to its release directory and verify the copy, so what runs is what was
  * signed. A release already there is verified and kept. Executables get mode 0755 and everything
- * else 0644, whatever modes the bundle arrived with.
+ * else 0644, whatever modes the bundle's files had.
  */
 async function placeRelease(
   layout: InstallLayout,

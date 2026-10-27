@@ -21,11 +21,11 @@ const visible = () => true;
 const present = ({ outgoing: _outgoing, ...relay }: StoredRelay): Relay => relay;
 const newest = (a: Relay, b: Relay) => b.requestedAt - a.requestedAt || (a.id < b.id ? 1 : -1);
 
-/** Drop the oldest answered requests beyond the number kept. */
+/** Drop the oldest responded requests beyond the number kept. */
 function prune(ctx: Context) {
   const all = Object.values(ctx.state.relays).sort(newest);
-  const answered = all.filter((relay) => relay.status === 'answered');
-  for (const relay of answered.slice(Math.max(0, RELAYS_KEPT - (all.length - answered.length))))
+  const responded = all.filter((relay) => relay.status === 'responded');
+  for (const relay of responded.slice(Math.max(0, RELAYS_KEPT - (all.length - responded.length))))
     records(ctx, relays, ctx.state.relays).remove(relay.id);
 }
 
@@ -50,7 +50,7 @@ export function relayHandlers(): HandlerContribution<AppState, Services>[] {
         site: input.site,
         method: input.method,
         path: input.path,
-        status: 'waiting',
+        status: 'queued',
         requestedBy: ctx.context.principalId,
         requestedAt: now(ctx),
         outgoing: compact({
@@ -60,15 +60,15 @@ export function relayHandlers(): HandlerContribution<AppState, Services>[] {
       });
       return { id };
     }),
-    handler(fleetSiteOperations.relayTake, (_input, ctx) => {
+    handler(fleetSiteOperations.relayClaim, (_input, ctx) => {
       const site = callingSite(ctx);
       const oldest = Object.values(ctx.state.relays)
-        .filter((relay) => relay.site === site && relay.status === 'waiting')
+        .filter((relay) => relay.site === site && relay.status === 'queued')
         .sort((a, b) => a.requestedAt - b.requestedAt || (a.id < b.id ? -1 : 1))[0];
       if (!oldest) return {};
       const { outgoing } = oldest;
       records(ctx, relays, ctx.state.relays).update(oldest.id, (relay) => {
-        relay.status = 'taken';
+        relay.status = 'claimed';
         delete relay.outgoing;
       });
       return {
@@ -81,16 +81,16 @@ export function relayHandlers(): HandlerContribution<AppState, Services>[] {
         }),
       };
     }),
-    handler(fleetSiteOperations.relayAnswer, (input, ctx) => {
+    handler(fleetSiteOperations.relayRespond, (input, ctx) => {
       const relay = records(ctx, relays, ctx.state.relays).getExisting(input.id);
-      if (relay.site !== callingSite(ctx) || relay.status !== 'taken')
+      if (relay.site !== callingSite(ctx) || relay.status !== 'claimed')
         throw new ApplicationError('CONFLICT', 'This site did not take that request');
       records(ctx, relays, ctx.state.relays).update(input.id, (record) =>
         Object.assign(
           record,
           compact({
-            status: 'answered' as const,
-            answeredAt: now(ctx),
+            status: 'responded' as const,
+            respondedAt: now(ctx),
             response: input.status,
             responseHeaders: input.headers,
             responseBody: input.body,

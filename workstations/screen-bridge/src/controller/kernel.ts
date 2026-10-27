@@ -7,13 +7,13 @@ import {
   type ReadClock,
 } from '@agent-native/integration';
 import type { StationConnectorOptions } from '../controller';
-import { createPerception, evaluate, type Perception, type View } from '../perceive';
+import { createRecognizer, evaluate, type Recognizer, type View } from '../recognize';
 import type { Condition, Procedure } from '../profile';
 
-/** What every delivery and lookup shares: perception, clock and this process's attempt memory. */
+/** What every delivery and lookup shares: the recognizer, clock and this process's attempt memory. */
 export interface ControllerKernel extends ReadClock {
   readonly options: StationConnectorOptions;
-  readonly perception: Perception;
+  readonly recognizer: Recognizer;
   readonly procedures: ReadonlyMap<string, Procedure>;
   /** Effects this process attempted, and whether it touched the screen for them. */
   readonly attempts: AttemptMemory;
@@ -22,7 +22,7 @@ export interface ControllerKernel extends ReadClock {
 export function createControllerKernel(options: StationConnectorOptions): ControllerKernel {
   return {
     options,
-    perception: createPerception(options.profile, options.extractors),
+    recognizer: createRecognizer(options.profile, options.extractors),
     procedures: new Map(options.profile.procedures.map((procedure) => [procedure.id, procedure])),
     now: options.now ?? Date.now,
     sleep: options.sleep ?? abortableSleep,
@@ -41,7 +41,7 @@ export const accepted = (view: View): EffectOutcome => ({
 export const showing = (view: View) => `the station shows ${view.screen ?? 'an unknown screen'}`;
 
 export const observe = async (kernel: ControllerKernel, signal: AbortSignal): Promise<View> =>
-  kernel.perception.view(await kernel.options.transport.capture(signal), signal);
+  kernel.recognizer.view(await kernel.options.transport.capture(signal), signal);
 
 /** Poll until the predicate holds on `required` consecutive views (see the integration `waitFor`). */
 export const waitFor = (
@@ -55,7 +55,7 @@ export const waitFor = (
 
 /** Consecutive agreeing views a condition set needs: the most `stableReads` among its fields. */
 export const readsFor = (kernel: ControllerKernel, conditions: readonly Condition[]) =>
-  Math.max(1, ...conditions.map((item) => kernel.perception.field(item.field)?.stableReads ?? 1));
+  Math.max(1, ...conditions.map((item) => kernel.recognizer.field(item.field)?.stableReads ?? 1));
 
 /**
  * Evaluate conditions to the profile's standard, the same one the observer applies: met only
@@ -71,7 +71,7 @@ export const confirm = (
   confirmReads(
     kernel,
     (inner) => observe(kernel, inner),
-    (view) => evaluate(kernel.perception, view, conditions, input),
+    (view) => evaluate(kernel.recognizer, view, conditions, input),
     readsFor(kernel, conditions),
     first,
     signal,

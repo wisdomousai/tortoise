@@ -112,9 +112,9 @@ export function adoptAssignments(stored: unknown, ownerId: string): AssignmentSl
       accepted: reviewed && extraction?.accepted ? { values: extraction.accepted } : undefined,
     }) as StoredReport;
     if (!extraction || extraction.status === 'requested') continue;
-    // The model's reading: an assignment to the model, answered by the integration principal.
+    // The model's reading: an assignment to the model, reported by the integration principal.
     const id = `extraction-${capture.id}`;
-    const answered = extraction.status !== 'failed';
+    const responded = extraction.status !== 'failed';
     assignments[id] = compact({
       id,
       kind: 'extraction',
@@ -122,19 +122,19 @@ export function adoptAssignments(stored: unknown, ownerId: string): AssignmentSl
       scope: { reportId: capture.id },
       brief: { reportId: capture.id, kind: capture.kind, photos: capture.photos },
       assignee: { type: 'target' as const, id: 'model' },
-      status: !answered ? 'sent' : extraction.status === 'accepted' ? 'closed' : 'done',
+      status: !responded ? 'sent' : extraction.status === 'accepted' ? 'closed' : 'done',
       createdBy: ownerId,
       createdAt: capture.receivedAt,
       sentAt: capture.receivedAt,
-      doneBy: answered ? integration : undefined,
-      doneAt: answered ? capture.receivedAt : undefined,
+      doneBy: responded ? integration : undefined,
+      doneAt: responded ? capture.receivedAt : undefined,
       closedBy: extraction.status === 'accepted' ? extraction.acceptedBy : undefined,
       closedAt: extraction.status === 'accepted' ? capture.receivedAt : undefined,
       effectId: extraction.effectId,
-      delivery: answered ? 'accepted' : 'rejected',
+      delivery: responded ? 'accepted' : 'rejected',
       rejection: extraction.rejection,
     }) as StoredAssignment;
-    if (answered)
+    if (responded)
       reports[`${id}-1`] = compact({
         id: `${id}-1`,
         assignmentId: id,

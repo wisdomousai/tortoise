@@ -3,7 +3,7 @@ import type { Assignee } from '@agent-native/assignments';
 import { byKind, type StoredReport } from '@agent-native/assignments/server';
 import { own, type HandlerContribution } from '@agent-native/runtime';
 import { captureOperations as ops } from '../contracts/captures';
-import { ATTENTION_BELOW, assignmentOperations, reportPlace } from '../contracts/kinds';
+import { ATTENTION_BELOW, assignmentOperations, reportLink } from '../contracts/kinds';
 import {
   captureBody,
   captureOf,
@@ -93,7 +93,7 @@ export const surveyHooks = {
       subject: (subject, assignment, ctx) =>
         inScope(ctx.state.nodes, surveyScope(assignment), subject),
       accept(report, input, _assignment, ctx) {
-        if (!report.subject) conflict('Place the capture on a node first');
+        if (!report.subject) conflict('Link the capture to a node first');
         const node = activeNode(ctx.state, report.subject);
         if (!node) conflict('Node is retired');
         const proposed = proposedValues(readingOf(ctx.state, report.id)?.report);
@@ -133,7 +133,7 @@ export const surveyHooks = {
   }),
 };
 
-/** Review's reads over survey reports, the composite place-and-extract, and the assignees. */
+/** Review's reads over survey reports, the composite link-and-extract, and the assignees. */
 export const surveyHandlers = (): HandlerContribution<SurveyState, SurveyServices>[] => [
   handler(ops.captureList, (input, ctx) => ({
     items: captures(ctx.state)
@@ -142,7 +142,7 @@ export const surveyHandlers = (): HandlerContribution<SurveyState, SurveyService
           (input.assignmentId === undefined || report.assignmentId === input.assignmentId) &&
           (input.nodeId === undefined || report.subject === input.nodeId) &&
           (input.review === undefined || report.review === input.review) &&
-          (input.unplaced === undefined || (report.subject === undefined) === input.unplaced),
+          (input.unlinked === undefined || (report.subject === undefined) === input.unlinked),
       )
       .sort((a, b) => captureBody(b).takenAt - captureBody(a).takenAt)
       .map((report) => captureItem(ctx.state, report)),
@@ -171,8 +171,8 @@ export const surveyHandlers = (): HandlerContribution<SurveyState, SurveyService
     });
   }),
   // Both calls run in this command's transaction, each with its own authorization.
-  handler(ops.placeAndExtract, async (input, ctx) => {
-    await ctx.invoke(reportPlace, { id: input.id, subject: input.nodeId });
+  handler(ops.linkAndExtract, async (input, ctx) => {
+    await ctx.invoke(reportLink, { id: input.id, subject: input.nodeId });
     const node = nodeRecords(ctx).getExisting(input.nodeId);
     const extraction = await ctx.invoke(assignmentOperations.extractionCreate, {
       title: `Read ${captureBody(existingCapture(ctx, input.id)).kind} on ${node.designation}`,

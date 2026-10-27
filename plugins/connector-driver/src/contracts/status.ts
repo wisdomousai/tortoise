@@ -8,13 +8,13 @@ import { defineCapability, defineModule, jsonSchema } from '@agent-native/contra
  */
 const count = z.number().int().min(0);
 const deliverySchema = z.enum(['idempotent', 'convergent', 'once']);
-const hazardSchema = z.enum(['none', 'low', 'operator-present']);
+const riskSchema = z.enum(['none', 'low', 'operator-present']);
 
 export const driverStatusSchema = z.strictObject({
   id: z.string(),
   title: z.string(),
   version: z.string(),
-  /** The contract digest the driver must answer with at its handshake. */
+  /** The contract digest the driver must return at its handshake. */
   digest: z.string(),
   state: z.enum(['stopped', 'starting', 'ready', 'backing-off']),
   /** What the running driver reported at its handshake. */
@@ -35,7 +35,7 @@ export const driverStatusSchema = z.strictObject({
       id: z.string(),
       title: z.string(),
       delivery: deliverySchema,
-      hazard: hazardSchema,
+      risk: riskSchema,
     }),
   ),
 });
@@ -45,7 +45,7 @@ export const driverOperations = {
     id: 'driver.status.get',
     kind: 'query',
     description:
-      'Read every hardware driver this installation declares: whether its process runs, its contract version and digest, the units it reported (serial, firmware), restart and problem counts, and each action with its delivery mode and hazard class. Use it to tell whether equipment is reachable before planning an action; it never acts on the equipment.',
+      'Read every hardware driver this installation declares: whether its process runs, its contract version and digest, the units it reported (serial, firmware), restart and problem counts, and each action with its delivery mode and risk level. Use it to tell whether equipment is reachable before planning an action; it never acts on the equipment.',
     input: jsonSchema(z.strictObject({})),
     output: jsonSchema(z.strictObject({ drivers: z.array(driverStatusSchema) })),
     permission: { action: 'read', resourceType: 'Driver' },

@@ -1,5 +1,5 @@
 /**
- * Gate a station profile and its perception models on labeled golden frames.
+ * Gate a station profile and its recognition models on labeled golden frames.
  *
  *   bun scripts/station-golden.ts <golden directory>
  *   cd examples/line-station && bun run station:golden
@@ -7,7 +7,7 @@
  * Accessibility fields are read from each frame's recorded tree. Pixel fields use, in order:
  * - STATION_VISION_BASE_URL + STATION_VISION_MODEL: a local OpenAI-compatible vision model
  *   (loopback, or hosts listed in STATION_VISION_ALLOWED_HOSTS), STATION_VISION_READS reads each;
- * - STATION_GOLDEN_WORKER: a JSON array command for a JSON-lines perception worker, started here
+ * - STATION_GOLDEN_WORKER: a JSON array command for a JSON-lines recognition worker, started here
  *   with an empty environment (a host starts its worker from the site policy instead);
  * - otherwise the manifest's expected values replayed as a fixture, which checks wiring only.
  * Nothing is discovered: without explicit configuration no model is called. Exits non-zero when
@@ -95,7 +95,7 @@ function pixelExtractor(id: string): Extractor {
   }
   if (worker) {
     const command = JSON.parse(worker) as [string, ...string[]];
-    source = `perception worker ${command[0]}`;
+    source = `recognition worker ${command[0]}`;
     const [executable, ...args] = command;
     const extractor = createWorkerExtractor({
       id,

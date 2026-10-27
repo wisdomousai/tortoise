@@ -7,7 +7,7 @@ import { stationPaths } from '@agent-native/workstation-sign-in/contracts';
 import { createLabRequestsSignInApplication } from '../application';
 
 /**
- * The bench over HTTP: the owner's session is the seat and enrolls badges, and an operator who
+ * The bench over HTTP: the owner's session is the terminal and enrolls badges, and an operator who
  * signs in there works on test requests as themselves until the session ends.
  */
 const cleanups: (() => Promise<void>)[] = [];
@@ -26,7 +26,7 @@ async function startBench() {
     await host.close();
     await rm(directory, { recursive: true, force: true });
   });
-  const { token: seat } = (await Bun.file(host.connectionFile!).json()) as { token: string };
+  const { token: terminal } = (await Bun.file(host.connectionFile!).json()) as { token: string };
   const post = (path: string, token: string, body: unknown) =>
     fetch(host.url + path, {
       method: 'POST',
@@ -35,11 +35,11 @@ async function startBench() {
     });
   const enroll = async (principalId: string, badge: string, pin: string) =>
     expect(
-      (await post(stationPaths.enroll, seat, { principalId, label: principalId, badge, pin }))
+      (await post(stationPaths.enroll, terminal, { principalId, label: principalId, badge, pin }))
         .status,
     ).toBe(201);
   const signIn = async (badge: string, pin: string) => {
-    const response = await post(stationPaths.signIn, seat, { badge, pin, seat: 'bench-2' });
+    const response = await post(stationPaths.signIn, terminal, { badge, pin, terminal: 'bench-2' });
     expect(response.status).toBe(201);
     return ((await response.json()) as { token: string }).token;
   };
@@ -55,7 +55,7 @@ async function startBench() {
       (await response.json()) as { data: { items: { specimen: string; requester: string }[] } }
     ).data.items;
   };
-  return { clock, seat, post, enroll, signIn, submit, list };
+  return { clock, terminal, post, enroll, signIn, submit, list };
 }
 
 test('a technician signs in at the bench with a PIN that starts with zero and submits as themselves', async () => {
@@ -91,26 +91,26 @@ test('the next sign-in at the bench ends the previous session, and a viewer cann
 });
 
 test('an operator session ends when it expires, and a revoked badge cannot sign in', async () => {
-  const { clock, seat, enroll, signIn, list, post } = await startBench();
+  const { clock, terminal, enroll, signIn, list, post } = await startBench();
   await enroll('ana', 'LAB-0042', '0420');
   const ana = await signIn('LAB-0042', '0420');
   clock.now += 16 * 60_000;
   expect(await list(ana)).toBe(403);
 
   const listed = (await (
-    await post('/api/v1/queries/station.badge.list', seat, { input: {} })
+    await post('/api/v1/queries/station.badge.list', terminal, { input: {} })
   ).json()) as {
     data: { badges: { id: string }[] };
   };
-  const revoked = await post('/api/v1/commands/station.badge.revoke', seat, {
+  const revoked = await post('/api/v1/commands/station.badge.revoke', terminal, {
     input: { badgeId: listed.data.badges[0]!.id },
     idempotencyKey: crypto.randomUUID(),
   });
   expect(revoked.status).toBe(200);
-  const refused = await post(stationPaths.signIn, seat, {
+  const refused = await post(stationPaths.signIn, terminal, {
     badge: 'LAB-0042',
     pin: '0420',
-    seat: 'bench-2',
+    terminal: 'bench-2',
   });
   expect(refused.status).toBe(403);
 });

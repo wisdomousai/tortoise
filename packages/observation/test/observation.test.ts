@@ -1,10 +1,10 @@
 import { expect, test } from 'bun:test';
 import type { CommandReceipt, Invocation } from '@agent-native/runtime';
 import {
-  StabilityGate,
+  Debouncer,
   clampConfidence,
   createObserver,
-  gateReadings,
+  debounceReadings,
   type ObservationBase,
   type Reading,
 } from '../src/index';
@@ -21,10 +21,10 @@ const reading = (field: string, value: Reading['value'], confidence = 1): Readin
 const fields = { width: { stableReads: 2, minConfidence: 0.9, declared: { unit: 'mm' } } };
 const fieldOf = (id: string) => fields[id as keyof typeof fields];
 
-test('a reading passes the gate once it agrees across stable reads, with device provenance', () => {
-  const gate = new StabilityGate();
-  expect(gateReadings(gate, [reading('width', 12.5)], fieldOf)).toEqual([]);
-  const [stable] = gateReadings(gate, [reading('width', 12.5)], fieldOf);
+test('a reading counts once it agrees across stable reads, with device provenance', () => {
+  const debouncer = new Debouncer();
+  expect(debounceReadings(debouncer, [reading('width', 12.5)], fieldOf)).toEqual([]);
+  const [stable] = debounceReadings(debouncer, [reading('width', 12.5)], fieldOf);
   expect(stable).toMatchObject({
     status: 'observed',
     minConfidence: 0.9,
@@ -32,16 +32,16 @@ test('a reading passes the gate once it agrees across stable reads, with device 
     device: { serial: 'SN-1', firmware: '2.3' },
   });
   // A different value restarts the count; a field that disappears is forgotten.
-  expect(gateReadings(gate, [reading('width', 13)], fieldOf)).toEqual([]);
-  expect(gateReadings(gate, [], fieldOf)).toEqual([]);
-  expect(gateReadings(gate, [reading('width', 13)], fieldOf)).toEqual([]);
+  expect(debounceReadings(debouncer, [reading('width', 13)], fieldOf)).toEqual([]);
+  expect(debounceReadings(debouncer, [], fieldOf)).toEqual([]);
+  expect(debounceReadings(debouncer, [reading('width', 13)], fieldOf)).toEqual([]);
 });
 
 test('a stable reading below its threshold is uncertain, and unknown fields are dropped', () => {
-  const gate = new StabilityGate();
+  const debouncer = new Debouncer();
   const readings = [reading('width', 12.5, 0.5), reading('ghost', 1)];
-  gateReadings(gate, readings, fieldOf);
-  expect(gateReadings(gate, readings, fieldOf)).toEqual([
+  debounceReadings(debouncer, readings, fieldOf);
+  expect(debounceReadings(debouncer, readings, fieldOf)).toEqual([
     expect.objectContaining({ field: 'width', status: 'uncertain' }),
   ]);
   expect([clampConfidence(1.4), clampConfidence(-1)]).toEqual([1, 0]);
@@ -55,7 +55,7 @@ test('the observer resubmits unchanged content once per heartbeat under payload 
   let at = 0;
   let value = 12.5;
   const submitted: Invocation[] = [];
-  const gate = new StabilityGate();
+  const debouncer = new Debouncer();
   const observer = createObserver<Gauge>({
     source: 'gauge-1',
     sample: async () => {
@@ -64,7 +64,11 @@ test('the observer resubmits unchanged content once per heartbeat under payload 
         device: 'gauge-1',
         observedAt: at,
         frameDigest: `f${at}`,
-        readings: gateReadings(gate, [{ ...reading('width', value), observedAt: at }], fieldOf),
+        readings: debounceReadings(
+          debouncer,
+          [{ ...reading('width', value), observedAt: at }],
+          fieldOf,
+        ),
       };
     },
     application: {

@@ -27,7 +27,7 @@ export interface AssignmentReport {
 }
 
 /** Places a report on a subject; resolves false and shows the refusal when the instance refuses. */
-export type PlaceReport = (subject: string) => Promise<boolean>;
+export type LinkReport = (subject: string) => Promise<boolean>;
 
 /** One kind's reports: its contract, its accept command and optional views. */
 export interface ReportsKind {
@@ -36,10 +36,10 @@ export interface ReportsKind {
   accept: Command;
   /** How a report body reads; its fields as a list when omitted. */
   body?: (report: AssignmentReport) => ReactNode;
-  /** How a placed report names its subject, such as a link to the record; its key when omitted. */
+  /** How a linked report names its subject, such as a link to the record; its key when omitted. */
   subject?: (report: AssignmentReport) => ReactNode;
-  /** The input that places a report on a subject; a field for the record's key when omitted. */
-  place?: (report: AssignmentReport, place: PlaceReport) => ReactNode;
+  /** The input that links a report to a subject; a field for the record's key when omitted. */
+  link?: (report: AssignmentReport, link: LinkReport) => ReactNode;
   /** The reviewer's input on accepting; the accept command's generated form when omitted. */
   review?: (report: AssignmentReport) => ReactNode;
 }
@@ -79,12 +79,12 @@ function ReportItem({
   report,
   kind,
   discard,
-  place,
+  link,
 }: {
   report: AssignmentReport;
   kind: ReportsKind | undefined;
   discard: Command;
-  place?: Command;
+  link?: Command;
 }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string>();
@@ -102,8 +102,8 @@ function ReportItem({
       setBusy(false);
     }
   };
-  const placeOn: PlaceReport = (on) =>
-    place ? act(place, { id: report.id, subject: on }) : Promise.resolve(false);
+  const linkTo: LinkReport = (on) =>
+    link ? act(link, { id: report.id, subject: on }) : Promise.resolve(false);
   const open = report.review === 'new';
   return (
     <li aria-label={`Report ${report.id}`} className="space-y-3 rounded-lg border p-4">
@@ -117,7 +117,7 @@ function ReportItem({
             <Badge variant="outline">{report.subject}</Badge>
           )
         ) : kind?.kind.subject ? (
-          <Badge variant="destructive">Not placed</Badge>
+          <Badge variant="destructive">Not linked</Badge>
         ) : null}
       </div>
       {kind?.body ? kind.body(report) : <ReportBody body={report.body} />}
@@ -127,13 +127,13 @@ function ReportItem({
         {report.reviewedBy ? ` · reviewed by ${report.reviewedBy}` : ''}
         {report.reason ? ` · ${report.reason}` : ''}
       </p>
-      {open && place && kind?.kind.subject && kind.place && kind.place(report, placeOn)}
-      {open && place && kind?.kind.subject && !kind.place && (
+      {open && link && kind?.kind.subject && kind.link && kind.link(report, linkTo)}
+      {open && link && kind?.kind.subject && !kind.link && (
         <form
           className="flex flex-wrap items-center gap-2"
           onSubmit={(event) => {
             event.preventDefault();
-            void placeOn(subject);
+            void linkTo(subject);
           }}
         >
           <Input
@@ -143,7 +143,7 @@ function ReportItem({
             onChange={(event) => setSubject(event.target.value)}
           />
           <Button size="sm" variant="outline" type="submit" disabled={busy || !subject}>
-            Place
+            Link
           </Button>
         </form>
       )}
@@ -179,7 +179,7 @@ function ReportItem({
 
 /**
  * Reports, live, newest first, each with its body, who reported it and its review state. A new
- * report can be placed on a subject, discarded, or accepted with the reviewer's input; accepting
+ * report can be linked to a subject, discarded, or accepted with the reviewer's input; accepting
  * runs the kind's accept command as the signed-in person, so the application writes its records
  * in the same transaction and a refusal leaves the report new. `input` filters the list, for
  * example to one assignment.
@@ -188,15 +188,15 @@ export function AssignmentReports({
   title = 'Reports',
   list,
   discard,
-  place,
+  link,
   kinds,
   input = {},
 }: {
   title?: string;
   list: Query;
   discard: Command;
-  /** The place command; omitted when no kind's reports name a subject. */
-  place?: Command;
+  /** The link command; omitted when no kind's reports name a subject. */
+  link?: Command;
   kinds: readonly ReportsKind[];
   /** The report list's filters: assignment, kind, review state, subject. */
   input?: Record<string, unknown>;
@@ -217,7 +217,7 @@ export function AssignmentReports({
               report={report}
               kind={kinds.find((kind) => kind.kind.id === report.kind)}
               discard={discard}
-              {...(place ? { place } : {})}
+              {...(link ? { link } : {})}
             />
           ))}
         </ul>

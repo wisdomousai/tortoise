@@ -6,7 +6,7 @@ export {
   type NotificationsService,
   type NotificationsServices,
 } from './handlers';
-export { openNotifications, settleOperationOf, type NotificationsOptions } from './open';
+export { openNotifications, completeOperationOf, type NotificationsOptions } from './open';
 export { createNotificationsPlugin, notificationsPlugin } from './plugin';
 export { notificationsPluginManifest } from './plugin-manifest';
 export { replyConsumer } from './reply';

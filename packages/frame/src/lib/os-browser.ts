@@ -6,7 +6,7 @@ import type {
   OsActionOutcome,
   RawOsRequest,
 } from '@agent-native/contracts';
-import { fileHandlerFor, fileRequest, landingRequest } from '@agent-native/shell';
+import { fileHandlerFor, fileRequest, launchRequest } from '@agent-native/shell';
 import { hostJson } from './host-client';
 
 /** What Chromium hands an installed web app that was opened with files. */
@@ -48,20 +48,20 @@ async function submitFile(handle: { getFile(): Promise<File> }) {
   if (request) await submit(request);
 }
 
-let landingTaken = false;
+let launchRequestRead = false;
 
 /**
  * The browser shell adapter, mounted once at the frame root. It takes the link or shortcut a
- * protocol handler or manifest shortcut put in the landing URL (`/?os=…`), removes it from the
+ * protocol handler or manifest shortcut put in the launch URL (`/?os=…`), removes it from the
  * address so a reload does not submit it again, and consumes the files an installed web app was
  * launched with. Everything is submitted as an ordinary OS request: the host matches it, and an
  * unsolicited request can only open a screen or prefill a form.
  */
 export function useBrowserOsInput() {
   useEffect(() => {
-    if (!landingTaken) {
-      landingTaken = true;
-      const request = landingRequest(window.location.search);
+    if (!launchRequestRead) {
+      launchRequestRead = true;
+      const request = launchRequest(window.location.search);
       if (window.location.search)
         history.replaceState(history.state, '', window.location.pathname + window.location.hash);
       if (request) void submit(request);

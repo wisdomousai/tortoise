@@ -13,7 +13,7 @@ export interface ProviderMetadata {
 
 /** Bounded JSON from the identity provider; anything else is refused. */
 export async function providerJson(response: Response): Promise<Record<string, unknown>> {
-  if (!response.ok) throw new Error(`Identity provider answered ${response.status}`);
+  if (!response.ok) throw new Error(`Identity provider returned ${response.status}`);
   const text = await response.text();
   if (text.length > 128_000) throw new Error('Identity provider response exceeded limit');
   const data: unknown = JSON.parse(text);

@@ -1,4 +1,4 @@
-import { targetLane, targetRules } from '@agent-native/integration';
+import { targetAllowlist, targetRules } from '@agent-native/integration';
 import {
   definePolicy,
   membershipRule,
@@ -44,7 +44,7 @@ const atStation = (
 const named = (input: Record<string, unknown>) =>
   typeof input.station === 'string' ? input.station : undefined;
 /**
- * Commands that stand for a person at the station: starting an order (hazard: the machine loads
+ * Commands that stand for a person at the station: starting an order (risk: the machine loads
  * a recipe), verifying what the screen shows, reconciling an interrupted procedure and taking or
  * handing back the screen. Delegated agent runs may read and classify, never these.
  */
@@ -57,7 +57,7 @@ const stationEvent = (type: string) => ({
  * Station-scoped policy. Roles come from authoritative state. Integration principals are
  * separate and narrow: a station bridge acts only for its own station, the MES integration only
  * on master data and MES outcomes, and neither can do what people do. Which target an
- * integration principal may settle is checked by the settle handler against the effect itself,
+ * integration principal may complete is checked by the complete handler against the effect itself,
  * inside the same transaction. Commands are evaluated against current and proposed state.
  */
 export const linePolicy = definePolicy<LineState, StationRole>({
@@ -68,16 +68,16 @@ export const linePolicy = definePolicy<LineState, StationRole>({
       operations: [
         operations.observationIngest.id,
         operations.controlGet.id,
-        operations.effectSettle.id,
+        operations.effectComplete.id,
       ],
-      // Its own station only; settle names no station and is checked against the effect.
+      // Its own station only; complete names no station and is checked against the effect.
       allow: ({ capability, input, state, context }) =>
-        capability.id === operations.effectSettle.id ||
+        capability.id === operations.effectComplete.id ||
         (input as { station?: unknown }).station === bridgeStation(state, context.principalId)!.id,
       events: (event, state, principalId) =>
         stationOfResource(state, event.resource) === bridgeStation(state, principalId)!.id,
     },
-    targetLane(mesTarget, (state, principalId) => principalId === state.mesPrincipalId),
+    targetAllowlist(mesTarget, (state, principalId) => principalId === state.mesPrincipalId),
   ],
   operations: {
     [operations.observationIngest.id]: 'integration',
@@ -94,7 +94,7 @@ export const linePolicy = definePolicy<LineState, StationRole>({
     [operations.attentionList.id]: atStation(named),
     [operations.countConfirm.id]: atStation(named),
     [operations.orderStart.id]: person(atStation(named)),
-    [operations.seatRequest.id]: person(atStation(named)),
+    [operations.controlRequest.id]: person(atStation(named)),
     [operations.stopClassify.id]: atStation(
       (input, state) => own(state.stops, String(input.stopId))?.station,
     ),

@@ -71,7 +71,7 @@ test('commands, deliveries, backlog and runs reach the collector through the egr
     .catch((error) => error);
   const [effect] = first.effects!;
   await host.application.recordAttempt(hostContext('local'), effect!, 'timeout');
-  await command('note.settle', { effectId: effect, status: 'accepted' });
+  await command('note.complete', { effectId: effect, status: 'accepted' });
 
   // A deterministic run, started over HTTP as a person would, adds one more note.
   const session = host.sessions.create(owner);
@@ -181,7 +181,7 @@ test('a collector that is down loses no counts, and spans wait in a bounded buff
   collector.control.down = true;
   for (let i = 0; i < 5; i++) await command('note.add', { text: SECRET });
   await telemetry.flush();
-  expect(telemetry.status().lastError).toBe('The collector answered 503 to /v1/metrics');
+  expect(telemetry.status().lastError).toBe('The collector returned 503 to /v1/metrics');
   for (let i = 0; i < 5; i++) await command('note.add', { text: SECRET });
   await telemetry.flush();
   // The buffer holds eight spans, so two of the ten commands' spans were dropped.

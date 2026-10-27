@@ -610,7 +610,7 @@ test('a run started from a UI session reaches that screen through the ui tools',
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
-  const settled = async (id: string) => {
+  const completed = async (id: string) => {
     for (let i = 0; i < 200; i++) {
       const run = await host.supervisor.get(id);
       if (run && ['failed', 'cancelled', 'succeeded'].includes(run.state)) return run.state;
@@ -637,7 +637,7 @@ test('a run started from a UI session reaches that screen through the ui tools',
         uiSessionId: ui.sessionId,
       })
     ).json()) as { id: string };
-    await settled(fromScreen.id);
+    await completed(fromScreen.id);
     expect(seen[0]?.tools).toEqual(expect.arrayContaining(['ui.open', 'ui.request-review']));
     expect(seen[0]?.result).toMatchObject({ status: 'pending' });
     expect(await (await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`)).json()).toMatchObject([
@@ -647,7 +647,7 @@ test('a run started from a UI session reaches that screen through the ui tools',
     const headless = (await (
       await call('/api/v1/runs', { harnessId: screen.id, prompt: 'No screen' })
     ).json()) as { id: string };
-    await settled(headless.id);
+    await completed(headless.id);
     expect(seen[1]?.tools).not.toContain('ui.open');
     expect(seen[1]?.error).toBe('NOT_FOUND');
 
@@ -659,7 +659,7 @@ test('a run started from a UI session reaches that screen through the ui tools',
         uiSessionId: ui.sessionId,
       })
     ).json()) as { id: string };
-    await settled(unreadable.id);
+    await completed(unreadable.id);
     expect(seen[2]?.error).toBeDefined();
     expect(await (await call(`/api/v1/ui/sessions/${ui.sessionId}/intents`)).json()).toHaveLength(
       1,

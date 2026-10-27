@@ -35,7 +35,7 @@ export class AiSdkHarness implements Harness {
                 idempotencyKey: toolCallId,
               });
             } catch (error) {
-              // A refusal is the application's answer: the model reads it and may correct the
+              // A refusal is the application's response: the model reads it and may correct the
               // call, as an MCP client reads `isError`. A spent budget or a cancellation aborts
               // the run's signal, and any other failure ends the run.
               if (turn.signal.aborted || !(error instanceof ApplicationError)) throw error;

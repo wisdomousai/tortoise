@@ -35,7 +35,7 @@ export function verifyBackup(path: string): BackupSummary {
 
 /**
  * Replace the database at `target` with a verified backup. The caller must own the workspace
- * (no host running on it). The copy lands next to the target and is renamed over it; the old
+ * (no host running on it). The copy is written next to the target and renamed over it; the old
  * write-ahead log is removed first, so none of its pages are replayed onto the restored file. A
  * crash before the rename leaves the old file without its log; running the restore again
  * completes it.

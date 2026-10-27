@@ -29,7 +29,7 @@ import { qualityLots, qualityPeer } from './contracts/quality-peer';
 import { createState, migrations, upgradeState, type AppState, type Role } from './domain';
 import { erpPort } from './erp-port';
 import { newId, now } from './handlers/context';
-import type { ArrivalResult } from '@agent-native/quality-inspection/contracts/peer';
+import type { ClosedInspectionRequest } from '@agent-native/quality-inspection/contracts/peer';
 import {
   appPolicy,
   approvalAccess,
@@ -58,7 +58,7 @@ export const receivingPeerLinkPlugin = createPeerLinkPlugin({ targets: [qualityP
  * The Goods receiving application with the approval and reconciliation features and the site,
  * network, audit, compliance and peer link plugins. The ERP is reached through exchange
  * folders; until the site policy binds them, notices are not imported and posted receipts wait
- * in the outbox. Quality inspection is reached as a peer; until it is connected, arrivals wait
+ * in the outbox. Quality inspection is reached as a peer; until it is connected, inspection requests wait
  * in the outbox and lot searches report it unavailable.
  */
 export function createReceivingApplication(options: ReceivingOptions = {}) {
@@ -91,7 +91,7 @@ export function createReceivingApplication(options: ReceivingOptions = {}) {
       const link = () => peerLinkServiceOf(services)!.link(qualityPeer.target);
       // One comparison with quality inspection's contract for deliveries and reads alike.
       const drift = createPeerDrift({
-        surface: qualityPeer.surface,
+        api: qualityPeer.api,
         contract: () => createPeerCall({ client: () => link().client() }).contract(),
       });
       return {
@@ -105,7 +105,7 @@ export function createReceivingApplication(options: ReceivingOptions = {}) {
             workspaceId,
             principalId: 'erp-integration',
           }),
-          connectPeerTarget<ArrivalResult>({
+          connectPeerTarget<ClosedInspectionRequest>({
             target: qualityPeer,
             application,
             workspaceId,
@@ -124,7 +124,7 @@ export function createReceivingApplication(options: ReceivingOptions = {}) {
             link,
             drift,
             reads: {
-              // The lot list pages by offset, so a search answers its first page only.
+              // The lot list pages by offset, so a search returns its first page only.
               [qualityLots.search.id]: peerQuery(
                 qualityQueries.lotList,
                 (query) => ({ search: String(query.q), limit: 50 }),

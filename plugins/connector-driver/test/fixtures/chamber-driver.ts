@@ -1,6 +1,6 @@
 /**
  * A minimal chamber driver as a real child process, for the `driver check` test: it speaks the
- * protocol over stdio and answers with the digest passed as its first argument. It has no
+ * protocol over stdio and responds with the digest passed as its first argument. It has no
  * actions; `driver check` never invokes one.
  */
 import { createInterface } from 'node:readline';
@@ -10,7 +10,7 @@ const state = { setpoint: 20, door: flaw === 'ajar' ? 'ajar' : 'closed', control
 const write = (message: object) =>
   process.stdout.write(`${JSON.stringify({ jsonrpc: '2.0', ...message })}\n`);
 
-function answer(method: string, params: { fields?: string[] }) {
+function respond(method: string, params: { fields?: string[] }) {
   switch (method) {
     case 'initialize':
       return {
@@ -39,7 +39,7 @@ function answer(method: string, params: { fields?: string[] }) {
 createInterface({ input: process.stdin }).on('line', (line) => {
   const message = JSON.parse(line) as { id?: number; method: string; params?: object };
   if (message.id === undefined) return;
-  const result = answer(message.method, (message.params ?? {}) as { fields?: string[] });
+  const result = respond(message.method, (message.params ?? {}) as { fields?: string[] });
   if (result === undefined)
     write({
       id: message.id,

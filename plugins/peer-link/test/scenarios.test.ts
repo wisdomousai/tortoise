@@ -9,7 +9,7 @@ import {
 } from '@agent-native/testing/scenarios';
 import { peerLinkOperations as ops } from '../src/contracts';
 import type { PeerLinkService } from '../src/service';
-import { announce, hold, qualityApplication, surface, whoami } from './fixtures';
+import { requestInspection, hold, qualityApplication, api, whoami } from './fixtures';
 
 const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
 const guest = { ...owner, principalId: 'ann' };
@@ -31,7 +31,10 @@ const scenarios: BehavioralScenario[] = [
     name: 'an admin enrolls, maps, resolves and revokes a peer; others are denied',
     async run(driver) {
       const created = await driver.command(
-        command(ops.enrollmentCreate.id, { label: 'Receiving', operations: [announce.id] }),
+        command(ops.enrollmentCreate.id, {
+          label: 'Receiving',
+          operations: [requestInspection.id],
+        }),
         owner,
       );
       const { code } = created.result as { code: string };
@@ -53,7 +56,7 @@ const scenarios: BehavioralScenario[] = [
         application: 'receiving',
         audience: `quality#${peer.id}`,
         subjects: 'mapped',
-        operations: [announce.id],
+        operations: [requestInspection.id],
         enrolledBy: LOCAL_OWNER,
       });
       await expect(
@@ -139,7 +142,7 @@ const scenarios: BehavioralScenario[] = [
             peerId: peer.id,
             subject: 'rita',
             principalId: 'ann',
-            operations: [announce.id],
+            operations: [requestInspection.id],
           }),
           owner,
         ),
@@ -153,8 +156,8 @@ test('behavioural scenarios through the direct driver', async () => {
   const service: PeerLinkService = {
     now: () => 1_000,
     application: 'quality',
-    serviceOperations: new Set(surface.serviceOperations),
-    onBehalfOfOperations: new Set(surface.onBehalfOfOperations),
+    serviceOperations: new Set(api.serviceOperations),
+    onBehalfOfOperations: new Set(api.onBehalfOfOperations),
     reserved: (principalId) => principalId.includes(':'),
     targets: new Map(),
     link: () => {

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { live, transport } from '@/lib/session';
 import { operations } from '../contracts';
-import { PlaceOrDiscard } from './capture/place-or-discard';
+import { LinkOrDiscard } from './capture/link-or-discard';
 import { ProposalForm } from './capture/proposal-form';
 import { ValuesForm } from './capture/values-form';
 import { blobUrl, ErrorText, Page, quietly, when } from './shared';
@@ -26,7 +26,7 @@ export function CaptureScreen() {
   const open = data.review === 'new';
   return (
     <Page
-      title={`${data.kind} ${data.node ? `of ${data.node.designation}` : '(unplaced)'}`}
+      title={`${data.kind} ${data.node ? `of ${data.node.designation}` : '(unlinked)'}`}
       description={
         <>
           Taken {when(data.takenAt)}{' '}
@@ -80,7 +80,7 @@ export function CaptureScreen() {
           ))}
         </div>
         <div className="space-y-4">
-          {open && <PlaceOrDiscard captureId={data.id} placed={data.node !== undefined} />}
+          {open && <LinkOrDiscard captureId={data.id} linked={data.node !== undefined} />}
           {extraction?.status === 'proposed' && extraction.reportId && open && data.node ? (
             <ProposalForm
               reportId={extraction.reportId}
@@ -110,7 +110,7 @@ export function CaptureScreen() {
                       ? `The model could not read it: ${extraction.rejection?.message}`
                       : extraction.status === 'accepted'
                         ? `Accepted by ${data.reviewedBy}.`
-                        : 'Place the capture on a node to accept the proposal.'}
+                        : 'Link the capture to a node to accept the proposal.'}
               </p>
               {open && extraction?.status !== 'reading' && (
                 <Button

@@ -44,7 +44,7 @@ export interface LineStationBridgeOptions {
 /**
  * One station's bridge: the observer reports the screen through `line.observation.ingest`, and
  * a dispatcher delivers `legacy-hmi:<station>` effects through the gated screen connector and
- * settles them through `line.effect.settle`. Both run as the station's bridge principal with a
+ * completes them through `line.effect.complete`. Both run as the station's bridge principal with a
  * grant limited to those operations and the control query, so a compromised transport, model or
  * driver cannot start orders, classify stops or verify readings.
  */
@@ -56,7 +56,7 @@ export function createLineStationBridge(options: LineStationBridgeOptions) {
       operations: [
         operations.observationIngest.id,
         operations.controlGet.id,
-        operations.effectSettle.id,
+        operations.effectComplete.id,
       ],
     },
   };
@@ -94,7 +94,7 @@ export function createLineStationBridge(options: LineStationBridgeOptions) {
     application: options.application,
     port: connector,
     context,
-    settleOperation: operations.effectSettle.id,
+    completeOperation: operations.effectComplete.id,
     ...(options.now ? { now: options.now } : {}),
   });
   return {

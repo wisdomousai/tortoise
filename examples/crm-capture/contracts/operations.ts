@@ -40,7 +40,7 @@ export const operations = {
     id: 'crm.account',
     filters: ['status'],
     description:
-      'List accounts this workspace follows, in your regions, newest first: their status (following until the CRM feed delivers them, adopted, or rejected) and activity counts. total counts every match in your regions; page with offset and limit. Works while the CRM is unreachable.',
+      'List accounts this workspace follows, in your regions, newest first: their status (requested until the CRM feed delivers them, following, or rejected) and activity counts. total counts every match in your regions; page with offset and limit. Works while the CRM is unreachable.',
     dependencies: ['activity'],
   }),
   accountGet: operation('crm.account.get', 'query', {
@@ -52,12 +52,12 @@ export const operations = {
     dependencies: ['account', 'activity'],
   }),
   syncStatus: crmTarget.status,
-  accountAdopt: operation('crm.account.adopt', 'command', {
+  accountFollow: operation('crm.account.follow', 'command', {
     input: z.strictObject({ externalId }),
     output: z.strictObject({ id: externalId, status: localStatus.exclude(['none']) }),
-    permission: { action: 'adopt', resourceType: 'CrmAccount' },
+    permission: { action: 'follow', resourceType: 'CrmAccount' },
     description:
-      'Bring a CRM account found with crm.account.search into this workspace. The CRM is asked to let you follow it (with your CRM access); its details then arrive through the CRM feed and stay current. The receipt proves the local request only: the account is following until then, or rejected if the CRM refuses. Adopting an account already followed returns it unchanged.',
+      'Bring a CRM account found with crm.account.search into this workspace. The CRM is asked to let you follow it (with your CRM access); its details are then imported through the CRM feed and kept current. The receipt proves the local request only: the account is following until then, or rejected if the CRM refuses. Following an account already requested or followed returns it unchanged.',
     dependencies: ['account'],
     forwards: true,
   }),
@@ -71,10 +71,10 @@ export const operations = {
     output: activitySchema,
     permission: { action: 'log', resourceType: 'CrmAccount' },
     description:
-      'Record a call, meeting or note against an adopted account (epoch ms occurredAt, at most 7 days old). It is saved here first and sent to the CRM, which accepts or rejects it later.',
+      'Record a call, meeting or note against a followed account (epoch ms occurredAt, at most 7 days old). It is saved here first and sent to the CRM, which accepts or rejects it later.',
     dependencies: ['account', 'activity'],
     forwards: true,
   }),
   accountSync: crmTarget.sync,
-  effectSettle: crmTarget.settle,
+  effectComplete: crmTarget.complete,
 } as const;

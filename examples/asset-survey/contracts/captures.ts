@@ -48,7 +48,7 @@ export const assigneeOptionSchema = z.strictObject({
 
 /**
  * Captures are survey reports; these reads join each with its node and its reading for review.
- * Placing and extracting in one step, and the assignees a planner picks from, are the survey's.
+ * Linking and extracting in one step, and the assignees a planner picks from, are the survey's.
  */
 export const captureOperations = {
   captureList: operation('capture.list', 'query', {
@@ -56,12 +56,12 @@ export const captureOperations = {
       assignmentId: recordId.optional(),
       nodeId: recordId.optional(),
       review: z.enum(['new', 'accepted', 'discarded']).optional(),
-      unplaced: z.boolean().optional(),
+      unlinked: z.boolean().optional(),
     }),
     output: z.strictObject({ items: z.array(captureItemSchema) }),
     permission: read,
     description:
-      'Captures, newest first, filtered by assignment, node, review state, or unplaced (taken without a node). The review queue is review new.',
+      'Captures, newest first, filtered by assignment, node, review state, or unlinked (taken without a node). The review queue is review new.',
     dependencies: ['assignment-report', 'assignment'],
   }),
   captureGet: operation('capture.get', 'query', {
@@ -72,7 +72,7 @@ export const captureOperations = {
       'One capture with its node and its latest reading: each value read with its confidence, the photo region it was read from, and attention set where confidence is low.',
     dependencies: ['assignment-report', 'assignment', 'node'],
   }),
-  placeAndExtract: operation('capture.place-and-extract', 'command', {
+  linkAndExtract: operation('capture.link-and-extract', 'command', {
     input: z.strictObject({ id: recordId, nodeId: recordId }),
     output: z.strictObject({
       capture: captureItemSchema,
@@ -80,9 +80,9 @@ export const captureOperations = {
     }),
     permission: review,
     description:
-      'Place a capture on a node and send it to the model to read, in one step: both happen or neither does. Refused as a whole when either one would be.',
+      'Link a capture to a node and send it to the model to read, in one step: both happen or neither does. Refused as a whole when either one would be.',
     dependencies: ['assignment-report', 'assignment'],
-    invokes: ['assignment.report.place', 'assignment.extraction.create'],
+    invokes: ['assignment.report.link', 'assignment.extraction.create'],
   }),
   assigneeList: operation('survey.assignee.list', 'query', {
     input: z.strictObject({}),

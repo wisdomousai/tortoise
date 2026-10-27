@@ -96,7 +96,7 @@ export interface ConnectContext {
   readonly workspaceId: string;
   /** The deployment's network port: integrations reach their declared destinations through it. */
   readonly network: NetworkPort;
-  /** The deployment's process port: perception workers and drivers start through it. */
+  /** The deployment's process port: recognition workers and drivers start through it. */
   readonly processes: ProcessPort;
   /** The deployment's folder port: file connectors reach their declared folders through it. */
   readonly folders: FolderPort;

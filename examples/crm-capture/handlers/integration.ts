@@ -1,6 +1,6 @@
 import type { z } from 'zod';
 import { ApplicationError } from '@agent-native/contracts';
-import { settleDelivery, targetHandlers } from '@agent-native/integration';
+import { completeDelivery, targetHandlers } from '@agent-native/integration';
 import type { EffectOutcome, HandlerContribution } from '@agent-native/runtime';
 import { accountSnapshotSchema } from '../contracts/schemas';
 import { crmTarget } from '../contracts/target';
@@ -14,8 +14,8 @@ import {
   type CrmServices,
 } from './context';
 
-/** A follow request settles its account; accepted keeps it following until the feed delivers it. */
-function settleFollow(ctx: Context, id: string, effectId: string, outcome: EffectOutcome) {
+/** A follow request completes its account; accepted keeps it following until the feed delivers it. */
+function completeFollow(ctx: Context, id: string, effectId: string, outcome: EffectOutcome) {
   const account = accountRecords(ctx).get(id);
   if (!account || account.effectId !== effectId)
     throw new ApplicationError('NOT_FOUND', 'Followed account unavailable');
@@ -25,7 +25,7 @@ function settleFollow(ctx: Context, id: string, effectId: string, outcome: Effec
   }
 }
 
-/** The CRM feed, outbox settlement and synchronization status. */
+/** The CRM feed, outbox completion and synchronization status. */
 export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices>[] =>
   targetHandlers<CrmState, CrmServices, z.output<typeof accountSnapshotSchema>>(crmTarget, {
     cursor: (state) => state,
@@ -36,9 +36,9 @@ export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices
         effect.resource.slice(0, separator),
         effect.resource.slice(separator + 1),
       ];
-      if (type === 'account') settleFollow(ctx, id, effect.id, outcome);
+      if (type === 'account') completeFollow(ctx, id, effect.id, outcome);
       else
-        settleDelivery(
+        completeDelivery(
           type === 'activity' ? activityRecords(ctx).get(id) : undefined,
           effect,
           outcome,
@@ -53,7 +53,7 @@ export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices
         if (!account || account.status === 'rejected') continue;
         accounts.update(
           externalId,
-          { ...details, status: 'adopted', syncedAt: now(ctx) },
+          { ...details, status: 'following', syncedAt: now(ctx) },
           'synced',
         );
         applied++;
@@ -68,8 +68,8 @@ export const integrationHandlers = (): HandlerContribution<CrmState, CrmServices
       const count = (status: string) =>
         visible.filter((account) => account.status === status).length;
       return {
+        requested: count('requested'),
         following: count('following'),
-        adopted: count('adopted'),
         rejected: count('rejected'),
         pending: ctx.effects({ status: 'pending', target: TARGET }).length,
       };

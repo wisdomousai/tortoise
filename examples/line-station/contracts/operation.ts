@@ -27,9 +27,9 @@ const descriptions: Readonly<Record<string, string>> = {
   'line.effect.reconcile':
     'Resolve an interrupted screen procedure as a person who checked the station: applied=true records it as done; applied=false lets the bridge run it again.',
   'line.bridge.set-mode':
-    'Set what the station bridge may do as supervisor: monitor-only (observe), assist (hazard-free procedures) or actuate (all declared procedures).',
-  'line.seat.request':
-    'Take over the station screen from the bridge (seat=operator) or hand it back (seat=agent) as operator or supervisor. Taking over stops any running screen procedure before its next action.',
+    'Set what the station bridge may do as supervisor: monitor-only (observe), assist (procedures of risk level none) or actuate (all declared procedures).',
+  'line.control.request':
+    'Take over the station screen from the bridge (holder=operator) or hand it back (holder=agent) as operator or supervisor. Taking over stops any running screen procedure before its next action.',
   'line.observation.ingest':
     'Station bridge only: submit what the station screen currently shows. Stable confident readings become observed values, unsure ones become attention items, and machine state changes open and close stops.',
 };

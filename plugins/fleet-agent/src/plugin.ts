@@ -21,7 +21,7 @@ import { siteReport } from './report';
 
 export interface FleetAgentStatus {
   readonly enrolled: boolean;
-  /** When the fleet last answered a report. */
+  /** When the fleet last accepted a report. */
   readonly lastContact?: number;
   readonly lastError?: string;
   readonly reports: number;
@@ -162,13 +162,13 @@ export function createFleetAgentPlugin(options: FleetAgentOptions = {}) {
           const fleet = await connect();
           if (!fleet) return false;
           const { request } = await fleet.command<{ request?: RelayRequest }>(
-            fleetSiteOperations.relayTake.id,
+            fleetSiteOperations.relayClaim.id,
             {},
             `relay-take:${context.instance}:${++takeCount}`,
           );
           if (!request) return false;
-          const answer = await forwardToSite(host.origin, request);
-          await fleet.command(fleetSiteOperations.relayAnswer.id, answer, `relay:${request.id}`);
+          const response = await forwardToSite(host.origin, request);
+          await fleet.command(fleetSiteOperations.relayRespond.id, response, `relay:${request.id}`);
           update({ relayed: status.relayed + 1 });
           return true;
         } catch (error) {

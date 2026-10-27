@@ -194,7 +194,7 @@ for (const file of all) {
     errors.push(`${name}: portable source uses a Node or Bun global`);
 }
 /** Whether portable source may import `dependency`: no built-in or Bun-only package, and a
- * relative import must land in portable source too. */
+ * relative import must resolve to portable source too. */
 function portableImport(file: string, dependency: string) {
   if (portableForbiddenImport.test(dependency)) return false;
   // A stylesheet is compiled by the bundler (Uniwind on React Native), not run.

@@ -12,14 +12,14 @@ export interface ProcessSpawnOptions {
   /**
    * Data the child reads from inherited descriptors 3, 4, ... in this order, each ending after
    * its bytes. For a launcher that takes a filter or a file by descriptor, such as bubblewrap's
-   * `--args`, `--seccomp` and `--file`, so the data never lands in a host file or the
+   * `--args`, `--seccomp` and `--file`, so the data is never written to a host file or the
    * argument vector. POSIX only; a provider on another platform refuses it with UNAVAILABLE.
    */
   readonly inputs?: readonly Uint8Array[];
 }
 
 /**
- * The kernel port for child processes: perception workers, hardware drivers, provider CLIs.
+ * The kernel port for child processes: recognition workers, hardware drivers, provider CLIs.
  * Without a plugin that provides it, every start is refused with UNAVAILABLE.
  *
  * Trust boundary: callers name a process the catalog declares, never an executable. The site
@@ -28,7 +28,7 @@ export interface ProcessSpawnOptions {
  * the child inherits.
  */
 export interface ProcessPort {
-  /** Never throws: an undeclared, unbound or disabled process answers `available: false`. */
+  /** Never throws: returns `available: false` for an undeclared, unbound or disabled process. */
   availability(processId: string): ProcessAvailability;
   /**
    * Start one declared, bound process. The handle is the platform's own child type (on Bun, see

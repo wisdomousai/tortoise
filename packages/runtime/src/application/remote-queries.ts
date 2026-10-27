@@ -17,7 +17,7 @@ import { authorize, project, type Kernel } from './kernel.js';
 import { topFrame } from './nested.js';
 
 /** The source's items, next-page cursor and status; an unavailable source has neither. */
-interface Answer {
+interface SourcePage {
   readonly items: readonly unknown[];
   readonly next?: string;
   readonly source: RemoteSourceStatus;
@@ -66,8 +66,8 @@ async function callSource<State, Services>(
   remote: RemoteReadDeclaration,
   query: JsonValue,
   context: ExecutionContext,
-): Promise<Answer> {
-  const unavailable = (message: string): Answer => ({
+): Promise<SourcePage> {
+  const unavailable = (message: string): SourcePage => ({
     items: [],
     source: { target: remote.target, status: 'unavailable', fetchedAt: kernel.now(), message },
   });
@@ -76,28 +76,28 @@ async function callSource<State, Services>(
   const deadline = AbortSignal.timeout(kernel.options.remoteDeadlineMs ?? 10_000);
   const signal = context.signal ? AbortSignal.any([context.signal, deadline]) : deadline;
   try {
-    const answer = await source.search(
+    const result = await source.search(
       { operation: capability.id, query },
       { context, identity: remote.identity, signal },
     );
-    if (answer.identity === 'service' && remote.identity === 'caller')
+    if (result.identity === 'service' && remote.identity === 'caller')
       throw new ApplicationError('FORBIDDEN', 'Source acted without the caller credential');
-    if (!Array.isArray(answer.items) || !validCursor(answer.next))
-      return unavailable('Source answer was malformed');
+    if (!Array.isArray(result.items) || !validCursor(result.next))
+      return unavailable('Source result was malformed');
     return {
-      items: answer.items,
-      ...(answer.next ? { next: answer.next } : {}),
+      items: result.items,
+      ...(result.next ? { next: result.next } : {}),
       source: {
         target: remote.target,
         status: 'ok',
         fetchedAt: kernel.now(),
-        identity: answer.identity,
+        identity: result.identity,
       },
     };
   } catch (error) {
     if (context.signal?.aborted) throw new ApplicationError('CANCELLED', 'Execution cancelled');
     // Whatever the source threw when its signal fired, the cause is the deadline.
-    if (deadline.aborted) return unavailable('Source did not answer in time');
+    if (deadline.aborted) return unavailable('Source did not respond in time');
     if (error instanceof ApplicationError && error.code !== 'UNAVAILABLE') throw error;
     if (error instanceof ApplicationError) return unavailable(boundedMessage(error.message));
     return unavailable('Source unavailable');
@@ -109,7 +109,7 @@ async function callSource<State, Services>(
  *
  * 1. In a read snapshot: authorize, then build the source query. No I/O, no mutation.
  * 2. Outside any transaction: call the source with the caller's context.
- * 3. In a fresh snapshot: authorize again, so a revocation or expiry while the source answered
+ * 3. In a fresh snapshot: authorize again, so a revocation or expiry while the source responded
  *    drops the result; map the items; project and validate the output; authorize once more,
  *    exactly like a local query.
  *
@@ -132,17 +132,17 @@ export async function readRemoteQuery<State, Services>(
     await authorize(kernel, capability, input, context, snapshot, 'invoke');
     return pure(kernel, snapshot, context, capability.id, (ctx) => read.request(input, ctx));
   });
-  const answer = await callSource(kernel, capability, remote, query, context);
+  const page = await callSource(kernel, capability, remote, query, context);
   return kernel.options.storage.read(context.workspaceId, async (readonly) => {
     const snapshot = structuredClone(readonly);
     await authorize(kernel, capability, input, context, snapshot, 'invoke');
     const items = pure(kernel, snapshot, context, capability.id, (ctx) =>
-      answer.items.map((found) => read.item(found, ctx)).filter((item) => item !== undefined),
+      page.items.map((found) => read.item(found, ctx)).filter((item) => item !== undefined),
     );
     const output = {
       items,
-      ...(answer.next ? { next: answer.next } : {}),
-      source: answer.source,
+      ...(page.next ? { next: page.next } : {}),
+      source: page.source,
     };
     const data = await project(kernel, capability, input, context, snapshot, output);
     await authorize(kernel, capability, input, context, snapshot, 'invoke');
@@ -151,7 +151,7 @@ export async function readRemoteQuery<State, Services>(
       data,
       cursor: snapshot.cursor,
       authorizationRevision: snapshot.authorizationRevision,
-      source: answer.source,
+      source: page.source,
     };
   });
 }

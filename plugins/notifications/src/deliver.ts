@@ -42,7 +42,7 @@ const rejected = (code: string, message: string): EffectOutcome => ({
   message,
 });
 
-/** Refusals that will not change by trying again: the effect is settled as rejected. */
+/** Refusals that will not change by trying again: the effect is completed as rejected. */
 const final: Partial<Record<string, string>> = {
   'no-handler': 'The notify action is not declared',
   disabled: 'The site turned this notification off',
@@ -59,7 +59,7 @@ export interface NotificationPortOptions {
       context: ExecutionContext,
     ): Promise<unknown>;
   };
-  /** The dispatcher's identity: the owner narrowed to issuing and the target's settlement. */
+  /** The dispatcher's identity: the owner narrowed to issuing and the target's completion. */
   readonly context: ExecutionContext;
 }
 
@@ -103,8 +103,8 @@ function prepare(
   return { payload, buttons, replies };
 }
 
-/** Map what the OS plugin answered to the effect's outcome, or throw to try again later. */
-function settled(outcome: OsActionOutcome): EffectOutcome {
+/** Map what the OS plugin returned to the effect's outcome, or throw to try again later. */
+function completed(outcome: OsActionOutcome): EffectOutcome {
   if (outcome.status === 'performed') return { status: 'accepted' };
   if (outcome.status === 'refused') {
     const message = final[outcome.reason];
@@ -144,7 +144,7 @@ export function createNotificationPort(options: NotificationPortOptions): System
         },
         context,
       );
-      return settled(
+      return completed(
         await os.relay(notified, {
           kind: 'notify',
           action: action.id,

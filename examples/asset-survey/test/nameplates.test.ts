@@ -33,7 +33,7 @@ describe('sample nameplate photos', () => {
     }
   });
 
-  test('the text rides in a JPEG comment and leaves the image data alone', () => {
+  test('the text is stored in a JPEG comment and leaves the image data alone', () => {
     const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xdb, 0x00, 0x03, 0x07, 0xff, 0xda, 0x01]);
     const marked = withNameplateText(jpeg, { serial: 'X-1 ?' });
     expect(nameplateText(marked)).toBe('serial: X-1 ?');

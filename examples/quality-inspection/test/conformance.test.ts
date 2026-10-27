@@ -12,7 +12,7 @@ import { createQualityInspectionApplication, INTEGRATION_PRINCIPAL } from '../ap
 import { qualityTarget } from '../contracts';
 import { FakeQualitySystem } from '../fake-sor';
 
-test('a datapoint captured over any transport commits once, is forwarded once and settles live', async () => {
+test('a datapoint captured over any transport commits once, is forwarded once and completes live', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-inspection-'));
   const systemOfRecord = new FakeQualitySystem();
   // Loops disabled: the test drives sync and delivery passes so ordering is deterministic.
@@ -64,7 +64,7 @@ test('a datapoint captured over any transport commits once, is forwarded once an
     await viewerServer.connect(viewerServerTransport);
     await viewerMcp.connect(viewerClientTransport);
 
-    // Master data arrives from the SoR through the integration principal, never through a user.
+    // Master data is imported from the SoR through the integration principal, never entered by a person.
     expect(
       (await host.integrations.target('quality-system').inbound.runOnce()).items,
     ).toBeGreaterThan(0);

@@ -159,7 +159,7 @@ describe('OS declarations', () => {
     const reply: OsHandler = {
       id: 'task.reply',
       kind: 'reply',
-      description: 'Notification answers.',
+      description: 'Notification replies.',
       consumer: 'notifications',
     };
     const notifying = defineCapability({
@@ -169,12 +169,12 @@ describe('OS declarations', () => {
     });
     const module = (capabilities: AnyCapability[]) =>
       defineModule({ id: 'tasks', capabilities, os: { handlers: [reply], actions: [notify] } });
-    // The plugin settles each notification with the carried target's own settle command.
+    // The plugin completes each notification with the carried target's own complete command.
     expect(() => buildCatalog([module([create, notifying])])).toThrow(
-      'carries notifications, which has no notifications.effect.settle command',
+      'carries notifications, which has no notifications.effect.complete command',
     );
-    const settle = defineCapability({ ...create, id: 'notifications.effect.settle' });
-    const catalog = buildCatalog([module([create, notifying, settle])]);
+    const complete = defineCapability({ ...create, id: 'notifications.effect.complete' });
+    const catalog = buildCatalog([module([create, notifying, complete])]);
     expect(catalog.operations.find((o) => o.id === 'task.assign')?.destinations).toBeUndefined();
     expect(() => catalogOf([reply], [{ ...notify, offline: 'drop' } as OsAction])).toThrow('queue');
   });

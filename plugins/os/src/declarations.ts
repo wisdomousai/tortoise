@@ -44,7 +44,7 @@ export const listSetting = (value: string | undefined) =>
 /**
  * Refuse a composition that declares a handler or action kind no composed plugin serves, a
  * consumer that registered no receiver, or a disabled id that names nothing, so a declaration
- * never looks registered while nothing answers it.
+ * never looks registered while nothing handles it.
  */
 export function assertServed(
   declarations: OsDeclarationSet,

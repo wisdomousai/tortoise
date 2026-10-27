@@ -12,7 +12,7 @@ export const findTagAction = 'dev.agentnative.survey.action.FIND_TAG';
  * - From a capture, a work request for the node goes to the maintenance app as an explicit
  *   intent, so no other app that declares the same action receives it.
  * - A capture's summary goes to the share sheet as text.
- * - A notification announces each assignment the hub sends to the device.
+ * - A notification tells the owner about each assignment the hub sends to the device.
  *
  * None of them commits: the intent only opens a screen, and the maintenance app decides itself
  * what to do with a request.

@@ -3,7 +3,7 @@ import type { SiteReport } from './contracts';
 
 /**
  * This site's health as the fleet records it: the outbox counted by target the way `drain`
- * counts it (pending, held for reconciliation, acknowledged upstream), read with the host's own
+ * counts it (pending, held for reconciliation, acknowledged), read with the host's own
  * trusted identity, which needs no business grant. Payloads never leave: only counts do, with the
  * running build's best-before date when it has one.
  */
@@ -23,11 +23,11 @@ export async function siteReport(
     limit: 10_000,
     includeHeld: true,
   });
-  const byTarget = new Map<string, { pending: number; held: number; upstream: number }>();
+  const byTarget = new Map<string, { pending: number; held: number; acknowledged: number }>();
   for (const effect of effects) {
-    const entry = byTarget.get(effect.target) ?? { pending: 0, held: 0, upstream: 0 };
+    const entry = byTarget.get(effect.target) ?? { pending: 0, held: 0, acknowledged: 0 };
     if (effect.heldAt !== undefined) entry.held++;
-    else if (effect.upstreamAt !== undefined) entry.upstream++;
+    else if (effect.acknowledgedAt !== undefined) entry.acknowledged++;
     else entry.pending++;
     byTarget.set(effect.target, entry);
   }
@@ -35,7 +35,7 @@ export async function siteReport(
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .slice(0, 100)
     .map(([target, counts]) => ({ target, ...counts }));
-  const total = (key: 'pending' | 'held' | 'upstream') =>
+  const total = (key: 'pending' | 'held' | 'acknowledged') =>
     targets.reduce((sum, target) => sum + target[key], 0);
   return {
     application: options.application,
@@ -44,7 +44,7 @@ export async function siteReport(
     outbox: {
       pending: total('pending'),
       held: total('held'),
-      upstream: total('upstream'),
+      acknowledged: total('acknowledged'),
       targets,
     },
     ...(options.auditHead !== undefined ? { auditHead: options.auditHead } : {}),

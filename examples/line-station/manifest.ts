@@ -13,7 +13,7 @@ import { stationBridgeComponent } from '@agent-native/screen-bridge/requirements
 import { lineStationModule, stopExplainerModule } from './contracts';
 import { stationAutomationContract } from './contracts/automation';
 
-/** The browser this application's screen bridge drives to reach a web-based station HMI. */
+/** The browser this application's screen bridge controls to reach a web-based station HMI. */
 export const stationBrowserComponent = defineHostComponent({
   id: 'station-browser',
   description: 'Browser for the line-station screen bridge.',

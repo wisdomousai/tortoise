@@ -8,7 +8,7 @@ import { createOsPlugin } from '@agent-native/os/plugin';
 import { shareTargetPlugin } from '@agent-native/share-target/plugin';
 import { fieldOperations, worklist } from './contracts';
 import { createFieldState, migrations, type FieldServices, type FieldState } from './domain';
-import { announce, createFieldHandlers } from './handlers';
+import { createFieldHandlers, notifyNewSurvey } from './handlers';
 import { fieldManifest } from './manifest';
 import { fieldPolicy } from './policy';
 
@@ -48,7 +48,7 @@ export function createFieldApplication(
         slice: (state) => state.worklist,
         newId: (ctx) => (ctx.services.newId ?? (() => crypto.randomUUID()))(),
         now: (ctx) => (ctx.services.now ?? Date.now)(),
-        arrived: announce,
+        onReceived: notifyNewSurvey,
       }),
       ...createFieldHandlers(),
     ],
@@ -58,7 +58,7 @@ export function createFieldApplication(
     ...(options.services ? { services: options.services } : {}),
     plugins,
     // Captures and done marks go to the hub's own API as this device, through hub-link's client;
-    // the hub authorizes every one again. A hub release that changed one of the device lane's
+    // the hub authorizes every one again. A hub release that changed one of the device assignee
     // operations keeps them waiting instead of misreading them.
     connect: ({ application, workspaceId, network }) => ({
       integrations: [

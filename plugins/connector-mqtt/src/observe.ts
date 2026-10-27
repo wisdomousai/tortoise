@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import {
-  StabilityGate,
+  Debouncer,
   createObserver,
-  gateReadings,
+  debounceReadings,
   type ObservationBase,
   type Reading,
 } from '@agent-native/observation';
@@ -86,7 +86,7 @@ export function filtersFor(fields: readonly MqttField[]): string[] {
  * Observe MQTT values and submit them through an ingest command. Read-only: it subscribes and
  * never publishes. Each sample reads the fields' last values; a value that is not current (the
  * edge node died or lost sequence, or the broker connection dropped) is read with confidence 0,
- * so the gate marks it `uncertain` and the domain does not take it as fact.
+ * so the debouncer marks it `uncertain` and the domain does not take it as fact.
  */
 export function createMqttObserver(options: MqttObserverOptions) {
   const state = new SparkplugState();
@@ -106,7 +106,7 @@ export function createMqttObserver(options: MqttObserverOptions) {
       else topics.set(message.topic, { payload: message.payload, at: now() });
     },
   });
-  const gate = new StabilityGate();
+  const debouncer = new Debouncer();
   const byId = new Map(options.fields.map((field) => [field.id, field]));
 
   function read(field: MqttField): { value: MetricValue; current: boolean } | undefined {
@@ -156,7 +156,7 @@ export function createMqttObserver(options: MqttObserverOptions) {
         destination: options.subscriber.destination,
         observedAt,
         frameDigest,
-        readings: gateReadings(gate, readings, (id) => {
+        readings: debounceReadings(debouncer, readings, (id) => {
           const field = byId.get(id);
           return field
             ? { stableReads: field.stableReads ?? 1, minConfidence: 1, declared: { id } }

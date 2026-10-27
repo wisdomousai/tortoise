@@ -21,7 +21,7 @@ export interface Resource {
 /** One gauge point: effects waiting in the outbox for one target in one state. */
 export interface BacklogPoint {
   readonly target: string;
-  readonly state: 'pending' | 'held' | 'upstream';
+  readonly state: 'pending' | 'held' | 'acknowledged';
   readonly count: number;
 }
 
@@ -114,20 +114,20 @@ export function metricsRequest(
     sum(
       'agent_native.deliveries',
       '{effect}',
-      'Outbox effects settled by the target',
+      'Outbox effects completed by the target',
       recorded.deliveries,
       times,
     ),
     histogram(
       'agent_native.delivery.duration',
-      'From the committing command to settlement',
+      'From the committing command to completion',
       recorded.deliveryDuration,
       times,
     ),
     sum(
       'agent_native.delivery.attempts',
       '{attempt}',
-      'Delivery attempts that did not settle the effect',
+      'Delivery attempts that did not complete the effect',
       recorded.attempts,
       times,
     ),

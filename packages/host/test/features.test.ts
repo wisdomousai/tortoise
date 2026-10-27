@@ -36,50 +36,50 @@ const memberAdd = defineCapability({
   ...fixture,
 });
 const memberModule = defineModule({ id: 'member', capabilities: [memberAdd] });
-type Root = { members: string[]; log: string[]; legacy?: number; tally?: { total: number } };
+type Root = { members: string[]; log: string[]; legacy?: number; score?: { total: number } };
 
-// The feature: a tally only members may add to, with a hook the application implements.
-const tallyAdd = defineCapability({
-  id: 'tally.add',
+// The feature: a score only members may add to, with a hook the application implements.
+const scoreAdd = defineCapability({
+  id: 'score.add',
   kind: 'command',
   input: jsonSchema(z.strictObject({ by: z.number() })),
   output: jsonSchema(z.strictObject({ total: z.number() })),
-  permission: { action: 'add', resourceType: 'Tally' },
+  permission: { action: 'add', resourceType: 'Score' },
   ...fixture,
 });
-const tallyRead = defineCapability({
-  id: 'tally.read',
+const scoreRead = defineCapability({
+  id: 'score.read',
   kind: 'query',
   input: empty,
   output: jsonSchema(z.strictObject({ total: z.number() })),
-  permission: { action: 'read', resourceType: 'Tally' },
+  permission: { action: 'read', resourceType: 'Score' },
   ...fixture,
 });
-const tallyManifest = defineFeatureManifest({
-  id: 'tally',
-  title: 'Tally',
-  modules: [defineModule({ id: 'tally', capabilities: [tallyAdd, tallyRead] })],
+const scoreManifest = defineFeatureManifest({
+  id: 'score',
+  title: 'Score',
+  modules: [defineModule({ id: 'score', capabilities: [scoreAdd, scoreRead] })],
 });
 type Slice = { total: number };
 type Access = { member(principalId: string): boolean };
 type Hooks = { added?(total: number): void };
-const tallyFeature = defineFeature<Slice, Access, Hooks>({
-  manifest: tallyManifest,
+const scoreFeature = defineFeature<Slice, Access, Hooks>({
+  manifest: scoreManifest,
   state: { create: () => ({ total: 0 }), migrations: { version: 1 } },
   handlers: [
     {
-      capability: tallyAdd,
+      capability: scoreAdd,
       handle: (input, ctx) => {
         ctx.state.total += (input as { by: number }).by;
-        ctx.change('tally:main');
+        ctx.change('score:main');
         ctx.hooks.added?.(ctx.state.total);
         return { total: ctx.state.total };
       },
     },
-    { capability: tallyRead, handle: (_input, ctx) => ({ total: ctx.state.total }) },
+    { capability: scoreRead, handle: (_input, ctx) => ({ total: ctx.state.total }) },
   ],
   authorization: {
-    resourceTypes: ['tally'],
+    resourceTypes: ['score'],
     port: {
       authorize: ({ access, context }) => ({
         allowed: access.member(context.principalId),
@@ -94,25 +94,25 @@ const applicationPolicy = definePolicy<Root>({
   operations: { [memberAdd.id]: 'open' },
   events: { member: () => true },
 });
-const tallyMount = (adopt?: FeatureAdoption) =>
-  mountFeature<Root, Access, Hooks>(tallyFeature, {
+const scoreMount = (adopt?: FeatureAdoption) =>
+  mountFeature<Root, Access, Hooks>(scoreFeature, {
     access: (state) => ({ member: (id) => state.members.includes(id) }),
     hooks: {
       added: (total, ctx) => {
-        ctx.state.log.push(`tally ${total}`);
+        ctx.state.log.push(`score ${total}`);
       },
     },
     ...(adopt ? { adopt } : {}),
   });
 const manifest = defineManifest({
-  id: 'tally-app',
-  title: 'Tally',
+  id: 'score-app',
+  title: 'Score',
   modules: [memberModule],
-  features: [tallyManifest],
+  features: [scoreManifest],
 });
 function application(
   overrides: Partial<Parameters<typeof defineApplication<Root>>[0]> = {},
-  mount = tallyMount(),
+  mount = scoreMount(),
 ) {
   return defineApplication<Root>({
     manifest,
@@ -155,46 +155,46 @@ describe('feature manifests', () => {
       id: 'x',
       title: 'X',
       modules: [memberModule],
-      features: [tallyManifest],
+      features: [scoreManifest],
       plugins: [plugin],
     });
-    expect(merged.modules.map((module) => module.id)).toEqual(['member', 'tally', 'counter']);
+    expect(merged.modules.map((module) => module.id)).toEqual(['member', 'score', 'counter']);
   });
 
   test('ids, namespaces and requires are checked', () => {
-    const sameId = definePluginManifest({ id: 'tally', title: 'Tally plugin' });
+    const sameId = definePluginManifest({ id: 'score', title: 'Score plugin' });
     expect(() =>
       defineManifest({
         id: 'x',
         title: 'X',
         modules: [],
-        features: [tallyManifest],
+        features: [scoreManifest],
         plugins: [sameId],
       }),
-    ).toThrow('Feature and plugin "tally" share an id');
+    ).toThrow('Feature and plugin "score" share an id');
     expect(() =>
       defineManifest({
         id: 'x',
         title: 'X',
         modules: [],
-        features: [tallyManifest, tallyManifest],
+        features: [scoreManifest, scoreManifest],
       }),
-    ).toThrow('Feature "tally" is mounted twice');
+    ).toThrow('Feature "score" is mounted twice');
     const intruder = defineModule({
       id: 'own',
-      capabilities: [defineCapability({ ...tallyAdd, id: 'tally.reset' })],
+      capabilities: [defineCapability({ ...scoreAdd, id: 'score.reset' })],
     });
     expect(() =>
-      defineManifest({ id: 'x', title: 'X', modules: [intruder], features: [tallyManifest] }),
-    ).toThrow('Application operation tally.reset is in the namespace of "tally"');
+      defineManifest({ id: 'x', title: 'X', modules: [intruder], features: [scoreManifest] }),
+    ).toThrow('Application operation score.reset is in the namespace of "score"');
     const linked = definePluginManifest({
       id: 'linked',
       title: 'Linked',
-      namespace: 'tally',
+      namespace: 'score',
       modules: [
         defineModule({
           id: 'linked',
-          capabilities: [defineCapability({ ...tallyAdd, id: 'tally.link' })],
+          capabilities: [defineCapability({ ...scoreAdd, id: 'score.link' })],
         }),
       ],
     });
@@ -203,19 +203,19 @@ describe('feature manifests', () => {
         id: 'x',
         title: 'X',
         modules: [],
-        features: [tallyManifest],
+        features: [scoreManifest],
         plugins: [linked],
       }),
-    ).toThrow('share the operation namespace "tally"');
-    const dependent = defineFeatureManifest({ id: 'report', title: 'Report', requires: ['tally'] });
+    ).toThrow('share the operation namespace "score"');
+    const dependent = defineFeatureManifest({ id: 'report', title: 'Report', requires: ['score'] });
     expect(() =>
-      defineManifest({ id: 'x', title: 'X', modules: [], features: [dependent, tallyManifest] }),
-    ).toThrow('Feature "report" requires "tally" mounted before it');
+      defineManifest({ id: 'x', title: 'X', modules: [], features: [dependent, scoreManifest] }),
+    ).toThrow('Feature "report" requires "score" mounted before it');
     expect(() =>
       definePluginManifest({
         id: 'loose',
         title: 'Loose',
-        modules: [defineModule({ id: 'loose', capabilities: [tallyAdd] })],
+        modules: [defineModule({ id: 'loose', capabilities: [scoreAdd] })],
       }),
     ).toThrow('outside its namespace "loose."');
   });
@@ -223,9 +223,9 @@ describe('feature manifests', () => {
   test('a feature is refused with resource types or sources it does not own', () => {
     expect(() =>
       defineFeature({
-        manifest: tallyManifest,
+        manifest: scoreManifest,
         handlers: [],
-        authorization: { resourceTypes: ['counter'], port: tallyFeature.authorization!.port },
+        authorization: { resourceTypes: ['counter'], port: scoreFeature.authorization!.port },
       }),
     ).toThrow('resource type "counter"');
     expect(() =>
@@ -245,17 +245,17 @@ describe('feature composition', () => {
     expect(await storage.read(LOCAL_WORKSPACE, async (s) => s.state)).toEqual({
       members: ['owner'],
       log: [],
-      tally: { total: 0 },
+      score: { total: 0 },
     });
     await expect(
-      runtime.invokeRaw({ operation: 'tally.add', input: { by: 1 } }, stranger),
+      runtime.invokeRaw({ operation: 'score.add', input: { by: 1 } }, stranger),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await runtime.invokeRaw({ operation: 'member.add', input: { id: 'stranger' } }, owner);
-    await runtime.invokeRaw({ operation: 'tally.add', input: { by: 3 } }, stranger);
+    await runtime.invokeRaw({ operation: 'score.add', input: { by: 3 } }, stranger);
     expect(await storage.read(LOCAL_WORKSPACE, async (s) => s.state)).toEqual({
       members: ['owner', 'stranger'],
-      log: ['tally 3'],
-      tally: { total: 3 },
+      log: ['score 3'],
+      score: { total: 3 },
     });
     const events = await runtime.events(0, { workspaceId: LOCAL_WORKSPACE, principalId: 'nobody' });
     expect(events.events.map((event) => event.resource)).toEqual(['member:stranger']);
@@ -263,32 +263,32 @@ describe('feature composition', () => {
 
   test('composition refuses mismatched lists, shadowed rules and service collisions', () => {
     expect(() => application({ features: [] })).toThrow(
-      "Application features [] do not match its manifest's [tally]",
+      "Application features [] do not match its manifest's [score]",
     );
     expect(() =>
       application({
         authorization: definePolicy<Root>({
-          operations: { [memberAdd.id]: 'open', [tallyAdd.id]: 'open' },
+          operations: { [memberAdd.id]: 'open', [scoreAdd.id]: 'open' },
           events: {},
         }),
       }),
-    ).toThrow('The application policy has a rule for tally.add');
+    ).toThrow('The application policy has a rule for score.add');
     expect(() =>
       application({
         authorization: definePolicy<Root>({
           operations: { [memberAdd.id]: 'open' },
-          events: { tally: () => true },
+          events: { score: () => true },
         }),
       }),
-    ).toThrow('Resource type "tally" has an application event rule');
-    expect(() => application({ services: { tally: {} } as never })).toThrow(
-      'Application services already have a "tally" key',
+    ).toThrow('Resource type "score" has an application event rule');
+    expect(() => application({ services: { score: {} } as never })).toThrow(
+      'Application services already have a "score" key',
     );
     expect(() =>
       application({
-        createState: () => ({ members: [], log: [], tally: { total: 9 } }),
+        createState: () => ({ members: [], log: [], score: { total: 9 } }),
       }).createState('o'),
-    ).toThrow('Application state already has a "tally" key');
+    ).toThrow('Application state already has a "score" key');
   });
 
   test('a plugin resource type cannot shadow an application event rule', () => {
@@ -329,8 +329,8 @@ describe('feature composition', () => {
   test('feature connections merge with the application and bind their sources', async () => {
     const source: RemoteSource = { search: async () => ({ items: [], identity: 'service' }) };
     const feature = defineFeature<Slice, Access, Hooks>({
-      ...tallyFeature,
-      connect: () => ({ sources: { tally: source } }),
+      ...scoreFeature,
+      connect: () => ({ sources: { score: source } }),
     });
     let observed = false;
     const definition = application(
@@ -342,13 +342,13 @@ describe('feature composition', () => {
     const connections = definition.connect!({} as never);
     await connections.observe?.(() => undefined);
     expect(observed).toBe(true);
-    expect(connections.sources).toEqual({ tally: source });
+    expect(connections.sources).toEqual({ score: source });
     const runtime = createApplicationRuntime(definition, {
       storage: createMemoryStorage<Root>(definition.createState('owner')) as never,
     });
     runtime.bindSources(connections.sources!);
-    expect(() => runtime.bindSources({ tally: source })).toThrow(
-      'Source for "tally" is bound twice',
+    expect(() => runtime.bindSources({ score: source })).toThrow(
+      'Source for "score" is bound twice',
     );
   });
 });
@@ -374,7 +374,7 @@ describe('feature state', () => {
   const legacy = application({
     createState: () => ({ members: ['owner'], log: [], legacy: 0 }),
     features: [],
-    manifest: defineManifest({ id: 'tally-app', title: 'Tally', modules: [memberModule] }),
+    manifest: defineManifest({ id: 'score-app', title: 'Score', modules: [memberModule] }),
     authorization: applicationPolicy,
   });
 
@@ -393,25 +393,25 @@ describe('feature state', () => {
   test('a new workspace stamps the feature slice under feature:<id>', async () => {
     await withDirectory(async (workspacePath) => {
       const instance = await openEmbeddedInstance(
-        application({ migrations: v2 }, tallyMount(adopt)),
+        application({ migrations: v2 }, scoreMount(adopt)),
         {
           workspacePath,
         },
       );
-      await instance.application.invokeRaw({ operation: 'tally.add', input: { by: 1 } }, owner);
+      await instance.application.invokeRaw({ operation: 'score.add', input: { by: 1 } }, owner);
       await instance.close();
       const snapshot = await stored(workspacePath);
-      expect(snapshot.state.tally).toEqual({ total: 1 });
+      expect(snapshot.state.score).toEqual({ total: 1 });
       expect(snapshot.stateVersions).toEqual({
         application: { version: 2, readableFrom: 2 },
-        'feature:tally': { version: 1, readableFrom: 1 },
+        'feature:score': { version: 1, readableFrom: 1 },
       });
     });
   });
 
   test('legacy data is adopted into the slice once, and old code refuses the result', async () => {
     await withDirectory(async (workspacePath) => {
-      // Version 1 kept the tally in the application's own `legacy` field.
+      // Version 1 kept the score in the application's own `legacy` field.
       const old = await openEmbeddedInstance(legacy, { workspacePath });
       await old.application.invokeRaw({ operation: 'member.add', input: { id: 'ann' } }, owner);
       await old.close();
@@ -424,19 +424,19 @@ describe('feature state', () => {
       });
       await raw.close();
 
-      const upgraded = application({ migrations: v2 }, tallyMount(adopt));
+      const upgraded = application({ migrations: v2 }, scoreMount(adopt));
       for (const by of [1, 1]) {
         const instance = await openEmbeddedInstance(upgraded, { workspacePath });
-        await instance.application.invokeRaw({ operation: 'tally.add', input: { by } }, owner);
+        await instance.application.invokeRaw({ operation: 'score.add', input: { by } }, owner);
         await instance.close();
       }
       const snapshot = await stored(workspacePath);
       expect(snapshot.state).toEqual({
         members: ['owner', 'ann'],
-        log: ['tally 6', 'tally 7'],
-        tally: { total: 7 },
+        log: ['score 6', 'score 7'],
+        score: { total: 7 },
       });
-      expect(snapshot.stateVersions?.['feature:tally']).toEqual({ version: 1, readableFrom: 1 });
+      expect(snapshot.stateVersions?.['feature:score']).toEqual({ version: 1, readableFrom: 1 });
       const refused = await openEmbeddedInstance(legacy, { workspacePath });
       try {
         await expect(
@@ -449,13 +449,13 @@ describe('feature state', () => {
   });
 
   test('an adoption needs an incompatible application step to its version', () => {
-    expect(() => application({}, tallyMount(adopt))).toThrow(
+    expect(() => application({}, scoreMount(adopt))).toThrow(
       'no incompatible application migration step reaches',
     );
     expect(() =>
       application(
         { migrations: { version: 2, steps: [{ ...v2.steps[0]!, compatible: true }] } },
-        tallyMount(adopt),
+        scoreMount(adopt),
       ),
     ).toThrow('no incompatible application migration step reaches');
   });

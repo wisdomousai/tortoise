@@ -21,7 +21,7 @@ export interface UiIntentHandlers {
 }
 
 /**
- * Apply one intent. An open or a selection settles as accepted or rejected; a review settles
+ * Apply one intent. An open or a selection completes as accepted or rejected; a review completes
  * when the person acknowledges it, so it returns nothing here.
  */
 export async function applyUiIntent(

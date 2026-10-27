@@ -4,17 +4,17 @@ import { queryOperations } from './contracts/queries';
 
 /**
  * Line station contracts: operator workstations whose machine software can only be read and
- * driven through its screen, on top of a homebrew MES that owns orders and stop reasons.
+ * operated through its screen, on top of a homebrew MES that owns orders and stop reasons.
  *
  * Three principals touch this module. People (operator, supervisor, viewer per station) use the
  * station surface and MCP. Each station's bridge (`station-bridge:<station>`) submits what the
- * screen shows and settles screen procedures. The MES integration syncs orders and reasons and
- * settles forwarded records. Neither integration principal can do what people do.
+ * screen shows and completes screen procedures. The MES integration syncs orders and reasons and
+ * completes forwarded records. Neither integration principal can do what people do.
  */
 export {
   stationRoleSchema,
   bridgeModeSchema,
-  seatSchema,
+  controlHolderSchema,
   syncSchema,
   observedReadingSchema,
   observationSchema,

@@ -98,7 +98,7 @@ test('the desktop shell registers launchers once it has the declarations', async
       submit: async () => ({ status: 'delivered' }),
       perform: async () => undefined,
       next: async () => undefined,
-      answer: async () => undefined,
+      respond: async () => undefined,
       upload: async () => undefined,
     },
     readFile: async () => undefined,

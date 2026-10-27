@@ -15,7 +15,12 @@ import { sitePluginManifest } from '@agent-native/site/plugin-manifest';
 import type { SitePolicyInput } from '@agent-native/site/policy';
 import { conformanceEffect } from '@agent-native/testing/connectors';
 import { peerLinkServiceOf } from '../src/service';
-import { announce, qualityApplication, qualityTarget, receivingApplication } from './fixtures';
+import {
+  requestInspection,
+  qualityApplication,
+  qualityTarget,
+  receivingApplication,
+} from './fixtures';
 
 /** A throwaway site CA and a server certificate for `localhost` signed by it. */
 async function issueCertificates(directory: string) {
@@ -166,7 +171,7 @@ test.skipIf(!Bun.which('openssl'))(
               ...conformanceEffect({
                 id: 'tls-1',
                 target: 'quality',
-                type: announce.id,
+                type: requestInspection.id,
                 payload: { lot: 'L1' },
               }),
               principalId: 'rita',

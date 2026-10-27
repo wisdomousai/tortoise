@@ -87,12 +87,12 @@ export function automationObservation(station: string) {
 /**
  * One station reached through its automation interface instead of its screen. The observer reports
  * driver state through `line.observation.ingest`, and a dispatcher delivers the station's
- * `legacy-hmi:<station>` effects to the driver and settles them through `line.effect.settle`. It
+ * `legacy-hmi:<station>` effects to the driver and completes them through `line.effect.complete`. It
  * is the screen bridge's twin: the same principal, grant, target, commands and control query, so
  * the domain is the same whichever route a station is configured with.
  *
- * The control query gates every delivery: the bridge mode must allow the action's hazard, and
- * while the operator holds the station seat nothing is sent, as on the screen route.
+ * The control query gates every delivery: the bridge mode must allow the action's risk level, and
+ * while the operator holds control of the station nothing is sent, as on the screen route.
  */
 export function createLineStationDriverBridge(options: LineStationDriverBridgeOptions) {
   const context: ExecutionContext = {
@@ -102,7 +102,7 @@ export function createLineStationDriverBridge(options: LineStationDriverBridgeOp
       operations: [
         operations.observationIngest.id,
         operations.controlGet.id,
-        operations.effectSettle.id,
+        operations.effectComplete.id,
       ],
     },
   };
@@ -128,7 +128,7 @@ export function createLineStationDriverBridge(options: LineStationDriverBridgeOp
         )
       ).data as BridgeControl;
       // Before anything is read or sent, so the effect stays pending, never held.
-      if (control.seat === 'operator') throw new DeliveryFailure('The operator has the station');
+      if (control.holder === 'operator') throw new DeliveryFailure('The operator has the station');
       return { mode: control.mode };
     },
     ...(options.pollMs ? { pollMs: options.pollMs } : {}),
@@ -139,7 +139,7 @@ export function createLineStationDriverBridge(options: LineStationDriverBridgeOp
     application: options.application,
     port: connector,
     context,
-    settleOperation: operations.effectSettle.id,
+    completeOperation: operations.effectComplete.id,
     ...(options.now ? { now: options.now } : {}),
   });
   return {

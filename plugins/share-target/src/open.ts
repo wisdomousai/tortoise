@@ -36,7 +36,7 @@ async function claimed(
 
 /**
  * Open the share target plugin: enable share handlers and share actions in the OS plugin, and
- * on a serving host answer the web share target's POST and resolve the codes it issues. On a
+ * on a serving host handle the web share target's POST and resolve the codes it issues. On a
  * device the mobile shell submits shares itself, so nothing is held there.
  */
 export function openShareTarget(options: { now?: () => number } = {}) {

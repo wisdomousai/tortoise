@@ -25,7 +25,7 @@ export type TokenAuthenticator = (
   request?: Request,
 ) => Promise<HostSession | undefined>;
 
-/** Trusted hosts mint credentials. Request bodies never select principals or roles. */
+/** Trusted hosts issue credentials. Request bodies never select principals or roles. */
 export class Sessions {
   private sessions = new Map<string, HostSession>();
   private launches = new Map<string, { session: HostSession; expiresAt: number }>();
@@ -52,7 +52,7 @@ export class Sessions {
     return key;
   }
   /**
-   * The session a launch key opens. A key minted from a credential session opens a browser session
+   * The session a launch key opens. A key issued to a credential session opens a browser session
    * of its own that still names the credential, so the cookie never carries the credential itself.
    */
   exchange(key: string): HostSession | undefined {

@@ -204,11 +204,11 @@ function checkAction(
         for (const button of category.actions)
           if (!replies.has(button.reply))
             throw new Error(`${where} replies to undeclared reply handler ${button.reply}`);
-      // The notifications plugin settles each delivered effect with the target's own command.
+      // The notifications plugin completes each delivered effect with the target's own command.
       for (const target of action.targets ?? [])
-        if (commands.get(`${target}.effect.settle`)?.kind !== 'command')
+        if (commands.get(`${target}.effect.complete`)?.kind !== 'command')
           throw new Error(
-            `${where} carries ${target}, which has no ${target}.effect.settle command`,
+            `${where} carries ${target}, which has no ${target}.effect.complete command`,
           );
       return;
     case 'intent':

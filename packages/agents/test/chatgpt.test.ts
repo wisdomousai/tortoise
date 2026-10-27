@@ -235,7 +235,7 @@ test('generic OIDC logout cannot be undone by a refresh that was already in flig
   const { OidcAccountConnection } = await import('../src/oidc');
   const vault = new MemoryCredentialVault();
   let release!: () => void;
-  const answered = new Promise<void>((resolve) => (release = resolve));
+  const released = new Promise<void>((resolve) => (release = resolve));
   let requested!: () => void;
   const sent = new Promise<void>((resolve) => (requested = resolve));
   const connection = new OidcAccountConnection(
@@ -257,7 +257,7 @@ test('generic OIDC logout cannot be undone by a refresh that was already in flig
       },
       fetch: (async () => {
         requested();
-        await answered;
+        await released;
         return Response.json({ access_token: 'new', token_type: 'Bearer', expires_in: 3600 });
       }) as unknown as typeof fetch,
     },

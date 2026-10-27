@@ -96,7 +96,7 @@ describe('assignment lifecycle', () => {
     expect(await read(fixture, worker, 'assignment.get', { id: 'a1' })).toMatchObject({ id: 'a1' });
   });
 
-  test('a draft is sent later, to a lane its kind takes, with a brief from its scope', async () => {
+  test('a draft is sent later, to an assignee type its kind takes, with a brief from its scope', async () => {
     const fixture = createFixture();
     await expect(
       run(fixture, planner, 'assignment.review.create', { ...review, scope: { notes: ['n9'] } }),
@@ -129,13 +129,13 @@ describe('assignment lifecycle', () => {
     ).rejects.toMatchObject({ code: 'INVALID_INPUT', details: { field: 'subject' } });
   });
 
-  test('a failing accept hook writes nothing; placing the report first lets it through', async () => {
+  test('a failing accept hook writes nothing; linking the report first lets it through', async () => {
     const fixture = createFixture();
     await run(fixture, planner, 'assignment.review.create', { ...review, assignee: toWes });
     await run(fixture, worker, 'assignment.review.report', {
       id: 'r1',
       assignmentId: 'a1',
-      body: body('Unplaced.'),
+      body: body('Unlinked.'),
     });
     // Without a subject the hook calls the note command without a note, which refuses it.
     await expect(
@@ -145,9 +145,9 @@ describe('assignment lifecycle', () => {
       review: 'new',
     });
     await expect(
-      run(fixture, planner, 'assignment.report.place', { id: 'r1', subject: 'n9' }),
+      run(fixture, planner, 'assignment.report.link', { id: 'r1', subject: 'n9' }),
     ).rejects.toMatchObject({ code: 'INVALID_INPUT', details: { field: 'subject' } });
-    await run(fixture, planner, 'assignment.report.place', { id: 'r1', subject: 'n2' });
+    await run(fixture, planner, 'assignment.report.link', { id: 'r1', subject: 'n2' });
     const accepted = await run(fixture, planner, 'assignment.review.accept', {
       id: 'r1',
       comment: 'Replace both.',

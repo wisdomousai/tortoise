@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
-import { buildCatalog, definePeerSurface } from '@agent-native/contracts';
+import { buildCatalog, definePeerApi } from '@agent-native/contracts';
 import { defineAssignmentKind, defineAssignments, defineWorklist, offerEventType } from '../src';
-import { assignments, checker, issuerSurface, notesModule, review, survey } from './fixture';
+import { assignments, checker, issuerApi, notesModule, review, survey } from './fixture';
 
 const photo = { digest: `sha256:${'a'.repeat(64)}`, size: 10, mediaType: 'image/jpeg' };
 const destination = {
@@ -13,7 +13,7 @@ const destination = {
 } as const;
 
 describe('defineAssignments', () => {
-  test('generates each kind’s commands, the generic operations and the target lane', () => {
+  test('generates each kind’s commands, the generic operations and the assignment target', () => {
     const ids = buildCatalog([notesModule, assignments.module], {
       components: [checker],
     }).operations.map((operation) => operation.id);
@@ -33,9 +33,9 @@ describe('defineAssignments', () => {
         'assignment.feed',
         'assignment.report.list',
         'assignment.report.get',
-        'assignment.report.place',
+        'assignment.report.link',
         'assignment.report.discard',
-        'assignment.checker.settle',
+        'assignment.checker.complete',
         'assignment.checker.sync',
         'assignment.checker.status',
       ]),
@@ -58,22 +58,22 @@ describe('defineAssignments', () => {
     expect(operations.reviewReport.blobs).toBeUndefined();
     expect(operations.reviewAccept.invokes).toEqual(['notes.note.update']);
     expect(operations.reviewAccept.dependencies).toContain('note');
-    expect(operations.reportPlace?.id).toBe('assignment.report.place');
+    expect(operations.reportLink?.id).toBe('assignment.report.link');
     const created: 'assignment.review.create' = operations.reviewCreate.id;
     expect(created).toBe('assignment.review.create');
     // @ts-expect-error a kind the declaration does not have
     expect(operations.surveyCreate).toBeUndefined();
   });
 
-  test('refuses a target lane without a destination and repeated kinds', () => {
+  test('refuses an assignment target without a destination and repeated kinds', () => {
     expect(() => buildCatalog([notesModule, assignments.module])).toThrow('assignment-checker');
     expect(() => defineAssignments({ kinds: [review, review] })).toThrow('repeat');
     expect(() => defineAssignments({ kinds: [] })).toThrow('at least one kind');
   });
 
-  test('omits placing reports when no kind has a subject', () => {
+  test('omits linking reports when no kind has a subject', () => {
     const plain = defineAssignmentKind({ ...survey, id: 'plain', subject: undefined });
-    expect(defineAssignments({ kinds: [plain] }).operations.reportPlace).toBeUndefined();
+    expect(defineAssignments({ kinds: [plain] }).operations.reportLink).toBeUndefined();
   });
 
   test('validates per-kind input and the generic reads across kinds', () => {
@@ -105,12 +105,12 @@ describe('defineAssignments', () => {
   });
 
   test('gives a device and a peer the report commands of their kinds, completion and the feed', () => {
-    expect(assignments.lanes.device.operations).toEqual([
+    expect(assignments.assignees.device.operations).toEqual([
       'assignment.field-survey.report',
       'assignment.complete',
       'assignment.feed',
     ]);
-    expect(assignments.lanes.peer.operations).toEqual(assignments.lanes.device.operations);
+    expect(assignments.assignees.peer.operations).toEqual(assignments.assignees.device.operations);
   });
 
   test('names the event type of an offer to an agent', () => {
@@ -123,8 +123,8 @@ describe('defineWorklist', () => {
     namespace: 'field',
     target: 'hub',
     assignments,
-    issuer: issuerSurface,
-    lane: 'device',
+    issuer: issuerApi,
+    assigneeType: 'device',
     destination,
   });
 
@@ -137,7 +137,7 @@ describe('defineWorklist', () => {
       'field.assignment.get',
       'field.assignment.list',
       'field.field-survey.report',
-      'field.hub.settle',
+      'field.hub.complete',
       'field.hub.status',
       'field.hub.sync',
       'field.report.list',
@@ -148,11 +148,11 @@ describe('defineWorklist', () => {
     expect(worklist.types).toEqual({ assignment: 'field-assignment', report: 'field-report' });
   });
 
-  test('takes only the kinds of its lane and refuses a surface that lacks a lane operation', () => {
+  test('takes only the kinds of its assignee type and refuses an API that lacks an assignee operation', () => {
     expect(worklist.kinds.map((kind) => kind.id)).toEqual(['field-survey']);
-    const partial = definePeerSurface({
+    const partial = definePeerApi({
       application: 'issuer',
-      queries: assignments.lanes.peer.queries,
+      queries: assignments.assignees.peer.queries,
     });
     expect(() =>
       defineWorklist({
@@ -160,23 +160,23 @@ describe('defineWorklist', () => {
         target: 'hub',
         assignments,
         issuer: partial,
-        lane: 'peer',
+        assigneeType: 'peer',
         destination,
       }),
     ).toThrow('does not list assignment.field-survey.report');
     const personal = defineAssignments({
-      kinds: [defineAssignmentKind({ ...review, lanes: ['person'], target: undefined })],
+      kinds: [defineAssignmentKind({ ...review, assigneeTypes: ['person'], target: undefined })],
     });
     expect(() =>
       defineWorklist({
         namespace: 'field',
         target: 'hub',
         assignments: personal,
-        issuer: issuerSurface,
-        lane: 'peer',
+        issuer: issuerApi,
+        assigneeType: 'peer',
         destination,
       }),
-    ).toThrow('No assignment kind takes the peer lane');
+    ).toThrow('No assignment kind takes the peer assignee type');
   });
 
   test('records reports whose bodies the kind’s schema checks', () => {

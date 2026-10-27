@@ -6,12 +6,12 @@ import {
   DeliveryUncertain,
   type DeliveryResult,
   type TargetDescription,
-  type UpstreamPending,
+  type DeliveryAcknowledged,
 } from '../port.js';
 
 /** How one effect left a pass: the report counter to raise, and whether the pass must stop. */
 export interface Step {
-  readonly tally?: keyof DispatchReport;
+  readonly countAs?: keyof DispatchReport;
   readonly stop?: boolean;
 }
 
@@ -33,29 +33,29 @@ async function record(
   effect: Effect,
   failure: string,
   attempt: Attempt,
-  tally: keyof DispatchReport,
+  countAs: keyof DispatchReport,
 ): Promise<Step> {
   try {
     await options.application.recordAttempt(options.context, effect.id, failure, attempt);
-    return { tally };
+    return { countAs };
   } catch (error) {
-    if (conflicted(error)) return { tally: 'deferred' };
+    if (conflicted(error)) return { countAs: 'deferred' };
     throw error;
   }
 }
 const hold = (deps: Deps, effect: Effect, reason: string, fence: number) =>
   record(deps, effect, reason, { hold: true, fence }, 'held');
 
-/** Claim before delivering; settled, held or claimed elsewhere since the read is deferred. */
+/** Claim before delivering; completed, held or claimed elsewhere since the read is deferred. */
 async function claimed({ options, claim }: Deps, effect: Effect): Promise<number | Step> {
   try {
     const result = await options.application.claimEffect(options.context, effect.id, {
       ...claim,
       recheck: options.recheck !== false,
     });
-    return result.status === 'claimed' ? result.fence : { tally: 'held' };
+    return result.status === 'claimed' ? result.fence : { countAs: 'held' };
   } catch (error) {
-    if (conflicted(error)) return { tally: 'deferred' };
+    if (conflicted(error)) return { countAs: 'deferred' };
     throw error;
   }
 }
@@ -81,8 +81,8 @@ async function outcomeOf(
 ): Promise<DeliveryResult | Step> {
   const { port } = deps.options;
   try {
-    if (effect.upstreamAt !== undefined) return await poll(deps, effect, signal, fence);
-    // A non-idempotent target may already hold a delivery whose response or settlement was
+    if (effect.acknowledgedAt !== undefined) return await poll(deps, effect, signal, fence);
+    // A non-idempotent target may already hold a delivery whose response or completion was
     // lost, so it is always checked before sending again.
     if (!deps.description.idempotentDelivery) {
       const found = await port.lookup!(effect.id, signal, effect);
@@ -109,46 +109,46 @@ async function outcomeOf(
   }
 }
 
-const acknowledged = (deps: Deps, effect: Effect, result: UpstreamPending, fence: number) =>
+const acknowledged = (deps: Deps, effect: Effect, result: DeliveryAcknowledged, fence: number) =>
   record(
     deps,
     effect,
     'Awaiting the target decision',
-    { fence, upstream: result.externalRef ? { externalRef: result.externalRef } : {} },
-    'upstream',
+    { fence, acknowledged: result.externalRef ? { externalRef: result.externalRef } : {} },
+    'acknowledged',
   );
 
-async function settle(
+async function complete(
   { options }: Deps,
   effect: Effect,
   outcome: EffectOutcome,
   fence: number,
 ): Promise<Step> {
   const { application, context } = options;
-  const input = options.settleInput
-    ? options.settleInput(effect, outcome, { fence })
+  const input = options.completeInput
+    ? options.completeInput(effect, outcome, { fence })
     : { effectId: effect.id, outcome };
   try {
     await application.invokeRaw(
-      { operation: options.settleOperation, input, idempotencyKey: `settle:${effect.id}` },
+      { operation: options.completeOperation, input, idempotencyKey: `complete:${effect.id}` },
       context,
     );
-    return { tally: outcome.status === 'accepted' ? 'accepted' : 'rejected' };
+    return { countAs: outcome.status === 'accepted' ? 'accepted' : 'rejected' };
   } catch (error) {
     const { code } = errorEnvelope(error);
-    // Another dispatcher settled it first, or a newer claim superseded this one; the target
+    // Another dispatcher completed it first, or a newer claim superseded this one; the target
     // deduplicates by effect ID, so the newer worker's delivery finds this one.
     if (code === 'CONFLICT') return {};
     await application
-      .recordAttempt(context, effect.id, `Settlement failed (${code})`, { fence })
+      .recordAttempt(context, effect.id, `Completion failed (${code})`, { fence })
       .catch(() => undefined);
-    return { tally: 'retried' };
+    return { countAs: 'retried' };
   }
 }
 
 /**
- * The per-effect steps: claim the effect, obtain an outcome from the target, then settle it
- * through the domain. Every attempt and settlement carries the claim's fencing token, so a
+ * The per-effect steps: claim the effect, obtain an outcome from the target, then complete it
+ * through the domain. Every attempt and completion carries the claim's fencing token, so a
  * worker that paused past its lease finds its writes refused once another worker claimed.
  */
 export function createDelivery(
@@ -163,6 +163,6 @@ export function createDelivery(
     const result = await outcomeOf(deps, effect, signal, fence);
     if (!('status' in result)) return result;
     if (result.status === 'pending') return acknowledged(deps, effect, result, fence);
-    return settle(deps, effect, result, fence);
+    return complete(deps, effect, result, fence);
   };
 }

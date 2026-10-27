@@ -132,7 +132,7 @@ function serviceEnvironment(options: ServiceOptions, workspace: string): NodeJS.
   });
   if (options.runtimeManifest) env.AGENT_RUNTIME_MANIFEST = options.runtimeManifest;
   if (options.sitePolicy) env.AGENT_NATIVE_SITE_POLICY = options.sitePolicy;
-  // The OS plugin answers links in this scheme; an application without it ignores the key.
+  // The OS plugin handles links in this scheme; an application without it ignores the key.
   if (options.scheme) env.AGENT_NATIVE_OS_SCHEME = options.scheme;
   return env;
 }

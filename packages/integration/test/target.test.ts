@@ -11,10 +11,10 @@ import {
 } from '@agent-native/runtime';
 import {
   connectTarget,
-  settleDelivery,
+  completeDelivery,
   targetContext,
   targetHandlers,
-  targetLane,
+  targetAllowlist,
   targetRules,
   type Delivered,
   type SystemOfRecordPort,
@@ -23,7 +23,7 @@ import {
 const erp = defineTarget({
   target: 'erp',
   resourceType: 'ErpSync',
-  settles: ['reading'],
+  changes: ['reading'],
   feed: {
     item: z.strictObject({ code: z.string() }),
     max: 10,
@@ -31,7 +31,7 @@ const erp = defineTarget({
     changes: ['code'],
   },
   status: { pending: z.number().int() },
-  descriptions: { settle: 'Settle a reading.', status: 'ERP synchronization.' },
+  descriptions: { complete: 'Complete a reading.', status: 'ERP synchronization.' },
 });
 const record = defineCapability({
   id: 'reading.record',
@@ -56,7 +56,7 @@ function setup() {
   let ids = 0;
   const bind = createHandlerFactory<State, {}>();
   const policy = definePolicy<State>({
-    integrations: [targetLane(erp, (state, principalId) => principalId === state.integration)],
+    integrations: [targetAllowlist(erp, (state, principalId) => principalId === state.integration)],
     operations: { ...targetRules(erp), [record.id]: 'open' },
     events: { reading: () => true, code: () => true, sync: () => true },
   });
@@ -88,7 +88,7 @@ function setup() {
         cursor: (state) => state.sync,
         now: () => 2_000,
         onOutcome: (effect, outcome, ctx) =>
-          settleDelivery(own(ctx.state.readings, effect.resource.slice(8)), effect, outcome),
+          completeDelivery(own(ctx.state.readings, effect.resource.slice(8)), effect, outcome),
         applyBatch(batch, ctx) {
           for (const item of batch.items) put(ctx.state.codes, item.code, true);
           if (batch.note) ctx.state.note = batch.note;
@@ -115,37 +115,37 @@ function port(): SystemOfRecordPort<{ code: string }> {
 
 describe('defineTarget', () => {
   test('derives operation IDs, the sync resource and the integration grant', () => {
-    expect([erp.settle.id, erp.sync.id, erp.status.id]).toEqual([
-      'erp.effect.settle',
+    expect([erp.complete.id, erp.sync.id, erp.status.id]).toEqual([
+      'erp.effect.complete',
       'erp.sync',
       'erp.sync.status',
     ]);
     expect(erp.syncResource).toBe('sync:erp');
     expect(integration.grant?.operations).toEqual([
-      'erp.effect.settle',
+      'erp.effect.complete',
       'erp.sync.status',
       'erp.sync',
     ]);
-    expect(erp.settle.ui).toEqual({
+    expect(erp.complete.ui).toEqual({
       exception: 'integration principal; the outbox dispatcher and inbound sync',
     });
     const outbound = defineTarget({
       target: 'mail',
       resourceType: 'Mail',
-      settles: ['message'],
+      changes: ['message'],
       status: {},
-      descriptions: { settle: 'Settle.', status: 'Status.' },
+      descriptions: { complete: 'Complete.', status: 'Status.' },
     });
     expect(outbound.sync).toBeUndefined();
     expect(outbound.capabilities.map((capability) => capability.id)).toEqual([
-      'mail.effect.settle',
+      'mail.effect.complete',
       'mail.sync.status',
     ]);
   });
 });
 
 describe('targetHandlers', () => {
-  test('connectTarget delivers, settles and pulls under the target principal', async () => {
+  test('connectTarget delivers, completes and pulls under the target principal', async () => {
     const app = setup();
     await app.invokeRaw({ operation: record.id, input: { id: 'r1' } }, operator);
     const connected = connectTarget({
@@ -178,22 +178,22 @@ describe('targetHandlers', () => {
     await expect(sync({ from: '1', to: '2', items: [] })).resolves.toBeDefined();
   });
 
-  test('settle refuses an effect of another target and an unknown effect', async () => {
+  test('complete refuses an effect of another target and an unknown effect', async () => {
     const app = setup();
     await app.invokeRaw({ operation: record.id, input: { id: 'r1', target: 'crm' } }, operator);
-    const settle = (effectId: string) =>
+    const complete = (effectId: string) =>
       app.invokeRaw(
-        { operation: erp.settle.id, input: { effectId, outcome: { status: 'accepted' } } },
+        { operation: erp.complete.id, input: { effectId, outcome: { status: 'accepted' } } },
         integration,
       );
-    await expect(settle('e1')).rejects.toMatchObject({
+    await expect(complete('e1')).rejects.toMatchObject({
       code: 'FORBIDDEN',
       message: 'Effect belongs to another integration',
     });
-    await expect(settle('e9')).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await expect(complete('e9')).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 
-  test('only the target principal may settle or sync', async () => {
+  test('only the target principal may complete or sync', async () => {
     const app = setup();
     await expect(
       app.invokeRaw({ operation: erp.sync.id, input: { to: '1', items: [] } }, operator),
@@ -204,15 +204,15 @@ describe('targetHandlers', () => {
   });
 });
 
-describe('settleDelivery', () => {
-  const effect = { id: 'e1' } as Parameters<typeof settleDelivery>[1];
+describe('completeDelivery', () => {
+  const effect = { id: 'e1' } as Parameters<typeof completeDelivery>[1];
   test('records the reference or the rejection on the forwarding record', () => {
-    const accepted = settleDelivery({ effectId: 'e1', sync: 'pending' }, effect, {
+    const accepted = completeDelivery({ effectId: 'e1', sync: 'pending' }, effect, {
       status: 'accepted',
       externalRef: 'X-1',
     });
     expect(accepted).toEqual({ effectId: 'e1', sync: 'accepted', sorRef: 'X-1' });
-    const rejected = settleDelivery({ effectId: 'e1', sync: 'pending' }, effect, {
+    const rejected = completeDelivery({ effectId: 'e1', sync: 'pending' }, effect, {
       status: 'rejected',
       code: 'LOCKED',
       message: 'Locked',
@@ -221,11 +221,11 @@ describe('settleDelivery', () => {
   });
 
   test('a missing record or one that forwarded another effect is NOT_FOUND', () => {
-    expect(() => settleDelivery(undefined, effect, { status: 'accepted' })).toThrow(
+    expect(() => completeDelivery(undefined, effect, { status: 'accepted' })).toThrow(
       'Forwarded record unavailable',
     );
     expect(() =>
-      settleDelivery({ effectId: 'e2', sync: 'pending' }, effect, { status: 'accepted' }),
+      completeDelivery({ effectId: 'e2', sync: 'pending' }, effect, { status: 'accepted' }),
     ).toThrow('Forwarded record unavailable');
   });
 });
@@ -235,9 +235,9 @@ describe('connectTarget', () => {
     const outbound = defineTarget({
       target: 'mail',
       resourceType: 'Mail',
-      settles: ['message'],
+      changes: ['message'],
       status: {},
-      descriptions: { settle: 'Settle.', status: 'Status.' },
+      descriptions: { complete: 'Complete.', status: 'Status.' },
     });
     const mail = connectTarget({
       target: outbound,

@@ -1,24 +1,24 @@
 import { z } from 'zod';
 import { defineDataProvider, definePeerTarget } from '@agent-native/contracts';
 import {
-  arrivalOperations,
-  arrivalResultSchema,
-  qualityPeerSurface,
+  inspectionRequestOperations,
+  closedInspectionRequestSchema,
+  qualityPeerApi,
 } from '@agent-native/quality-inspection/contracts/peer';
 
 /**
- * The quality-inspection application, called as a peer through its published surface. Posting a
- * line the ERP marked for inspection announces an arrival there as this application's service
+ * The quality-inspection application, called as a peer through its published API. Posting a
+ * line the ERP marked for inspection creates an inspection request there as this application's service
  * principal; the feed brings back the outcomes once an inspector closed them.
  */
 export const qualityPeer = definePeerTarget({
   target: 'quality',
   resourceType: 'QualitySync',
-  surface: qualityPeerSurface,
-  settles: ['delivery'],
+  api: qualityPeerApi,
+  changes: ['delivery'],
   feed: {
-    query: arrivalOperations.arrivalFeed,
-    item: arrivalResultSchema,
+    query: inspectionRequestOperations.inspectionRequestFeed,
+    item: closedInspectionRequestSchema,
     max: 100,
     changes: ['delivery'],
   },
@@ -30,15 +30,15 @@ export const qualityPeer = definePeerTarget({
     failed: z.number().int(),
   },
   descriptions: {
-    settle:
-      'Integration principal only: record whether quality inspection took an announced arrival.',
+    complete:
+      'Integration principal only: record whether quality inspection took an inspection request.',
     sync: 'Integration principal only: apply incoming inspection outcomes from quality inspection and advance the watermark. A stale from watermark conflicts.',
     status:
-      'Summarize incoming inspection: arrivals waiting to be announced, refused by quality inspection, being inspected, passed and failed, and the last outcome import.',
+      'Summarize incoming inspection: requests waiting to be sent, refused by quality inspection, being inspected, passed and failed, and the last outcome import.',
   },
   destination: {
     id: 'quality-peer',
-    purpose: 'Announce received goods for incoming inspection, read outcomes and search lots.',
+    purpose: 'Request incoming inspection of received goods, read outcomes and search lots.',
     dataClasses: ['delivery', 'inspection-lot'],
     availability: 'optional',
     offline: 'queue',

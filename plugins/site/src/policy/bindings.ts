@@ -70,7 +70,7 @@ function boundAddresses(
   if (!loopback && !addresses?.length)
     warn(
       'HOSTNAME_ONLY',
-      `Destination ${id} has no addresses: DNS answers are not checked and firewall export cannot include it`,
+      `Destination ${id} has no addresses: resolved addresses are not checked and firewall export cannot include it`,
       id,
     );
   if (destination.scope === 'site' && addresses?.some((network) => !cidrIsPrivate(network)))

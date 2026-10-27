@@ -168,7 +168,7 @@ export function connectMobileShell(
     .then((uri) => (uri ? shell.receive(uri) : undefined))
     .catch(() => undefined);
   return {
-    /** What the frame shows; deliveries that arrived before the first subscriber are replayed. */
+    /** What the frame shows; deliveries received before the first subscriber are replayed. */
     deliveries: {
       subscribe(listener: (delivery: OsDelivery) => void) {
         listeners.add(listener);

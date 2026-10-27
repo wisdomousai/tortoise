@@ -108,7 +108,7 @@ function HeldItem({
 /**
  * Held deliveries, live: effects whose outcome nobody could establish, each with what was sent
  * and why it is held. The person checks the target and says whether it applied the delivery,
- * which settles it, sends it again, or settles it as refused. Pass `target` or `resource` to
+ * which completes it, sends it again, or completes it as refused. Pass `target` or `resource` to
  * show only one target's or one record's deliveries.
  */
 export function ReconciliationReview({

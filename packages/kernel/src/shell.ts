@@ -17,7 +17,7 @@ import type { ExecutionContext } from '@agent-native/runtime';
  */
 export interface ShellAdapter {
   readonly platform: OsPlatform;
-  /** Run one instruction. Rejects or answers `ok: false` when the OS refused it. */
+  /** Run one instruction. Rejects or returns `ok: false` when the OS refused it. */
   perform(instruction: OsInstruction): Promise<OsActionResult>;
 }
 

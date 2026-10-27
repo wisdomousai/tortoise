@@ -30,16 +30,16 @@ function useSearches(term: string, kind: Kind) {
   return kind === 'accounts' ? { accounts, active: accounts } : { contacts, active: contacts };
 }
 
-/** When the CRM cannot answer, the accounts already adopted still match the search. */
+/** When the CRM is unreachable, the accounts already followed still match the search. */
 function LocalFallback({ term }: { term: string }) {
   const { accounts } = useLocalAccounts();
   const matching = accounts.filter((account) =>
     (account.name ?? account.id).toLowerCase().includes(term.toLowerCase()),
   );
   if (!matching.length)
-    return <p className="px-4 py-6 text-sm text-muted-foreground">No adopted account matches.</p>;
+    return <p className="px-4 py-6 text-sm text-muted-foreground">No followed account matches.</p>;
   return (
-    <ul aria-label="Adopted accounts" className="divide-y">
+    <ul aria-label="Followed accounts" className="divide-y">
       {matching.map((account) => (
         <li key={account.id} className="px-4 py-3">
           <Link
@@ -55,7 +55,7 @@ function LocalFallback({ term }: { term: string }) {
   );
 }
 
-/** Search the CRM as you type, and adopt the accounts you work with. */
+/** Search the CRM as you type, and follow the accounts you work with. */
 export function SearchScreen() {
   const [text, setText] = useState('');
   const [kind, setKind] = useState<Kind>('accounts');
@@ -73,7 +73,7 @@ export function SearchScreen() {
       <header>
         <h1 className="text-[1.75rem] font-semibold tracking-tight">Find in CRM</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Results come straight from the CRM and are not stored here. Adopt an account to log
+          Results come straight from the CRM and are not stored here. Follow an account to log
           activities against it.
         </p>
       </header>

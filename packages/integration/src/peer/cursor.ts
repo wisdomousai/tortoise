@@ -28,7 +28,7 @@ export function createCursorSeal(key: Uint8Array = crypto.getRandomValues(new Ui
       if (sealed.length > 512)
         throw new ApplicationError(
           'UNAVAILABLE',
-          'The peer answered a page cursor that is too long',
+          'The peer returned a page cursor that is too long',
         );
       return sealed;
     },

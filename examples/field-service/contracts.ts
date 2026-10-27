@@ -66,7 +66,7 @@ const descriptions: Readonly<Record<string, string>> = {
     'Set a task to todo, doing or done in an open work order as dispatcher or technician. Supply task:<id> in expectedRevisions to detect concurrent changes.',
   'task.remind':
     'Remind yourself of a task with a notification on your desktop or phone. It waits until one of them is running; its Mark done action sets the task to done as you, if you still may. Needs dispatcher or technician on an open work order.',
-  'task-reminders.effect.settle':
+  'task-reminders.effect.complete':
     'Integration principal only: record whether a desktop or phone showed a task reminder.',
   'task.delete':
     'Remove a task from an open work order as dispatcher or technician, with its attachment. This capability has no restore operation. Supply task:<id> in expectedRevisions to detect concurrent changes.',
@@ -208,8 +208,8 @@ export const operations = {
     undefined,
     { integration: { target: 'task-reminders', delivery: 'outbox' } },
   ),
-  taskRemindersSettle: operation(
-    'task-reminders.effect.settle',
+  taskRemindersComplete: operation(
+    'task-reminders.effect.complete',
     'command',
     z.strictObject({
       effectId: z.string().min(1).max(128),
@@ -217,7 +217,7 @@ export const operations = {
       fence: z.number().int().min(1).optional(),
     }),
     z.strictObject({}),
-    'settle',
+    'complete',
     'TaskReminder',
     undefined,
     {

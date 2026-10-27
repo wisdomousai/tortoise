@@ -118,7 +118,7 @@ export function effectRecords(
     // with attempts that a command touched was released.
     kind:
       effect.status !== 'pending'
-        ? 'effect.settled'
+        ? 'effect.completed'
         : effect.attempts === 0
           ? 'effect.enqueued'
           : 'effect.released',

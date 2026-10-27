@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { z } from 'zod';
 import { createHttpHandler } from '@agent-native/adapters/http';
 import { Sessions } from '@agent-native/adapters/http/sessions';
-import { definePeerSurface } from '@agent-native/contracts';
+import { definePeerApi } from '@agent-native/contracts';
 import { createApplicationRuntime, defineApplication, defineManifest } from '@agent-native/kernel';
 import type { PeerClient } from '@agent-native/integration';
 import {
@@ -26,7 +26,7 @@ import {
   type WorklistSlice,
 } from '../src/server';
 import { createFixture, planner, WORKSPACE } from './application';
-import { assignments, issuerSurface, review, survey } from './fixture';
+import { assignments, issuerApi, review, survey } from './fixture';
 
 const INTEGRATION = 'integration';
 const tess: ExecutionContext = { workspaceId: 'tablet', principalId: 'tess' };
@@ -68,18 +68,18 @@ function issuer() {
   return { ...fixture, client };
 }
 
-/** The tablet: one owner and the worklist of the device lane, connected to `client`. */
+/** The tablet: one owner and the worklist of a device assignee, connected to `client`. */
 function tablet<K extends AnyAssignmentKind>(
   client: PeerClient,
-  surface = issuerSurface,
+  api = issuerApi,
   of: Assignments<K> = assignments as never,
 ) {
   const worklist = defineWorklist({
     namespace: 'field',
     target: 'hub',
     assignments: of,
-    issuer: surface,
-    lane: 'device',
+    issuer: api,
+    assigneeType: 'device',
     destination,
   });
   const owner = (_id: string, state: Tablet, context: { principalId: string }) =>
@@ -202,7 +202,7 @@ describe('worklist', () => {
     });
   });
 
-  test('a report about a node the survey does not cover arrives unplaced, and a retry is harmless', async () => {
+  test('a report about a node the survey does not cover is recorded unlinked, and a retry is harmless', async () => {
     const hub = issuer();
     const { integration, run, photo } = tablet(hub.client);
     await send(hub, 'Hall 2');
@@ -215,9 +215,9 @@ describe('worklist', () => {
     expect(stored).toMatchObject({ reportedBy: 'device:tab-1', review: 'new' });
     expect(stored.subject).toBeUndefined();
 
-    // A person places it; the device's retried delivery is still the same report.
+    // A person links it; the device's retried delivery is still the same report.
     await hub.application.invokeRaw(
-      { operation: 'assignment.report.place', input: { id: 'tab-r1', subject: 'n1' } },
+      { operation: 'assignment.report.link', input: { id: 'tab-r1', subject: 'n1' } },
       planner,
     );
     const device = { workspaceId: WORKSPACE, principalId: 'device:tab-1' };
@@ -278,12 +278,12 @@ describe('worklist', () => {
         }),
       ],
     });
-    const surface = definePeerSurface({
+    const api = definePeerApi({
       application: 'assignments-fixture',
-      commands: older.lanes.device.commands,
-      queries: older.lanes.device.queries,
+      commands: older.assignees.device.commands,
+      queries: older.assignees.device.queries,
     });
-    const { integration, run, read } = tablet(hub.client, surface, older);
+    const { integration, run, read } = tablet(hub.client, api, older);
     await send(hub, 'Hall 2');
     await integration.inbound.runOnce();
     await run('field.field-survey.report', { assignmentId: 'a1', body: { photos: [] } });

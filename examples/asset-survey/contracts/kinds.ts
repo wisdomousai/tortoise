@@ -33,12 +33,12 @@ export const survey = defineAssignmentKind({
   accept: z.strictObject({ values: valuesSchema }),
   subject: 'node',
   blobs: { report: photoLimits },
-  lanes: ['device', 'person'],
+  assigneeTypes: ['device', 'person'],
   changes: ['node'],
 });
 
 /**
- * Reading one capture's photos: the model takes it through the outbox and answers through its
+ * Reading one capture's photos: the model takes it through the outbox and reports through its
  * feed, or a person types the values. Accepting the reading accepts the capture with the
  * reviewer's corrected values.
  */
@@ -59,7 +59,7 @@ export const extraction = defineAssignmentKind({
   }),
   accept: z.strictObject({ values: valuesSchema }),
   blobs: { brief: photoLimits },
-  lanes: ['target', 'person'],
+  assigneeTypes: ['target', 'person'],
   target: 'model',
   invokes: ['assignment.survey.accept'],
   changes: ['node'],
@@ -68,10 +68,10 @@ export const extraction = defineAssignmentKind({
 export const assignments = defineAssignments({ kinds: [survey, extraction] });
 /** The generated operations, flat, so screens bind them by name. */
 export const assignmentOperations = assignments.operations;
-/** The model's target lane: offers go out through the outbox, readings come back on its feed. */
-export const modelLane = assignments.targets.model!;
-/** Placing a capture on a node: present because the survey kind has a subject. */
-export const reportPlace = assignmentOperations.reportPlace!;
+/** The model's assignment target: offers go out through the outbox, readings come back on its feed. */
+export const modelTarget = assignments.targets.model!;
+/** Linking a capture to a node: present because the survey kind has a subject. */
+export const reportLink = assignmentOperations.reportLink!;
 
 /** Values read below this confidence are flagged for attention. */
 export const ATTENTION_BELOW = 0.8;

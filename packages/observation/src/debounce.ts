@@ -4,7 +4,7 @@ import type { FieldValue, Reading } from './readings';
  * Counts agreeing consecutive reads per field. A value is stable once `required` reads in a row
  * agree; a different value restarts the count. Pure, so observer behavior is testable.
  */
-export class StabilityGate {
+export class Debouncer {
   private readonly runs = new Map<string, { key: string; count: number }>();
   push(field: string, value: FieldValue, required: number): boolean {
     const key = JSON.stringify(value);
@@ -19,8 +19,8 @@ export class StabilityGate {
   }
 }
 
-/** What the gate needs to know about one field: its stability and confidence standard. */
-export interface GatedField<Declared> {
+/** What the debouncer needs to know about one field: its stability and confidence standard. */
+export interface DebouncedField<Declared> {
   readonly stableReads: number;
   readonly minConfidence: number;
   /** The source's declaration of the field, carried with the reading (type, options, unit). */
@@ -28,7 +28,7 @@ export interface GatedField<Declared> {
 }
 
 /**
- * A reading that passed the stability gate: `observed` when confident enough to become fact,
+ * A reading that stayed the same for `stableReads` reads: `observed` when confident enough to become fact,
  * `uncertain` when stable but below the field's threshold (the domain asks a person instead).
  */
 export type ObservedReading<Declared> = Reading & {
@@ -38,22 +38,22 @@ export type ObservedReading<Declared> = Reading & {
 };
 
 /**
- * Readings that passed the stability gate, each marked observed or uncertain. Fields missing from
+ * Readings that stayed the same for their field's `stableReads`, each marked observed or uncertain. Fields missing from
  * `readings` are forgotten, so they restart their count when they reappear. A reading for a field
  * `fieldOf` does not know is dropped.
  */
-export function gateReadings<Declared>(
-  gate: StabilityGate,
+export function debounceReadings<Declared>(
+  debouncer: Debouncer,
   readings: Iterable<Reading>,
-  fieldOf: (id: string) => GatedField<Declared> | undefined,
+  fieldOf: (id: string) => DebouncedField<Declared> | undefined,
 ): ObservedReading<Declared>[] {
   const all = [...readings];
-  gate.retain(new Set(all.map((reading) => reading.field)));
-  const gated: ObservedReading<Declared>[] = [];
+  debouncer.retain(new Set(all.map((reading) => reading.field)));
+  const stable: ObservedReading<Declared>[] = [];
   for (const reading of all) {
     const field = fieldOf(reading.field);
-    if (!field || !gate.push(reading.field, reading.value, field.stableReads)) continue;
-    gated.push({
+    if (!field || !debouncer.push(reading.field, reading.value, field.stableReads)) continue;
+    stable.push({
       ...reading,
       status:
         reading.value !== null && reading.confidence >= field.minConfidence
@@ -63,5 +63,5 @@ export function gateReadings<Declared>(
       declared: field.declared,
     });
   }
-  return gated;
+  return stable;
 }

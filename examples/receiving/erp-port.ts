@@ -9,7 +9,7 @@ const receiptColumns = ['delivery', 'purchaseOrder', 'sku', 'counted', 'reason',
 
 /**
  * The ERP through its exchange folders. Each goods receipt is one CSV file named after its
- * effect; the ERP answers with `<effect id>.json` in the receipts folder. Its advance shipping
+ * effect; the ERP responds with `<effect id>.json` in the receipts folder. Its advance shipping
  * notice exports are CSV files in the inbox, one line per row. A row that does not fit the line
  * schema fails the import, so a malformed export is reported instead of half applied.
  */

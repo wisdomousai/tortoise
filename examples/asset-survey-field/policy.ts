@@ -24,7 +24,7 @@ export const fieldPolicy = definePolicy<FieldState, 'owner'>({
     ...worklistRules(worklist),
     [fieldOperations.tagGet.id]: 'open',
     // The notification dispatcher: the owner under its delegated grant, never a screen.
-    [fieldOperations.noticesSettle.id]: {
+    [fieldOperations.noticesComplete.id]: {
       allow: ({ state, context }) =>
         state.ownerId === context.principalId && context.grant !== undefined,
     },

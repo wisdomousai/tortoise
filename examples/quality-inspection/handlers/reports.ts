@@ -33,8 +33,8 @@ const metricsSummaryHandler = () =>
           effect.createdAt >= since && resourceVisible(ctx, plants, effect.resource, input.plant),
       );
     const acceptance = effects.flatMap((effect) =>
-      effect.status === 'accepted' && effect.settledAt !== undefined
-        ? [effect.settledAt - effect.createdAt]
+      effect.status === 'accepted' && effect.completedAt !== undefined
+        ? [effect.completedAt - effect.createdAt]
         : [],
     );
     return {

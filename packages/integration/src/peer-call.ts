@@ -6,16 +6,16 @@ export interface PeerClient {
 }
 
 /**
- * A peer call that got no answer it could use.
+ * A peer call that got no response it could use.
  *
  * - `disconnected`: there is no client, such as a device that is not paired.
  * - `unreachable`: the request did not complete.
- * - `answered`: the peer answered with an error status; `envelope` holds its error body, if any.
+ * - `responded`: the peer responded with an error status; `envelope` holds its error body, if any.
  */
 export class PeerCallError extends Error {
   constructor(
     message: string,
-    readonly kind: 'disconnected' | 'unreachable' | 'answered',
+    readonly kind: 'disconnected' | 'unreachable' | 'responded',
     readonly status?: number,
     readonly envelope?: ErrorEnvelope,
   ) {
@@ -27,7 +27,7 @@ export class PeerCallError extends Error {
   }
 }
 
-/** What the peer's command route answers: its receipt, without the session-bound cursor. */
+/** What the peer's command route returns: its receipt, without the session-bound cursor. */
 export interface PeerReceipt<T = unknown> {
   readonly operation: string;
   readonly result: T;
@@ -88,8 +88,8 @@ export function createPeerCall(options: PeerCallOptions): PeerCall {
       (T & { error?: ErrorEnvelope }) | undefined;
     if (!response.ok || !body)
       throw new PeerCallError(
-        body?.error ? `${body.error.code} ${body.error.message}` : `answered ${response.status}`,
-        'answered',
+        body?.error ? `${body.error.code} ${body.error.message}` : `responded ${response.status}`,
+        'responded',
         response.status,
         body?.error,
       );
@@ -114,8 +114,8 @@ export function createPeerCall(options: PeerCallOptions): PeerCall {
         { input, idempotencyKey },
         signal,
       );
-      const { operation: answered, result, effects } = await json<PeerReceipt<T>>(response);
-      return { operation: answered, result, ...(effects ? { effects } : {}) };
+      const { operation: returned, result, effects } = await json<PeerReceipt<T>>(response);
+      return { operation: returned, result, ...(effects ? { effects } : {}) };
     },
     async query<T>(operation: string, input: unknown = {}, signal?: AbortSignal) {
       const response = await postJson(

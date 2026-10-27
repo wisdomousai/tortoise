@@ -1,5 +1,4 @@
 import { expect, test } from 'bun:test';
-import { Database } from 'bun:sqlite';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -106,26 +105,9 @@ test('independent work order workflow has identical memory and SQLite outcomes a
   }
 });
 
-test('memory and SQLite commit outbox effects atomically and load pre-outbox documents', async () => {
+test('memory and SQLite commit outbox effects atomically', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-outbox-conformance-'));
   const path = join(directory, 'workspace.sqlite');
-  // A document persisted before the outbox existed has no effects field.
-  const legacy = new Database(path, { create: true });
-  legacy.exec(
-    'CREATE TABLE framework_schema (version INTEGER NOT NULL); INSERT INTO framework_schema VALUES (1); CREATE TABLE workspace_snapshots (workspace_id TEXT PRIMARY KEY, document TEXT NOT NULL)',
-  );
-  legacy.query('INSERT INTO workspace_snapshots VALUES (?, ?)').run(
-    'w',
-    JSON.stringify({
-      state: { n: 0 },
-      cursor: 0,
-      authorizationRevision: 0,
-      resourceRevisions: {},
-      receipts: {},
-      journal: [],
-    }),
-  );
-  legacy.close();
   const durable = new SQLiteStorage<{ n: number }>(path, () => ({ n: 0 }));
   try {
     for (const storage of [createMemoryStorage({ n: 0 }), durable] as Storage<{ n: number }>[]) {

@@ -19,12 +19,12 @@ import {
 } from '../src/index';
 
 const fixture = { ui: { exception: 'test fixture' } } as const;
-const tally = defineCapability({
-  id: 'tally.add',
+const score = defineCapability({
+  id: 'score.add',
   kind: 'command',
   input: jsonSchema(z.strictObject({ by: z.number(), fail: z.boolean().optional() })),
   output: jsonSchema(z.strictObject({ total: z.number(), allowed: z.boolean() })),
-  permission: { action: 'add', resourceType: 'tally' },
+  permission: { action: 'add', resourceType: 'score' },
   ...fixture,
 });
 const note = defineCapability({
@@ -35,29 +35,29 @@ const note = defineCapability({
   permission: { action: 'write', resourceType: 'note' },
   ...fixture,
 });
-const tallyManifest = defineFeatureManifest({
-  id: 'tally',
-  title: 'Tally',
-  modules: [defineModule({ id: 'tally', capabilities: [tally] })],
+const scoreManifest = defineFeatureManifest({
+  id: 'score',
+  title: 'Score',
+  modules: [defineModule({ id: 'score', capabilities: [score] })],
 });
 const notes = defineModule({ id: 'notes', capabilities: [note] });
 
 type Slice = { total: number };
 type Access = { allows(principalId: string): boolean };
 type Hooks = { onAdded?(total: number): void };
-type Root = { members: string[]; log: string[]; tally: Slice };
+type Root = { members: string[]; log: string[]; score: Slice };
 
-const add: FeatureHandler<Slice, unknown, Access, Hooks, typeof tally> = {
-  capability: tally,
+const add: FeatureHandler<Slice, unknown, Access, Hooks, typeof score> = {
+  capability: score,
   handle(input, ctx) {
     ctx.state.total += input.by;
-    ctx.change('tally:main');
+    ctx.change('score:main');
     ctx.hooks.onAdded?.(ctx.state.total);
     if (input.fail) throw new Error('after the hook');
     return { total: ctx.state.total, allowed: ctx.access.allows(ctx.context.principalId) };
   },
 };
-const tallyPolicy: FeaturePolicy<Slice, Access> = {
+const scorePolicy: FeaturePolicy<Slice, Access> = {
   authorize: ({ access, previousAccess, context }) => ({
     allowed:
       access.allows(context.principalId) &&
@@ -66,10 +66,10 @@ const tallyPolicy: FeaturePolicy<Slice, Access> = {
   }),
   canReadEvent: ({ access, context }) => access.allows(context.principalId),
 };
-const tallyFeature: FeatureServer<Slice, Access, Hooks> = {
-  manifest: tallyManifest,
+const scoreFeature: FeatureServer<Slice, Access, Hooks> = {
+  manifest: scoreManifest,
   handlers: [add],
-  authorization: { resourceTypes: ['tally'], port: tallyPolicy },
+  authorization: { resourceTypes: ['score'], port: scorePolicy },
 };
 const access = (state: Root): Access => ({ allows: (id) => state.members.includes(id) });
 const applicationPolicy = definePolicy<Root>({
@@ -79,27 +79,27 @@ const applicationPolicy = definePolicy<Root>({
 
 function setup(members = ['ann']) {
   let accessReads = 0;
-  const storage = createMemoryStorage<Root>({ members, log: [], tally: { total: 0 } });
+  const storage = createMemoryStorage<Root>({ members, log: [], score: { total: 0 } });
   const app = createApplication({
-    modules: [notes, ...tallyManifest.modules],
+    modules: [notes, ...scoreManifest.modules],
     storage,
     services: {},
     authorization: routeAuthorization<Root>(applicationPolicy, [
       {
-        id: 'tally',
-        operations: [tally.id],
-        resourceTypes: ['tally'],
-        select: (state) => state.tally,
+        id: 'score',
+        operations: [score.id],
+        resourceTypes: ['score'],
+        select: (state) => state.score,
         access,
-        port: tallyPolicy,
+        port: scorePolicy,
       },
     ]),
     handlers: [
       { capability: note, handle: (_input, ctx) => (ctx.change('note:1'), {}) },
       ...featureHandlers<Root, {}>(
         {
-          key: 'tally',
-          feature: tallyFeature,
+          key: 'score',
+          feature: scoreFeature,
           access: (state) => (accessReads++, access(state)),
           hooks: {
             onAdded: ((total: number, ctx: { state: Root }) => {
@@ -120,59 +120,59 @@ const bob = { workspaceId: 'w', principalId: 'bob' };
 describe('feature composition', () => {
   test('a handler sees its slice, a lazy access view and hooks bound to the transaction', async () => {
     const { app, state, reads } = setup();
-    const receipt = await app.invoke({ operation: 'tally.add', input: { by: 2 } }, ann);
+    const receipt = await app.invoke({ operation: 'score.add', input: { by: 2 } }, ann);
     expect(receipt.result).toEqual({ total: 2, allowed: true });
     expect(reads()).toBe(1);
-    expect(await state()).toMatchObject({ log: ['added to 2'], tally: { total: 2 } });
+    expect(await state()).toMatchObject({ log: ['added to 2'], score: { total: 2 } });
   });
 
   test('a failing handler rolls back the hook write with the slice', async () => {
     const { app, state } = setup();
     await expect(
-      app.invoke({ operation: 'tally.add', input: { by: 2, fail: true } }, ann),
+      app.invoke({ operation: 'score.add', input: { by: 2, fail: true } }, ann),
     ).rejects.toThrow();
-    expect(await state()).toMatchObject({ log: [], tally: { total: 0 } });
+    expect(await state()).toMatchObject({ log: [], score: { total: 0 } });
   });
 
   test('the feature policy decides its operations and events over the access view', async () => {
     const { app } = setup();
     await expect(
-      app.invoke({ operation: 'tally.add', input: { by: 1 } }, bob),
+      app.invoke({ operation: 'score.add', input: { by: 1 } }, bob),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    await app.invoke({ operation: 'tally.add', input: { by: 1 } }, ann);
+    await app.invoke({ operation: 'score.add', input: { by: 1 } }, ann);
     await app.invoke({ operation: 'note.write', input: { text: 'x' } }, bob);
     const seen = async (context: typeof ann) =>
       (await app.events(0, context)).events.map((event) => event.resource);
-    expect(await seen(ann)).toEqual(['tally:main', 'note:1']);
+    expect(await seen(ann)).toEqual(['score:main', 'note:1']);
     expect(await seen(bob)).toEqual(['note:1']);
   });
 
   test('a unit cannot claim what the application policy covers', () => {
     const unit = {
-      id: 'tally',
-      operations: [tally.id],
-      resourceTypes: ['tally'],
-      select: (state: Root) => state.tally,
-      port: tallyPolicy,
+      id: 'score',
+      operations: [score.id],
+      resourceTypes: ['score'],
+      select: (state: Root) => state.score,
+      port: scorePolicy,
     };
     expect(
       definePolicy<Root>({ operations: { a: 'open' }, events: { x: () => true } }).covers,
     ).toEqual({ operations: ['a'], resourceTypes: ['x'] });
     expect(() =>
       routeAuthorization<Root>(
-        definePolicy<Root>({ operations: {}, events: { tally: () => true } }),
+        definePolicy<Root>({ operations: {}, events: { score: () => true } }),
         [unit],
       ),
-    ).toThrow('Resource type "tally" has an application event rule');
+    ).toThrow('Resource type "score" has an application event rule');
     expect(() =>
       routeAuthorization<Root>(
-        definePolicy<Root>({ operations: { [tally.id]: 'open' }, events: {} }),
+        definePolicy<Root>({ operations: { [score.id]: 'open' }, events: {} }),
         [unit],
       ),
-    ).toThrow('The application policy has a rule for tally.add');
+    ).toThrow('The application policy has a rule for score.add');
     expect(routeAuthorization<Root>(applicationPolicy, [unit]).covers).toEqual({
-      operations: [note.id, tally.id],
-      resourceTypes: ['note', 'tally'],
+      operations: [note.id, score.id],
+      resourceTypes: ['note', 'score'],
     });
   });
 
@@ -184,20 +184,20 @@ describe('feature composition', () => {
     };
     const port = routeAuthorization<Root>(application, [
       {
-        id: 'tally',
+        id: 'score',
         operations: [],
-        resourceTypes: ['tally'],
-        select: (state) => state.tally,
+        resourceTypes: ['score'],
+        select: (state) => state.score,
         access,
-        port: tallyPolicy,
+        port: scorePolicy,
       },
     ]);
-    const state: Root = { members: ['ann'], log: [], tally: { total: 0 } };
+    const state: Root = { members: ['ann'], log: [], score: { total: 0 } };
     const read = (resource: string, context = ann) =>
       port.canReadResource!({ resource, event: { resource } as never, context, state });
     expect(await read('note:open')).toBe(true);
     expect(await read('note:closed')).toBe(false);
-    expect(await read('tally:main')).toBe(true);
-    expect(await read('tally:main', bob)).toBe(false);
+    expect(await read('score:main')).toBe(true);
+    expect(await read('score:main', bob)).toBe(false);
   });
 });

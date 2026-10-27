@@ -3,7 +3,7 @@ import { defineWorklist, WORKLIST_ASSIGNMENT } from '@agent-native/assignments';
 import { defineModule, effectOutcomeSchema, recordKeySchema } from '@agent-native/contracts';
 import { assignments, survey } from '@agent-native/asset-survey/contracts/kinds';
 import { operation } from '@agent-native/asset-survey/contracts/operation';
-import { hubSurface } from '@agent-native/asset-survey/contracts/peer';
+import { hubApi } from '@agent-native/asset-survey/contracts/peer';
 import { fieldOs } from './os';
 
 /**
@@ -17,8 +17,8 @@ export const worklist = defineWorklist({
   namespace: 'field',
   target: 'hub',
   assignments,
-  issuer: hubSurface,
-  lane: 'device',
+  issuer: hubApi,
+  assigneeType: 'device',
   destination: {
     id: 'hub',
     purpose: 'Deliver captures and their photos to the hub, and read the surveys sent here.',
@@ -51,14 +51,14 @@ export const fieldOperations = {
     exception:
       'Read when an OS request opens tag:<tag>, to choose the capture or search screen that shows it.',
   }),
-  noticesSettle: operation('assignment-notices.effect.settle', 'command', {
+  noticesComplete: operation('assignment-notices.effect.complete', 'command', {
     input: z.strictObject({
       effectId: z.string().min(1).max(128),
       outcome: effectOutcomeSchema,
       fence: z.number().int().min(1).optional(),
     }),
     output: z.strictObject({}),
-    permission: { action: 'settle', resourceType: 'AssignmentNotice' },
+    permission: { action: 'complete', resourceType: 'AssignmentNotice' },
     description:
       'Notification dispatcher only: record whether the device showed the notice of a new survey.',
     dependencies: [worklist.types.assignment],
@@ -71,7 +71,7 @@ export const fieldModule = defineModule({
   capabilities: [
     ...worklist.module.capabilities,
     fieldOperations.tagGet,
-    fieldOperations.noticesSettle,
+    fieldOperations.noticesComplete,
   ],
   os: fieldOs,
 });

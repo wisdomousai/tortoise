@@ -1,4 +1,4 @@
-import { definePeerSurface } from '@agent-native/contracts';
+import { definePeerApi } from '@agent-native/contracts';
 import { assignments } from './kinds';
 
 /**
@@ -6,8 +6,8 @@ import { assignments } from './kinds';
  * report per capture and the done mark. Browser-safe; the field application's worklist declares
  * the hub as a target through it, and device link grants a device exactly these.
  */
-export const hubSurface = definePeerSurface({
+export const hubApi = definePeerApi({
   application: 'asset-survey',
-  commands: assignments.lanes.device.commands,
-  queries: assignments.lanes.device.queries,
+  commands: assignments.assignees.device.commands,
+  queries: assignments.assignees.device.queries,
 });

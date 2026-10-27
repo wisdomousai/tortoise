@@ -167,7 +167,7 @@ function Item({
 }) {
   const [message, setMessage] = useState<string>();
   const [status, setStatus] = useState('');
-  // One ID per report: a retry after a lost answer repeats it, and the instance keeps one copy.
+  // One ID per report: a retry after a lost response repeats it, and the instance keeps one copy.
   const [reportId, setReportId] = useState(() => crypto.randomUUID());
   const run = async (command: Command, input: Record<string, unknown>) => {
     setMessage(undefined);

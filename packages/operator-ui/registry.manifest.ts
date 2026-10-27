@@ -283,7 +283,7 @@ export const items: readonly ManifestItem[] = [
     type: 'registry:component',
     title: 'Takeover button',
     description:
-      'Seat control for screens shared by an operator and a background agent; taking over is instant, handing back needs a hold.',
+      'Screen control for screens shared by an operator and a background agent; taking over is instant, handing back needs a hold.',
     dependencies: ['lucide-react'],
     registryDependencies: ['utils', 'operator:operator-theme', 'operator:big-action'],
     files: ['src/components/takeover-button.tsx'],
@@ -319,7 +319,7 @@ export const items: readonly ManifestItem[] = [
     type: 'registry:block',
     title: 'Operator station',
     description:
-      'Full-window station layout: dark header with back link, context, seat control and actions; machine banner; primary work area beside the attention queue; footer. Includes the station panel.',
+      'Full-window station layout: dark header with back link, context, screen control and actions; machine banner; primary work area beside the attention queue; footer. Includes the station panel.',
     registryDependencies: [
       'utils',
       'operator:operator-surface',

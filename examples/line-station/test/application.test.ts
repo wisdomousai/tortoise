@@ -35,7 +35,7 @@ test('the embedded instance syncs the MES and reports station targets it cannot 
     expect((await instance.integrations.sync()).map((report) => report.target)).toEqual(['mes']);
     expect(await instance.integrations.drain(0)).toEqual({
       pending: 0,
-      targets: [{ target: 'mes', pending: 0, held: 0, upstream: 0, deliverable: true }],
+      targets: [{ target: 'mes', pending: 0, held: 0, acknowledged: 0, deliverable: true }],
     });
   } finally {
     await instance.close();

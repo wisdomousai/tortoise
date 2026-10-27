@@ -2,8 +2,8 @@ import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
 import { stationSignInModule } from './contracts';
 
 /**
- * Shared-station sign-in: an operator scans their badge at a seat and enters a PIN, and gets a
- * short-lived session of their own while the seat keeps its own. It runs on a serving Bun host.
+ * Shared-station sign-in: an operator scans their badge at a terminal and enters a PIN, and gets a
+ * short-lived session of their own while the terminal keeps its own. It runs on a serving Bun host.
  */
 export const stationSignInPluginManifest = definePluginManifest({
   id: 'station-sign-in',
@@ -13,11 +13,11 @@ export const stationSignInPluginManifest = definePluginManifest({
   modules: [stationSignInModule],
   settings: [
     {
-      key: 'station-sign-in-seats',
-      env: 'AGENT_NATIVE_STATION_SIGN_IN_SEATS',
+      key: 'station-sign-in-terminals',
+      env: 'AGENT_NATIVE_STATION_SIGN_IN_TERMINALS',
       kind: 'string',
       description:
-        'comma-separated principals whose screens are station seats, besides the local owner; absent: only the local owner',
+        'comma-separated principals whose screens are station terminals, besides the local owner; absent: only the local owner',
     },
     {
       key: 'station-sign-in-minutes',

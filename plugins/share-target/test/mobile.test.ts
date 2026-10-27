@@ -23,7 +23,7 @@ afterEach(async () => {
 });
 
 /** Time for requests that should show nothing to have been refused. */
-const settle = () => Bun.sleep(20);
+const complete = () => Bun.sleep(20);
 /** Wait until `condition` holds, polling; fails the test after two seconds. */
 async function until(condition: () => boolean) {
   const deadline = Date.now() + 2_000;
@@ -92,7 +92,7 @@ test('items another app shared prefill the form; a share action opens the share 
   ];
   send(`${scheme}://expo-sharing`);
   await until(() => shown.length === 2);
-  await settle();
+  await complete();
   expect(read).toEqual(['content://scans/7']);
   expect(shown).toHaveLength(2);
   expect(shown[0]).toEqual({
@@ -108,7 +108,7 @@ test('items another app shared prefill the form; a share action opens the share 
 
   // The share link carries nothing itself: opened again, it shows nothing.
   send(`${scheme}://expo-sharing`);
-  await settle();
+  await complete();
   expect(shown).toHaveLength(2);
 
   expect(

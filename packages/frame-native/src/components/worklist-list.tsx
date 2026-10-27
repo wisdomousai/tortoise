@@ -15,7 +15,7 @@ export interface WorklistItem {
 }
 
 /** Where an assignment stands here: open, done and waiting, done, done refused, or closed. */
-function Standing({ item, issuer }: { item: WorklistItem; issuer: string }) {
+function AssignmentStatus({ item, issuer }: { item: WorklistItem; issuer: string }) {
   if (item.done)
     return item.doneSync === 'accepted' ? (
       <StatusPill signal="ok" label="Done" />
@@ -57,7 +57,7 @@ export function WorklistList({
           detail={
             item.rejection ? `${item.rejection.code}: ${item.rejection.message}` : detail(item)
           }
-          trailing={<Standing item={item} issuer={issuer} />}
+          trailing={<AssignmentStatus item={item} issuer={issuer} />}
           {...(onOpen ? { onPress: () => onOpen(item) } : {})}
         />
       )}

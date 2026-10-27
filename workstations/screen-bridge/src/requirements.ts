@@ -11,7 +11,7 @@ import { defineHostComponent } from '@agent-native/contracts';
 export const stationBridgeComponent = defineHostComponent({
   id: 'station-bridge',
   description:
-    'Reads station screens with local perception models and runs declared screen procedures behind the outbox.',
+    'Reads station screens with local recognition models and runs declared screen procedures behind the outbox.',
   requirements: {
     network: [
       {
@@ -40,12 +40,12 @@ export const stationBridgeComponent = defineHostComponent({
     ],
     processes: [
       {
-        id: 'perception-worker',
+        id: 'recognition-worker',
         // Bound by the site policy's `processes` section; the process port starts it with a built environment.
         executable: 'configured',
-        purpose: 'JSON-lines perception worker for local OCR, classifier or audio models.',
+        purpose: 'JSON-lines recognition worker for local OCR, classifier or audio models.',
         availability: 'optional',
-        // Frames arrive over stdin; the worker needs no network.
+        // Frames are sent over stdin; the worker needs no network.
         network: [],
       },
     ],

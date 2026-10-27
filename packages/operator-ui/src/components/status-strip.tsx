@@ -43,7 +43,7 @@ function StatusStrip({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-/** One station signal: machine state, bridge mode, seat owner, upstream sync. */
+/** One station signal: machine state, bridge mode, control holder, system of record sync. */
 function StatusPill({
   signal,
   label,
@@ -149,7 +149,7 @@ const deliveryLook: Record<
 /**
  * Where a local write stands with the system that owns it. A commit receipt proves the local
  * write only; this badge shows the outbox state: waiting, retrying, held for reconciliation
- * (the result of a screen action could not be confirmed), accepted with the upstream reference,
+ * (the result of a screen action could not be confirmed), accepted with the system of record's reference,
  * or rejected with its reason.
  */
 function DeliveryBadge({
@@ -159,7 +159,7 @@ function DeliveryBadge({
   className,
 }: {
   state: DeliveryState;
-  /** Upstream reference once accepted. */
+  /** The system of record's reference once accepted. */
   reference?: string;
   /** Rejection or hold reason. */
   reason?: { code: string; message: string };

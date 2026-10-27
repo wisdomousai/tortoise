@@ -5,11 +5,11 @@ import { z } from 'zod';
 import {
   defineCapability,
   defineModule,
-  definePeerSurface,
+  definePeerApi,
   definePeerTarget,
   jsonSchema,
 } from '@agent-native/contracts';
-import { peerLane } from '@agent-native/integration';
+import { peerAllowlist } from '@agent-native/integration';
 import { defineApplication } from '@agent-native/kernel/application';
 import type { AnyHostPlugin } from '@agent-native/kernel/plugin';
 import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';
@@ -38,13 +38,13 @@ const caller = z.strictObject({
   delegated: z.boolean(),
 });
 
-/** Service: the caller announces an arrival. */
-export const announce = defineCapability({
-  id: 'quality.arrival.announce',
+/** Service: the caller requests an inspection. */
+export const requestInspection = defineCapability({
+  id: 'quality.request.create',
   kind: 'command',
   input: jsonSchema(lotInput),
   output: jsonSchema(z.strictObject({ by: z.string() })),
-  permission: { action: 'create', resourceType: 'arrival' },
+  permission: { action: 'create', resourceType: 'inspection-request' },
   ...fixture,
 });
 /** On behalf of a person: who the call ran as. */
@@ -74,7 +74,7 @@ export const release = defineCapability({
   permission: { action: 'release', resourceType: 'lot' },
   ...fixture,
 });
-/** Local only: on no peer surface. */
+/** Local only: on no peer API. */
 export const purge = defineCapability({
   id: 'quality.lot.purge',
   kind: 'command',
@@ -84,9 +84,9 @@ export const purge = defineCapability({
   ...fixture,
 });
 
-export const surface = definePeerSurface({
+export const api = definePeerApi({
   application: 'quality',
-  commands: [announce],
+  commands: [requestInspection],
   onBehalfOf: { commands: [hold, release], queries: [whoami] },
 });
 
@@ -98,7 +98,7 @@ interface QualityState {
 const bind = createHandlerFactory<QualityState, unknown>();
 const record = (operation: string) =>
   bind(
-    [announce, hold, release, purge].find((capability) => capability.id === operation)!,
+    [requestInspection, hold, release, purge].find((capability) => capability.id === operation)!,
     async (input, ctx) => {
       ctx.state.log.push({ operation, lot: input.lot, by: ctx.context.principalId });
       ctx.change(`lot:${input.lot}`);
@@ -110,10 +110,10 @@ const roleOf = (state: QualityState, principalId: string) =>
   Object.hasOwn(state.members, principalId) ? state.members[principalId] : undefined;
 
 export const qualityPolicy = definePolicy<QualityState, Role>({
-  integrations: [peerLane(surface)],
+  integrations: [peerAllowlist(api)],
   caller: { allow: (state, context) => roleOf(state, context.principalId) !== undefined },
   operations: {
-    [announce.id]: 'integration',
+    [requestInspection.id]: 'integration',
     [whoami.id]: 'open',
     [hold.id]: {
       allow: ({ state, context }) => roleOf(state, context.principalId) === 'inspector',
@@ -126,7 +126,7 @@ export const qualityPolicy = definePolicy<QualityState, Role>({
 
 /**
  * The called application: Ann inspects, Bob views, the owner is a member; the peer link serves
- * `surface`, and `erp-integration` is reserved.
+ * `api`, and `erp-integration` is reserved.
  */
 export function qualityApplication(
   options: PeerLinkOptions = {},
@@ -137,7 +137,10 @@ export function qualityApplication(
       id: 'quality',
       title: 'Quality',
       modules: [
-        defineModule({ id: 'quality', capabilities: [announce, whoami, hold, release, purge] }),
+        defineModule({
+          id: 'quality',
+          capabilities: [requestInspection, whoami, hold, release, purge],
+        }),
       ],
       plugins: [...before.map((entry) => entry.manifest), peerLinkPluginManifest],
     }),
@@ -146,7 +149,7 @@ export function qualityApplication(
       log: [],
     }),
     handlers: [
-      record(announce.id),
+      record(requestInspection.id),
       record(hold.id),
       record(release.id),
       record(purge.id),
@@ -159,7 +162,7 @@ export function qualityApplication(
     authorization: qualityPolicy,
     plugins: [
       ...before.map((entry) => entry.plugin),
-      createPeerLinkPlugin({ reserved: ['erp-integration'], surface, ...options }),
+      createPeerLinkPlugin({ reserved: ['erp-integration'], api, ...options }),
     ],
   });
 }
@@ -233,12 +236,12 @@ export async function startQuality(
       publicKey: key.publicKey,
       contract: { id: 'receiving', contractVersion: '1.0.0', digest: 'sha256:test' },
     });
-    if (response.status !== 201) throw new Error(`enroll answered ${response.status}`);
-    const answer = (await response.json()) as {
+    if (response.status !== 201) throw new Error(`enroll returned ${response.status}`);
+    const reply = (await response.json()) as {
       token: string;
       peer: { id: string; audience: string };
     };
-    return { token: answer.token, peerId: answer.peer.id, audience: answer.peer.audience, key };
+    return { token: reply.token, peerId: reply.peer.id, audience: reply.peer.audience, key };
   }
 
   /** POST to the API as `peer`, with a signed subject assertion when `options.subject` is set. */
@@ -315,10 +318,10 @@ export async function refusal(response: Response) {
 export const qualityTarget = definePeerTarget({
   target: 'quality',
   resourceType: 'QualitySync',
-  surface,
-  settles: ['delivery'],
+  api,
+  changes: ['delivery'],
   status: {},
-  descriptions: { settle: 'Settle a quality effect.', status: 'Quality sync status.' },
+  descriptions: { complete: 'Complete a quality effect.', status: 'Quality sync status.' },
   destination: {
     id: 'quality-api',
     purpose: 'Quality inspection',

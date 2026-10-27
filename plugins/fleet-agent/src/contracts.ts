@@ -9,7 +9,7 @@ import {
 
 /**
  * The fleet protocol: the operations a fleet application serves to the sites enrolled with it.
- * A site calls them over the fleet's HTTP API as its own enrolled principal; the fleet answers
+ * A site calls them over the fleet's HTTP API as its own enrolled principal; the fleet returns data
  * only about that site. Browser-safe data, shared by `plugins/fleet-agent` (the site side) and
  * any fleet application, which composes `fleetSiteModule` and implements the handlers.
  */
@@ -30,14 +30,14 @@ export const siteReportSchema = z.strictObject({
   outbox: z.strictObject({
     pending: count,
     held: count,
-    upstream: count,
+    acknowledged: count,
     targets: z
       .array(
         z.strictObject({
           target: id,
           pending: count,
           held: count,
-          upstream: count,
+          acknowledged: count,
         }),
       )
       .max(100),
@@ -77,14 +77,14 @@ export const relayRequestSchema = z.strictObject({
   body: z.string().max(1_400_000).optional(),
 });
 export type RelayRequest = z.infer<typeof relayRequestSchema>;
-export const relayAnswerSchema = z.strictObject({
+export const relayResponseSchema = z.strictObject({
   id,
   status: z.number().int().min(100).max(599),
   headers,
   /** Base64 response body. */
   body: z.string().max(1_400_000).optional(),
 });
-export type RelayAnswer = z.infer<typeof relayAnswerSchema>;
+export type RelayResponse = z.infer<typeof relayResponseSchema>;
 
 const site = { action: 'write', resourceType: 'Site' } as const;
 const siteRead = { action: 'read', resourceType: 'Site' } as const;
@@ -132,8 +132,8 @@ export const fleetSiteOperations = {
     permission: site,
     ui: calledBySites,
   }),
-  relayTake: defineCapability({
-    id: 'fleet.relay.take',
+  relayClaim: defineCapability({
+    id: 'fleet.relay.claim',
     kind: 'command',
     description:
       'Take the oldest remote-access request waiting for the calling site, if any, so the site forwards it to its own API.',
@@ -142,11 +142,11 @@ export const fleetSiteOperations = {
     permission: site,
     ui: calledBySites,
   }),
-  relayAnswer: defineCapability({
-    id: 'fleet.relay.answer',
+  relayRespond: defineCapability({
+    id: 'fleet.relay.respond',
     kind: 'command',
     description: "Record the site API's response to a remote-access request the site took.",
-    input: jsonSchema(relayAnswerSchema),
+    input: jsonSchema(relayResponseSchema),
     output: jsonSchema(z.strictObject({})),
     permission: site,
     ui: calledBySites,

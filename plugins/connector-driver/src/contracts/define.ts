@@ -11,7 +11,7 @@ import type {
  * - `idempotent`: the driver deduplicates by effect ID, so a retry is always safe;
  * - `convergent`: the host reads the declared `readback` before and after acting, so a target
  *   that already shows the result is accepted without acting;
- * - `once`: the driver answers `action.lookup` for an effect ID, and an unknown outcome is held.
+ * - `once`: the driver handles `action.lookup` for an effect ID, and an unknown outcome is held.
  */
 export type DeliveryMode = 'idempotent' | 'convergent' | 'once';
 
@@ -19,7 +19,7 @@ export type DeliveryMode = 'idempotent' | 'convergent' | 'once';
  * What an action can do to people or equipment. `none` runs in `assist` mode; `low` needs
  * `actuate`; `operator-present` needs `actuate` and a person who confirmed at the machine.
  */
-export type HazardClass = 'none' | 'low' | 'operator-present';
+export type RiskLevel = 'none' | 'low' | 'operator-present';
 
 /** One value the driver reports in `state.read` and telemetry. */
 export interface DriverStateField {
@@ -48,7 +48,7 @@ export interface DriverAction {
   readonly input: Schema<unknown>;
   readonly result?: Schema<unknown>;
   readonly delivery: DeliveryMode;
-  readonly hazard: HazardClass;
+  readonly risk: RiskLevel;
   /** How long the action may run before the host stops waiting and treats it as interrupted. */
   readonly timeoutMs: number;
   /** What the state shows once the action took effect. Required for `convergent`. */
@@ -96,10 +96,10 @@ export interface DriverContract {
   /**
    * The state field that says who controls the equipment, and the value meaning its own panel
    * does. While it shows `local`, remote actions are refused, as the screen bridge refuses while
-   * the operator holds the seat.
+   * the operator holds control.
    */
   readonly control?: { readonly field: string; readonly local: string };
-  /** The driver answers `action.lookup`. Required by any `once` action. */
+  /** The driver handles `action.lookup`. Required by any `once` action. */
   readonly lookup?: boolean;
 }
 

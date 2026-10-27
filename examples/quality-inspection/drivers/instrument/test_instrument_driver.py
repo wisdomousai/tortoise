@@ -41,7 +41,7 @@ class MeasurementTest(unittest.TestCase):
         # The last line has no unit, so it is not a measurement.
         self.assertEqual(self.lines("key", texts), [1.2, 1.2])
 
-    def test_stream_output_sends_once_each_time_the_reading_settles(self):
+    def test_stream_output_sends_once_each_time_the_reading_stabilizes(self):
         texts = ["US,+1.0 mm", "ST,+1.2 mm", "ST,+1.2 mm", "US,+1.5 mm", "ST,+1.6 mm", "ST,+1.6 mm"]
         self.assertEqual(self.lines("stream", texts), [1.2, 1.6])
 

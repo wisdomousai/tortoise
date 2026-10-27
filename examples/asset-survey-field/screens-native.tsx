@@ -6,7 +6,7 @@ import { intentScannerScreens } from '@agent-native/intent-scanner/plugin-screen
 import { AssignmentScreen } from './ui-native/assignment';
 import { AssignmentsScreen } from './ui-native/assignments';
 import { CaptureScreen } from './ui-native/capture';
-import { FieldStatus, SyncScreen, UnplacedScreen } from './ui-native/captures';
+import { FieldStatus, SyncScreen, UnlinkedScreen } from './ui-native/captures';
 import { tagScreen } from './ui-native/os-requests';
 import { scannerProfile } from './ui-native/shared';
 import manifest from './manifest';
@@ -19,12 +19,12 @@ export default defineNativeScreens({
     { path: '/assignments', title: 'Assignments', component: AssignmentsScreen },
     { path: '/assignment', title: 'Assignment', component: AssignmentScreen },
     { path: '/capture', title: 'Capture', component: CaptureScreen },
-    { path: '/unplaced', title: 'Unplaced', component: UnplacedScreen },
+    { path: '/unlinked', title: 'Unlinked', component: UnlinkedScreen },
     { path: '/sync', title: 'Sync', component: SyncScreen },
   ],
   navigation: [
     { to: '/assignments', label: 'Assignments', icon: ClipboardList },
-    { to: '/unplaced', label: 'Unplaced', icon: ImageOff },
+    { to: '/unlinked', label: 'Unlinked', icon: ImageOff },
     { to: '/sync', label: 'Sync', icon: RefreshCw },
   ],
   capabilityScreens: [

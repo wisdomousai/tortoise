@@ -5,7 +5,7 @@ import {
   type AuthorizationRoute,
   type OperationRule,
 } from '@agent-native/runtime';
-import { targetLane, targetRules } from '@agent-native/integration';
+import { targetAllowlist, targetRules } from '@agent-native/integration';
 import type { Role } from '@agent-native/pattern-lab-requests/server';
 import { limsTarget, publishingModule, publishingOperations } from './contracts';
 import { LIMS_PRINCIPAL, type LabPublishingRoot } from './domain';
@@ -19,11 +19,13 @@ const technician: Rule = {
 
 /**
  * Only members pass the caller gate. Technicians publish; saying whether the LIMS registered a
- * held publication also needs a person. The integration principal holds no role and acts only
- * in the target's lane: settle and sync.
+ * held publication also needs a person. The integration principal holds no role and calls only
+ * the target's complete and sync.
  */
 const publishingPolicy = definePolicy<LabPublishingRoot, Role>({
-  integrations: [targetLane(limsTarget, (_state, principalId) => principalId === LIMS_PRINCIPAL)],
+  integrations: [
+    targetAllowlist(limsTarget, (_state, principalId) => principalId === LIMS_PRINCIPAL),
+  ],
   caller: { allow: (state, context) => roleOf(state, context.principalId) !== undefined },
   operations: {
     [publishingOperations.publicationList.id]: 'open',

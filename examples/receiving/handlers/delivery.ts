@@ -31,7 +31,7 @@ export function deliveryHandlers(): HandlerContribution<AppState, Services>[] {
     collectionListHandler<AppState, Services, List, Delivery>(deliveries, operations.deliveryList, {
       store,
       visible,
-      order: (a, b) => b.arrivedAt - a.arrivedAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+      order: (a, b) => b.importedAt - a.importedAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
       searchText: (record) =>
         [record.purchaseOrder, record.supplier, record.sku, record.description].join(' '),
     }),

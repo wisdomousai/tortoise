@@ -1,11 +1,11 @@
 import { own, put } from '@agent-native/runtime';
-import type { Arrival } from './contracts/arrivals';
+import type { InspectionRequest } from './contracts/inspection-requests';
 
 /**
  * Quality inspection capture on top of an external quality system of record (SoR).
  *
- * The SoR owns inspection lots, specifications and code catalogs; they arrive through the
- * integration principal's sync command. This application owns the capture working set: results,
+ * The SoR owns inspection lots, specifications and code catalogs; they are written by the
+ * integration principal's sync command. This application owns the capture records: results,
  * defects and usage decisions recorded at the moment of inspection, each forwarded to the SoR
  * through the outbox. Records are append-only; a correction supersedes a result instead of
  * editing it, so the audit trail matches what the SoR received.
@@ -109,12 +109,12 @@ export interface InstrumentReading {
   id: string;
   value: number;
   unit: string;
-  /** The instance host's clock when the reading arrived. */
+  /** The instance host's clock when the reading was received. */
   observedAt: number;
   device: InstrumentDevice;
   usedBy?: string;
 }
-/** Readings kept; older ones are dropped as new ones arrive. */
+/** Readings kept; older ones are dropped as new ones are received. */
 export const INSTRUMENT_READING_LIMIT = 20;
 /** A reading older than this cannot be confirmed; the part may no longer be on the gauge. */
 export const INSTRUMENT_READING_TTL_MS = 10 * 60_000;
@@ -124,7 +124,7 @@ export interface CodeGroup {
   codes: { code: string; text: string; valuation: Valuation }[];
 }
 export interface QualityState {
-  /** The only principal allowed to sync master data and settle outbox effects. */
+  /** The only principal allowed to sync master data and complete outbox effects. */
   integrationPrincipalId: string;
   /** The only principal allowed to report instrument readings. */
   instrumentPrincipalId: string;
@@ -134,10 +134,10 @@ export interface QualityState {
   defects: Record<string, Defect>;
   codeGroups: Record<string, CodeGroup>;
   instrumentReadings: Record<string, InstrumentReading>;
-  /** Goods other applications announced for incoming inspection, through the peer link. */
-  arrivals: Record<string, Arrival>;
-  /** The feed position of the arrival closed last. */
-  arrivalSequence: number;
+  /** Goods other applications sent for incoming inspection, through the peer link. */
+  inspectionRequests: Record<string, InspectionRequest>;
+  /** The feed position of the inspection request closed last. */
+  requestSequence: number;
   /** SoR watermark of the last applied sync batch. */
   watermark?: string;
   lastSyncAt?: number;
@@ -163,8 +163,8 @@ export function createQualityState(
     defects: {},
     codeGroups: {},
     instrumentReadings: {},
-    arrivals: {},
-    arrivalSequence: 0,
+    inspectionRequests: {},
+    requestSequence: 0,
   };
 }
 
@@ -217,7 +217,7 @@ export function percentile(values: readonly number[], fraction: number): number 
   return sorted[Math.min(sorted.length - 1, Math.ceil(fraction * sorted.length) - 1)];
 }
 
-/** Capture progress and the next open sample, which drives the capture loop and agent worklist. */
+/** Capture progress and the next open sample, which the capture loop and agent worklist follow. */
 export function progress(state: QualityState, lot: InspectionLot) {
   const results = activeResults(state, lot.id);
   let next: { characteristicId: string; sample: number } | null = null;

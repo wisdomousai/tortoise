@@ -2,12 +2,12 @@ import { z } from 'zod';
 import { assertBlobLimits, unitIdPattern, type BlobLimits } from '@agent-native/contracts';
 
 /** Who may take an assignment, and how it reaches them. */
-export const assignmentLanes = ['person', 'agent', 'device', 'peer', 'target'] as const;
-export type AssignmentLane = (typeof assignmentLanes)[number];
+export const assigneeTypes = ['person', 'agent', 'device', 'peer', 'target'] as const;
+export type AssigneeType = (typeof assigneeTypes)[number];
 
 /**
  * Words the generic operations use in the second part of their IDs, such as `assignment.list`
- * and `assignment.report.place`; no kind or target lane may take one.
+ * and `assignment.report.link`; no kind or assignment target may take one.
  */
 export const reservedAssignmentNames: readonly string[] = [
   'report',
@@ -19,7 +19,7 @@ export const reservedAssignmentNames: readonly string[] = [
   'feed',
 ];
 
-/** The longest kind or target lane name: `assignment_<name>_create` stays within 64 characters. */
+/** The longest kind or assignment target name: `assignment_<name>_create` stays within 64 characters. */
 export const MAX_ASSIGNMENT_NAME = 40;
 
 type Shape = z.ZodObject;
@@ -53,8 +53,8 @@ export interface AssignmentKindSpec<
    */
   readonly blobs?: { readonly report?: BlobLimits; readonly brief?: BlobLimits };
   /** Who may take this kind of work. */
-  readonly lanes: readonly AssignmentLane[];
-  /** The target lane's name, required exactly when `lanes` includes `target`. */
+  readonly assigneeTypes: readonly AssigneeType[];
+  /** The assignment target's name, required exactly when `assigneeTypes` includes `target`. */
   readonly target?: string;
   /** Operations the accept hook calls through `ctx.invoke` or `ctx.query`. */
   readonly invokes?: readonly string[];
@@ -73,7 +73,7 @@ export interface AssignmentKind<
 }
 export type AnyAssignmentKind = AssignmentKind<string, Shape, Shape, Shape, Shape>;
 
-/** Throw unless `name` can be a kind or target lane name. */
+/** Throw unless `name` can be a kind or assignment target name. */
 export function checkAssignmentName(name: string, what: string): void {
   if (!unitIdPattern.test(name) || name.length > MAX_ASSIGNMENT_NAME)
     throw new Error(`Invalid assignment ${what} "${name}"`);
@@ -84,9 +84,9 @@ export function checkAssignmentName(name: string, what: string): void {
 /**
  * Declare a kind of work: what the requester fills in, what the assignee receives, what one
  * report holds, what the reviewer adds on accepting, and who may take it. Browser-safe. Fails
- * at definition time on an invalid or reserved ID, an unknown or repeated lane, a target lane
- * without its target or a target without the lane, brief blobs for a device or peer lane, and
- * an accept input with its own `id`.
+ * at definition time on an invalid or reserved ID, an unknown or repeated assignee type, the
+ * `target` type without a target name or a target name without the type, brief blobs for a
+ * device or a peer, and an accept input with its own `id`.
  */
 export function defineAssignmentKind<
   const Id extends string,
@@ -101,18 +101,23 @@ export function defineAssignmentKind<
     throw new Error(`Assignment kind ${spec.id} ${message}`);
   };
   checkAssignmentName(spec.id, 'kind');
-  if (spec.lanes.length === 0) fail('has no lane');
-  for (const lane of spec.lanes)
-    if (!assignmentLanes.includes(lane)) fail(`has an unknown lane "${lane}"`);
-  if (new Set(spec.lanes).size !== spec.lanes.length) fail('repeats a lane');
-  const targeted = spec.lanes.includes('target');
+  if (spec.assigneeTypes.length === 0) fail('has no assignee type');
+  for (const type of spec.assigneeTypes)
+    if (!assigneeTypes.includes(type)) fail(`has an unknown assignee type "${type}"`);
+  if (new Set(spec.assigneeTypes).size !== spec.assigneeTypes.length)
+    fail('repeats an assignee type');
+  const targeted = spec.assigneeTypes.includes('target');
   if (targeted !== (spec.target !== undefined))
-    fail(targeted ? 'has a target lane without a target' : 'names a target without the lane');
-  if (spec.target !== undefined) checkAssignmentName(spec.target, 'target lane');
+    fail(
+      targeted
+        ? 'has the target assignee type without a target'
+        : 'names a target without the target assignee type',
+    );
+  if (spec.target !== undefined) checkAssignmentName(spec.target, 'target');
   if (spec.blobs?.report) assertBlobLimits(spec.blobs.report, `${spec.id} reports`);
   if (spec.blobs?.brief) {
     assertBlobLimits(spec.blobs.brief, `${spec.id} briefs`);
-    if (spec.lanes.includes('device') || spec.lanes.includes('peer'))
+    if (spec.assigneeTypes.includes('device') || spec.assigneeTypes.includes('peer'))
       fail('cannot send brief blobs to a device or a peer, whose pull carries no blobs');
   }
   if (spec.accept && 'id' in spec.accept.shape) fail('has an accept input with its own id');
@@ -121,6 +126,6 @@ export function defineAssignmentKind<
   return Object.freeze({
     ...spec,
     accept: (spec.accept ?? z.strictObject({})) as Accept,
-    lanes: Object.freeze([...spec.lanes]),
+    assigneeTypes: Object.freeze([...spec.assigneeTypes]),
   });
 }

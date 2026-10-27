@@ -27,7 +27,7 @@ export {
 export {
   fileHandlerFor,
   fileRequest,
-  landingRequest,
+  launchRequest,
   strictText,
   type BlobUpload,
 } from './local-files';

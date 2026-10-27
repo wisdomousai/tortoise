@@ -40,7 +40,7 @@ test('source export is deterministic, independent and excludes private/runtime a
     await writeFile(join(source, 'apps/mobile/.expo/devices.json'), '{}');
     await writeFile(join(source, 'apps/mobile/index.ts'), 'export {};');
     await symlink(join(source, 'package.json'), join(source, 'packages/linked.json'));
-    // Skill sources travel with the export; the agents' link directories and SDK build output do not.
+    // Skill sources are copied with the export; the agents' link directories and SDK build output do not.
     await mkdir(join(source, 'skills/start-here'), { recursive: true });
     await writeFile(join(source, 'skills/start-here/SKILL.md'), '# Start here');
     await mkdir(join(source, 'packages/core/skills/extend-core'), { recursive: true });

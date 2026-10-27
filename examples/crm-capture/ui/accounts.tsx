@@ -10,12 +10,12 @@ export function AccountsScreen() {
       <header>
         <h1 className="text-[1.75rem] font-semibold tracking-tight">Accounts</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Accounts you adopted from the CRM. The CRM keeps them current; they stay available when it
-          is unreachable.
+          Accounts you follow in the CRM. The CRM keeps them current; they stay available when it is
+          unreachable.
         </p>
       </header>
       {accounts.length ? (
-        <ul aria-label="Adopted accounts" className="divide-y rounded-2xl border bg-card">
+        <ul aria-label="Followed accounts" className="divide-y rounded-2xl border bg-card">
           {accounts.map((account) => (
             <li
               key={account.id}
@@ -30,7 +30,7 @@ export function AccountsScreen() {
                   {account.name ?? `CRM account ${account.id}`}
                 </Link>
                 <p className="text-sm text-muted-foreground">
-                  {account.status === 'adopted'
+                  {account.status === 'following'
                     ? `${account.industry} · ${account.city} · ${account.activities} activities`
                     : (account.rejection?.message ?? 'Waiting for the CRM')}
                 </p>

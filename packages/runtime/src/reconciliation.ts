@@ -47,7 +47,7 @@ function heldView(effect: Effect): HeldEffect {
 
 /**
  * Handlers for `reconciliationOperations`: the held effects of every target a caller may see,
- * and a person's decision for one. Deciding settles or releases the effect through the outbox
+ * and a person's decision for one. Deciding completes or releases the effect through the outbox
  * like any domain command, so the dispatcher never retries a held effect on its own.
  */
 export function reconciliationHandlers<State, Services>(
@@ -89,7 +89,9 @@ export function reconciliationHandlers<State, Services>(
                 message: input.reason ?? 'Refused by the target, as checked by a person',
               }
             : undefined;
-      const changed = outcome ? ctx.settleEffect(effect.id, outcome) : ctx.releaseEffect(effect.id);
+      const changed = outcome
+        ? ctx.completeEffect(effect.id, outcome)
+        : ctx.releaseEffect(effect.id);
       ctx.change(effect.resource);
       options.onResolved?.(effect, input.decision, outcome, ctx);
       return { effectId: effect.id, status: changed.status as 'accepted' | 'rejected' | 'pending' };

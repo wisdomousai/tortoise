@@ -15,7 +15,7 @@ import { workOrderPlannerModule, fieldServiceModule } from './contracts';
  * Browser-safe identity of the field-service application: what generators and screens read.
  * The planner agent's module needs the `approval` feature, which keeps its approval requests.
  * Besides the site, network, audit and compliance plugins it composes the OS plugin, which
- * answers its task links and text files, the share target plugin, which takes what other apps
+ * handles its task links and text files, the share target plugin, which takes what other apps
  * share to it, the notifications plugin, which shows task reminders, the OS shortcuts plugin, whose
  * launcher entry starts a new task, and the webhook example plugin, so one application
  * shows a third-party plugin next to the framework's own.

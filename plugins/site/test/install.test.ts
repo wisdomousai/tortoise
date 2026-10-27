@@ -42,7 +42,7 @@ async function bundle(version: string, state: number, bestBefore?: string) {
       application: 'counter-site',
       version,
       platform,
-      storageSchema: 2,
+      storageSchema: 3,
       catalogDigest: 'a'.repeat(64),
       requirements,
       ...(bestBefore ? { bestBefore } : {}),
@@ -235,14 +235,14 @@ test('status shows the signed best-before date, and a purge refuses while the ou
   expect(refused.code).not.toBe(0);
   expect(refused.result.error).toMatchObject({
     code: 'CONFLICT',
-    details: { remaining: [{ target: 'ledger', pending: 1, held: 0, upstream: 0 }] },
+    details: { remaining: [{ target: 'ledger', pending: 1, held: 0, acknowledged: 0 }] },
   });
   expect(refused.result.error.message).toContain('ledger: 1 pending');
   // A refusal removes nothing.
   expect((await site(['status', '--trust', trust])).result).toMatchObject({ installed: true });
 
-  // Once the target settles the effect, nothing would be lost.
-  operate(['counter.settle', '--effect-id', result.effectId]);
+  // Once the target completes the effect, nothing would be lost.
+  operate(['counter.complete', '--effect-id', result.effectId]);
   expect((await site(['uninstall', '--purge', '--trust', trust])).result).toEqual({
     removed: true,
     application: 'counter-site',
@@ -266,7 +266,7 @@ test('--discard-undelivered purges anyway and lists what it deleted', async () =
     removed: true,
     application: 'counter-site',
     purged: true,
-    discarded: [{ target: 'ledger', pending: 2, held: 0, upstream: 0 }],
+    discarded: [{ target: 'ledger', pending: 2, held: 0, acknowledged: 0 }],
   });
   for (const left of ['opt/agent-native', 'etc/agent-native', 'var/lib/agent-native'])
     await expect(lstat(app(left))).rejects.toThrow();

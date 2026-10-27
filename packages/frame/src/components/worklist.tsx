@@ -63,7 +63,7 @@ const refusal = (error: unknown) => {
 };
 
 /** Where an assignment stands here: open, done and how the issuer took it, or closed there. */
-function Standing({ item, issuer }: { item: WorklistAssignment; issuer: string }) {
+function AssignmentStatus({ item, issuer }: { item: WorklistAssignment; issuer: string }) {
   if (item.done)
     return item.doneSync === 'accepted' ? (
       <Badge variant="outline">Done</Badge>
@@ -88,7 +88,7 @@ function Item({
 }) {
   const [message, setMessage] = useState<string>();
   const [status, setStatus] = useState('');
-  // One key per report until it is recorded: a retry after a lost answer records it once.
+  // One key per report until it is recorded: a retry after a lost response records it once.
   const [reportKey, setReportKey] = useState(() => crypto.randomUUID());
   const run = async (command: Command, input: Record<string, unknown>, idempotencyKey?: string) => {
     setMessage(undefined);
@@ -118,7 +118,7 @@ function Item({
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{item.title}</span>
-          <Standing item={item} issuer={issuer} />
+          <AssignmentStatus item={item} issuer={issuer} />
         </div>
         {item.note && <p className="text-sm">{item.note}</p>}
         <p className="text-xs text-muted-foreground">
@@ -163,7 +163,7 @@ function Item({
   );
 }
 
-/** The worklist target's counts and when assignments last arrived. */
+/** The worklist target's counts and when assignments were last received. */
 function Counts({ status, issuer }: { status: Query; issuer: string }) {
   const counts = useQuery(live.liveQueryOptions(status, {} as never)).data as
     { pending: number; accepted: number; rejected: number; lastSyncAt?: number } | undefined;

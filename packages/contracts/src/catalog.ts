@@ -125,7 +125,7 @@ function checkNaming(
   return mcpName;
 }
 
-/** An outbox command's destinations; every target must travel over a declared destination. */
+/** An outbox command's destinations; every target must use a declared destination. */
 function integrationDestinations(
   capability: AnyCapability,
   requirements: CatalogRequirements,
@@ -138,7 +138,7 @@ function integrationDestinations(
       capability.integration.delivery !== 'outbox')
   )
     throw new Error(`Integration requires a command with an outbox target: ${capability.id}`);
-  // Every outbox target must travel over a declared destination, so the data-flow manifest
+  // Every outbox target must use a declared destination, so the data-flow manifest
   // and the egress guard cover each system of record a command can reach.
   const destinations = capability.integration
     ? destinationsForTarget(requirements, capability.integration.target)
@@ -158,7 +158,7 @@ function integrationDestinations(
   return destinations;
 }
 
-/** A remote query's destinations; every read target must travel over a declared destination. */
+/** A remote query's destinations; every read target must use a declared destination. */
 function remoteDestinations(
   capability: AnyCapability,
   requirements: CatalogRequirements,

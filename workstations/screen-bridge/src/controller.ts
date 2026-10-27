@@ -7,12 +7,12 @@ import { lookup } from './controller/lookup';
 
 /**
  * Bridge state the controller obeys, read from the application through the bridge principal's
- * control query before every action. `monitor-only` never acts; `assist` runs hazard-free
- * procedures only; `actuate` runs every declared procedure. Whoever holds the seat owns the screen.
+ * control query before every action. `monitor-only` never acts; `assist` runs only
+ * procedures of risk level `none`; `actuate` runs every declared procedure. Whoever holds control owns the screen.
  */
 export interface BridgeControl {
   readonly mode: 'monitor-only' | 'assist' | 'actuate';
-  readonly seat: 'operator' | 'agent' | 'idle';
+  readonly holder: 'operator' | 'agent' | 'idle';
 }
 
 export interface StationConnectorOptions {
@@ -35,8 +35,8 @@ export interface StationConnectorOptions {
  * maps to a declared procedure of the station profile; nothing else can be done.
  *
  * Guarantees, in order:
- * 1. Nothing runs unless the bridge mode allows the procedure's hazard and the operator does not
- *    hold the seat. A blocked effect stays pending (transient failure) and is retried later.
+ * 1. Nothing runs unless the bridge mode allows the procedure's risk level and the operator does not
+ *    hold control. A blocked effect stays pending (transient failure) and is retried later.
  * 2. If the screen already shows the desired state, the effect is accepted without acting
  *    (convergence makes screen actions idempotent).
  * 3. Unmet preconditions reject the effect as business data (`PRECONDITION`); nothing is done.

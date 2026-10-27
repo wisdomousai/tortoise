@@ -46,7 +46,7 @@ async function authenticateOperator(
 /**
  * Shared-station sign-in on a serving host. Its slice holds badges and operator sessions by
  * digest only. Once the host listens it serves the sign-in, sign-out and enrollment routes and
- * resolves operator tokens on every request; before that the routes answer as unavailable.
+ * resolves operator tokens on every request; before that the routes return `UNAVAILABLE`.
  */
 export function createStationSignInPlugin(options: { readonly now?: () => number } = {}) {
   const now = options.now ?? Date.now;
@@ -60,11 +60,11 @@ export function createStationSignInPlugin(options: { readonly now?: () => number
         now,
         sessionMinutes: minutesOf(settings['station-sign-in-minutes']),
       };
-      const seats = new Set([
+      const terminals = new Set([
         LOCAL_OWNER,
-        ...(settings['station-sign-in-seats'] ?? '')
+        ...(settings['station-sign-in-terminals'] ?? '')
           .split(',')
-          .map((seat) => seat.trim())
+          .map((terminal) => terminal.trim())
           .filter(Boolean),
       ]);
       let caller: StationCaller | undefined;
@@ -85,9 +85,9 @@ export function createStationSignInPlugin(options: { readonly now?: () => number
           };
           return [{ stop: async () => void (caller = undefined) }];
         },
-        route: (request, context) => stationRoute(request, context, caller, { seats }),
+        route: (request, context) => stationRoute(request, context, caller, { terminals }),
         authenticate: (token) => authenticateOperator(token, caller),
-        describe: () => ({ seats: [...seats], sessionMinutes: service.sessionMinutes }),
+        describe: () => ({ terminals: [...terminals], sessionMinutes: service.sessionMinutes }),
       };
     },
   });

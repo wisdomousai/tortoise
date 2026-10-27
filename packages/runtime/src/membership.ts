@@ -8,7 +8,7 @@ type RoleOf<M extends Membership> = M['roles'][number];
 export interface MembershipStore<State, Role extends string> {
   /** The role map of one container in `state`, or undefined when the container does not exist. */
   readonly members: (state: State, container: string) => Record<string, Role> | undefined;
-  /** Principals that never hold a role, such as integration principals; they act through lanes. */
+  /** Principals that never hold a role, such as integration principals; they act through integration allowlists. */
   readonly reserved?: (state: State, principalId: string) => boolean;
 }
 

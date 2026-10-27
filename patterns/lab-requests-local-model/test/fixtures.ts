@@ -19,7 +19,7 @@ function freePort() {
 
 /**
  * A serving host with a viewer member, sequential IDs, a fast trigger loop and the model server
- * on the llama-server stand-in, whose answers come from `responder.ts`. It returns once the
+ * on the llama-server stand-in, whose responses come from `responder.ts`. It returns once the
  * server is ready or refused.
  */
 export async function startLab(

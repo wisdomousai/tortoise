@@ -3,7 +3,7 @@ import type { DeviceIdentity } from '@agent-native/observation';
 import type { CommandReceipt, ExecutionContext, Invocation } from '@agent-native/runtime';
 import type { DriverContract } from '../contracts/define';
 import type { DriverService } from '../open';
-import type { EventNotification, InitializeAnswer } from '../protocol';
+import type { EventNotification, InitializeResult } from '../protocol';
 
 /** One driver event as an ingest command receives it, with the unit that reported it. */
 export interface DriverEventRecord {
@@ -13,7 +13,7 @@ export interface DriverEventRecord {
   readonly seq: number;
   readonly name: string;
   readonly payload?: JsonValue;
-  /** The host's clock when the event arrived. The driver's own `at` is not trusted. */
+  /** The host's clock when the event was received. The driver's own `at` is not trusted. */
   readonly observedAt: number;
   readonly device: DeviceIdentity;
 }
@@ -40,7 +40,7 @@ export interface DriverEventIngestOptions {
 }
 
 /** The unit an event names, from the handshake that opened its session. */
-export function eventDevice(event: EventNotification, session: InitializeAnswer): DeviceIdentity {
+export function eventDevice(event: EventNotification, session: InitializeResult): DeviceIdentity {
   const unit = session.devices[event.device ?? 0];
   return {
     driver: session.driver.id,
@@ -56,7 +56,7 @@ export function eventDevice(event: EventNotification, session: InitializeAnswer)
  *
  * - The idempotency key is `driver:<id>:<session>:<seq>`, which names one event, so a replayed
  *   event cannot record twice and two events can never share a key.
- * - Events arrive in order, one at a time, from the supervisor's queue. A failed ingest is
+ * - Events are handled in order, one at a time, from the supervisor's queue. A failed ingest is
  *   reported through `onError` and not retried: the event is gone, and the supervisor's
  *   sequence check already reports events the driver lost.
  * - The payload is passed as the driver sent it; the ingest command's input schema is what
@@ -72,7 +72,7 @@ export function createDriverEventIngest(options: DriverEventIngestOptions) {
   let unsubscribe: (() => void) | undefined;
   let keepAlive: ReturnType<typeof setInterval> | undefined;
 
-  async function ingest(event: EventNotification, session: InitializeAnswer) {
+  async function ingest(event: EventNotification, session: InitializeResult) {
     const record: DriverEventRecord = {
       driver: contract.id,
       session: event.session,

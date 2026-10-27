@@ -27,7 +27,7 @@ import {
   publicEffect,
   putEffect,
   releasedEffect,
-  settledEffect,
+  completedEffect,
 } from './effects.js';
 import type { Kernel } from './kernel.js';
 import { attribute, nestedMethods, type FrameScope } from './nested.js';
@@ -43,7 +43,7 @@ export interface HandlerScope<State> {
   readonly query: boolean;
   /** Resources the handler declared changed, with their journal event type. */
   readonly changes: Map<string, string>;
-  /** Effects the handler enqueued, settled or released, in order. */
+  /** Effects the handler enqueued, completed or released, in order. */
   readonly touched: Effect[];
   /** The command `continueWith` asked for; set at most once. */
   continuation?: Invocation;
@@ -90,12 +90,12 @@ function outboxMethods<State, Services>(
       );
       return id;
     },
-    settleEffect(id: string, outcome: EffectOutcome, attempt?: { readonly fence?: number }) {
-      writable(scope, 'Queries cannot settle effects');
+    completeEffect(id: string, outcome: EffectOutcome, attempt?: { readonly fence?: number }) {
+      writable(scope, 'Queries cannot complete effects');
       const effect = pendingEffect(snapshot, id);
-      const settled = settledEffect(effect, outcome, kernel.now, attempt?.fence);
-      touch(settled);
-      return publicEffect(settled);
+      const completed = completedEffect(effect, outcome, kernel.now, attempt?.fence);
+      touch(completed);
+      return publicEffect(completed);
     },
     cancelEffect(id: string, reason: string) {
       writable(scope, 'Queries cannot cancel effects');

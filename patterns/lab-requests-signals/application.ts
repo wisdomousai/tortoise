@@ -34,7 +34,7 @@ export interface LabRequestsSignalsOptions {
  * The lab requests module unchanged, with climate chamber conditions read from the plant: chamber
  * temperature over OPC UA and humidity from Sparkplug B edge nodes. Both sources are declared in
  * the manifest and bound by the site policy; until they are bound, the observers report errors
- * and no reading arrives.
+ * and no reading is received.
  */
 export function createLabRequestsSignalsApplication(options: LabRequestsSignalsOptions = {}) {
   const chambers = options.chambers ?? defaultChambers;

@@ -11,7 +11,7 @@ export interface RemainingEffects {
   readonly target: string;
   readonly pending: number;
   readonly held: number;
-  readonly upstream: number;
+  readonly acknowledged: number;
 }
 
 const refuse = (message: string) => new ApplicationError('CONFLICT', message);
@@ -65,25 +65,25 @@ export async function remainingEffects(
     );
   if (!Array.isArray(report?.targets)) throw refuse('The installed release reported no outbox');
   return report.targets
-    .map(({ target, pending, held, upstream }) => ({ target, pending, held, upstream }))
-    .filter((target) => target.pending + target.held + target.upstream > 0);
+    .map(({ target, pending, held, acknowledged }) => ({ target, pending, held, acknowledged }))
+    .filter((target) => target.pending + target.held + target.acknowledged > 0);
 }
 
 /** The refusal an operator reads: per target, what would be lost, and the ways forward. */
 export function undeliveredRefusal(remaining: readonly RemainingEffects[]) {
   const counts = remaining
-    .map(({ target, pending, held, upstream }) => {
+    .map(({ target, pending, held, acknowledged }) => {
       const parts = [
         pending ? `${pending} pending` : '',
         held ? `${held} held for reconciliation` : '',
-        upstream ? `${upstream} awaiting the target's decision` : '',
+        acknowledged ? `${acknowledged} awaiting the target's decision` : '',
       ].filter(Boolean);
       return `${target}: ${parts.join(', ')}`;
     })
     .join('; ');
   return new ApplicationError(
     'CONFLICT',
-    `Purging would delete effects the systems of record have not settled (${counts}). Start the service to deliver them and decide held ones, or pass --discard-undelivered`,
+    `Purging would delete effects the systems of record have not completed (${counts}). Start the service to deliver them and decide held ones, or pass --discard-undelivered`,
     { remaining: remaining.map((target) => ({ ...target })) },
   );
 }

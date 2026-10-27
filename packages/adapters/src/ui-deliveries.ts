@@ -170,7 +170,7 @@ export class UiDeliveryStore {
     if (status !== 'accepted' && status !== 'rejected')
       throw new ApplicationError('INVALID_INPUT', 'Invalid delivery acknowledgement');
     if (item.status !== 'pending' && item.status !== status)
-      throw new ApplicationError('CONFLICT', 'Delivery already settled');
+      throw new ApplicationError('CONFLICT', 'Delivery already completed');
     item.status = status;
   }
 }

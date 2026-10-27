@@ -154,7 +154,7 @@ test('add extends the application at its markers and refuses to overwrite a part
   expect(policy).toContain('[operations.noteArchive.id]: editor,');
   expect(policy).toContain("[operations.siteTree.id]: 'open',");
   expect(policy).toContain('[operations.siteRetire.id]: editor,');
-  expect(policy).toContain('targetLane(ledgerTarget');
+  expect(policy).toContain('targetAllowlist(ledgerTarget');
   expect(await read(join(app, 'screens.tsx'))).toContain(
     "{ path: 'ledger', component: LedgerScreen }",
   );
@@ -197,8 +197,8 @@ test('add extends the application at its markers and refuses to overwrite a part
   );
   expect(await read(join(app, 'application.ts'))).toContain('stockFeature(), {');
   expect(await read(join(app, 'screens.tsx'))).toContain('stockScreens,');
-  const headless = await scaffoldAdd({ kind: 'feature', name: 'tally' }, { root: target });
-  expect(headless.written).not.toContain('features/tally/screens.tsx');
+  const headless = await scaffoldAdd({ kind: 'feature', name: 'score' }, { root: target });
+  expect(headless.written).not.toContain('features/score/screens.tsx');
   expect(await read(join(app, 'screens.tsx'))).not.toContain('tallyScreens');
   // The first assignment kind declares the assignments and mounts the feature; a second joins.
   const inspection = await scaffoldAdd(
@@ -355,7 +355,7 @@ acceptance(
       await run(['bun', 'install', '--ignore-scripts']);
       await rm(join(target, 'node_modules'), { recursive: true, force: true });
       await run(['bun', 'install', '--frozen-lockfile', '--ignore-scripts']);
-      // The framework's skills arrive in the installed packages and link from there.
+      // The framework's skills ship in the installed packages and link from there.
       await run(['bun', 'run', 'skills:link']);
       expect(
         await realpath(join(target, '.claude/skills/build-screens')).then((path) =>

@@ -37,7 +37,7 @@ export interface AutomationOptions {
 
 /**
  * The automation plugin. Triggers are checked against the catalog when it opens; a serving host
- * then runs each trigger that has an active standing grant, as that grant's issuer. Nothing
+ * then runs each trigger that has an active trigger grant, as that grant's issuer. Nothing
  * runs in an embedded host or for a trigger no person enabled.
  */
 export function createAutomationPlugin(options: AutomationOptions) {
@@ -48,7 +48,7 @@ export function createAutomationPlugin(options: AutomationOptions) {
     state: { create: createAutomationState },
     handlers: automationHandlers,
     authorization: {
-      resourceTypes: ['standing-grant', 'trigger-failure'],
+      resourceTypes: ['trigger-grant', 'trigger-failure'],
       port: automationPolicy,
     },
     async open({ catalog }) {

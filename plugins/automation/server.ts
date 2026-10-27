@@ -20,7 +20,7 @@ interface Progress {
   lastOutcome?: 'succeeded' | 'failed';
 }
 
-/** Standing grants, their progress and failed runs, under `state.automation`. */
+/** Trigger grants, their progress and failed runs, under `state.automation`. */
 export interface AutomationState {
   grants: Record<string, Grant>;
   progress: Record<string, Progress>;
@@ -54,7 +54,7 @@ const active = (grant: Grant, now: number) =>
 function ownGrant(ctx: Context, id: string): Grant {
   const grant = own(ctx.state.grants, id);
   if (!grant || grant.issuedBy !== ctx.context.principalId)
-    throw new ApplicationError('NOT_FOUND', 'Standing grant unavailable');
+    throw new ApplicationError('NOT_FOUND', 'Trigger grant unavailable');
   return grant;
 }
 
@@ -69,7 +69,7 @@ function issue(input: InputOf<typeof ops.grantIssue>, ctx: Context): Grant {
   for (const grant of Object.values(ctx.state.grants))
     if (grant.trigger === trigger.id && active(grant, at)) {
       Object.assign(grant, { revokedAt: at, revokedBy: principal });
-      ctx.change(`standing-grant:${grant.id}`);
+      ctx.change(`trigger-grant:${grant.id}`);
     }
   const grant: Grant = {
     id: newId(),
@@ -80,13 +80,13 @@ function issue(input: InputOf<typeof ops.grantIssue>, ctx: Context): Grant {
     expiresAt: at + input.expiresInMs,
   };
   put(ctx.state.grants, grant.id, grant);
-  ctx.change(`standing-grant:${grant.id}`, 'created');
+  ctx.change(`trigger-grant:${grant.id}`, 'created');
   return grant;
 }
 
 function record(input: InputOf<typeof ops.progressRecord>, ctx: Context) {
   const grant = own(ctx.state.grants, input.grant);
-  if (!grant) throw new ApplicationError('NOT_FOUND', 'Standing grant unavailable');
+  if (!grant) throw new ApplicationError('NOT_FOUND', 'Trigger grant unavailable');
   const { now, newId } = service(ctx);
   const progress = own(ctx.state.progress, grant.id) ?? {};
   // Progress only moves forward, so a replayed or late record never rewinds the loop.
@@ -110,7 +110,7 @@ function record(input: InputOf<typeof ops.progressRecord>, ctx: Context) {
     }
   }
   put(ctx.state.progress, grant.id, progress);
-  ctx.change(`standing-grant:${grant.id}`);
+  ctx.change(`trigger-grant:${grant.id}`);
   return { grant: grant.id };
 }
 
@@ -150,7 +150,7 @@ export const automationHandlers: HandlerContribution<AutomationState, Automation
       if (grant.revokedAt !== undefined)
         throw new ApplicationError('CONFLICT', 'A revoked grant cannot be renewed');
       grant.expiresAt = service(ctx).now() + expiresInMs;
-      ctx.change(`standing-grant:${grant.id}`);
+      ctx.change(`trigger-grant:${grant.id}`);
       return grant;
     },
   },
@@ -160,7 +160,7 @@ export const automationHandlers: HandlerContribution<AutomationState, Automation
       const grant = ownGrant(ctx, (input as { id: string }).id);
       if (grant.revokedAt === undefined)
         Object.assign(grant, { revokedAt: service(ctx).now(), revokedBy: ctx.context.principalId });
-      ctx.change(`standing-grant:${grant.id}`);
+      ctx.change(`trigger-grant:${grant.id}`);
       return grant;
     },
   },
@@ -203,8 +203,8 @@ const personal = new Set<string>([
 ]);
 
 /**
- * Issuing, renewing and revoking a standing grant and resolving a failure are for people: a
- * delegated run or agent never creates or extends standing instance. Handlers limit each to
+ * Issuing, renewing and revoking a trigger grant and resolving a failure are for people: a
+ * delegated run or agent never creates or extends a trigger grant. Handlers limit each to
  * the caller's own grants. Progress is recorded only by the trigger loop, which acts as the
  * grant's issuer with a run ID under that grant (`auto:<grant>:...`), a context only the
  * in-process loop creates. Reads are open to every caller: they show configuration and the

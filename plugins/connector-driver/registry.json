@@ -7,7 +7,7 @@
       "name": "driver-screen",
       "type": "registry:component",
       "title": "Driver screen",
-      "description": "Read-only hardware driver status: process state, reported units, and each action's delivery mode and hazard class, from driver.status.get. Polls; each read is itself audited.",
+      "description": "Read-only hardware driver status: process state, reported units, and each action's delivery mode and risk level, from driver.status.get. Polls; each read is itself audited.",
       "dependencies": [
         "@tanstack/react-query",
         "@agent-native/connector-driver",

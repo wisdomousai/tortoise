@@ -14,7 +14,7 @@ import { automationRoute } from './automation-route';
  * The .NET station automation driver in `drivers/automation`, against a simulated station: the
  * committed stub matches the contract, the driver passes `checkDriver`, and the line station runs
  * on it as a real child process, including a crash after the station took a load. It builds into
- * a temporary artifacts directory, so no `bin` or `obj` lands in the tree. Skipped when `dotnet`
+ * a temporary artifacts directory, so no `bin` or `obj` is written to the tree. Skipped when `dotnet`
  * is not on PATH.
  */
 const dotnet = Bun.which('dotnet');

@@ -14,7 +14,7 @@ test('a capture taken offline reaches the hub once, is read, accepted and filed 
   const field = await openPhone(survey.hub.url, await survey.enrollment('Phone 1'));
   const assignment = await survey.send('Nameplates of =G1', g1.id, field.deviceId);
 
-  // The survey and its structure arrive through the hub's feed.
+  // The survey and its structure are received through the hub's feed.
   await field.sync();
   const [held] = (await field.query<Rows>('field.assignment.list')).items;
   expect(held).toMatchObject({
@@ -39,7 +39,7 @@ test('a capture taken offline reaches the hub once, is read, accepted and filed 
   // In the plant without a network: two captures and the done mark wait in the outbox.
   field.link.offline = true;
   const lines = { manufacturer: 'ABB', serial: '1VYN300101', ratedCurrent: '6300 A' };
-  const placed = await field.capture(assignment.id, q1.id, lines, { codes: ['=G1-Q1'] });
+  const linked = await field.capture(assignment.id, q1.id, lines, { codes: ['=G1-Q1'] });
   const loose = await field.capture(
     assignment.id,
     undefined,
@@ -72,11 +72,11 @@ test('a capture taken offline reaches the hub once, is read, accepted and filed 
   const reported = await survey.query<Rows>('capture.list', {});
   expect(reported.items.map((c) => [c.id, c.nodeId, c.reportedBy])).toEqual(
     expect.arrayContaining([
-      [placed.id, q1.id, `device:${field.deviceId}`],
+      [linked.id, q1.id, `device:${field.deviceId}`],
       [loose.id, undefined, `device:${field.deviceId}`],
     ]),
   );
-  const plate = (await survey.query('capture.get', { id: placed.id })).photos[0];
+  const plate = (await survey.query('capture.get', { id: linked.id })).photos[0];
   expect((await survey.hub.application.readBlob(plate.digest, owner))?.data).toEqual(
     nameplatePhoto(lines),
   );
@@ -100,15 +100,15 @@ test('a capture taken offline reaches the hub once, is read, accepted and filed 
   // At the desk: read the nameplate, accept it, match the EAM asset and file.
   await survey.command('assignment.extraction.create', {
     title: 'Read the breaker',
-    scope: { reportId: placed.id },
+    scope: { reportId: linked.id },
     assignee: { type: 'target', id: 'model' },
   });
-  await survey.settle();
-  const reading = (await survey.query('capture.get', { id: placed.id })).extraction;
+  await survey.complete();
+  const reading = (await survey.query('capture.get', { id: linked.id })).extraction;
   await survey.command('assignment.extraction.accept', { id: reading.reportId, values: lines });
   const match = await survey.query<Rows>('eam.asset.search', { q: '=G1-Q1' });
   await survey.command('filing.file', { nodeId: q1.id, assetId: match.items[0]!.externalId });
-  await survey.settle();
+  await survey.complete();
   expect(await survey.query('structure.node.get', { id: q1.id })).toMatchObject({
     assetId: 'EAM-1001',
   });
@@ -136,7 +136,7 @@ test('the phone shows a capture the hub refused, and keeps only its own work', a
     second.id,
   ]);
 
-  // A node outside the survey reaches the hub unplaced; the hub decides what a survey covers.
+  // A node outside the survey reaches the hub unlinked; the hub decides what a survey covers.
   await two.capture(second.id, g1.id, { serial: 'X' });
   expect(await two.deliver()).toMatchObject({ accepted: 1 });
   expect(await survey.query('capture.get', { id: 'cap-x' })).not.toHaveProperty('nodeId');

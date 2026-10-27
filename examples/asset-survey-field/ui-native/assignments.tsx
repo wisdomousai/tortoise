@@ -26,7 +26,7 @@ export function AssignmentsScreen() {
         empty={
           assignments.isPending
             ? 'Loading…'
-            : 'No surveys yet. They arrive from the hub once this device is paired and sent one.'
+            : 'No surveys yet. They are received from the hub once this device is paired and sent one.'
         }
       />
     </Screen>

@@ -96,7 +96,7 @@ export async function applyOsDelivery(
 
 /**
  * Show what OS requests asked for. The frame mounts it once navigation is ready, so the source
- * replays what arrived during a cold start. A delivery the frame cannot show is dropped, because
+ * replays what was received during a cold start. A delivery the frame cannot show is dropped, because
  * the OS request behind it was unsolicited.
  */
 export function OsDeliveries({

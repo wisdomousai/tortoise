@@ -1,4 +1,4 @@
-import type { PeerSurface, PeerTarget } from '@agent-native/contracts';
+import type { PeerApi, PeerTarget } from '@agent-native/contracts';
 import { createAttemptLimit } from '@agent-native/host/enrollment';
 import { defineHostPlugin } from '@agent-native/kernel/plugin';
 import { connectPath, enrollPath, peerLinkOperations as ops } from './contracts';
@@ -18,9 +18,9 @@ export { peerLinkServiceOf } from './service';
 
 export interface PeerLinkOptions {
   /** What peers may call here. Without one this application takes no calls from peers. */
-  readonly surface?: PeerSurface;
+  readonly api?: PeerApi;
   /** The peer targets this application calls (`definePeerTarget`). */
-  readonly targets?: readonly Pick<PeerTarget, 'target' | 'destination' | 'surface'>[];
+  readonly targets?: readonly Pick<PeerTarget, 'target' | 'destination' | 'api'>[];
   /**
    * Whether a call on behalf of a person that an agent or job run made on the caller is
    * accepted. `refuse` by default; the `peer-link-agents` setting replaces it.
@@ -41,8 +41,8 @@ const empty: readonly string[] = [];
  *
  * - Called side: its slice holds peers, enrollments and subject mappings, with only digests of
  *   codes and credentials. Once the host listens it serves the enrollment route and resolves
- *   peer credentials and subject assertions on every request; before that both answer as
- *   unavailable. Startup refuses a surface of another application or one that names operations
+ *   peer credentials and subject assertions on every request; before that both respond as
+ *   unavailable. Startup refuses an API of another application or one that names operations
  *   the catalog does not contain.
  * - Calling side: the connect route enrolls with a peer target through the network port, the
  *   secret store keeps the credential and key, and `services['peer-link'].link(target)` gives
@@ -56,7 +56,7 @@ export function createPeerLinkPlugin(options: PeerLinkOptions = {}) {
   const targets = new Map<string, OutboundTarget>(
     (options.targets ?? []).map((target) => [
       target.target,
-      { application: target.surface.application, destination: target.destination.id },
+      { application: target.api.application, destination: target.destination.id },
     ]),
   );
   return defineHostPlugin<PeerLinkState, PeerLinkServices>({
@@ -68,25 +68,23 @@ export function createPeerLinkPlugin(options: PeerLinkOptions = {}) {
       port: peerLinkPolicy,
     },
     async open({ catalog, manifest, settings, secrets, workspacePath, ports }) {
-      const { surface } = options;
-      if (surface && surface.application !== manifest.id)
-        throw new Error(
-          `The peer surface of ${surface.application} cannot be served by ${manifest.id}`,
-        );
+      const { api } = options;
+      if (api && api.application !== manifest.id)
+        throw new Error(`The peer API of ${api.application} cannot be served by ${manifest.id}`);
       const known = new Set(catalog.operations.map((operation) => operation.id));
       const operations = [
-        ...(surface?.serviceOperations ?? empty),
-        ...(surface?.onBehalfOfOperations ?? empty),
+        ...(api?.serviceOperations ?? empty),
+        ...(api?.onBehalfOfOperations ?? empty),
       ];
       const unknown = operations.filter((operation) => !known.has(operation));
       if (unknown.length)
-        throw new Error(`The peer surface names unknown operations: ${unknown.join(', ')}`);
+        throw new Error(`The peer API names unknown operations: ${unknown.join(', ')}`);
       const setting = settings['peer-link-agents'];
       if (setting !== undefined && setting !== 'refuse' && setting !== 'allow')
         throw new Error('peer-link-agents must be refuse or allow');
       const agents = setting ?? options.agents ?? 'refuse';
-      const serviceOperations = surface?.serviceOperations ?? empty;
-      const onBehalfOfOperations = surface?.onBehalfOfOperations ?? empty;
+      const serviceOperations = api?.serviceOperations ?? empty;
+      const onBehalfOfOperations = api?.onBehalfOfOperations ?? empty;
       const limit = createAttemptLimit(now);
       const replay = createReplayCache();
       const stored = connectionSecrets(secrets, workspacePath);

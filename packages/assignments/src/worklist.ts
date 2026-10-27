@@ -11,7 +11,7 @@ import {
   type AnyCapability,
   type Availability,
   type OfflineBehavior,
-  type PeerSurface,
+  type PeerApi,
 } from '@agent-native/contracts';
 import type { AnyAssignmentKind } from './kind';
 import type { Assignments } from './manifest';
@@ -81,12 +81,12 @@ export interface WorklistSpec<
   readonly namespace: Namespace;
   /** The outbox target the issuer is reached through, for example `hub`. */
   readonly target: Target;
-  /** The issuer's declaration and the peer surface it publishes. */
+  /** The issuer's declaration and the peer API it publishes. */
   readonly assignments: Assignments<K>;
-  readonly issuer: PeerSurface;
-  /** Which lane of the issuer this worklist takes work in. */
-  readonly lane: 'device' | 'peer';
-  /** The destination the target travels over; see `definePeerTarget`. */
+  readonly issuer: PeerApi;
+  /** Which assignee type of the issuer this worklist takes work as. */
+  readonly assigneeType: 'device' | 'peer';
+  /** The destination the target is reached through; see `definePeerTarget`. */
   readonly destination: {
     readonly id: string;
     readonly purpose: string;
@@ -136,10 +136,10 @@ type FlatReports<K extends AnyAssignmentKind, Namespace extends string> = {
 };
 
 /**
- * Declare the assignee's side of a lane: the worklist an application keeps of the work an
+ * Declare the assignee's side of a device or peer assignment: the worklist an application keeps of the work an
  * issuer sent it, and the reports it records for that work. The result holds the worklist's
  * `module`, its `operations` (`assignmentList`, `assignmentGet`, `reportList`, `complete`, one
- * `<kind>Report` per kind the lane takes, and the target's `status`, `sync` and `settle`), the
+ * `<kind>Report` per kind the assignee type takes, and the target's `status`, `sync` and `complete`), the
  * peer `target` whose feed is the issuer's `assignment.feed`, and the resource types it changes.
  *
  * Browser-safe. The server pairs it with `worklistHandlers`, `worklistRules` and
@@ -150,26 +150,27 @@ export function defineWorklist<
   const Namespace extends string,
   const Target extends string,
 >(spec: WorklistSpec<K, Namespace, Target>) {
-  const { namespace, target, assignments, issuer, lane } = spec;
+  const { namespace, target, assignments, issuer, assigneeType } = spec;
   if (!unitIdPattern.test(namespace)) throw new Error(`Invalid worklist namespace "${namespace}"`);
-  const kinds = assignments.kinds.filter((kind) => kind.lanes.includes(lane));
-  if (kinds.length === 0) throw new Error(`No assignment kind takes the ${lane} lane`);
+  const kinds = assignments.kinds.filter((kind) => kind.assigneeTypes.includes(assigneeType));
+  if (kinds.length === 0)
+    throw new Error(`No assignment kind takes the ${assigneeType} assignee type`);
   const offered = new Set(issuer.serviceOperations);
-  for (const id of assignments.lanes[lane].operations)
+  for (const id of assignments.assignees[assigneeType].operations)
     if (!offered.has(id))
-      throw new Error(`The peer surface of ${issuer.application} does not list ${id}`);
+      throw new Error(`The peer API of ${issuer.application} does not list ${id}`);
   const types = { assignment: `${namespace}-assignment`, report: `${namespace}-report` } as const;
   const feedItem = anyFeedItemSchema(kinds) as unknown as z.ZodType<AnyFeedItemOf<K>>;
   const peer = definePeerTarget({
     target,
     resourceType: WORKLIST_SYNC,
-    surface: issuer,
+    api: issuer,
     operations: {
-      settle: `${namespace}.${target}.settle`,
+      complete: `${namespace}.${target}.complete`,
       sync: `${namespace}.${target}.sync`,
       status: `${namespace}.${target}.status`,
     },
-    settles: [types.assignment, types.report],
+    changes: [types.assignment, types.report],
     feed: {
       query: assignments.operations.feed,
       item: feedItem,
@@ -182,9 +183,9 @@ export function defineWorklist<
       rejected: z.number().int(),
     },
     descriptions: {
-      settle: `Integration principal only: record whether ${issuer.application} took a report or a done mark.`,
+      complete: `Integration principal only: record whether ${issuer.application} took a report or a done mark.`,
       sync: `Integration principal only: apply the assignments ${issuer.application} sent here.`,
-      status: `Reports and done marks waiting for ${issuer.application}, taken and refused, and when assignments last arrived.`,
+      status: `Reports and done marks waiting for ${issuer.application}, taken and refused, and when assignments were last received.`,
     },
     destination: spec.destination,
   });
@@ -253,11 +254,11 @@ export function defineWorklist<
     ...reports,
     status: peer.status,
     sync: peer.sync,
-    settle: peer.settle,
+    effectComplete: peer.complete,
   });
   return Object.freeze({
     namespace,
-    lane,
+    assigneeType,
     kinds,
     types,
     target: peer,

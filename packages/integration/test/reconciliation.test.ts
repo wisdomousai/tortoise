@@ -29,12 +29,12 @@ const send = defineCapability({
   permission: { action: 'write', resourceType: 'Job' },
   ui: { exception: 'test fixture' },
 });
-const settle = defineCapability({
-  id: 'job.settle',
+const complete = defineCapability({
+  id: 'job.complete',
   kind: 'command',
   input: jsonSchema(z.strictObject({ effectId: z.string(), outcome: jsonValueSchema })),
   output: jsonSchema(z.strictObject({})),
-  permission: { action: 'settle', resourceType: 'Job' },
+  permission: { action: 'complete', resourceType: 'Job' },
   ui: { exception: 'integration principal' },
 });
 const decisions = defineCapability({
@@ -48,7 +48,7 @@ const decisions = defineCapability({
 type State = { decisions: [string, ReconciliationDecision, string | null][] };
 const scopes: Record<string, string> = { alice: 'station:', bob: 'order:' };
 const person = (principalId: string) => ({ workspaceId: 'w', principalId });
-const bridge = { workspaceId: 'w', principalId: 'bridge', grant: { operations: ['job.settle'] } };
+const bridge = { workspaceId: 'w', principalId: 'bridge', grant: { operations: ['job.complete'] } };
 
 function fixture() {
   let ids = 0;
@@ -57,7 +57,7 @@ function fixture() {
     modules: [
       defineModule({
         id: 'jobs',
-        capabilities: [send, settle, decisions, ...Object.values(reconciliationOperations)],
+        capabilities: [send, complete, decisions, ...Object.values(reconciliationOperations)],
         requirements: {
           network: [
             {
@@ -80,7 +80,7 @@ function fixture() {
     newEffectId: () => `e${++ids}`,
     authorization: {
       authorize: ({ capability, context }) => ({
-        allowed: (context.principalId === 'bridge') === (capability.id === 'job.settle'),
+        allowed: (context.principalId === 'bridge') === (capability.id === 'job.complete'),
       }),
       canReadEvent: () => true,
     },
@@ -95,8 +95,8 @@ function fixture() {
         });
         return { effectId };
       }),
-      bind(settle, (input, ctx) => {
-        ctx.change(ctx.settleEffect(input.effectId, input.outcome as EffectOutcome).resource);
+      bind(complete, (input, ctx) => {
+        ctx.change(ctx.completeEffect(input.effectId, input.outcome as EffectOutcome).resource);
         return {};
       }),
       bind(decisions, (_input, ctx) => ({ items: structuredClone(ctx.state.decisions) })),
@@ -130,7 +130,7 @@ function fixture() {
       application,
       port: port(target),
       context: bridge,
-      settleOperation: 'job.settle',
+      completeOperation: 'job.complete',
     }),
   );
   return { application, dispatchers, delivered, uncertain };
@@ -191,7 +191,7 @@ test('held effects of every target are listed to those who may see them and reso
   await dispatchers[0]!.runOnce();
   expect(delivered).toEqual([station]);
 
-  // Applied: settled with the reference the person found; refused: settled as rejected.
+  // Applied: completed with the reference the person found; refused: completed as rejected.
   expect(
     (await resolve('bob', { effectId: order, decision: 'applied', externalRef: 'SO-7' }, 'r2'))
       .result,

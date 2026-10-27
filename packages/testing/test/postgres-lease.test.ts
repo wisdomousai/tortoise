@@ -65,7 +65,7 @@ function leaseCases(open: () => Database) {
       const next = host(secondDriver, second);
       await increment(next);
 
-      // The old holder wakes: its commit and its renewal are refused, and nothing it wrote lands.
+      // The old holder wakes: its commit and its renewal are refused, and nothing it wrote is committed.
       await expect(increment(old)).rejects.toBeInstanceOf(WorkspaceLeaseLostError);
       await expect(first.renew()).rejects.toBeInstanceOf(WorkspaceLeaseLostError);
       await increment(next);

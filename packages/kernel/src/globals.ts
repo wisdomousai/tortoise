@@ -46,15 +46,15 @@ function signalTimeout(ms: number): AbortSignal {
 function signalAny(signals: Iterable<AbortSignal>): AbortSignal {
   const controller = new AbortController();
   const list = [...signals];
-  const settle = (signal: AbortSignal) => {
+  const complete = (signal: AbortSignal) => {
     for (const other of list) other.removeEventListener('abort', onAbort);
     controller.abort(signal.reason ?? abortReason('AbortError', 'The operation was aborted'));
   };
   function onAbort(this: AbortSignal) {
-    settle(this);
+    complete(this);
   }
   const already = list.find((signal) => signal.aborted);
-  if (already) settle(already);
+  if (already) complete(already);
   else for (const signal of list) signal.addEventListener('abort', onAbort, { once: true });
   return controller.signal;
 }

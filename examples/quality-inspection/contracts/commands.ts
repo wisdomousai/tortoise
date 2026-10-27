@@ -104,5 +104,5 @@ export const commandOperations = {
   ),
   plantSetMember: plantMembership.setMember,
   lotSync: qualityTarget.sync,
-  effectSettle: qualityTarget.settle,
+  effectComplete: qualityTarget.complete,
 } as const;

@@ -69,7 +69,7 @@ export async function open(settings?: PluginSettings, options: { now?: () => num
     (await application.invokeRaw({ operation, input, idempotencyKey: `k${++key}` }, as))
       .result as T;
   /** One outbox pass and one feed pass per target: what the background loops do. */
-  const settle = async () => {
+  const complete = async () => {
     await integrations.target('assignment-model').dispatcher.runOnce();
     await integrations.target('eam').dispatcher.runOnce();
     await integrations.sync();
@@ -112,7 +112,7 @@ export async function open(settings?: PluginSettings, options: { now?: () => num
       },
       options.as ?? device,
     );
-  /** Send a capture to the model to read, as `as`; the reading arrives on the next settle. */
+  /** Send a capture to the model to read, as `as`; the reading is recorded on the next completion. */
   const read = (captureId: string, as = rita) =>
     command<{ id: string }>(
       'assignment.extraction.create',
@@ -135,7 +135,7 @@ export async function open(settings?: PluginSettings, options: { now?: () => num
     application,
     query,
     command,
-    settle,
+    complete,
     deliver,
     retry,
     photo,

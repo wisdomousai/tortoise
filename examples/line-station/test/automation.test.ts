@@ -85,7 +85,7 @@ describe('line station through its automation interface', () => {
     await env.close();
   });
 
-  test('monitor-only, the operator seat and local control keep effects pending without acting', async () => {
+  test('monitor-only, operator control and local control keep effects pending without acting', async () => {
     const env = await setup();
     const { driver, command, deliver, ready } = env;
     await ready();
@@ -93,9 +93,9 @@ describe('line station through its automation interface', () => {
     await command('line.order.start', { station: 'line-1', orderId: 'ORD-7002' });
     expect(await deliver()).toMatchObject({ retried: 1, accepted: 0 });
     await command('line.bridge.set-mode', { station: 'line-1', mode: 'actuate' }, supervisor);
-    await command('line.seat.request', { station: 'line-1', seat: 'operator' });
+    await command('line.control.request', { station: 'line-1', holder: 'operator' });
     expect(await deliver()).toMatchObject({ retried: 1, held: 0 });
-    await command('line.seat.request', { station: 'line-1', seat: 'agent' });
+    await command('line.control.request', { station: 'line-1', holder: 'agent' });
     driver.state.control = 'local';
     expect(await deliver()).toMatchObject({ retried: 1, held: 0 });
     expect(driver.applied('effect-1')).toBe(0);

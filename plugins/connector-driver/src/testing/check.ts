@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { stateValueFits, type DriverContract } from '../contracts/define';
-import { DriverError, lookupAnswer, stateAnswer } from '../protocol';
+import { DriverError, actionLookupResult, stateResult } from '../protocol';
 import {
   driverContractDigest,
   openSession,
@@ -34,13 +34,13 @@ async function attempt(name: string, run: () => Promise<string | undefined>): Pr
   }
 }
 
-/** Every declared field is answered, and each value fits its declaration. */
+/** Every declared field is returned, and each value fits its declaration. */
 async function stateRead(session: DriverSession, contract: DriverContract, timeoutMs: number) {
   const fields = Object.keys(contract.state);
-  const parsed = stateAnswer.safeParse(
+  const parsed = stateResult.safeParse(
     await session.rpc.request('state.read', { fields }, { timeoutMs }),
   );
-  if (!parsed.success) return 'state.read answered invalidly';
+  if (!parsed.success) return 'state.read returned an invalid result';
   const missing = fields.filter((field) => !(field in parsed.data.values));
   if (missing.length) return `state.read left out ${missing.join(', ')}`;
   const misfit = fields.filter(
@@ -49,23 +49,23 @@ async function stateRead(session: DriverSession, contract: DriverContract, timeo
   return misfit.length ? `values do not fit their declaration: ${misfit.join(', ')}` : undefined;
 }
 
-/** A lookup of an effect the driver never saw answers `unknown`. */
+/** A lookup of an effect the driver never saw returns `unknown`. */
 async function lookupUnknown(session: DriverSession, timeoutMs: number) {
-  const parsed = lookupAnswer.safeParse(
+  const parsed = actionLookupResult.safeParse(
     await session.rpc.request(
       'action.lookup',
       { effectId: `check-${randomUUID()}` },
       { timeoutMs },
     ),
   );
-  if (!parsed.success) return 'action.lookup answered invalidly';
+  if (!parsed.success) return 'action.lookup returned an invalid result';
   return parsed.data.status === 'unknown'
     ? undefined
     : `an unseen effect was looked up as ${parsed.data.status}`;
 }
 
 /**
- * Shutdown is answered and the process exits by itself with code 0, before the host has to stop
+ * The driver responds to shutdown and exits by itself with code 0, before the host has to stop
  * it. The host keeps stdin open, so a driver that crashes while its reader is blocked on stdin
  * (an abort at interpreter shutdown, say) fails here.
  */
@@ -123,11 +123,11 @@ export async function checkDriver(options: DriverCheckOptions): Promise<readonly
     checks.push(await attempt('action.lookup', () => lookupUnknown(session, timeoutMs)));
   checks.push(
     await attempt('unknown method', async () => {
-      const answered = await session.rpc
+      const responded = await session.rpc
         .request('check.unknown', {}, { timeoutMs })
         .then(() => true)
         .catch((error: unknown) => !(error instanceof DriverError) || error.kind === 'timeout');
-      return answered ? 'an unknown method was not refused' : undefined;
+      return responded ? 'an unknown method was not refused' : undefined;
     }),
     await attempt('shutdown', () => shutdown(session, timeoutMs)),
   );

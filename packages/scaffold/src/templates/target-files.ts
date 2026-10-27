@@ -42,7 +42,7 @@ export function ${t.pascal}Screen() {
 }
 `;
 
-/** The target's behavioral test: send, deliver, settle, feed, and who may do each. */
+/** The target's behavioral test: send, deliver, complete, feed, and who may do each. */
 export const targetTest = (
   app: AppNames,
   t: Names,
@@ -80,7 +80,7 @@ async function open() {
   return { port, ...instance };
 }
 
-test('a sent ${one.words} is delivered after commit and settled; the feed adds ${many.words}', async () => {
+test('a sent ${one.words} is delivered after commit and completed; the feed adds ${many.words}', async () => {
   const { port, application, integrations } = await open();
   await application.invokeRaw(
     { operation: '${one.kebab}.create', input: { title: 'Local' }, idempotencyKey: 'create' },
@@ -100,7 +100,7 @@ test('a sent ${one.words} is delivered after commit and settled; the feed adds $
   expect(found.data).toMatchObject({ total: 1, items: [{ id: 'remote-1' }] });
 });
 
-test('viewers cannot send, and only the integration principal settles or syncs', async () => {
+test('viewers cannot send, and only the integration principal completes or syncs', async () => {
   const { application } = await open();
   await expect(
     application.invokeRaw({ operation: '${t.kebab}.send', input: { id: 'x' }, idempotencyKey: 'viewer' }, viewer),

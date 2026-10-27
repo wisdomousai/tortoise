@@ -21,9 +21,9 @@ const review = inSurvey(['manager', 'reviewer']);
 
 /**
  * Who does what in a survey. Managers plan the structure and the field work and file; reviewers
- * place captures, send them to be read and accept the readings; viewers read. The integration
- * principal settles and syncs the EAM and export targets and nothing else. Assignments and
- * approval requests are features, which the access views below answer for.
+ * link captures, send them to be read and accept the readings; viewers read. The integration
+ * principal completes and syncs the EAM and export targets and nothing else. Assignments and
+ * approval requests are features, which the access views below authorize.
  */
 export const surveyPolicy = definePolicy<SurveyState, Role>({
   roleOf: (state, principalId) => roleOf(state, principalId),
@@ -49,7 +49,7 @@ export const surveyPolicy = definePolicy<SurveyState, Role>({
     [operations.captureList.id]: read,
     [operations.captureGet.id]: read,
     // Each nested call is authorized on its own as well; this rule admits the composite.
-    [operations.placeAndExtract.id]: review,
+    [operations.linkAndExtract.id]: review,
     [operations.assigneeList.id]: read,
     [operations.filingFile.id]: manage,
     [operations.filingExport.id]: manage,
@@ -77,7 +77,7 @@ export const surveyPolicy = definePolicy<SurveyState, Role>({
  *
  * - A paired device (`device:<id>`) only works on the surveys sent to it; device link
  *   authenticates it, and revoking it refuses its next request.
- * - The integration principal settles offers to the model and applies its readings.
+ * - The integration principal completes offers to the model and applies its readings.
  * - Members read. Managers and reviewers take work sent to them and review reports; managers
  *   plan surveys, and reviewers may also send a capture to be read. Accepting is person-only.
  */

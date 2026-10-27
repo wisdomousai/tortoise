@@ -43,8 +43,8 @@ async function backlog(host: PluginStartContext): Promise<BacklogPoint[]> {
     const state =
       effect.heldAt !== undefined
         ? 'held'
-        : effect.upstreamAt !== undefined
-          ? 'upstream'
+        : effect.acknowledgedAt !== undefined
+          ? 'acknowledged'
           : 'pending';
     const key = `${effect.target}\n${state}`;
     const point = counts.get(key) ?? { target: effect.target, state, count: 0 };
@@ -103,7 +103,7 @@ export function createTelemetryPlugin(options: TelemetryOptions = {}) {
           body: JSON.stringify(body),
           redirect: 'error',
         });
-        if (!response.ok) throw new Error(`The collector answered ${response.status} to ${path}`);
+        if (!response.ok) throw new Error(`The collector returned ${response.status} to ${path}`);
       }
 
       async function cycle() {

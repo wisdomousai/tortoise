@@ -4,15 +4,15 @@
  * its last argument, for example `{ "executable": "/usr/local/bin/bun", "args":
  * ["/opt/survey/examples/asset-survey/export/worker.ts", "/srv/survey-export"] }`.
  *
- * It reads one request line from stdin (see `protocol.ts`), writes the folder and answers one
+ * It reads one request line from stdin (see `protocol.ts`), writes the folder and returns one
  * line on stdout. The folder is assembled under a hidden temporary name and renamed into place,
  * so an importer never sees half a filing. A folder that already holds the same effect is
- * answered as written, which makes a retried delivery safe.
+ * returned as written, which makes a retried delivery safe.
  */
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { isAbsolute, join } from 'node:path';
-import { exportRequestSchema, type ExportAnswer } from './protocol';
+import { exportRequestSchema, type ExportResult } from './protocol';
 
 async function readRequest(): Promise<unknown> {
   const text = await new Response(Bun.stdin.stream()).text();
@@ -29,7 +29,7 @@ async function writtenEffect(folder: string): Promise<string | undefined> {
   }
 }
 
-async function exportFiling(directory: string, raw: unknown): Promise<ExportAnswer> {
+async function exportFiling(directory: string, raw: unknown): Promise<ExportResult> {
   const request = exportRequestSchema.parse(raw);
   const target = join(directory, request.folder);
   const existing = await writtenEffect(target);
@@ -65,7 +65,7 @@ async function isDirectory(path: string) {
   }
 }
 
-async function main(): Promise<ExportAnswer> {
+async function main(): Promise<ExportResult> {
   const directory = process.argv.length < 3 ? '' : process.argv.at(-1)!;
   if (!(await isDirectory(directory)))
     return { id: '', error: 'The export directory is not an absolute path to a directory' };

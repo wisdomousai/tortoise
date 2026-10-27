@@ -2,15 +2,15 @@ import { ApplicationError, type SyncBatch } from '@agent-native/contracts';
 import { targetHandlers, type TargetCursor } from '@agent-native/integration';
 import { own, put } from '@agent-native/runtime';
 import type { AnyAssignmentKind } from '../kind';
-import type { TargetLane } from '../manifest';
+import type { AssignmentTarget } from '../manifest';
 import type { StoredBody } from '../schemas';
 import { now, type Ctx, type Handler } from './issue';
 import { canSee } from './policy';
 import { storeReport } from './report';
 import { assignmentResource, type AssignmentSlice } from './slice';
 
-/** One target answer as the lane's sync receives it. */
-export interface TargetAnswer {
+/** One target result as the target's sync receives it. */
+export interface TargetResult {
   readonly assignmentId: string;
   readonly effectId: string;
   readonly reports: readonly {
@@ -21,20 +21,20 @@ export interface TargetAnswer {
 }
 
 /**
- * The handlers of one target lane. Settling records whether the target took the offer. Syncing
- * applies each answer to the offer it names: its reports are stored and the assignment is done.
- * An answer to an older offer, or for an assignment no longer sent, is ignored, and so is a
+ * The handlers of one assignment target. Completing records whether the target took the offer. Syncing
+ * applies each result to the offer it names: its reports are stored and the assignment is done.
+ * A result for an older offer, or for an assignment no longer sent, is ignored, and so is a
  * report whose body the kind refuses or whose ID is taken. A subject the assignment does not
- * cover is dropped, so a person places that report.
+ * cover is dropped, so a person links that report.
  */
-export function targetLaneHandlers(
-  lane: string,
-  target: TargetLane,
+export function assignmentTargetHandlers(
+  name: string,
+  target: AssignmentTarget,
   kinds: ReadonlyMap<string, AnyAssignmentKind>,
 ): Handler[] {
-  // The watermark is stored on the lane's first sync, so the status query reads without writing.
-  const cursor = (slice: AssignmentSlice): TargetCursor => own(slice.targets, lane) ?? {};
-  const handlers = targetHandlers<AssignmentSlice, unknown, TargetAnswer, unknown, object>(target, {
+  // The watermark is stored on the target's first sync, so the status query reads without writing.
+  const cursor = (slice: AssignmentSlice): TargetCursor => own(slice.targets, name) ?? {};
+  const handlers = targetHandlers<AssignmentSlice, unknown, TargetResult, unknown, object>(target, {
     cursor,
     now: (ctx) => now(ctx as Ctx),
     onOutcome(effect, outcome, ctx) {
@@ -45,15 +45,15 @@ export function targetLaneHandlers(
       if (outcome.status === 'rejected')
         assignment.rejection = { code: outcome.code, message: outcome.message };
     },
-    applyBatch(batch: SyncBatch<TargetAnswer, unknown>, context) {
+    applyBatch(batch: SyncBatch<TargetResult, unknown>, context) {
       const ctx = context as Ctx;
       let applied = 0;
-      for (const answer of batch.items) {
-        const assignment = own(ctx.state.assignments, answer.assignmentId);
-        if (!assignment || assignment.effectId !== answer.effectId || assignment.status !== 'sent')
+      for (const result of batch.items) {
+        const assignment = own(ctx.state.assignments, result.assignmentId);
+        if (!assignment || assignment.effectId !== result.effectId || assignment.status !== 'sent')
           continue;
         const kind = kinds.get(assignment.kind)!;
-        for (const entry of answer.reports) {
+        for (const entry of result.reports) {
           if (own(ctx.state.reports, entry.id) || !kind.report.safeParse(entry.body).success)
             continue;
           const covered =
@@ -80,7 +80,7 @@ export function targetLaneHandlers(
         (assignment) =>
           assignment.status === 'sent' &&
           assignment.assignee?.type === 'target' &&
-          assignment.assignee.id === lane &&
+          assignment.assignee.id === name &&
           canSee(ctx.context, ctx.access, assignment),
       );
       return {
@@ -95,7 +95,7 @@ export function targetLaneHandlers(
       : {
           ...entry,
           handle: (input: unknown, ctx: Ctx) => {
-            if (!own(ctx.state.targets, lane)) put(ctx.state.targets, lane, {});
+            if (!own(ctx.state.targets, name)) put(ctx.state.targets, name, {});
             return entry.handle(input, ctx);
           },
         },

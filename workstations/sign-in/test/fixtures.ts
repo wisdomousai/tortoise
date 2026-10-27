@@ -7,7 +7,7 @@ import { createHandlerFactory } from '@agent-native/runtime';
 import { createStationSignInPlugin } from '../src/plugin';
 import { stationSignInPluginManifest } from '../src/plugin-manifest';
 
-/** Who the caller is, so a test can tell an operator's session from the seat's. */
+/** Who the caller is, so a test can tell an operator's session from the terminal's. */
 export const whoami = defineCapability({
   id: 'work.whoami',
   kind: 'query',
@@ -17,7 +17,7 @@ export const whoami = defineCapability({
   ui: { exception: 'test fixture' },
 });
 
-/** A station application: the owner's screen is the seat, and enrolled operators may read work. */
+/** A station application: the owner's screen is the terminal, and enrolled operators may read work. */
 export function stationApplication(options: { now?: () => number } = {}) {
   const bind = createHandlerFactory<Record<string, never>, {}>();
   return defineApplication<Record<string, never>>({

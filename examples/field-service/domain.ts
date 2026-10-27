@@ -27,7 +27,7 @@ export interface ServiceState {
   workOrders: Record<string, WorkOrder>;
   tasks: Record<string, Task>;
   deletedTasks: Record<string, string>;
-  /** The task each queued reminder effect is about, until it settles. */
+  /** The task each queued reminder effect is about, until it completes. */
   reminderEffects: Record<string, string>;
 }
 export function createServiceState(ownerId = 'owner'): ServiceState {

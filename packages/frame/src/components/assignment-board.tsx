@@ -42,7 +42,7 @@ export interface BoardAssignment {
 /** One kind on the board: its contract and generated commands, and an optional scope editor. */
 export interface BoardKind {
   /** The kind as `defineAssignmentKind` returns it. */
-  kind: { id: string; title: string; lanes: readonly string[] };
+  kind: { id: string; title: string; assigneeTypes: readonly string[] };
   create: Command;
   send: Command;
   /** An editor for the scope that labels its own fields; a JSON field when omitted. */
@@ -68,18 +68,18 @@ const refusal = (error: unknown) => {
 };
 const keyOf = (assignee: Assignee) => `${assignee.type}:${assignee.id}`;
 
-/** A select of the assignees the kind's lanes take; empty means "no assignee". */
+/** A select of the assignees of the kind's assignee types; empty means "no assignee". */
 function AssigneeSelect({
   id,
   options,
-  lanes,
+  assigneeTypes,
   value,
   onChange,
   empty,
 }: {
   id: string;
   options: readonly AssigneeOption[];
-  lanes: readonly string[];
+  assigneeTypes: readonly string[];
   value: string;
   onChange: (value: string) => void;
   empty: string;
@@ -88,7 +88,7 @@ function AssigneeSelect({
     <NativeSelect id={id} value={value} onChange={(event) => onChange(event.target.value)}>
       <option value="">{empty}</option>
       {options
-        .filter((option) => lanes.includes(option.type))
+        .filter((option) => assigneeTypes.includes(option.type))
         .map((option) => (
           <option key={keyOf(option)} value={keyOf(option)}>
             {option.label}
@@ -172,7 +172,7 @@ function NewAssignment({
         <AssigneeSelect
           id={id('assignee')}
           options={assignees}
-          lanes={kind.kind.lanes}
+          assigneeTypes={kind.kind.assigneeTypes}
           value={assignee}
           onChange={setAssignee}
           empty="Keep as draft"
@@ -263,7 +263,7 @@ function AssignmentRow({
             <AssigneeSelect
               id={`${assignment.id}-assignee`}
               options={assignees}
-              lanes={kind.kind.lanes}
+              assigneeTypes={kind.kind.assigneeTypes}
               value={assignee}
               onChange={setAssignee}
               empty="Pick an assignee"

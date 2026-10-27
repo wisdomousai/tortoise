@@ -32,7 +32,7 @@ const toExtractionField = (field: ProfileField): ExtractionField => ({
  * extractor for the fields shown on it. Extractors are resolved once, so a profile naming an
  * unknown extractor fails at construction, not on the floor.
  */
-export function createPerception(profile: StationProfile, extractors: readonly Extractor[]) {
+export function createRecognizer(profile: StationProfile, extractors: readonly Extractor[]) {
   const byId = new Map(extractors.map((extractor) => [extractor.id, extractor]));
   for (const field of profile.fields)
     if (!byId.has(field.extractor))
@@ -69,7 +69,7 @@ export function createPerception(profile: StationProfile, extractors: readonly E
       const extractor = byId.get(extractorId)!;
       const wanted = new Set(group.map((field) => field.id));
       for (const raw of await extractor.extract(frame, group.map(toExtractionField), signal)) {
-        // An extractor may only answer for fields it was asked about.
+        // An extractor may only return readings for fields it was asked about.
         if (!wanted.has(raw.field)) continue;
         readings.set(raw.field, {
           field: raw.field,
@@ -87,7 +87,7 @@ export function createPerception(profile: StationProfile, extractors: readonly E
   }
   return { identify, view, field: (id: string) => profile.fields.find((field) => field.id === id) };
 }
-export type Perception = ReturnType<typeof createPerception>;
+export type Recognizer = ReturnType<typeof createRecognizer>;
 
 /** Compare an observed value with an expected one; numbers within half a displayed digit. */
 export function valueMatches(
@@ -110,7 +110,7 @@ export function valueMatches(
  * the field's confidence threshold; an unsure reading is `unknown`, never `met`.
  */
 export function evaluate(
-  perception: Perception,
+  recognizer: Recognizer,
   view: View,
   conditions: readonly Condition[],
   input: unknown,
@@ -118,7 +118,7 @@ export function evaluate(
   const unmet: string[] = [];
   const unknown: string[] = [];
   for (const condition of conditions) {
-    const field = perception.field(condition.field);
+    const field = recognizer.field(condition.field);
     const reading = view.readings.get(condition.field);
     if (!reading || reading.confidence < (field?.minConfidence ?? 1)) {
       unknown.push(condition.field);
@@ -134,4 +134,4 @@ export function evaluate(
   return { met: unmet.length === 0 && unknown.length === 0, unmet, unknown };
 }
 
-export { StabilityGate } from '@agent-native/observation';
+export { Debouncer } from '@agent-native/observation';

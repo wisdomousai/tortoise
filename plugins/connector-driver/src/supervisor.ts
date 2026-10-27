@@ -2,14 +2,14 @@ import type { JsonObject, JsonValue } from '@agent-native/contracts';
 import type { DriverContract } from './contracts';
 import {
   DriverError,
-  invokeAnswer,
-  lookupAnswer,
-  stateAnswer,
+  invokeResult,
+  actionLookupResult,
+  stateResult,
   type EventNotification,
-  type InitializeAnswer,
-  type InvokeAnswer,
-  type LookupAnswer,
-  type StateAnswer,
+  type InitializeResult,
+  type InvokeResult,
+  type ActionLookupResult,
+  type StateResult,
 } from './protocol';
 import {
   driverContractDigest,
@@ -38,9 +38,9 @@ export interface DriverSupervisorOptions {
   /** Backoff after a failed or short-lived start, doubling up to `max`. */
   readonly backoff?: { readonly minMs: number; readonly maxMs: number };
   /** Events in order, after validation. Awaited one at a time from a bounded queue. */
-  readonly onEvent?: (event: EventNotification, session: InitializeAnswer) => Promise<void> | void;
+  readonly onEvent?: (event: EventNotification, session: InitializeResult) => Promise<void> | void;
   /** A new session started: the driver restarted, so anything derived from its state is stale. */
-  readonly onSession?: (session: InitializeAnswer) => void;
+  readonly onSession?: (session: InitializeResult) => void;
   /** Sequence gaps, dropped events, malformed lines, failed health checks. Caller-safe text. */
   readonly onProblem?: (problem: string) => void;
   readonly now?: () => number;
@@ -49,9 +49,9 @@ export interface DriverSupervisorOptions {
 /** What a status screen shows about one driver. */
 export interface DriverStatus {
   readonly state: 'stopped' | 'starting' | 'ready' | 'backing-off';
-  readonly driver?: InitializeAnswer['driver'];
+  readonly driver?: InitializeResult['driver'];
   readonly session?: string;
-  readonly devices: InitializeAnswer['devices'];
+  readonly devices: InitializeResult['devices'];
   readonly digest: string;
   readonly starts: number;
   readonly lastError?: string;
@@ -136,7 +136,7 @@ export function createDriverSupervisor(options: DriverSupervisorOptions) {
     return starting;
   }
 
-  /** One request on the current session, its answer checked against `schema`. */
+  /** One request on the current session, its response checked against `schema`. */
   async function call<T>(
     method: string,
     params: unknown,
@@ -151,7 +151,7 @@ export function createDriverSupervisor(options: DriverSupervisorOptions) {
     if (!parsed.success)
       throw new DriverError(
         'protocol',
-        `Driver ${options.contract.id} answered ${method} invalidly`,
+        `Driver ${options.contract.id} sent an invalid ${method} response`,
       );
     return parsed.data;
   }
@@ -159,26 +159,26 @@ export function createDriverSupervisor(options: DriverSupervisorOptions) {
   return {
     digest,
     ready,
-    read: (fields: readonly string[], signal?: AbortSignal): Promise<StateAnswer> =>
-      call('state.read', { fields }, stateAnswer, 10_000, signal),
+    read: (fields: readonly string[], signal?: AbortSignal): Promise<StateResult> =>
+      call('state.read', { fields }, stateResult, 10_000, signal),
     invoke: (
       action: string,
       input: JsonValue,
       effectId: string,
       mode: DriverMode,
       signal?: AbortSignal,
-    ): Promise<InvokeAnswer> => {
+    ): Promise<InvokeResult> => {
       const timeoutMs = options.contract.actions[action]!.timeoutMs;
       return call(
         'action.invoke',
         { action, input, effectId, mode, deadline: now() + timeoutMs },
-        invokeAnswer,
+        invokeResult,
         timeoutMs,
         signal,
       );
     },
-    lookup: (effectId: string, signal?: AbortSignal): Promise<LookupAnswer> =>
-      call('action.lookup', { effectId }, lookupAnswer, 10_000, signal),
+    lookup: (effectId: string, signal?: AbortSignal): Promise<ActionLookupResult> =>
+      call('action.lookup', { effectId }, actionLookupResult, 10_000, signal),
     status: (): DriverStatus => ({
       state: session
         ? 'ready'

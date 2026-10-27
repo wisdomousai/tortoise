@@ -3,7 +3,7 @@
  * grey stand-in PNG whose `tEXt` chunk (keyword `nameplate`) carries the lines a camera would see,
  * such as `manufacturer: ABB`. A trailing ` ?` marks a line that is hard to read. The fake
  * extractor reads that text instead of the pixels, so the pipeline runs without a model and gives
- * the same answer every time. `withNameplateText` adds the same text to a real JPEG photo as a
+ * the same result every time. `withNameplateText` adds the same text to a real JPEG photo as a
  * comment segment, which is how the sample photos in `fixtures/nameplates` carry theirs.
  *
  * Pure JavaScript (stored deflate blocks, own CRC), so it runs in Bun and on a device alike.

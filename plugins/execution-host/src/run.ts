@@ -196,8 +196,8 @@ export function createExecutionHost(
   const running = new Set<SandboxRun>();
 
   async function start(task: SandboxTask): Promise<SandboxRun> {
-    const answer = availability(host, task.sandbox);
-    if (!answer.available) throw new ApplicationError('UNAVAILABLE', answer.reason);
+    const status = availability(host, task.sandbox);
+    if (!status.available) throw new ApplicationError('UNAVAILABLE', status.reason);
     const tool = checkTask(task, options);
     const limits = resolveLimits(task.limits);
     const port = apiPort(host.origin()) as number;

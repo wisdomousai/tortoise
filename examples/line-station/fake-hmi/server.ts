@@ -46,7 +46,7 @@ async function screenRoute(sim: HmiSimulator, request: Request, url: URL) {
       enabled: Object.fromEntries([...controls].map((control) => [control, sim.enabled(control)])),
     });
   }
-  // The page's own controls. A bridge action arrives here as a click on the page.
+  // The page's own controls. A bridge action is received here as a click on the page.
   if (request.method === 'POST' && path === '/press') {
     const { control } = await body(request);
     if (typeof control !== 'string' || !controls.has(control as Control))
@@ -181,7 +181,7 @@ const page = `<!doctype html>
   <button class="abs" data-control="popupOk" style="${relative('popupOk', 'popup')}">OK</button>
 </div>
 <script>
-  // Requests are serialized so typed text always arrives before the confirm that follows it.
+  // Requests are serialized so typed text is always applied before the confirm that follows it.
   let queue = Promise.resolve();
   const post = (path, body) => (queue = queue.then(() => fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })).then(refresh, refresh));
   const main = document.getElementById('main');

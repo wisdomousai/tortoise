@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
 import type { CommandReceipt, ExecutionContext, Invocation } from '@agent-native/runtime';
-import type { ObservedReading } from './stability';
+import type { ObservedReading } from './debounce';
 
 /**
  * What every observation carries, whatever the source: when its frame was taken, the frame's
- * digest and the gated readings. A source adds its own context (station and screen, or device and
+ * digest and the debounced readings. A source adds its own context (station and screen, or device and
  * mode) as further fields.
  */
 export interface ObservationBase {

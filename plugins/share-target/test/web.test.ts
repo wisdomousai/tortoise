@@ -47,7 +47,7 @@ const codeOf = (response: Response) =>
   new URL(response.headers.get('location')!, 'http://x').searchParams.get('os-share')!;
 
 describe('share target on the web', () => {
-  test('a shared text is held, then the landing session claims it once as a prefill', async () => {
+  test('a shared text is held, then the launch page session claims it once as a prefill', async () => {
     const { host, call, share, claim } = await serve(notesApplication());
     try {
       const posted = await share({ title: 'Milk', text: 'Buy milk' });
@@ -55,15 +55,15 @@ describe('share target on the web', () => {
       const code = codeOf(posted);
       expect(code).toMatch(/^[A-Za-z0-9_-]{22}$/);
 
-      // The redirect lands cross-site too; the host serves the frame for exactly that landing.
-      const landing = await fetch(`${host.url}/?os-share=${code}`, {
+      // The redirect is cross-site too; the host serves the frame for exactly that launch URL.
+      const launchPage = await fetch(`${host.url}/?os-share=${code}`, {
         headers: {
           'sec-fetch-site': 'cross-site',
           'sec-fetch-mode': 'navigate',
           'sec-fetch-dest': 'document',
         },
       });
-      expect(landing.status).toBe(200);
+      expect(launchPage.status).toBe(200);
 
       expect(await claim(code)).toEqual({ status: 'delivered', handler: 'note.from-shared-text' });
       expect(await (await call('ui/deliveries')).json()).toMatchObject([

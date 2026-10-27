@@ -24,7 +24,7 @@ afterEach(async () => {
 });
 
 /** Time for requests that should show nothing to have been refused. */
-const settle = () => Bun.sleep(20);
+const complete = () => Bun.sleep(20);
 /** Wait until `condition` holds, polling; fails the test after two seconds. */
 async function until(condition: () => boolean) {
   const deadline = Date.now() + 2_000;
@@ -155,7 +155,7 @@ test('an intent action starts the declared package with the checked extras', asy
   connection.close();
 });
 
-test('without the native module, intents neither arrive nor start', async () => {
+test('without the native module, intents are neither received nor started', async () => {
   const application = notesApplication();
   const instance = await open(application, 'ios');
   const { intents: _intents, startIntent: _start, ...bindings } = device().bindings;

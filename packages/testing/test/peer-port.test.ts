@@ -156,7 +156,7 @@ describe('the peer port conforms', () => {
     test(check.name, async () => expect(await check.run()).toEqual({ passed: true }));
 });
 
-/** A peer that answers every call with one error envelope. */
+/** A peer that returns one error envelope for every call. */
 const refusing = (status: number, error: ErrorEnvelope): PeerClient => ({
   fetch: async () => Response.json({ error }, { status }),
 });
@@ -233,7 +233,7 @@ describe('peer port', () => {
     expect(disconnected.message).toBe('No connection to peer; pair the device first');
   });
 
-  test('search answers a remote query with the peer query of the same ID', async () => {
+  test('search serves a remote query with the peer query of the same ID', async () => {
     const { client } = peer();
     const port = portTo(() => client);
     const access = { credential: undefined, identity: 'service' as const };

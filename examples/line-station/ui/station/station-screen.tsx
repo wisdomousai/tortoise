@@ -30,25 +30,27 @@ export function StationScreen() {
   );
   if (station.error) return <p role="alert">{station.error.message}</p>;
   if (!station.data) return <p role="status">Loading station…</p>;
-  return <StationSurface station={station.data} attention={attention.data?.items ?? []} />;
+  return <StationView station={station.data} attention={attention.data?.items ?? []} />;
 }
 
 /**
  * Take over or hand back the station screen. Absent when the bridge only watches the screen,
- * since there is then no seat to take.
+ * since there is then no control to take.
  */
-function seatControl(station: Station, pending: string | undefined, run: Run) {
+function takeover(station: Station, pending: string | undefined, run: Run) {
   const { bridge, desired } = station;
   if (bridge.mode === 'monitor-only') return undefined;
-  const request = (seat: 'operator' | 'agent') => () =>
-    void run('seat', () => client.command(operations.seatRequest, { station: station.id, seat }));
+  const request = (holder: 'operator' | 'agent') => () =>
+    void run('control', () =>
+      client.command(operations.controlRequest, { station: station.id, holder }),
+    );
   return {
-    seat: bridge.seat,
+    holder: bridge.controlHolder,
     activity:
       desired?.sync === 'pending'
         ? `Loading recipe ${desired.recipe} for ${desired.orderId}`
         : undefined,
-    pending: pending === 'seat',
+    pending: pending === 'control',
     onTakeOver: request('operator'),
     onHandBack: request('agent'),
   };
@@ -58,7 +60,7 @@ function seatControl(station: Station, pending: string | undefined, run: Run) {
  * Holds what outlives a single task: the command in flight and the reading being corrected,
  * which stays open across live updates until it is confirmed.
  */
-function StationSurface({
+function StationView({
   station,
   attention,
 }: {
@@ -94,7 +96,7 @@ function StationSurface({
         person ? (id, value) => approvals.resolve(id, value) || resolve(id, value) : undefined
       }
       attentionPendingId={pending?.startsWith('attention:') ? pending.slice(10) : undefined}
-      seat={person ? seatControl(station, pending, run) : undefined}
+      control={person ? takeover(station, pending, run) : undefined}
       footer={<RecentStops station={station.id} />}
     >
       {error && (

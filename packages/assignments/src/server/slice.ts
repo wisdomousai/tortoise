@@ -29,7 +29,7 @@ export interface StoredAssignment {
   closedBy?: string;
   closedAt?: number;
   reason?: string;
-  /** Target lane: the offer effect and how the target answered it. */
+  /** Assignment target only: the offer effect and the target's result. */
   effectId?: string;
   delivery?: 'pending' | 'accepted' | 'rejected';
   rejection?: { code: string; message: string };
@@ -55,7 +55,7 @@ export interface StoredReport {
 export interface AssignmentSlice {
   readonly assignments: Record<string, StoredAssignment>;
   readonly reports: Record<string, StoredReport>;
-  /** Each target lane's inbound watermark, by lane name. */
+  /** Each assignment target's inbound watermark, by target name. */
   readonly targets: Record<string, TargetCursor>;
 }
 

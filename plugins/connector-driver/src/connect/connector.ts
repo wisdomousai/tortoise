@@ -16,7 +16,7 @@ import {
 } from '@agent-native/integration';
 import type { Effect, EffectOutcome } from '@agent-native/runtime';
 import type { DriverAction, DriverCondition, DriverContract } from '../contracts';
-import { DriverError, type StateAnswer } from '../protocol';
+import { DriverError, type StateResult } from '../protocol';
 import type { DriverMode, DriverSupervisor } from '../supervisor';
 import { evaluate, readsFor, resolveBinding } from './conditions';
 
@@ -34,7 +34,7 @@ export interface DriverConnectorOptions {
 
 /** Driver errors that guarantee the equipment was not acted on. */
 const untouchedKinds = new Set(['transient', 'rejected', 'precondition', 'refused']);
-const empty: StateAnswer = { values: {}, confidence: {}, at: 0 };
+const empty: StateResult = { values: {}, confidence: {}, at: 0 };
 const accepted = (ref?: string): EffectOutcome => ({
   status: 'accepted',
   ...(ref ? { externalRef: ref } : {}),
@@ -43,7 +43,7 @@ const accepted = (ref?: string): EffectOutcome => ({
 /** Why the mode forbids `action` now, or undefined when it may run. */
 function blockedBy(mode: DriverMode, action: DriverAction): string | undefined {
   if (mode === 'monitor-only') return 'The driver bridge is in monitor-only mode';
-  if (mode === 'assist' && action.hazard !== 'none')
+  if (mode === 'assist' && action.risk !== 'none')
     return `The driver bridge is in assist mode; ${action.title} needs actuate mode`;
   return undefined;
 }
@@ -55,17 +55,14 @@ function payloadProblem(action: DriverAction, payload: unknown): EffectOutcome |
   } catch {
     return rejected('INVALID_PAYLOAD', `${action.title} has an invalid input`);
   }
-  if (
-    action.hazard === 'operator-present' &&
-    !resolveBinding('$input.presence.confirmedBy', payload)
-  )
+  if (action.risk === 'operator-present' && !resolveBinding('$input.presence.confirmedBy', payload))
     return rejected('PRECONDITION', `${action.title} needs confirmation at the machine`);
   return undefined;
 }
 
 /**
  * An action request that failed. The driver's own classification decides, except when the
- * request may have reached it (exit, timeout, cancellation, a malformed answer): then delivery
+ * request may have reached it (exit, timeout, cancellation, a malformed response): then delivery
  * fails transiently and lookup or readback decides before anything is sent again.
  */
 function failed(error: unknown, action: DriverAction): EffectOutcome {
@@ -83,11 +80,11 @@ function failed(error: unknown, action: DriverAction): EffectOutcome {
  * In order:
  * 1. Unknown actions, invalid input and an unconfirmed `operator-present` action are rejected
  *    before anything is read or done.
- * 2. The bridge mode must allow the action's hazard; otherwise the effect waits (transient).
+ * 2. The bridge mode must allow the action's risk level; otherwise the effect waits (transient).
  * 3. Convergent delivery: if the readback already holds, accept without acting; refuse while the
  *    equipment is under local control; reject unmet preconditions. The same order applies to
  *    every mode, with the readback step skipped when the action declares none.
- * 4. Act with the effect ID as the idempotency key. Accept on the driver's answer, or, with a
+ * 4. Act with the effect ID as the idempotency key. Accept on the driver's response, or, with a
  *    readback, only once the readback holds across the fields' `stableReads`.
  *
  * Lookup: `idempotent` actions are safe to resend; `once` asks the driver; `convergent` reads back.
@@ -100,7 +97,7 @@ export function createDriverConnector(options: DriverConnectorOptions): SystemOf
     pollMs: options.pollMs ?? 250,
   };
   const attempts = new AttemptMemory();
-  const local = (view: StateAnswer) =>
+  const local = (view: StateResult) =>
     contract.control && view.values[contract.control.field] === contract.control.local;
 
   /** Read the fields a delivery needs; nothing at all when it needs none. */
@@ -117,11 +114,11 @@ export function createDriverConnector(options: DriverConnectorOptions): SystemOf
   };
   const confirmed =
     (
-      observe: (signal: AbortSignal) => Promise<StateAnswer>,
+      observe: (signal: AbortSignal) => Promise<StateResult>,
       conditions: readonly DriverCondition[],
       input: unknown,
     ) =>
-    (first: StateAnswer, signal: AbortSignal) =>
+    (first: StateResult, signal: AbortSignal) =>
       confirm(
         clock,
         observe,
@@ -135,7 +132,7 @@ export function createDriverConnector(options: DriverConnectorOptions): SystemOf
     effect: Readonly<Effect>,
     action: DriverAction,
     mode: DriverMode,
-    observe: (signal: AbortSignal) => Promise<StateAnswer>,
+    observe: (signal: AbortSignal) => Promise<StateResult>,
     signal: AbortSignal,
   ) {
     let ref: string | undefined;

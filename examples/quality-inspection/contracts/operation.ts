@@ -5,7 +5,7 @@ const descriptions: Readonly<Record<string, string>> = {
   'inspection.lot.get':
     'Read one inspection lot with its characteristics, specification limits, active results, defects, usage decision and the next open sample. Use its revision as lot:<id> in a decision expectedRevisions map.',
   'inspection.worklist':
-    'Return the next characteristic and sample to measure for an open lot, and how many samples remain. Call it after each recorded result to drive capture.',
+    'Return the next characteristic and sample to measure for an open lot, and how many samples remain. Call it after each recorded result to get the next one.',
   'inspection.code.list':
     'List qualitative code groups and defect codes published by the quality system, with their valuation.',
   'inspection.plant.list':

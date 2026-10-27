@@ -41,7 +41,7 @@ function sourceFor(profile: ScannerProfile, video?: HTMLVideoElement): ScannerSo
  * and camera profiles need a user gesture for the browser's device prompt, so call `connect`
  * from a button. Each scan is decoded with the profile and matched against the station's routes;
  * `onRoute` receives the intent, `onScan` every scan. `channel` records how the last value
- * arrived, so a datapoint can report its input channel.
+ * was received, so a datapoint can report its input channel.
  */
 export function useScanner({
   profile = DEFAULT_PROFILE,

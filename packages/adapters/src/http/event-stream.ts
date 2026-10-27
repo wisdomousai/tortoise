@@ -45,7 +45,7 @@ export function eventStreamResponse(
   let first = true;
   const encoder = new TextEncoder();
   let ended = false;
-  // A bearer credential session is not stored; one minted from it is, and both recheck the
+  // A bearer credential session is not stored; one created from it is, and both recheck the
   // credential once per pull, so a revoked device's stream ends at the next poll.
   const live = () =>
     !request.signal.aborted &&

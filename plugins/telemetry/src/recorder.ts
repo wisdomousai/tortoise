@@ -201,7 +201,7 @@ export function createRecorder(options: RecorderOptions = {}) {
     if (event.kind === 'effect.enqueued') {
       const trace = commandTrace(event);
       effects.set(id, { at: event.at, traceId: trace.traceId, parentSpanId: trace.spanId });
-    } else if (event.kind === 'effect.settled') {
+    } else if (event.kind === 'effect.completed') {
       const status = effectStates.has(String(data.status)) ? String(data.status) : 'unknown';
       const attributes: Attributes = {
         'agent_native.target': target,
@@ -224,14 +224,14 @@ export function createRecorder(options: RecorderOptions = {}) {
         error: status !== 'accepted',
       });
     } else {
-      // `effect.attempted` or `effect.held`: a delivery that did not settle this time.
+      // `effect.attempted` or `effect.held`: a delivery that did not complete this time.
       const result =
         event.kind === 'effect.held'
           ? 'held'
           : event.outcome === 'denied'
             ? 'superseded'
-            : data.upstream === true
-              ? 'upstream'
+            : data.acknowledged === true
+              ? 'acknowledged'
               : 'retry';
       attempts.add({ 'agent_native.target': target, 'agent_native.attempt.result': result });
     }

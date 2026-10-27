@@ -56,7 +56,7 @@ function issue(input: InputOf<typeof ops.issue>, ctx: Context) {
   return { expiresAt };
 }
 
-/** A live reply issued to the caller, or undefined; one answer for every failure. */
+/** A live reply issued to the caller, or undefined; one result for every failure. */
 function liveReply(ctx: Context, digest: string) {
   const reply = Object.hasOwn(ctx.state.replies, digest) ? ctx.state.replies[digest] : undefined;
   if (!reply || reply.principal !== ctx.context.principalId) return undefined;
@@ -94,7 +94,7 @@ const known = new Set<string>(notificationsModule.capabilities.map((capability) 
 /**
  * Issuing is for the owner acting under a delegated grant: the dispatcher. Looking up and
  * redeeming a reply is for any principal, but only on the shell channel, which the reply consumer
- * sets and no transport does; the handlers then answer only for replies issued to the caller.
+ * sets and no transport does; the handlers then act only on replies issued to the caller.
  * Notification events are visible to the owner.
  */
 export const notificationsPolicy: AuthorizationPort<NotificationsState> = {

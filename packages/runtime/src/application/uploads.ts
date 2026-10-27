@@ -25,7 +25,7 @@ export function createUploads(now: () => number, graceMs: number) {
       const expiresAt = staged.get(key(context, digest));
       return expiresAt !== undefined && expiresAt > now();
     },
-    /** Run `action` after every earlier action on this workspace's store has settled. */
+    /** Run `action` after every earlier action on this workspace's store has completed. */
     async exclusive<T>(workspaceId: string, action: () => Promise<T>): Promise<T> {
       const previous = tails.get(workspaceId) ?? Promise.resolve();
       let unlock!: () => void;

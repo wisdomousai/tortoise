@@ -5,10 +5,10 @@ import { operations } from '../../contracts';
 import { LocalStatusBadge, type LocalStatus } from '../local-status';
 
 /**
- * Adopt one CRM account, or show where it stands. The status comes from the live account list,
- * so it moves from adopting to adopted (or refused) without a new search.
+ * Follow one CRM account, or show where it stands. The status comes from the live account list,
+ * so it moves from requested to following (or refused) without a new search.
  */
-export function AdoptButton({
+export function FollowButton({
   externalId,
   name,
   status,
@@ -20,13 +20,13 @@ export function AdoptButton({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
   if (status !== 'none' && status !== 'rejected') return <LocalStatusBadge status={status} />;
-  const adopt = async () => {
+  const follow = async () => {
     setPending(true);
     setError(undefined);
     try {
-      await client.command(operations.accountAdopt, { externalId });
+      await client.command(operations.accountFollow, { externalId });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not adopt');
+      setError(cause instanceof Error ? cause.message : 'Could not follow');
     } finally {
       setPending(false);
     }
@@ -38,10 +38,10 @@ export function AdoptButton({
         size="sm"
         variant="outline"
         disabled={pending}
-        onClick={adopt}
-        aria-label={`Adopt ${name}`}
+        onClick={follow}
+        aria-label={`Follow ${name}`}
       >
-        {status === 'rejected' ? 'Try again' : 'Adopt'}
+        {status === 'rejected' ? 'Try again' : 'Follow'}
       </Button>
       {error && (
         <span role="alert" className="text-xs text-destructive">

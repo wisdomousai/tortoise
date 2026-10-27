@@ -6,7 +6,7 @@ import { createRunSupervisor } from '../src/supervisor';
 import { deterministicHarness } from '../src/deterministic';
 import { toolName, type Harness, type HarnessTurn } from '../src/types';
 
-// An OpenAI-compatible fixture server on loopback: it lists one model and answers chat
+// An OpenAI-compatible fixture server on loopback: it lists one model and returns chat
 // completions as a stream, first with a tool call and, once the tool result is back, with text.
 const seen: { path: string; authorization: string | null; body?: any }[] = [];
 const chunk = (delta: unknown, finish: string | null = null) =>
@@ -20,8 +20,8 @@ const server = Bun.serve({
     seen.push({ path: pathname, authorization: request.headers.get('authorization'), body });
     if (pathname === '/v1/models') return Response.json({ data: [{ id: 'qwen-local' }] });
     if (pathname !== '/v1/chat/completions') return new Response('not found', { status: 404 });
-    const answered = body.messages.some((message: { role: string }) => message.role === 'tool');
-    const events = answered
+    const toolReturned = body.messages.some((message: { role: string }) => message.role === 'tool');
+    const events = toolReturned
       ? [chunk({ role: 'assistant', content: 'done' }), chunk({}, 'stop')]
       : [
           chunk({

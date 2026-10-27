@@ -119,7 +119,7 @@ describe('file request building', () => {
     expect(fileHandlerFor(os, '.png')).toBeUndefined();
   });
 
-  test('text travels inline; a blob is uploaded first as a declared media type', async () => {
+  test('text is sent inline; a blob is uploaded first as a declared media type', async () => {
     const noteHandler = fileHandlerFor(os, 'a.txt')!;
     const scanHandler = fileHandlerFor(os, 'a.pdf')!;
     expect(await fileRequest(noteHandler, 'a.txt', bytes('milk'), upload)).toEqual({

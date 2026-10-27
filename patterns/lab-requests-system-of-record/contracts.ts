@@ -57,11 +57,11 @@ export type RegisteredRequest = z.output<typeof registeredRequestSchema>;
 export const limsTarget = defineTarget({
   target: 'lims',
   resourceType: 'Publication',
-  settles: ['publication'],
+  changes: ['publication'],
   feed: { item: registeredRequestSchema, max: 50, changes: ['test-request'] },
   status: { pending: z.number().int(), accepted: z.number().int(), rejected: z.number().int() },
   descriptions: {
-    settle: 'Integration principal only: record the LIMS outcome for a published test request.',
+    complete: 'Integration principal only: record the LIMS outcome for a published test request.',
     sync: 'Integration principal only: add test requests registered at other sites and advance the watermark. A stale from watermark conflicts.',
     status:
       'Summarize publications: waiting for the LIMS, accepted and rejected, and the last import of requests registered elsewhere.',
@@ -92,7 +92,7 @@ export const publishingOperations = {
     ui: { binding: 'publication.publish' },
     display: { label: 'Register in LIMS', resource: 'publication', titleField: 'specimen' },
   }),
-  limsSettle: limsTarget.settle,
+  limsComplete: limsTarget.complete,
   limsSync: limsTarget.sync!,
   limsStatus: limsTarget.status,
   ...reconciliationOperations,

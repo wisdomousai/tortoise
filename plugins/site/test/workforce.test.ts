@@ -5,7 +5,7 @@ import { createWorkforceSignIn, type WorkforceConfig } from '../src/workforce/si
 
 /**
  * Workforce sign-in against a fake identity provider: discovery, keys and the token endpoint are
- * answered by the injected destination fetch, as the network port's client would reach them.
+ * served by the injected destination fetch, as the network port's client would reach them.
  */
 const issuer = 'https://idp.example';
 const origin = 'https://station.example';

@@ -4,7 +4,7 @@ export const externalId = z.string().min(1).max(64);
 export const timestamp = z.number().int().nonnegative();
 export const region = z.string().min(1).max(32);
 /** What this application holds of a CRM record: nothing yet, a follow in flight, a copy, or a refusal. */
-export const localStatus = z.enum(['none', 'following', 'adopted', 'rejected']);
+export const localStatus = z.enum(['none', 'requested', 'following', 'rejected']);
 export const syncStatus = z.enum(['pending', 'accepted', 'rejected']);
 const rejection = z.strictObject({ code: z.string(), message: z.string() });
 
@@ -18,7 +18,7 @@ export const accountFoundSchema = z.strictObject({
   owner: z.string(),
   local: localStatus,
 });
-/** One CRM contact as a search returns it. Adopting means adopting its account. */
+/** One CRM contact as a search returns it. Following a contact means following its account. */
 export const contactFoundSchema = z.strictObject({
   externalId: z.string(),
   name: z.string(),
@@ -35,7 +35,7 @@ export const searchInput = z.strictObject({
   limit: z.number().int().min(1).max(50).optional(),
 });
 
-/** An adopted account: the copy the CRM feed keeps current, and how it got here. */
+/** A followed account: the copy the CRM feed keeps current, and how it got here. */
 export const accountSchema = z.strictObject({
   id: externalId,
   status: localStatus.exclude(['none']),
@@ -44,8 +44,8 @@ export const accountSchema = z.strictObject({
   city: z.string().optional(),
   region: region.optional(),
   owner: z.string().optional(),
-  adoptedBy: z.string(),
-  adoptedAt: timestamp,
+  followedBy: z.string(),
+  followedAt: timestamp,
   syncedAt: timestamp.optional(),
   rejection: rejection.optional(),
   activities: z.number().int(),

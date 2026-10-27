@@ -15,26 +15,26 @@ import {
   type ExecutionContext,
 } from '../src/index';
 
-const arrive = defineCapability({
-  id: 'arrival.announce',
+const requestInspection = defineCapability({
+  id: 'request.create',
   kind: 'command',
   input: jsonSchema(z.strictObject({ lot: z.string() })),
   output: jsonSchema(z.strictObject({ by: z.string(), count: z.number() })),
-  permission: { action: 'create', resourceType: 'arrival' },
+  permission: { action: 'create', resourceType: 'inspection-request' },
   ui: { exception: 'test fixture' },
 });
-type State = { arrivals: string[] };
+type State = { requests: string[] };
 
-function fixture(output: unknown = arrive.output) {
+function fixture(output: unknown = requestInspection.output) {
   const records: AuditRecord[] = [];
   const log = createMemoryEventLog();
-  const capability = { ...arrive, output } as typeof arrive;
+  const capability = { ...requestInspection, output } as typeof requestInspection;
   const bind = createHandlerFactory<State, {}>();
   const application = createApplication({
     id: 'quality',
     contractVersion: '2.1.0',
-    modules: [defineModule({ id: 'arrivals', capabilities: [capability] })],
-    storage: createMemoryStorage<State>({ arrivals: [] }),
+    modules: [defineModule({ id: 'requests', capabilities: [capability] })],
+    storage: createMemoryStorage<State>({ requests: [] }),
     services: {},
     authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
     eventLog: {
@@ -46,9 +46,9 @@ function fixture(output: unknown = arrive.output) {
     },
     handlers: [
       bind(capability, (input, ctx) => {
-        ctx.state.arrivals.push(input.lot);
-        ctx.change(`arrival:${input.lot}`);
-        return { by: ctx.context.principalId, count: ctx.state.arrivals.length };
+        ctx.state.requests.push(input.lot);
+        ctx.change(`inspection-request:${input.lot}`);
+        return { by: ctx.context.principalId, count: ctx.state.requests.length };
       }),
     ],
   });
@@ -65,7 +65,11 @@ const onBehalf = (principalId: string): ExecutionContext => ({
 describe('peer calls', () => {
   test("a peer's key belongs to the peer: a changed mapping conflicts instead of running twice", async () => {
     const { application } = fixture();
-    const request = { operation: arrive.id, input: { lot: 'L1' }, idempotencyKey: 'effect-1' };
+    const request = {
+      operation: requestInspection.id,
+      input: { lot: 'L1' },
+      idempotencyKey: 'effect-1',
+    };
     expect((await application.invokeRaw(request, onBehalf('ann'))).result).toEqual({
       by: 'ann',
       count: 1,
@@ -88,7 +92,7 @@ describe('peer calls', () => {
   test('the audit actor names the peer and its person', async () => {
     const { application, records } = fixture();
     await application.invokeRaw(
-      { operation: arrive.id, input: { lot: 'L1' }, idempotencyKey: 'k' },
+      { operation: requestInspection.id, input: { lot: 'L1' }, idempotencyKey: 'k' },
       onBehalf('ann'),
     );
     expect(records.find((record) => record.kind === 'command.committed')?.actor).toMatchObject({
@@ -101,7 +105,7 @@ describe('peer calls', () => {
   test('the contract names the application and digests every operation schema', () => {
     const { application } = fixture();
     const contract = application.discover({ workspaceId: 'w', principalId: 'ann' });
-    const operation = contract.operations.find(({ id }) => id === arrive.id)!;
+    const operation = contract.operations.find(({ id }) => id === requestInspection.id)!;
     expect(operation.schemaDigest).toBe(operationSchemaDigest(operation));
     expect(contract.application).toMatchObject({ id: 'quality', contractVersion: '2.1.0' });
     // A changed output schema changes the operation's digest and the application's.

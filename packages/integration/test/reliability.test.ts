@@ -16,10 +16,10 @@ import {
   createEffectDispatcher,
   DeliveryFailure,
   drainTargets,
-  settleDelivery,
+  completeDelivery,
   targetContext,
   targetHandlers,
-  targetLane,
+  targetAllowlist,
   targetRules,
   type Delivered,
   type DeliveryResult,
@@ -29,14 +29,14 @@ import {
 const erp = defineTarget({
   target: 'erp',
   resourceType: 'ErpSync',
-  settles: ['reading'],
+  changes: ['reading'],
   feed: {
     item: z.strictObject({ code: z.string(), version: z.number().int() }),
     max: 10,
     changes: ['code'],
   },
   status: {},
-  descriptions: { settle: 'Settle a reading.', status: 'ERP synchronization.' },
+  descriptions: { complete: 'Complete a reading.', status: 'ERP synchronization.' },
 });
 const fixture = { ui: { exception: 'test fixture' } } as const;
 const readingId = jsonSchema(z.strictObject({ id: z.string() }));
@@ -86,7 +86,7 @@ function setup() {
   // a precondition the dispatch recheck must not ask again once the reading exists.
   const policy = definePolicy<State, 'operator'>({
     roleOf: (state, principalId) => (state.operators[principalId] ? 'operator' : undefined),
-    integrations: [targetLane(erp, (_state, principalId) => principalId === 'erp-bot')],
+    integrations: [targetAllowlist(erp, (_state, principalId) => principalId === 'erp-bot')],
     operations: {
       ...targetRules(erp),
       [record.id]: {
@@ -155,7 +155,7 @@ function setup() {
         cursor: (state) => state.sync,
         now: () => clock,
         onOutcome: (effect, outcome, ctx) =>
-          settleDelivery(own(ctx.state.readings, effect.resource.slice(8)), effect, outcome),
+          completeDelivery(own(ctx.state.readings, effect.resource.slice(8)), effect, outcome),
         applyBatch: ({ items }, ctx) => {
           for (const item of items) ctx.state.codes[item.code] = item.version;
           return items.length;
@@ -226,8 +226,8 @@ const dispatcher = (
     application: env.app,
     port: target.port,
     context: integration,
-    settleOperation: erp.settle.id,
-    settleInput: (effect, outcome, attempt) => ({
+    completeOperation: erp.complete.id,
+    completeInput: (effect, outcome, attempt) => ({
       effectId: effect.id,
       outcome,
       fence: attempt.fence,
@@ -277,21 +277,21 @@ describe('delivery reliability', () => {
     expect(await passB).toMatchObject({ accepted: 1 });
     expect(await env.effect(id)).toBeUndefined();
 
-    // A settlement under a superseded fence conflicts; the current one settles.
+    // A completion under a superseded fence conflicts; the current one completes.
     const second = await env.recordReading('r2');
     await env.app.claimEffect(integration, second, { worker: 'a', leaseMs: LEASE });
     env.advance(LEASE + 1);
     await env.app.claimEffect(integration, second, { worker: 'b', leaseMs: LEASE });
-    const settle = (fence: number) =>
+    const complete = (fence: number) =>
       env.app.invokeRaw(
         {
-          operation: erp.settle.id,
+          operation: erp.complete.id,
           input: { effectId: second, outcome: { status: 'accepted' }, fence },
         },
         integration,
       );
-    await expect(settle(1)).rejects.toMatchObject({ code: 'CONFLICT' });
-    await settle(2);
+    await expect(complete(1)).rejects.toMatchObject({ code: 'CONFLICT' });
+    await complete(2);
   });
 
   test('a kill after the target accepted creates no second record', async () => {
@@ -319,9 +319,9 @@ describe('delivery reliability', () => {
     const target = scriptedTarget();
     target.deliver.push(async () => ({ status: 'pending', externalRef: 'QUEUE-7' }));
     const worker = dispatcher(env, target, 'a');
-    expect(await worker.runOnce()).toMatchObject({ upstream: 1 });
-    expect(await env.effect(id)).toMatchObject({ upstreamRef: 'QUEUE-7', attempts: 1 });
-    expect(effectPhase(await env.effect(id), env.now())).toBe('upstream');
+    expect(await worker.runOnce()).toMatchObject({ acknowledged: 1 });
+    expect(await env.effect(id)).toMatchObject({ externalRef: 'QUEUE-7', attempts: 1 });
+    expect(effectPhase(await env.effect(id), env.now())).toBe('acknowledged');
     target.known.set(id, { status: 'pending' });
     expect(await worker.drain(50)).toBe(0);
     const drained = await drainTargets({
@@ -330,9 +330,9 @@ describe('delivery reliability', () => {
       dispatchers: [worker],
       timeoutMs: 10,
     });
-    expect(drained).toMatchObject({ pending: 0, targets: [{ target: 'erp', upstream: 1 }] });
+    expect(drained).toMatchObject({ pending: 0, targets: [{ target: 'erp', acknowledged: 1 }] });
     env.advance(60_000);
-    expect(await worker.runOnce()).toMatchObject({ upstream: 1 });
+    expect(await worker.runOnce()).toMatchObject({ acknowledged: 1 });
     target.known.set(id, { status: 'accepted', externalRef: 'ERP-1' });
     env.advance(60_000);
     expect(await worker.runOnce()).toMatchObject({ accepted: 1 });
@@ -381,7 +381,7 @@ describe('delivery reliability', () => {
     expect(held.input).toBeUndefined();
   });
 
-  test('feed items not newer than the applied upstream version are dropped', async () => {
+  test('feed items not newer than the applied source version are dropped', async () => {
     const env = setup();
     const sync = (from: string | undefined, to: string, items: unknown[]) =>
       env.app.invokeRaw(

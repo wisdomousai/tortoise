@@ -53,14 +53,14 @@ export function calibrate(recording: readonly RecordedKey[]): CalibrationResult 
     terminator = last;
     keys.pop();
   }
-  // Group separators can arrive as a control key event; keep them as ASCII 29.
+  // Group separators can be received as a control key event; keep them as ASCII 29.
   const characters = keys.map((key) =>
     key.key === 'Unidentified' && !key.code ? { ...key, key: GROUP_SEPARATOR } : key,
   );
   const gaps = characters.slice(1).map((key, index) => key.at - characters[index]!.at);
   const maxGapMs = Math.min(200, Math.max(15, Math.ceil(Math.max(0, ...gaps) * 1.5) + 5));
   if (gaps.some((gap) => gap > 60))
-    issues.push('Keys arrived slowly; the scanner may be in a delayed-transmission mode.');
+    issues.push('Keys were received slowly; the scanner may be in a delayed-transmission mode.');
 
   const layout = keyboardLayouts.reduce((best, candidate) =>
     score(decode(characters, candidate)) > score(decode(characters, best)) ? candidate : best,
@@ -84,7 +84,7 @@ export function calibrate(recording: readonly RecordedKey[]): CalibrationResult 
   for (let index = 0; index < expected.length; index++)
     if (received[index] !== expected[index])
       issues.push(
-        `"${expected[index]}" arrives as "${received[index] ?? ''}". Configure the scanner for a US keyboard layout.`,
+        `"${expected[index]}" is received as "${received[index] ?? ''}". Configure the scanner for a US keyboard layout.`,
       );
   const separator = body.slice(expected.length);
   let groupSeparator: string | undefined;

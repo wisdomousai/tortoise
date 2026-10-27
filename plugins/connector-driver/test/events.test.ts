@@ -92,7 +92,7 @@ test('each wanted event runs the ingest command once, keyed by session and seque
   expect(errors).toEqual([]);
 });
 
-test('a failed ingest is reported and the next event still arrives', async () => {
+test('a failed ingest is reported and the next event is still handled', async () => {
   const { fake, supervisor, ingest, invocations, errors } = harness(
     (invocation) => (invocation.input as { seq: number }).seq === 0,
   );

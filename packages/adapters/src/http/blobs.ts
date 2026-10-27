@@ -9,7 +9,7 @@ const unknownRoute = () => new ApplicationError('NOT_FOUND', 'Unknown route');
 /**
  * POST /api/v1/blobs: the body is the blob and `Content-Type` its media type. The body is read
  * only up to the largest size any operation declares; the runtime then checks that an operation
- * this caller may invoke accepts it. Answers 201 with the `BlobRef`.
+ * this caller may invoke accepts it. Returns 201 with the `BlobRef`.
  */
 export async function uploadBlob(
   application: ApplicationPort,

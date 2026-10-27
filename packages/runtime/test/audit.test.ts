@@ -27,8 +27,8 @@ const record = defineCapability({
   integration: { target: 'sor', delivery: 'outbox' },
   audit: { fields: ['id'] },
 });
-const settle = defineCapability({
-  id: 'reading.settle',
+const complete = defineCapability({
+  id: 'reading.complete',
   kind: 'command',
   input: jsonSchema(
     z.strictObject({
@@ -37,7 +37,7 @@ const settle = defineCapability({
     }),
   ),
   output: jsonSchema(z.strictObject({ status: z.string() })),
-  permission: { action: 'settle', resourceType: 'reading' },
+  permission: { action: 'complete', resourceType: 'reading' },
   ui: { exception: 'integration principal' },
 });
 const count = defineCapability({
@@ -50,7 +50,7 @@ const count = defineCapability({
 });
 const module = defineModule({
   id: 'readings',
-  capabilities: [record, settle, count],
+  capabilities: [record, complete, count],
   requirements: {
     network: [
       {
@@ -119,8 +119,8 @@ function fixture(
           }),
         };
       }),
-      bind(settle, (value, ctx) => {
-        const effect = ctx.settleEffect(value.effectId, value.outcome as EffectOutcome);
+      bind(complete, (value, ctx) => {
+        const effect = ctx.completeEffect(value.effectId, value.outcome as EffectOutcome);
         ctx.change(effect.resource);
         return { status: effect.status };
       }),
@@ -203,7 +203,7 @@ describe('audited runtime', () => {
     );
   });
 
-  test('replays, settlements and delivery attempts are recorded', async () => {
+  test('replays, completions and delivery attempts are recorded', async () => {
     const log = createMemoryEventLog();
     const { app } = fixture(log);
     const request = { operation: 'reading.record' as const, input, idempotencyKey: 'k1' };
@@ -214,7 +214,7 @@ describe('audited runtime', () => {
     await app.recordAttempt(integration, receipt.effects![0]!, 'lost reply', { hold: true });
     await app.invoke(
       {
-        operation: 'reading.settle',
+        operation: 'reading.complete',
         input: { effectId: receipt.effects![0]!, outcome: { status: 'accepted' } },
         idempotencyKey: 's1',
       },
@@ -224,7 +224,7 @@ describe('audited runtime', () => {
     expect(kinds).toContain('command.replayed');
     expect(kinds).toContain('effect.attempted');
     expect(kinds).toContain('effect.held');
-    expect(log.events().find((event) => event.kind === 'effect.settled')?.data).toMatchObject({
+    expect(log.events().find((event) => event.kind === 'effect.completed')?.data).toMatchObject({
       status: 'accepted',
     });
   });

@@ -91,7 +91,7 @@ export interface MountBindings<Root, Access, Hooks, Services> {
   /**
    * The feature's view of the application, computed from the application's state on every
    * authorization and on the first read in a handler. It must replicate the application's own
-   * gates (membership, integration lanes, grant scope), because the application's policy never
+   * gates (membership, integration allowlists, grant scope), because the application's policy never
    * sees the feature's operations.
    */
   readonly access?: (state: Root) => Access;

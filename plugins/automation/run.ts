@@ -38,7 +38,7 @@ export function runContext(
   run: { id: string; workspaceId: string; now: number; resource?: string },
 ): ExecutionContext {
   const principalId = grant.issuedBy;
-  const standing: DelegationGrant = {
+  const delegated: DelegationGrant = {
     operations: [...grant.operations],
     expiresAt: grant.expiresAt,
     principalId,
@@ -49,11 +49,11 @@ export function runContext(
       ? agentGrant(
           catalog,
           trigger.run.agent,
-          { principalId, workspaceId: run.workspaceId, grant: standing },
+          { principalId, workspaceId: run.workspaceId, grant: delegated },
           { runId: run.id, now: run.now, ...(run.resource ? { resources: [run.resource] } : {}) },
         )
       : {
-          ...standing,
+          ...delegated,
           expiresAt: Math.min(grant.expiresAt, run.now + trigger.budgets.wallTimeMs),
           runId: run.id,
         };
@@ -83,7 +83,7 @@ function toolDefinitions(application: HostedApplication, operations: ReadonlySet
 
 /**
  * Tools over the application for trigger runs. Instance comes from the context the loop
- * registered for the run ID, never from the call. Keys arrive prefixed with the run ID.
+ * registered for the run ID, never from the call. Keys are prefixed with the run ID.
  */
 function createRunTools(
   application: HostedApplication,

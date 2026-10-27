@@ -26,7 +26,7 @@ public enum RefusalKind
 }
 
 /// <summary>
-/// An answer that is not a result. Throw it from a handler to classify a failure. Any other
+/// A response that is not a result. Throw it from a handler to classify a failure. Any other
 /// exception thrown while acting reads as <see cref="RefusalKind.Uncertain"/>, because the driver
 /// cannot know how far the equipment got; throw a transient refusal when you know nothing happened.
 /// </summary>
@@ -34,7 +34,7 @@ public sealed class Refusal(RefusalKind kind, string message, string? code = nul
     : Exception(Truncate(message, 500))
 {
     public RefusalKind Kind { get; } = kind;
-    /// <summary>Your business code, shown to the person who settles a rejected effect.</summary>
+    /// <summary>Your business code, shown to the person who reviews a rejected effect.</summary>
     public string? Code { get; } = code is null ? null : Truncate(code, 64);
 
     internal static string Truncate(string text, int length) =>
@@ -60,7 +60,7 @@ public sealed record Reading(
     IReadOnlyDictionary<string, double>? Confidence = null);
 
 /// <summary>What the driver knows about the action it runs.</summary>
-/// <param name="EffectId">The outbox effect; the same ID arrives again after a lost reply.</param>
+/// <param name="EffectId">The outbox effect; the same ID is sent again after a lost reply.</param>
 /// <param name="Mode">The bridge mode the host sent with this action.</param>
 /// <param name="Deadline">Milliseconds since the epoch; the host stops waiting then.</param>
 /// <param name="Session">The session the handshake started.</param>

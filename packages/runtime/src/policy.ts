@@ -53,12 +53,12 @@ export interface OperationRule<State, Role extends string> {
   readonly reason?: string;
 }
 
-/** An integration principal and the narrow lane of operations it may call. */
-export interface IntegrationLane<State> {
-  /** Whether `principalId` is this lane's principal. */
+/** An integration principal and the operations it may call. */
+export interface IntegrationAllowlist<State> {
+  /** Whether `principalId` is this allowlist's principal. */
   readonly is: (state: State, principalId: string) => boolean;
   readonly operations: readonly string[];
-  /** A further check inside the lane, for example a station bridge acting for its station only. */
+  /** A further check on an allowed call, for example a station bridge acting for its station only. */
   readonly allow?: (request: AuthorizationRequest<State>) => boolean;
   /** Journal events the principal may read; every event when omitted. */
   readonly events?: (event: ChangeEvent, state: State, principalId: string) => boolean;
@@ -72,13 +72,13 @@ export type EventRule<State> =
 export interface PolicySpec<State, Role extends string> {
   /** The caller's role in a container, from authoritative state. Needed by container rules. */
   readonly roleOf?: (state: State, principalId: string, container: string) => Role | undefined;
-  /** Integration principals. A lane's principal may call only its operations. */
-  readonly integrations?: readonly IntegrationLane<State>[];
+  /** Integration principals. An allowlist's principal may call only its operations. */
+  readonly integrations?: readonly IntegrationAllowlist<State>[];
   /** Applied to every other caller before any operation rule, for example workspace membership. */
   readonly caller?: { readonly allow: (state: State, context: ExecutionContext) => boolean };
   /**
    * Every operation this policy decides. `open` lets any caller who passes `caller` run it, and
-   * the handler scopes rows; `integration` only lets lanes that list it. Anything else is denied.
+   * the handler scopes rows; `integration` admits only allowlists that list it. Anything else is denied.
    */
   readonly operations: Readonly<
     Record<string, OperationRule<State, Role> | 'open' | 'integration'>
@@ -158,8 +158,11 @@ function eventVisible<State, Role extends string>(
   state: State,
   context: ExecutionContext,
 ): boolean {
-  const lane = spec.integrations?.find((candidate) => candidate.is(state, context.principalId));
-  if (lane) return lane.events ? lane.events(event, state, context.principalId) : true;
+  const allowlist = spec.integrations?.find((candidate) =>
+    candidate.is(state, context.principalId),
+  );
+  if (allowlist)
+    return allowlist.events ? allowlist.events(event, state, context.principalId) : true;
   if (spec.caller && !spec.caller.allow(state, context)) return false;
   const separator = event.resource.indexOf(':');
   if (separator <= 0) return false;
@@ -176,7 +179,7 @@ function eventVisible<State, Role extends string>(
 
 /**
  * Compile a declarative policy into an `AuthorizationPort`. The order is fixed: an operation the
- * spec does not list is denied (`NO_POLICY`); an integration principal may call only its lane;
+ * spec does not list is denied (`NO_POLICY`); an integration principal may call only its allowlist;
  * an `integration` operation is denied to everyone else (`INTEGRATION_ONLY`); then the caller
  * gate, the person-only check, the grant's resources, the container role and the rule's own
  * check run on the current state and, at commit, on the proposed state too.
@@ -184,10 +187,12 @@ function eventVisible<State, Role extends string>(
 export function definePolicy<State, Role extends string = string>(
   spec: PolicySpec<State, Role>,
 ): AuthorizationPort<State> {
-  for (const lane of spec.integrations ?? [])
-    for (const operation of lane.operations)
+  for (const allowlist of spec.integrations ?? [])
+    for (const operation of allowlist.operations)
       if (!Object.hasOwn(spec.operations, operation))
-        throw new Error(`Integration lane names an operation the policy does not: ${operation}`);
+        throw new Error(
+          `Integration allowlist names an operation the policy does not: ${operation}`,
+        );
   return {
     covers: {
       operations: Object.keys(spec.operations),
@@ -197,11 +202,11 @@ export function definePolicy<State, Role extends string = string>(
       const id = request.capability.id;
       const rule = Object.hasOwn(spec.operations, id) ? spec.operations[id] : undefined;
       if (!rule) return deny('NO_POLICY');
-      const lane = spec.integrations?.find((candidate) =>
+      const allowlist = spec.integrations?.find((candidate) =>
         candidate.is(request.state, request.context.principalId),
       );
-      if (lane)
-        return lane.operations.includes(id) && (!lane.allow || lane.allow(request))
+      if (allowlist)
+        return allowlist.operations.includes(id) && (!allowlist.allow || allowlist.allow(request))
           ? ALLOW
           : deny('INTEGRATION_SCOPE');
       if (rule === 'integration') return deny('INTEGRATION_ONLY');

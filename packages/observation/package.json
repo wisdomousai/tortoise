@@ -2,7 +2,7 @@
   "name": "@agent-native/observation",
   "version": "0.1.0",
   "type": "module",
-  "description": "Server-only observation of sources that cannot be queried: readings with provenance, a stability gate and an observer that submits through a domain ingest command.",
+  "description": "Server-only observation of sources that cannot be queried: readings with provenance, a debouncer and an observer that submits through a domain ingest command.",
   "license": "MIT",
   "repository": {
     "type": "git",

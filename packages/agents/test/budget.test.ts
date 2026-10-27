@@ -3,13 +3,13 @@ import { createRunSupervisor } from '../src/supervisor';
 import { deterministicHarness } from '../src/deterministic';
 import type { Harness, HarnessTurn } from '../src/types';
 
-async function settled(supervisor: ReturnType<typeof createRunSupervisor>, id: string) {
+async function completed(supervisor: ReturnType<typeof createRunSupervisor>, id: string) {
   for (let attempt = 0; attempt < 500; attempt++) {
     const snapshot = (await supervisor.get(id))!;
     if (['succeeded', 'failed', 'cancelled'].includes(snapshot.state)) return snapshot;
     await Bun.sleep(2);
   }
-  throw new Error('Run did not settle');
+  throw new Error('Run did not complete');
 }
 
 test('a run that would exceed its tool call budget fails and makes no further call', async () => {
@@ -25,7 +25,7 @@ test('a run that would exceed its tool call budget fails and makes no further ca
       commands: ['a', 'b', 'c'].map((name) => ({ operation: `record.${name}`, input: {} })),
     }),
   });
-  const done = await settled(supervisor, run.id);
+  const done = await completed(supervisor, run.id);
   expect(done.state).toBe('failed');
   expect(done.failure).toEqual({
     code: 'BUDGET_EXCEEDED',
@@ -53,7 +53,7 @@ test('a run past its wall time fails, releasing a question it was waiting on', a
     prompt: 'go',
     budget: { wallTimeMs: 30 },
   });
-  const done = await settled(supervisor, run.id);
+  const done = await completed(supervisor, run.id);
   expect(done.state).toBe('failed');
   expect(done.failure?.code).toBe('BUDGET_EXCEEDED');
   expect(done.failure?.message).toContain('wall time');
@@ -79,6 +79,6 @@ test('the harness receives the budget, so adapters can stop at the turn limit', 
     prompt: 'go',
     budget: { turns: 3 },
   });
-  expect((await settled(supervisor, run.id)).state).toBe('succeeded');
+  expect((await completed(supervisor, run.id)).state).toBe('succeeded');
   expect(seen).toEqual({ turns: 3 });
 });

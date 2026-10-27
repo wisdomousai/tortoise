@@ -14,10 +14,10 @@ import { bunProcesses, noProcesses, type ProcessPort } from '@agent-native/host/
 /**
  * How the host reaches one station's screen. Supplied explicitly by the deploying application
  * (or the demo from its environment); nothing is discovered. Counters are pixel-only on the
- * reference HMI, so they need a perception source:
+ * reference HMI, so they need a screen recognizer:
  * - `simulator`: ground truth from the simulated HMI (demo and tests only);
  * - `vision`: a local OpenAI-compatible vision model, loopback or allowlisted;
- * - `worker`: the JSON-lines `perception-worker` process the site policy binds, started through the
+ * - `worker`: the JSON-lines `recognition-worker` process the site policy binds, started through the
  *   process port;
  * - `none`: counters stay unread.
  */
@@ -53,20 +53,20 @@ function counterExtractor(
     case 'simulator':
       return createSimulatorOcr(async () => {
         const response = await fetch(new URL('/__sim/counters', config.hmiUrl));
-        if (!response.ok) throw new Error(`Simulator answered ${response.status}`);
+        if (!response.ok) throw new Error(`Simulator returned ${response.status}`);
         return (await response.json()) as { good: number; scrap: number };
       });
     case 'vision':
       return createOpenAiCompatibleVisionExtractor({ id, ...counters });
     case 'worker': {
       // Refuse at startup, with the port's reason, rather than on the first frame.
-      const ready = processes.availability('perception-worker');
+      const ready = processes.availability('recognition-worker');
       if (!ready.available) throw new Error(ready.reason);
       const spawn = bunProcesses(processes);
       const worker = createWorkerExtractor({
         id,
         modality: 'ocr',
-        start: () => spawn('perception-worker'),
+        start: () => spawn('recognition-worker'),
       });
       closers.push(() => worker.close());
       return worker;
@@ -85,7 +85,7 @@ export async function startStationBridge(options: {
   application: HostedApplication;
   workspaceId: string;
   config: StationBridgeConfig;
-  /** Starts the `perception-worker` for `worker` counters; without it they are refused. */
+  /** Starts the `recognition-worker` for `worker` counters; without it they are refused. */
   processes?: ProcessPort;
   onError?: (error: unknown) => void;
 }) {

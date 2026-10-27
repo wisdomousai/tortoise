@@ -70,10 +70,10 @@ export function StationTab({
           onResolve={(id) => demo.setAttention((items) => items.filter((item) => item.id !== id))}
         />
         <TakeoverButton
-          seat={demo.seat}
+          holder={demo.holder}
           activity="Loading recipe R-12 · step 3 of 7"
-          onTakeOver={() => demo.setSeat('operator')}
-          onHandBack={() => demo.setSeat('agent')}
+          onTakeOver={() => demo.setHolder('operator')}
+          onHandBack={() => demo.setHolder('agent')}
         />
       </div>
     </>

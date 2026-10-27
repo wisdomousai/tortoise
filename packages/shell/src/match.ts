@@ -23,7 +23,7 @@ export interface OsMatch<H extends OsHandler = OsHandler> {
 }
 
 export interface MatchOptions {
-  /** URL schemes this application answers, without the colon: its scheme and `web+` form. */
+  /** URL schemes this application handles, without the colon: its scheme and `web+` form. */
   readonly schemes: readonly string[];
   /** Hosts whose `https` links verified link handlers accept. */
   readonly linkHosts?: readonly string[];
@@ -44,7 +44,7 @@ function parseSchema(
   }
 }
 
-/** The path of a URL this application answers, or undefined when the URL is not its own. */
+/** The path of a URL this application handles, or undefined when the URL is not its own. */
 function linkPath(
   url: URL,
   options: MatchOptions,

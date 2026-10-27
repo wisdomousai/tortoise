@@ -60,7 +60,7 @@ export const controls: readonly Control[] = [
     implementation:
       'Outbound requests go through the egress guard: only declared destinations bound by the site policy, only at their bound origin, redirects revalidated per hop, resolved addresses checked against the bound networks, with timeouts and response-size caps.',
     limits:
-      'In-process enforcement; a resolver that answers differently between check and connect can race the address check. The exported OS rules close that gap.',
+      'In-process enforcement; a resolver that returns different addresses between check and connect can race the address check. The exported OS rules close that gap.',
     status: 'implemented',
     mappings: {
       iso27001: ['A.8.12', 'A.8.20', 'A.8.22'],
@@ -177,7 +177,7 @@ export const controls: readonly Control[] = [
         'command.denied',
         'query.executed',
         'effect.attempted',
-        'effect.settled',
+        'effect.completed',
       ],
     },
   },

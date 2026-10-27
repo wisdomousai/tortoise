@@ -82,7 +82,7 @@ async function surveyed(platform: 'android' | 'ios' = 'android') {
   return { survey, field, phone, connection, g1, q1, send };
 }
 
-test('a survey the hub sends is announced once, and the notice settles', async () => {
+test('a survey the hub sends is notified once, and the notice completes', async () => {
   const { field, phone, send } = await surveyed();
   await send();
   await field.sync();
@@ -101,7 +101,7 @@ test('a survey the hub sends is announced once, and the notice settles', async (
     );
   await until(async () => (await notices()).length === 0);
 
-  // The hub sends every open survey of the device again; only the new one is announced.
+  // The hub sends every open survey of the device again; only the new one is notified.
   await send('Insulation check of =G1');
   await field.sync();
   await until(() => phone.shown.length === 2);

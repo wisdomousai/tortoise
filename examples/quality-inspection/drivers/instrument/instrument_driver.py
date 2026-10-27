@@ -4,13 +4,13 @@ The instrument sends one line per reading in the A&D-style format many balances 
 interfaces share: a two-letter header, a comma, a signed value and a unit, ending in CR LF.
 
     ST,+00012.031 mm     stable reading
-    US,+00012.029 mm     unstable (still settling)
+    US,+00012.029 mm     unstable (still stabilizing)
     OL,+9999999E+19      overload: no value
 
 `measurement.taken` is sent for a stable reading. In ``key`` output (the default) the instrument
 sends a line only when the inspector presses its print or data button, so each stable line is a
 measurement. In ``stream`` output it sends lines continuously, so a measurement is sent once
-each time the reading settles after moving.
+each time the reading stabilizes after moving.
 
 Configuration comes from the environment the site policy binds for the ``instrument-driver``
 process:
@@ -109,11 +109,11 @@ class Instrument:
         line = parse(text)
         if line is None:
             return
-        settled = line.stable and (self.output == "key" or not self.last.stable)
+        stabilized = line.stable and (self.output == "key" or not self.last.stable)
         self.last = line
         if line.unit:
             self.unit = line.unit
-        if settled and line.value is not None and line.unit:
+        if stabilized and line.value is not None and line.unit:
             self.driver.emit("measurement.taken", {"value": line.value, "unit": line.unit})
 
     def close(self) -> None:

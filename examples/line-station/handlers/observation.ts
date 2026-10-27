@@ -19,8 +19,8 @@ import { compact, now, newId, handler, type Context, type LineServices } from '.
 type Observation = InputOf<typeof operations.observationIngest>;
 
 /**
- * Confident readings become the record and answer any open question about their field; unsure
- * ones become attention items unless they agree with the record or the open question.
+ * Confident readings become the record and supersede any open attention item about their field;
+ * unsure ones become attention items unless they agree with the record or the open item.
  */
 function recordReadings(ctx: Context, station: Station, input: Observation) {
   for (const reading of input.readings) {
@@ -40,7 +40,7 @@ function recordReadings(ctx: Context, station: Station, input: Observation) {
           status: 'observed' as const,
         }),
       );
-      // A confident reading answers the open question about this field.
+      // A confident reading supersedes the open attention item about this field.
       if (open) {
         open.resolvedAt = reading.observedAt;
         open.resolution = 'superseded';

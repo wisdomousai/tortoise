@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { defineCapability } from './capability';
 import { jsonSchema } from './schema';
 
-/** The outcome a system of record reports for one forwarded effect, as settle input. */
+/** The outcome a system of record reports for one forwarded effect, as complete input. */
 export const effectOutcomeSchema = z.union([
   z.strictObject({ status: z.literal('accepted'), externalRef: z.string().max(256).optional() }),
   z.strictObject({
@@ -31,7 +31,7 @@ type UiDeclaration = { readonly binding?: string; readonly exception?: string };
 
 export interface TargetSpec<
   Target extends string,
-  Settle extends string,
+  Complete extends string,
   Sync extends string,
   Status extends string,
   Item extends z.ZodType,
@@ -42,14 +42,14 @@ export interface TargetSpec<
   readonly target: Target;
   /** Permission subject of the generated operations, for example `CrmSync`. */
   readonly resourceType: string;
-  /** Operation IDs; the defaults are `<target>.effect.settle`, `<target>.sync`, `<target>.sync.status`. */
+  /** Operation IDs; the defaults are `<target>.effect.complete`, `<target>.sync`, `<target>.sync.status`. */
   readonly operations?: {
-    readonly settle?: Settle;
+    readonly complete?: Complete;
     readonly sync?: Sync;
     readonly status?: Status;
   };
-  /** Records the target settles; their changes refresh the status query. */
-  readonly settles: readonly string[];
+  /** Records the target completes; their changes refresh the status query. */
+  readonly changes: readonly string[];
   /** The inbound feed, when the target has one: one item schema plus optional side lists. */
   readonly feed?: {
     readonly item: Item;
@@ -63,7 +63,7 @@ export interface TargetSpec<
   /** Fields of the status query besides `watermark` and `lastSyncAt`, scoped by the handler. */
   readonly status: StatusShape;
   readonly descriptions: {
-    readonly settle: string;
+    readonly complete: string;
     readonly sync?: string;
     readonly status: string;
   };
@@ -79,15 +79,15 @@ export type SyncBatch<Item, Extra> = {
 const exception = 'integration principal; the outbox dispatcher and inbound sync';
 type Common = Pick<
   TargetSpec<string, string, string, string, z.ZodType, {}, {}>,
-  'target' | 'resourceType' | 'settles' | 'descriptions'
+  'target' | 'resourceType' | 'changes' | 'descriptions'
 >;
 
 /** Record the target's outcome for one effect; the integration principal's only write path out. */
-function settleCapability<const Settle extends string>(id: Settle, spec: Common) {
+function completeCapability<const Complete extends string>(id: Complete, spec: Common) {
   return defineCapability({
     id,
     kind: 'command',
-    description: spec.descriptions.settle,
+    description: spec.descriptions.complete,
     input: jsonSchema(
       z.strictObject({
         effectId: z.string().min(1).max(128),
@@ -99,8 +99,8 @@ function settleCapability<const Settle extends string>(id: Settle, spec: Common)
     output: jsonSchema(
       z.strictObject({ resource: z.string(), sync: z.enum(['accepted', 'rejected']) }),
     ),
-    permission: { action: 'settle', resourceType: spec.resourceType },
-    dependencies: spec.settles,
+    permission: { action: 'complete', resourceType: spec.resourceType },
+    dependencies: spec.changes,
     ui: { exception },
   });
 }
@@ -140,7 +140,7 @@ function syncCapability<
  * result is up to three ordinary catalog operations with literal IDs, all for the target's
  * integration principal except the status query:
  *
- * - settle: record the target's outcome for one effect (`{ effectId, outcome, fence? }`).
+ * - complete: record the target's outcome for one effect (`{ effectId, outcome, fence? }`).
  * - sync: apply one feed batch (`{ from?, to, items, ...extra }`); a `from` that is not the
  *   stored watermark conflicts, so a stale or replayed range cannot apply old data.
  * - status: the stored watermark and last sync time, plus the application's own counts.
@@ -150,20 +150,20 @@ function syncCapability<
  */
 export function defineTarget<
   const Target extends string,
-  const Settle extends string = `${Target}.effect.settle`,
+  const Complete extends string = `${Target}.effect.complete`,
   const Sync extends string = `${Target}.sync`,
   const Status extends string = `${Target}.sync.status`,
   Item extends z.ZodType = z.ZodNever,
   Extra extends z.ZodRawShape = {},
   StatusShape extends z.ZodRawShape = {},
->(spec: TargetSpec<Target, Settle, Sync, Status, Item, Extra, StatusShape>) {
+>(spec: TargetSpec<Target, Complete, Sync, Status, Item, Extra, StatusShape>) {
   const ids = {
-    settle: (spec.operations?.settle ?? `${spec.target}.effect.settle`) as Settle,
+    complete: (spec.operations?.complete ?? `${spec.target}.effect.complete`) as Complete,
     sync: (spec.operations?.sync ?? `${spec.target}.sync`) as Sync,
     status: (spec.operations?.status ?? `${spec.target}.sync.status`) as Status,
   };
   const syncResource = `sync:${spec.target}`;
-  const settle = settleCapability(ids.settle, spec);
+  const complete = completeCapability(ids.complete, spec);
   const status = defineCapability({
     id: ids.status,
     kind: 'query',
@@ -179,7 +179,7 @@ export function defineTarget<
       >,
     ),
     permission: { action: 'read', resourceType: spec.resourceType },
-    dependencies: [...new Set([...spec.settles, 'sync'])],
+    dependencies: [...new Set([...spec.changes, 'sync'])],
     ui: spec.ui?.status ?? { binding: ids.status },
   });
   const feed = spec.feed;
@@ -187,18 +187,18 @@ export function defineTarget<
   return Object.freeze({
     target: spec.target,
     syncResource,
-    settle,
+    complete,
     status,
     /** Present exactly when the target declares a feed. */
     sync: sync as [Item] extends [z.ZodNever] ? undefined : NonNullable<typeof sync>,
     /** Every operation the integration principal may call. */
     integrationOperations: [
-      ids.settle,
+      ids.complete,
       ids.status,
       ...(feed ? [ids.sync] : []),
     ] as readonly string[],
-    capabilities: (sync ? [settle, sync, status] : [settle, status]) as readonly (
-      typeof settle | NonNullable<typeof sync> | typeof status
+    capabilities: (sync ? [complete, sync, status] : [complete, status]) as readonly (
+      typeof complete | NonNullable<typeof sync> | typeof status
     )[],
   });
 }
@@ -206,7 +206,7 @@ export function defineTarget<
 export interface Target {
   readonly target: string;
   readonly syncResource: string;
-  readonly settle: { readonly id: string };
+  readonly complete: { readonly id: string };
   readonly status: { readonly id: string };
   readonly sync?: { readonly id: string } | undefined;
   readonly integrationOperations: readonly string[];

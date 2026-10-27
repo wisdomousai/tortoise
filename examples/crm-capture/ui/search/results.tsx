@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { OutputOf } from '@agent-native/contracts';
 import { crmAccounts, crmContacts } from '../../contracts';
 import type { LocalStatus } from '../local-status';
-import { AdoptButton } from './adopt-button';
+import { FollowButton } from './follow-button';
 
 type AccountFound = OutputOf<typeof crmAccounts.search>['items'][number];
 type ContactFound = OutputOf<typeof crmContacts.search>['items'][number];
@@ -34,7 +34,7 @@ export function AccountResults({ items, status }: { items: AccountFound[]; statu
           title={account.name}
           detail={`${account.industry} · ${account.city} · ${account.region} · owner ${account.owner}`}
           action={
-            <AdoptButton
+            <FollowButton
               externalId={account.externalId}
               name={account.name}
               status={status(account.externalId, account.local)}
@@ -56,7 +56,7 @@ export function ContactResults({ items, status }: { items: ContactFound[]; statu
           title={`${contact.name} · ${contact.title}`}
           detail={`${contact.accountName} · ${contact.email}`}
           action={
-            <AdoptButton
+            <FollowButton
               externalId={contact.accountId}
               name={contact.accountName}
               status={status(contact.accountId, contact.local)}

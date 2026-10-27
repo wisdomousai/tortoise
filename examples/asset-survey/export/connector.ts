@@ -4,7 +4,7 @@ import type { SpawnedProcess } from '@agent-native/host/plugin';
 import { DeliveryFailure, type SystemOfRecordPort } from '@agent-native/integration';
 import type { Effect, EffectOutcome } from '@agent-native/runtime';
 import type { EvidenceReader } from '../connectors/fake-eam';
-import { exportAnswerSchema, type ExportRequest } from './protocol';
+import { exportResultSchema, type ExportRequest } from './protocol';
 
 export interface ExportPortOptions {
   /** Start the declared `filing-export` process; the site policy decides what runs. */
@@ -56,16 +56,20 @@ async function request(effect: Readonly<Effect>, readBlob: EvidenceReader): Prom
 
 /**
  * The first line the process prints before closing its output. Reading to the end, not to the
- * exit event, keeps an answer printed just before exiting.
+ * exit event, keeps a result printed just before exiting.
  */
-function answer(worker: SpawnedProcess, timeoutMs: number, signal: AbortSignal): Promise<string> {
+function readResult(
+  worker: SpawnedProcess,
+  timeoutMs: number,
+  signal: AbortSignal,
+): Promise<string> {
   return new Promise((resolve, reject) => {
     let first: string | undefined;
     const fail = (message: string) => () => (
       clearTimeout(timer),
       reject(new DeliveryFailure(message))
     );
-    const timer = setTimeout(fail('The export process did not answer in time'), timeoutMs);
+    const timer = setTimeout(fail('The export process did not respond in time'), timeoutMs);
     signal.addEventListener('abort', fail('The export was cancelled'), { once: true });
     worker.child.once('error', fail('The export process failed'));
     // Its diagnostics stay local; they may contain paths.
@@ -74,7 +78,7 @@ function answer(worker: SpawnedProcess, timeoutMs: number, signal: AbortSignal):
       .on('line', (line) => (first ??= line))
       .once('close', () =>
         first === undefined
-          ? fail('The export process exited without an answer')()
+          ? fail('The export process exited without a result')()
           : (clearTimeout(timer), resolve(first)),
       );
   });
@@ -82,10 +86,10 @@ function answer(worker: SpawnedProcess, timeoutMs: number, signal: AbortSignal):
 
 /**
  * The export directory as a system of record. Each delivery starts the `filing-export` process,
- * hands it the filing and its photos, and accepts once the process answers with the folder it
+ * hands it the filing and its photos, and accepts once the process returns the folder it
  * wrote; the folder name is the external reference. Everything else (the process unbound or
- * unable to start, an error answer, no answer) leaves the filing pending and retried, since a
- * site fixes its directory rather than the filing. Delivery is idempotent: the process answers
+ * unable to start, an error result, no result) leaves the filing pending and retried, since a
+ * site fixes its directory rather than the filing. Delivery is idempotent: the process returns
  * a folder that already holds the effect as written.
  */
 export function createExportPort(options: ExportPortOptions): SystemOfRecordPort {
@@ -101,17 +105,17 @@ export function createExportPort(options: ExportPortOptions): SystemOfRecordPort
       }
       try {
         worker.child.stdin.end(`${JSON.stringify(message)}\n`);
-        const parsed = exportAnswerSchema.safeParse(
-          JSON.parse(await answer(worker, options.timeoutMs ?? 30_000, signal)),
+        const parsed = exportResultSchema.safeParse(
+          JSON.parse(await readResult(worker, options.timeoutMs ?? 30_000, signal)),
         );
         if (!parsed.success || parsed.data.id !== effect.id)
-          throw new DeliveryFailure('The export process answered something else');
+          throw new DeliveryFailure('The export process returned something else');
         if ('error' in parsed.data)
           throw new DeliveryFailure('The export directory did not take the filing');
         return { status: 'accepted', externalRef: parsed.data.folder };
       } catch (error) {
         if (error instanceof DeliveryFailure) throw error;
-        throw new DeliveryFailure('The export process answered something else');
+        throw new DeliveryFailure('The export process returned something else');
       } finally {
         worker.terminate();
       }

@@ -14,7 +14,7 @@ export const osPluginManifest = definePluginManifest({
       key: 'os-scheme',
       env: 'AGENT_NATIVE_OS_SCHEME',
       kind: 'string',
-      description: 'URL scheme the application answers, from its identity; absent: no scheme links',
+      description: 'URL scheme the application handles, from its identity; absent: no scheme links',
     },
     {
       key: 'os-link-hosts',

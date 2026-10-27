@@ -24,7 +24,7 @@ function bodyLimit(os: CatalogOs | undefined) {
 /**
  * The web share target: the browser posts what another app shared to `webShareTargetPath` as a
  * top-level navigation, from no site and with no session the host could trust. The post is
- * held, not submitted: the response redirects to `/?os-share=<code>`, and the landing page
+ * held, not submitted: the response redirects to `/?os-share=<code>`, and the launch page
  * claims the code as its own session. A post larger than any share handler accepts, of another
  * form type or without a length is refused unread; a file no share handler accepts is dropped
  * unread.

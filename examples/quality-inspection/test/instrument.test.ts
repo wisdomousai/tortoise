@@ -58,7 +58,7 @@ describe('the measuring instrument', () => {
         application: app,
         port: sor,
         context: integration,
-        settleOperation: 'inspection.effect.settle',
+        completeOperation: 'inspection.effect.complete',
         now: () => T0,
       }).runOnce();
       expect([...sor.documents.values()][0]!.payload).toMatchObject({

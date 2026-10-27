@@ -19,14 +19,14 @@ export async function serveStatic(webRoot: string | undefined, path: string) {
 }
 
 /**
- * The page an OS link lands on in a browser. A protocol handler navigates to `/?os=<link>` (a
+ * The launch page: what a browser opens for an OS link. A protocol handler navigates to `/?os=<link>` (a
  * manifest shortcut to `/?os-shortcut=<id>`, a web share target's redirect to
  * `/?os-share=<code>`) from whichever site held the link, so this one
  * top-level document navigation is served although it is cross-site; every other cross-site
  * request stays refused. It returns only the static frame. The page then submits the link
  * same-origin as its own session, and an unsolicited request can only open or prefill.
  */
-export async function serveOsLanding(webRoot: string | undefined, request: Request) {
+export async function serveOsLaunchPage(webRoot: string | undefined, request: Request) {
   const url = new URL(request.url);
   const keys = [...url.searchParams.keys()];
   if (

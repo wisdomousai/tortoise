@@ -3,7 +3,7 @@ import { defineHostComponent } from '@agent-native/contracts';
 /**
  * Devices the scanner kit can use, as data for the requirements manifest. Side-effect free and
  * browser-safe. Every source is optional: keyboard-wedge scanners need no declaration because
- * they arrive as keyboard input. Hosts compose it into the catalog's requirements.
+ * they are read as keyboard input. Hosts compose it into the catalog's requirements.
  */
 export const scannerDevicesComponent = defineHostComponent({
   id: 'scanner-devices',

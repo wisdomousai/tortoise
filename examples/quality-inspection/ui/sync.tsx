@@ -75,7 +75,7 @@ export function AttentionScreen() {
             <CircleCheck className="size-8 text-success" aria-hidden />
             <p className="font-medium">Nothing refused</p>
             <p className="text-sm text-muted-foreground">
-              Everything the quality system answered so far was accepted.
+              Everything the quality system responded to so far was accepted.
             </p>
           </div>
         )}

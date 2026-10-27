@@ -8,7 +8,7 @@ export function mqttBroker(options: {
   readonly id: string;
   readonly destination: string;
   readonly description: string;
-  /** What arrives from the broker, for the data-flow inventory. */
+  /** What the broker sends, for the data-flow inventory. */
   readonly dataClasses: readonly string[];
   readonly availability?: Availability;
 }) {

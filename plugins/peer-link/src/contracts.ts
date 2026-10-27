@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
 
-/** The callee route a peer posts its enrollment code to; it answers the peer credential once. */
+/** The callee route a peer posts its enrollment code to; it returns the peer credential once. */
 export const enrollPath = '/api/v1/peer/enroll';
 
 /**
@@ -50,7 +50,7 @@ export const peerSchema = z.strictObject({
   /** What the peer names in a subject assertion's `aud`. */
   audience: z.string(),
   subjects: subjectModeSchema,
-  /** The service operations the peer may call; absent means every one on the surface. */
+  /** The service operations the peer may call; absent means every one on the API. */
   operations: z.array(operation).optional(),
   enrolledBy: z.string(),
   enrolledAt: timestamp,
@@ -91,7 +91,7 @@ export const peerLinkOperations = {
     id: 'peer.enrollment.create',
     kind: 'command',
     description:
-      "Let another application call this one: returns a one-use enrollment code, valid for ten minutes, that the other application exchanges for its peer credential. It calls the peer surface's service operations, limited to `operations` when given, and on behalf of the people its subjects map to.",
+      "Let another application call this one: returns a one-use enrollment code, valid for ten minutes, that the other application exchanges for its peer credential. It calls the peer API's service operations, limited to `operations` when given, and on behalf of the people its subjects map to.",
     input: jsonSchema(
       z.strictObject({
         label,
@@ -155,7 +155,7 @@ export const peerLinkOperations = {
     id: 'peer.subject.map',
     kind: 'command',
     description:
-      "Map a peer's subject to a person here, so the peer may call the surface's on-behalf-of operations as that person, limited to `operations` when given. Service and device principals cannot be mapped to.",
+      "Map a peer's subject to a person here, so the peer may call the API's on-behalf-of operations as that person, limited to `operations` when given. Service and device principals cannot be mapped to.",
     input: jsonSchema(
       z.strictObject({
         peerId: id,
@@ -193,7 +193,7 @@ export const peerLinkOperations = {
     id: 'peer.connection.record',
     kind: 'command',
     description:
-      "Record a connection to a peer after its enrollment answered, replacing any earlier one for the target. Called only by the plugin's connect route, as the person who connected, once the credential is in the secret store.",
+      "Record a connection to a peer after enrolling with it, replacing any earlier one for the target. Called only by the plugin's connect route, as the person who connected, once the credential is in the secret store.",
     input: jsonSchema(connectionSchema.omit({ connectedBy: true, connectedAt: true })),
     output: jsonSchema(z.strictObject({ connection: connectionSchema })),
     permission: { action: 'connect', resourceType: 'Peer' },

@@ -23,7 +23,7 @@ export interface DesktopShellClient {
   perform(request: OsActionRequest): Promise<OsActionOutcome | undefined>;
   /** The next relayed instruction, `null` when the wait ended without one. */
   next(signal: AbortSignal): Promise<{ id: string; instruction: OsInstruction } | null | undefined>;
-  answer(id: string, result: OsActionResult): Promise<void>;
+  respond(id: string, result: OsActionResult): Promise<void>;
   /** Store a blob payload in the blob store; `undefined` when the instance keeps no blobs. */
   upload(bytes: Uint8Array, mediaType: string): Promise<BlobRef | undefined>;
 }
@@ -60,7 +60,7 @@ export interface DesktopShellDependencies {
   readonly retryMs?: number;
 }
 
-/** OS input that arrived before the instance was reachable; the oldest is dropped beyond this. */
+/** OS input received before the instance was reachable; the oldest is dropped beyond this. */
 const bufferLimit = 16;
 
 /** Run one relayed instruction; an open URL is checked against the declarations again. */
@@ -116,7 +116,7 @@ async function relay(
       const next = await client.next(signal);
       if (next === undefined) return;
       if (next)
-        await client.answer(
+        await client.respond(
           next.id,
           await runInstruction(dependencies, actions(), next.instruction, submit).catch(() => ({
             ok: false,

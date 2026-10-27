@@ -137,7 +137,7 @@ async function fixture(native = false) {
       return profile;
     },
     async profiles() {
-      return [{ ...profile, accidentallyIncludedToken: 'SECRET' }];
+      return [{ ...profile, accidenscoreIncludedToken: 'SECRET' }];
     },
     async credentials() {
       return {

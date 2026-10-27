@@ -23,8 +23,8 @@ const attempt = (badgeId: string, verified: boolean, tokenDigest = 'c'.repeat(64
   command(ops.sessionStart.id, {
     badgeId,
     verified,
-    seatPrincipal: LOCAL_OWNER,
-    seat: 'press-1',
+    terminalPrincipal: LOCAL_OWNER,
+    terminal: 'press-1',
     tokenDigest,
   });
 

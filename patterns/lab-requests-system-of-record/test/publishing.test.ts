@@ -25,7 +25,7 @@ test('a published test request is registered with the LIMS id', async () => {
   });
 });
 
-test('the LIMS refusal lands on the publication with its reason', async () => {
+test('the LIMS refusal is recorded on the publication with its reason', async () => {
   const { submit, command, query, deliver } = await open();
   const { id } = await submit('S-1043', 'No method assigned yet', '');
   await command('publication.publish', { id });
@@ -85,7 +85,7 @@ test('a publication the LIMS lost is held until a person resolves it', async () 
   expect((await query<{ items: unknown[] }>('reconciliation.list', {})).items).toEqual([]);
 });
 
-test('requests registered at another site arrive once through the change feed', async () => {
+test('requests registered at another site are imported once through the change feed', async () => {
   const { integrations, query, lims } = await open();
   lims.register('S-2001', 'Coating thickness on bracket', 'ISO 2178');
   await integrations.sync();
@@ -99,7 +99,7 @@ test('requests registered at another site arrive once through the change feed', 
   ]);
 });
 
-test('the integration principal may settle and sync but not change test requests', async () => {
+test('the integration principal may complete and sync but not change test requests', async () => {
   const { command } = await open();
   const integration = { workspaceId: 'local', principalId: 'lims-integration' };
   expect(

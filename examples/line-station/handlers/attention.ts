@@ -46,7 +46,7 @@ function confirmReading(
   return { station: station.id, field: item.field, reading: readingDto(ctx, reading) };
 }
 
-/** A person who checked the station settles a held procedure or lets the bridge rerun it. */
+/** A person who checked the station completes a held procedure or lets the bridge rerun it. */
 function reconcileEffect(
   input: InputOf<typeof operations.effectReconcile>,
   ctx: Context,
@@ -69,7 +69,7 @@ function reconcileEffect(
       status: 'accepted' as const,
       externalRef: `operator:${ctx.context.principalId}`,
     };
-    ctx.settleEffect(effect.id, outcome);
+    ctx.completeEffect(effect.id, outcome);
     return { station: station.id, sync: applyOutcome(ctx, effect, outcome) };
   }
   ctx.releaseEffect(effect.id);

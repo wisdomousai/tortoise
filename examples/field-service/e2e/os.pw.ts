@@ -18,7 +18,7 @@ const api = (page: Page, path: string, body: unknown) =>
     [path, body] as const,
   );
 
-test('a protocol-handler landing opens the task; files and shares prefill tasks the person adds; a reminder waits; a shortcut starts a task', async ({
+test('a protocol-handler launch opens the task; files and shares prefill tasks the person adds; a reminder waits; a shortcut starts a task', async ({
   page,
 }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-os-e2e-'));
@@ -97,7 +97,7 @@ test('a protocol-handler landing opens the task; files and shares prefill tasks 
     expect(downloaded).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
     // Another app shares to the installed app: the browser posts the share target form as a
-    // top-level navigation from no site, and the landing page claims it as its own session.
+    // top-level navigation from no site, and the launch page claims it as its own session.
     const target = manifest.share_target as { action: string; params: { files: unknown[] } };
     expect(target).toMatchObject({ method: 'POST', enctype: 'multipart/form-data' });
     const share = async (
@@ -139,7 +139,7 @@ test('a protocol-handler landing opens the task; files and shares prefill tasks 
     await expect(prefilled.getByLabel('Title')).toHaveValue('Valve photo.png');
     await expect(prefilled.getByText('Attachment: image/png, 1 KB')).toBeVisible();
 
-    // The installed app's shortcut opens the landing with its id: an empty task to fill in.
+    // The installed app's shortcut opens the launch page with its id: an empty task to fill in.
     expect(manifest.shortcuts).toEqual([{ name: 'New task', url: '/?os-shortcut=task.new' }]);
     await page.goto(`${host.origin}/?os-shortcut=task.new`);
     await expect(prefilled.getByText('Opened from a shortcut')).toBeVisible();

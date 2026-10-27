@@ -13,7 +13,7 @@ export {
   type RawReading,
   type Reading,
 } from './readings';
-export { StabilityGate, gateReadings, type GatedField, type ObservedReading } from './stability';
+export { Debouncer, debounceReadings, type DebouncedField, type ObservedReading } from './debounce';
 export {
   createObserver,
   type ObservationBase,

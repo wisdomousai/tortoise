@@ -29,12 +29,12 @@ const load = defineCapability({
   ui: { exception: 'test fixture' },
   integration: { target: 'legacy-hmi', delivery: 'outbox' },
 });
-const settle = defineCapability({
-  id: 'recipe.settle',
+const complete = defineCapability({
+  id: 'recipe.complete',
   kind: 'command',
   input: jsonSchema(z.strictObject({ effectId: z.string(), outcome })),
   output: jsonSchema(z.strictObject({ status: z.string() })),
-  permission: { action: 'settle', resourceType: 'station' },
+  permission: { action: 'complete', resourceType: 'station' },
   ui: { exception: 'integration principal' },
 });
 const reconcile = defineCapability({
@@ -52,7 +52,7 @@ const operator = { workspaceId: 'w', principalId: 'operator' };
 const bridge = {
   workspaceId: 'w',
   principalId: 'station-bridge',
-  grant: { operations: ['recipe.settle'] },
+  grant: { operations: ['recipe.complete'] },
 };
 
 function fixture() {
@@ -62,7 +62,7 @@ function fixture() {
     modules: [
       defineModule({
         id: 'station',
-        capabilities: [load, settle, reconcile],
+        capabilities: [load, complete, reconcile],
         requirements: {
           network: [
             {
@@ -85,7 +85,8 @@ function fixture() {
     newEffectId: () => `e${++ids}`,
     authorization: {
       authorize: ({ capability, context }) => ({
-        allowed: (context.principalId === 'station-bridge') === (capability.id === 'recipe.settle'),
+        allowed:
+          (context.principalId === 'station-bridge') === (capability.id === 'recipe.complete'),
       }),
       canReadEvent: () => true,
     },
@@ -103,16 +104,16 @@ function fixture() {
           }),
         };
       }),
-      bind(settle, (input, ctx) => {
-        const effect = ctx.settleEffect(input.effectId, input.outcome as EffectOutcome);
+      bind(complete, (input, ctx) => {
+        const effect = ctx.completeEffect(input.effectId, input.outcome as EffectOutcome);
         ctx.state.status = effect.status;
         ctx.change(effect.resource);
         return { status: effect.status };
       }),
-      // The operator looked at the station: applied → settle as accepted; not applied → deliver again.
+      // The operator looked at the station: applied → complete as accepted; not applied → deliver again.
       bind(reconcile, (input, ctx) => {
         const effect = input.applied
-          ? ctx.settleEffect(input.effectId, { status: 'accepted', externalRef: 'operator' })
+          ? ctx.completeEffect(input.effectId, { status: 'accepted', externalRef: 'operator' })
           : ctx.releaseEffect(input.effectId);
         ctx.state.status = input.applied ? 'accepted' : 'loading';
         ctx.change(effect.resource);
@@ -122,12 +123,12 @@ function fixture() {
   });
 }
 
-/** A screen-driven target whose procedure can be interrupted and whose readback can be unclear. */
+/** A screen target whose procedure can be interrupted and whose readback can be unclear. */
 function station() {
   const state = {
     delivered: 0,
     interruptNext: false,
-    lookupAnswer: undefined as LookupResult,
+    lookupResult: undefined as LookupResult,
   };
   const port: SystemOfRecordPort = {
     describe: () => ({ target: 'legacy-hmi', idempotentDelivery: false }),
@@ -140,7 +141,7 @@ function station() {
       return { status: 'accepted', externalRef: 'readback:R-12' };
     },
     async lookup() {
-      return state.lookupAnswer;
+      return state.lookupResult;
     },
   };
   return { state, port };
@@ -153,7 +154,7 @@ test('an interrupted procedure is held, skipped by delivery and resolved by reco
     application: app,
     port,
     context: bridge,
-    settleOperation: 'recipe.settle',
+    completeOperation: 'recipe.complete',
   });
   const { result } = await app.invoke(
     { operation: 'recipe.load', input: { recipe: 'R-12' }, idempotencyKey: 'load-1' },
@@ -195,7 +196,7 @@ test('a release is marked until the next attempt, so a lookup can tell a person 
     application: app,
     port,
     context: bridge,
-    settleOperation: 'recipe.settle',
+    completeOperation: 'recipe.complete',
   });
   const { result } = await app.invoke(
     { operation: 'recipe.load', input: { recipe: 'R-12' }, idempotencyKey: 'load-1' },
@@ -223,20 +224,20 @@ test('a release is marked until the next attempt, so a lookup can tell a person 
   expect(held!.releasedAt).toBeUndefined();
 });
 
-test('an uncertain lookup holds instead of delivering twice; applied settles it', async () => {
+test('an uncertain lookup holds instead of delivering twice; applied completes it', async () => {
   const app = fixture();
   const { state, port } = station();
   const dispatcher = createEffectDispatcher({
     application: app,
     port,
     context: bridge,
-    settleOperation: 'recipe.settle',
+    completeOperation: 'recipe.complete',
   });
   const { result } = await app.invoke(
     { operation: 'recipe.load', input: { recipe: 'R-12' }, idempotencyKey: 'load-1' },
     operator,
   );
-  state.lookupAnswer = { status: 'uncertain', reason: 'Recipe screen shows R-12 but not loaded' };
+  state.lookupResult = { status: 'uncertain', reason: 'Recipe screen shows R-12 but not loaded' };
   expect(await dispatcher.runOnce()).toMatchObject({ held: 1, accepted: 0 });
   expect(state.delivered).toBe(0);
 
@@ -248,7 +249,7 @@ test('an uncertain lookup holds instead of delivering twice; applied settles it'
     },
     operator,
   );
-  // Settling clears the hold in the same transaction.
+  // Completing clears the hold in the same transaction.
   expect(reconciled.result).toEqual({ held: 0 });
   expect(await app.pendingEffects(bridge, { includeHeld: true })).toHaveLength(0);
   expect(state.delivered).toBe(0);
@@ -290,7 +291,7 @@ test('shutdown during an interrupted procedure still records the uncertain outco
     application: app,
     port,
     context: bridge,
-    settleOperation: 'recipe.settle',
+    completeOperation: 'recipe.complete',
   });
   await app.invoke(
     { operation: 'recipe.load', input: { recipe: 'R-12' }, idempotencyKey: 'load-1' },
@@ -320,7 +321,7 @@ test('a drain deadline aborts a delivery that is still in flight', async () => {
     application: app,
     port,
     context: bridge,
-    settleOperation: 'recipe.settle',
+    completeOperation: 'recipe.complete',
   });
   await app.invoke(
     { operation: 'recipe.load', input: { recipe: 'R-12' }, idempotencyKey: 'load-1' },
@@ -343,7 +344,7 @@ test('draining several targets accounts for outbox work no dispatcher here can d
     application: app,
     port: { ...port, describe: () => ({ target: 'mes', idempotentDelivery: false }) },
     context: bridge,
-    settleOperation: 'recipe.settle',
+    completeOperation: 'recipe.complete',
   });
   // Only an MES dispatcher runs here; the station effect is still owed and must be reported.
   expect(
@@ -351,15 +352,15 @@ test('draining several targets accounts for outbox work no dispatcher here can d
   ).toEqual({
     pending: 1,
     targets: [
-      { target: 'legacy-hmi', pending: 1, held: 0, upstream: 0, deliverable: false },
-      { target: 'mes', pending: 0, held: 0, upstream: 0, deliverable: true },
+      { target: 'legacy-hmi', pending: 1, held: 0, acknowledged: 0, deliverable: false },
+      { target: 'mes', pending: 0, held: 0, acknowledged: 0, deliverable: true },
     ],
   });
   const hmi = createEffectDispatcher({
     application: app,
     port,
     context: bridge,
-    settleOperation: 'recipe.settle',
+    completeOperation: 'recipe.complete',
   });
   expect(
     await drainTargets({

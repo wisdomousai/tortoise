@@ -63,7 +63,7 @@ test('backup copies a live workspace, and restore refuses while a host owns it',
   try {
     expect(await bumpOnce(workspace, 'one')).toBe(1);
     expect(await main(['backup', '--workspace', workspace, '--out', backup])).toBe(0);
-    expect(JSON.parse(output.at(-1)!)).toMatchObject({ schemaVersion: 2, workspaces: 1 });
+    expect(JSON.parse(output.at(-1)!)).toMatchObject({ schemaVersion: 3, workspaces: 1 });
     expect(await bumpOnce(workspace, 'two')).toBe(2);
     const host = await acquireWorkspaceOwnership(workspace);
     try {

@@ -11,7 +11,7 @@ const base: Spec = {
   scope: object,
   brief: object,
   report: object,
-  lanes: ['person'],
+  assigneeTypes: ['person'],
 };
 const define = (change: Partial<Spec>) => () => defineAssignmentKind({ ...base, ...change });
 
@@ -30,25 +30,27 @@ describe('defineAssignmentKind', () => {
     expect(define({ id: `a${'-b'.repeat(20)}` })).toThrow('Invalid assignment kind');
   });
 
-  test('refuses a missing, unknown or repeated lane', () => {
-    expect(define({ lanes: [] })).toThrow('has no lane');
-    expect(define({ lanes: ['robot' as 'person'] })).toThrow('unknown lane');
-    expect(define({ lanes: ['person', 'person'] })).toThrow('repeats a lane');
+  test('refuses a missing, unknown or repeated assignee type', () => {
+    expect(define({ assigneeTypes: [] })).toThrow('has no assignee type');
+    expect(define({ assigneeTypes: ['robot' as 'person'] })).toThrow('unknown assignee type');
+    expect(define({ assigneeTypes: ['person', 'person'] })).toThrow('repeats an assignee type');
   });
 
-  test('needs a target exactly with the target lane', () => {
-    expect(define({ lanes: ['target'] })).toThrow('target lane without a target');
-    expect(define({ target: 'checker' })).toThrow('names a target without the lane');
-    expect(define({ lanes: ['target'], target: 'list' })).toThrow('reserved');
-    expect(defineAssignmentKind({ ...base, lanes: ['target'], target: 'checker' }).target).toBe(
-      'checker',
+  test('needs a target name exactly with the target assignee type', () => {
+    expect(define({ assigneeTypes: ['target'] })).toThrow('target assignee type without a target');
+    expect(define({ target: 'checker' })).toThrow(
+      'names a target without the target assignee type',
     );
+    expect(define({ assigneeTypes: ['target'], target: 'list' })).toThrow('reserved');
+    expect(
+      defineAssignmentKind({ ...base, assigneeTypes: ['target'], target: 'checker' }).target,
+    ).toBe('checker');
   });
 
   test('refuses brief blobs for a device or a peer, whose pull carries no blobs', () => {
     const blobs = { brief: { maxBytes: 1000, mediaTypes: ['image/png'] } };
-    expect(define({ lanes: ['device'], blobs })).toThrow('brief blobs');
-    expect(define({ lanes: ['person', 'peer'], blobs })).toThrow('brief blobs');
+    expect(define({ assigneeTypes: ['device'], blobs })).toThrow('brief blobs');
+    expect(define({ assigneeTypes: ['person', 'peer'], blobs })).toThrow('brief blobs');
     expect(defineAssignmentKind({ ...base, blobs }).blobs).toEqual(blobs);
   });
 

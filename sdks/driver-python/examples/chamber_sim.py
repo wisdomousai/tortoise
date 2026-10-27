@@ -10,7 +10,7 @@ stub on ``PYTHONPATH``:
 
 ``CHAMBER_SIM_DIR`` holds what a real chamber would keep across a driver restart (its setpoint and
 door), the driver's journal, and test controls: an empty ``fail-next`` file makes the next action
-fail before it acts, and ``crash-next`` makes it act and then exit before answering. Applied
+fail before it acts, and ``crash-next`` makes it act and then exit before responding. Applied
 actions are counted in ``applied.json``.
 """
 
@@ -81,7 +81,7 @@ def read(fields: list[str]) -> dict:
 
 def before_acting() -> None:
     if control("fail-next"):
-        raise Refusal("transient", "The chamber did not answer")
+        raise Refusal("transient", "The chamber did not respond")
 
 
 @driver.action("setpoint.set")

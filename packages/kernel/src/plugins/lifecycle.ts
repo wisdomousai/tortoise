@@ -149,7 +149,7 @@ export async function openPlugins(
         if (instance.start) observers.push(...(await instance.start({ ...context, ports })));
       return observers;
     },
-    /** The first plugin answer to a request no session covers, in composition order. */
+    /** The first plugin response to a request no session covers, in composition order. */
     async publicRoute(request: Request): Promise<Response | undefined> {
       for (const { instance } of opened) {
         const response = await instance.publicRoute?.(request);
@@ -174,7 +174,7 @@ export async function openPlugins(
       }
       return undefined;
     },
-    /** The first plugin answer to an authenticated request the host did not route. */
+    /** The first plugin response to an authenticated request the host did not route. */
     async route(request: Request, context: ExecutionContext): Promise<Response | undefined> {
       for (const { instance } of opened) {
         const response = await instance.route?.(request, context);

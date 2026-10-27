@@ -1,3 +1,4 @@
+import { schemaVersionError, STORAGE_SCHEMA_VERSION } from '../schema-version';
 import type { SqlDriver, SqlValue } from '../sql-driver';
 
 /** A driver that can also return every row of a query, which reading a workspace needs. */
@@ -5,8 +6,8 @@ export interface SqlRowsDriver extends SqlDriver {
   all<Row>(sql: string, ...params: SqlValue[]): Row[];
 }
 
-/** Schema version 2 stores one row per record; version 1 stored one JSON document. */
-export const ROW_SCHEMA_VERSION = 2;
+/** One row per record, at the storage schema version (see `STORAGE_SCHEMA_VERSION`). */
+export const ROW_SCHEMA_VERSION = STORAGE_SCHEMA_VERSION;
 
 const tables = [
   `CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -32,36 +33,22 @@ const tables = [
 ];
 
 /**
- * Create the row tables, or convert a version 1 file in place: every stored document becomes
- * rows through `write`, then the document table is dropped. Runs in one immediate transaction,
- * so a crash leaves the file at version 1. A file from a newer version is refused; a version 1
- * reader refuses a version 2 file, so an older host never reads half a workspace.
+ * Create the row tables in one immediate transaction. A file from another schema version is
+ * refused, and so is a file that `SnapshotStorage` wrote at this version, whose one-document
+ * table this storage would otherwise ignore and show as an empty workspace.
  */
-export function openSchema(
-  driver: SqlRowsDriver,
-  write: (workspaceId: string, document: string) => void,
-): void {
+export function openSchema(driver: SqlRowsDriver): void {
   driver.exec('BEGIN IMMEDIATE');
   try {
     driver.exec('CREATE TABLE IF NOT EXISTS framework_schema (version INTEGER NOT NULL);');
     const row = driver.get<{ version: number }>('SELECT version FROM framework_schema');
-    if (row && row.version !== 1 && row.version !== ROW_SCHEMA_VERSION)
-      throw new Error('Unsupported storage schema version');
+    if (row && row.version !== ROW_SCHEMA_VERSION) throw schemaVersionError(row.version);
+    const snapshots = driver.get<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshots'",
+    );
+    if (snapshots) throw new Error('The database holds snapshot storage, not row storage');
     for (const sql of tables) driver.exec(sql);
     if (!row) driver.run('INSERT INTO framework_schema VALUES (?)', ROW_SCHEMA_VERSION);
-    if (row?.version === 1) {
-      const legacy = driver.get<{ name: string }>(
-        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'workspace_snapshots'",
-      );
-      if (legacy)
-        for (const { workspace_id, document } of driver.all<{
-          workspace_id: string;
-          document: string;
-        }>('SELECT workspace_id, document FROM workspace_snapshots'))
-          write(workspace_id, document);
-      driver.exec('DROP TABLE IF EXISTS workspace_snapshots');
-      driver.run('UPDATE framework_schema SET version = ?', ROW_SCHEMA_VERSION);
-    }
     driver.exec('COMMIT');
   } catch (error) {
     driver.exec('ROLLBACK');

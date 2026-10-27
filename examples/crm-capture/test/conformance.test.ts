@@ -17,7 +17,7 @@ const withoutFetchTime = (data: { items: unknown[]; source: { fetchedAt: number 
   return { items: data.items, source };
 };
 
-test('one provider answers the screen, HTTP, the CLI and MCP with the same result', async () => {
+test('one provider serves the screen, HTTP, the CLI and MCP with the same result', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-crm-'));
   const crm = new FakeCrm({ logins: { owner: 'ann' } });
   const host = await startHost(createCrmCaptureApplication({ crm }), {
@@ -78,21 +78,21 @@ test('one provider answers the screen, HTTP, the CLI and MCP with the same resul
       tools.find((candidate) => candidate.name === 'crm_account_list')?.annotations?.openWorldHint,
     ).toBe(false);
 
-    // The same adopt flow over MCP: a tool call commits locally, the CRM confirms it later.
-    const adopted = decode(
+    // The same follow flow over MCP: a tool call commits locally, the CRM confirms it later.
+    const followed = decode(
       await mcp.callTool({
-        name: 'crm_account_adopt',
-        arguments: { input: { externalId: '001A1' }, idempotencyKey: 'adopt-mcp' },
+        name: 'crm_account_follow',
+        arguments: { input: { externalId: '001A1' }, idempotencyKey: 'follow-mcp' },
       }),
     );
-    expect(adopted.result).toEqual({ id: '001A1', status: 'following' });
+    expect(followed.result).toEqual({ id: '001A1', status: 'requested' });
     await host.integrations.target('crm').dispatcher.runOnce();
     await host.integrations.sync();
     const list = await owner.query<{ items: { id: string; status: string }[] }>(
       'crm.account.list',
       {},
     );
-    expect(list.data.items).toMatchObject([{ id: '001A1', status: 'adopted' }]);
+    expect(list.data.items).toMatchObject([{ id: '001A1', status: 'following' }]);
   } finally {
     await mcp.close();
     await server.close();

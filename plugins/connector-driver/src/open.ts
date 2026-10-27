@@ -6,11 +6,11 @@ import {
 } from '@agent-native/host/plugin';
 import type { DriverContract } from './contracts/define';
 import type { DriverStatusView } from './contracts/status';
-import type { EventNotification, InitializeAnswer } from './protocol';
+import type { EventNotification, InitializeResult } from './protocol';
 import { createDriverSupervisor, type DriverSupervisor } from './supervisor';
 
-type EventListener = (event: EventNotification, session: InitializeAnswer) => Promise<void> | void;
-type SessionListener = (session: InitializeAnswer) => void;
+type EventListener = (event: EventNotification, session: InitializeResult) => Promise<void> | void;
+type SessionListener = (session: InitializeResult) => void;
 
 /**
  * What the driver plugin offers the application and later plugins as `services.driver`: one
@@ -70,7 +70,7 @@ function statusOf(contract: DriverContract, supervisor: DriverSupervisor): Drive
       id,
       title: action.title,
       delivery: action.delivery,
-      hazard: action.hazard,
+      risk: action.risk,
     })),
   };
 }
@@ -78,7 +78,7 @@ function statusOf(contract: DriverContract, supervisor: DriverSupervisor): Drive
 /**
  * Create one supervisor per declared driver. None starts here: a driver starts on its first
  * request, through the process port, which resolves only after every plugin has opened. Each
- * starts in monitor-only at its handshake; the mode of each action travels with that action.
+ * starts in monitor-only at its handshake; each action carries its mode.
  */
 export function openDrivers(
   options: DriverPluginOptions,

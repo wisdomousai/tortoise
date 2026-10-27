@@ -1,12 +1,12 @@
 import {
   operationSchemaDigest,
-  peerSurfaceOperations,
+  peerApiOperations,
   type Catalog,
   type ContractApplication,
-  type PeerSurface,
+  type PeerApi,
 } from '@agent-native/contracts';
 
-/** Why an operation of the surface no longer matches what the peer serves. */
+/** Why an operation of the API no longer matches what the peer serves. */
 export type DriftReason = 'changed' | 'missing' | 'application';
 
 export interface PeerDriftStatus {
@@ -18,7 +18,7 @@ export interface PeerDriftStatus {
 }
 
 export interface PeerDriftOptions {
-  readonly surface: PeerSurface;
+  readonly api: PeerApi;
   /** The peer's served contract, read as this application's service principal. */
   readonly contract: () => Promise<Catalog>;
   readonly now?: () => number;
@@ -29,7 +29,7 @@ export interface PeerDriftOptions {
 }
 
 /**
- * Compares the surface this application was built against with the contract the peer serves,
+ * Compares the API this application was built against with the contract the peer serves,
  * by each operation's schema digest. It checks on first contact, again once `intervalMs` has
  * passed, and at the next call after `invalidate`, which a peer's `INVALID_INPUT` triggers.
  * A drifted operation is blocked, so the outbox keeps its effects pending and reads report the
@@ -39,7 +39,7 @@ export function createPeerDrift(options: PeerDriftOptions) {
   const now = options.now ?? Date.now;
   const interval = options.intervalMs ?? 600_000;
   const expected = new Map(
-    peerSurfaceOperations(options.surface).map((capability) => [
+    peerApiOperations(options.api).map((capability) => [
       capability.id,
       operationSchemaDigest({
         id: capability.id,
@@ -59,7 +59,7 @@ export function createPeerDrift(options: PeerDriftOptions) {
         operation.schemaDigest ?? operationSchemaDigest(operation),
       ]),
     );
-    const wrong = contract.application && contract.application.id !== options.surface.application;
+    const wrong = contract.application && contract.application.id !== options.api.application;
     return {
       checkedAt: now(),
       ...(contract.application ? { application: contract.application } : {}),

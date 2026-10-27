@@ -4,7 +4,7 @@ import { defineCapability, defineModule, jsonSchema } from '@agent-native/contra
 const id = z.string().min(1).max(256);
 const time = z.number().int();
 const DAY = 24 * 60 * 60 * 1000;
-/** The longest a standing grant runs before it must be renewed. */
+/** The longest a trigger grant runs before it must be renewed. */
 export const MAX_GRANT_MS = 90 * DAY;
 
 /**
@@ -26,7 +26,7 @@ export type TriggerSource =
 
 /**
  * A trigger the application declares. It runs one agent definition or one deterministic job
- * the server plugin registers. A trigger does nothing until a person issues a standing grant
+ * the server plugin registers. A trigger does nothing until a person issues a trigger grant
  * for it; every run then acts as that person, narrowed to the trigger's operations.
  */
 export interface TriggerDefinition {
@@ -45,7 +45,7 @@ export interface TriggerDefinition {
 export const defineTrigger = <const T extends TriggerDefinition>(trigger: T): T =>
   Object.freeze(trigger);
 
-export const standingGrantSchema = z.strictObject({
+export const triggerGrantSchema = z.strictObject({
   id,
   trigger: id,
   /** The person whose instance every run of this grant uses. */
@@ -63,7 +63,7 @@ export const triggerSummarySchema = z.strictObject({
   on: z.enum(['event', 'schedule']),
   runs: z.enum(['agent', 'job']),
   /** The active grant: unrevoked and unexpired. */
-  grant: standingGrantSchema.optional(),
+  grant: triggerGrantSchema.optional(),
   /** Journal cursor or schedule slot the active grant's runs have reached. */
   cursor: z.number().int().min(0).optional(),
   slot: z.number().int().min(0).optional(),
@@ -92,7 +92,7 @@ export const automationOperations = {
     id: 'automation.trigger.list',
     kind: 'query',
     description:
-      'List the triggers the application declares, each with its active standing grant (who issued it and until when), its last run and its open failures.',
+      'List the triggers the application declares, each with its active trigger grant (who issued it and until when), its last run and its open failures.',
     input: jsonSchema(z.strictObject({})),
     output: jsonSchema(z.strictObject({ items: z.array(triggerSummarySchema) })),
     permission: { action: 'read', resourceType: 'Trigger' },
@@ -102,10 +102,10 @@ export const automationOperations = {
     id: 'automation.grant.issue',
     kind: 'command',
     description:
-      "Enable a trigger by issuing a standing grant as yourself for `expiresInMs` (at most 90 days). Its runs act as you, narrowed to the trigger's operations, and are refused whatever you could not do yourself. Replaces any earlier grant for the trigger, so the trigger then runs as you. People only.",
+      "Enable a trigger by issuing a trigger grant as yourself for `expiresInMs` (at most 90 days). Its runs act as you, narrowed to the trigger's operations, and are refused whatever you could not do yourself. Replaces any earlier grant for the trigger, so the trigger then runs as you. People only.",
     input: jsonSchema(z.strictObject({ trigger: id, expiresInMs: lifetime })),
-    output: jsonSchema(standingGrantSchema),
-    permission: { action: 'issue', resourceType: 'StandingGrant' },
+    output: jsonSchema(triggerGrantSchema),
+    permission: { action: 'issue', resourceType: 'TriggerGrant' },
     ui: { binding: 'automation.triggers' },
     audit: { fields: ['trigger', 'expiresInMs'] },
   }),
@@ -113,20 +113,20 @@ export const automationOperations = {
     id: 'automation.grant.renew',
     kind: 'command',
     description:
-      'Extend a standing grant you issued to `expiresInMs` from now. A revoked grant cannot be renewed. People only.',
+      'Extend a trigger grant you issued to `expiresInMs` from now. A revoked grant cannot be renewed. People only.',
     input: jsonSchema(z.strictObject({ id, expiresInMs: lifetime })),
-    output: jsonSchema(standingGrantSchema),
-    permission: { action: 'issue', resourceType: 'StandingGrant' },
+    output: jsonSchema(triggerGrantSchema),
+    permission: { action: 'issue', resourceType: 'TriggerGrant' },
     ui: { binding: 'automation.triggers' },
     audit: { fields: ['id', 'expiresInMs'] },
   }),
   grantRevoke: defineCapability({
     id: 'automation.grant.revoke',
     kind: 'command',
-    description: 'Revoke a standing grant you issued. No run starts under it again. People only.',
+    description: 'Revoke a trigger grant you issued. No run starts under it again. People only.',
     input: jsonSchema(grantInput),
-    output: jsonSchema(standingGrantSchema),
-    permission: { action: 'issue', resourceType: 'StandingGrant' },
+    output: jsonSchema(triggerGrantSchema),
+    permission: { action: 'issue', resourceType: 'TriggerGrant' },
     ui: { binding: 'automation.triggers' },
     audit: { fields: ['id'] },
   }),
@@ -151,7 +151,7 @@ export const automationOperations = {
       }),
     ),
     output: jsonSchema(z.strictObject({ grant: id })),
-    permission: { action: 'record', resourceType: 'StandingGrant' },
+    permission: { action: 'record', resourceType: 'TriggerGrant' },
     ui: {
       exception:
         'Written only by the trigger loop as the grant issuer; people see the result in automation.trigger.list and automation.failure.list.',

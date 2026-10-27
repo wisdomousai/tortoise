@@ -36,7 +36,7 @@ export function captureSummary(report: Pick<Report, 'subject' | 'body'>) {
   const capture = report.body as CaptureBody;
   const subject = capture.codes.length ? ` of ${capture.codes.join(', ')}` : '';
   return [
-    `${capture.kind} capture${subject}${report.subject ? '' : ', unplaced'}`,
+    `${capture.kind} capture${subject}${report.subject ? '' : ', unlinked'}`,
     capture.condition ? `Condition: ${capture.condition}` : undefined,
     capture.note || undefined,
     `${capture.photos.length} ${capture.photos.length === 1 ? 'photo' : 'photos'}, taken ${new Date(capture.takenAt).toLocaleString()}`,

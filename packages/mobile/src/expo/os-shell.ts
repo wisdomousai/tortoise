@@ -46,7 +46,7 @@ async function shared(uri: string, scheme: string): Promise<readonly MobileShare
  * Show a notification now under its id, so showing it again replaces it. A category is
  * registered per set of buttons, because the OS reads button titles from the category; each
  * button opens the app, since a reply is submitted by the running instance, and one that
- * requires unlock asks for it first. The buttons, nonces included, travel in the data.
+ * requires unlock asks for it first. The buttons, nonces included, are sent in the data.
  */
 async function notify(notification: ShellNotification) {
   const { granted } = await Notifications.requestPermissionsAsync();
@@ -80,16 +80,16 @@ async function notify(notification: ShellNotification) {
 
 /** The buttons a person chose, the one that launched the app first; a plain tap is no reply. */
 function replies(listener: (buttons: unknown, button: string) => void) {
-  const answer = (response: Notifications.NotificationResponse) => {
+  const onResponse = (response: Notifications.NotificationResponse) => {
     if (response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) return;
     listener(response.notification.request.content.data?.buttons, response.actionIdentifier);
   };
   const launched = Notifications.getLastNotificationResponse();
   if (launched) {
     Notifications.clearLastNotificationResponse();
-    answer(launched);
+    onResponse(launched);
   }
-  const subscription = Notifications.addNotificationResponseReceivedListener(answer);
+  const subscription = Notifications.addNotificationResponseReceivedListener(onResponse);
   return () => subscription.remove();
 }
 
@@ -138,7 +138,7 @@ export function expoOsBindings(
     open: (url) => Linking.openURL(url),
     shared: (uri) => shared(uri, scheme),
     async share({ text, url, title }) {
-      // Android's share sheet has no URL field, so a URL travels in the message there.
+      // Android's share sheet has no URL field, so a URL is sent in the message there.
       const message = Platform.OS === 'ios' ? text : [text, url].filter(Boolean).join('\n');
       await Share.share({
         ...(message ? { message } : {}),

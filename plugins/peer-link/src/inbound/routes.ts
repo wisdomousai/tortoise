@@ -17,8 +17,8 @@ export interface PeerCaller {
  * POST /api/v1/peer/enroll `{ code, application, publicKey, contract? }`: the calling
  * application's half of enrollment, before it has a credential. The route generates the
  * credential, redeems the code with the credential's digest and the caller's public key through
- * the runtime, and answers the credential once with the audience its assertions must name and
- * this application's contract. A crash between commit and answer leaves a peer record whose
+ * the runtime, and returns the credential once with the audience its assertions must name and
+ * this application's contract. A crash between commit and response leaves a peer record whose
  * credential nobody holds; the person enrolls again and revokes it.
  */
 export async function enroll(

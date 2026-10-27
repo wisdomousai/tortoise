@@ -37,7 +37,7 @@ class OsIntentsModule : Module() {
       listening = declared
       val intent = appContext.currentActivity?.intent ?: return@Function null
       // The launching intent is passed on once per process; a launch from the recents list
-      // replays the original intent, which was handled when it first arrived.
+      // replays the original intent, which was handled when it was first received.
       if (intent === taken || (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0)
         return@Function null
       val record = record(intent) ?: return@Function null

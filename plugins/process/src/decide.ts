@@ -34,9 +34,9 @@ export function availability({ policy, context }: Decision, processId: string) {
 
 /** The started binding, or UNAVAILABLE with the reason `availability` gave. */
 export function bindingFor(decision: Decision, processId: string): ResolvedProcess {
-  const answer = availability(decision, processId);
-  if (!answer.available) throw new ApplicationError('UNAVAILABLE', answer.reason);
-  return answer.binding;
+  const result = availability(decision, processId);
+  if (!result.available) throw new ApplicationError('UNAVAILABLE', result.reason);
+  return result.binding;
 }
 
 /**

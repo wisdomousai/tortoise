@@ -52,7 +52,7 @@ export function remoteQueryOptions<C extends RemoteQuery>(
  * is the list of page outputs, in order; a page may be short or empty after local scoping, and
  * each carries its own `source` status. Freshness, placeholder and invalidation behave as in
  * `remoteQueryOptions`. A refetch replays the stored cursors, so a source whose cursors expire
- * answers it with an error, and the screen offers a new search.
+ * returns an error for it, and the screen offers a new search.
  */
 export function remoteInfiniteQueryOptions<C extends RemoteQuery>(
   transport: Transport,

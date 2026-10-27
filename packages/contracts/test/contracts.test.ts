@@ -128,7 +128,7 @@ describe('portable application catalog', () => {
         }),
       ]),
     ).toThrow('Integration requires a command');
-    // An outbox target that travels over no declared destination is undeclared egress.
+    // An outbox target that uses no declared destination is undeclared egress.
     expect(() => buildCatalog([defineModule({ id: 'a', capabilities: [command] })])).toThrow(
       'no declared network destination',
     );

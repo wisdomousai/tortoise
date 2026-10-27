@@ -4,12 +4,12 @@ import { own } from '@agent-native/runtime';
  * CRM capture: find customers in the CRM live, bring the ones you work with into this workspace,
  * and log what happened with them.
  *
- * The CRM owns accounts and contacts. Searches read it at call time and store nothing. Adopting
+ * The CRM owns accounts and contacts. Searches read it at call time and store nothing. Following
  * an account asks the CRM (through the outbox) to let this workspace follow it; the CRM feed then
  * delivers the account and keeps it current through the integration principal's sync command.
- * This application owns activities logged against adopted accounts, each forwarded to the CRM.
+ * This application owns activities logged against followed accounts, each forwarded to the CRM.
  */
-export type LocalStatus = 'following' | 'adopted' | 'rejected';
+export type LocalStatus = 'requested' | 'following' | 'rejected';
 export type SyncStatus = 'pending' | 'accepted' | 'rejected';
 export interface Rejection {
   code: string;
@@ -27,8 +27,8 @@ export interface LocalAccount {
   city?: string;
   region?: string;
   owner?: string;
-  adoptedBy: string;
-  adoptedAt: number;
+  followedBy: string;
+  followedAt: number;
   syncedAt?: number;
   rejection?: Rejection;
 }
@@ -78,7 +78,7 @@ export const memberOf = (state: CrmState, principalId: string) => own(state.memb
 
 /**
  * Whether a member may see a record in `region`. A followed account whose details have not
- * arrived has no region yet; every member sees it, since it holds nothing but its CRM ID.
+ * been imported has no region yet; every member sees it, since it holds nothing but its CRM ID.
  */
 export function coversRegion(state: CrmState, principalId: string, region: string | undefined) {
   const member = memberOf(state, principalId);

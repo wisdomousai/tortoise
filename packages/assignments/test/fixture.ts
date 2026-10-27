@@ -5,7 +5,7 @@ import {
   defineCapability,
   defineHostComponent,
   defineModule,
-  definePeerSurface,
+  definePeerApi,
   jsonSchema,
   recordKeySchema,
 } from '@agent-native/contracts';
@@ -34,7 +34,7 @@ export const review = defineAssignmentKind({
   accept: z.strictObject({ comment: z.string().max(2000).optional() }),
   subject: 'note',
   blobs: { brief: { maxBytes: 100_000, mediaTypes: ['text/plain'] } },
-  lanes: ['person', 'agent', 'target'],
+  assigneeTypes: ['person', 'agent', 'target'],
   target: 'checker',
   invokes: ['notes.note.update'],
   changes: ['note'],
@@ -55,12 +55,12 @@ export const survey = defineAssignmentKind({
   }),
   subject: 'node',
   blobs: { report: { maxBytes: 8_000_000, mediaTypes: ['image/jpeg'] } },
-  lanes: ['device', 'peer', 'person'],
+  assigneeTypes: ['device', 'peer', 'person'],
 });
 
 export const assignments = defineAssignments({ kinds: [review, survey] });
 
-/** The checker service the review kind's target lane travels over. */
+/** The destination of the checker service, the review kind's assignment target. */
 export const checker = defineHostComponent({
   id: 'checker',
   description: 'The checker service, which reviews notes.',
@@ -81,11 +81,11 @@ export const checker = defineHostComponent({
   },
 });
 
-/** What the issuer publishes to peers and devices: the lane operations. */
-export const issuerSurface = definePeerSurface({
+/** What the issuer publishes to peers and devices: the assignee operations. */
+export const issuerApi = definePeerApi({
   application: 'assignments-fixture',
-  commands: assignments.lanes.peer.commands,
-  queries: assignments.lanes.peer.queries,
+  commands: assignments.assignees.peer.commands,
+  queries: assignments.assignees.peer.queries,
 });
 
 /** The application command the review kind's accept hook calls. */

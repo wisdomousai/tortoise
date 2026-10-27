@@ -87,7 +87,7 @@ export interface OsShortcutHandler extends OsHandlerBase {
   readonly target: OsTarget;
 }
 /**
- * The answer to something the application issued, such as a notification action. The consumer
+ * The reply to something the application issued, such as a notification action. The consumer
  * plugin matches its nonce; nothing else may accept it.
  */
 export interface OsReplyHandler extends OsHandlerBase {

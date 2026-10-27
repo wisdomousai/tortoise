@@ -114,7 +114,7 @@ test('UI contexts have revisions and immutable captures; intents replay until ac
   expect(store.acknowledge(owner, first.sessionId, id, 'accepted')).toBe('accepted');
   expect(store.acknowledge(owner, first.sessionId, id, 'accepted')).toBe('accepted');
   expect(() => store.acknowledge(owner, first.sessionId, id, 'rejected')).toThrow(
-    'already settled',
+    'already completed',
   );
   expect(await store.poll(owner, first.sessionId)).toEqual([]);
   expect(store.status(owner, first.sessionId, id)).toBe('accepted');

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { AttentionItem } from '@/components/attention-queue';
 import type { ScanOutcome } from '@/components/scan-prompt';
-import type { SeatOwner } from '@/components/takeover-button';
+import type { ControlHolder } from '@/components/takeover-button';
 
 /** Twelve tiles, so the digit hotkeys and paging both show. */
 export const stopReasons = [
@@ -14,7 +14,7 @@ export const stopReasons = [
   'Operator break',
   'Maintenance',
   'Waiting for crane',
-  'Upstream blocked',
+  'Delivery blocked',
   'Downstream full',
   'Unknown',
 ].map((label, index) => ({
@@ -59,7 +59,7 @@ export function useStationDemo() {
   const [reason, setReason] = useState<string>();
   const [measured, setMeasured] = useState('');
   const [recorded, setRecorded] = useState<number>();
-  const [seat, setSeat] = useState<SeatOwner>('agent');
+  const [holder, setHolder] = useState<ControlHolder>('agent');
   const [running, setRunning] = useState(true);
   const [scan, setScan] = useState<ScanOutcome>();
   const [attention, setAttention] = useState(initialAttention);
@@ -70,8 +70,8 @@ export function useStationDemo() {
     setMeasured,
     recorded,
     setRecorded,
-    seat,
-    setSeat,
+    holder,
+    setHolder,
     running,
     setRunning,
     scan,

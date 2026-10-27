@@ -1,8 +1,8 @@
 export {
   assignmentFeature,
   type AssignmentFeatureOptions,
-  type TargetLaneContext,
-  type TargetLaneOptions,
+  type AssignmentTargetContext,
+  type AssignmentTargetOptions,
 } from './feature';
 export {
   byKind,
@@ -12,7 +12,7 @@ export {
 } from './hooks';
 export { canSee, canSeeReport, isAssignee } from './policy';
 export { stageOf, type AssignmentSlice, type StoredAssignment, type StoredReport } from './slice';
-export type { TargetAnswer } from './target-lane';
+export type { TargetResult } from './assignment-target';
 export {
   assignmentTargetPort,
   type OfferBlob,

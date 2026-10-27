@@ -10,11 +10,11 @@ import { qualityLots, qualityPeer } from './contracts/quality-peer';
  */
 export const operations = {
   ...deliveryOperations,
-  erpSettle: erpTarget.settle,
+  erpComplete: erpTarget.complete,
   erpSync: erpTarget.sync,
   erpStatus: erpTarget.status,
   erpSend,
-  qualitySettle: qualityPeer.settle,
+  qualityComplete: qualityPeer.complete,
   qualitySync: qualityPeer.sync,
   qualityStatus: qualityPeer.status,
   qualityLotSearch: qualityLots.search,

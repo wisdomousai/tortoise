@@ -5,7 +5,7 @@ import { accounts } from '../contracts/collections';
 import { coversRegion, visibleAccount, type CrmState, type LocalAccount } from '../domain';
 import { accountDto, compact, handler, type CrmServices } from './context';
 
-/** Local reads of followed and adopted accounts, region-scoped before anything is counted. */
+/** Local reads of requested and followed accounts, region-scoped before anything is counted. */
 export const accountHandlers = (): HandlerContribution<CrmState, CrmServices>[] => [
   // Region scope first, then the status filter: nothing outside the caller's regions counts.
   collectionListHandler<CrmState, CrmServices, typeof operations.accountList, LocalAccount>(
@@ -15,7 +15,7 @@ export const accountHandlers = (): HandlerContribution<CrmState, CrmServices>[] 
       store: (state) => state.accounts,
       visible: (account, ctx) => coversRegion(ctx.state, ctx.context.principalId, account.region),
       present: (account, ctx) => accountDto(ctx.state, account),
-      order: (a, b) => b.adoptedAt - a.adoptedAt,
+      order: (a, b) => b.followedAt - a.followedAt,
     },
   ),
   handler(operations.accountGet, (input, ctx) => {

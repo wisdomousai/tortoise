@@ -1,7 +1,7 @@
 /**
  * Agent definitions are catalog metadata: what an agent is for, which operations it may call and
  * how far a run may go. They hold no model credentials, prompts from people or permissions of
- * their own. A run under a definition still executes as the person or standing grant that
+ * their own. A run under a definition still executes as the person or trigger grant that
  * started it, narrowed to the definition's operations, and every call is authorized by the
  * application policy like any other caller's.
  */

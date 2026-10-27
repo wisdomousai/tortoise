@@ -1,6 +1,6 @@
 import type { Effect, EffectOutcome } from '@agent-native/runtime';
 import { DeliveryFailure, interruption } from '@agent-native/integration';
-import { evaluate, type View } from '../perceive';
+import { evaluate, type View } from '../recognize';
 import type { Frame, ScreenAction } from '../ports';
 import { center, resolveBinding, type Procedure, type ProcedureStep } from '../profile';
 import { accepted, observe, readsFor, showing, waitFor, type ControllerKernel } from './kernel';
@@ -29,7 +29,7 @@ interface Run {
 const stop = (run: Run, message: string) =>
   interruption(run.acted, run.procedure.rerunnable ?? false, message);
 
-/** Re-checked before every action: seat, mode, local input, budget and deadline. */
+/** Re-checked before every action: control holder, mode, local input, budget and deadline. */
 async function guard(run: Run) {
   const { kernel, procedure, signal } = run;
   if (signal.aborted) throw stop(run, 'Delivery was cancelled');
@@ -47,7 +47,7 @@ async function guard(run: Run) {
 async function act(run: Run, action: ScreenAction, at: string, frame?: Frame) {
   const { kernel, signal } = run;
   await guard(run);
-  const shown = await kernel.perception.identify(
+  const shown = await kernel.recognizer.identify(
     frame ?? (await kernel.options.transport.capture(signal)),
     signal,
   );
@@ -86,7 +86,7 @@ async function waitStep(run: Run, step: Extract<ProcedureStep, { kind: 'wait-for
     field === undefined ||
     (equals === undefined
       ? candidate.readings.has(field)
-      : evaluate(kernel.perception, candidate, [{ field, equals }], input).met);
+      : evaluate(kernel.recognizer, candidate, [{ field, equals }], input).met);
   const reached = await waitFor(
     kernel,
     (candidate) =>
@@ -131,7 +131,7 @@ async function readback(run: Run): Promise<EffectOutcome> {
   const { kernel, procedure, input } = run;
   const confirmed = await waitFor(
     kernel,
-    (candidate) => evaluate(kernel.perception, candidate, procedure.readback, input).met,
+    (candidate) => evaluate(kernel.recognizer, candidate, procedure.readback, input).met,
     Math.max(kernel.pollMs, procedure.timeoutMs - (kernel.now() - run.started)),
     run.signal,
     readsFor(kernel, procedure.readback),
@@ -175,8 +175,8 @@ export async function runProcedure(
     return await readback(run);
   } catch (error) {
     if (error instanceof DeliveryFailure) throw error;
-    // Transport or perception broke mid-procedure. Its text may carry host details, so it is
+    // Transport or recognition broke mid-procedure. Its text may carry host details, so it is
     // replaced; whether the station changed is unknown once anything was done.
-    throw stop(run, `${procedure.title} failed: the screen or its perception became unavailable`);
+    throw stop(run, `${procedure.title} failed: the screen or its recognizer became unavailable`);
   }
 }

@@ -8,7 +8,7 @@ import { z } from 'zod';
 /**
  * `desktop-local`: one person's machine, loopback only. `site-hub`: a machine on a site network
  * that paired devices reach over TLS, still run by its local owner. `sandbox`: an agent sandbox
- * driven by launcher grants. `zero-trust`: external identity, mutual TLS, forwarded audit.
+ * run under launcher grants. `zero-trust`: external identity, mutual TLS, forwarded audit.
  */
 export const hardeningProfiles = ['desktop-local', 'site-hub', 'sandbox', 'zero-trust'] as const;
 export type HardeningProfile = (typeof hardeningProfiles)[number];
@@ -34,7 +34,7 @@ const bindingSchema = z.union([
     tls: z.boolean().optional(),
     /**
      * Per-request timeout in milliseconds, replacing the guard's default of 30 s, for a
-     * destination that answers slowly by nature, such as a local model server that reasons
+     * destination that responds slowly by nature, such as a local model server that reasons
      * before it replies.
      */
     timeoutMs: z.number().int().min(1_000).max(3_600_000).optional(),

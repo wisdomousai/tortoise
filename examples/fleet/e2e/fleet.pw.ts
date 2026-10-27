@@ -52,8 +52,8 @@ test('an operator enrolls a site, assigns it a channel and sees it drift from th
         outbox: {
           pending: 3,
           held: 0,
-          upstream: 0,
-          targets: [{ target: 'erp', pending: 3, held: 0, upstream: 0 }],
+          acknowledged: 0,
+          targets: [{ target: 'erp', pending: 3, held: 0, acknowledged: 0 }],
         },
       },
       idempotencyKey: 'report-1',

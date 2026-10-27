@@ -263,7 +263,7 @@ async function connectTo(target: string, code: string) {
   if (response.ok) return;
   const body = (await response.json().catch(() => undefined)) as
     { error?: { message?: string } } | undefined;
-  throw new Error(body?.error?.message ?? `Connecting answered ${response.status}`);
+  throw new Error(body?.error?.message ?? `Connecting returned ${response.status}`);
 }
 
 function CalledRow({ called, onError }: { called: Called; onError: (message: string) => void }) {

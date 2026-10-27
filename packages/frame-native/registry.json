@@ -80,7 +80,7 @@
       "name": "worklist-sync",
       "type": "registry:component",
       "title": "Worklist sync",
-      "description": "A worklist target's counts of reports and done marks waiting, taken and refused, when assignments last arrived, and every report with its state and the issuer's reason for a refusal.",
+      "description": "A worklist target's counts of reports and done marks waiting, taken and refused, when assignments were last received, and every report with its state and the issuer's reason for a refusal.",
       "dependencies": ["uniwind", "lucide-react-native", "react-native-svg"],
       "registryDependencies": [
         "@agent-native-native/native-theme",

@@ -98,7 +98,7 @@ export function readPaths(workflow: DeclaredWorkflow): Map<string, Set<string>> 
   return paths;
 }
 
-/** Keep the read paths of a step's result; `effects` are the settled effect values in order. */
+/** Keep the read paths of a step's result; `effects` are the completed effect values in order. */
 export function keep(
   paths: ReadonlySet<string> | undefined,
   result: unknown,

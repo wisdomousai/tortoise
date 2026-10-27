@@ -2,7 +2,7 @@ import type { z } from 'zod';
 import type { AnyCapability, InputOf } from './capability';
 import { ApplicationError } from './errors';
 import type { JsonValue } from './json';
-import type { PeerSurface } from './peer';
+import type { PeerApi } from './peer';
 import type {
   Availability,
   NetworkDestination,
@@ -12,7 +12,7 @@ import type {
 import { defineHostComponent } from './requirements';
 import { defineTarget, type TargetSpec } from './target';
 
-type SurfaceCommand<S extends PeerSurface> =
+type SurfaceCommand<S extends PeerApi> =
   S['commands'][number] | S['onBehalfOf']['commands'][number];
 
 /** The effect a command enqueues for a peer: the peer command's ID as type, its input as payload. */
@@ -24,33 +24,33 @@ export interface PeerEffectRequest {
 }
 
 /**
- * Declare another agent-native application as an outbox target, through the peer surface it
- * publishes. Besides the target's settle, sync and status operations it gives:
+ * Declare another agent-native application as an outbox target, through the peer API it
+ * publishes. Besides the target's complete, sync and status operations it gives:
  *
  * - `destination`: an `https`, `authenticated` egress destination that carries the target and
  *   its remote reads, and `component`, a host component requiring it, for the manifest's
  *   `components`;
- * - `effect(command, { resource, payload })`: the effect request for one surface command, with
+ * - `effect(command, { resource, payload })`: the effect request for one api command, with
  *   the payload parsed by the command's own input schema, so a payload the peer would refuse
  *   fails the enqueuing command instead;
  * - `onBehalfOf(type)`: whether an effect is delivered as the person who enqueued it rather than
  *   as the peer's service principal;
- * - `feed`, when given: a service query of the surface that answers `{ items, cursor, more? }`.
+ * - `feed`, when given: a service query of the API that returns `{ items, cursor, more? }`.
  *
  * Browser-safe. The server pairs it with `connectPeerTarget` from `@agent-native/integration`.
  */
 export function definePeerTarget<
-  const S extends PeerSurface,
+  const S extends PeerApi,
   const Target extends string,
-  const Settle extends string = `${Target}.effect.settle`,
+  const Complete extends string = `${Target}.effect.complete`,
   const Sync extends string = `${Target}.sync`,
   const Status extends string = `${Target}.sync.status`,
   Item extends z.ZodType = z.ZodNever,
   Extra extends z.ZodRawShape = {},
   StatusShape extends z.ZodRawShape = {},
 >(
-  spec: Omit<TargetSpec<Target, Settle, Sync, Status, Item, Extra, StatusShape>, 'feed'> & {
-    readonly surface: S;
+  spec: Omit<TargetSpec<Target, Complete, Sync, Status, Item, Extra, StatusShape>, 'feed'> & {
+    readonly api: S;
     readonly destination: {
       readonly id: string;
       readonly purpose: string;
@@ -61,24 +61,24 @@ export function definePeerTarget<
       readonly offline: OfflineBehavior;
     };
     readonly feed?: NonNullable<
-      TargetSpec<Target, Settle, Sync, Status, Item, Extra, StatusShape>['feed']
+      TargetSpec<Target, Complete, Sync, Status, Item, Extra, StatusShape>['feed']
     > & { readonly query: S['queries'][number] };
     /** Whether data providers read this target through the peer; adds it to the destination's reads. */
     readonly reads?: boolean;
   },
 ) {
-  const { surface, destination: declared, reads, ...target } = spec;
-  if (spec.feed && !surface.queries.some((query) => query.id === spec.feed!.query.id))
+  const { api, destination: declared, reads, ...target } = spec;
+  if (spec.feed && !api.queries.some((query) => query.id === spec.feed!.query.id))
     throw new Error(
       `Peer target ${spec.target} feeds from ${spec.feed.query.id}, not a service query`,
     );
-  const defined = defineTarget<Target, Settle, Sync, Status, Item, Extra, StatusShape>(
-    target as TargetSpec<Target, Settle, Sync, Status, Item, Extra, StatusShape>,
+  const defined = defineTarget<Target, Complete, Sync, Status, Item, Extra, StatusShape>(
+    target as TargetSpec<Target, Complete, Sync, Status, Item, Extra, StatusShape>,
   );
   const commands = new Map<string, AnyCapability>(
-    [...surface.commands, ...surface.onBehalfOf.commands].map((command) => [command.id, command]),
+    [...api.commands, ...api.onBehalfOf.commands].map((command) => [command.id, command]),
   );
-  const personal = new Set(surface.onBehalfOf.commands.map((command) => command.id));
+  const personal = new Set(api.onBehalfOf.commands.map((command) => command.id));
   const destination: NetworkDestination = {
     id: declared.id,
     purpose: declared.purpose,
@@ -95,11 +95,11 @@ export function definePeerTarget<
   };
   return Object.freeze({
     ...defined,
-    surface,
+    api,
     destination,
     component: defineHostComponent({
       id: `${spec.target}-peer`,
-      description: `${surface.application}, called as a peer: ${declared.purpose}`,
+      description: `${api.application}, called as a peer: ${declared.purpose}`,
       requirements: { network: [destination] },
     }),
     feedQuery: spec.feed?.query.id,
@@ -112,7 +112,7 @@ export function definePeerTarget<
       if (!known)
         throw new ApplicationError(
           'INTERNAL',
-          `${command.id} is not on the peer surface of ${surface.application}`,
+          `${command.id} is not on the peer API of ${api.application}`,
         );
       let payload: JsonValue;
       try {
@@ -120,7 +120,7 @@ export function definePeerTarget<
       } catch {
         throw new ApplicationError(
           'INVALID_INPUT',
-          `The record does not make valid input for ${command.id} on ${surface.application}`,
+          `The record does not make valid input for ${command.id} on ${api.application}`,
         );
       }
       return { target: spec.target, type: command.id, resource: request.resource, payload };

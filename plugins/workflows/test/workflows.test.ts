@@ -11,9 +11,9 @@ async function filed(app: ReturnType<typeof inProcess>, id = 'p1') {
 }
 const carrierEffect = async (app: ReturnType<typeof inProcess>) =>
   (await app.pending()).find((effect) => effect.target === 'carrier')!;
-const settleCarrier = async (app: ReturnType<typeof inProcess>, id: string, accepted = true) =>
+const completeCarrier = async (app: ReturnType<typeof inProcess>, id: string, accepted = true) =>
   app.invoke(
-    'carrier.settle',
+    'carrier.complete',
     { id, effect: (await carrierEffect(app)).id, accepted },
     person('owner'),
   );
@@ -32,12 +32,12 @@ describe('workflow instances', () => {
     expect(await app.parcel('p1')).toMatchObject({ status: 'reserved', calls: 1 });
     await app.pass();
     expect(await app.parcel('p1')).toMatchObject({ status: 'shipped' });
-    // The carrier has not answered: an idle pass writes nothing.
+    // The carrier has not responded: an idle pass writes nothing.
     const awaiting = await app.instance(id);
     await app.pass();
     expect(await app.instance(id)).toEqual(awaiting);
 
-    await settleCarrier(app, 'p1');
+    await completeCarrier(app, 'p1');
     await app.pass();
     await app.pass();
     expect(await app.instance(id)).toMatchObject({ status: 'waiting', step: 'delivered' });
@@ -77,7 +77,7 @@ describe('workflow instances', () => {
     const id = await filed(app);
     await app.pass();
     await app.pass();
-    await settleCarrier(app, 'p1', false);
+    await completeCarrier(app, 'p1', false);
     await app.pass();
     expect(await app.instance(id)).toMatchObject({
       status: 'compensating',
@@ -93,7 +93,7 @@ describe('workflow instances', () => {
     const app = inProcess();
     const id = await filed(app);
     for (let index = 0; index < 2; index++) await app.pass();
-    await settleCarrier(app, 'p1');
+    await completeCarrier(app, 'p1');
     for (let index = 0; index < 3; index++) await app.pass();
     expect(await app.instance(id)).toMatchObject({ status: 'waiting' });
     app.advance(HOUR);
@@ -201,7 +201,7 @@ describe('workflow durability', () => {
     expect((await app.instance(id)).step).toBe('ship');
   });
 
-  test('a held effect keeps the step waiting and shows as held until it is settled', async () => {
+  test('a held effect keeps the step waiting and shows as held until it is completed', async () => {
     const app = inProcess();
     const id = await filed(app);
     await app.pass();
@@ -219,7 +219,7 @@ describe('workflow durability', () => {
     const held = await app.instance(id);
     await app.pass();
     expect(await app.instance(id)).toEqual(held);
-    await settleCarrier(app, 'p1');
+    await completeCarrier(app, 'p1');
     await app.pass();
     const moved = await app.instance(id);
     expect(moved).toMatchObject({ step: 'delivered' });
@@ -264,7 +264,7 @@ describe('workflow durability', () => {
     const app = inProcess();
     const id = await filed(app);
     for (let index = 0; index < 2; index++) await app.pass();
-    await settleCarrier(app, 'p1');
+    await completeCarrier(app, 'p1');
     for (let index = 0; index < 3; index++) await app.pass();
     expect((await app.instance(id)).status).toBe('waiting');
     const cancelled = await app.invoke('workflow.cancel', { id }, person('owner'));

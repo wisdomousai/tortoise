@@ -126,8 +126,8 @@ export async function openProcesses(context: PluginOpenContext): Promise<PluginI
   const processes: BunProcessPort = {
     availability(processId) {
       if (closed) return { available: false, reason: 'The process plugin is closed' };
-      const answer = availability(decision, processId);
-      return answer.available ? { available: true } : answer;
+      const result = availability(decision, processId);
+      return result.available ? { available: true } : result;
     },
     async spawn(processId, options) {
       try {

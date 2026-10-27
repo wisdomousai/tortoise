@@ -153,7 +153,7 @@
       "name": "reconciliation-review",
       "type": "registry:component",
       "title": "Reconciliation review",
-      "description": "Held deliveries, live, with what was sent and why it is held; the person says whether the target applied it, which settles it, sends it again or settles it as refused.",
+      "description": "Held deliveries, live, with what was sent and why it is held; the person says whether the target applied it, which completes it, sends it again or completes it as refused.",
       "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
       "registryDependencies": ["badge", "button", "input", "@agent-native/session"],
       "files": [
@@ -189,7 +189,7 @@
       "name": "assignment-reports",
       "type": "registry:component",
       "title": "Assignment reports",
-      "description": "Reports, live, with body, reporter and review state; place a report on a subject, discard it, or accept it with the reviewer's input. Slots per kind: the body view, the subject's name, the placing input and the accept form.",
+      "description": "Reports, live, with body, reporter and review state; link a report to a subject, discard it, or accept it with the reviewer's input. Slots per kind: the body view, the subject's name, the linking input and the accept form.",
       "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
       "registryDependencies": [
         "badge",
@@ -340,7 +340,7 @@
       "name": "os-browser",
       "type": "registry:lib",
       "title": "Browser OS input",
-      "description": "Submits the link or shortcut a browser landing URL carries and the files an installed web app was launched with, and runs declared OS actions a page may perform itself.",
+      "description": "Submits the link or shortcut a launch URL carries and the files an installed web app was launched with, and runs declared OS actions a page may perform itself.",
       "dependencies": ["@agent-native/contracts", "@agent-native/shell"],
       "registryDependencies": ["@agent-native/ui-session"],
       "files": [

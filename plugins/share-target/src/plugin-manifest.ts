@@ -7,6 +7,6 @@ import { definePluginManifest } from '@agent-native/kernel/plugin-manifest';
 export const shareTargetPluginManifest = definePluginManifest({
   id: 'share-target',
   title: 'Share target',
-  // The web share target is a host route; on a device shares arrive through the mobile shell.
+  // The web share target is a host route; on a device shares are received through the mobile shell.
   platforms: ['bun', 'android', 'ios'],
 });

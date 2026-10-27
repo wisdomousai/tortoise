@@ -21,8 +21,8 @@ export interface PeerRead {
 }
 
 /**
- * Read one peer query that answers a single record, such as a lookup by ID: `items` turns its
- * answer into the page, by default one item, or none for a `null` answer.
+ * Read one peer query that returns a single record, such as a lookup by ID: `items` turns its
+ * result into the page, by default one item, or none for a `null` result.
  */
 export function peerQuery(
   capability: AnyCapability & { readonly kind: 'query' },
@@ -38,7 +38,7 @@ export function peerQuery(
 }
 
 /**
- * Read one paged peer query that answers `{ items, next? }` and takes `cursor`. The peer's
+ * Read one paged peer query that returns `{ items, next? }` and takes `cursor`. The peer's
  * cursor reaches the caller sealed, bound to the query and the caller.
  */
 export function peerList(
@@ -57,7 +57,7 @@ export interface PeerSourceOptions {
   readonly target: string;
   /** The connection; throws while the peer is not connected. */
   readonly link: () => PeerLink;
-  /** Each local remote query this source answers, by its operation ID. */
+  /** Each local remote query this source serves, by its operation ID. */
   readonly reads: Readonly<Record<string, PeerRead>>;
   readonly drift?: PeerDrift;
   /** HMAC key of the page cursors; random per process by default. */
@@ -65,7 +65,7 @@ export interface PeerSourceOptions {
 }
 
 /** The peer's refusal reaches the caller with its code; everything else is the peer being away. */
-function answer(target: string, error: unknown): never {
+function throwReadError(target: string, error: unknown): never {
   if (error instanceof ApplicationError) throw error;
   if (!(error instanceof PeerCallError))
     throw new ApplicationError('UNAVAILABLE', `${target} could not be read`);
@@ -80,7 +80,7 @@ function answer(target: string, error: unknown): never {
       'FORBIDDEN',
       `${target} takes no reads an agent or job run makes on behalf of a person`,
     );
-  if (error.kind === 'answered' && error.envelope && !assertion && error.status! < 500)
+  if (error.kind === 'responded' && error.envelope && !assertion && error.status! < 500)
     throw new ApplicationError(error.envelope.code as ErrorCode, error.envelope.message);
   throw new ApplicationError('UNAVAILABLE', `${target} could not be read`);
 }
@@ -108,7 +108,7 @@ export function createPeerSource(options: PeerSourceOptions): RemoteSource {
       if (!read)
         throw new ApplicationError(
           'UNAVAILABLE',
-          `${options.target} does not answer ${request.operation}`,
+          `${options.target} has no read for ${request.operation}`,
         );
       const { cursor, ...query } = request.query as Query & { cursor?: string };
       const principal = call.context.principalId;
@@ -143,7 +143,7 @@ export function createPeerSource(options: PeerSourceOptions): RemoteSource {
       } catch (error) {
         if (error instanceof PeerCallError && error.code === 'INVALID_INPUT')
           options.drift?.invalidate();
-        return answer(options.target, error);
+        return throwReadError(options.target, error);
       }
     },
   };

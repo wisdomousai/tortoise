@@ -20,7 +20,7 @@ function narrowed(context: ExecutionContext, operations: readonly string[]): Exe
 /**
  * The receiver of the reply handlers that name this plugin. A reply is an OS request like any
  * other: whoever can submit to the shell can send one, with any nonce. It runs as the session
- * that submitted it: the lookup answers only for a live nonce issued to that principal, and the
+ * that submitted it: the lookup finds only a live nonce issued to that principal, and the
  * redemption runs under a grant of exactly the redeem command and the one continuation it
  * found, keyed by the nonce's digest so a repeated reply commits once. An unknown, used or
  * expired nonce, or a continuation the caller may not run, changes nothing.
@@ -46,7 +46,7 @@ export function replyConsumer(application: () => HostedApplication | undefined):
         narrowed(context, [ops.redeem.id, operation]),
       );
     } catch (error) {
-      // A refusal is the answer to an untrusted request; the runtime already audited it.
+      // A refusal is the response to an untrusted request; the runtime already audited it.
       if (error instanceof ApplicationError) return;
       throw error;
     }

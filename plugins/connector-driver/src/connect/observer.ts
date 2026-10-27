@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto';
 import {
   clampConfidence,
   createObserver,
-  gateReadings,
-  StabilityGate,
+  debounceReadings,
+  Debouncer,
   type DeviceIdentity,
   type ObservationBase,
   type ObserverOptions,
@@ -15,7 +15,7 @@ import type { DriverSupervisor } from '../supervisor';
 /** One sample of a driver's state, gated, with the session it came from. */
 export interface DriverObservation extends ObservationBase {
   readonly driver: string;
-  /** The driver session that answered; a restart starts a new one and restarts every count. */
+  /** The driver session that replied; a restart starts a new one and restarts every count. */
   readonly session: string;
 }
 
@@ -48,15 +48,15 @@ export function createDriverObserver(options: DriverObserverOptions) {
   for (const field of fields)
     if (!contract.state[field]) throw new Error(`Driver ${contract.id} has no state ${field}`);
   const now = options.now ?? Date.now;
-  let gate = new StabilityGate();
+  let debouncer = new Debouncer();
   let gateSession: string | undefined;
 
   async function sample(signal: AbortSignal): Promise<DriverObservation> {
-    const answer = await supervisor.read(fields, signal);
+    const result = await supervisor.read(fields, signal);
     const status = supervisor.status();
     const session = status.session ?? 'none';
     if (session !== gateSession) {
-      gate = new StabilityGate();
+      debouncer = new Debouncer();
       gateSession = session;
     }
     const unit = status.devices[0];
@@ -68,17 +68,17 @@ export function createDriverObserver(options: DriverObserverOptions) {
     };
     const observedAt = now();
     const frameDigest = createHash('sha256')
-      .update(JSON.stringify({ session, values: answer.values }))
+      .update(JSON.stringify({ session, values: result.values }))
       .digest('hex');
     const readings: Reading[] = fields
-      .filter((field) => field in answer.values)
+      .filter((field) => field in result.values)
       .map((field) => {
-        const value = answer.values[field]!;
+        const value = result.values[field]!;
         const valid = stateValueFits(contract.state[field]!, value);
         return {
           field,
           value: valid ? value : null,
-          confidence: valid ? clampConfidence(answer.confidence[field] ?? 1) : 0,
+          confidence: valid ? clampConfidence(result.confidence[field] ?? 1) : 0,
           extractor: `driver.${contract.id}`,
           device,
           observedAt,
@@ -90,7 +90,7 @@ export function createDriverObserver(options: DriverObserverOptions) {
       session,
       observedAt,
       frameDigest,
-      readings: gateReadings(gate, readings, (id) => {
+      readings: debounceReadings(debouncer, readings, (id) => {
         const declared = contract.state[id];
         return declared
           ? {

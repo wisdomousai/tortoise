@@ -1,5 +1,5 @@
 export {
-  assignmentLanes,
+  assigneeTypes,
   checkAssignmentName,
   defineAssignmentKind,
   MAX_ASSIGNMENT_NAME,
@@ -7,7 +7,7 @@ export {
   type AnyAssignmentKind,
   type AssignmentKind,
   type AssignmentKindSpec,
-  type AssignmentLane,
+  type AssigneeType,
 } from './kind';
 export * from './schemas';
 export {
@@ -27,11 +27,11 @@ export {
   ASSIGNMENT_FEATURE,
   defineAssignments,
   offerEventType,
-  targetLane,
+  assignmentTarget,
   type Assignments,
   type KindsOperations,
-  type LaneSurface,
-  type TargetLane,
+  type AssigneeOperations,
+  type AssignmentTarget,
 } from './manifest';
 export {
   defineWorklist,

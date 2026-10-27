@@ -11,11 +11,11 @@ const editor: OperationRule<AppState, Role> = {
 
 /**
  * Workspace policy. Only members pass the caller gate; integration principals hold no role and
- * act only in their own lanes. An operation this policy does not list is denied.
+ * call only the operations their integration allowlist lists. An operation this policy does not list is denied.
  */
 export const appPolicy = definePolicy<AppState, Role>({
   integrations: [
-    // scaffold:lanes
+    // scaffold:integrations
   ],
   caller: { allow: (state, context) => roleOf(state, context.principalId) !== undefined },
   operations: {

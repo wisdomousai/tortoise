@@ -79,13 +79,13 @@ export interface AgentScenario {
   check?(result: AgentScenarioResult, application: ScenarioApplication): void | Promise<void>;
 }
 
-/** One tool call of the run, as the application answered it. */
+/** One tool call of the run, as the application handled it. */
 export interface AgentScenarioCall {
   readonly operation: string;
   readonly input: unknown;
   readonly outcome: 'committed' | 'read' | 'refused';
   readonly receipt?: CommandReceipt;
-  /** For a refusal: the error code and message the application answered. */
+  /** For a refusal: the error code and message the application returned. */
   readonly code?: string;
   readonly message?: string;
 }
@@ -203,7 +203,7 @@ function judge(
 
 /**
  * Tools for the run: the operations its grant names. Instance is the run's context, never the
- * call; every answer is recorded, refusals included, before it goes back to the harness.
+ * call; every result is recorded, refusals included, before it goes back to the harness.
  */
 function scenarioTools(
   application: ScenarioApplication,

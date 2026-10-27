@@ -12,15 +12,15 @@ type OrderSnapshot = z.output<typeof orderSnapshotSchema>;
 type Extra = { reasons?: z.output<typeof reasonSchema>[] };
 
 /**
- * MES sync, outcome settlement and synchronization status. The MES integration settles MES
- * effects and each station bridge settles its own station's screen procedures, checked against
- * the effect inside the settling transaction.
+ * MES sync, outcome completion and synchronization status. The MES integration completes MES
+ * effects and each station bridge completes its own station's screen procedures, checked against
+ * the effect inside the completing transaction.
  */
 export function integrationHandlers(): HandlerContribution<LineState, LineServices>[] {
   return targetHandlers<LineState, LineServices, OrderSnapshot, Extra>(mesTarget, {
     cursor: (state) => state,
     now,
-    settles(effect, ctx) {
+    mayComplete(effect, ctx) {
       const bridge = bridgeStation(ctx.state, ctx.context.principalId);
       return (
         (bridge !== undefined && effect.target === hmiTarget(bridge.id)) ||

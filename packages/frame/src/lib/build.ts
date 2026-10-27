@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { hostJson } from '@/lib/host-client';
 
-/** What `GET /api/v1/build` answers; empty for a run from source. */
+/** What `GET /api/v1/build` returns; empty for a run from source. */
 export interface BuildInfo {
   readonly builtAt?: string;
   readonly shelfLifeDays?: number;
@@ -11,7 +11,7 @@ export interface BuildInfo {
 
 /**
  * The running build's best-before date, read again every hour so an open screen notices the date
- * passing. Undefined until the host answers, and when it cannot be reached.
+ * passing. Undefined until the host responds, and when it cannot be reached.
  */
 export function useBuild(): BuildInfo | undefined {
   return useQuery({

@@ -8,7 +8,7 @@ export interface TargetBacklog {
   /** Effects whose outcome is unknown; they wait for reconciliation, not delivery. */
   readonly held: number;
   /** Effects the target acknowledged and has not decided; they are delivered already. */
-  readonly upstream: number;
+  readonly acknowledged: number;
   /** Whether a dispatcher in this process delivers to the target. */
   readonly deliverable: boolean;
 }
@@ -19,7 +19,7 @@ export interface TargetBacklog {
  * that only a running host owns, say) is reported as not deliverable instead of being left out,
  * so `pending` is zero only when nothing in the workspace still awaits delivery. Held effects
  * are reported but not counted: they wait for a reconciliation command. Effects the target
- * acknowledged without deciding are reported as `upstream` and not counted either. `context` is the trusted
+ * acknowledged without deciding are reported as `acknowledged` and not counted either. `context` is the trusted
  * host identity that reads the outbox; it needs no business grant. Counts stop at 10 000 per
  * read, which still reports a backlog as non-zero.
  */
@@ -30,10 +30,10 @@ export async function drainTargets(options: {
   readonly timeoutMs: number;
 }): Promise<{ pending: number; targets: TargetBacklog[] }> {
   await Promise.all(options.dispatchers.map((dispatcher) => dispatcher.drain(options.timeoutMs)));
-  const backlog = new Map<string, { pending: number; held: number; upstream: number }>(
+  const backlog = new Map<string, { pending: number; held: number; acknowledged: number }>(
     options.dispatchers.map((dispatcher) => [
       dispatcher.target,
-      { pending: 0, held: 0, upstream: 0 },
+      { pending: 0, held: 0, acknowledged: 0 },
     ]),
   );
   const effects = await options.application.pendingEffects(options.context, {
@@ -41,9 +41,9 @@ export async function drainTargets(options: {
     includeHeld: true,
   });
   for (const effect of effects) {
-    const entry = backlog.get(effect.target) ?? { pending: 0, held: 0, upstream: 0 };
+    const entry = backlog.get(effect.target) ?? { pending: 0, held: 0, acknowledged: 0 };
     if (effect.heldAt !== undefined) entry.held++;
-    else if (effect.upstreamAt !== undefined) entry.upstream++;
+    else if (effect.acknowledgedAt !== undefined) entry.acknowledged++;
     else entry.pending++;
     backlog.set(effect.target, entry);
   }

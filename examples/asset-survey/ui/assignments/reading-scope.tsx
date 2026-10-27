@@ -29,7 +29,7 @@ export function ReadingScopePicker({
         <option value="">Choose a capture</option>
         {(captures.data?.items ?? []).map((capture) => (
           <option key={capture.id} value={capture.id}>
-            {capture.nodeId ? (designations.get(capture.nodeId) ?? 'Node') : 'Unplaced'} ·{' '}
+            {capture.nodeId ? (designations.get(capture.nodeId) ?? 'Node') : 'Unlinked'} ·{' '}
             {capture.kind} · {when(capture.takenAt)}
           </option>
         ))}

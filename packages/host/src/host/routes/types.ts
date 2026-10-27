@@ -33,7 +33,7 @@ export interface HostRouteContext {
   };
 }
 
-/** A route answers with a response, or `undefined` when the request is not its own. */
+/** A route returns a response, or `undefined` when the request is not its own. */
 export type HostRoute = (
   request: Request,
   url: URL,

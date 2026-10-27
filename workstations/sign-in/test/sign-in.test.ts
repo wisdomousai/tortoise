@@ -8,7 +8,7 @@ import { stationPaths } from '../src/contracts';
 import { stationApplication } from './fixtures';
 
 /**
- * Shared-station sign-in on a serving host over HTTP: the owner's screen is the seat, operators
+ * Shared-station sign-in on a serving host over HTTP: the owner's screen is the terminal, operators
  * sign in there with a badge and PIN, and their token acts as them until it ends.
  */
 const cleanups: (() => Promise<void>)[] = [];
@@ -27,7 +27,7 @@ async function startStation() {
     await host.close();
     await rm(directory, { recursive: true, force: true });
   });
-  const { token: seat } = (await Bun.file(host.connectionFile!).json()) as { token: string };
+  const { token: terminal } = (await Bun.file(host.connectionFile!).json()) as { token: string };
   const post = (path: string, token: string, body: unknown) =>
     fetch(host.url + path, {
       method: 'POST',
@@ -40,14 +40,14 @@ async function startStation() {
       ? ((await response.json()) as { data: { principalId: string } }).data.principalId
       : response.status;
   };
-  const signIn = (badge: string, pin: string, seatName = 'press-1', token = seat) =>
-    post(stationPaths.signIn, token, { badge, pin, seat: seatName });
-  return { host, clock, seat, post, whoami, signIn };
+  const signIn = (badge: string, pin: string, terminalName = 'press-1', token = terminal) =>
+    post(stationPaths.signIn, token, { badge, pin, terminal: terminalName });
+  return { host, clock, terminal, post, whoami, signIn };
 }
 
-test('an operator signs in at a seat with badge and PIN, acts as themselves, and signs out', async () => {
-  const { host, seat, post, whoami, signIn } = await startStation();
-  const enrolled = await post(stationPaths.enroll, seat, {
+test('an operator signs in at a terminal with badge and PIN, acts as themselves, and signs out', async () => {
+  const { host, terminal, post, whoami, signIn } = await startStation();
+  const enrolled = await post(stationPaths.enroll, terminal, {
     principalId: 'ada@plant',
     label: 'Ada',
     badge: 'BADGE-0042',
@@ -60,11 +60,11 @@ test('an operator signs in at a seat with badge and PIN, acts as themselves, and
   expect(response.headers.get('cache-control')).toBe('no-store');
   const { token, session } = (await response.json()) as {
     token: string;
-    session: { principalId: string; seat: string };
+    session: { principalId: string; terminal: string };
   };
-  expect(session).toMatchObject({ principalId: 'ada@plant', seat: 'press-1' });
+  expect(session).toMatchObject({ principalId: 'ada@plant', terminal: 'press-1' });
   expect(await whoami(token)).toBe('ada@plant');
-  expect(await whoami(seat)).toBe(LOCAL_OWNER);
+  expect(await whoami(terminal)).toBe(LOCAL_OWNER);
   // An operator is not an admin of badges, and cannot sign others in from their own session.
   expect((await post('/api/v1/queries/station.badge.list', token, { input: {} })).status).toBe(403);
   expect((await signIn('BADGE-0042', '2468', 'press-1', token)).status).toBe(403);
@@ -83,16 +83,16 @@ test('an operator signs in at a seat with badge and PIN, acts as themselves, and
   expect(database).not.toContain('BADGE-0042');
   expect(database).not.toContain('"2468"');
 
-  // Signing in again at the same seat ends the previous operator's session.
+  // Signing in again at the same terminal ends the previous operator's session.
   const second = (await (await signIn('BADGE-0042', '2468')).json()) as { token: string };
   expect(await whoami(token)).toBe(403);
-  expect((await post(stationPaths.signOut, seat, { token: second.token })).status).toBe(200);
+  expect((await post(stationPaths.signOut, terminal, { token: second.token })).status).toBe(200);
   expect(await whoami(second.token)).toBe(403);
 });
 
 test('wrong PINs lock the badge, sessions expire, and revoking a badge ends its sessions', async () => {
-  const { clock, seat, post, whoami, signIn } = await startStation();
-  await post(stationPaths.enroll, seat, {
+  const { clock, terminal, post, whoami, signIn } = await startStation();
+  await post(stationPaths.enroll, terminal, {
     principalId: 'bo@plant',
     label: 'Bo',
     badge: 'BADGE-7',
@@ -112,11 +112,11 @@ test('wrong PINs lock the badge, sessions expire, and revoking a badge ends its 
 
   const again = (await (await signIn('BADGE-7', '1357', 'press-2')).json()) as { token: string };
   const { badges } = (
-    (await (await post('/api/v1/queries/station.badge.list', seat, { input: {} })).json()) as {
+    (await (await post('/api/v1/queries/station.badge.list', terminal, { input: {} })).json()) as {
       data: { badges: { id: string }[] };
     }
   ).data;
-  await post('/api/v1/commands/station.badge.revoke', seat, {
+  await post('/api/v1/commands/station.badge.revoke', terminal, {
     input: { badgeId: badges[0]!.id },
     idempotencyKey: 'revoke-1',
   });

@@ -63,8 +63,8 @@ export type RawOsRequest =
       readonly text?: string;
     }
   /**
-   * Input a plugin holds because it arrived without a session, such as a web share target's
-   * POST: the session that lands with this one-use code claims it, and the plugin hands back
+   * Input a plugin holds because it was received without a session, such as a web share target's
+   * POST: the session that opens with this one-use code claims it, and the plugin hands back
    * the request it stands for.
    */
   | { readonly kind: 'claim'; readonly code: string };
@@ -189,7 +189,7 @@ export type OsActionOutcome =
   | { readonly status: 'instruction'; readonly instruction: OsInstruction }
   | { readonly status: 'refused'; readonly reason: OsRefusal; readonly action?: string };
 
-/** An adapter's answer to an instruction it was relayed. */
+/** An adapter's result for an instruction it was relayed. */
 export interface OsActionResult {
   readonly ok: boolean;
   readonly detail?: JsonValue;

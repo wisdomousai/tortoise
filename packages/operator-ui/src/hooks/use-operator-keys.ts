@@ -18,7 +18,7 @@ export class KeyBurstFilter {
   constructor(private readonly windowMs = 50) {}
   /**
    * Feed a key. Returns `fire` for keys that may act now, `defer` for printable keys that must
-   * wait for `settle`, and `drop` for keys that belong to a burst.
+   * wait for `complete`, and `drop` for keys that belong to a burst.
    */
   push(key: string, at: number): 'fire' | 'defer' | 'drop' {
     const fast = at - this.lastAt <= this.windowMs;
@@ -34,7 +34,7 @@ export class KeyBurstFilter {
     return 'defer';
   }
   /** Call `windowMs` after a deferred key; returns the key if no burst followed it. */
-  settle(at: number): string | undefined {
+  complete(at: number): string | undefined {
     const pending = this.pending;
     if (!pending || at - pending.at < this.windowMs || this.lastAt !== pending.at) return undefined;
     this.pending = undefined;
@@ -86,7 +86,7 @@ export function useOperatorKeys(
       clearTimeout(timer);
       const deferredAt = event.timeStamp;
       timer = setTimeout(() => {
-        const key = filter.settle(deferredAt + scanGuardMs);
+        const key = filter.complete(deferredAt + scanGuardMs);
         if (key) current.current[key]?.();
       }, scanGuardMs);
     };

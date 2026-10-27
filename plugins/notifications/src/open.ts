@@ -17,14 +17,14 @@ export interface NotificationsOptions {
   readonly deliverMs?: number;
 }
 
-/** The settlement command of a target a notify action carries, checked by the catalog. */
-export const settleOperationOf = (target: string) => `${target}.effect.settle`;
+/** The completion command of a target a notify action carries, checked by the catalog. */
+export const completeOperationOf = (target: string) => `${target}.effect.complete`;
 
 /**
  * Open the notifications plugin: enable notify actions and reply handlers in the OS plugin and
  * receive the replies that name it. Once started (on a serving host after it listens, on a phone
  * at each foreground) it runs one outbox dispatcher per target a queueing notify action carries,
- * as the owner narrowed to issuing replies and that target's settlement command.
+ * as the owner narrowed to issuing replies and that target's completion command.
  */
 export function openNotifications(options: NotificationsOptions = {}) {
   return async (context: PluginOpenContext): Promise<PluginInstance> => {
@@ -50,7 +50,7 @@ export function openNotifications(options: NotificationsOptions = {}) {
       async start(started) {
         return carried.map(({ target, action }) => {
           const caller = started.delegate({
-            operations: [settleOperationOf(target), ops.issue.id],
+            operations: [completeOperationOf(target), ops.issue.id],
           });
           const dispatcher = createEffectDispatcher({
             application: started.application,
@@ -62,9 +62,9 @@ export function openNotifications(options: NotificationsOptions = {}) {
               context: caller,
             }),
             context: caller,
-            settleOperation: settleOperationOf(target),
-            // The target's settle command is fenced, as a `defineTarget` settle is.
-            settleInput: (effect, outcome, attempt) => ({
+            completeOperation: completeOperationOf(target),
+            // The target's complete command is fenced, as a `defineTarget` complete is.
+            completeInput: (effect, outcome, attempt) => ({
               effectId: effect.id,
               outcome,
               fence: attempt.fence,

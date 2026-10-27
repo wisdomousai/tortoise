@@ -8,7 +8,7 @@ namespace StationAutomation;
 /// A station kept in a directory, for the demo and the tests. station.json holds what the station
 /// software would report and survives a driver restart; the tests edit it to move the machine.
 /// Test controls: an empty <c>fail-next</c> file makes the next load fail before it acts,
-/// <c>crash-next</c> makes it act and then exit before answering, and while <c>jam</c> exists a
+/// <c>crash-next</c> makes it act and then exit before responding, and while <c>jam</c> exists a
 /// load is taken but the recipe does not change.
 /// </summary>
 public sealed class SimulatedStation(string home) : IStationAutomation
@@ -54,7 +54,7 @@ public sealed class SimulatedStation(string home) : IStationAutomation
 
     public void LoadRecipe(string recipe, string order)
     {
-        if (Control("fail-next")) throw new Refusal(RefusalKind.Transient, "The station did not answer");
+        if (Control("fail-next")) throw new Refusal(RefusalKind.Transient, "The station did not respond");
         var state = Load();
         var jammed = File.Exists(Path.Combine(home, "jam"));
         Save(state with { Recipe = jammed ? state.Recipe : recipe, Loads = state.Loads + 1 });

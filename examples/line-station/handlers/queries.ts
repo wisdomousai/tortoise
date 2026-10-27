@@ -21,9 +21,9 @@ function stationDetail(
     countersRevision: ctx.getRevision(counters(station.id)),
     bridge: compact({
       mode: station.mode,
-      seat: station.seat,
-      seatChangedBy: station.seatChangedBy,
-      seatChangedAt: station.seatChangedAt,
+      controlHolder: station.controlHolder,
+      controlChangedBy: station.controlChangedBy,
+      controlChangedAt: station.controlChangedAt,
       screen: station.screen,
       observedAt: station.observedAt,
       profile: station.profile,
@@ -83,7 +83,7 @@ export function syncStatus(ctx: Context) {
   const rejections = ctx
     .effects({ status: 'rejected' })
     .filter(inScope)
-    .sort((a, b) => (b.settledAt ?? 0) - (a.settledAt ?? 0))
+    .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
     .slice(0, 20)
     .flatMap((effect) =>
       effect.outcome?.status === 'rejected'
@@ -129,7 +129,7 @@ export function queryHandlers(): HandlerContribution<LineState, LineServices>[] 
     })),
     handler(operations.controlGet, (input, ctx) => {
       const station = stationOf(ctx.state, input.station);
-      return { mode: station.mode, seat: station.seat };
+      return { mode: station.mode, holder: station.controlHolder };
     }),
   ];
 }

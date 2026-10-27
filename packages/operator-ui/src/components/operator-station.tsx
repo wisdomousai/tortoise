@@ -5,18 +5,18 @@ import { StatusStrip } from '@/components/status-strip';
 import { TakeoverButton } from '@/components/takeover-button';
 import { cn } from '@/lib/utils';
 
-/** Dark bar: back link, where and who, seat control and station actions. */
+/** Dark bar: back link, where and who, screen control and station actions. */
 function StationHeader({
   title,
   context,
   back,
-  seat,
+  control,
   headerActions,
 }: {
   title: React.ReactNode;
   context?: React.ReactNode;
   back?: React.ReactNode;
-  seat?: React.ComponentProps<typeof TakeoverButton>;
+  control?: React.ComponentProps<typeof TakeoverButton>;
   headerActions?: React.ReactNode;
 }) {
   return (
@@ -31,7 +31,7 @@ function StationHeader({
         </h1>
         {context && <div className="text-(length:--operator-text) opacity-75">{context}</div>}
       </div>
-      {seat && <TakeoverButton className="w-auto sm:min-w-72" {...seat} />}
+      {control && <TakeoverButton className="w-auto sm:min-w-72" {...control} />}
       {headerActions && (
         <div className="flex items-center gap-(--operator-gap)">{headerActions}</div>
       )}
@@ -41,7 +41,7 @@ function StationHeader({
 
 /**
  * Layout skeleton of a full-window station screen. The fixed order matters more than the parts:
- * a dark bar with where and who, seat control and station actions; then the machine state, large
+ * a dark bar with where and who, screen control and station actions; then the machine state, large
  * enough to read from the machine; then the one task at hand beside anything that needs a
  * person; then a footer for history. Every slot is data from queries and every action is a
  * callback that issues a catalog command; the block holds no state of its own beyond what its
@@ -57,7 +57,7 @@ function OperatorStation({
   attention,
   onResolveAttention,
   attentionPendingId,
-  seat,
+  control,
   footer,
   children,
   density = 'glove',
@@ -71,13 +71,13 @@ function OperatorStation({
   headerActions?: React.ReactNode;
   /** The machine state and what it is working on, shown large under the header. */
   banner?: React.ReactNode;
-  /** Secondary status pills, for example bridge mode or upstream delivery. */
+  /** Secondary status pills, for example bridge mode or delivery to the system of record. */
   status?: React.ReactNode;
   attention?: readonly AttentionItem[];
   onResolveAttention?: (id: string, value: string) => void;
   attentionPendingId?: string;
   /** Omit for stations without a background agent. Shown in the header, always within reach. */
-  seat?: React.ComponentProps<typeof TakeoverButton>;
+  control?: React.ComponentProps<typeof TakeoverButton>;
   /** History and secondary facts under the task, for example the last stops. */
   footer?: React.ReactNode;
   /** The current task: scan prompt, tile picker, numeric pad, counters. */
@@ -97,7 +97,7 @@ function OperatorStation({
         title={title}
         context={context}
         back={back}
-        seat={seat}
+        control={control}
         headerActions={headerActions}
       />
       <div className="flex flex-1 flex-col gap-(--operator-gap) p-(--operator-gap)">

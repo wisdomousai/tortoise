@@ -1,6 +1,6 @@
 import type { ConditionCheck } from '@agent-native/integration';
 import type { DriverCondition, DriverContract, DriverStateField } from '../contracts';
-import type { StateAnswer } from '../protocol';
+import type { StateResult } from '../protocol';
 
 /** Resolve `$input.a.b` against the action input; anything else is a literal. */
 export function resolveBinding(value: unknown, input: unknown): unknown {
@@ -35,7 +35,7 @@ export function valueMatches(field: DriverStateField, observed: unknown, expecte
  */
 export function evaluate(
   contract: DriverContract,
-  view: StateAnswer,
+  view: StateResult,
   conditions: readonly DriverCondition[],
   input: unknown,
 ): ConditionCheck {

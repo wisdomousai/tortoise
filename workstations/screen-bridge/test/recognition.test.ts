@@ -2,13 +2,13 @@ import { expect, test } from 'bun:test';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { runGolden, type GoldenFrame } from '../src/golden';
-import { createAccessibilityExtractor } from '../src/perception/accessibility';
-import { createFixtureExtractor } from '../src/perception/fixture';
+import { createAccessibilityExtractor } from '../src/recognition/accessibility';
+import { createFixtureExtractor } from '../src/recognition/fixture';
 import {
   createOpenAiCompatibleVisionExtractor,
   visionEndpoint,
-} from '../src/perception/openai-compatible-vision';
-import { createWorkerExtractor } from '../src/perception/worker';
+} from '../src/recognition/openai-compatible-vision';
+import { createWorkerExtractor } from '../src/recognition/worker';
 import type { ExtractionField, Frame } from '../src/ports';
 import { toAccessibility } from '../src/transports/playwright';
 import { createHmi, profile } from './support';
@@ -49,8 +49,8 @@ test('vision endpoints must be loopback or explicitly allowlisted, without embed
   expect(() => visionEndpoint('file:///etc/passwd')).toThrow('http');
 });
 
-test('vision confidence is agreement across reads, and off-type answers are not read', async () => {
-  const answers = [
+test('vision confidence is agreement across reads, and off-type values are not read', async () => {
+  const replies = [
     { count: 1200, machine: 'stopped' },
     { count: 1200, machine: 'RUNNING' },
     { count: '1 200', machine: 'Exploded' },
@@ -63,7 +63,7 @@ test('vision confidence is agreement across reads, and off-type answers are not 
     fetch: (async (_url: URL, init: RequestInit) => {
       requests.push(JSON.parse(String(init.body)));
       return Response.json({
-        choices: [{ message: { content: JSON.stringify(answers[requests.length - 1]) } }],
+        choices: [{ message: { content: JSON.stringify(replies[requests.length - 1]) } }],
       });
     }) as unknown as typeof fetch,
   });
@@ -101,11 +101,11 @@ test('vision errors report status only', async () => {
       new Response('secret prompt echo', { status: 500 })) as unknown as typeof fetch,
   });
   await expect(extractor.extract(pixels, fields, signal)).rejects.toThrow(
-    /^Vision endpoint answered 500$/,
+    /^Vision endpoint returned 500$/,
   );
 });
 
-test('a JSON-lines worker reports its model and answers only requested fields', async () => {
+test('a JSON-lines worker reports its model and returns only requested fields', async () => {
   const worker = createWorkerExtractor({
     id: 'worker-ocr',
     modality: 'ocr',
@@ -134,8 +134,8 @@ test('a worker that exits is restarted and becomes ready again', async () => {
     startupTimeoutMs: 5_000,
   });
   try {
-    const [answered] = await worker.extract(pixels, [{ id: 'exit', type: 'text' }], signal);
-    expect(answered).toMatchObject({ field: 'exit' });
+    const [reading] = await worker.extract(pixels, [{ id: 'exit', type: 'text' }], signal);
+    expect(reading).toMatchObject({ field: 'exit' });
     // Wait for the first process to be gone, then the next request needs a second lifetime.
     await new Promise((resolve) => setTimeout(resolve, 200));
     expect(await worker.extract(pixels, fields, signal)).toHaveLength(2);

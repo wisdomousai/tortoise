@@ -168,11 +168,11 @@
 }
 
 /* Diagram shapes. */
-.ov-lane {
+.ov-column {
   fill: var(--vp-c-bg-soft);
 }
 
-.ov-lane-title {
+.ov-column-title {
   fill: var(--vp-c-text-2);
   font-size: 12px;
   font-weight: 600;
@@ -239,8 +239,8 @@
   stroke: var(--vp-c-yellow-1);
   background: var(--vp-c-yellow-1);
 }
-.ov-phase-edge.is-settle,
-.ov-key.is-settle {
+.ov-phase-edge.is-complete,
+.ov-key.is-complete {
   stroke: var(--vp-c-green-1);
   background: var(--vp-c-green-1);
 }

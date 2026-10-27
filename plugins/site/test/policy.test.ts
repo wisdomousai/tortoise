@@ -143,7 +143,7 @@ describe('site policy', () => {
     );
   });
 
-  test('a credential travels in plain text only on loopback, where an https declaration warns', () => {
+  test('a credential is sent in plain text only on loopback, where an https declaration warns', () => {
     const findings = (destinations: SitePolicyInput['destinations']) =>
       policy({
         mode: 'connected',

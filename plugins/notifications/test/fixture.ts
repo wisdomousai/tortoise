@@ -42,8 +42,8 @@ const complete = defineCapability({
   permission: { action: 'write', resourceType: 'Reminder' },
   ui: { binding: 'reminder.complete' },
 });
-const settle = defineCapability({
-  id: 'reminders.effect.settle',
+const effectComplete = defineCapability({
+  id: 'reminders.effect.complete',
   kind: 'command',
   input: jsonSchema(
     z.strictObject({
@@ -53,7 +53,7 @@ const settle = defineCapability({
     }),
   ),
   output: jsonSchema(z.strictObject({})),
-  permission: { action: 'settle', resourceType: 'Reminder' },
+  permission: { action: 'complete', resourceType: 'Reminder' },
   ui: { exception: 'test fixture' },
 });
 const list = defineCapability({
@@ -122,7 +122,7 @@ export function remindersApplication(
       modules: [
         defineModule({
           id: 'reminders',
-          capabilities: [create, complete, settle, list],
+          capabilities: [create, complete, effectComplete, list],
           os: { handlers, actions: options.actions ?? [notifyAction] },
         }),
       ],
@@ -162,8 +162,8 @@ export function remindersApplication(
         ctx.change(`reminder:${reminder.id}`);
         return {};
       }),
-      bind(settle, async (input, ctx) => {
-        const effect = ctx.settleEffect(
+      bind(effectComplete, async (input, ctx) => {
+        const effect = ctx.completeEffect(
           input.effectId,
           input.outcome,
           input.fence === undefined ? {} : { fence: input.fence },

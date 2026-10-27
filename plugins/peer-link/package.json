@@ -2,7 +2,7 @@
   "name": "@agent-native/peer-link",
   "version": "0.1.0",
   "type": "module",
-  "description": "Peer link host plugin: two agent-native applications enroll with each other and call each other's peer surface as a service principal or on behalf of a mapped person.",
+  "description": "Peer link host plugin: two agent-native applications enroll with each other and call each other's peer API as a service principal or on behalf of a mapped person.",
   "license": "MIT",
   "repository": {
     "type": "git",

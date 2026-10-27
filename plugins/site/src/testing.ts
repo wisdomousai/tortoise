@@ -35,7 +35,7 @@ const tokenError = (error: string) =>
 
 /**
  * A stand-in OpenID Connect provider for tests and development launches, never for a deployment.
- * It answers discovery and its keys, shows a page that signs in one of `people`, and exchanges
+ * It serves discovery and its keys, shows a page that signs in one of `people`, and exchanges
  * the authorization code for an ES256 ID token after checking the PKCE (S256) verifier. It serves
  * one public client and redirects only to loopback, so it cannot sign anyone in to another host.
  * Its signing key and codes live in memory.
@@ -152,8 +152,8 @@ export async function createIdentityProvider(options: IdentityProviderOptions) {
     );
   }
 
-  /** Answer one request, as the listener does. A test can pass it as the destination's fetch. */
-  async function answer(request: Request) {
+  /** Handle one request, as the listener does. A test can pass it as the destination's fetch. */
+  async function respond(request: Request) {
     const url = new URL(request.url);
     if (url.origin !== origin) return refuse(404, 'Not this provider');
     const route = `${request.method} ${url.pathname}`;
@@ -180,9 +180,9 @@ export async function createIdentityProvider(options: IdentityProviderOptions) {
 
   return {
     issuer: origin,
-    answer,
+    respond,
     fetch: (input: string | URL | Request, init?: RequestInit) =>
-      answer(input instanceof Request ? input : new Request(input, init)),
+      respond(input instanceof Request ? input : new Request(input, init)),
   };
 }
 
@@ -206,7 +206,7 @@ export async function startIdentityProvider(
     hostname,
     port: options.port ?? 0,
     tls: options.tls,
-    fetch: (request) => provider?.answer(request) ?? refuse(503, 'Starting'),
+    fetch: (request) => provider?.respond(request) ?? refuse(503, 'Starting'),
   });
   provider = await createIdentityProvider({
     ...options,

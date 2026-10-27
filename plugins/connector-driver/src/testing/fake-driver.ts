@@ -23,7 +23,7 @@ export interface FakeDriverOptions {
   readonly devices?: readonly { readonly serial?: string; readonly firmware?: string }[];
 }
 
-/** Thrown by a fake action to answer with a classified error. */
+/** Thrown by a fake action to respond with a classified error. */
 export class FakeRefusal extends Error {
   constructor(
     readonly kind: DriverErrorKind,
@@ -60,7 +60,7 @@ export function createFakeDriver(options: FakeDriverOptions) {
     const action = options.contract.actions[params.action];
     if (!action)
       throw new FakeRefusal('rejected', `Unknown action ${params.action}`, 'UNSUPPORTED');
-    if (params.mode === 'monitor-only' || (params.mode === 'assist' && action.hazard !== 'none'))
+    if (params.mode === 'monitor-only' || (params.mode === 'assist' && action.risk !== 'none'))
       throw new FakeRefusal('refused', `Mode ${params.mode} does not allow ${params.action}`);
     const known = outcomes.get(params.effectId);
     if (known && action.delivery === 'idempotent') {
@@ -70,13 +70,13 @@ export function createFakeDriver(options: FakeDriverOptions) {
     const failure = next !== 'crash' && next !== 'hang' ? next : undefined;
     if (failure) throw ((next = undefined), new FakeRefusal(failure, `Injected ${failure}`));
     try {
-      const answer = (await options.actions?.[params.action]?.(params.input, driver)) ?? {};
+      const result = (await options.actions?.[params.action]?.(params.input, driver)) ?? {};
       applied.set(params.effectId, (applied.get(params.effectId) ?? 0) + 1);
       outcomes.set(params.effectId, {
         status: 'accepted',
-        ...(answer.ref ? { ref: answer.ref } : {}),
+        ...(result.ref ? { ref: result.ref } : {}),
       });
-      return answer;
+      return result;
     } catch (error) {
       if (error instanceof FakeRefusal && error.kind === 'rejected')
         outcomes.set(params.effectId, {
@@ -88,7 +88,7 @@ export function createFakeDriver(options: FakeDriverOptions) {
     }
   }
 
-  async function answer(method: string, params: any): Promise<unknown> {
+  async function respond(method: string, params: any): Promise<unknown> {
     switch (method) {
       case 'initialize':
         return {
@@ -161,7 +161,7 @@ export function createFakeDriver(options: FakeDriverOptions) {
       const crash = message.method === 'action.invoke' && next === 'crash';
       if (crash) next = undefined;
       try {
-        const result = await answer(message.method, message.params);
+        const result = await respond(message.method, message.params);
         if (crash) return exit();
         write({ id: message.id, result });
         if (message.method === 'shutdown') exit();
@@ -198,9 +198,9 @@ export function createFakeDriver(options: FakeDriverOptions) {
     get starts() {
       return starts;
     },
-    /** Make the next action apply and then crash before answering. */
+    /** Make the next action apply and then crash before responding. */
     crashNext: () => void (next = 'crash'),
-    /** Make the next action never answer. */
+    /** Make the next action never respond. */
     hangNext: () => void (next = 'hang'),
     /** Make the next action fail with `kind` before it applies. */
     failNext: (kind: DriverErrorKind) => void (next = kind),

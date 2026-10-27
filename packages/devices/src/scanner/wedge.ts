@@ -69,7 +69,7 @@ const editable = (target: EventTarget | null) =>
   (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
 /**
- * Keyboard-wedge source over DOM key events. Scans landing in a focused field are reported but not
+ * Keyboard-wedge source over DOM key events. Scans typed into a focused field are reported but not
  * intercepted (the field already holds the characters); scans with no field focused are
  * intercepted so their Enter does not activate a focused button.
  */
@@ -102,7 +102,7 @@ export function createWedgeSource(
           key.timeStamp,
         );
         if (profile.terminator === 'none') {
-          // Without a terminator a burst ends when the keys stop arriving.
+          // Without a terminator a burst ends when the timer after the last key fires.
           clearTimeout(timer);
           const at = key.timeStamp;
           timer = setTimeout(() => {

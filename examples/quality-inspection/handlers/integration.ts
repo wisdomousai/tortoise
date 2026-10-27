@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import { settleDelivery, targetHandlers } from '@agent-native/integration';
+import { completeDelivery, targetHandlers } from '@agent-native/integration';
 import type { HandlerContribution } from '@agent-native/runtime';
 import type { codeGroupSchema, lotSnapshotSchema } from '../contracts/schemas';
 import { qualityTarget } from '../contracts/target';
@@ -87,15 +87,15 @@ function syncStatus(ctx: Context) {
 }
 
 /**
- * Inbound lot sync, outbound settlement and synchronization status. Only the forwarded record
- * changes on settlement, so a settlement never invalidates a supervisor's review.
+ * Inbound lot sync, outbound completion and synchronization status. Only the forwarded record
+ * changes on completion, so a completion never invalidates a supervisor's review.
  */
 export const integrationHandlers = (): HandlerContribution<QualityState, QualityServices>[] =>
   targetHandlers<QualityState, QualityServices, LotSnapshot, Extra>(qualityTarget, {
     cursor: (state) => state,
     now,
     onOutcome: (effect, outcome, ctx) =>
-      settleDelivery(forwarded(ctx, effect.resource), effect, outcome),
+      completeDelivery(forwarded(ctx, effect.resource), effect, outcome),
     applyBatch(batch, ctx) {
       for (const snapshot of batch.items) applyLot(ctx, snapshot);
       for (const group of batch.codeGroups ?? []) put(ctx.state.codeGroups, group.id, group);

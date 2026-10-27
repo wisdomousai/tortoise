@@ -75,7 +75,7 @@ async function open({ bound = true } = {}) {
     retryMs: 20,
   });
   // Only the subscription runs in the background; the tests run each pass themselves, so the
-  // stability gate sees exactly the reads a test makes.
+  // debouncer sees exactly the reads a test makes.
   observers.humidity.start(60_000);
   cleanup.push(() => observers.stop());
 

@@ -2,7 +2,7 @@
   "name": "@agent-native/share-target",
   "version": "0.1.0",
   "type": "module",
-  "description": "Share target host plugin: serves share handlers and share actions for the OS plugin, and holds web share target posts until the landing session claims them.",
+  "description": "Share target host plugin: serves share handlers and share actions for the OS plugin, and holds web share target posts until the launch page session claims them.",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -171,7 +171,7 @@ export interface PluginInstance {
    * Serving host only: a request no session covers, such as a device exchanging an enrollment
    * code. It runs after the host's Host-header check and before its origin and session checks, so
    * the plugin owns every other check (one-use codes, rate limits, methods). Read the body only
-   * of a request you answer; undefined passes the request on unread.
+   * of a request you handle; undefined passes the request on unread.
    */
   publicRoute?(request: Request): Promise<Response | undefined>;
   /**
@@ -192,7 +192,7 @@ export interface PluginInstance {
   authenticateCookie?(token: string): Promise<ExecutionContext | undefined>;
   /**
    * Serving host only: an `/api/` request the host has authenticated and none of its own routes
-   * answered, with the caller's context. For work that must happen outside a command, such as
+   * handled, with the caller's context. For work that must happen outside a command, such as
    * hashing a secret so that it never reaches a stored command input. The plugin still writes
    * only through its commands; `context` is the caller's, not a widened one.
    */

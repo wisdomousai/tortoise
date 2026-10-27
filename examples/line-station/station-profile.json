@@ -88,7 +88,7 @@
     {
       "id": "recipe.load",
       "title": "Load recipe",
-      "hazard": "operator-present",
+      "risk": "operator-present",
       "rerunnable": false,
       "timeoutMs": 20000,
       "maxSteps": 6,

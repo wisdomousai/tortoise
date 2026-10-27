@@ -1,5 +1,5 @@
 // The stand-in for llama.cpp's llama-server that `llamaServerStandIn` in `../testing.ts` names;
-// that comment says what it answers.
+// that comment says what it returns.
 import { existsSync } from 'node:fs';
 import type { StandInMessage, StandInReply, StandInResponder } from '../testing';
 
@@ -22,8 +22,8 @@ const responder: StandInResponder | undefined = process.env.FIXTURE_RESPONDER
 
 async function reply(messages: readonly StandInMessage[]): Promise<StandInReply> {
   if (responder) return responder(messages);
-  const answered = messages.some((message) => message.role === 'tool');
-  return call && !answered ? { call } : { content: 'done' };
+  const hasToolResult = messages.some((message) => message.role === 'tool');
+  return call && !hasToolResult ? { call } : { content: 'done' };
 }
 
 const chunk = (delta: unknown, finish: string | null = null) =>
@@ -36,10 +36,10 @@ Bun.serve({
     if (pathname === '/v1/models') return Response.json({ data: [{ id: alias }] });
     if (pathname !== '/v1/chat/completions') return new Response('not found', { status: 404 });
     const { messages } = (await request.json()) as { messages: StandInMessage[] };
-    const answer = await reply(messages);
+    const response = await reply(messages);
     const results = messages.filter((message) => message.role === 'tool').length;
     const events =
-      'call' in answer
+      'call' in response
         ? [
             chunk({
               role: 'assistant',
@@ -49,15 +49,15 @@ Bun.serve({
                   id: `call-${results + 1}`,
                   type: 'function',
                   function: {
-                    name: answer.call.name,
-                    arguments: JSON.stringify(answer.call.arguments),
+                    name: response.call.name,
+                    arguments: JSON.stringify(response.call.arguments),
                   },
                 },
               ],
             }),
             chunk({}, 'tool_calls'),
           ]
-        : [chunk({ role: 'assistant', content: answer.content }), chunk({}, 'stop')];
+        : [chunk({ role: 'assistant', content: response.content }), chunk({}, 'stop')];
     return new Response(`${events.join('')}data: [DONE]\n\n`, {
       headers: { 'content-type': 'text/event-stream' },
     });

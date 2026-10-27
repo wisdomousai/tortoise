@@ -21,7 +21,7 @@ export interface ConnectorHarness<Item = unknown> {
   applied(effect: Effect): Promise<number>;
   /** Make the next delivery fail before it reaches the target, as a dropped connection would. */
   failNext?(): void;
-  /** Make the next delivery stop after the target applied it, before the reply arrives. */
+  /** Make the next delivery stop after the target applied it, before the reply is received. */
   interruptNext?(): void;
   /** Make one new item appear at the target for `pull`. */
   change?(): Promise<void>;
@@ -63,7 +63,7 @@ const signal = () => new AbortController().signal;
 function check(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
-const settled = (result: DeliveryResult | LookupResult) =>
+const completed = (result: DeliveryResult | LookupResult) =>
   result !== undefined && (result.status === 'accepted' || result.status === 'pending');
 const retried = (effect: Effect): Effect => ({ ...effect, attempts: effect.attempts + 1 });
 
@@ -131,9 +131,9 @@ export function connectorConformance<Item = unknown>(setup: Setup<Item>): Confor
           check(before === undefined, 'lookup reports an effect that was never delivered');
         }
         const result = await port.deliver(effect, signal());
-        check(settled(result), `delivery returned ${JSON.stringify(result)}`);
+        check(completed(result), `delivery returned ${JSON.stringify(result)}`);
         check((await applied(effect)) === 1, 'the target did not apply the effect exactly once');
-        check(settled(await redeliver(port, effect)), 'a retry did not report the delivery');
+        check(completed(await redeliver(port, effect)), 'a retry did not report the delivery');
         check((await applied(effect)) === 1, 'a retry applied the effect a second time');
       }),
     },
@@ -175,7 +175,7 @@ function transientCase<Item>(setup: Setup<Item>): ConformanceCase {
       const error = await rejects(port.deliver(effect, signal()));
       check(!(error instanceof DeliveryUncertain), 'a failure before the target is not uncertain');
       check((await applied(effect)) === 0, 'a failed delivery applied the effect');
-      check(settled(await redeliver(port, effect)), 'the retry after a failure did not deliver');
+      check(completed(await redeliver(port, effect)), 'the retry after a failure did not deliver');
       check((await applied(effect)) === 1, 'the retry after a failure did not apply it once');
     }),
   };

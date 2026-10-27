@@ -15,7 +15,7 @@ type Instance = {
 type Filing = { id: string; target: string; sync: string; sorRef?: string; withdraws?: string };
 
 /**
- * An unplaced nameplate capture handed to `survey.capture-to-eam` by the manager, with a runner
+ * An unlinked nameplate capture handed to `survey.capture-to-eam` by the manager, with a runner
  * driven one pass at a time on a fake clock, as a serving host would drive it.
  */
 async function started() {
@@ -23,7 +23,7 @@ async function started() {
   const clock = { at: Date.now() };
   const survey = await open(undefined, { now: () => clock.at });
   const { q2, assignment } = await dispatched(survey);
-  // A node outside the survey: the capture arrives unplaced.
+  // A node outside the survey: the capture is recorded unlinked.
   const g2 = await survey.node(undefined, '=G2', 'Generator 2');
   await survey.capture('cap', assignment.id, g2.id, { manufacturer: 'Siemens', serial: 'S-77' });
   const instance = await survey.command<Instance>('capture.file-workflow', {
@@ -47,11 +47,11 @@ async function started() {
   };
   const pass = () => passOnce(runner);
   const get = () => survey.query<Instance>('workflow.get', { id: instance.id });
-  /** Placed, sent to the model and read: the instance waits for a reviewer. */
+  /** Linked, sent to the model and read: the instance waits for a reviewer. */
   const proposed = async () => {
     await pass();
     await pass();
-    await survey.settle();
+    await survey.complete();
     await pass();
     expect(await get()).toMatchObject({ status: 'waiting', step: 'reviewed' });
   };
@@ -70,15 +70,15 @@ async function started() {
     await accept();
     await pass();
     await pass();
-    await survey.settle();
+    await survey.complete();
     await pass();
     await pass();
     expect(await get()).toMatchObject({ status: 'running', step: 'export' });
   };
-  const settleExport = async (accepted: boolean) => {
+  const completeExport = async (accepted: boolean) => {
     const [effect] = await survey.application.pendingEffects(at('owner'), { target: 'export' });
     await survey.command(
-      'filing.export.settle',
+      'filing.export.complete',
       {
         effectId: effect!.id,
         outcome: accepted
@@ -100,16 +100,16 @@ async function started() {
     proposed,
     accept,
     filed,
-    settleExport,
+    completeExport,
     filings,
   };
 }
 
 describe('survey.capture-to-eam', () => {
-  test('a capture is placed, read, reviewed, filed into the EAM and exported', async () => {
+  test('a capture is linked, read, reviewed, filed into the EAM and exported', async () => {
     const run = await started();
     await run.filed();
-    await run.settleExport(true);
+    await run.completeExport(true);
     await run.pass();
     expect(await run.get()).toMatchObject({ status: 'succeeded' });
     const eam = (await run.filings()).find((filing) => filing.target === 'eam')!;
@@ -125,7 +125,7 @@ describe('survey.capture-to-eam', () => {
   test('a refused export withdraws the EAM filing, and the EAM retires the asset it created', async () => {
     const run = await started();
     await run.filed();
-    await run.settleExport(false);
+    await run.completeExport(false);
     await run.pass();
     expect(await run.get()).toMatchObject({
       status: 'compensating',
@@ -134,7 +134,7 @@ describe('survey.capture-to-eam', () => {
     });
     await run.pass();
     expect((await run.get()).status).toBe('compensated');
-    await run.survey.settle();
+    await run.survey.complete();
     const withdrawal = (await run.filings()).find((filing) => filing.withdraws);
     expect(withdrawal).toMatchObject({ target: 'eam', sync: 'accepted' });
     expect(run.survey.eam().assets.get('EAM-2001')?.status).toBe('retired');

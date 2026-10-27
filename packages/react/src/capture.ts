@@ -14,7 +14,7 @@ const editable = (target: EventTarget | null) =>
   (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
 /**
- * Observe keyboard-wedge scans. Scans that land in a focused field are only classified (the
+ * Observe keyboard-wedge scans. Scans typed into a focused field are only classified (the
  * field already holds the code), so the station can tag the datapoint's input channel. Scans
  * with no field focused call `onScan`, for example to open the scanned lot.
  */

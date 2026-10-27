@@ -23,7 +23,7 @@ const viewer = as('vic');
 const integration = {
   ...as('integration'),
   grant: {
-    operations: ['inspection.lot.sync', 'inspection.effect.settle', 'inspection.sync.status'],
+    operations: ['inspection.lot.sync', 'inspection.effect.complete', 'inspection.sync.status'],
   },
 };
 
@@ -57,7 +57,7 @@ async function setup() {
     application: app,
     port: sor,
     context: integration,
-    settleOperation: 'inspection.effect.settle',
+    completeOperation: 'inspection.effect.complete',
     now: () => clock,
   });
   await inbound.runOnce();
@@ -139,7 +139,7 @@ describe('quality inspection on top of a system of record', () => {
     });
   });
 
-  test('the worklist drives capture and validation reports the offending field', async () => {
+  test('the worklist gives the next sample and validation reports the offending field', async () => {
     const { command, query, advance, now } = await setup();
     expect(await query('inspection.worklist', { lotId: '4000001' })).toEqual({
       lotId: '4000001',
@@ -354,7 +354,7 @@ describe('quality inspection on top of a system of record', () => {
     expect(await query('inspection.sync.status', {})).toMatchObject({ pending: 0, accepted: 1 });
   });
 
-  test('the integration principal cannot capture and operators cannot settle', async () => {
+  test('the integration principal cannot capture and operators cannot complete', async () => {
     const { app, command } = await setup();
     await expect(
       app.invokeRaw(
@@ -371,7 +371,7 @@ describe('quality inspection on top of a system of record', () => {
     });
     await expect(
       command(
-        'inspection.effect.settle',
+        'inspection.effect.complete',
         { effectId: recorded.effects![0], outcome: { status: 'accepted' } },
         supervisor,
       ),

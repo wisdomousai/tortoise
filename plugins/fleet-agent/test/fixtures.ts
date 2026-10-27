@@ -27,7 +27,7 @@ import {
   relayRequestSchema,
   releaseSchema,
   type FleetRelease,
-  type RelayAnswer,
+  type RelayResponse,
   type RelayRequest,
   type SiteReport,
 } from '../src/contracts';
@@ -40,7 +40,7 @@ interface FleetSite {
   auditSeq: number;
   events: string[];
   relay: RelayRequest[];
-  answers: Record<string, RelayAnswer>;
+  responses: Record<string, RelayResponse>;
 }
 interface FleetState {
   sites: Record<string, FleetSite>;
@@ -78,7 +78,7 @@ const siteOf = (state: FleetState, principalId: string): FleetSite => {
     throw new ApplicationError('FORBIDDEN', 'Only an enrolled site calls the fleet protocol');
   const id = principalId.slice('device:'.length);
   if (!Object.hasOwn(state.sites, id))
-    state.sites[id] = { auditSeq: 0, events: [], relay: [], answers: {} };
+    state.sites[id] = { auditSeq: 0, events: [], relay: [], responses: {} };
   return state.sites[id]!;
 };
 const protocol = new Set<string>(
@@ -124,13 +124,13 @@ export function fleetApplication() {
         ctx.change(`site:${ctx.context.principalId}`);
         return { afterSeq: site.auditSeq };
       }),
-      fleetBind(fleetSiteOperations.relayTake, async (_input, ctx) => {
+      fleetBind(fleetSiteOperations.relayClaim, async (_input, ctx) => {
         const request = siteOf(ctx.state, ctx.context.principalId).relay.shift();
         ctx.change(`site:${ctx.context.principalId}`);
         return request ? { request } : {};
       }),
-      fleetBind(fleetSiteOperations.relayAnswer, async (input, ctx) => {
-        siteOf(ctx.state, ctx.context.principalId).answers[input.id] = input;
+      fleetBind(fleetSiteOperations.relayRespond, async (input, ctx) => {
+        siteOf(ctx.state, ctx.context.principalId).responses[input.id] = input;
         ctx.change(`site:${ctx.context.principalId}`);
         return {};
       }),

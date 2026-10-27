@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { defineCapability, defineModule, jsonSchema } from '@agent-native/contracts';
 
-/** The hub route a device posts its enrollment code to; it answers the device credential once. */
+/** The hub route a device posts its enrollment code to; it returns the device credential once. */
 export const enrollPath = '/api/v1/link/enroll';
 
 const id = z.string().regex(/^[a-z0-9-]{1,64}$/);

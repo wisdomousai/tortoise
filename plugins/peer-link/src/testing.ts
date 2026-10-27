@@ -16,7 +16,7 @@ type Reach = (url: URL, init?: RequestInit) => Promise<Response>;
  * For tests of two applications: a plugin whose network port reaches each named destination
  * through its `reach`, and refuses every other destination as the kernel default does. `reach`
  * gets the URL resolved against a placeholder origin; map it onto the peer under test, and fail,
- * drop or change answers there to stand in for an unreliable network. Compose it where the
+ * drop or change responses there to stand in for an unreliable network. Compose it where the
  * network plugin would be.
  */
 export function peerNetworkFixture(routes: Readonly<Record<string, Reach>>) {
@@ -42,7 +42,7 @@ export function peerNetworkFixture(routes: Readonly<Record<string, Reach>>) {
 export type PeerNetworkFixture = ReturnType<typeof peerNetworkFixture>;
 
 export interface PeerPairOptions {
-  /** The called application, with the peer link serving its surface. */
+  /** The called application, with the peer link serving its API. */
   readonly callee: ApplicationDefinition<any>;
   /** The calling application, composing `network` where the network plugin would be. */
   readonly caller: (network: PeerNetworkFixture) => ApplicationDefinition<any>;

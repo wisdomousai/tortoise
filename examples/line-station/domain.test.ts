@@ -21,7 +21,7 @@ const operator = as('olga');
 const viewer = as('vic');
 const mes = {
   ...as('mes-integration'),
-  grant: { operations: ['line.mes.sync', 'line.sync.status', 'line.effect.settle'] },
+  grant: { operations: ['line.mes.sync', 'line.sync.status', 'line.effect.complete'] },
 };
 
 async function setup() {
@@ -80,7 +80,7 @@ async function setup() {
     application: app,
     port: fakeMes,
     context: mes,
-    settleOperation: 'line.effect.settle',
+    completeOperation: 'line.effect.complete',
     now: () => clock,
   });
   await inbound.runOnce();
@@ -115,12 +115,12 @@ async function setup() {
   };
 }
 
-/** Prepare line-1 for actuation: machine stopped, bridge allowed to act, agent on the seat. */
+/** Prepare line-1 for actuation: machine stopped, bridge allowed to act, agent holding control. */
 async function ready(env: Awaited<ReturnType<typeof setup>>) {
   env.sim.stopMachine();
   await env.observe();
   await env.command('line.bridge.set-mode', { station: 'line-1', mode: 'actuate' }, supervisor);
-  await env.command('line.seat.request', { station: 'line-1', seat: 'agent' });
+  await env.command('line.control.request', { station: 'line-1', holder: 'agent' });
 }
 
 describe('line station: observe, annotate, actuate', () => {
@@ -143,7 +143,7 @@ describe('line station: observe, annotate, actuate', () => {
     expect(station.bridge).toMatchObject({
       screen: 'main',
       mode: 'monitor-only',
-      seat: 'idle',
+      controlHolder: 'idle',
       profile: { id: 'filler-hmi' },
     });
 
@@ -177,7 +177,7 @@ describe('line station: observe, annotate, actuate', () => {
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await command('line.stop.classify', { stopId: stop.id, reason: 'JAM' });
 
-    // The MES books it but the answer is lost; the next pass finds the booking instead of booking twice.
+    // The MES books it but the response is lost; the next pass finds the booking instead of booking twice.
     fakeMes.faults.loseNextResponse = true;
     expect(await mesDispatcher.runOnce()).toMatchObject({ retried: 1 });
     expect(await mesDispatcher.runOnce(undefined, { ignoreBackoff: true })).toMatchObject({
@@ -237,7 +237,7 @@ describe('line station: observe, annotate, actuate', () => {
     expect((await query('line.station.get', { station: 'line-1' })).order.id).toBe('ORD-7001');
   });
 
-  test('monitor-only and operator seat keep effects pending without touching the screen', async () => {
+  test('monitor-only and operator control keep effects pending without touching the screen', async () => {
     const env = await setup();
     const { sim, command, deliver, query } = env;
     await ready(env);
@@ -245,12 +245,12 @@ describe('line station: observe, annotate, actuate', () => {
     await command('line.order.start', { station: 'line-1', orderId: 'ORD-7002' });
     expect(await deliver()).toMatchObject({ retried: 1, accepted: 0 });
     await command('line.bridge.set-mode', { station: 'line-1', mode: 'actuate' }, supervisor);
-    await command('line.seat.request', { station: 'line-1', seat: 'operator' });
+    await command('line.control.request', { station: 'line-1', holder: 'operator' });
     expect(await deliver()).toMatchObject({ retried: 1, held: 0 });
     expect(sim.state.screen).toBe('main');
     expect(sim.state.recipe).toBe('R-500');
     // Blocked attempts never touched the screen, so handing back delivers instead of holding.
-    await command('line.seat.request', { station: 'line-1', seat: 'agent' });
+    await command('line.control.request', { station: 'line-1', holder: 'agent' });
     expect(await deliver()).toMatchObject({ accepted: 1 });
     expect((await query('line.sync.status', {})).targets).toContainEqual(
       expect.objectContaining({ target: 'legacy-hmi:line-1', accepted: 1, held: 0 }),
@@ -304,7 +304,7 @@ describe('line station: observe, annotate, actuate', () => {
     sim.press = (control) => {
       press(control);
       if (control === 'load')
-        void command('line.seat.request', { station: 'line-1', seat: 'operator' });
+        void command('line.control.request', { station: 'line-1', holder: 'operator' });
     };
     expect(await deliver()).toMatchObject({ held: 1 });
     expect(sim.state.screen).toBe('recipe');
@@ -450,7 +450,7 @@ describe('line station: observe, annotate, actuate', () => {
     expect(readings.machine).toMatchObject({ value: 'RUNNING', status: 'operator-verified' });
   });
 
-  test('integration principals stay in their lane', async () => {
+  test('integration principals call only their allowlists', async () => {
     const env = await setup();
     const { app, command, observe, bridge, mesDispatcher } = env;
     await observe();
@@ -480,12 +480,12 @@ describe('line station: observe, annotate, actuate', () => {
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await expect(
       app.invokeRaw(
-        { operation: 'line.seat.request', input: { station: 'line-1', seat: 'operator' } },
+        { operation: 'line.control.request', input: { station: 'line-1', holder: 'operator' } },
         as('mes-integration'),
       ),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
 
-    // The MES cannot settle a screen procedure, and the bridge cannot settle an MES record.
+    // The MES cannot complete a screen procedure, and the bridge cannot complete an MES record.
     await ready(env);
     const { result } = await command('line.order.start', {
       station: 'line-1',
@@ -493,13 +493,15 @@ describe('line station: observe, annotate, actuate', () => {
     });
     const effectId = (await app.pendingEffects(bridge.context, { target: 'legacy-hmi:line-1' }))[0]!
       .id;
-    const settle = (context: ExecutionContext) =>
+    const complete = (context: ExecutionContext) =>
       app.invokeRaw(
-        { operation: 'line.effect.settle', input: { effectId, outcome: { status: 'accepted' } } },
+        { operation: 'line.effect.complete', input: { effectId, outcome: { status: 'accepted' } } },
         context,
       );
-    await expect(settle(as('mes-integration'))).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    await expect(settle(as('station-bridge:line-2'))).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(complete(as('mes-integration'))).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(complete(as('station-bridge:line-2'))).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    });
     expect(result.desired.sync).toBe('pending');
     expect(await mesDispatcher.runOnce()).toMatchObject({ accepted: 0 });
   });

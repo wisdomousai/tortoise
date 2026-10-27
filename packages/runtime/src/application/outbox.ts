@@ -8,7 +8,7 @@ import {
   pendingEffect,
   publicEffect,
   putEffect,
-  upstreamEffect,
+  acknowledgedEffect,
 } from './effects.js';
 import type { Kernel } from './kernel.js';
 import { revisionOf } from './records.js';
@@ -50,8 +50,8 @@ export interface AttemptRecord {
   readonly hold?: boolean;
   /** The fencing token of the claim this attempt ran under. */
   readonly fence?: number;
-  /** The target acknowledged the effect but has not decided it (`upstream-pending`). */
-  readonly upstream?: { readonly externalRef?: string };
+  /** The target acknowledged the effect but has not decided it (`acknowledged`). */
+  readonly acknowledged?: { readonly externalRef?: string };
 }
 
 function recordAttemptInStorage<State, Services>(
@@ -63,8 +63,8 @@ function recordAttemptInStorage<State, Services>(
 ): Promise<Effect> {
   return kernel.options.storage.transact(context.workspaceId, async (snapshot) => {
     const effect = pendingEffect(snapshot, id);
-    const next = attempt.upstream
-      ? upstreamEffect(effect, attempt.upstream.externalRef, kernel.now, attempt.fence)
+    const next = attempt.acknowledged
+      ? acknowledgedEffect(effect, attempt.acknowledged.externalRef, kernel.now, attempt.fence)
       : attemptedEffect(effect, failure, attempt.hold, kernel.now, attempt.fence);
     putEffect(snapshot, next);
     snapshot.journal.push({
@@ -73,8 +73,8 @@ function recordAttemptInStorage<State, Services>(
       revision: revisionOf(snapshot, effect.resource),
       type: attempt.hold
         ? 'effect.held'
-        : attempt.upstream
-          ? 'effect.upstream'
+        : attempt.acknowledged
+          ? 'effect.acknowledged'
           : 'effect.attempted',
       operation: effect.operation,
     });
@@ -88,11 +88,11 @@ function recordAttemptInStorage<State, Services>(
  * at the current revision still lets authorized subscribers show retry progress.
  *
  * With `hold`, the dispatcher could not tell whether the target applied the effect. The effect
- * stays pending but leaves delivery until a domain command settles or releases it, and the
+ * stays pending but leaves delivery until a domain command completes or releases it, and the
  * journal records `effect.held` so screens can ask a person to reconcile.
  *
- * With `upstream`, the target acknowledged the effect without deciding it. The effect stays
- * pending and the journal records `effect.upstream`; dispatchers poll the target from then on.
+ * With `acknowledged`, the target acknowledged the effect without deciding it. The effect stays
+ * pending and the journal records `effect.acknowledged`; dispatchers poll the target from then on.
  * With `fence`, an attempt by a worker whose claim a newer one replaced fails with CONFLICT.
  */
 async function recordAttempt<State, Services>(
@@ -113,7 +113,7 @@ async function recordAttempt<State, Services>(
   await kernel.audit.after([
     {
       kind: attempt.hold ? 'effect.held' : 'effect.attempted',
-      outcome: attempt.upstream ? 'info' : 'failed',
+      outcome: attempt.acknowledged ? 'info' : 'failed',
       operation: effect.operation,
       resources: [effect.resource],
       actor: actorOf(context),
@@ -121,8 +121,8 @@ async function recordAttempt<State, Services>(
         effectId: effect.id,
         target: effect.target,
         attempts: effect.attempts,
-        ...(attempt.upstream
-          ? { upstream: true }
+        ...(attempt.acknowledged
+          ? { acknowledged: true }
           : { failure: effect.lastFailure ?? 'Delivery failed' }),
       },
     },
@@ -131,7 +131,7 @@ async function recordAttempt<State, Services>(
 }
 
 /**
- * A fenced attempt the outbox refused (a newer claim took over, or the effect was settled) is
+ * A fenced attempt the outbox refused (a newer claim took over, or the effect was completed) is
  * still evidence of what a worker saw at the target. It goes to the audit log as a denied
  * attempt and changes nothing in the workspace.
  */
@@ -158,7 +158,7 @@ async function retainLateAttempt<State, Services>(
         effectId: id,
         target: effect.target,
         fence: attempt.fence!,
-        ...(attempt.upstream ? { upstream: true } : { failure: failure.slice(0, 500) }),
+        ...(attempt.acknowledged ? { acknowledged: true } : { failure: failure.slice(0, 500) }),
       },
     },
   ]);

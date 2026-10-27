@@ -17,11 +17,11 @@ import { ${one.camel}Schema } from './${one.kebab}';
 export const ${t.camel}Target = defineTarget({
   target: '${t.kebab}',
   resourceType: '${t.pascal}Sync',
-  settles: ['${one.kebab}'],
+  changes: ['${one.kebab}'],
   feed: { item: ${one.camel}Schema.pick({ id: true, title: true }), max: 100, changes: ['${one.kebab}'] },
   status: { pending: z.number().int(), accepted: z.number().int(), rejected: z.number().int() },
   descriptions: {
-    settle: 'Integration principal only: record the ${t.words} outcome for a sent ${one.words}.',
+    complete: 'Integration principal only: record the ${t.words} outcome for a sent ${one.words}.',
     sync: 'Integration principal only: apply ${many.words} from ${t.words} and advance the watermark. A stale from watermark conflicts.',
     status: 'Summarize delivery to ${t.words}: ${many.words} waiting, accepted and rejected, and the last feed sync.',
   },
@@ -46,7 +46,7 @@ const handlers = (
   one: Names,
   many: Names,
 ) => `import { ApplicationError } from '@agent-native/contracts';
-import { settleDelivery, targetHandlers } from '@agent-native/integration';
+import { completeDelivery, targetHandlers } from '@agent-native/integration';
 import { own, put, records, type HandlerContribution } from '@agent-native/runtime';
 import { operations } from '../contracts';
 import { ${many.camel} } from '../contracts/${one.kebab}';
@@ -56,12 +56,12 @@ import { handler, now, type Services } from './context';
 
 type Item = { id: string; title: string };
 
-/** Sending ${many.words} to ${t.words}, and the target's settle, feed and status handlers. */
+/** Sending ${many.words} to ${t.words}, and the target's complete, feed and status handlers. */
 export function ${t.camel}Handlers(): HandlerContribution<AppState, Services>[] {
   return [
     handler(operations.${t.camel}Send, (input, ctx) => {
       const record = records(ctx, ${many.camel}, ctx.state.${many.camel}).getExisting(input.id);
-      // One delivery at a time per record, so a late outcome never lands on a newer send.
+      // One delivery at a time per record, so a late outcome is never applied to a newer send.
       if (own(ctx.state.${t.camel}Deliveries, record.id)?.sync === 'pending')
         throw new ApplicationError('CONFLICT', 'Already waiting for ${t.words}');
       const effectId = ctx.enqueue({
@@ -78,7 +78,7 @@ export function ${t.camel}Handlers(): HandlerContribution<AppState, Services>[] 
       cursor: (state) => state.sync['${t.kebab}']!,
       now,
       onOutcome: (effect, outcome, ctx) =>
-        settleDelivery(
+        completeDelivery(
           own(ctx.state.${t.camel}Deliveries, effect.resource.slice('${one.kebab}:'.length)),
           effect,
           outcome,
@@ -145,7 +145,7 @@ const insertions = (t: Names, one: Names, many: Names) => ({
   'contracts.ts': {
     imports: [`import { ${t.camel}Send, ${t.camel}Target } from './contracts/${t.kebab}-target';`],
     operations: [
-      `${t.camel}Settle: ${t.camel}Target.settle,`,
+      `${t.camel}Complete: ${t.camel}Target.complete,`,
       `${t.camel}Sync: ${t.camel}Target.sync,`,
       `${t.camel}Status: ${t.camel}Target.status,`,
       `${t.camel}Send,`,
@@ -175,11 +175,11 @@ const insertions = (t: Names, one: Names, many: Names) => ({
   },
   'policy.ts': {
     imports: [
-      "import { targetLane, targetRules } from '@agent-native/integration';",
+      "import { targetAllowlist, targetRules } from '@agent-native/integration';",
       `import { ${t.camel}Target } from './contracts/${t.kebab}-target';`,
     ],
-    lanes: [
-      `targetLane(${t.camel}Target, (_state, principalId) => principalId === '${t.kebab}-integration'),`,
+    integrations: [
+      `targetAllowlist(${t.camel}Target, (_state, principalId) => principalId === '${t.kebab}-integration'),`,
     ],
     rules: [`...targetRules(${t.camel}Target),`, `[operations.${t.camel}Send.id]: editor,`],
   },
@@ -217,7 +217,7 @@ const insertions = (t: Names, one: Names, many: Names) => ({
 
 /**
  * A system of record for one collection: a send command that forwards a record through the
- * outbox, the target's settle, feed and status operations, its integration principal's lane,
+ * outbox, the target's complete, feed and status operations, its integration allowlist,
  * an in-memory fake port, a status screen and a behavioral test.
  */
 export function target(app: AppNames, t: Names, one: Names): Generated {

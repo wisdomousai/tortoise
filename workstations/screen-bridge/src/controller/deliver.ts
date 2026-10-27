@@ -8,7 +8,7 @@ import { blockedBy } from './safety';
 /** A payload problem that rejects the effect before anything is read or done. */
 function payloadProblem(procedure: Procedure, input: unknown): EffectOutcome | undefined {
   if (
-    procedure.hazard === 'operator-present' &&
+    procedure.risk === 'operator-present' &&
     !resolveBinding('$input.presence.confirmedBy', input)
   )
     return rejected('PRECONDITION', `${procedure.title} needs confirmation at the station`);

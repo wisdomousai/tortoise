@@ -83,12 +83,12 @@ export interface CapabilityFormOptions<C extends AnyCapability, Values> {
  * Guarantees:
  * - Input is validated with the capability's own schema (the same one the instance enforces),
  *   via Standard Schema, before any request.
- * - The idempotency key is minted when the form opens and reused for every retry until the
+ * - The idempotency key is created when the form opens and reused for every retry until the
  *   command commits, so double taps, scanner double-sends and retries after a lost response
- *   record one datapoint. A new key is minted only after a commit.
+ *   record one datapoint. A new key is created only after a commit.
  * - The mapped input is frozen per attempt: a retry with unchanged values sends byte-identical
  *   input under the same key and replays the original receipt.
- * - Server validation (`ApplicationError.details.field`) lands on the offending field when the
+ * - Server validation (`ApplicationError.details.field`) is shown on the offending field when the
  *   form has that field; other failures, including CONFLICT, become a form error and the draft
  *   is kept.
  *

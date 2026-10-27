@@ -64,7 +64,7 @@ export function createCrmCaptureApplication(
         workspaceId,
         principalId: INTEGRATION_PRINCIPAL,
       });
-      // The feed carries only followed accounts, so it is cheap to poll every second: an adopted
+      // The feed carries only followed accounts, so it is cheap to poll every second: a followed
       // account fills in shortly after the CRM accepts the follow request.
       const start: typeof integration.start = (intervals = {}) =>
         integration.start({ ...intervals, syncMs: intervals.syncMs ?? 1_000 });

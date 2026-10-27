@@ -12,7 +12,7 @@ import { conformanceEffect } from '@agent-native/testing/connectors';
 import { peerLinkServiceOf } from '../src/service';
 import { startPeerPair, type PeerPair } from '../src/testing';
 import {
-  announce,
+  requestInspection,
   hold,
   qualityApplication,
   qualityTarget,
@@ -122,7 +122,7 @@ describe('connection', () => {
       started.owner,
     );
     const refused = await failure(
-      portOf(started).deliver(effect(announce.id, { lot: 'L1' }), signal()),
+      portOf(started).deliver(effect(requestInspection.id, { lot: 'L1' }), signal()),
     );
     expect(refused).toBeInstanceOf(DeliveryFailure);
     expect(refused.message).toBe('No connection to quality; connect it on the peers screen');
@@ -134,7 +134,7 @@ describe('delivery', () => {
   test('a service effect goes as the peer, a personal one as the mapped person', async () => {
     const started = await pair();
     const port = portOf(started);
-    expect(await port.deliver(effect(announce.id, { lot: 'L1' }), signal())).toEqual({
+    expect(await port.deliver(effect(requestInspection.id, { lot: 'L1' }), signal())).toEqual({
       status: 'accepted',
       externalRef: `peer:${started.peerId}`,
     });

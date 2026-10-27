@@ -1,6 +1,6 @@
-import type { EventNotification, InitializeAnswer } from '../protocol';
+import type { EventNotification, InitializeResult } from '../protocol';
 
-type Handler = (event: EventNotification, session: InitializeAnswer) => Promise<void> | void;
+type Handler = (event: EventNotification, session: InitializeResult) => Promise<void> | void;
 
 /**
  * Delivers driver events to one handler in order, one at a time, so a slow consumer (an ingest
@@ -9,7 +9,7 @@ type Handler = (event: EventNotification, session: InitializeAnswer) => Promise<
  * dropped, and a gap is reported with the number of events missed.
  */
 export function createEventQueue(limit: number, report: (problem: string) => void) {
-  const waiting: { event: EventNotification; session: InitializeAnswer; handler: Handler }[] = [];
+  const waiting: { event: EventNotification; session: InitializeResult; handler: Handler }[] = [];
   let current: string | undefined;
   let expected: number | undefined;
   let running: Promise<void> = Promise.resolve();
@@ -34,7 +34,7 @@ export function createEventQueue(limit: number, report: (problem: string) => voi
       current = session;
       expected = undefined;
     },
-    push(event: EventNotification, session: InitializeAnswer, handler: Handler | undefined) {
+    push(event: EventNotification, session: InitializeResult, handler: Handler | undefined) {
       if (event.session !== current) return report('Driver sent an event for another session');
       if (expected !== undefined && event.seq > expected)
         report(`Driver events ${expected} to ${event.seq - 1} were missed`);
@@ -44,7 +44,7 @@ export function createEventQueue(limit: number, report: (problem: string) => voi
       if (!handler) return;
       if (waiting.length >= limit) {
         waiting.shift();
-        report('Driver events arrive faster than they are handled; the oldest was dropped');
+        report('Driver events are received faster than they are handled; the oldest was dropped');
       }
       waiting.push({ event, session, handler });
       if (!draining) running = drain();

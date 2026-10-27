@@ -1,6 +1,6 @@
 import type { HandlerContribution } from '@agent-native/runtime';
 import type { QualityState } from './domain';
-import { arrivalHandlers } from './handlers/arrivals';
+import { inspectionRequestHandlers } from './handlers/inspection-requests';
 import { captureHandlers } from './handlers/capture';
 import { instrumentHandlers } from './handlers/instrument';
 import { integrationHandlers } from './handlers/integration';
@@ -11,7 +11,7 @@ import type { QualityServices } from './server/context';
 
 export { DEFECT_CODE_GROUP, type QualityServices } from './server/context';
 
-/** Domain handlers never call the SoR; forwarding is queued and settled through commands. */
+/** Domain handlers never call the SoR; forwarding is queued and completed through commands. */
 export function createQualityHandlers(): HandlerContribution<QualityState, QualityServices>[] {
   return [
     ...lotHandlers(),
@@ -20,7 +20,7 @@ export function createQualityHandlers(): HandlerContribution<QualityState, Quali
     ...supervisionHandlers(),
     ...integrationHandlers(),
     ...instrumentHandlers(),
-    ...arrivalHandlers(),
+    ...inspectionRequestHandlers(),
   ];
 }
 export { qualityInspectionModule } from './contracts';

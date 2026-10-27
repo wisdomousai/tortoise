@@ -13,7 +13,7 @@ export interface CodexTurn {
 }
 type Params = Record<string, unknown>;
 
-/** Run an application tool once per native call ID and answer with its JSON result. */
+/** Run an application tool once per native call ID and reply with its JSON result. */
 async function callTool(state: CodexTurn, id: NonNullable<RpcMessage['id']>, params: Params) {
   const { rpc, channel, turn } = state;
   const definition = typeof params.tool === 'string' ? state.tools.get(params.tool) : undefined;
@@ -122,12 +122,12 @@ function completeTurn(state: CodexTurn, params: Params) {
   else state.channel.end(new Error(`Codex turn ended with status: ${nativeTurn.status}`));
 }
 
-/** Handle one app-server message: answer its requests, translate its notifications. */
+/** Handle one app-server message: respond to its requests, translate its notifications. */
 export async function handleCodexMessage(state: CodexTurn, message: RpcMessage) {
   const params =
     message.params === undefined ? {} : protocolRecord(message.params, 'notification parameters');
-  // `return await`, not `return`: the caller's catch must be attached before the rejection
-  // settles, or the runtime reports it as unhandled.
+  // `return await`, not `return`: the caller's catch must be attached before the promise
+  // rejects, or the runtime reports it as unhandled.
   if (message.id !== undefined && message.method)
     return await handleRequest(state, message.id, message.method, params);
   if (message.method === 'item/agentMessage/delta') {

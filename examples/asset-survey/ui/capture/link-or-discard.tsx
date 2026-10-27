@@ -9,31 +9,31 @@ import { ErrorText, quietly } from '../shared';
 
 /**
  * Put a capture on the right node of its survey, found by designation or name, or discard it
- * with a reason. An unplaced capture can also be placed and sent to the model in one step, or
+ * with a reason. An unlinked capture can also be linked and sent to the model in one step, or
  * handed to the capture-to-EAM workflow, which also files and exports the node once its values
  * are accepted.
  */
-export function PlaceOrDiscard({ captureId, placed }: { captureId: string; placed: boolean }) {
+export function LinkOrDiscard({ captureId, linked }: { captureId: string; linked: boolean }) {
   const [q, setQ] = useState('');
   const [reason, setReason] = useState('');
   const found = useQuery({
     ...live.liveQueryOptions(operations.nodeSearch, { q, limit: 8 }),
     enabled: q.trim().length > 0,
   });
-  const place = useCommand(transport, operations.reportPlace!);
-  const placeAndExtract = useCommand(transport, operations.placeAndExtract);
-  const placeAndFile = useCommand(transport, operations.captureFileWorkflow);
-  const busy = place.pending || placeAndExtract.pending || placeAndFile.pending;
+  const link = useCommand(transport, operations.reportLink!);
+  const linkAndExtract = useCommand(transport, operations.linkAndExtract);
+  const linkAndFile = useCommand(transport, operations.captureFileWorkflow);
+  const busy = link.pending || linkAndExtract.pending || linkAndFile.pending;
   const discard = useCommand(transport, operations.reportDiscard);
   return (
     <section
-      aria-label={placed ? 'Move or discard' : 'Place'}
+      aria-label={linked ? 'Relink or discard' : 'Link'}
       className="space-y-3 rounded-xl border bg-card p-4"
     >
       <Input
         aria-label="Find node"
         placeholder={
-          placed ? 'Move to another node: designation or name' : 'Designation or name of the node'
+          linked ? 'Link to another node: designation or name' : 'Designation or name of the node'
         }
         value={q}
         onChange={(event) => setQ(event.target.value)}
@@ -52,42 +52,42 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
                   disabled={busy}
                   onClick={() =>
                     void quietly(
-                      place.execute({ id: captureId, subject: node.id }).then(() => setQ('')),
+                      link.execute({ id: captureId, subject: node.id }).then(() => setQ('')),
                     )
                   }
                 >
-                  Place here
+                  Link here
                 </Button>
-                {!placed && (
+                {!linked && (
                   <Button
                     size="sm"
                     variant="outline"
                     disabled={busy}
                     onClick={() =>
                       void quietly(
-                        placeAndExtract
+                        linkAndExtract
                           .execute({ id: captureId, nodeId: node.id })
                           .then(() => setQ('')),
                       )
                     }
                   >
-                    Place and extract
+                    Link and extract
                   </Button>
                 )}
-                {!placed && (
+                {!linked && (
                   <Button
                     size="sm"
                     variant="outline"
                     disabled={busy}
                     onClick={() =>
                       void quietly(
-                        placeAndFile
+                        linkAndFile
                           .execute({ id: captureId, nodeId: node.id })
                           .then(() => setQ('')),
                       )
                     }
                   >
-                    Place and file
+                    Link and file
                   </Button>
                 )}
               </span>
@@ -112,9 +112,7 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
           Discard
         </Button>
       </form>
-      <ErrorText
-        error={place.error ?? placeAndExtract.error ?? placeAndFile.error ?? discard.error}
-      />
+      <ErrorText error={link.error ?? linkAndExtract.error ?? linkAndFile.error ?? discard.error} />
     </section>
   );
 }

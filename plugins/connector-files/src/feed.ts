@@ -51,8 +51,8 @@ function parseCursor(cursor: string | undefined): Watermark | undefined {
 }
 
 /**
- * Inbound sync from a folder of result exports. The watermark is the time a file arrived and
- * its name, so each file is read once, and a file replaced later is read again. Arrival is the
+ * Inbound sync from a folder of result exports. The watermark is the time a file was received and
+ * its name, so each file is read once, and a file replaced later is read again. The received time is the
  * latest of the file's modification, status-change and creation times, because copy tools keep
  * the source's modification time and the copy would otherwise sort before the watermark. Files
  * are never moved or deleted: the folder is read-only to the application.

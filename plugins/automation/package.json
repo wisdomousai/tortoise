@@ -2,7 +2,7 @@
   "name": "@agent-native/automation",
   "version": "0.1.0",
   "type": "module",
-  "description": "Host plugin: triggers that run agents or jobs on journal events or a schedule, under standing grants people issue.",
+  "description": "Host plugin: triggers that run agents or jobs on journal events or a schedule, under trigger grants people issue.",
   "license": "MIT",
   "repository": {
     "type": "git",

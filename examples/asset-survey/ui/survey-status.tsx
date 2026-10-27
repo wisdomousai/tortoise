@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { CircleAlert, CircleCheck, RefreshCw } from 'lucide-react';
 import { live } from '@/lib/session';
 import { cn } from '@/lib/utils';
-import { modelLane, operations } from '../contracts';
+import { modelTarget, operations } from '../contracts';
 
 /** Model and EAM at a glance, in the sidebar footer. */
 export function SurveyStatus({ className }: { className?: string }) {
-  const model = useQuery(live.liveQueryOptions(modelLane.status, {}));
+  const model = useQuery(live.liveQueryOptions(modelTarget.status, {}));
   const queue = useQuery(live.liveQueryOptions(operations.captureList, { review: 'new' }));
   const eam = useQuery(live.liveQueryOptions(operations.filingStatus, {}));
   if (!model.data || !queue.data || !eam.data) return null;

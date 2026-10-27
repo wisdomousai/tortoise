@@ -12,7 +12,7 @@ function record(input: InputOf<typeof ops.connectionRecord>, ctx: Context) {
   if (!target)
     throw new ApplicationError('INVALID_INPUT', `${input.target} is not a peer target here`);
   // The code may belong to another application than the target expects; its operations would
-  // then be called with input meant for a different surface.
+  // then be called with input meant for a different API.
   if (input.contract.id !== target.application)
     throw new ApplicationError(
       'CONFLICT',

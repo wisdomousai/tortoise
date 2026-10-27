@@ -16,7 +16,7 @@ import { createPeerLinkPlugin } from '@agent-native/peer-link/plugin';
 import manifest from './manifest';
 import { operations, qualityTarget } from './contracts';
 import { instrumentContract } from './contracts/instrument';
-import { qualityPeerSurface } from './contracts/peer';
+import { qualityPeerApi } from './contracts/peer';
 import type { QualityState } from './domain';
 import {
   createQualityHandlers,
@@ -40,12 +40,12 @@ export const INSTRUMENT_PRINCIPAL = 'instrument';
 export const instrumentDriverPlugin = createDriverPlugin({ contracts: [instrumentContract] });
 
 /**
- * The peer link serving `qualityPeerSurface`: receiving applications announce arrivals and
+ * The peer link serving `qualityPeerApi`: receiving applications request inspections and
  * search lots for their people. No subject is ever mapped to the integration or instrument
  * principal.
  */
 export const qualityPeerLinkPlugin = createPeerLinkPlugin({
-  surface: qualityPeerSurface,
+  api: qualityPeerApi,
   reserved: [INTEGRATION_PRINCIPAL, INSTRUMENT_PRINCIPAL],
 });
 
@@ -116,7 +116,7 @@ export function createQualityInspectionApplication(
     createState: (ownerId) => ({ quality: qualityState(ownerId) }),
     upgradeState: (state, ownerId) => {
       const value = (state ?? {}) as Partial<QualityInspectionState>;
-      // State saved before instrument readings or arrivals existed gains the empty sets and
+      // State saved before instrument readings or inspection requests existed gains the empty sets and
       // the instrument principal.
       return {
         quality: value.quality
@@ -124,8 +124,8 @@ export function createQualityInspectionApplication(
               ...value.quality,
               instrumentPrincipalId: value.quality.instrumentPrincipalId ?? INSTRUMENT_PRINCIPAL,
               instrumentReadings: value.quality.instrumentReadings ?? {},
-              arrivals: value.quality.arrivals ?? {},
-              arrivalSequence: value.quality.arrivalSequence ?? 0,
+              inspectionRequests: value.quality.inspectionRequests ?? {},
+              requestSequence: value.quality.requestSequence ?? 0,
             }
           : qualityState(ownerId),
       };
@@ -138,7 +138,7 @@ export function createQualityInspectionApplication(
       authorizationRoute(
         'quality',
         qualityInspectionModule,
-        ['lot', 'result', 'defect', 'plant', 'sync', 'instrument', 'arrival'],
+        ['lot', 'result', 'defect', 'plant', 'sync', 'instrument', 'inspection-request'],
         qualityPolicy,
       ),
     ]),

@@ -111,7 +111,7 @@ async function compensate(instance: Instance, ctx: Context, at: number) {
   else finish(instance, instance.cancelledBy === undefined ? 'compensated' : 'cancelled', at);
 }
 
-const settled = (effect: Effect | undefined) => !!effect && effect.status !== 'pending';
+const completed = (effect: Effect | undefined) => !!effect && effect.status !== 'pending';
 const effectValue = (effect: Effect) => ({
   status: effect.status,
   ...(effect.outcome?.status === 'accepted' && effect.outcome.externalRef
@@ -130,10 +130,10 @@ export const awaited = (instance: Instance, ctx: Pick<Context, 'effects'>) => {
   );
   return ids.map((id) => byId.get(id));
 };
-export const allSettled = (effects: readonly (Effect | undefined)[]) => effects.every(settled);
+export const allCompleted = (effects: readonly (Effect | undefined)[]) => effects.every(completed);
 
 /** A step awaiting its effects: complete it once every one was accepted, fail it on a refusal. */
-function settle(
+function resolveAwaited(
   instance: Instance,
   definition: Definition,
   step: RunStep,
@@ -141,7 +141,7 @@ function settle(
   at: number,
 ) {
   const effects = awaited(instance, ctx);
-  if (!allSettled(effects)) {
+  if (!allCompleted(effects)) {
     instance.held = effects.some((effect) => effect?.heldAt !== undefined);
     return;
   }
@@ -252,6 +252,6 @@ export async function advance(
     );
   const step = definition.workflow.steps[instance.index]!;
   if (step.kind === 'wait') return wait(instance, definition, step, ctx, at, cursor);
-  if (instance.pending) return settle(instance, definition, step, ctx, at);
+  if (instance.pending) return resolveAwaited(instance, definition, step, ctx, at);
   return run(instance, definition, step, ctx, at);
 }

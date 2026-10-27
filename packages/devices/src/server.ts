@@ -97,9 +97,9 @@ const knownOperations = new Set<string>(deviceConfigModule.capabilities.map((ite
 export type DeviceRelation = 'read' | 'administer';
 
 /**
- * The application's answer to who may configure devices where. The application's own policy
+ * The application's decision on who may configure devices where. The application's own policy
  * never sees device operations, so `relation` must apply the application's membership gate and
- * its integration principals' lanes; the feature applies a delegated grant's resource scope.
+ * its integration allowlists; the feature applies a delegated grant's resource scope.
  */
 export interface DeviceAccess {
   relation(context: ExecutionContext, station: string): DeviceRelation | undefined;

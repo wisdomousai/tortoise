@@ -2,13 +2,13 @@
  * Keyboard layouts as seen by a keyboard-wedge scanner. A wedge scanner does not send characters:
  * it sends USB HID key positions chosen from *its* configured layout, and the host turns them back
  * into characters with *its own* layout. When the two differ (a US-configured scanner on a Swiss or
- * German PC is the common case) `y`/`z` swap and most symbols arrive wrong; some land on dead keys
+ * German PC is the common case) `y`/`z` swap and most symbols are received wrong; some hit dead keys
  * and combine with the next character.
  *
  * Browsers report the physical key as `KeyboardEvent.code` regardless of host layout, so the wedge
  * source decodes `(code, shift)` through the scanner's layout and recovers the exact characters,
  * dead keys included. `remapText` repairs text that was already decoded with the host layout, for
- * input that arrives without key codes; characters that hit dead keys cannot be repaired that way.
+ * input that is received without key codes; characters that hit dead keys cannot be repaired that way.
  */
 export const keyboardLayouts = ['us', 'de', 'de-ch'] as const;
 export type KeyboardLayout = (typeof keyboardLayouts)[number];

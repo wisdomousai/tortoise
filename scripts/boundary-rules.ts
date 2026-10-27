@@ -102,7 +102,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     "The hosted platform's workspace database, opened before any plugin from the URL the launcher configures; it holds workspace state, as the local SQLite file does.",
   'plugins/process/src/spawn.ts':
     'Starts declared child processes from site-policy bindings with a built environment; the process port is the only caller.',
-  'workstations/screen-bridge/src/perception/openai-compatible-vision.ts':
+  'workstations/screen-bridge/src/recognition/openai-compatible-vision.ts':
     'Falls back to global fetch when no fetch is injected; to be made required so the host passes the guard.',
   'examples/line-station/fake-hmi/':
     'Test fixture: the simulated workstation application and its recorder.',
@@ -121,7 +121,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
  * reach Node or Bun, nor a server-only package, so the mobile bundle never pulls one in.
  */
 export const portableSource =
-  /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native|shell|assignments)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/devices\/src\/scanner\/(?:decode|profile|source|gs1|symbology|layouts)\.ts$|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/)|(?:examples|patterns)\/[^/]+\/(?:screens-native\.tsx$|ui-native\/))/;
+  /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native|shell|assignments)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/devices\/src\/scanner\/(?:decode|profile|source|gs1|symbology|layouts)\.ts$|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|schema-version|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/)|(?:examples|patterns)\/[^/]+\/(?:screens-native\.tsx$|ui-native\/))/;
 /** Imports portable source may not make: Node and Bun built-ins and the Bun-only packages. */
 export const portableForbiddenImport =
   /^(?:node:|bun:|@agent-native\/(?:host|agents|station)(?:\/|$)|@agent-native\/(?:site|network)(?!\/(?:plugin-manifest|plugin-screens|contracts)$)(?:\/|$)|@agent-native\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@agent-native\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;

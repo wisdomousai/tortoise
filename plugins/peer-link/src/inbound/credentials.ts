@@ -108,15 +108,15 @@ async function verify(
  * The caller a peer credential stands for, looked up through the runtime on every request, so a
  * revocation or unmapping committed a moment ago already applies.
  *
- * - Without a subject assertion the peer acts as `peer:<id>`, with a grant listing the surface's
+ * - Without a subject assertion the peer acts as `peer:<id>`, with a grant listing the API's
  *   service operations, or the narrower list its enrollment named. The application's policy
- *   gives that principal its lane (`peerLane`).
+ *   gives that principal its integration allowlist (`peerAllowlist`).
  * - With one, after the checks of `verify`, it acts as the person the subject maps to, with a
- *   grant of the surface's on-behalf-of operations within the mapping's. That person's own policy
+ *   grant of the API's on-behalf-of operations within the mapping's. That person's own policy
  *   applies; a person-only rule refuses the call, as it refuses any delegated caller. The grant
  *   has no expiry, so the receipt fingerprint of a redelivered effect stays the same.
  *
- * A bearer this plugin did not issue is not its business: it answers undefined and the next
+ * A bearer this plugin did not issue is not its business: it returns undefined and the next
  * plugin is asked.
  */
 export async function authenticatePeer(

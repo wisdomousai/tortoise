@@ -171,27 +171,27 @@ describe('asset survey', () => {
     await expect(
       command('assignment.survey.report', { ...report, id: 'cap-3' }, owner),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    // A node outside the survey arrives unplaced, for a reviewer to place within the survey.
+    // A capture of a node outside the survey is recorded unlinked, for a reviewer to link within the survey.
     const g2 = await survey.node(undefined, '=G2', 'Generator 2');
     await capture('cap-4', assignment.id, g2.id, { serial: 'X' }, { takenAt: 3_000 });
-    const unplaced = await query<{ items: { id: string }[] }>('capture.list', { unplaced: true });
-    expect(unplaced.items.map((item) => item.id)).toEqual(['cap-4']);
+    const unlinked = await query<{ items: { id: string }[] }>('capture.list', { unlinked: true });
+    expect(unlinked.items.map((item) => item.id)).toEqual(['cap-4']);
     expect(
       (await query<{ items: { stage: string }[] }>('assignment.list', {})).items[0]!.stage,
     ).toBe('working');
     await expect(
-      command('assignment.report.place', { id: 'cap-4', subject: g2.id }, rita),
+      command('assignment.report.link', { id: 'cap-4', subject: g2.id }, rita),
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
-    await command('assignment.report.place', { id: 'cap-4', subject: q1.id }, rita);
+    await command('assignment.report.link', { id: 'cap-4', subject: q1.id }, rita);
     await command('assignment.report.discard', { id: 'cap-4', reason: 'Duplicate' }, rita);
     await expect(
-      command('assignment.report.place', { id: 'cap-4', subject: q1.id }, vic),
+      command('assignment.report.link', { id: 'cap-4', subject: q1.id }, vic),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 
   test('a reviewer accepts what the model read, and the EAM decides on the filing', async () => {
     const survey = await open();
-    const { query, command, capture, settle } = survey;
+    const { query, command, capture, complete } = survey;
     const { q1, q2, assignment } = await dispatched(survey);
     await capture('cap-q1', assignment.id, q1.id, {
       manufacturer: 'ABB',
@@ -208,7 +208,7 @@ describe('asset survey', () => {
     await survey.read('cap-q2');
     await expect(survey.read('cap-q2', vic)).rejects.toMatchObject({ code: 'FORBIDDEN' });
     expect(await query('assignment.model.status', {})).toMatchObject({ waiting: 2, refused: 0 });
-    await settle();
+    await complete();
     const q1Reading = await survey.reading('cap-q1');
     expect(q1Reading.status).toBe('proposed');
     expect(q1Reading.fields.map(({ name, value, attention }) => [name, value, attention])).toEqual([
@@ -265,7 +265,7 @@ describe('asset survey', () => {
     await expect(command('filing.file', { nodeId: q2.id })).rejects.toMatchObject({
       code: 'CONFLICT',
     });
-    await settle();
+    await complete();
     type Filings = { items: { nodeId: string; sync: string; rejection?: { code: string } }[] };
     const rejected = (await query<Filings>('filing.list', {})).items;
     expect(
@@ -283,7 +283,7 @@ describe('asset survey', () => {
     );
     expect(found.items.map((item) => item.externalId)).toEqual(['EAM-1001']);
     await command('filing.file', { nodeId: q1.id, assetId: 'EAM-1001' });
-    await settle();
+    await complete();
     const filed = await query<Node>('structure.node.get', { id: q1.id });
     expect(filed).toMatchObject({ assetId: 'EAM-1001', assetStatus: 'active' });
     const asset = survey.eam().assets.get('EAM-1001')!;
@@ -296,7 +296,7 @@ describe('asset survey', () => {
 
     // The EAM's own users retire the asset; its feed reaches the node.
     survey.eam().retire('EAM-1001');
-    await settle();
+    await complete();
     expect(await query<Node>('structure.node.get', { id: q1.id })).toMatchObject({
       assetStatus: 'retired',
     });
@@ -353,8 +353,8 @@ describe('asset survey', () => {
 
   test('the model and EAM feeds sync as one principal before either reported anything', async () => {
     const survey = await open();
-    await survey.settle();
-    await survey.settle();
+    await survey.complete();
+    await survey.complete();
     expect(await survey.query('filing.status', {})).toMatchObject({ pending: 0, accepted: 0 });
     expect(await survey.query('assignment.model.status', {})).toMatchObject({
       waiting: 0,
@@ -364,11 +364,11 @@ describe('asset survey', () => {
 
   test('a filing waits while the EAM is unreachable and goes out once it is back', async () => {
     const survey = await open();
-    const { query, command, settle } = survey;
+    const { query, command, complete } = survey;
     const { q2, assignment } = await dispatched(survey);
     await survey.capture('cap', assignment.id, q2.id, { serial: 'S-77' });
     await survey.read('cap');
-    await settle();
+    await complete();
     await command(
       'assignment.extraction.accept',
       { id: (await survey.reading('cap')).reportId, values: { serial: 'S-77' } },

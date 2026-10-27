@@ -6,7 +6,7 @@ import { defineDriverContract } from '@agent-native/connector-driver/contracts';
  * The station software's automation interface (a vendor COM server or similar), reached through a
  * driver on the station PC instead of through the screen. It carries the same fields the screen
  * profile reads and the same `recipe.load` procedure with the same precondition, readback and
- * hazard, so the domain cannot tell which route a station uses. `control` shows when someone
+ * risk level, so the domain cannot tell which route a station uses. `control` shows when someone
  * works the station locally; deliveries wait then, as they do when the operator holds the screen.
  */
 export const stationAutomationContract = defineDriverContract({
@@ -39,7 +39,7 @@ export const stationAutomationContract = defineDriverContract({
       ),
       delivery: 'convergent',
       // As the screen procedure: the person who started the order confirmed they are at the machine.
-      hazard: 'operator-present',
+      risk: 'operator-present',
       timeoutMs: 20_000,
       preconditions: [{ field: 'machine', equals: 'STOPPED' }],
       readback: [{ field: 'recipe', equals: '$input.recipe' }],

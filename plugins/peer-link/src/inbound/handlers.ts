@@ -42,7 +42,7 @@ function checkOperations(
 
 function createEnrollment(input: InputOf<typeof ops.enrollmentCreate>, ctx: Context) {
   const { now, serviceOperations } = serviceOf(ctx);
-  checkOperations(input.operations, serviceOperations, 'service operations of the peer surface');
+  checkOperations(input.operations, serviceOperations, 'service operations of the peer API');
   const at = now();
   for (const [id, old] of Object.entries(ctx.state.enrollments))
     if (Math.max(old.expiresAt, old.redeemedAt ?? 0) + enrollmentRetentionMs < at) {
@@ -114,7 +114,7 @@ function map(input: InputOf<typeof ops.subjectMap>, ctx: Context) {
   checkOperations(
     input.operations,
     onBehalfOfOperations,
-    'on-behalf-of operations of the peer surface',
+    'on-behalf-of operations of the peer API',
   );
   const mapping: SubjectMappingRecord = {
     peerId: peer.id,

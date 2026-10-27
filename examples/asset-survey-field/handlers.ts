@@ -20,7 +20,7 @@ const assignmentResource = (id: string) => `${worklist.types.assignment}:${id}`;
  * The device's owner is told of each open survey the first time the hub's feed brings it. The
  * notice waits in the outbox until the app is in the foreground to show it.
  */
-export function announce(assignment: WorklistAssignment, ctx: Context) {
+export function notifyNewSurvey(assignment: WorklistAssignment, ctx: Context) {
   ctx.enqueue({
     target: 'assignment-notices',
     type: 'assignment.notice',
@@ -36,13 +36,13 @@ export function announce(assignment: WorklistAssignment, ctx: Context) {
 
 /** The handlers the OS declarations need next to the worklist's. */
 export const createFieldHandlers = () => [
-  handler(ops.noticesSettle, (input, ctx) => {
-    const effect = ctx.settleEffect(
+  handler(ops.noticesComplete, (input, ctx) => {
+    const effect = ctx.completeEffect(
       input.effectId,
       input.outcome,
       input.fence === undefined ? {} : { fence: input.fence },
     );
-    // The outcome rides on the survey's change, which the outbox requires.
+    // The outcome is recorded as a change to the survey, which the outbox requires.
     ctx.change(effect.resource);
     return {};
   }),

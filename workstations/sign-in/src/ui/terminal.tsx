@@ -10,12 +10,12 @@ import { ScanPrompt, type ScanOutcome } from '@/components/scan-prompt';
 import { useIdleReturn } from '@/hooks/use-idle-return';
 import { useScanner } from '@/hooks/use-scanner';
 
-export interface SeatOptions {
-  /** The seat's name, which the session and the audit log record. */
-  readonly seat: string;
+export interface TerminalOptions {
+  /** The terminal's name, which the session and the audit log record. */
+  readonly terminal: string;
   /** What a signed-in operator works on. It reads the operator's client with `useOperatorSession`. */
   readonly work: ComponentType;
-  /** Inactivity after which the seat signs the operator out; two minutes by default. */
+  /** Inactivity after which the terminal signs the operator out; two minutes by default. */
   readonly idleMs?: number;
   /** The badge format, as a regular expression whose group 1, when present, is the badge value. */
   readonly badgePattern?: string;
@@ -26,7 +26,7 @@ interface SignedIn {
   readonly session: OperatorSessionRecord;
 }
 
-/** POST to a station route with the seat's own session cookie. */
+/** POST to a station route with the terminal's own session cookie. */
 async function post<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(path, {
     method: 'POST',
@@ -37,19 +37,19 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   const payload = (await response.json().catch(() => undefined)) as
     (T & { error?: { message?: string } }) | undefined;
   if (!response.ok)
-    throw new Error(payload?.error?.message ?? `The seat answered ${response.status}`);
+    throw new Error(payload?.error?.message ?? `The station route returned ${response.status}`);
   return payload as T;
 }
 
 const time = (at: number) => new Date(at).toLocaleTimeString([], { timeStyle: 'short' });
 
-/** Badge, then PIN. The badge value stays in this component until the sign-in answers. */
+/** Badge, then PIN. The badge value stays in this component until the sign-in request returns. */
 function SignIn({
-  seat,
+  terminal,
   badgePattern,
   onSignedIn,
 }: {
-  seat: string;
+  terminal: string;
   badgePattern: string;
   onSignedIn: (signedIn: SignedIn) => void;
 }) {
@@ -76,7 +76,7 @@ function SignIn({
   const signIn = (entry: string) => {
     if (!badge) return;
     setPending(true);
-    post<SignedIn>(stationPaths.signIn, { badge, pin: entry, seat })
+    post<SignedIn>(stationPaths.signIn, { badge, pin: entry, terminal })
       .then((signedIn) => {
         setBadge(undefined);
         onSignedIn(signedIn);
@@ -137,22 +137,22 @@ function SignIn({
 }
 
 /**
- * A seat at a shared workstation. Signed out, it reads a badge from the scanner or by hand and a
- * PIN from the keypad, and signs in at the station route with the seat's own session. Signed in,
+ * A terminal at a shared workstation. Signed out, it reads a badge from the scanner or by hand and a
+ * PIN from the keypad, and signs in at the station route with the terminal's own session. Signed in,
  * it shows `work` as the operator until sign-out, inactivity, the session's expiry or a rejected
  * credential returns it to sign-in.
  */
-export function SeatScreen({
-  seat,
+export function TerminalScreen({
+  terminal,
   work: Work,
   idleMs = 120_000,
   badgePattern = '^(.{1,256})$',
-}: SeatOptions) {
+}: TerminalOptions) {
   const [signedIn, setSignedIn] = useState<SignedIn>();
   const signOut = useCallback(() => setSignedIn(undefined), []);
   useIdleReturn(signOut, { idleMs, active: signedIn !== undefined });
   // Every way out of a session ends it at the host, leaving the screen included, since the token
-  // lives only here. Ending one that already ended answers `ended: false`.
+  // lives only here. Ending one that already ended returns `ended: false`.
   useEffect(() => {
     if (!signedIn) return;
     const timer = setTimeout(signOut, Math.max(0, signedIn.session.expiresAt - Date.now()));
@@ -173,7 +173,7 @@ export function SeatScreen({
         >
           <OperatorHeader
             title={signedIn.session.principalId}
-            context={`Signed in at ${seat} until ${time(signedIn.session.expiresAt)}`}
+            context={`Signed in at ${terminal} until ${time(signedIn.session.expiresAt)}`}
             actions={
               <Button variant="outline" onClick={signOut}>
                 <LogOut aria-hidden />
@@ -185,8 +185,8 @@ export function SeatScreen({
         </OperatorSessionProvider>
       ) : (
         <>
-          <OperatorHeader title={`Seat ${seat}`} context="Signed out" />
-          <SignIn seat={seat} badgePattern={badgePattern} onSignedIn={setSignedIn} />
+          <OperatorHeader title={`Terminal ${terminal}`} context="Signed out" />
+          <SignIn terminal={terminal} badgePattern={badgePattern} onSignedIn={setSignedIn} />
         </>
       )}
     </OperatorSurface>

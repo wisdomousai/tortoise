@@ -67,7 +67,7 @@ describe('assignment feature conformance', () => {
       { operation: 'assignment.feed', input: {} },
       { operation: 'assignment.report.list', input: {} },
       { operation: 'assignment.report.get', input: { id: 'r1' } },
-      { operation: 'assignment.report.place', input: { id: 'r1', subject: 'n1' } },
+      { operation: 'assignment.report.link', input: { id: 'r1', subject: 'n1' } },
       { operation: 'assignment.report.discard', input: { id: 'r1' } },
     ],
     events: [event('assignment:a1'), event('assignment-report:r1')],

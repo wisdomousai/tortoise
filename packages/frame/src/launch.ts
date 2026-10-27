@@ -1,6 +1,6 @@
 /**
  * Exchange a launch link's one-time credential for the session cookie, before any route renders.
- * The credential travels in the fragment, so it never reaches a server log; it is dropped from
+ * The credential is sent in the fragment, so it never reaches a server log; it is dropped from
  * the address bar first. Fails when the link expired or was already used.
  */
 export async function exchangeLaunch() {

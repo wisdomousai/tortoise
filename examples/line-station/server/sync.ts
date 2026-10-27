@@ -3,7 +3,7 @@ import type { Effect, EffectOutcome } from '@agent-native/runtime';
 import { own, type Synchronized } from '../domain';
 import type { Context } from './context';
 
-/** Apply a target's outcome to the record that forwarded it, in the settling transaction. */
+/** Apply a target's outcome to the record that forwarded it, in the completing transaction. */
 export function applyOutcome(
   ctx: Context,
   effect: Effect,

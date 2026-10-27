@@ -17,7 +17,7 @@ import { nodes as nodeCollection } from './contracts/structure';
  *
  * The hub owns the structure, reviewed attributes and filings. Field work and reading photos are
  * assignments: a survey goes to a paired device or a person, who reports one capture at a time;
- * an extraction goes to the model, which answers through its feed, or to a person. Neither
+ * an extraction goes to the model, which reports through its feed, or to a person. Neither
  * writes the structure; a person accepting a report does. The EAM decides about filings.
  */
 export type Role = 'manager' | 'reviewer' | 'viewer';

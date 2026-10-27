@@ -75,7 +75,7 @@ test('a site reports its outbox, and the health view flags held, stale and silen
   await site.agent.sync();
   const record = await query('site.get', { id: site.id });
   expect(record).toMatchObject({ application: 'plant', pending: 2, held: 0 });
-  expect(record.targets).toEqual([{ target: 'erp', pending: 2, held: 0, upstream: 0 }]);
+  expect(record.targets).toEqual([{ target: 'erp', pending: 2, held: 0, acknowledged: 0 }]);
   expect((await query('fleet.health')).issues).toEqual([]);
 
   clock.now += 16 * 60_000;
@@ -287,7 +287,7 @@ test('a site calls only the fleet protocol, about itself', async () => {
   const listed = await asSite(credential, '/api/v1/queries/site.list', { input: {} });
   expect(listed.status).toBe(403);
 
-  // Another site neither takes nor answers this site's request.
+  // Another site neither takes nor responds to this site's request.
   const other = await plant();
   const otherCredential = await other.credential();
   const { id } = await command('relay.request', {
@@ -297,15 +297,15 @@ test('a site calls only the fleet protocol, about itself', async () => {
   });
   const call = (token: string, operation: string, input: unknown) =>
     asSite(token, `/api/v1/commands/${operation}`, { input, idempotencyKey: crypto.randomUUID() });
-  const stolen = await call(otherCredential, 'fleet.relay.take', {});
+  const stolen = await call(otherCredential, 'fleet.relay.claim', {});
   expect(((await stolen.json()) as { result: unknown }).result).toEqual({});
-  const taken = await call(credential, 'fleet.relay.take', {});
+  const taken = await call(credential, 'fleet.relay.claim', {});
   expect(((await taken.json()) as { result: { request: { id: string } } }).result.request.id).toBe(
     id,
   );
-  const answer = { id, status: 200, headers: {} };
-  expect((await call(otherCredential, 'fleet.relay.answer', answer)).status).toBe(409);
-  expect((await call(credential, 'fleet.relay.answer', answer)).status).toBe(200);
+  const reply = { id, status: 200, headers: {} };
+  expect((await call(otherCredential, 'fleet.relay.respond', reply)).status).toBe(409);
+  expect((await call(credential, 'fleet.relay.respond', reply)).status).toBe(200);
 });
 
 test('an operator reaches a site’s API through the relay only with a session the site issued', async () => {
@@ -320,16 +320,16 @@ test('an operator reaches a site’s API through the relay only with a session t
       headers: { 'content-type': 'application/json', ...headers },
       body: JSON.stringify({ input: {} }),
     });
-    expect((await query('relay.get', { id })).status).toBe('waiting');
+    expect((await query('relay.get', { id })).status).toBe('queued');
     expect(await site.agent.relay()).toBe(true);
     return query('relay.get', { id });
   };
 
-  expect(await ask({})).toMatchObject({ status: 'answered', response: 403 });
+  expect(await ask({})).toMatchObject({ status: 'responded', response: 403 });
   const session = site.host.sessions.create(owner, 60_000);
-  const answered = await ask({ authorization: `Bearer ${session.token}` });
-  expect(answered).toMatchObject({ status: 'answered', response: 200 });
-  expect(JSON.parse(Buffer.from(answered.responseBody, 'base64').toString())).toMatchObject({
+  const responded = await ask({ authorization: `Bearer ${session.token}` });
+  expect(responded).toMatchObject({ status: 'responded', response: 200 });
+  expect(JSON.parse(Buffer.from(responded.responseBody, 'base64').toString())).toMatchObject({
     data: { count: 1 },
   });
   // The session never shows in what the fleet lists.

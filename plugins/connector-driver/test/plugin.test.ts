@@ -12,7 +12,7 @@ import { createDriverSupervisor } from '../src/supervisor';
 import { createFakeDriver } from '../src/testing';
 import { chamber, chamberDriver } from './fixture';
 
-const settle = () => new Promise((resolve) => setTimeout(resolve, 5));
+const complete = () => new Promise((resolve) => setTimeout(resolve, 5));
 const context: ExecutionContext = { workspaceId: 'w', principalId: 'observer' };
 const portsFor = (start: () => Promise<unknown>) =>
   ({ processes: { spawn: async () => start() } }) as unknown as HostPorts;
@@ -73,7 +73,7 @@ describe('driver observer', () => {
       'door',
     ]);
     driver.crash();
-    await settle();
+    await complete();
     const restarted = (await observer.runOnce()).observation;
     expect(restarted.session).toBe('s2');
     expect(restarted.readings.map((reading) => reading.field)).toEqual(['door']);
@@ -158,17 +158,17 @@ describe('driver plugin', () => {
     service.onSession('chamber', (session) => sessions.push(session.session));
     await service.supervisor('chamber').read(['setpoint']);
     driver.emit('reading', { setpoint: 20 });
-    await settle();
+    await complete();
     stop();
     driver.emit('reading', { setpoint: 21 });
-    await settle();
+    await complete();
     expect(seen).toEqual(['reading']);
     expect(sessions).toEqual(['s1']);
     expect(service.status()[0]).toMatchObject({
       state: 'ready',
       devices: [{ serial: 'CH-0042' }],
       actions: expect.arrayContaining([
-        { id: 'cycle.start', title: 'Start a cycle', delivery: 'once', hazard: 'operator-present' },
+        { id: 'cycle.start', title: 'Start a cycle', delivery: 'once', risk: 'operator-present' },
       ]),
     });
     expect(service.status()[0]!.problems).toBeGreaterThan(0);

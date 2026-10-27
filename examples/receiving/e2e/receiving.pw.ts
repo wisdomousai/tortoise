@@ -58,7 +58,7 @@ test('a short line is counted, classified and posted through the exchange folder
     await page.getByRole('button', { name: 'Post goods receipt' }).click();
     await expect(page.getByRole('definition').filter({ hasText: /^posted$/ })).toBeVisible();
 
-    // The test plays the ERP: it takes the goods receipt file and answers with a receipt.
+    // The test plays the ERP: it takes the goods receipt file and responds with a receipt.
     await expect
       .poll(async () => (await readdir(path('drop'))).length, { timeout: 10_000 })
       .toBe(1);

@@ -4,14 +4,18 @@ import { id, orderSnapshotSchema, reasonSchema } from './schemas';
 
 /**
  * The MES as a system of record: stops and counts are forwarded to it, and its feed delivers
- * orders and the stop reason catalog. Station bridges settle their own screen procedures through
- * the same settle operation, so the status query reports every target the caller can see.
+ * orders and the stop reason catalog. Station bridges complete their own screen procedures through
+ * the same complete operation, so the status query reports every target the caller can see.
  */
 export const mesTarget = defineTarget({
   target: 'mes',
   resourceType: 'Synchronization',
-  operations: { settle: 'line.effect.settle', sync: 'line.mes.sync', status: 'line.sync.status' },
-  settles: ['station', 'stop', 'count'],
+  operations: {
+    complete: 'line.effect.complete',
+    sync: 'line.mes.sync',
+    status: 'line.sync.status',
+  },
+  changes: ['station', 'stop', 'count'],
   feed: {
     item: orderSnapshotSchema,
     max: 200,
@@ -34,8 +38,8 @@ export const mesTarget = defineTarget({
     ),
   },
   descriptions: {
-    settle:
-      'Integration only: record the outcome of a forwarded record (MES) or a screen procedure (station bridge). Each integration principal settles only its own target.',
+    complete:
+      'Integration only: record the outcome of a forwarded record (MES) or a screen procedure (station bridge). Each integration principal completes only its own target.',
     sync: 'MES integration only: apply orders and stop reasons from the MES and advance the watermark. A stale from watermark conflicts.',
     status:
       'Summarize synchronization for your stations: records pending, held, accepted and rejected per target (MES and station software), recent rejections and the last MES sync.',

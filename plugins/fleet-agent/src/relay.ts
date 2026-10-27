@@ -1,4 +1,4 @@
-import type { RelayAnswer, RelayRequest } from './contracts';
+import type { RelayResponse, RelayRequest } from './contracts';
 
 /** Request headers passed to the site's API. Cookies, origin and forwarding headers never are. */
 const requestHeaders = new Set([
@@ -31,7 +31,7 @@ const pick = (headers: Iterable<[string, string]>, allowed: ReadonlySet<string>)
  * Trust boundary: `origin` is the host's own listener from `PluginStartContext.origin`, and the
  * path is confined to `/api/v1/` by the protocol schema, so the relay reaches nothing else.
  */
-export async function forwardToSite(origin: string, request: RelayRequest): Promise<RelayAnswer> {
+export async function forwardToSite(origin: string, request: RelayRequest): Promise<RelayResponse> {
   const url = new URL(request.path, origin);
   if (url.origin !== new URL(origin).origin || !url.pathname.startsWith('/api/v1/'))
     return { id: request.id, status: 400, headers: {} };

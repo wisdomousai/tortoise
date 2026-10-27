@@ -14,7 +14,7 @@ import { FakeMes } from '../fake-mes';
 import { createSimulatorOcr, createSimulatorTransport } from '../fake-hmi/memory';
 import { HmiSimulator } from '../fake-hmi/simulator';
 
-test('a station observed through its screen reads the same on every transport; lanes stay separate', async () => {
+test('a station observed through its screen reads the same on every transport; each principal calls only its own operations', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-station-'));
   const mes = new FakeMes();
   // Loops disabled and no browser: the test drives the bridge over the in-memory simulator.
@@ -103,9 +103,9 @@ test('a station observed through its screen reads the same on every transport; l
       { idempotencyKey: 'mode' },
     );
     await operator.command(
-      'line.seat.request',
-      { station: 'line-1', seat: 'agent' },
-      { idempotencyKey: 'seat' },
+      'line.control.request',
+      { station: 'line-1', holder: 'agent' },
+      { idempotencyKey: 'control' },
     );
     const started = await operator.command<{ desired: { sync: string; effectId: string } }>(
       'line.order.start',
@@ -118,7 +118,7 @@ test('a station observed through its screen reads the same on every transport; l
     const after = await operator.query<{ desired: { sync: string } }>('line.station.get', input);
     expect(after.data.desired.sync).toBe('accepted');
 
-    // Lanes: people cannot report observations; the bridge cannot read people's queries or touch
+    // Separation: people cannot report observations; the bridge cannot read people's queries or touch
     // device configuration; operators read but cannot administer scanners.
     await expect(
       operator.command(

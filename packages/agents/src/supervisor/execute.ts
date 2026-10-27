@@ -95,7 +95,7 @@ async function streamTurn(
 }
 
 /** Cancelled when aborted, otherwise failed with a scrubbed, bounded message. */
-async function settleFailure(kernel: SupervisorKernel, run: Active, error: unknown) {
+async function completeFailure(kernel: SupervisorKernel, run: Active, error: unknown) {
   if (terminalStates.has(run.snapshot.state)) return;
   // Partial output before a failure is kept, scrubbed like every other event.
   if (!run.persistenceFailed) await flushText(kernel, run).catch(() => {});
@@ -141,7 +141,7 @@ export async function execute(
     abortCheck(run);
     await setState(kernel, run, 'succeeded');
   } catch (error) {
-    await settleFailure(kernel, run, error);
+    await completeFailure(kernel, run, error);
   } finally {
     clearTimeout(timer);
     // Every path, cancellation and lost persistence included, ends here in a terminal state.

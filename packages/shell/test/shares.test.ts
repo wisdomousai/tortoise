@@ -10,7 +10,7 @@ import {
 } from '@agent-native/contracts';
 import {
   createMobileShell,
-  landingRequest,
+  launchRequest,
   nativeOsConfig,
   parseRawOsRequest,
   shareFileRequest,
@@ -116,7 +116,7 @@ test('a shared file is read only for a handler that accepts its type, within its
   expect(uploads).toEqual(['application/pdf']);
 });
 
-test('a claim is a one-use code, from a landing that carries only that code', () => {
+test('a claim is a one-use code, from a launch URL that carries only that code', () => {
   const code = 'abcdefghijklmnopqrstuv';
   expect(parseRawOsRequest({ kind: 'claim', code })).toEqual({ kind: 'claim', code });
   for (const value of [
@@ -125,9 +125,9 @@ test('a claim is a one-use code, from a landing that carries only that code', ()
     { kind: 'claim', code, extra: 1 },
   ])
     expect(() => parseRawOsRequest(value)).toThrow();
-  expect(landingRequest(`?os-share=${code}`)).toEqual({ kind: 'claim', code });
-  expect(landingRequest(`?os-share=${code}&os=x`)).toBeUndefined();
-  expect(landingRequest('?os-share=short')).toBeUndefined();
+  expect(launchRequest(`?os-share=${code}`)).toEqual({ kind: 'claim', code });
+  expect(launchRequest(`?os-share=${code}&os=x`)).toBeUndefined();
+  expect(launchRequest('?os-share=short')).toBeUndefined();
 });
 
 test('a mobile shell without share bindings ignores share links and refuses share actions', async () => {

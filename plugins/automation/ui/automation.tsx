@@ -31,7 +31,7 @@ function useAction() {
 type TriggerSummary = OutputOf<typeof automationOperations.triggerList>['items'][number];
 type Act = ReturnType<typeof useAction>['act'];
 
-/** Enable a trigger with a week's standing grant, or renew or revoke the active one. */
+/** Enable a trigger with a week's trigger grant, or renew or revoke the active one. */
 function GrantControls({
   trigger,
   busy,
@@ -90,7 +90,7 @@ function GrantControls({
 }
 
 /**
- * Triggers (`automation.trigger.list`) with their standing grants. Enabling issues a grant as
+ * Triggers (`automation.trigger.list`) with their trigger grants. Enabling issues a grant as
  * the signed-in person for a week; every run then acts as them. Renew and revoke apply to the
  * grant they issued, and the instance refuses anyone else's.
  */
@@ -103,7 +103,7 @@ function Triggers() {
       <CardHeader>
         <CardTitle>Triggers</CardTitle>
         <CardDescription>
-          A trigger runs only while a person&apos;s standing grant is active, and acts as that
+          A trigger runs only while a person&apos;s trigger grant is active, and acts as that
           person.
         </CardDescription>
       </CardHeader>

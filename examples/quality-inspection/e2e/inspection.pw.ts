@@ -28,7 +28,7 @@ test('keyboard-only capture records, advances, deduplicates and shows SoR outcom
     await page.goto(host.launchUrl);
     const sections = page.getByRole('navigation', { name: 'Sections' });
     await sections.getByRole('link', { name: 'Lots' }).click();
-    // Lots arrive from the quality system through inbound sync, not from a user.
+    // Lots are imported from the quality system through inbound sync, not entered by a person.
     const row = page.getByRole('row', { name: 'Inspect lot 4000001' });
     await expect(row).toBeVisible();
     await row.focus();

@@ -18,7 +18,7 @@ export interface ReplyRecord {
 
 /** The plugin's slice, under `state.notifications`. */
 export interface NotificationsState {
-  /** The local owner: the dispatcher acts as them, narrowed to issuing and settling. */
+  /** The local owner: the dispatcher acts as them, narrowed to issuing and completing. */
   owner: string;
   /** Live replies by the hex SHA-256 of their nonce. */
   replies: Record<string, ReplyRecord>;

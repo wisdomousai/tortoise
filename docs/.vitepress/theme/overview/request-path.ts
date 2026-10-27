@@ -1,5 +1,5 @@
 /**
- * The request paths as a step-through diagram: one column per lane, one row per step. The arrow
+ * The request paths as a step-through diagram: one column per part of the system, one row per step. The arrow
  * keys and the buttons move through the steps; the panel below names the code and the tests.
  */
 import {
@@ -14,7 +14,7 @@ import {
   type View,
 } from './dom';
 
-const column = 128;
+const columnWidth = 128;
 const nodeWidth = 112;
 const nodeHeight = 40;
 const row = 56;
@@ -23,14 +23,14 @@ const header = 36;
 type Path = Overview['paths'][number];
 
 function diagram(data: Overview, path: Path, current: number, select: (index: number) => void) {
-  const lanes = data.lanes;
-  const width = lanes.length * column;
+  const columns = data.columns;
+  const width = columns.length * columnWidth;
   const height = header + path.steps.length * row;
-  const laneIndex = (lane: string) => lanes.findIndex((entry) => entry.id === lane);
+  const columnIndex = (column: string) => columns.findIndex((entry) => entry.id === column);
   const at = (index: number) => {
     const step = path.steps[index]!;
     return {
-      x: laneIndex(step.lane) * column + (column - nodeWidth) / 2,
+      x: columnIndex(step.column) * columnWidth + (columnWidth - nodeWidth) / 2,
       y: header + index * row + 4,
     };
   };
@@ -61,27 +61,27 @@ function diagram(data: Overview, path: Path, current: number, select: (index: nu
         s('path', { d: 'M0,0 L8,4 L0,8 z', class: 'ov-arrowhead' }),
       ),
     ),
-    lanes.map((lane, index) =>
+    columns.map((column, index) =>
       s(
         'g',
         {},
         s('rect', {
-          x: index * column + 2,
+          x: index * columnWidth + 2,
           y: 0,
-          width: column - 4,
+          width: columnWidth - 4,
           height,
           rx: 6,
-          class: 'ov-lane',
+          class: 'ov-column',
         }),
         s(
           'text',
           {
-            x: index * column + column / 2,
+            x: index * columnWidth + columnWidth / 2,
             y: 22,
-            class: 'ov-lane-title',
+            class: 'ov-column-title',
             'text-anchor': 'middle',
           },
-          lane.title,
+          column.title,
         ),
       ),
     ),
@@ -118,12 +118,12 @@ function diagram(data: Overview, path: Path, current: number, select: (index: nu
 
 function detail(data: Overview, path: Path, index: number, links: Links) {
   const step = path.steps[index]!;
-  const lane = data.lanes.find((entry) => entry.id === step.lane)!;
+  const column = data.columns.find((entry) => entry.id === step.column)!;
   return [
     h(
       'p',
       { class: 'ov-detail-meta' },
-      `Step ${index + 1} of ${path.steps.length} · ${lane.title}`,
+      `Step ${index + 1} of ${path.steps.length} · ${column.title}`,
     ),
     h('p', { class: 'ov-detail-title' }, step.title),
     h('p', {}, ...inline(step.summary)),

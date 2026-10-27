@@ -29,7 +29,7 @@ export interface ModelIdentity {
 
 /**
  * The device behind a reading that came through a driver: which driver read it and which
- * physical unit answered. Reported by the driver at its handshake, so a reading can be traced to
+ * physical unit responded. Reported by the driver at its handshake, so a reading can be traced to
  * a serial number and firmware without trusting the host's configuration.
  */
 export interface DeviceIdentity {

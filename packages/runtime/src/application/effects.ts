@@ -30,7 +30,7 @@ export function publicEffect(effect: Effect): Effect {
 }
 
 /**
- * Refuse an attempt or settlement whose fencing token is older than the effect's current claim:
+ * Refuse an attempt or completion whose fencing token is older than the effect's current claim:
  * a newer worker owns the delivery now. No token (a person's reconciliation) is not fenced.
  */
 export function checkFence(effect: Effect, fence: number | undefined): void {
@@ -42,7 +42,8 @@ export function checkFence(effect: Effect, fence: number | undefined): void {
 export function pendingEffect<State>(snapshot: WorkspaceSnapshot<State>, id: string): Effect {
   const effect = ownEffect(snapshot, id);
   if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
-  if (effect.status !== 'pending') throw new ApplicationError('CONFLICT', 'Effect already settled');
+  if (effect.status !== 'pending')
+    throw new ApplicationError('CONFLICT', 'Effect already completed');
   return effect;
 }
 
@@ -107,17 +108,17 @@ export function enqueuedEffect(
   };
 }
 
-export function settledEffect(
+export function completedEffect(
   effect: Effect,
   outcome: EffectOutcome,
   now: () => number,
   fence?: number,
 ): Effect {
   checkFence(effect, fence);
-  // Held is a sub-state of pending: a settled effect no longer awaits reconciliation.
+  // Held is a sub-state of pending: a completed effect no longer awaits reconciliation.
   const { heldAt: _heldAt, holdReason: _holdReason, claim: _claim, ...unheld } = effect;
   const valid = validOutcome(outcome);
-  return { ...unheld, status: valid.status, outcome: valid, settledAt: now() };
+  return { ...unheld, status: valid.status, outcome: valid, completedAt: now() };
 }
 
 export function releasedEffect(effect: Effect, now: () => number): Effect {
@@ -130,8 +131,8 @@ export function releasedEffect(effect: Effect, now: () => number): Effect {
     holdReason: _holdReason,
     lastAttemptAt: _last,
     claim: _claim,
-    upstreamAt: _upstreamAt,
-    upstreamRef: _upstreamRef,
+    acknowledgedAt: _acknowledgedAt,
+    externalRef: _externalRef,
     ...rest
   } = effect;
   return { ...rest, releasedAt: now() };
@@ -139,12 +140,13 @@ export function releasedEffect(effect: Effect, now: () => number): Effect {
 
 /** Withdraw an effect no worker ever claimed; it was never sent, so nothing can be lost. */
 export function cancelledEffect(effect: Effect, reason: string, now: () => number): Effect {
-  if (effect.status !== 'pending') throw new ApplicationError('CONFLICT', 'Effect already settled');
+  if (effect.status !== 'pending')
+    throw new ApplicationError('CONFLICT', 'Effect already completed');
   if (effect.fence !== undefined || effect.attempts > 0)
     throw new ApplicationError('CONFLICT', 'Effect was already claimed for delivery');
   if (!boundedText(reason, 500))
     throw new ApplicationError('INVALID_INPUT', 'Cancellation requires a reason');
-  return { ...effect, status: 'cancelled', cancelReason: reason, settledAt: now() };
+  return { ...effect, status: 'cancelled', cancelReason: reason, completedAt: now() };
 }
 
 /** Claim a deliverable effect for one worker; a live claim by another worker conflicts. */
@@ -162,7 +164,7 @@ export function claimedEffect(
 }
 
 /** The target acknowledged the effect but has not decided; poll its lookup from now on. */
-export function upstreamEffect(
+export function acknowledgedEffect(
   effect: Effect,
   externalRef: string | undefined,
   now: () => number,
@@ -175,8 +177,8 @@ export function upstreamEffect(
     ...rest,
     attempts: effect.attempts + 1,
     lastAttemptAt: now(),
-    upstreamAt: effect.upstreamAt ?? now(),
-    ...(externalRef ? { upstreamRef: externalRef.slice(0, 256) } : {}),
+    acknowledgedAt: effect.acknowledgedAt ?? now(),
+    ...(externalRef ? { externalRef: externalRef.slice(0, 256) } : {}),
   };
 }
 

@@ -45,7 +45,7 @@ export interface ConvergentDelivery<View> {
  * 2. If acting cannot start from what the target shows, fail transiently; nothing was done.
  * 3. Confirm preconditions. Unreadable ones fail transiently; unmet ones reject as business data.
  * 4. Act, then accept only on a readback the connector confirms.
- * Gating (mode, seat, payload checks) happens before this, in the connector.
+ * Gating (mode, control holder, payload checks) happens before this, in the connector.
  */
 export async function deliverConvergent<View>(
   delivery: ConvergentDelivery<View>,

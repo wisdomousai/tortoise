@@ -11,7 +11,7 @@ const HUMIDITY = 1;
  * loopback MQTT broker where one Sparkplug B edge node per chamber publishes its humidity.
  *
  * An edge node births when it starts and again whenever a new client connects, the way a node
- * answers a host application coming online. The birth is retained, so a client that subscribes
+ * responds to a host application coming online. The birth is retained, so a client that subscribes
  * after it still starts from a birth and follows the data messages in sequence.
  */
 export class FakePlant {

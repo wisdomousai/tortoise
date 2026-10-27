@@ -13,7 +13,7 @@ import {
 import type { BlobRef } from '@agent-native/contracts';
 import { startHost } from '@agent-native/host/host';
 import { LOCAL_OWNER, LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
-import type { FleetRelease, RelayAnswer, SiteReport } from '../src/contracts';
+import type { FleetRelease, RelayResponse, SiteReport } from '../src/contracts';
 import type { FleetAgentService } from '../src/plugin';
 import { fleetNetworkFixture } from '../src/testing';
 import { fleetApplication, siteApplication } from './fixtures';
@@ -38,7 +38,7 @@ interface FleetView {
       report?: SiteReport;
       auditSeq: number;
       events: string[];
-      answers: Record<string, RelayAnswer>;
+      responses: Record<string, RelayResponse>;
     }
   >;
 }
@@ -70,8 +70,8 @@ async function startFleet() {
 
 /**
  * A site whose `fleet` destination reaches `fleetUrl` unless `link.offline` is set, as an
- * unplugged uplink would. With `link.corrupt`, blob downloads arrive with one byte changed;
- * `link.drop` loses the fleet's answer to the next request to that path, after the fleet handled it. `trust` and `relay` are the agent's settings; `workspace` puts the workspace where an install keeps it.
+ * unplugged uplink would. With `link.corrupt`, blob downloads come back with one byte changed;
+ * `link.drop` loses the fleet's response to the next request to that path, after the fleet handled it. `trust` and `relay` are the agent's settings; `workspace` puts the workspace where an install keeps it.
  */
 async function startSite(
   fleetUrl: string,
@@ -142,8 +142,8 @@ test('a site enrolls once and reports its outbox by target, never the payloads',
   expect(report.outbox).toEqual({
     pending: 2,
     held: 0,
-    upstream: 0,
-    targets: [{ target: 'erp', pending: 2, held: 0, upstream: 0 }],
+    acknowledged: 0,
+    targets: [{ target: 'erp', pending: 2, held: 0, acknowledged: 0 }],
   });
   expect(JSON.stringify(report)).not.toContain('first');
   // The one-use code is spent; the stored credential keeps the site enrolled.
@@ -174,7 +174,7 @@ test('audit events reach the fleet in order, and a lost reply is resent without 
   expect(first).toEqual(first.map((_, index) => index + 1));
   expect(agent.status().auditForwarded).toBe(first.length);
 
-  // The fleet stores the next batch, but its answer never arrives.
+  // The fleet stores the next batch, but its response is lost.
   await addNote('two');
   link.drop = '/api/v1/commands/fleet.audit.ingest';
   await agent.sync();
@@ -332,7 +332,7 @@ test('the relay reaches an operation only with a session the site issued', async
       },
     });
     expect(await agent.relay()).toBe(true);
-    return onlySite(await view()).answers[id]!;
+    return onlySite(await view()).responses[id]!;
   };
 
   expect((await ask('anonymous', {})).status).toBe(403);
@@ -341,12 +341,12 @@ test('the relay reaches an operation only with a session the site issued', async
   expect((await ask('fleet-token', { authorization: `Bearer ${credential}` })).status).toBe(403);
 
   const session = site.sessions.create(owner, 60_000);
-  const answer = await ask('operator', { authorization: `Bearer ${session.token}` });
-  expect(answer.status).toBe(200);
-  expect(JSON.parse(Buffer.from(answer.body!, 'base64').toString())).toMatchObject({
+  const response = await ask('operator', { authorization: `Bearer ${session.token}` });
+  expect(response.status).toBe(200);
+  expect(JSON.parse(Buffer.from(response.body!, 'base64').toString())).toMatchObject({
     data: { count: 1 },
   });
-  expect(Object.keys(answer.headers)).not.toContain('set-cookie');
+  expect(Object.keys(response.headers)).not.toContain('set-cookie');
   expect(await agent.relay()).toBe(false);
 });
 
@@ -374,7 +374,7 @@ test('the fleet stages an upgrade that the site installs, migrating its state wh
         application: 'plant',
         version: `${version}.0.0`,
         platform: `${process.platform}-${process.arch}`,
-        storageSchema: 2,
+        storageSchema: 3,
         catalogDigest: 'a'.repeat(64),
         requirements,
       },

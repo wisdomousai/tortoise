@@ -9,7 +9,7 @@ export interface HubLaunch {
 
 /**
  * Ask the hub for a one-use launch key with the device credential and build the page address.
- * The key travels in the fragment, so it never reaches a server log; the hub page exchanges it for
+ * The key is sent in the fragment, so it never reaches a server log; the hub page exchanges it for
  * a session cookie of its own, and the credential itself never enters the web view. Throws
  * UNAVAILABLE when the hub cannot be reached and FORBIDDEN when it refuses the credential.
  */

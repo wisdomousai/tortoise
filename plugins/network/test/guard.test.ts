@@ -207,7 +207,7 @@ describe('egress guard', () => {
     expect(fetched).toBe(false);
   });
 
-  test('DNS answers outside the bound networks are refused before connecting', async () => {
+  test('resolved addresses outside the bound networks are refused before connecting', async () => {
     const calls: string[] = [];
     const egress = createEgress({
       policy: policy({

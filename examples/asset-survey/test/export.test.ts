@@ -34,7 +34,7 @@ async function surveyed(settings?: Record<string, string>) {
   const photo = await survey.photo(lines);
   await survey.capture('cap', assignment.id, q2.id, lines);
   await survey.read('cap');
-  await survey.settle();
+  await survey.complete();
   await survey.command(
     'assignment.extraction.accept',
     { id: (await survey.reading('cap')).reportId, values: lines },
@@ -59,7 +59,7 @@ describe('export directory', () => {
       pending: 1,
       accepted: 0,
     });
-    await survey.settle();
+    await survey.complete();
     const items = (await survey.query<{ items: Filing[] }>('filing.list', {})).items;
     expect(items.map(({ target, sync }) => [target, sync]).sort()).toEqual([
       ['eam', 'accepted'],
@@ -98,7 +98,7 @@ describe('export directory', () => {
     expect(await survey.query('filing.export.status', {})).toMatchObject({ accepted: 1 });
   });
 
-  test('the export process answers a folder it already wrote as written', async () => {
+  test('the export process reports a folder it already wrote as written', async () => {
     const exportDirectory = join(directory, 'again');
     await mkdir(exportDirectory);
     const data = Buffer.from('photo');

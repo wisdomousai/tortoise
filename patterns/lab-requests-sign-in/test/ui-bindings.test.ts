@@ -4,7 +4,7 @@ import { unboundOperations } from '@agent-native/testing/ui-bindings';
 import manifest from '../manifest';
 
 test('every operation that claims a UI binding is referenced by a screen', async () => {
-  // The test request screens are the base pattern's, and the seat and badge screens are the
+  // The test request screens are the base pattern's, and the terminal and badge screens are the
   // sign-in workstation's; both directories are searched as well.
   const roots = [
     resolve(import.meta.dir, '..'),

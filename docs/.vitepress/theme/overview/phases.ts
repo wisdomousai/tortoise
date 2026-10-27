@@ -7,7 +7,7 @@ import { h, link, s, type View } from './dom';
 const width = 96;
 const height = 30;
 /**
- * Phase centres in a 470 by 230 box: the pending phases left to right, the settled ones above
+ * Phase centres in a 470 by 230 box: the pending phases left to right, the completed ones above
  * and below the claim, and `cancelled` below `queued`.
  */
 const layout: Record<string, readonly [x: number, y: number]> = {
@@ -17,7 +17,7 @@ const layout: Record<string, readonly [x: number, y: number]> = {
   accepted: [228, 30],
   rejected: [228, 200],
   retrying: [408, 40],
-  upstream: [408, 115],
+  acknowledged: [408, 115],
   held: [408, 190],
 };
 

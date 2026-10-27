@@ -13,13 +13,13 @@ type Queries = readonly (AnyCapability & { readonly kind: 'query' })[];
  * - `onBehalfOf` runs as the person the peer's signed subject is mapped to here, under that
  *   person's own policy.
  */
-export interface PeerSurface<
+export interface PeerApi<
   C extends Commands = Commands,
   Q extends Queries = Queries,
   OC extends Commands = Commands,
   OQ extends Queries = Queries,
 > {
-  /** The ID of the application that serves the surface. */
+  /** The ID of the application that serves the API. */
   readonly application: string;
   readonly commands: C;
   readonly queries: Q;
@@ -31,11 +31,11 @@ export interface PeerSurface<
 }
 
 /**
- * Declare a peer surface. It refuses an operation of the wrong kind, a command listed both for
+ * Declare a peer API. It refuses an operation of the wrong kind, a command listed both for
  * the service principal and on behalf of a person (a delivery would not know whose it is), and
  * on behalf of a person a command that takes blobs: a peer cannot upload as the person.
  */
-export function definePeerSurface<
+export function definePeerApi<
   const C extends Commands = readonly [],
   const Q extends Queries = readonly [],
   const OC extends Commands = readonly [],
@@ -45,9 +45,9 @@ export function definePeerSurface<
   readonly commands?: C;
   readonly queries?: Q;
   readonly onBehalfOf?: { readonly commands?: OC; readonly queries?: OQ };
-}): PeerSurface<C, Q, OC, OQ> {
+}): PeerApi<C, Q, OC, OQ> {
   const fail = (message: string): never => {
-    throw new Error(`Peer surface of ${spec.application} ${message}`);
+    throw new Error(`Peer API of ${spec.application} ${message}`);
   };
   const commands = (spec.commands ?? []) as C;
   const queries = (spec.queries ?? []) as Q;
@@ -82,14 +82,11 @@ export function definePeerSurface<
   });
 }
 
-/** Every operation a peer surface lists, once each. */
-export const peerSurfaceOperations = (surface: PeerSurface): readonly AnyCapability[] => [
+/** Every operation a peer API lists, once each. */
+export const peerApiOperations = (api: PeerApi): readonly AnyCapability[] => [
   ...new Map(
-    [
-      ...surface.commands,
-      ...surface.queries,
-      ...surface.onBehalfOf.commands,
-      ...surface.onBehalfOf.queries,
-    ].map((capability) => [capability.id, capability as AnyCapability]),
+    [...api.commands, ...api.queries, ...api.onBehalfOf.commands, ...api.onBehalfOf.queries].map(
+      (capability) => [capability.id, capability as AnyCapability],
+    ),
   ).values(),
 ];

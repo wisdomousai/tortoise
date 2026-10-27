@@ -14,10 +14,10 @@ import type { Decision, ExecutionContext, HandlerContext } from './types.js';
 export type ApprovalAction = 'request' | 'approve' | 'reject' | 'expire' | 'read';
 
 /**
- * The application's answer to who may do what with approval requests. The approval feature's
+ * The application's decision on who may do what with approval requests. The approval feature's
  * policy and handlers ask only this; the application's own policy never sees approval
  * operations, so `allows` must apply the application's membership gate, its integration
- * principals' lanes and a delegated grant's resource scope itself.
+ * principals' allowlists and a delegated grant's resource scope itself.
  */
 export interface ApprovalAccess {
   /**

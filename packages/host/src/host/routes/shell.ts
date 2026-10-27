@@ -50,7 +50,7 @@ async function relayNext(request: Request, url: URL, session: HostSession, host:
   return next ? jsonResponse(next) : new Response(null, { status: 204 });
 }
 
-async function relayAnswer(
+async function relayResult(
   request: Request,
   session: HostSession,
   id: string,
@@ -59,18 +59,18 @@ async function relayAnswer(
   const body = await readObject(request, 65_536);
   if (typeof body.ok !== 'boolean')
     throw new ApplicationError('INVALID_INPUT', 'Invalid OS action result');
-  host.shellRelay.answer(session, id, {
+  host.shellRelay.respond(session, id, {
     ok: body.ok,
     ...(typeof body.detail === 'string' ? { detail: body.detail.slice(0, 200) } : {}),
   });
-  return jsonResponse({ answered: true });
+  return jsonResponse({ received: true });
 }
 
 /**
  * The shell API: adapters submit OS requests, callers ask for declared OS actions, an adapter in
- * another process polls for the actions it should perform and answers them, and the declarations
+ * another process polls for the actions it should perform and posts their results, and the declarations
  * are readable so an adapter can check URLs it is about to open. Without a plugin that provides
- * the shell port these answer UNAVAILABLE.
+ * the shell port these return UNAVAILABLE.
  */
 export const shellRoute: HostRoute = async (request, url, session, host) => {
   const match = url.pathname.match(
@@ -89,7 +89,7 @@ export const shellRoute: HostRoute = async (request, url, session, host) => {
   if (area === 'actions' && !id && request.method === 'GET')
     return relayNext(request, url, session, host);
   if (area === 'actions' && id && request.method === 'POST')
-    return relayAnswer(request, session, id, host);
+    return relayResult(request, session, id, host);
   if (area === 'declarations' && !id && request.method === 'GET')
     return jsonResponse(host.application.catalog.os ?? { handlers: [], actions: [] });
   return undefined;

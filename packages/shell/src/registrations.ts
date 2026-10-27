@@ -106,7 +106,7 @@ function iosDocumentTypes(os: CatalogOs | undefined, appId: string) {
   };
 }
 
-/** The path a web share target posts to; the share target plugin answers it. */
+/** The path a web share target posts to; the share target plugin handles it. */
 export const webShareTargetPath = '/os/share';
 
 /**
@@ -157,7 +157,7 @@ export function desktopOsConfig(os: CatalogOs | undefined, identity: OsIdentity)
 
 /**
  * Web app manifest members for the OS handlers, in Chromium's format: the `web+` protocol
- * handler (landing at `/?os=<url>`), file handlers (the launch queue), the share target (a POST
+ * handler (a launch URL `/?os=<url>`), file handlers (the launch queue), the share target (a POST
  * to `webShareTargetPath`) and shortcuts. A browser offers them only after the person installs
  * the application.
  */

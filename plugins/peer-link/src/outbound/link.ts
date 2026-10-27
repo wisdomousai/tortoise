@@ -37,7 +37,7 @@ export interface OutboundOptions {
 
 /**
  * The calling side's connections. Credentials and keys are held in memory once read from the
- * secret store, so `client()` answers at once; every request still reads the connection record,
+ * secret store, so `client()` returns at once; every request still reads the connection record,
  * so a removal applies to the next request and deletes the secret.
  */
 export function createOutbound(options: OutboundOptions) {

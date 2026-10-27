@@ -3,7 +3,7 @@ import { osServiceOf } from '@agent-native/os';
 import { androidIntentsPluginManifest } from './plugin-manifest';
 
 /**
- * Enable intent handlers and intent actions in the OS plugin. An intent arrives through the
+ * Enable intent handlers and intent actions in the OS plugin. An intent is received through the
  * mobile shell, which submits it to the shell port like any OS request, so it only opens or
  * prefills; an intent action is built from its declaration and runs on an attached Android
  * adapter, which starts it in the declared package only.

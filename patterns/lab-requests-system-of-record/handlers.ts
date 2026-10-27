@@ -1,5 +1,5 @@
 import { ApplicationError } from '@agent-native/contracts';
-import { settleDelivery, targetHandlers } from '@agent-native/integration';
+import { completeDelivery, targetHandlers } from '@agent-native/integration';
 import {
   collectionGetHandler,
   collectionListHandler,
@@ -33,16 +33,16 @@ const visible = () => true;
 /** The effect type of one test request registered in the LIMS. */
 export const publishRequest = 'test-request.publish';
 
-/** An outcome lands on the publication that forwarded the effect, and nowhere else. */
+/** An outcome is applied to the publication that forwarded the effect, and nowhere else. */
 function recordOutcome(effect: Effect, outcome: EffectOutcome, ctx: Context) {
   const id = effect.resource.slice(`${publications.type}:`.length);
   publicationsOf(ctx).update(id, (publication) => {
-    settleDelivery(publication, effect, outcome);
+    completeDelivery(publication, effect, outcome);
   });
 }
 
 /**
- * Publishing, the LIMS target's settle, sync and status, and reconciliation of held
+ * Publishing, the LIMS target's complete, sync and status, and reconciliation of held
  * publications. They read the base pattern's test requests, so they are written against the
  * whole state.
  */
@@ -63,7 +63,7 @@ export function createPublishingHandlers(): HandlerContribution<
     bind(publishingOperations.publicationPublish, (input, ctx) => {
       const request = own(ctx.state.labRequests.requests, input.id);
       if (!request) throw new ApplicationError('NOT_FOUND', 'Test request unavailable');
-      // One delivery at a time per request, so a late outcome never lands on a newer one.
+      // One delivery at a time per request, so a late outcome is never applied to a newer one.
       if (own(store(ctx.state), input.id)?.sync === 'pending')
         throw new ApplicationError('CONFLICT', 'The LIMS has not decided the last one yet');
       const effectId = ctx.enqueue({
@@ -122,7 +122,7 @@ export function createPublishingHandlers(): HandlerContribution<
     }),
     ...reconciliationHandlers<LabPublishingRoot, LabRequestsServices>({
       visible: (effect) => effect.resource.startsWith(`${publications.type}:`),
-      // Applied or refused lands on the publication as the LIMS's own answer would; a
+      // Applied or refused is recorded on the publication as the LIMS's own response would be; a
       // publication sent again stays pending.
       onResolved(effect, _decision, outcome, ctx) {
         if (outcome) recordOutcome(effect, outcome, ctx);

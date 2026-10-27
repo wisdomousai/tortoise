@@ -12,7 +12,7 @@ export interface EffectRequest {
   /** A changed business resource the effect reports on. Its read policy governs delivery events. */
   readonly resource: string;
 }
-/** The system of record's answer. A rejection is business data, not a transport failure. */
+/** The system of record's response. A rejection is business data, not a transport failure. */
 export type EffectOutcome =
   | { readonly status: 'accepted'; readonly externalRef?: string }
   | { readonly status: 'rejected'; readonly code: string; readonly message: string };
@@ -38,12 +38,12 @@ export interface Effect extends EffectRequest {
   readonly lastAttemptAt?: number;
   /** Caller-safe, bounded transient failure text from the most recent delivery attempt. */
   readonly lastFailure?: string;
-  readonly settledAt?: number;
+  readonly completedAt?: number;
   readonly outcome?: EffectOutcome;
   /**
    * Set while a pending effect awaits reconciliation: the target may or may not have applied it
    * (for example a screen procedure was interrupted), so redelivery could act twice. Dispatchers
-   * skip held effects. A domain command resolves it with `settleEffect` (it was applied, or it was
+   * skip held effects. A domain command resolves it with `completeEffect` (it was applied, or it was
    * refused) or `releaseEffect` (it was not applied; deliver again).
    */
   readonly heldAt?: number;
@@ -60,12 +60,12 @@ export interface Effect extends EffectRequest {
   /** The last fencing token issued; a newer claim always gets a larger one. */
   readonly fence?: number;
   /**
-   * Set once the target acknowledged the effect but has not decided it yet (`upstream-pending`).
+   * Set once the target acknowledged the effect but has not decided it yet (`acknowledged`).
    * Dispatchers then poll the target's lookup instead of delivering again.
    */
-  readonly upstreamAt?: number;
+  readonly acknowledgedAt?: number;
   /** The target's reference for the acknowledged effect, when it gave one. */
-  readonly upstreamRef?: string;
+  readonly externalRef?: string;
   /** Caller-safe, bounded reason a command gave for cancelling it. */
   readonly cancelReason?: string;
   /**
@@ -76,7 +76,7 @@ export interface Effect extends EffectRequest {
 }
 /**
  * A worker's claim to deliver one effect. The fencing token grows with every claim, and an
- * attempt or settlement that carries an older token than the effect's current claim is refused,
+ * attempt or completion that carries an older token than the effect's current claim is refused,
  * so a worker that paused past its lease cannot overwrite the outcome of the worker after it.
  */
 export interface EffectClaim {

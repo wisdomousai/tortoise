@@ -13,9 +13,9 @@ import { nameplatePhoto } from '../connectors/nameplate-photo';
 
 const owner: ExecutionContext = { workspaceId: 'local', principalId: 'owner' };
 const device: ExecutionContext = { workspaceId: 'local', principalId: 'device:d1' };
-const composite = 'capture.place-and-extract';
+const composite = 'capture.link-and-extract';
 
-test('placing and extracting in one command commits both or neither on every surface', async () => {
+test('linking and extracting in one command commits both or neither on every surface', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'agent-survey-nested-'));
   const host = await startHost(createAssetSurveyApplication(), {
     workspacePath: join(directory, 'workspace'),
@@ -46,9 +46,9 @@ test('placing and extracting in one command commits both or neither on every sur
     );
   const created = async (operation: string, input: unknown, context = owner) =>
     (await direct(operation, input, context)).result as { id: string };
-  const unplaced = async () =>
+  const unlinked = async () =>
     (
-      (await application.queryRaw({ operation: 'capture.list', input: { unplaced: true } }, owner))
+      (await application.queryRaw({ operation: 'capture.list', input: { unlinked: true } }, owner))
         .data as { items: { id: string }[] }
     ).items
       .map((item) => item.id)
@@ -76,7 +76,7 @@ test('placing and extracting in one command commits both or neither on every sur
       'image/png',
       device,
     );
-    // Captures of a node outside the survey arrive unplaced.
+    // Captures of a node outside the survey are recorded unlinked.
     const ids = ['cap-direct', 'cap-http', 'cap-cli', 'cap-mcp'];
     for (const [index, id] of ids.entries())
       await direct(
@@ -89,7 +89,7 @@ test('placing and extracting in one command commits both or neither on every sur
         },
         device,
       );
-    expect(await unplaced()).toEqual([...ids].sort());
+    expect(await unlinked()).toEqual([...ids].sort());
     const input = (id: string) => ({ id, nodeId: q1.id });
 
     // A grant without the extraction: the placement already ran, and rolls back with it.
@@ -99,7 +99,7 @@ test('placing and extracting in one command commits both or neither on every sur
         token: host.sessions.create({ ...owner, grant: { operations } }).token,
       });
     for (const operations of [
-      [composite, 'assignment.report.place'],
+      [composite, 'assignment.report.link'],
       [composite, 'assignment.extraction.create'],
       [composite],
     ])
@@ -111,9 +111,9 @@ test('placing and extracting in one command commits both or neither on every sur
     ).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
-    expect(await unplaced()).toEqual([...ids].sort());
+    expect(await unlinked()).toEqual([...ids].sort());
 
-    // Each surface places one capture and sends it to the model in one commit.
+    // Each surface links one capture and sends it to the model in one commit.
     const viaDirect = await direct(composite, input('cap-direct'), owner, 'k-direct');
     const viaHttp = await http.command(composite, input('cap-http'), { idempotencyKey: 'k-http' });
     const viaCli = await cli([
@@ -145,7 +145,7 @@ test('placing and extracting in one command commits both or neither on every sur
         [`assignment-report:${id}`, `assignment:${receipt.result.extraction.id}`].sort(),
       );
     }
-    expect(await unplaced()).toEqual([]);
+    expect(await unlinked()).toEqual([]);
 
     // A retry on another surface returns the same receipt and sends nothing twice.
     const retried = await cli([

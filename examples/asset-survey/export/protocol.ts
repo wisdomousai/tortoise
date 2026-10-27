@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 /**
- * The `filing-export` process protocol: one request line on stdin, one answer line on stdout,
+ * The `filing-export` process protocol: one request line on stdin, one result line on stdout,
  * then the process exits. A process per filing keeps the worker stateless; exports are rare
  * next to the cost of starting it.
  *
  * Request: `{ id, folder, record, photos: [{ file, digest, data }] }`, where `id` is the effect
  * ID, `folder` the folder name inside the export directory, `record` what `record.json` holds
  * besides `effectId`, and `data` each photo's bytes in base64.
- * Answer: `{ id, folder }` once the folder is in place, or `{ id, error }`.
+ * Result: `{ id, folder }` once the folder is in place, or `{ id, error }`.
  */
 export const exportRequestSchema = z.strictObject({
   id: z.string().min(1).max(128),
@@ -30,8 +30,8 @@ export const exportRequestSchema = z.strictObject({
 });
 export type ExportRequest = z.output<typeof exportRequestSchema>;
 
-export const exportAnswerSchema = z.union([
+export const exportResultSchema = z.union([
   z.strictObject({ id: z.string(), folder: z.string().max(160) }),
   z.strictObject({ id: z.string(), error: z.string().max(500) }),
 ]);
-export type ExportAnswer = z.output<typeof exportAnswerSchema>;
+export type ExportResult = z.output<typeof exportResultSchema>;

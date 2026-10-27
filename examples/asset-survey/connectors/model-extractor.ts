@@ -6,7 +6,7 @@ import { attributeName } from '../contracts/schemas';
 import type { ProposedField } from '../domain';
 import type { Extractor, Photo } from './extractor';
 
-/** The attribute names the model is asked to use, so values land on the same node fields. */
+/** The attribute names the model is asked to use, so values are written to the same node fields. */
 export const NAMEPLATE_FIELDS = [
   'manufacturer',
   'model',
@@ -36,7 +36,7 @@ export const NAMEPLATE_FIELDS = [
 ] as const;
 
 // Every property required and nullable: OpenAI-compatible strict schemas allow no optionals.
-const answerSchema = z.object({
+const outputSchema = z.object({
   fields: z.array(
     z.object({
       name: z.string(),
@@ -49,7 +49,7 @@ const answerSchema = z.object({
     }),
   ),
 });
-type Answer = z.output<typeof answerSchema>;
+type ModelOutput = z.output<typeof outputSchema>;
 
 const instructions = (kind: string, count: number) =>
   [
@@ -64,14 +64,14 @@ const instructions = (kind: string, count: number) =>
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
 /**
- * The model's answer as proposals. The answer is outside this application's trust: a name that
+ * The model's output as proposals. The output is outside this application's trust: a name that
  * is not an attribute name, a value that is empty or too long, or a photo number that does not
  * exist is dropped; confidence and region are clamped to [0, 1]; of two values with one name the
  * more confident one stays.
  */
-export function proposedFields(answer: Answer, photos: readonly Photo[]): ProposedField[] {
+export function proposedFields(output: ModelOutput, photos: readonly Photo[]): ProposedField[] {
   const byName = new Map<string, ProposedField>();
-  for (const field of answer.fields) {
+  for (const field of output.fields) {
     const value = field.value.trim();
     const photo = photos[field.photo];
     if (!attributeName.safeParse(field.name).success || !value || value.length > 200 || !photo)
@@ -112,7 +112,7 @@ export function createModelExtractor(options: {
         model: options.model,
         abortSignal: signal,
         maxOutputTokens: options.maxOutputTokens ?? 2_000,
-        output: Output.object({ schema: answerSchema }),
+        output: Output.object({ schema: outputSchema }),
         messages: [
           {
             role: 'user',
@@ -158,7 +158,7 @@ function modelApiFetch(network: NetworkPort): typeof fetch {
  * `ASSET_SURVEY_MODEL` (the model ID) and `ASSET_SURVEY_MODEL_API_KEY`; the address is the site
  * policy's `model-api` binding, for example `https://api.openai.com/v1` or a local server's
  * `http://127.0.0.1:11434/v1`. No other variable, key store or provider login is read. Without
- * `ASSET_SURVEY_MODEL` the answer is undefined and the demo extractor stays.
+ * `ASSET_SURVEY_MODEL` it returns undefined and the demo extractor stays.
  */
 export function modelExtractorFromEnv(
   env: Record<string, string | undefined> = process.env,

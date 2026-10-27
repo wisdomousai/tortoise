@@ -38,24 +38,24 @@ export interface DispatchReport {
   /** Effects whose outcome at the target is unknown; they wait for a reconciliation command. */
   held: number;
   /** Effects the target acknowledged without deciding; their lookup is polled. */
-  upstream: number;
+  acknowledged: number;
 }
 export interface EffectDispatcherOptions {
   readonly application: DispatcherApplication;
   readonly port: SystemOfRecordPort;
   /**
-   * Trusted integration identity supplied by the host. Give it a grant limited to the settlement
-   * operation so a compromised port cannot drive other business commands.
+   * Trusted integration identity supplied by the host. Give it a grant limited to the completion
+   * operation so a compromised port cannot call other business commands.
    */
   readonly context: ExecutionContext;
-  /** Domain command that records an outcome through `ctx.settleEffect` and updates domain state. */
-  readonly settleOperation: string;
+  /** Domain command that records an outcome through `ctx.completeEffect` and updates domain state. */
+  readonly completeOperation: string;
   /**
-   * The settle command's input; `{ effectId, outcome }` when omitted. To fence settlements too,
-   * include `attempt.fence` and pass it on to `ctx.settleEffect`, as `defineTarget` settle
+   * The complete command's input; `{ effectId, outcome }` when omitted. To fence completions too,
+   * include `attempt.fence` and pass it on to `ctx.completeEffect`, as `defineTarget` complete
    * commands do; without it only attempts are fenced.
    */
-  readonly settleInput?: (
+  readonly completeInput?: (
     effect: Readonly<Effect>,
     outcome: EffectOutcome,
     attempt: { readonly fence: number },
@@ -81,10 +81,10 @@ export interface EffectDispatcherOptions {
 
 /**
  * Delivers committed outbox effects to one target outside every transaction, then records each
- * outcome through the domain's settlement command. Delivery is at least once: duplicates are
+ * outcome through the domain's completion command. Delivery is at least once: duplicates are
  * prevented by the target deduplicating on the effect ID, or, for targets that cannot, by looking
- * up an earlier delivery before every send. A settlement replay uses `settle:<effectId>` as its
- * idempotency key, so a lost settlement response is safe to repeat.
+ * up an earlier delivery before every send. A completion replay uses `complete:<effectId>` as its
+ * idempotency key, so a lost completion response is safe to repeat.
  */
 export function createEffectDispatcher(options: EffectDispatcherOptions) {
   const description = options.port.describe();
@@ -113,7 +113,7 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
       retried: 0,
       deferred: 0,
       held: 0,
-      upstream: 0,
+      acknowledged: 0,
     };
     for (const effect of await pending(options.batchSize ?? 50)) {
       if (signal.aborted) break;
@@ -126,7 +126,7 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
         continue;
       }
       const step = await dispatch(effect, signal);
-      if (step.tally) report[step.tally]++;
+      if (step.countAs) report[step.countAs]++;
       if (step.stop) break;
     }
     return report;
@@ -148,7 +148,7 @@ export function createEffectDispatcher(options: EffectDispatcherOptions) {
       for (;;) {
         await runOnce(controller.signal, { ignoreBackoff: true });
         const remaining = (await pending()).filter(
-          (effect) => effect.upstreamAt === undefined,
+          (effect) => effect.acknowledgedAt === undefined,
         ).length;
         if (remaining === 0 || controller.signal.aborted) return remaining;
         await abortableSleep(pollMs, controller.signal);

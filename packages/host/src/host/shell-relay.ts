@@ -12,7 +12,7 @@ import type { ShellPort } from '@agent-native/kernel/shell';
 interface Waiting {
   readonly id: string;
   readonly instruction: OsInstruction;
-  readonly settle: (result: OsActionResult) => void;
+  readonly complete: (result: OsActionResult) => void;
   delivered: boolean;
 }
 interface Relay {
@@ -24,27 +24,27 @@ interface Relay {
   lastPoll: number;
 }
 
-/** How long an instruction waits for its adapter's answer before it counts as not performed. */
-const answerMs = 30_000;
+/** How long an instruction waits for its adapter's result before it counts as not performed. */
+const resultMs = 30_000;
 /** A relay whose adapter stopped polling for this long is detached. */
 const idleMs = 60_000;
 
 /**
- * Queue an instruction for the relay's adapter and wait for its answer. A full queue or no
- * answer within `answerMs` counts as not performed.
+ * Queue an instruction for the relay's adapter and wait for its result. A full queue or no
+ * result within `resultMs` counts as not performed.
  */
 function enqueue(relay: Relay, instruction: OsInstruction): Promise<OsActionResult> {
   return new Promise<OsActionResult>((resolve) => {
     if (relay.queue.length >= 16) return resolve({ ok: false, detail: 'adapter busy' });
-    const timer = setTimeout(() => settle({ ok: false, detail: 'no answer' }), answerMs);
-    const settle = (result: OsActionResult) => {
+    const timer = setTimeout(() => complete({ ok: false, detail: 'no result' }), resultMs);
+    const complete = (result: OsActionResult) => {
       clearTimeout(timer);
       relay.pending.delete(waiting.id);
       const index = relay.queue.indexOf(waiting);
       if (index >= 0) relay.queue.splice(index, 1);
       resolve(result);
     };
-    const waiting: Waiting = { id: randomUUID(), instruction, settle, delivered: false };
+    const waiting: Waiting = { id: randomUUID(), instruction, complete, delivered: false };
     relay.queue.push(waiting);
     relay.pending.set(waiting.id, waiting);
     relay.wake?.();
@@ -55,7 +55,7 @@ function enqueue(relay: Relay, instruction: OsInstruction): Promise<OsActionResu
  * Shell adapters that run in another process and reach the host over HTTP, as Electron main
  * does. Main long-polls for instructions with its bearer and posts each result back; the shell
  * port sees an ordinary attached adapter. A relay belongs to one session token: only that
- * session can poll it or answer its instructions, and revoking the session detaches it.
+ * session can poll it or post results for its instructions, and revoking the session detaches it.
  */
 export function createShellRelay(
   shell: () => ShellPort,
@@ -72,7 +72,7 @@ export function createShellRelay(
     relays.delete(token);
     relay.detach();
     for (const waiting of [...relay.queue, ...relay.pending.values()])
-      waiting.settle({ ok: false, detail: 'adapter detached' });
+      waiting.complete({ ok: false, detail: 'adapter detached' });
     relay.wake?.();
   }
 
@@ -124,11 +124,11 @@ export function createShellRelay(
       relay.lastPoll = now();
       return relays.get(session.token) === relay ? take() : undefined;
     },
-    /** The adapter's answer to one delivered instruction; only the polling session may answer. */
-    answer(session: HostSession, id: string, result: OsActionResult) {
+    /** The adapter's result for one delivered instruction; only the polling session may post it. */
+    respond(session: HostSession, id: string, result: OsActionResult) {
       const waiting = relays.get(session.token)?.pending.get(id);
       if (!waiting?.delivered) throw new ApplicationError('NOT_FOUND', 'OS action unavailable');
-      waiting.settle(result);
+      waiting.complete(result);
     },
     /** Detach every relay, for shutdown. */
     close() {

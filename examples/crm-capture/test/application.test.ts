@@ -38,11 +38,11 @@ async function open(crm = new FakeCrm({ logins: { owner: 'ann' } })) {
   const command = (operation: string, input: unknown, key: string, as = owner) =>
     application.invokeRaw({ operation, input, idempotencyKey: key }, as);
   /** One outbox pass, then one feed pass: what the background loops do every second. */
-  const settle = async () => {
+  const complete = async () => {
     await integrations.target('crm').dispatcher.runOnce();
     await integrations.sync();
   };
-  return { crm, query, command, settle };
+  return { crm, query, command, complete };
 }
 const ids = (result: Result) => result.items.map((item) => item.externalId);
 
@@ -63,7 +63,7 @@ describe('CRM capture', () => {
     expect(ids(await query('crm.account.lookup', { externalId: '001A3' }))).toEqual([]);
   });
 
-  test('without a CRM login, the service account answers page by page and only the member’s regions show', async () => {
+  test('without a CRM login, the service account returns results page by page and only the member’s regions show', async () => {
     const { query } = await open();
     // The service account sees all ten accounts, five per page; region scoping shortens each page.
     const first = await query('crm.account.search', { q: '' }, pat);
@@ -93,43 +93,43 @@ describe('CRM capture', () => {
     ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
   });
 
-  test('adopting follows the account in the CRM; the feed fills it in and keeps it current', async () => {
-    const { crm, query, command, settle } = await open();
-    const receipt = await command('crm.account.adopt', { externalId: '001A1' }, 'adopt-1');
-    expect(receipt.result).toEqual({ id: '001A1', status: 'following' });
+  test('following an account asks the CRM; the feed fills it in and keeps it current', async () => {
+    const { crm, query, command, complete } = await open();
+    const receipt = await command('crm.account.follow', { externalId: '001A1' }, 'follow-1');
+    expect(receipt.result).toEqual({ id: '001A1', status: 'requested' });
     expect(receipt.effects).toHaveLength(1);
     expect((await query('crm.account.search', { q: 'acme robotics' })).items[0]!.local).toBe(
-      'following',
+      'requested',
     );
-    await settle();
-    const adopted = await query<{ name: string; status: string; owner: string }>(
+    await complete();
+    const followed = await query<{ name: string; status: string; owner: string }>(
       'crm.account.get',
       { id: '001A1' },
     );
-    expect(adopted).toMatchObject({
-      status: 'adopted',
+    expect(followed).toMatchObject({
+      status: 'following',
       name: 'Acme Robotics',
       owner: 'Ann Keller',
     });
     expect((await query('crm.account.search', { q: 'acme robotics' })).items[0]!.local).toBe(
-      'adopted',
+      'following',
     );
-    // Adopting again changes nothing and asks the CRM nothing.
-    const again = await command('crm.account.adopt', { externalId: '001A1' }, 'adopt-2');
-    expect(again.result).toEqual({ id: '001A1', status: 'adopted' });
+    // Following again changes nothing and asks the CRM nothing.
+    const again = await command('crm.account.follow', { externalId: '001A1' }, 'follow-2');
+    expect(again.result).toEqual({ id: '001A1', status: 'following' });
     expect(again.effects).toBeUndefined();
 
     crm.rename('001A1', 'Acme Robotics GmbH');
-    await settle();
+    await complete();
     expect(await query<{ name: string }>('crm.account.get', { id: '001A1' })).toMatchObject({
       name: 'Acme Robotics GmbH',
     });
   });
 
   test('the CRM refuses to let a caller follow an account it does not share with them', async () => {
-    const { query, command, settle } = await open();
-    await command('crm.account.adopt', { externalId: '001A3' }, 'adopt-private');
-    await settle();
+    const { query, command, complete } = await open();
+    await command('crm.account.follow', { externalId: '001A3' }, 'follow-private');
+    await complete();
     expect(await query('crm.account.get', { id: '001A3' })).toMatchObject({
       status: 'rejected',
       rejection: { code: 'NOT_VISIBLE' },
@@ -137,8 +137,8 @@ describe('CRM capture', () => {
   });
 
   test('activities go to the CRM after the local commit and report its outcome', async () => {
-    const { crm, query, command, settle } = await open();
-    await command('crm.account.adopt', { externalId: '001A2' }, 'adopt');
+    const { crm, query, command, complete } = await open();
+    await command('crm.account.follow', { externalId: '001A2' }, 'follow');
     await expect(
       command(
         'crm.activity.log',
@@ -146,7 +146,7 @@ describe('CRM capture', () => {
         'early',
       ),
     ).rejects.toMatchObject({ code: 'CONFLICT' });
-    await settle();
+    await complete();
     const logged = await command(
       'crm.activity.log',
       {
@@ -158,7 +158,7 @@ describe('CRM capture', () => {
       'call-1',
     );
     expect(logged.result).toMatchObject({ sync: 'pending', recordedBy: 'owner' });
-    await settle();
+    await complete();
     const detail = await query<{
       activities: number;
       history: { sync: string; sorRef?: string }[];
@@ -168,10 +168,10 @@ describe('CRM capture', () => {
     expect(crm.delivered().size).toBe(1);
   });
 
-  test('when the CRM is unreachable, search reports it and adopted accounts still work', async () => {
-    const { crm, query, command, settle } = await open();
-    await command('crm.account.adopt', { externalId: '001A5' }, 'adopt');
-    await settle();
+  test('when the CRM is unreachable, search reports it and followed accounts still work', async () => {
+    const { crm, query, command, complete } = await open();
+    await command('crm.account.follow', { externalId: '001A5' }, 'follow');
+    await complete();
     crm.unavailable = true;
     const search = await query('crm.account.search', { q: 'baltic' });
     expect(search).toMatchObject({
@@ -179,7 +179,7 @@ describe('CRM capture', () => {
       source: { status: 'unavailable', message: 'The CRM is not reachable' },
     });
     const list = await query<{ items: { id: string; status: string }[] }>('crm.account.list', {});
-    expect(list.items).toMatchObject([{ id: '001A5', status: 'adopted' }]);
+    expect(list.items).toMatchObject([{ id: '001A5', status: 'following' }]);
     // An activity logged now waits in the outbox instead of failing.
     const logged = await command(
       'crm.activity.log',

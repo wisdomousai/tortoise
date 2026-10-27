@@ -21,7 +21,7 @@ export const supervisor = as('sam');
 export const operator = as('olga');
 const mes = {
   ...as('mes-integration'),
-  grant: { operations: ['line.mes.sync', 'line.sync.status', 'line.effect.settle'] },
+  grant: { operations: ['line.mes.sync', 'line.sync.status', 'line.effect.complete'] },
 };
 
 /**
@@ -103,12 +103,12 @@ export async function automationRoute(options: {
     }
   };
   const deliver = () => bridge.dispatcher.runOnce(undefined, { ignoreBackoff: true });
-  /** A stopped machine, the bridge allowed to act, and the agent holding the station seat. */
+  /** A stopped machine, the bridge allowed to act, and the agent holding control. */
   const ready = async () => {
     await options.stopMachine();
     await observe();
     await command('line.bridge.set-mode', { station: 'line-1', mode: 'actuate' }, supervisor);
-    await command('line.seat.request', { station: 'line-1', seat: 'agent' });
+    await command('line.control.request', { station: 'line-1', holder: 'agent' });
   };
   return { command, query, observe, deliver, ready, close: () => driver.close() };
 }

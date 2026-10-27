@@ -45,11 +45,11 @@ const shown = (ctx: Ctx, assignment: StoredAssignment) =>
 const sameAssignee = (a: Assignee | undefined, b: Assignee) => a?.type === b.type && a.id === b.id;
 
 /**
- * Send an assignment: compute and check its brief, attach the brief's blobs, and for a target
- * lane enqueue the offer. An agent's offer carries its own event type, which a trigger filters on.
+ * Send an assignment: compute and check its brief, attach the brief's blobs, and for an
+ * assignment target enqueue the offer. An agent's offer carries its own event type, which a trigger filters on.
  */
 function send(kind: AnyAssignmentKind, assignment: StoredAssignment, assignee: Assignee, ctx: Ctx) {
-  if (!kind.lanes.includes(assignee.type))
+  if (!kind.assigneeTypes.includes(assignee.type))
     throw invalid(`${kind.title} work does not go to a ${assignee.type}`, 'assignee');
   if (assignee.type === 'target' && assignee.id !== kind.target)
     throw invalid(`${kind.title} work goes to the target ${kind.target}`, 'assignee');
@@ -138,7 +138,7 @@ export function genericIssueHandlers(assignments: Assignments): Handler[] {
         ? ctx.effects({ status: 'pending' }).find((one) => one.id === assignment.effectId)
         : undefined;
       // An offer no worker claimed yet is never sent; a claimed one may already be with the
-      // target, whose answer is then ignored because the assignment is no longer sent.
+      // target, whose result is then ignored because the assignment is no longer sent.
       if (effect && !effect.claim) ctx.cancelEffect(effect.id, 'The assignment was withdrawn');
       assignment.status = 'withdrawn';
       if (input.reason !== undefined) assignment.reason = input.reason;

@@ -5,9 +5,9 @@ import {
   createRpcConnection,
   DriverError,
   eventNotification,
-  initializeAnswer,
+  initializeResult,
   type EventNotification,
-  type InitializeAnswer,
+  type InitializeResult,
   type RpcConnection,
 } from '../protocol';
 
@@ -23,7 +23,7 @@ export interface DriverProcess {
   terminate(): void;
 }
 
-/** Who may act: `monitor-only` never, `assist` hazard-free actions, `actuate` every action. */
+/** Who may act: `monitor-only` never, `assist` actions of risk level `none`, `actuate` every action. */
 export type DriverMode = 'monitor-only' | 'assist' | 'actuate';
 
 /** SHA-256 of the contract's canonical document; a driver built from the same contract echoes it. */
@@ -40,7 +40,7 @@ export interface DriverExit {
 export interface DriverSession {
   readonly rpc: RpcConnection;
   readonly process: DriverProcess;
-  readonly hello: InitializeAnswer;
+  readonly hello: InitializeResult;
   /** Resolves when the process exits, for whatever reason, with its exit code or signal. */
   readonly exited: Promise<DriverExit>;
 }
@@ -57,7 +57,7 @@ export interface SessionOptions {
 
 /**
  * Start a driver and complete the handshake: protocol version, then contract digest. A driver
- * that answers anything else, or nothing in time, is stopped and the start fails with a
+ * that responds with anything else, or nothing in time, is stopped and the start fails with a
  * `protocol` or `timeout` error. Notifications other than valid `event`s are reported as problems.
  */
 export async function openSession(
@@ -103,11 +103,11 @@ export async function openSession(
       },
       { timeoutMs: options.handshakeMs },
     );
-    const parsed = initializeAnswer.safeParse(raw);
+    const parsed = initializeResult.safeParse(raw);
     if (!parsed.success)
       throw new DriverError(
         'protocol',
-        `Driver ${options.contract.id} answered initialize invalidly`,
+        `Driver ${options.contract.id} sent an invalid initialize response`,
       );
     if (parsed.data.contract.digest !== options.digest)
       throw new DriverError(

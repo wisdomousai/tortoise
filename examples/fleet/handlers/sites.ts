@@ -26,7 +26,7 @@ export const STALE_MS = 15 * 60_000;
 /** Audit forwarding this many events behind the site's head needs a look. */
 const AUDIT_BEHIND = 1000;
 
-/** The calling site's ID. Only the device lane reaches the protocol, so this is a guard. */
+/** The calling site's ID. Only the device allowlist reaches the protocol, so this is a guard. */
 export function callingSite(ctx: Context): string {
   const id = siteIdOf(ctx.context.principalId);
   if (id === undefined)
@@ -119,7 +119,7 @@ export function siteHandlers(): HandlerContribution<AppState, Services>[] {
         lastSeenAt: now(ctx),
         pending: input.outbox.pending,
         held: input.outbox.held,
-        upstream: input.outbox.upstream,
+        acknowledged: input.outbox.acknowledged,
         targets: input.outbox.targets,
         ...(input.auditHead === undefined ? {} : { auditHead: input.auditHead }),
       };

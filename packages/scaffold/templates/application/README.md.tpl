@@ -21,7 +21,7 @@ Lines marked `// scaffold:<list>` are where `scaffold add` inserts operations, h
 
 ## Trust boundary
 
-Only workspace members pass the policy's caller gate. Editors run commands; viewers read. Integration principals hold no role and act only in their target's lane. Every list scopes rows before filters, counts and paging.
+Only workspace members pass the policy's caller gate. Editors run commands; viewers read. Integration principals hold no role and call only their target's operations. Every list scopes rows before filters, counts and paging.
 
 ## Dependencies
 

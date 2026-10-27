@@ -90,7 +90,7 @@ describe('definePolicy', () => {
     expect(decide('note.unknown', 'ann')).toEqual({ allowed: false, reason: 'NO_POLICY' });
   });
 
-  test('an integration principal stays in its lane, and its operations are closed to others', () => {
+  test('an integration principal calls only its allowlist, and its operations are closed to others', () => {
     expect(decide('note.sync', 'sync-bot').allowed).toBe(true);
     expect(decide('note.list', 'sync-bot').allowed).toBe(true);
     expect(decide('note.edit', 'sync-bot', { id: 'n1' })).toEqual({
@@ -175,14 +175,14 @@ describe('definePolicy', () => {
     expect(read('team:red', 'sync-bot')).toBe(false);
   });
 
-  test('a lane that names an operation the policy does not list is a definition error', () => {
+  test('an allowlist that names an operation the policy does not list is a definition error', () => {
     expect(() =>
       definePolicy<State>({
         integrations: [{ is: () => true, operations: ['ghost'] }],
         operations: {},
         events: {},
       }),
-    ).toThrow('Integration lane names an operation the policy does not: ghost');
+    ).toThrow('Integration allowlist names an operation the policy does not: ghost');
   });
 });
 

@@ -5,7 +5,7 @@ import type {
   ExecutionContext,
   HandlerContext,
   HandlerContribution,
-  IntegrationLane,
+  IntegrationAllowlist,
 } from '@agent-native/runtime';
 
 /** Where a target's inbound position is stored in the module's state. */
@@ -28,8 +28,8 @@ export interface TargetHandlerOptions<State, Services, Item, Extra, Status> {
   /** Instance clock for `lastSyncAt`; `Date.now` when omitted. */
   readonly now?: (context: HandlerContext<State, Services>) => number;
   /**
-   * Apply a settled outcome to the record the effect forwarded, in the same transaction. Throw
-   * `NOT_FOUND` when no record forwarded this effect; `settleDelivery` does both for the usual case.
+   * Apply a completed outcome to the record the effect forwarded, in the same transaction. Throw
+   * `NOT_FOUND` when no record forwarded this effect; `completeDelivery` does both for the usual case.
    */
   readonly onOutcome: (
     effect: Effect,
@@ -37,10 +37,10 @@ export interface TargetHandlerOptions<State, Services, Item, Extra, Status> {
     context: HandlerContext<State, Services>,
   ) => void;
   /**
-   * Whether the calling integration principal may settle this effect. By default it settles
-   * effects of this target only. Override when one principal settles several targets.
+   * Whether the calling integration principal may complete this effect. By default it completes
+   * effects of this target only. Override when one principal completes several targets.
    */
-  readonly settles?: (effect: Effect, context: HandlerContext<State, Services>) => boolean;
+  readonly mayComplete?: (effect: Effect, context: HandlerContext<State, Services>) => boolean;
   /** Apply one feed batch after the watermark check; return how many items changed something. */
   readonly applyBatch?: (
     batch: SyncBatch<Item, Extra>,
@@ -49,15 +49,15 @@ export interface TargetHandlerOptions<State, Services, Item, Extra, Status> {
   /** The application's own status fields, scoped to what the caller may see. */
   readonly status: (context: HandlerContext<State, Services>) => Status;
   /**
-   * Upstream versions, for feeds whose items can arrive out of order across batches (several
+   * Source versions, for feeds whose items can come out of order across batches (several
    * partitions, a replayed export). Each item names its record and the target's version of it;
    * an item whose version is not newer than the last applied one is dropped before `applyBatch`.
    */
-  readonly versions?: UpstreamVersions<State, Item>;
+  readonly versions?: SourceVersions<State, Item>;
 }
 
-/** Where the last applied upstream version of each record is kept, and how an item names it. */
-export interface UpstreamVersions<State, Item> {
+/** Where the last applied source version of each record is kept, and how an item names it. */
+export interface SourceVersions<State, Item> {
   /** The mutable map in `state` from record key to the last applied version. */
   readonly store: (state: State) => Record<string, number>;
   readonly of: (item: Item) => { readonly key: string; readonly version: number };
@@ -70,7 +70,7 @@ export interface UpstreamVersions<State, Item> {
 export function newerItems<State, Item>(
   items: readonly Item[],
   state: State,
-  versions: UpstreamVersions<State, Item>,
+  versions: SourceVersions<State, Item>,
 ): Item[] {
   const store = versions.store(state);
   return items.filter((item) => {
@@ -91,9 +91,9 @@ export function newerItems<State, Item>(
 /**
  * Record `outcome` on the record that forwarded `effect`: its delivery state, the target's
  * reference when accepted, the reason when rejected. A missing record, or one that forwarded a
- * different effect, is `NOT_FOUND`, so an outcome never lands on the wrong record.
+ * different effect, is `NOT_FOUND`, so an outcome is never applied to the wrong record.
  */
-export function settleDelivery(
+export function completeDelivery(
   record: Delivered | undefined,
   effect: Effect,
   outcome: EffectOutcome,
@@ -110,12 +110,12 @@ export function settleDelivery(
 const compact = <T extends object>(value: T): T =>
   Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as T;
 
-function settleHandler<State, Services>(
+function completeHandler<State, Services>(
   target: Target,
   options: TargetHandlerOptions<State, Services, unknown, unknown, unknown>,
 ): HandlerContribution<State, Services> {
   return {
-    capability: target.settle as never,
+    capability: target.complete as never,
     handle(input, ctx) {
       const { effectId, outcome, fence } = input as {
         effectId: string;
@@ -125,13 +125,18 @@ function settleHandler<State, Services>(
       const effect = ctx.effects().find((candidate) => candidate.id === effectId);
       if (!effect) throw new ApplicationError('NOT_FOUND', 'Effect unavailable');
       // Checked against the effect itself, inside the transaction, before anything changes.
-      const owns = options.settles ?? ((candidate: Effect) => candidate.target === target.target);
+      const owns =
+        options.mayComplete ?? ((candidate: Effect) => candidate.target === target.target);
       if (!owns(effect, ctx))
         throw new ApplicationError('FORBIDDEN', 'Effect belongs to another integration');
-      const settled = ctx.settleEffect(effect.id, outcome, fence === undefined ? {} : { fence });
-      options.onOutcome(settled, outcome, ctx);
-      ctx.change(settled.resource);
-      return { resource: settled.resource, sync: outcome.status };
+      const completed = ctx.completeEffect(
+        effect.id,
+        outcome,
+        fence === undefined ? {} : { fence },
+      );
+      options.onOutcome(completed, outcome, ctx);
+      ctx.change(completed.resource);
+      return { resource: completed.resource, sync: outcome.status };
     },
   };
 }
@@ -165,7 +170,7 @@ function syncHandler<State, Services>(
 }
 
 /**
- * The handlers of a declared target: settle, the feed's sync when it has one, and status. Only
+ * The handlers of a declared target: complete, the feed's sync when it has one, and status. Only
  * the domain parts are supplied: how an outcome changes the forwarded record, how a batch item
  * changes local state, and the scoped status counts.
  */
@@ -175,7 +180,7 @@ export function targetHandlers<State, Services, Item = unknown, Extra = unknown,
 ): HandlerContribution<State, Services>[] {
   const erased = options as TargetHandlerOptions<State, Services, unknown, unknown, unknown>;
   return [
-    settleHandler(target, erased),
+    completeHandler(target, erased),
     ...(target.sync ? [syncHandler(target, erased)] : []),
     {
       capability: target.status as never,
@@ -193,7 +198,7 @@ export function targetHandlers<State, Services, Item = unknown, Extra = unknown,
 
 /**
  * The trusted identity of a target's integration principal. Its grant names only the target's
- * operations, so a misbehaving adapter cannot drive business commands or read other features.
+ * operations, so a misbehaving adapter cannot call business commands or read other features.
  */
 export function targetContext(
   target: Target,
@@ -208,21 +213,21 @@ export function targetContext(
   };
 }
 
-/** The policy lane of a target's integration principal, for `definePolicy`. */
-export function targetLane<State>(
+/** The integration allowlist of a target's integration principal, for `definePolicy`. */
+export function targetAllowlist<State>(
   target: Target,
   is: (state: State, principalId: string) => boolean,
-): IntegrationLane<State> {
+): IntegrationAllowlist<State> {
   return { is, operations: target.integrationOperations };
 }
 
 /**
- * Policy rules for a target's operations: settle and sync belong to its lane only, and status is
+ * Policy rules for a target's operations: complete and sync belong to its integration principal only, and status is
  * open to every caller, scoped by its handler.
  */
 export function targetRules(target: Target): Record<string, 'open' | 'integration'> {
   return {
-    [target.settle.id]: 'integration',
+    [target.complete.id]: 'integration',
     ...(target.sync ? { [target.sync.id]: 'integration' as const } : {}),
     [target.status.id]: 'open',
   };

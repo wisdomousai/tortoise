@@ -3,7 +3,7 @@ import type { PullBatch, SystemOfRecordPort } from '@agent-native/integration';
 import type { AnyAssignmentKind } from '../kind';
 import { targetOf } from '../operations';
 import type { AnyOfferOf, StoredBody } from '../schemas';
-import type { TargetAnswer } from './target-lane';
+import type { TargetResult } from './assignment-target';
 
 /** A blob of an offer's brief, as the target receives it. */
 export interface OfferBlob {
@@ -24,17 +24,17 @@ export type TargetWork =
   | { readonly refused: { readonly code: string; readonly message: string } };
 
 /**
- * A target lane's port around a function that does the work, such as a model call. `deliver`
- * runs `work` once per offer and keeps its answer for the feed; delivering the same offer again
- * returns accepted without working twice. `pull` hands out the answers in order. A throw from
+ * An assignment target's port around a function that does the work, such as a model call. `deliver`
+ * runs `work` once per offer and keeps its result for the feed; delivering the same offer again
+ * returns accepted without working twice. `pull` returns the results in order. A throw from
  * `work` is a transient failure the dispatcher retries.
  *
- * Answers live in memory until the lane's sync applies them. If the host stops in between, the
- * offer is settled but its answer is lost, and the planner withdraws the assignment and sends it
- * again; a target that runs as its own service keeps its answers.
+ * Results stay in memory until the target's sync applies them. If the host stops in between, the
+ * offer is completed but its result is lost, and the planner withdraws the assignment and sends it
+ * again; a target that runs as its own service keeps its results.
  */
 export function assignmentTargetPort<K extends AnyAssignmentKind = AnyAssignmentKind>(options: {
-  readonly lane: string;
+  readonly target: string;
   /** Reads a blob the offer's brief references; `ConnectContext` readers give `readEffectBlob`. */
   readonly readBlob: (effectId: string, digest: string) => Promise<OfferBlob | undefined>;
   readonly work: (
@@ -44,14 +44,14 @@ export function assignmentTargetPort<K extends AnyAssignmentKind = AnyAssignment
       readonly signal: AbortSignal;
     },
   ) => Promise<TargetWork>;
-}): SystemOfRecordPort<TargetAnswer> & { readonly answers: readonly TargetAnswer[] } {
-  const answers: TargetAnswer[] = [];
-  const answered = new Set<string>();
+}): SystemOfRecordPort<TargetResult> & { readonly results: readonly TargetResult[] } {
+  const results: TargetResult[] = [];
+  const worked = new Set<string>();
   return {
-    answers,
-    describe: () => ({ target: targetOf(options.lane), idempotentDelivery: true }),
+    results,
+    describe: () => ({ target: targetOf(options.target), idempotentDelivery: true }),
     async deliver(effect, signal) {
-      if (answered.has(effect.id)) return { status: 'accepted', externalRef: effect.id };
+      if (worked.has(effect.id)) return { status: 'accepted', externalRef: effect.id };
       const offer = effect.payload as unknown as AnyOfferOf<K>;
       const done = await options.work(offer, {
         readBlob: (digest) => options.readBlob(effect.id, digest),
@@ -59,7 +59,7 @@ export function assignmentTargetPort<K extends AnyAssignmentKind = AnyAssignment
       });
       if ('refused' in done)
         return { status: 'rejected', code: done.refused.code, message: done.refused.message };
-      answers.push({
+      results.push({
         assignmentId: offer.assignmentId,
         effectId: effect.id,
         reports: done.map((report, index) => ({
@@ -68,16 +68,16 @@ export function assignmentTargetPort<K extends AnyAssignmentKind = AnyAssignment
           body: report.body,
         })),
       });
-      answered.add(effect.id);
+      worked.add(effect.id);
       return { status: 'accepted', externalRef: effect.id };
     },
-    async pull(cursor): Promise<PullBatch<TargetAnswer>> {
+    async pull(cursor): Promise<PullBatch<TargetResult>> {
       const from = Number(cursor ?? 0);
-      const items = answers.slice(from, from + 50);
+      const items = results.slice(from, from + 50);
       return {
         items,
         cursor: String(from + items.length),
-        more: from + items.length < answers.length,
+        more: from + items.length < results.length,
       };
     },
   };

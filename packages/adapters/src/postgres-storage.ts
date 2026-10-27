@@ -141,7 +141,7 @@ export class PostgresStorage<State> implements Storage<State> {
       ),
     );
   }
-  /** Settle every queued read and transaction. The driver stays open. */
+  /** Complete every queued read and transaction. The driver stays open. */
   async close(): Promise<void> {
     await this.tail;
   }

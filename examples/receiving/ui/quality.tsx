@@ -4,11 +4,11 @@ import { Input } from '@/components/ui/input';
 import { live } from '@/lib/session';
 import { operations } from '../contracts';
 
-/** Incoming inspection in quality inspection: where the announced arrivals stand. */
+/** Incoming inspection in quality inspection: where the inspection requests stand. */
 function InspectionStatus() {
   const status = useQuery(live.liveQueryOptions(operations.qualityStatus, {}));
   const rows: [string, string][] = [
-    ['Waiting to be announced', String(status.data?.pending ?? 0)],
+    ['Waiting to be sent', String(status.data?.pending ?? 0)],
     ['Refused by quality inspection', String(status.data?.rejected ?? 0)],
     ['Being inspected', String(status.data?.inspecting ?? 0)],
     ['Passed', String(status.data?.passed ?? 0)],
@@ -56,7 +56,7 @@ function LotSearch() {
       )}
       {source?.status === 'unavailable' && (
         <p role="alert" className="text-sm text-destructive">
-          {source.message ?? 'Quality inspection did not answer.'}
+          {source.message ?? 'Quality inspection did not respond.'}
         </p>
       )}
       {source?.status === 'ok' && !lots.length && (

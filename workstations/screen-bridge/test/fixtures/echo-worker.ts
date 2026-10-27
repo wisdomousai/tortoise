@@ -1,4 +1,4 @@
-// Minimal JSON-lines perception worker for tests: reports a model, answers each request with the
+// Minimal JSON-lines recognition worker for tests: reports a model, replies to each request with the
 // field ids it was asked for, and fails or exits on demand.
 import { createInterface } from 'node:readline';
 
@@ -27,6 +27,6 @@ createInterface({ input: process.stdin }).on('line', (line) => {
       ],
     }),
   );
-  // Answer, then end the process, as a crashing or recycled runtime would.
+  // Reply, then end the process, as a crashing or recycled runtime would.
   if (exit) process.exit(0);
 });

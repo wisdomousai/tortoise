@@ -10,7 +10,7 @@ export type { CrmServices } from './handlers/context';
 
 /**
  * Every handler. The provider handlers never call the CRM: the runtime calls the source between
- * their pure steps. Forwarding is queued and settled through commands.
+ * their pure steps. Forwarding is queued and completed through commands.
  */
 export function createCrmHandlers(): HandlerContribution<CrmState, CrmServices>[] {
   return [

@@ -150,7 +150,7 @@ test('only the notified principal can reply, only through the shell, and only be
   connection.close();
 });
 
-test('a payload the action does not declare, or a disabled action, settles as rejected', async () => {
+test('a payload the action does not declare, or a disabled action, completes as rejected', async () => {
   const application = remindersApplication({
     payload: (reminder, title, principal) =>
       reminder === 'r-1'
@@ -185,9 +185,9 @@ test('a payload the action does not declare, or a disabled action, settles as re
   otherConnection.close();
 });
 
-test('a notify action needs the plugin, and each target it carries needs a settle command', async () => {
+test('a notify action needs the plugin, and each target it carries needs a complete command', async () => {
   await expect(open(remindersApplication({ notifications: false }))).rejects.toThrow('notify');
   await expect(
     open(remindersApplication({ actions: [{ ...notifyAction, targets: ['elsewhere'] }] })),
-  ).rejects.toThrow('carries elsewhere, which has no elsewhere.effect.settle command');
+  ).rejects.toThrow('carries elsewhere, which has no elsewhere.effect.complete command');
 });

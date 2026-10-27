@@ -46,8 +46,8 @@ function uploadMediaType(handler: FileHandler, name: string, reported?: string) 
 export type BlobUpload = (bytes: Uint8Array, mediaType: string) => Promise<BlobRef | undefined>;
 
 /**
- * The OS request for a file's bytes under its handler. A text payload travels inline as strict
- * UTF-8; a blob payload is uploaded first and travels as its reference. The upload is staged:
+ * The OS request for a file's bytes under its handler. A text payload is sent inline as strict
+ * UTF-8; a blob payload is uploaded first and sent as its reference. The upload is staged:
  * only a command the person confirms attaches it, and the blob store sweeps it otherwise.
  * `undefined` when the bytes exceed the handler's limit, are not text, or have no media type.
  */
@@ -84,12 +84,12 @@ export function strictText(bytes: ArrayBuffer | Uint8Array): string | undefined 
 }
 
 /**
- * The OS request a browser landing URL carries. A protocol handler navigates to `/?os=<link>`, a
+ * The OS request a launch URL carries. A protocol handler navigates to `/?os=<link>`, a
  * manifest shortcut to `/?os-shortcut=<id>` and the share target's redirect to
- * `/?os-share=<claim code>`; the landing must carry exactly one of them and nothing else, and the
+ * `/?os-share=<claim code>`; the launch URL must carry exactly one of them and nothing else, and the
  * request is checked again by the shell port like any other.
  */
-export function landingRequest(search: string): RawOsRequest | undefined {
+export function launchRequest(search: string): RawOsRequest | undefined {
   const params = new URLSearchParams(search);
   const keys = [...params.keys()];
   if (keys.length !== 1) return undefined;

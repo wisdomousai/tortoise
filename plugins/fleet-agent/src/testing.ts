@@ -6,7 +6,7 @@ import { definePluginManifest } from '@agent-native/host/plugin-manifest';
  * For tests of a site or a fleet: a plugin whose network port reaches the `fleet` destination
  * through `reach`, and refuses every other destination as the kernel default does. `reach` gets
  * the URL resolved against a placeholder origin; map its path onto the fleet under test, and
- * fail, drop or change answers there to stand in for an unreliable uplink. Compose it where the
+ * fail, drop or change responses there to stand in for an unreliable uplink. Compose it where the
  * network plugin would be.
  */
 export function fleetNetworkFixture(reach: (url: URL, init?: RequestInit) => Promise<Response>) {

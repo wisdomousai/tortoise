@@ -10,11 +10,11 @@ export const qualityTarget = defineTarget({
   target: 'quality-system',
   resourceType: 'Synchronization',
   operations: {
-    settle: 'inspection.effect.settle',
+    complete: 'inspection.effect.complete',
     sync: 'inspection.lot.sync',
     status: 'inspection.sync.status',
   },
-  settles: ['lot', 'result', 'defect'],
+  changes: ['lot', 'result', 'defect'],
   feed: {
     item: lotSnapshotSchema,
     max: 200,
@@ -32,7 +32,7 @@ export const qualityTarget = defineTarget({
     ),
   },
   descriptions: {
-    settle:
+    complete:
       'Integration principal only: record the quality system outcome for a forwarded result, defect or decision.',
     sync: 'Integration principal only: apply a batch of lots and code groups from the quality system and advance the watermark. A stale from watermark conflicts.',
     status:

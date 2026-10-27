@@ -71,8 +71,8 @@ import { ${id.camel}FeatureManifest, ${id.camel}Operations, type ${id.pascal}Ent
 export type ${id.pascal}Action = 'read' | 'record';
 
 /**
- * The application's answer to who may do what. The application's policy never sees this
- * feature's operations, so \`allows\` applies its membership gate and integration lanes itself.
+ * The application's decision on who may do what. The application's policy never sees this
+ * feature's operations, so \`allows\` applies its membership gate and integration allowlists itself.
  */
 export interface ${id.pascal}Access {
   allows(context: ExecutionContext, action: ${id.pascal}Action): boolean;

@@ -29,7 +29,7 @@ export const inspector = as('ina');
 export const integration = {
   ...as('integration'),
   grant: {
-    operations: ['inspection.lot.sync', 'inspection.effect.settle', 'inspection.sync.status'],
+    operations: ['inspection.lot.sync', 'inspection.effect.complete', 'inspection.sync.status'],
   },
 };
 export const instrument = {

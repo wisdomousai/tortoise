@@ -81,7 +81,7 @@ export interface WorklistHandlerOptions<State, Services> {
    * Called in the feed's transaction for each assignment the feed brings here for the first
    * time, after it is stored, for example to enqueue a notice to the assignee.
    */
-  readonly arrived?: (
+  readonly onReceived?: (
     assignment: WorklistAssignment,
     context: HandlerContext<State, Services>,
   ) => void;
@@ -117,8 +117,8 @@ export function worklistHandlers<State, Services, K extends Worklist['kinds'][nu
   const { operations, target, types } = worklist;
   const now = (ctx: Ctx) => options.now?.(ctx) ?? Date.now();
   const issuerCommand = (id: string) => {
-    const found = target.surface.commands.find((command) => command.id === id);
-    if (!found) throw new Error(`The peer surface of ${target.surface.application} lacks ${id}`);
+    const found = target.api.commands.find((command) => command.id === id);
+    if (!found) throw new Error(`The peer API of ${target.api.application} lacks ${id}`);
     return found as Parameters<typeof target.effect>[0];
   };
   const complete = issuerCommand('assignment.complete');
@@ -175,7 +175,7 @@ export function worklistHandlers<State, Services, K extends Worklist['kinds'][nu
     );
   });
 
-  const settle = (
+  const applyOutcome = (
     record: { sync?: Delivery; doneSync?: Delivery; rejection?: Rejection },
     key: 'sync' | 'doneSync',
     outcome: EffectOutcome,
@@ -233,7 +233,7 @@ export function worklistHandlers<State, Services, K extends Worklist['kinds'][nu
           const report = own(slice.reports, effect.resource.slice(types.report.length + 1));
           if (!report || report.effectId !== effect.id)
             throw new ApplicationError('NOT_FOUND', 'Report unavailable');
-          settle(report, 'sync', outcome);
+          applyOutcome(report, 'sync', outcome);
           ctx.change(effect.resource, report.sync);
           return;
         }
@@ -243,7 +243,7 @@ export function worklistHandlers<State, Services, K extends Worklist['kinds'][nu
         );
         if (!assignment || assignment.doneEffectId !== effect.id)
           throw new ApplicationError('NOT_FOUND', 'Done mark unavailable');
-        settle(assignment, 'doneSync', outcome);
+        applyOutcome(assignment, 'doneSync', outcome);
         // A refused done mark reopens the assignment, so the assignee can keep working on it.
         if (outcome.status === 'rejected') assignment.done = false;
         ctx.change(effect.resource, assignment.doneSync!);
@@ -270,7 +270,7 @@ export function worklistHandlers<State, Services, K extends Worklist['kinds'][nu
             listed: true,
           });
           ctx.change(assignmentResource(item.id), 'synced');
-          if (!held) options.arrived?.(own(slice.assignments, item.id)!, ctx);
+          if (!held) options.onReceived?.(own(slice.assignments, item.id)!, ctx);
         }
         // The feed is the issuer's whole open set: what it left out takes no more reports.
         for (const assignment of Object.values(slice.assignments))
@@ -299,8 +299,8 @@ export function worklistHandlers<State, Services, K extends Worklist['kinds'][nu
 }
 
 /**
- * The worklist's rows for `definePolicy`: its target's settle and sync belong to the integration
- * lane, and every other operation is open to the callers the application's gate admits. The
+ * The worklist's rows for `definePolicy`: its target's complete and sync belong to the integration
+ * principal, and every other operation is open to the callers the application's gate admits. The
  * application adds `{ is, operations: worklist.target.integrationOperations }` to its
  * integrations, and event rules for `worklist.types` and `sync`.
  */
@@ -315,7 +315,7 @@ export function worklistRules(worklist: Worklist): Record<string, 'open' | 'inte
  * The worklist's integration: the outbox delivers reports and done marks to the issuer's own API,
  * and inbound sync pulls the issuer's `assignment.feed`, both through `client`. Over hub-link the
  * client is `network.client(target)`; over peer-link it is the link's service client. A change to
- * one of the lane's operations at the issuer holds deliveries and pulls until the two agree.
+ * one of the worklist's operations at the issuer holds deliveries and pulls until the two agree.
  */
 export function connectWorklist<K extends Worklist['kinds'][number]>(
   worklist: Worklist<K>,
@@ -330,7 +330,7 @@ export function connectWorklist<K extends Worklist['kinds'][number]>(
 ): TargetIntegration<AnyFeedItemOf<K>> {
   const { application, workspaceId, client, target } = { ...options, target: worklist.target };
   const drift = createPeerDrift({
-    surface: target.surface,
+    api: target.api,
     contract: () => createPeerCall({ client }).contract(),
   });
   return connectTarget<AnyFeedItemOf<K>>({

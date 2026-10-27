@@ -23,16 +23,16 @@ export type AsnLine = z.output<typeof asnLineSchema>;
 
 /**
  * The ERP as a system of record reached through shared folders: it exports advance shipping
- * notices, and picks up one goods receipt file per posted line and answers with a receipt.
+ * notices, and picks up one goods receipt file per posted line and responds with a receipt.
  */
 export const erpTarget = defineTarget({
   target: 'erp',
   resourceType: 'ErpSync',
-  settles: ['delivery'],
+  changes: ['delivery'],
   feed: { item: asnLineSchema, max: 100, changes: ['delivery'] },
   status: { pending: z.number().int(), accepted: z.number().int(), rejected: z.number().int() },
   descriptions: {
-    settle: 'Integration principal only: record the ERP outcome for a posted goods receipt.',
+    complete: 'Integration principal only: record the ERP outcome for a posted goods receipt.',
     sync: 'Integration principal only: apply advance shipping notice lines from the ERP and advance the watermark. A stale from watermark conflicts.',
     status:
       'Summarize goods receipts to the ERP: waiting, accepted and rejected, and the last notice import.',

@@ -72,7 +72,7 @@ function createAuthorizationFence() {
 
 /**
  * Follow the instance's change stream until `signal` aborts, reconnecting after failures.
- * Starts from an unknown cursor, which the instance answers with a reset at its current
+ * Starts from an unknown cursor, for which the instance returns a reset at its current
  * position, so no event between an earlier snapshot and this subscription can be missed.
  */
 async function followStream(
@@ -137,7 +137,7 @@ export function createLiveBindings(transport: Transport) {
 
   /** Follow the change stream into `queryClient` until `signal` aborts. */
   function follow(queryClient: QueryClient, signal: AbortSignal, retryMs = 500) {
-    // Not awaited: a refetch that never answers must not hold back a later revocation.
+    // Not awaited: a refetch that never resolves must not hold back a later revocation.
     // applyBatch changes the cache before its first await, so batches still apply in order.
     return followStream(transport, (batch) => void applyBatch(queryClient, batch), signal, retryMs);
   }

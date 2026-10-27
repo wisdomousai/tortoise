@@ -1,10 +1,8 @@
 import { expect, test } from 'bun:test';
-import { Database } from 'bun:sqlite';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { bunSqlDriver } from '@agent-native/adapters/sqlite';
-import { SnapshotStorage } from '@agent-native/adapters/snapshot-storage';
+import { SQLiteStorage } from '@agent-native/adapters/sqlite';
 import { createApplication } from '@agent-native/runtime';
 import { createApplicationRuntime, workspaceStorage } from '@agent-native/host';
 import fieldService from '../application';
@@ -21,10 +19,9 @@ test('a workspace written before module composition keeps its work orders after 
   const directory = await mkdtemp(join(tmpdir(), 'agent-upgrade-'));
   const path = join(directory, 'workspace.sqlite');
   try {
-    // Persist a pre-composition document with the original single-module runtime: work order/task
-    // state at the root and no outbox.
-    // The version 1 layout: one JSON document per workspace, converted to rows on the next open.
-    const seed = new SnapshotStorage(bunSqlDriver(path), () => createServiceState('owner'));
+    // Persist a pre-composition workspace with the original single-module runtime: work order and
+    // task state at the root.
+    const seed = new SQLiteStorage(path, () => createServiceState('owner'));
     await createApplication({
       modules: [fieldServiceModule],
       handlers: createServiceHandlers(),
@@ -36,12 +33,6 @@ test('a workspace written before module composition keeps its work orders after 
       owner,
     );
     await seed.close();
-    const db = new Database(path);
-    const row = db.query('SELECT document FROM workspace_snapshots').get() as { document: string };
-    const document = JSON.parse(row.document);
-    delete document.effects;
-    db.query('UPDATE workspace_snapshots SET document = ?').run(JSON.stringify(document));
-    db.close();
 
     const storage = workspaceStorage(fieldService, directory);
     const application = createApplicationRuntime(fieldService, { storage });

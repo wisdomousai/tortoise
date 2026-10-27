@@ -13,7 +13,7 @@ import {
 /**
  * Whether `context` is the assignee itself: the person with no grant and no peer, a run of the
  * agent definition, the device's principal, or the peer application's service principal. A
- * target lane's assignee is never a caller; its answers arrive through the lane's sync.
+ * assignment target is never a caller; its results are applied by the target's sync.
  */
 export function isAssignee(context: ExecutionContext, assignee: Assignee | undefined): boolean {
   if (!assignee) return false;
@@ -69,10 +69,10 @@ export function canSeeReport(
   );
 }
 
-/** The operation's class, from its ID: a kind's command, a generic operation or a target lane's. */
+/** The operation's class, from its ID: a kind's command, a generic operation or an assignment target's. */
 export type Classified =
   | { readonly kind: string; readonly op: 'create' | 'send' | 'report' | 'accept' }
-  | { readonly lane: string; readonly op: 'settle' | 'sync' | 'status' }
+  | { readonly target: string; readonly op: 'complete' | 'sync' | 'status' }
   | { readonly op: Generic };
 type Generic =
   | 'withdraw'
@@ -83,13 +83,13 @@ type Generic =
   | 'feed'
   | 'report.list'
   | 'report.get'
-  | 'report.place'
+  | 'report.link'
   | 'report.discard';
 
 export function classify(
   id: string,
   kinds: ReadonlySet<string>,
-  lanes: ReadonlySet<string>,
+  targets: ReadonlySet<string>,
 ): Classified {
   const rest = id.slice('assignment.'.length);
   const dot = rest.indexOf('.');
@@ -97,8 +97,8 @@ export function classify(
   const tail = dot < 0 ? '' : rest.slice(dot + 1);
   if (kinds.has(head) && ['create', 'send', 'report', 'accept'].includes(tail))
     return { kind: head, op: tail as 'create' };
-  if (lanes.has(head) && ['settle', 'sync', 'status'].includes(tail))
-    return { lane: head, op: tail as 'settle' };
+  if (targets.has(head) && ['complete', 'sync', 'status'].includes(tail))
+    return { target: head, op: tail as 'complete' };
   return { op: rest as Generic };
 }
 
@@ -121,10 +121,10 @@ export function decide(
   const assignment = (id: unknown) =>
     typeof id === 'string' ? own(slice.assignments, id) : undefined;
   const report = (id: unknown) => (typeof id === 'string' ? own(slice.reports, id) : undefined);
-  if ('lane' in operation) {
-    const principal = principals[operation.lane];
+  if ('target' in operation) {
+    const principal = principals[operation.target];
     const integrates =
-      access.allows(context, 'integrate', operation.lane) &&
+      access.allows(context, 'integrate', operation.target) &&
       (principal === undefined || principal === context.principalId);
     // The integration principal reads its watermark through status; the counts it sees are empty.
     return operation.op === 'status' ? integrates || access.allows(context, 'read') : integrates;
@@ -182,7 +182,7 @@ export function decide(
       return seen ? access.allows(context, 'review', seen.kind) : access.allows(context, 'read');
     case 'report.get':
       return seenReport ? true : access.allows(context, 'read');
-    case 'report.place':
+    case 'report.link':
     case 'report.discard':
       return seenReport
         ? access.allows(context, 'review', seenReport.kind)
@@ -193,10 +193,10 @@ export function decide(
 /** The feature's policy over its slice and the application's access view. */
 export function assignmentPolicy(
   kinds: ReadonlySet<string>,
-  lanes: ReadonlySet<string>,
+  targets: ReadonlySet<string>,
   principals: Readonly<Record<string, string>>,
 ) {
-  const classified = (capability: AnyCapability) => classify(capability.id, kinds, lanes);
+  const classified = (capability: AnyCapability) => classify(capability.id, kinds, targets);
   return {
     authorize({
       capability,

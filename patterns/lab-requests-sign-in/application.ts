@@ -27,7 +27,7 @@ export interface LabRequestsSignInOptions {
 }
 
 /**
- * The lab requests pattern with workstation sign-in. The owner's screen is the bench seat and
+ * The lab requests pattern with workstation sign-in. The owner's screen is the bench terminal and
  * the badge admin. An operator who signs in there acts as themselves under the lab requests
  * policy, so a viewer reads requests but cannot submit one.
  */

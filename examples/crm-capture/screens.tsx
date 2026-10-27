@@ -24,7 +24,7 @@ export default defineScreens({
   capabilityScreens: [
     { prefix: 'crm.account.search', to: '/search' },
     { prefix: 'crm.account.lookup', to: '/search' },
-    { prefix: 'crm.account.adopt', to: '/search' },
+    { prefix: 'crm.account.follow', to: '/search' },
     { prefix: 'crm.contact.', to: '/search' },
     { prefix: 'crm.', to: '/accounts' },
   ],

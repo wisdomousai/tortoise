@@ -1,9 +1,9 @@
 import { expired, isFinished, service, type Context } from './state';
-import { allSettled, awaited } from './steps';
+import { allCompleted, awaited } from './steps';
 
 /**
  * Instances to advance now, and waiting ones with the types they watch. An instance awaiting
- * effects is due once they settled or one was held or released, so an idle pass writes nothing.
+ * effects is due once they completed or one was held or released, so an idle pass writes nothing.
  */
 export function dueInstances(ctx: Context) {
   const { definitions, now } = service(ctx);
@@ -16,7 +16,7 @@ export function dueInstances(ctx: Context) {
     if (instance.pending && instance.status === 'running') {
       const effects = awaited(instance, ctx);
       const held = effects.some((effect) => effect?.heldAt !== undefined);
-      ready = allSettled(effects) || held !== !!instance.held || at >= instance.deadline;
+      ready = allCompleted(effects) || held !== !!instance.held || at >= instance.deadline;
     }
     const watch =
       instance.status === 'waiting' && step?.kind === 'wait' && step.watch?.length

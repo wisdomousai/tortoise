@@ -168,7 +168,7 @@ test('an agent captures over embedded MCP, teardown drains, and metrics separate
   const backlog = (quality: number) => ({
     pending: quality,
     targets: [
-      { target: 'quality-system', pending: quality, held: 0, upstream: 0, deliverable: true },
+      { target: 'quality-system', pending: quality, held: 0, acknowledged: 0, deliverable: true },
     ],
   });
   expect(pending).toEqual({ exitCode: 75, value: backlog(3) });

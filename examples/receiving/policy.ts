@@ -5,7 +5,7 @@ import {
   type OperationRule,
   type ReconciliationAccess,
 } from '@agent-native/runtime';
-import { targetLane, targetRules } from '@agent-native/integration';
+import { targetAllowlist, targetRules } from '@agent-native/integration';
 import { operations } from './contracts';
 import { erpTarget } from './contracts/erp-target';
 import { qualityPeer } from './contracts/quality-peer';
@@ -20,14 +20,14 @@ const editor: OperationRule<AppState, Role> = {
 
 /**
  * Workspace policy. Only members pass the caller gate; integration principals hold no role and
- * act only in their own lanes. An operation this policy does not list is denied. The approval
+ * call only the operations their integration allowlist lists. An operation this policy does not list is denied. The approval
  * and reconciliation features decide their own operations over the access views below.
  */
 export const appPolicy = definePolicy<AppState, Role>({
   integrations: [
-    targetLane(erpTarget, (_state, principalId) => principalId === 'erp-integration'),
-    targetLane(qualityPeer, (_state, principalId) => principalId === 'quality-integration'),
-    // scaffold:lanes
+    targetAllowlist(erpTarget, (_state, principalId) => principalId === 'erp-integration'),
+    targetAllowlist(qualityPeer, (_state, principalId) => principalId === 'quality-integration'),
+    // scaffold:integrations
   ],
   caller: { allow: (state, context) => roleOf(state, context.principalId) !== undefined },
   operations: {

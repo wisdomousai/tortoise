@@ -184,7 +184,7 @@ describe('remote query', () => {
     });
     expect((await malformed.app.queryRaw(search(), caller)).data).toMatchObject({
       items: [],
-      source: { status: 'unavailable', message: 'Source answer was malformed' },
+      source: { status: 'unavailable', message: 'Source result was malformed' },
     });
   });
 
@@ -194,7 +194,7 @@ describe('remote query', () => {
     expect(calls).toHaveLength(0);
   });
 
-  test('a revocation while the source answers drops the result', async () => {
+  test('a revocation while the source responds drops the result', async () => {
     let revoked = false;
     const { app } = fixture({
       deny: () => revoked,
@@ -277,7 +277,7 @@ describe('remote query', () => {
     });
   });
 
-  test('a FORBIDDEN source answer is an error, not an empty result', async () => {
+  test('a FORBIDDEN from the source rejects the query instead of returning an empty result', async () => {
     const { app } = fixture({
       source: {
         search: async () => {
@@ -302,7 +302,7 @@ describe('remote query', () => {
     };
     const slow = fixture({ source: hanging, deadlineMs: 20 });
     expect((await slow.app.queryRaw(search(), caller)).data).toMatchObject({
-      source: { status: 'unavailable', message: 'Source did not answer in time' },
+      source: { status: 'unavailable', message: 'Source did not respond in time' },
     });
     expect(seen[0]!.aborted).toBe(true);
 

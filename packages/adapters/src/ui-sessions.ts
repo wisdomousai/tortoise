@@ -290,7 +290,7 @@ export class UiSessionStore {
     if (status !== 'accepted' && status !== 'rejected')
       throw new ApplicationError('INVALID_INPUT', 'Invalid UI acknowledgement');
     if (message.status !== 'pending' && message.status !== status)
-      throw new ApplicationError('CONFLICT', 'UI intent already settled');
+      throw new ApplicationError('CONFLICT', 'UI intent already completed');
     message.status = status;
     return status;
   }

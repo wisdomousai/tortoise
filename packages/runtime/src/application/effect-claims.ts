@@ -58,11 +58,11 @@ function holdInSnapshot<State>(
 
 /**
  * Host-only: claim one pending effect for `worker` before delivering it, in one transaction.
- * The claim issues a fencing token that every attempt and settlement of this delivery must
+ * The claim issues a fencing token that every attempt and completion of this delivery must
  * carry; it lapses after `leaseMs`, so another worker may claim it after a crash. Before the
  * first claim (unless `recheck` is false), the original actor is authorized again and a denial
  * holds the effect instead of claiming it, recorded in the journal and the audit log. CONFLICT
- * when the effect is settled, held or claimed by another live worker.
+ * when the effect is completed, held or claimed by another live worker.
  */
 export async function claimEffect<State, Services>(
   kernel: Kernel<State, Services>,
@@ -77,7 +77,7 @@ export async function claimEffect<State, Services>(
       const effect = pendingEffect(snapshot, id);
       const claimed = claimedEffect(effect, claim.worker, claim.leaseMs, kernel.now);
       // Only before the first claim: once a worker may have sent it, holding cannot un-send it,
-      // and the target's answer must still be recordable after the actor lost access.
+      // and the target's response must still be recordable after the actor lost access.
       const denial =
         claim.recheck === false || effect.fence !== undefined
           ? undefined

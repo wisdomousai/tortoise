@@ -6,7 +6,7 @@ import {
   ApplicationError,
   defineCapability,
   defineModule,
-  definePeerSurface,
+  definePeerApi,
   definePeerTarget,
   jsonSchema,
 } from '@agent-native/contracts';
@@ -29,12 +29,12 @@ import {
 import { conformanceEffect } from '../src/connectors';
 
 const lotInput = z.strictObject({ lot: z.string() });
-const announce = defineCapability({
-  id: 'inspection.arrival.announce',
+const requestInspection = defineCapability({
+  id: 'inspection.request.create',
   kind: 'command',
   input: jsonSchema(lotInput),
   output: jsonSchema(z.strictObject({ id: z.string(), by: z.string() })),
-  permission: { action: 'create', resourceType: 'arrival' },
+  permission: { action: 'create', resourceType: 'inspection-request' },
   ui: { exception: 'test fixture' },
 });
 const comment = defineCapability({
@@ -66,18 +66,18 @@ const lot = defineCapability({
   permission: { action: 'read', resourceType: 'lot' },
   ui: { exception: 'test fixture' },
 });
-const surface = definePeerSurface({
+const api = definePeerApi({
   application: 'quality-inspection',
-  commands: [announce],
+  commands: [requestInspection],
   onBehalfOf: { commands: [comment], queries: [lots, lot] },
 });
 const qualityTarget = definePeerTarget({
   target: 'quality',
   resourceType: 'QualitySync',
-  surface,
-  settles: ['line'],
+  api,
+  changes: ['line'],
   status: {},
-  descriptions: { settle: 'Settle.', status: 'Status.' },
+  descriptions: { complete: 'Complete.', status: 'Status.' },
   destination: {
     id: 'quality-peer',
     purpose: 'Quality inspection',
@@ -91,8 +91,8 @@ const qualityTarget = definePeerTarget({
 /** People the peer maps the caller's subjects to. */
 const mapping: Record<string, string> = { rita: 'ann' };
 
-/** The quality application, served in process; `announce` may be swapped to drift its schema. */
-function quality(capabilities = [announce, comment, lots, lot]) {
+/** The quality application, served in process; `requestInspection` may be swapped to drift its schema. */
+function quality(capabilities = [requestInspection, comment, lots, lot]) {
   const bind = createHandlerFactory<{ by: string[] }, {}>();
   // Handlers bind the capabilities served, which a test may have changed.
   const served = <C extends { id: string }>(capability: C) =>
@@ -104,9 +104,9 @@ function quality(capabilities = [announce, comment, lots, lot]) {
     services: {},
     authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
     handlers: [
-      bind(served(announce), (input, ctx) => {
+      bind(served(requestInspection), (input, ctx) => {
         ctx.state.by.push(ctx.context.principalId);
-        ctx.change(`arrival:${input.lot}`);
+        ctx.change(`inspection-request:${input.lot}`);
         return { id: `A-${ctx.state.by.length}`, by: ctx.context.principalId };
       }),
       bind(served(comment), (input, ctx) => {
@@ -196,7 +196,7 @@ describe('peer target', () => {
       reference: (result) => (result as { id?: string; by: string }).id,
     });
     expect(
-      await integration.port.deliver(effect('e1', announce.id, { lot: 'L1' }), signal()),
+      await integration.port.deliver(effect('e1', requestInspection.id, { lot: 'L1' }), signal()),
     ).toEqual({
       status: 'accepted',
       externalRef: 'A-1',
@@ -236,16 +236,16 @@ describe('peer target', () => {
       readBlob: async () => undefined,
     }).port;
     await expect(
-      disconnected.deliver(effect('e4', announce.id, { lot: 'L1' }), signal()),
+      disconnected.deliver(effect('e4', requestInspection.id, { lot: 'L1' }), signal()),
     ).rejects.toBeInstanceOf(DeliveryFailure);
   });
 
   test('a drifted operation keeps its effects pending until the two agree', async () => {
     const drifted = quality([
       {
-        ...announce,
+        ...requestInspection,
         output: jsonSchema(z.strictObject({ id: z.string() })),
-      } as unknown as typeof announce,
+      } as unknown as typeof requestInspection,
       comment,
       lots,
       lot,
@@ -253,7 +253,7 @@ describe('peer target', () => {
     let peer = drifted;
     let now = 0;
     const drift = createPeerDrift({
-      surface,
+      api,
       contract: () => contractOf(peer.link),
       now: () => now,
     });
@@ -267,16 +267,16 @@ describe('peer target', () => {
       drift,
     }).port;
     const deliver = (id: string) =>
-      port.deliver(effect(id, announce.id, { lot: 'L1' }), signal()).then(
+      port.deliver(effect(id, requestInspection.id, { lot: 'L1' }), signal()).then(
         (outcome) => outcome,
         (error: Error) => error.message,
       );
     const waiting =
-      'inspection.arrival.announce changed on quality; calls wait until the two applications agree';
+      'inspection.request.create changed on quality; calls wait until the two applications agree';
     expect(await deliver('e1')).toBe(waiting);
     expect(drift.status()).toMatchObject({
       application: { id: 'quality-inspection' },
-      drifted: [{ operation: announce.id, reason: 'changed' }],
+      drifted: [{ operation: requestInspection.id, reason: 'changed' }],
     });
     // Operations that still agree go through.
     expect(
@@ -289,13 +289,13 @@ describe('peer target', () => {
     expect(await deliver('e1')).toMatchObject({ status: 'accepted' });
     // `warn` reports drift without blocking.
     const warned = createPeerDrift({
-      surface,
+      api,
       contract: () => contractOf(drifted.link),
       onDrift: 'warn',
     });
     await warned.check();
     expect(warned.status().drifted).toHaveLength(1);
-    expect(warned.blocked(announce.id)).toBe(false);
+    expect(warned.blocked(requestInspection.id)).toBe(false);
   });
 });
 
@@ -361,7 +361,7 @@ describe('peer source', () => {
 
   test('a drifted or unreachable peer is unavailable', async () => {
     const drifted = quality([
-      announce,
+      requestInspection,
       comment,
       {
         ...lots,
@@ -373,7 +373,7 @@ describe('peer source', () => {
       target: 'quality',
       link: () => drifted.link,
       reads: { 'quality.lot.search': peerList(lots, (query) => ({ q: query.q as string })) },
-      drift: createPeerDrift({ surface, contract: () => contractOf(drifted.link) }),
+      drift: createPeerDrift({ api, contract: () => contractOf(drifted.link) }),
     });
     await expect(
       source.search({ operation: 'quality.lot.search', query: { q: 'x' } }, call('rita')),

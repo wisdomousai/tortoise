@@ -13,7 +13,7 @@ import { sitePluginManifest } from '../../src/plugin-manifest';
 /**
  * A fixture application's CLI, which a test bundle's `bin/` script runs. `FIXTURE_STATE` picks
  * its state version: 1 keeps `count`, 2 renames it to `total`. `counter.send` queues an effect
- * for a `ledger` target that no dispatcher delivers, and `counter.settle` settles it as the
+ * for a `ledger` target that no dispatcher delivers, and `counter.complete` completes it as the
  * target would, so a test can leave work in the outbox and then clear it.
  */
 const bump = defineCapability({
@@ -32,8 +32,8 @@ const send = defineCapability({
   permission: { action: 'write', resourceType: 'Counter' },
   ui: { exception: 'test fixture' },
 });
-const settle = defineCapability({
-  id: 'counter.settle',
+const complete = defineCapability({
+  id: 'counter.complete',
   kind: 'command',
   input: jsonSchema(z.strictObject({ effectId: z.string() })),
   output: jsonSchema(z.strictObject({})),
@@ -45,7 +45,7 @@ const definition = defineApplication<Record<string, unknown>>({
   manifest: defineManifest({
     id: 'counter-site',
     title: 'Counter',
-    modules: [defineModule({ id: 'counter', capabilities: [bump, send, settle] })],
+    modules: [defineModule({ id: 'counter', capabilities: [bump, send, complete] })],
     plugins: [sitePluginManifest, networkPluginManifest, auditPluginManifest],
   }),
   createState: () => ({ counter: version === 1 ? { count: 0 } : { total: 0 } }),
@@ -93,9 +93,9 @@ const definition = defineApplication<Record<string, unknown>>({
       },
     },
     {
-      capability: settle,
+      capability: complete,
       handle: async (input, ctx) => {
-        ctx.settleEffect((input as { effectId: string }).effectId, { status: 'accepted' });
+        ctx.completeEffect((input as { effectId: string }).effectId, { status: 'accepted' });
         ctx.change('counter:main');
         return {};
       },

@@ -28,7 +28,7 @@ async function freePort() {
 
 /**
  * The network between the two: requests pass to quality inspection, or it is down, or its
- * answer is lost on the way back after it committed, or its contract reads as a newer one.
+ * response is lost on the way back after it committed, or its contract reads as a newer one.
  */
 type Weather = 'clear' | 'down' | 'lost' | 'drifted';
 
@@ -51,23 +51,22 @@ async function pair() {
       // As a gateway would, it addresses quality inspection by its own host name.
       const headers = new Headers(request.headers);
       headers.delete('host');
-      const answer = await fetch(`http://127.0.0.1:${qualityPort}${url.pathname}${url.search}`, {
+      const response = await fetch(`http://127.0.0.1:${qualityPort}${url.pathname}${url.search}`, {
         method: request.method,
         headers,
         ...(request.method === 'GET' ? {} : { body: await request.arrayBuffer() }),
       });
       if (weather.now === 'lost') return new Response('Gateway timeout', { status: 504 });
       if (weather.now === 'drifted' && url.pathname === '/api/v1/contract') {
-        // Quality inspection as a newer release would serve it: the announce input changed.
-        const contract = (await answer.json()) as {
+        // Quality inspection as a newer release would serve it: the create input changed.
+        const contract = (await response.json()) as {
           operations: { id: string; schemaDigest?: string }[];
         };
         for (const operation of contract.operations)
-          if (operation.id === 'inspection.arrival.announce')
-            operation.schemaDigest = 'sha256:newer';
+          if (operation.id === 'inspection.request.create') operation.schemaDigest = 'sha256:newer';
         return Response.json(contract);
       }
-      return answer;
+      return response;
     },
   });
   cleanup.push(async () => void network.stop(true));
@@ -151,11 +150,11 @@ async function pair() {
           as(principalId),
         )
       ).result as Record<string, any>,
-    arrivals: async (principalId = 'ina') =>
+    inspectionRequests: async (principalId = 'ina') =>
       (
         (
           await callee.application.queryRaw(
-            { operation: 'inspection.arrival.list', input: {} },
+            { operation: 'inspection.request.list', input: {} },
             as(principalId),
           )
         ).data as { items: Record<string, any>[] }
@@ -175,7 +174,7 @@ async function pair() {
 }
 
 describe('receiving calls quality inspection as a peer', () => {
-  test('a line marked for inspection is announced, closed there and its outcome comes back', async () => {
+  test('a line marked for inspection is sent, closed there and its outcome comes back', async () => {
     const { peerId, receiving, quality, post } = await pair();
     await post();
     expect((await receiving.line('ASN-1-1')).inspection).toEqual({
@@ -185,23 +184,23 @@ describe('receiving calls quality inspection as a peer', () => {
     expect((await receiving.line('ASN-1-2')).inspection).toBeUndefined();
 
     expect(await receiving.deliver()).toMatchObject({ accepted: 1 });
-    const [arrival] = await quality.arrivals();
-    expect(arrival).toMatchObject({
+    const [request] = await quality.inspectionRequests();
+    expect(request).toMatchObject({
       delivery: 'ASN-1-1',
       sku: 'BRK-220',
       quantity: 10,
-      from: `peer:${peerId}`,
+      requestedBy: `peer:${peerId}`,
       status: 'open',
     });
     expect((await receiving.line('ASN-1-1')).inspection).toMatchObject({
       sync: 'accepted',
-      sorRef: arrival!.id,
+      sorRef: request!.id,
     });
-    // Arrivals are for people who capture at some plant.
-    expect(await quality.arrivals('vic')).toEqual([]);
+    // Inspection requests are for people who capture at some plant.
+    expect(await quality.inspectionRequests('vic')).toEqual([]);
 
-    await quality.command('inspection.arrival.close', {
-      id: arrival!.id,
+    await quality.command('inspection.request.close', {
+      id: request!.id,
       outcome: 'rejected',
       note: 'Runout above limit',
     });
@@ -228,36 +227,36 @@ describe('receiving calls quality inspection as a peer', () => {
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 
-  test('an arrival waits while quality inspection is down, and a lost answer is not announced twice', async () => {
+  test('an inspection request waits while quality inspection is down, and a lost response is not sent twice', async () => {
     const { weather, receiving, quality, post } = await pair();
     await post();
     weather.now = 'down';
     expect(await receiving.deliver()).toMatchObject({ accepted: 0 });
     expect(await receiving.pending()).toEqual(['The peer could not accept the delivery now']);
 
-    // Quality inspection commits the arrival, and the answer is lost on the way back.
+    // Quality inspection commits the request, and the response is lost on the way back.
     weather.now = 'lost';
     expect(await receiving.deliver()).toMatchObject({ accepted: 0 });
-    expect(await quality.arrivals()).toHaveLength(1);
+    expect(await quality.inspectionRequests()).toHaveLength(1);
 
     weather.now = 'clear';
     expect(await receiving.deliver()).toMatchObject({ accepted: 1 });
-    const arrivals = await quality.arrivals();
-    expect(arrivals).toHaveLength(1);
+    const requests = await quality.inspectionRequests();
+    expect(requests).toHaveLength(1);
     expect((await receiving.line('ASN-1-1')).inspection).toMatchObject({
       sync: 'accepted',
-      sorRef: arrivals[0]!.id,
+      sorRef: requests[0]!.id,
     });
   });
 
-  test('a changed announce on quality inspection keeps the arrival pending', async () => {
+  test('a changed create command on quality inspection keeps the request pending', async () => {
     const { weather, receiving, quality, post } = await pair();
     weather.now = 'drifted';
     await post();
     expect(await receiving.deliver()).toMatchObject({ accepted: 0 });
     expect(await receiving.pending()).toEqual([
-      'inspection.arrival.announce changed on quality; calls wait until the two applications agree',
+      'inspection.request.create changed on quality; calls wait until the two applications agree',
     ]);
-    expect(await quality.arrivals()).toEqual([]);
+    expect(await quality.inspectionRequests()).toEqual([]);
   });
 });

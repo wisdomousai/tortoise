@@ -3,7 +3,7 @@ import type { Schema } from './schema';
 
 /**
  * Where a step reads a value: the workflow input, an earlier step's result, an effect an earlier
- * step enqueued (its outcome once settled), or the result of the wait being evaluated. `path`
+ * step enqueued (its outcome once completed), or the result of the wait being evaluated. `path`
  * is dot-separated; empty reads the whole value.
  */
 export type Binding =
@@ -23,7 +23,7 @@ export type Bound = Binding | JsonValue | readonly Bound[] | { readonly [key: st
 export const from = {
   input: (path = ''): Binding => ({ $from: 'input', path }),
   step: (step: string, path = ''): Binding => ({ $from: 'step', step, path }),
-  /** The `index`th effect the step enqueued, in order; its outcome once settled. */
+  /** The `index`th effect the step enqueued, in order; its outcome once completed. */
   effect: (step: string, index: number, path = ''): Binding => ({
     $from: 'effect',
     step,
@@ -55,7 +55,7 @@ export interface RunStep {
   readonly id: string;
   readonly command: string;
   readonly input: { readonly [key: string]: Bound };
-  /** Wait until every effect the command enqueued is settled before the next step. */
+  /** Wait until every effect the command enqueued is completed before the next step. */
   readonly await?: 'effects';
   readonly retry?: RetryPolicy;
   /** Undoes the step when a later step fails permanently; run in reverse order. */
@@ -215,7 +215,7 @@ export function workflowMarkdown(workflow: CatalogWorkflow): string {
     const head = `${index + 1}. \`${step.id}\`: `;
     if (step.kind === 'wait')
       return `${head}wait on \`${step.query}\` (${describeInput(step.input)}) until ${describeCondition(step.until)}, at most ${step.timeoutMs / 1000} s${step.watch?.length ? `, checking on changes to ${step.watch.join(', ')}` : ''}${step.recheckMs ? `, at least every ${step.recheckMs / 1000} s` : ''}.`;
-    return `${head}run \`${step.command}\` (${describeInput(step.input)})${step.when ? ` when ${describeCondition(step.when)}` : ''}${step.await ? ', then wait for its effects to settle' : ''}${step.retry ? `, up to ${step.retry.attempts} attempts` : ''}${step.compensate ? `; undone by \`${step.compensate.command}\`` : ''}.`;
+    return `${head}run \`${step.command}\` (${describeInput(step.input)})${step.when ? ` when ${describeCondition(step.when)}` : ''}${step.await ? ', then wait for its effects to complete' : ''}${step.retry ? `, up to ${step.retry.attempts} attempts` : ''}${step.compensate ? `; undone by \`${step.compensate.command}\`` : ''}.`;
   });
   return `${workflow.text}\n\nVersion ${workflow.version}, at most ${workflow.maxDurationMs! / 3_600_000} h${workflow.start ? `, started by \`${workflow.start}\`` : ''}.\n\n${steps.join('\n')}\n`;
 }

@@ -4,9 +4,9 @@ import type { DriverAction, DriverContract } from './contracts/define';
 import { driverComponent } from './contracts/document';
 import { driverModule, driverOperations } from './contracts/status';
 
-const hazardText: Record<DriverAction['hazard'], string> = {
-  none: 'no hazard; runs in assist or actuate mode',
-  low: 'low hazard; runs only in actuate mode',
+const riskText: Record<DriverAction['risk'], string> = {
+  none: 'risk none; runs in assist or actuate mode',
+  low: 'risk low; runs only in actuate mode',
   'operator-present':
     'runs only in actuate mode with presence.confirmedBy naming the person at the machine; never fill it in yourself',
 };
@@ -14,7 +14,7 @@ const hazardText: Record<DriverAction['hazard'], string> = {
 /** Agent guidance for one driver: what each action does to the equipment, and when it may run. */
 function driverWorkflow(contract: DriverContract) {
   const actions = Object.entries(contract.actions).map(
-    ([id, action]) => `${id} (${action.title}): ${action.delivery}, ${hazardText[action.hazard]}.`,
+    ([id, action]) => `${id} (${action.title}): ${action.delivery}, ${riskText[action.risk]}.`,
   );
   return {
     id: `driver-${contract.id.replace(/[._]/g, '-')}`,
@@ -28,8 +28,8 @@ function driverWorkflow(contract: DriverContract) {
 
 /**
  * The browser-safe part of the driver plugin for one application's drivers:
- * - the status query, with one workflow per driver naming each action's delivery mode and hazard
- *   class, so the generated agent skill says what acting on the equipment means;
+ * - the status query, with one workflow per driver naming each action's delivery mode and risk
+ *   level, so the generated agent skill says what acting on the equipment means;
  * - per driver a component naming its process, devices and network, so the site policy, the
  *   generated security manifest and the frame see every driver the application can start.
  *

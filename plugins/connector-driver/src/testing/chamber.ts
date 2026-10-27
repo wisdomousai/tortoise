@@ -37,7 +37,7 @@ export const chamber = defineDriverContract({
       title: 'Set the setpoint',
       input: jsonSchema(z.strictObject({ setpoint: z.number() })),
       delivery: 'convergent',
-      hazard: 'low',
+      risk: 'low',
       timeoutMs: 1_000,
       readback: [{ field: 'setpoint', equals: '$input.setpoint' }],
       preconditions: [{ field: 'door', equals: 'closed' }],
@@ -51,14 +51,14 @@ export const chamber = defineDriverContract({
         }),
       ),
       delivery: 'once',
-      hazard: 'operator-present',
+      risk: 'operator-present',
       timeoutMs: 1_000,
     },
     'label.print': {
       title: 'Print a label',
       input: jsonSchema(z.strictObject({ text: z.string() })),
       delivery: 'idempotent',
-      hazard: 'none',
+      risk: 'none',
       timeoutMs: 1_000,
     },
   },
@@ -70,7 +70,7 @@ export const chamber = defineDriverContract({
  * reads from `CHAMBER_SIM_DIR`:
  * - `applied.json` counts actions applied per effect ID;
  * - an empty `fail-next` file makes the next action fail before it acts (transient);
- * - an empty `crash-next` file makes the next action act and then exit before answering.
+ * - an empty `crash-next` file makes the next action act and then exit before responding.
  * Any input containing the text `refuse` is rejected with `OUT_OF_RANGE`, and a setpoint above 300 too.
  */
 export interface ChamberSimulation {

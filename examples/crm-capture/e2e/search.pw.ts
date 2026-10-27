@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startService } from '../../../tests/e2e/service';
 
-test('search as you type, adopt, and log an activity that reaches the CRM', async ({ page }) => {
+test('search as you type, follow, and log an activity that reaches the CRM', async ({ page }) => {
   const workspace = await mkdtemp(join(tmpdir(), 'agent-native-crm-'));
   // A slow CRM makes the in-between state observable: the previous result stays on screen.
   const host = await startService('@agent-native/crm-capture', workspace, {
@@ -14,7 +14,7 @@ test('search as you type, adopt, and log an activity that reaches the CRM', asyn
     await page.goto(host.launchUrl);
     const search = page.getByLabel('Search the CRM');
     const accounts = page.getByRole('list', { name: 'CRM accounts' });
-    // Before typing, the CRM answers with its first page of what Ann may see; more is one click.
+    // Before typing, the CRM returns its first page of what Ann may see; more is one click.
     await expect(accounts.getByRole('listitem')).toHaveCount(5);
     const more = page.getByRole('button', { name: 'Show more from the CRM' });
     await more.click();
@@ -25,7 +25,7 @@ test('search as you type, adopt, and log an activity that reaches the CRM', asyn
     await expect(accounts.getByRole('listitem')).toHaveCount(2);
     await expect(page.getByText(/Live from the CRM at .* with your CRM access/)).toBeVisible();
 
-    // Narrowing the search keeps the last answer visible (dimmed) instead of an empty list.
+    // Narrowing the search keeps the last result visible (dimmed) instead of an empty list.
     await search.fill('acme rob');
     await expect(page.getByText('Searching the CRM…')).toBeVisible();
     await expect(accounts.getByRole('listitem')).toHaveCount(2);
@@ -34,18 +34,18 @@ test('search as you type, adopt, and log an activity that reaches the CRM', asyn
     await search.fill('alpine');
     await expect(page.getByText('No matches you can see in the CRM.')).toBeVisible();
 
-    // Adopting asks the CRM; the feed then delivers the account, live, without a new search.
+    // Following asks the CRM; the feed then delivers the account, live, without a new search.
     await search.fill('acme rob');
-    await page.getByRole('button', { name: 'Adopt Acme Robotics' }).click();
-    await expect(accounts.getByText('Adopting…')).toBeVisible();
-    await expect(accounts.getByText('Adopted')).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: 'Follow Acme Robotics' }).click();
+    await expect(accounts.getByText('Follow requested')).toBeVisible();
+    await expect(accounts.getByText('Following', { exact: true })).toBeVisible({ timeout: 10_000 });
 
     // A contact leads to its account.
     await page.getByRole('tab', { name: 'contacts' }).click();
     await search.fill('fischer');
     const contacts = page.getByRole('list', { name: 'CRM contacts' });
     await expect(contacts.getByText('Lena Fischer · Fleet Director')).toBeVisible();
-    await expect(contacts.getByRole('button', { name: 'Adopt Acme Logistics' })).toBeVisible();
+    await expect(contacts.getByRole('button', { name: 'Follow Acme Logistics' })).toBeVisible();
 
     await page
       .getByRole('navigation', { name: 'Sections' })
@@ -73,7 +73,7 @@ test('an unreachable CRM shows a status and keeps local work usable', async ({ p
     await page.getByLabel('Search the CRM').fill('acme');
     await expect(page.getByRole('alert')).toContainText('CRM unavailable');
     await expect(page.getByRole('alert')).toContainText('The CRM is not reachable');
-    await expect(page.getByText('No adopted account matches.')).toBeVisible();
+    await expect(page.getByText('No followed account matches.')).toBeVisible();
   } finally {
     await host.stop();
     await rm(workspace, { recursive: true, force: true });

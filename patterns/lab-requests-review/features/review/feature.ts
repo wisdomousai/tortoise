@@ -15,7 +15,7 @@ import { reviewFeatureManifest, reviewOperations, type Review } from './contract
 export type ReviewAction = 'read' | 'sign';
 
 /**
- * The application's answer to who may do what. The application's policy never sees this
+ * How the application decides who may do what. The application's policy never sees this
  * feature's operations, so `allows` applies the application's membership gate itself.
  */
 export interface ReviewAccess {

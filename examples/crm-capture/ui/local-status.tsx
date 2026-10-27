@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { live } from '@/lib/session';
 import { operations } from '../contracts';
 
-export type LocalStatus = 'none' | 'following' | 'adopted' | 'rejected';
+export type LocalStatus = 'none' | 'requested' | 'following' | 'rejected';
 
 /** Followed accounts by CRM ID, live: newer than the `local` field of a search result. */
 export function useLocalAccounts() {
@@ -13,8 +13,8 @@ export function useLocalAccounts() {
 }
 
 const labels: Record<Exclude<LocalStatus, 'none'>, string> = {
-  following: 'Adopting…',
-  adopted: 'Adopted',
+  requested: 'Follow requested',
+  following: 'Following',
   rejected: 'Refused by CRM',
 };
 
@@ -23,7 +23,7 @@ export function LocalStatusBadge({ status }: { status: Exclude<LocalStatus, 'non
   return (
     <Badge
       variant={
-        status === 'rejected' ? 'destructive' : status === 'adopted' ? 'secondary' : 'outline'
+        status === 'rejected' ? 'destructive' : status === 'following' ? 'secondary' : 'outline'
       }
     >
       {labels[status]}

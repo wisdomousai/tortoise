@@ -59,14 +59,14 @@ function fixture() {
     const unsubscribe = observer.subscribe(() => {});
     return { observer, unsubscribe };
   };
-  const settle = () => new Promise((resolve) => setTimeout(resolve, 10));
+  const complete = () => new Promise((resolve) => setTimeout(resolve, 10));
   return {
     calls,
     signals,
     client,
     live,
     observe,
-    settle,
+    complete,
     setRevision: (value: number) => (revision = value),
     hold: (value: boolean) => (hold = value),
     release: (snapshot: Snapshot<unknown>) => pending.shift()!(snapshot),
@@ -92,15 +92,15 @@ test('dependency matching is conservative for undeclared queries', () => {
 });
 
 test('a change batch refetches only active queries whose dependencies changed, once', async () => {
-  const { calls, client, live, observe, settle } = fixture();
+  const { calls, client, live, observe, complete } = fixture();
   observe(lots);
   observe(plants);
   observe(undeclared);
-  await settle();
+  await complete();
   expect(calls.sort()).toEqual(['lot.list', 'misc.get', 'plant.list']);
   calls.length = 0;
   await live.applyBatch(client, batch({ reset: true }));
-  await settle();
+  await complete();
   expect(calls.length).toBe(3);
   calls.length = 0;
   // Three lot/result changes coalesce into one refetch per affected query.
@@ -108,27 +108,27 @@ test('a change batch refetches only active queries whose dependencies changed, o
     client,
     batch({ changes: [change('lot:1'), change('result:9'), change('lot:2')] }),
   );
-  await settle();
+  await complete();
   expect(calls.sort()).toEqual(['lot.list', 'misc.get']);
 });
 
 test('a remote query ignores local changes, keeps its signal and resets on a permission change', async () => {
-  const { calls, signals, client, live, settle, setRevision } = fixture();
+  const { calls, signals, client, live, complete, setRevision } = fixture();
   const observer = new QueryObserver(client, live.remoteQueryOptions(search, {}));
   observer.subscribe(() => {});
-  await settle();
+  await complete();
   expect(calls).toEqual(['crm.account.search']);
   expect(signals[0]).toBeInstanceOf(AbortSignal);
   // Neither a stream reset nor any change calls the target again.
   await live.applyBatch(client, batch({ reset: true }));
   await live.applyBatch(client, batch({ changes: [change('account:1')] }));
-  await settle();
+  await complete();
   expect(calls).toEqual(['crm.account.search']);
   setRevision(1);
   const reset = live.applyBatch(client, batch({ reset: true, authorizationRevision: 1 }));
   expect(observer.getCurrentResult().data).toBeUndefined();
   await reset;
-  await settle();
+  await complete();
   expect(calls).toEqual(['crm.account.search', 'crm.account.search']);
 });
 
@@ -167,53 +167,53 @@ test('a paged remote query follows next cursors, stops at the last page and igno
 });
 
 test('a permission change clears cached data before refetching', async () => {
-  const { client, live, observe, settle, setRevision } = fixture();
+  const { client, live, observe, complete, setRevision } = fixture();
   const { observer } = observe(lots);
   await live.applyBatch(client, batch({ reset: true }));
-  await settle();
+  await complete();
   expect(observer.getCurrentResult().data).toBeDefined();
   setRevision(1);
   const reset = live.applyBatch(client, batch({ reset: true, authorizationRevision: 1 }));
   // resetQueries drops the data synchronously; the refetch then fills it under revision 1.
   expect(observer.getCurrentResult().data).toBeUndefined();
   await reset;
-  await settle();
+  await complete();
   expect(observer.getCurrentResult().data).toBeDefined();
 });
 
 test('a snapshot from before a revocation is never cached', async () => {
-  const { client, live, observe, settle, hold, release } = fixture();
+  const { client, live, observe, complete, hold, release } = fixture();
   await live.applyBatch(client, batch({ reset: true, authorizationRevision: 1 }));
   hold(true);
   const { observer } = observe(lots);
-  await settle();
+  await complete();
   release({ data: { n: 99 }, cursor: 'old', authorizationRevision: 0 });
-  await settle();
+  await complete();
   expect(observer.getCurrentResult().data).toBeUndefined();
 });
 
-test('a refetch that never answers does not hold back a later revocation', async () => {
-  const { client, live, observe, settle, hold, setRevision, emit } = fixture();
+test('a refetch that never resolves does not hold back a later revocation', async () => {
+  const { client, live, observe, complete, hold, setRevision, emit } = fixture();
   const { observer } = observe(lots);
-  await settle();
+  await complete();
   const controller = new AbortController();
   void live.follow(client, controller.signal);
   // The stream's first batch refetches under the same revision; that refetch hangs.
   hold(true);
   emit(batch({ reset: true }));
-  await settle();
+  await complete();
   expect(observer.getCurrentResult().data).toBeDefined();
   setRevision(1);
   emit(batch({ reset: true, authorizationRevision: 1 }));
-  await settle();
+  await complete();
   expect(observer.getCurrentResult().data).toBeUndefined();
   controller.abort();
 });
 
 test('a first stream batch under a newer revision clears data cached before it', async () => {
-  const { client, live, observe, settle, hold, setRevision } = fixture();
+  const { client, live, observe, complete, hold, setRevision } = fixture();
   const { observer } = observe(lots);
-  await settle();
+  await complete();
   expect(observer.getCurrentResult().data).toBeDefined();
   // Revoked between the initial query and the subscription's first batch.
   setRevision(1);

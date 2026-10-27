@@ -6,7 +6,7 @@ import { defineCapability, defineModule, jsonSchema } from '@agent-native/contra
  * command input, which the runtime stores with the command's receipt.
  */
 export const stationPaths = {
-  /** `{ badge, pin, seat }` from a seat's session: `201 { token, session }`. */
+  /** `{ badge, pin, terminal }` from a terminal's session: `201 { token, session }`. */
   signIn: '/api/v1/station/sign-in',
   /** `{ token }`: ends that operator session. */
   signOut: '/api/v1/station/sign-out',
@@ -23,7 +23,7 @@ const principal = z.string().min(1).max(256);
 const timestamp = z.number().int().min(0);
 const digest = z.string().regex(/^[0-9a-f]{64}$/);
 const machineCalled = (what: string) => ({
-  exception: `Called by the plugin's ${what}; people sign in at a seat by scanning their badge.`,
+  exception: `Called by the plugin's ${what}; people sign in at a terminal by scanning their badge.`,
 });
 
 export const badgeSchema = z.strictObject({
@@ -38,9 +38,9 @@ export const badgeSchema = z.strictObject({
 export const operatorSessionSchema = z.strictObject({
   id,
   principalId: principal,
-  /** The caller the seat's screen runs as, and the seat's name on that caller. */
-  seatPrincipal: principal,
-  seat: id,
+  /** The caller the terminal's screen runs as, and the terminal's name on that caller. */
+  terminalPrincipal: principal,
+  terminal: id,
   startedAt: timestamp,
   expiresAt: timestamp,
 });
@@ -109,13 +109,13 @@ export const stationSignInOperations = {
     id: 'station.session.start',
     kind: 'command',
     description:
-      'Record a sign-in attempt at a seat. A verified attempt on an unlocked badge opens an operator session holding the digest of its token and ends the seat’s previous session; a failed one counts toward the badge’s lockout.',
+      'Record a sign-in attempt at a terminal. A verified attempt on an unlocked badge opens an operator session holding the digest of its token and ends the terminal’s previous session; a failed one counts toward the badge’s lockout.',
     input: jsonSchema(
       z.strictObject({
         badgeId: id,
         verified: z.boolean(),
-        seatPrincipal: principal,
-        seat: id,
+        terminalPrincipal: principal,
+        terminal: id,
         tokenDigest: digest,
       }),
     ),
@@ -127,7 +127,7 @@ export const stationSignInOperations = {
     ),
     permission: { action: 'start', resourceType: 'OperatorSession' },
     ui: machineCalled('sign-in route'),
-    audit: { fields: ['badgeId', 'verified', 'seatPrincipal', 'seat'] },
+    audit: { fields: ['badgeId', 'verified', 'terminalPrincipal', 'terminal'] },
   }),
   sessionEnd: defineCapability({
     id: 'station.session.end',

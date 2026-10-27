@@ -34,7 +34,7 @@ export interface PeerPortOptions {
     digest: string,
   ) => Promise<{ readonly ref: BlobRef; readonly data: Uint8Array } | undefined>;
   /**
-   * The peer's feed query for inbound sync. It takes `{ cursor? }` and answers a `PullBatch`:
+   * The peer's feed query for inbound sync. It takes `{ cursor? }` and returns a `PullBatch`:
    * `{ items, cursor, more? }`. Without it the port does not pull.
    */
   readonly feed?: string;
@@ -58,7 +58,7 @@ export interface PeerPortOptions {
 const deviceReconnect = { missing: 'pair the device first', refused: 'pair the device again' };
 
 /**
- * Codes the peer answers for a business refusal; delivering again would get the same answer.
+ * Codes the peer returns for a business refusal; delivering again would get the same response.
  * `IDEMPOTENCY_CONFLICT` is not one: the peer holds a different command under the effect's key,
  * so whether this effect was applied is unknown, and the effect is held.
  */
@@ -128,7 +128,7 @@ function failureOf(options: PeerPortOptions, error: unknown): never {
   throw new DeliveryFailure('The peer could not accept the delivery now');
 }
 
-/** Run a call; a business refusal comes back as the rejection it settles the effect with. */
+/** Run a call; a business refusal comes back as the rejection it completes the effect with. */
 async function attempt<T>(
   options: PeerPortOptions,
   run: () => Promise<T>,
@@ -176,12 +176,12 @@ const rejection = (error: ErrorEnvelope): EffectOutcome => ({
  *   named by the effect's `type` with the payload as input and the effect id as idempotency key.
  *   The peer's receipts make a repeated delivery after a lost response return the first result,
  *   so delivery is idempotent. `reference` names the external reference from that result.
- * - A business refusal from the peer (invalid input, not found, conflict, denied) settles the
+ * - A business refusal from the peer (invalid input, not found, conflict, denied) completes the
  *   effect as `rejected` with the peer's code and message. A refused credential or assertion, an
  *   unreachable peer or a server error is a `DeliveryFailure` and is retried. An idempotency
  *   conflict holds the effect for reconciliation.
  * - `pull` reads the peer's feed query from the stored cursor.
- * - `search` answers a remote query with the peer query of the same ID, which returns
+ * - `search` serves a remote query with the peer query of the same ID, which returns
  *   `{ items, next? }`.
  */
 export function createPeerPort<Item = unknown>(options: PeerPortOptions): SystemOfRecordPort<Item> {

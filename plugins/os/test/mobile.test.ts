@@ -182,7 +182,7 @@ function device(
 }
 
 /** Time for requests that should show nothing to have been refused. */
-const settle = () => Bun.sleep(20);
+const complete = () => Bun.sleep(20);
 /** Wait until `condition` holds, polling; fails the test after two seconds. */
 async function until(condition: () => boolean) {
   const deadline = Date.now() + 2_000;
@@ -200,7 +200,7 @@ test('a launch link waits for the frame, then later links and files are delivere
     'content://media/43': { name: 'movie', type: 'video/mp4', bytes: new Uint8Array(4) },
   });
   const connection = connectMobileShell(instance, application, fake.bindings);
-  await settle();
+  await complete();
   const shown: OsDelivery[] = [];
   connection.deliveries.subscribe((delivery) => shown.push(delivery));
   await until(() => shown.length === 1);
@@ -219,7 +219,7 @@ test('a launch link waits for the frame, then later links and files are delivere
   fake.send('other.app://notes/n-1');
   fake.send(`${scheme}://notes/n-9`);
   await until(() => shown.length === 2);
-  await settle();
+  await complete();
   expect(fake.read).toEqual(['content://media/42']);
   expect(shown.slice(1)).toEqual([
     {
@@ -244,7 +244,7 @@ test('a scanned file is staged in the blob store and prefills the form as its re
   fake.send('content://scans/7');
   fake.send('content://scans/8');
   await until(() => shown.length === 1);
-  await settle();
+  await complete();
   expect(fake.read).toEqual(['content://scans/7']);
   expect(shown).toHaveLength(1);
   const prepared = shown[0] as Extract<OsDelivery, { type: 'prepare' }>;
@@ -291,7 +291,7 @@ test('a declared open action runs through the device; without the plugin nothing
   });
   const shown: OsDelivery[] = [];
   inert.deliveries.subscribe((delivery) => shown.push(delivery));
-  await settle();
+  await complete();
   expect(subscribed).toBe(false);
   expect(shown).toEqual([]);
 });

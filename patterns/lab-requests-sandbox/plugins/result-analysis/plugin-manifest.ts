@@ -4,11 +4,11 @@ import { definePluginManifest } from '@agent-native/host/plugin-manifest';
 export const resultAnalysisPaths = {
   /** GET: whether the analysis sandbox can run here, and why not. */
   status: '/api/v1/result-analysis/status',
-  /** POST `{ result }`: run the result analyst on one test result and answer what it recorded. */
+  /** POST `{ result }`: run the result analyst on one test result and return what it recorded. */
   run: '/api/v1/result-analysis/run',
 } as const;
 
-/** What the run route answers: the run, how the tool exited and the JSON line it printed. */
+/** What the run route returns: the run, how the tool exited and the JSON line it printed. */
 export interface AnalysisRun {
   readonly runId: string;
   readonly exitCode: number | null;

@@ -89,7 +89,7 @@ async function socket<Data>(
  * not opened.
  *
  * Limits: the address check resolves the host and then connects by name, so a resolver that
- * answers differently between the two can race it. The OS rules exported from the same policy
+ * returns different addresses between the two can race it. The OS rules exported from the same policy
  * (`network export`) close that gap. Child processes that ignore proxy settings are likewise
  * contained only by those rules.
  */

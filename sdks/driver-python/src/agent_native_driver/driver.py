@@ -1,7 +1,7 @@
 """A hardware driver for an agent-native host.
 
 The host starts the driver as a child process and speaks JSON-RPC to it over stdin and stdout.
-This module answers the protocol so a driver author writes only what touches the equipment:
+This module implements the protocol so a driver author writes only what touches the equipment:
 
     driver = Driver(CONTRACT, DIGEST, driver_id="chamber", version="1.0.0")
 
@@ -22,12 +22,12 @@ This module answers the protocol so a driver author writes only what touches the
 What the SDK enforces, whatever the handlers do:
 
 - The mode the host sends with each action: ``monitor-only`` refuses every action, ``assist``
-  refuses any hazard other than ``none``, and an ``operator-present`` action needs
+  refuses any risk level other than ``none``, and an ``operator-present`` action needs
   ``presence.confirmedBy``.
 - An action whose deadline passed is refused before it runs.
 - ``idempotent`` and ``once`` actions run at most once per effect ID. A repeat returns the
-  recorded outcome; ``action.lookup`` answers from the journal. An effect that started and has no
-  outcome (the driver crashed or the action raised) answers ``uncertain``, never ``unknown``.
+  recorded outcome; ``action.lookup`` returns the journal's record. An effect that started and has no
+  outcome (the driver crashed or the action raised) returns ``uncertain``, never ``unknown``.
 - stdout carries only protocol messages: ``print`` goes to stderr while the driver runs.
 """
 
@@ -56,10 +56,10 @@ _modes = {"monitor-only", "assist", "actuate"}
 
 
 class Refusal(Exception):
-    """An answer that is not a result. Raise it from a handler to classify a failure.
+    """A response that is not a result. Raise it from a handler to classify a failure.
 
     - ``rejected``: the equipment refused the request; retrying will not help. ``code`` is your
-      business code, shown to the person who settles it.
+      business code, shown to the person who reviews it.
     - ``precondition``: the equipment is not in a state to do it now.
     - ``transient``: nothing was done, and a retry may succeed (port busy, device warming up).
     - ``uncertain``: the equipment may have acted and the driver cannot tell. A person decides.
@@ -232,7 +232,7 @@ class Driver:
     # Requests -----------------------------------------------------------------------------------
 
     async def handle(self, method: str, params: Mapping[str, Any]) -> Any:
-        """Answer one request. Raises ``Refusal`` for a classified failure."""
+        """Handle one request. Raises ``Refusal`` for a classified failure."""
         if method == "initialize":
             return await self._on_initialize(params)
         if self.session is None:
@@ -272,8 +272,8 @@ class Driver:
         fields = [name for name in params.get("fields", []) if name in self.contract.get("state", {})]
         if self._state is None:
             raise Refusal("rejected", "This driver reads no state")
-        answer = await _call(self._state, fields)
-        reading = answer if isinstance(answer, Reading) else Reading(values=answer or {})
+        values = await _call(self._state, fields)
+        reading = values if isinstance(values, Reading) else Reading(values=values or {})
         return {
             "values": {name: reading.values[name] for name in fields if name in reading.values},
             "confidence": {
@@ -286,12 +286,12 @@ class Driver:
 
     def _gate(self, name: str, spec: Mapping[str, Any], input: Any, mode: str, deadline: Any) -> None:
         """The host's own checks, repeated, so a driver is safe even behind a faulty host."""
-        hazard = spec.get("hazard", "operator-present")
+        risk = spec.get("risk", "operator-present")
         if mode not in _modes or mode == "monitor-only":
             raise Refusal("refused", f"Mode {mode} does not allow {name}")
-        if mode == "assist" and hazard != "none":
+        if mode == "assist" and risk != "none":
             raise Refusal("refused", f"{name} needs actuate mode")
-        if hazard == "operator-present":
+        if risk == "operator-present":
             presence = input.get("presence") if isinstance(input, Mapping) else None
             if not (isinstance(presence, Mapping) and presence.get("confirmedBy")):
                 raise Refusal("precondition", f"{name} needs a person at the machine to confirm")
@@ -310,7 +310,7 @@ class Driver:
         if entry.action != name:
             raise Refusal("rejected", f"Effect {effect_id} was used for {entry.action}", "EFFECT_REUSED")
         if entry.status == "accepted":
-            return _invoke_answer(entry.ref, entry.result)
+            return _invoke_result(entry.ref, entry.result)
         if entry.status == "rejected":
             raise Refusal("rejected", entry.message or "Rejected", entry.code)
         raise Refusal("uncertain", f"The driver stopped while running {name} for this effect")
@@ -359,7 +359,7 @@ class Driver:
         else:
             ref, result = None, None
         self.journal.record(Entry(effect_id, name, "accepted", ref=ref, result=result))
-        return _invoke_answer(ref, result)
+        return _invoke_result(ref, result)
 
     def _on_lookup(self, params: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.journal.get(str(params.get("effectId")))
@@ -378,7 +378,7 @@ class Driver:
     # Serving ------------------------------------------------------------------------------------
 
     async def serve(self, input: BinaryIO, output: BinaryIO) -> None:
-        """Answer requests from ``input`` until ``shutdown`` or end of input."""
+        """Handle requests from ``input`` until ``shutdown`` or end of input."""
         self._loop = asyncio.get_running_loop()
         self._loop_thread = threading.get_ident()
         self._writer = LineWriter(output)
@@ -401,7 +401,7 @@ class Driver:
                         task.cancel()
                 continue
             stopping = method == "shutdown"
-            task = asyncio.create_task(self._answer(request_id, method, params))
+            task = asyncio.create_task(self._respond(request_id, method, params))
             tasks[request_id] = task
             task.add_done_callback(lambda _, key=request_id: tasks.pop(key, None))
         if tasks:
@@ -410,7 +410,7 @@ class Driver:
             await _call(self._shutdown)
         self.journal.close()
 
-    async def _answer(self, request_id: Any, method: str, params: Mapping[str, Any]) -> None:
+    async def _respond(self, request_id: Any, method: str, params: Mapping[str, Any]) -> None:
         assert self._writer is not None
         try:
             result = await self.handle(method, params)
@@ -443,13 +443,13 @@ class Driver:
         return 0
 
 
-def _invoke_answer(ref: str | None, result: Any) -> dict[str, Any]:
-    answer: dict[str, Any] = {}
+def _invoke_result(ref: str | None, result: Any) -> dict[str, Any]:
+    response: dict[str, Any] = {}
     if ref:
-        answer["ref"] = str(ref)[:256]
+        response["ref"] = str(ref)[:256]
     if result is not None:
-        answer["result"] = result
-    return answer
+        response["result"] = result
+    return response
 
 
 def _parse(line: bytes) -> tuple[str, Mapping[str, Any], Any] | None:

@@ -14,7 +14,7 @@ export const crmAccounts = defineDataProvider({
   item: accountFoundSchema,
   descriptions: {
     search:
-      'Search accounts in the CRM by name, city or industry, live, with your CRM access. Results are not stored: each carries source.fetchedAt, and local says whether this workspace already follows it. source.status unavailable means the CRM did not answer; fall back to crm.account.list. Adopt a result with crm.account.adopt before logging activities.',
+      'Search accounts in the CRM by name, city or industry, live, with your CRM access. Results are not stored: each carries source.fetchedAt, and local says whether this workspace already follows it. source.status unavailable means the CRM did not respond; fall back to crm.account.list. Follow a result with crm.account.follow before logging activities.',
     lookup:
       'Read one CRM account by its CRM ID (externalId), live, with your CRM access. An empty items list means the account does not exist or you cannot see it.',
   },
@@ -33,7 +33,7 @@ export const crmContacts = defineDataProvider({
   item: contactFoundSchema,
   descriptions: {
     search:
-      'Search contacts in the CRM by name, title or email, live, with your CRM access. Each contact names its account (accountId); adopt that account to log activities against it.',
+      'Search contacts in the CRM by name, title or email, live, with your CRM access. Each contact names its account (accountId); follow that account to log activities against it.',
     lookup: 'Read one CRM contact by its CRM ID (externalId), live, with your CRM access.',
   },
   ui: {

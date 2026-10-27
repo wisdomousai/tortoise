@@ -9,7 +9,7 @@ export interface PeerTargetOptions<Item> {
   readonly target: PeerTarget;
   readonly application: TargetIntegrationOptions<Item>['application'];
   readonly workspaceId: string;
-  /** The target's integration principal, which settles outcomes and applies the feed. */
+  /** The target's integration principal, which completes outcomes and applies the feed. */
   readonly principalId: string;
   /** The connection; throws while the peer is not connected, which keeps effects pending. */
   readonly link: () => PeerLink;
@@ -23,7 +23,7 @@ export interface PeerTargetOptions<Item> {
 }
 
 /**
- * Wire a peer target (`definePeerTarget`) to the peer link. A command on the surface's service
+ * Wire a peer target (`definePeerTarget`) to the peer link. A command on the API's service
  * list is delivered as this application's service principal; one on its `onBehalfOf` list is
  * delivered on behalf of the person who enqueued it (`effect.principalId`), so the peer applies
  * that person's policy. The feed is read as the service principal.

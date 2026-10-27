@@ -102,7 +102,7 @@ export interface CollectionReadOptions<State, Services, Stored, Item> {
   readonly store: (state: State) => Readonly<Record<string, Stored>>;
   /**
    * Whether the caller may see a record. Applied to every row before filters, counts and paging,
-   * and by `get` before it answers, so a hidden record is indistinguishable from a missing one.
+   * and by `get` before it returns, so a hidden record is indistinguishable from a missing one.
    */
   readonly visible: (record: Stored, context: HandlerContext<State, Services>) => boolean;
   /** What the caller sees of a stored record; the stored record itself when omitted. */

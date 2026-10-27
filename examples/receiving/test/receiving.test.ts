@@ -99,7 +99,7 @@ async function site() {
 }
 
 describe('receiving through the ERP exchange folders', () => {
-  test('a notice becomes lines; a short count is classified by an approved approval request and posted as a file the ERP settles', async () => {
+  test('a notice becomes lines; a short count is classified by an approved approval request and posted as a file the ERP completes', async () => {
     const share = await site();
     const host = await share.open();
     await writeFile(join(share.path('inbox'), 'asn-1001.csv'), notice);
@@ -152,7 +152,7 @@ describe('receiving through the ERP exchange folders', () => {
 
     await host.command('erp.send', { id: 'ASN-1001-1' });
     await host.command('erp.send', { id: 'ASN-1001-2' });
-    expect(await host.deliver()).toMatchObject({ upstream: 2 });
+    expect(await host.deliver()).toMatchObject({ acknowledged: 2 });
     expect((await readdir(share.path('drop'))).length).toBe(2);
     expect((await host.line('ASN-1001-2')).posting).toMatchObject({ sync: 'pending' });
 
@@ -188,13 +188,13 @@ describe('receiving through the ERP exchange folders', () => {
     await host.sync();
     await host.command('delivery.receive', { id: 'ASN-1001-1', counted: 500 });
     await host.command('erp.send', { id: 'ASN-1001-1' });
-    expect(await host.deliver()).toMatchObject({ retried: 1, upstream: 0 });
+    expect(await host.deliver()).toMatchObject({ retried: 1, acknowledged: 0 });
     expect(await readdir(share.path('drop'))).toEqual([]);
     await host.close();
 
     host = await share.open();
     expect(await host.deliver()).toMatchObject({
-      upstream: 1,
+      acknowledged: 1,
     });
     await share.consumer().process();
     await host.deliver();
@@ -219,7 +219,7 @@ describe('receiving through the ERP exchange folders', () => {
     expect((await held()).map((item) => item.id)).toEqual([effectId]);
     expect((await host.line('ASN-1001-1')).posting).toMatchObject({ sync: 'pending' });
 
-    // A viewer may see it but not decide; an editor who found the booking settles it.
+    // A viewer may see it but not decide; an editor who found the booking completes it.
     const decision = { effectId, decision: 'applied', externalRef: 'DOC-77' };
     await expect(host.command('reconciliation.resolve', decision, viewer)).rejects.toMatchObject({
       code: 'FORBIDDEN',

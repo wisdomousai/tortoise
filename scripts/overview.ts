@@ -388,7 +388,7 @@ export async function overview(root: string, manifests: readonly ApplicationMani
     plugins,
     docs,
     ports: curated.ports,
-    lanes: curated.lanes,
+    columns: curated.columns,
     paths: curated.paths,
     phases: {
       source: curated.phaseSource,

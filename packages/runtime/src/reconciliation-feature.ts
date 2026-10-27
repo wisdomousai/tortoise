@@ -12,9 +12,9 @@ import type { Effect, EffectOutcome, ExecutionContext } from './types.js';
 export type ReconciliationAction = 'read' | 'resolve';
 
 /**
- * The application's answer to who may reconcile held effects. The application's own policy never
- * sees reconciliation operations, so both answers must apply its membership gate and its
- * integration principals' lanes.
+ * The application's decision on who may reconcile held effects. The application's own policy never
+ * sees reconciliation operations, so both checks must apply its membership gate and its
+ * integration allowlists.
  */
 export interface ReconciliationAccess {
   /** Whether `context` may list held effects (`read`) or decide one (`resolve`) at all. */
@@ -45,7 +45,7 @@ const ops = reconciliationOperations;
 
 /**
  * Reconciliation as a feature: the held effects of every target a caller may see, and a person's
- * decision for one, which settles or releases the effect through the outbox. It keeps no state
+ * decision for one, which completes or releases the effect through the outbox. It keeps no state
  * and owns no resource type; deciding changes the record the effect reports on.
  */
 export function reconciliationFeature(): FeatureServer<

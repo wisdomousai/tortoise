@@ -46,13 +46,13 @@ internal sealed class Press : IDisposable
         {"protocol":"1","id":"press","version":"1.0.0","title":"Press",
          "state":{"force":{"type":"number"},"door":{"type":"enum","options":["open","closed"]}},
          "actions":{
-           "stamp":{"title":"Stamp","delivery":"once","hazard":"operator-present","timeoutMs":1000,
+           "stamp":{"title":"Stamp","delivery":"once","risk":"operator-present","timeoutMs":1000,
              "input":{"type":"object","properties":{"part":{"type":"string"},
                "presence":{"type":"object","properties":{"confirmedBy":{"type":"string"}},"required":["confirmedBy"]}},
                "required":["part"]}},
-           "label":{"title":"Label","delivery":"idempotent","hazard":"none","timeoutMs":1000,
+           "label":{"title":"Label","delivery":"idempotent","risk":"none","timeoutMs":1000,
              "input":{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}},
-           "force.set":{"title":"Set force","delivery":"convergent","hazard":"low","timeoutMs":1000,
+           "force.set":{"title":"Set force","delivery":"convergent","risk":"low","timeoutMs":1000,
              "input":{"type":"object","properties":{"force":{"type":"number"}},"required":["force"]},
              "readback":[{"field":"force","equals":"$input.force"}]}},
          "events":{"reading":{"kind":"telemetry","maxRateHz":1}},
@@ -141,9 +141,9 @@ internal static class DriverTests
     public static async Task HandshakeReportsUnitsAndRefusesAnotherContract()
     {
         using var press = new Press();
-        var answer = await Press.Initialize(press.Driver);
-        Check.Json("""[{"serial":"P-1"}]""", answer["devices"]);
-        Check.Json($$"""{"digest":"{{Press.Digest}}"}""", answer["contract"]);
+        var result = await Press.Initialize(press.Driver);
+        Check.Json("""[{"serial":"P-1"}]""", result["devices"]);
+        Check.Json($$"""{"digest":"{{Press.Digest}}"}""", result["contract"]);
         var refusal = await Check.Refuses(() => press.Driver.HandleAsync("initialize",
             Press.Params("""{"protocol":"1","contract":{"id":"oven"}}""")));
         Check.Equal(RefusalKind.Refused, refusal.Kind);
@@ -156,11 +156,11 @@ internal static class DriverTests
         Check.Equal(RefusalKind.Transient, refusal.Kind);
     }
 
-    public static async Task StateAnswersOnlyDeclaredFieldsThatWereAsked()
+    public static async Task StateReadReturnsOnlyDeclaredFieldsThatWereAsked()
     {
         using var press = await Ready();
-        var answer = await press.Driver.HandleAsync("state.read", Press.Params("""{"fields":["force","noise"]}"""));
-        Check.Json("""{"force":3.5}""", answer["values"]);
+        var result = await press.Driver.HandleAsync("state.read", Press.Params("""{"fields":["force","noise"]}"""));
+        Check.Json("""{"force":3.5}""", result["values"]);
     }
 
     public static async Task ModeAndPresenceAreEnforcedBeforeTheHandler()
@@ -279,15 +279,15 @@ internal static class DriverTests
             """{"jsonrpc":"2.0","id":3,"method":"state.read","params":{"fields":["force"]}}""",
             """{"jsonrpc":"2.0","id":4,"method":"nope","params":{}}""",
             """{"jsonrpc":"2.0","id":5,"method":"shutdown","params":{}}""") + "\n";
-        // Answers are concurrent, so each request is sent after the previous one is answered.
+        // Responses are concurrent, so each request is sent after the previous one has its response.
         var toDriver = new Pipe();
         var toHost = new Collector();
         var serving = driver.ServeAsync(toDriver.Reader.AsStream(), toHost);
         foreach (var line in requests.Split('\n', StringSplitOptions.RemoveEmptyEntries))
         {
-            var answered = toHost.Answers;
+            var responded = toHost.Responses;
             await toDriver.Writer.WriteAsync(Encoding.UTF8.GetBytes(line + "\n"));
-            if (line.StartsWith('{')) await toHost.Until(() => toHost.Answers > answered);
+            if (line.StartsWith('{')) await toHost.Until(() => toHost.Responses > responded);
         }
         await toDriver.Writer.CompleteAsync();
         await serving;
@@ -315,7 +315,7 @@ internal sealed class Collector : Stream
         get { lock (_messages) return [.. _messages]; }
     }
 
-    public int Answers => Messages.Count(message => message["id"] is not null);
+    public int Responses => Messages.Count(message => message["id"] is not null);
 
     public async Task Until(Func<bool> condition)
     {

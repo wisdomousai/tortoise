@@ -14,13 +14,13 @@ export interface TargetIntegrationOptions<Item> {
   };
   readonly port: SystemOfRecordPort<Item>;
   /**
-   * Trusted identity for both directions. Grant it only the settle, sync and status operations,
-   * so a misbehaving adapter cannot drive business commands or read other features.
+   * Trusted identity for both directions. Grant it only the complete, sync and status operations,
+   * so a misbehaving adapter cannot call business commands or read other features.
    */
   readonly context: ExecutionContext;
-  readonly settleOperation: string;
-  /** The settle command takes `fence` (a `defineTarget` settle does), so settlements are fenced. */
-  readonly fencedSettlement?: boolean;
+  readonly completeOperation: string;
+  /** The complete command takes `fence` (a `defineTarget` complete does), so completions are fenced. */
+  readonly fencedCompletion?: boolean;
   /** Absent for a target without a feed: the inbound side then pulls nothing. */
   readonly syncOperation?: string;
   /** Authorized query whose result carries the stored inbound `watermark`. */
@@ -41,7 +41,7 @@ function idleInbound(target: string) {
 /**
  * One system of record wired in both directions: the outbox dispatcher delivers committed effects
  * to the port and the inbound sync pulls its changes, both under one trusted identity. It owns no
- * state; every write goes through the application's settle and sync commands. `start` runs the
+ * state; every write goes through the application's complete and sync commands. `start` runs the
  * background loops (sync every 5 s and delivery every 1 s by default); `stop` waits for both.
  */
 export function createTargetIntegration<Item>(options: TargetIntegrationOptions<Item>) {
@@ -49,10 +49,10 @@ export function createTargetIntegration<Item>(options: TargetIntegrationOptions<
     application: options.application,
     port: options.port,
     context: options.context,
-    settleOperation: options.settleOperation,
-    ...(options.fencedSettlement
+    completeOperation: options.completeOperation,
+    ...(options.fencedCompletion
       ? {
-          settleInput: (effect, outcome, attempt) => ({
+          completeInput: (effect, outcome, attempt) => ({
             effectId: effect.id,
             outcome,
             fence: attempt.fence,
@@ -96,7 +96,7 @@ export type TargetIntegration<Item = unknown> = ReturnType<typeof createTargetIn
 
 /**
  * Wire a declared target (`defineTarget`) to its port under its integration principal. The
- * settle, sync and status operations and the principal's narrow grant come from the
+ * complete, sync and status operations and the principal's narrow grant come from the
  * declaration; a target without a feed only delivers, and its inbound side pulls nothing; `toInput` defaults to passing the pulled batch through as the sync input.
  */
 export function connectTarget<Item>(options: {
@@ -111,8 +111,8 @@ export function connectTarget<Item>(options: {
     application: options.application,
     port: options.port,
     context: targetContext(options.target, options.workspaceId, options.principalId),
-    settleOperation: options.target.settle.id,
-    fencedSettlement: true,
+    completeOperation: options.target.complete.id,
+    fencedCompletion: true,
     ...(options.target.sync ? { syncOperation: options.target.sync.id } : {}),
     statusOperation: options.target.status.id,
     toInput: options.toInput ?? ((batch) => batch),

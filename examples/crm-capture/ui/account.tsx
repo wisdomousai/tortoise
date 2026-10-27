@@ -9,7 +9,7 @@ import { LocalStatusBadge } from './local-status';
 const when = (at: number) =>
   new Date(at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 
-/** One adopted account: what the CRM holds, and the activities logged here with their outcome. */
+/** One followed account: what the CRM holds, and the activities logged here with their outcome. */
 export function AccountScreen() {
   const { accountId } = useParams({ strict: false }) as { accountId: string };
   const account = useQuery(live.liveQueryOptions(operations.accountGet, { id: accountId }));
@@ -24,14 +24,14 @@ export function AccountScreen() {
             {data.name ?? `CRM account ${data.id}`}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {data.status === 'adopted'
+            {data.status === 'following'
               ? `${data.industry} · ${data.city} · ${data.region} · owner ${data.owner} · CRM ${data.id}`
               : (data.rejection?.message ?? 'The CRM has not delivered this account yet.')}
           </p>
         </div>
         <LocalStatusBadge status={data.status} />
       </header>
-      {data.status === 'adopted' && <ActivityForm accountId={data.id} />}
+      {data.status === 'following' && <ActivityForm accountId={data.id} />}
       <section aria-label="Activities" className="space-y-2">
         {data.history.map((activity) => (
           <article key={activity.id} className="rounded-xl border bg-card px-4 py-3">

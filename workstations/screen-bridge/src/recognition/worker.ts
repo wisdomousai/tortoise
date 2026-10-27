@@ -3,14 +3,14 @@ import { z } from 'zod';
 import type { Extractor, ModelIdentity } from '../ports';
 
 /**
- * JSON-lines protocol for local perception runtimes (OCR engines, classifiers, vision or audio
+ * JSON-lines protocol for local recognition runtimes (OCR engines, classifiers, vision or audio
  * models in Python, ONNX Runtime, llama.cpp, whatever the site runs). One process, one model:
  *
  * - On start the worker prints `{"type":"ready","model":{"id","version","digest"}}`, with
  *   `adapterDigest` and `datasetDigest` for a fine-tuned model.
  * - The bridge writes `{"id":n,"type":"extract","modality","width","height","image","fields"}`
  *   per frame; `image` is base64 PNG (or null), `fields` the requested `ExtractionField`s.
- * - The worker answers `{"id":n,"readings":[{"field","value","confidence"}]}` or
+ * - The worker replies `{"id":n,"readings":[{"field","value","confidence"}]}` or
  *   `{"id":n,"error":"text"}`. Readings for fields that were not requested are ignored.
  *
  * Audio models use the same protocol with `modality: "audio"`; the frame then carries the clip
@@ -33,7 +33,7 @@ export interface WorkerExtractorOptions {
   readonly modality: Extractor['modality'];
   /**
    * Start the worker process. A host passes its process port's start for the declared
-   * `perception-worker` process, so the site policy decides the executable and the process
+   * `recognition-worker` process, so the site policy decides the executable and the process
    * plugin builds its environment. Called again after the worker exits.
    */
   readonly start: () => Promise<WorkerProcess>;
@@ -70,7 +70,7 @@ interface Pending {
   readonly reject: (error: Error) => void;
 }
 
-/** One extractor's process lifetime: the child, its handshake and the requests awaiting answers. */
+/** One extractor's process lifetime: the child, its handshake and the requests awaiting replies. */
 interface WorkerState {
   readonly options: WorkerExtractorOptions;
   child?: WorkerProcess;
@@ -94,7 +94,7 @@ function fail(state: WorkerState, error: Error, owner?: WorkerProcess) {
   state.starting = undefined;
 }
 
-/** Route stdout lines: the first valid `ready` completes the handshake, later lines answer ids. */
+/** Route stdout lines: the first valid `ready` completes the handshake, later lines resolve requests by id. */
 function readLines(state: WorkerState, worker: WorkerProcess, onReady: () => void) {
   // The handshake belongs to this process; `model` keeps the last identity for readers.
   let greeted = false;
@@ -160,7 +160,7 @@ async function launch(state: WorkerState): Promise<void> {
   });
 }
 
-/** Send one extract request and wait for its answer, a timeout or cancellation. */
+/** Send one extract request and wait for its reply, a timeout or cancellation. */
 function request(
   state: WorkerState,
   frame: Parameters<Extractor['extract']>[0],
@@ -174,14 +174,14 @@ function request(
       state.waiting.delete(id);
       reject(new Error(`Worker ${options.id} timed out`));
     }, options.requestTimeoutMs ?? 30_000);
-    const settle = (fn: () => void) => (clearTimeout(timer), state.waiting.delete(id), fn());
+    const complete = (fn: () => void) => (clearTimeout(timer), state.waiting.delete(id), fn());
     state.waiting.set(id, {
-      resolve: (line) => settle(() => resolve(line)),
-      reject: (error) => settle(() => reject(error)),
+      resolve: (line) => complete(() => resolve(line)),
+      reject: (error) => complete(() => reject(error)),
     });
     signal.addEventListener(
       'abort',
-      () => settle(() => reject(new Error('Extraction cancelled'))),
+      () => complete(() => reject(new Error('Extraction cancelled'))),
       {
         once: true,
       },
@@ -213,8 +213,8 @@ export function createWorkerExtractor(options: WorkerExtractorOptions): Extracto
     async extract(frame, fields, signal) {
       if (fields.length === 0) return [];
       await start(state);
-      const answer = await request(state, frame, fields, signal);
-      const parsed = response.parse(answer);
+      const reply = await request(state, frame, fields, signal);
+      const parsed = response.parse(reply);
       if ('error' in parsed) throw new Error(`Worker ${options.id}: ${parsed.error}`);
       const wanted = new Set(fields.map((field) => field.id));
       return parsed.readings.filter((reading) => wanted.has(reading.field));

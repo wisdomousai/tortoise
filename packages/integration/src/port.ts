@@ -35,7 +35,7 @@ export interface SearchAccess<Credential = unknown> {
  * Port to one external system of record (for example an ERP or CRM). Implementations own protocol,
  * credentials and field mapping; they never write application state themselves. Results return
  * through domain commands submitted by the dispatcher or inbound sync, under the integration
- * principal, or, for `search`, as the transient answer of a remote query.
+ * principal, or, for `search`, as the transient result of a remote query.
  */
 export interface SystemOfRecordPort<Item = unknown, Credential = unknown> {
   describe(): TargetDescription;
@@ -59,7 +59,7 @@ export interface SystemOfRecordPort<Item = unknown, Credential = unknown> {
   /** Changes after `cursor` (undefined for an initial load). Required for inbound sync. */
   pull?(cursor: string | undefined, signal: AbortSignal): Promise<PullBatch<Item>>;
   /**
-   * Answer a remote query (`request.operation` names it) with the target's records, acting with
+   * Serve a remote query (`request.operation` names it) with the target's records, acting with
    * `access.credential` so the target applies its own sharing rules. Read-only. Throw
    * `DeliveryFailure` for a caller-safe unavailability message. Required for remote sources.
    */
@@ -71,12 +71,12 @@ export interface SystemOfRecordPort<Item = unknown, Credential = unknown> {
 }
 
 /** The target holds the effect but has not decided it; `externalRef` is its reference, if any. */
-export interface UpstreamPending {
+export interface DeliveryAcknowledged {
   readonly status: 'pending';
   readonly externalRef?: string;
 }
 /** What one delivery returned: the target's decision, or its acknowledgement without one. */
-export type DeliveryResult = EffectOutcome | UpstreamPending;
+export type DeliveryResult = EffectOutcome | DeliveryAcknowledged;
 
 /**
  * What a target knows about an earlier delivery: its decision, `pending` while it still holds
@@ -84,7 +84,7 @@ export type DeliveryResult = EffectOutcome | UpstreamPending;
  */
 export type LookupResult =
   | EffectOutcome
-  | UpstreamPending
+  | DeliveryAcknowledged
   | { readonly status: 'uncertain'; readonly reason: string }
   | undefined;
 

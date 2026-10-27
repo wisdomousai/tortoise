@@ -52,7 +52,7 @@ export async function startHub() {
       name,
     });
   /** One outbox pass per target and one feed pass: what the hub's background loops do. */
-  const settle = async () => {
+  const complete = async () => {
     await hub.integrations!.target('assignment-model').dispatcher.runOnce();
     await hub.integrations!.target('eam').dispatcher.runOnce();
     await hub.integrations!.sync();
@@ -66,7 +66,7 @@ export async function startHub() {
       scope: { roots: [root], kinds: ['nameplate'] },
       assignee: { type: 'device', id: deviceId },
     });
-  return { hub, command, query, node, settle, enrollment, send, eam: () => eam };
+  return { hub, command, query, node, complete, enrollment, send, eam: () => eam };
 }
 
 function memorySecrets(): SecretStore {
@@ -95,10 +95,10 @@ export async function openPhone(
   const link = { offline: false, drifted: false };
   const phoneFetch = (async (input: string | URL | Request, init?: RequestInit) => {
     if (link.offline) throw new TypeError('Network is unreachable');
-    const answer = await fetch(input, init);
+    const response = await fetch(input, init);
     const path = new URL(input instanceof Request ? input.url : input).pathname;
-    if (!link.drifted || path !== '/api/v1/contract') return answer;
-    const contract = (await answer.json()) as {
+    if (!link.drifted || path !== '/api/v1/contract') return response;
+    const contract = (await response.json()) as {
       operations: { id: string; schemaDigest?: string }[];
     };
     for (const operation of contract.operations)
@@ -138,7 +138,7 @@ export async function openPhone(
   const sync = () => phone.instance.integrations.sync();
   const photo = (lines: Record<string, string>) =>
     phone.transport.blobs!.put(nameplatePhoto(lines), 'image/png');
-  /** One nameplate capture on a survey; `subject` is the node, unplaced when omitted. */
+  /** One nameplate capture on a survey; `subject` is the node, unlinked when omitted. */
   const capture = async (
     assignmentId: string,
     subject: string | undefined,

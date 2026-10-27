@@ -2,9 +2,9 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { generateAssertionKey } from '../src/assertion';
-import { definePeerSurface } from '@agent-native/contracts';
+import { definePeerApi } from '@agent-native/contracts';
 import {
-  announce,
+  requestInspection,
   hold,
   purge,
   refusal,
@@ -43,36 +43,36 @@ describe('enrollment', () => {
     const first = await q.redeem(body);
     expect(first.status).toBe(201);
     expect(first.headers.get('cache-control')).toBe('no-store');
-    const answer = (await first.json()) as {
+    const reply = (await first.json()) as {
       token: string;
       peer: { id: string; audience: string };
       contract: { id: string };
     };
-    expect(answer.peer.audience).toBe(`quality#${answer.peer.id}`);
-    expect(answer.contract.id).toBe('quality');
+    expect(reply.peer.audience).toBe(`quality#${reply.peer.id}`);
+    expect(reply.contract.id).toBe('quality');
     expect((await refusal(await q.redeem(body))).code).toBe('FORBIDDEN');
     const listed = JSON.stringify(await q.query('peer.list'));
-    expect(listed).not.toContain(answer.token);
+    expect(listed).not.toContain(reply.token);
     expect(listed).not.toContain(code);
     expect(listed).not.toContain('tokenDigest');
     expect(listed).not.toContain(key.publicKey);
   });
 
-  test('enrollment refuses operations outside the surface service list', async () => {
+  test('enrollment refuses operations outside the API service list', async () => {
     const q = await quality();
     await expect(
       q.command('peer.enrollment.create', { label: 'R', operations: [whoami.id] }),
-    ).rejects.toThrow('Not service operations of the peer surface');
+    ).rejects.toThrow('Not service operations of the peer API');
   });
 
-  test('startup refuses a surface of another application or with unknown operations', async () => {
+  test('startup refuses an API of another application or with unknown operations', async () => {
     await expect(
-      quality(undefined, { surface: definePeerSurface({ application: 'receiving' }) }),
-    ).rejects.toThrow('The peer surface of receiving cannot be served by quality');
+      quality(undefined, { api: definePeerApi({ application: 'receiving' }) }),
+    ).rejects.toThrow('The peer API of receiving cannot be served by quality');
     const stray = { ...whoami, id: 'quality.stray' };
     await expect(
       quality(undefined, {
-        surface: definePeerSurface({ application: 'quality', onBehalfOf: { queries: [stray] } }),
+        api: definePeerApi({ application: 'quality', onBehalfOf: { queries: [stray] } }),
       }),
     ).rejects.toThrow('unknown operations: quality.stray');
   });
@@ -82,7 +82,7 @@ describe('service principal', () => {
   test('a peer acts as peer:<id> within the service operations only', async () => {
     const q = await quality();
     const peer = await q.enroll();
-    const result = await resultOf(await q.invoke(peer, announce.id, { lot: 'L1' }));
+    const result = await resultOf(await q.invoke(peer, requestInspection.id, { lot: 'L1' }));
     expect(result.by).toBe(`peer:${peer.peerId}`);
     // Not on the service list: the grant refuses it, as it refuses the plugin's own operations.
     for (const operation of [hold.id, purge.id])
@@ -95,7 +95,7 @@ describe('service principal', () => {
   test('a narrowed enrollment grants only its operations', async () => {
     const q = await quality();
     const peer = await q.enroll({ operations: [] });
-    expect((await refusal(await q.invoke(peer, announce.id, { lot: 'L1' }))).code).toBe(
+    expect((await refusal(await q.invoke(peer, requestInspection.id, { lot: 'L1' }))).code).toBe(
       'FORBIDDEN',
     );
   });
@@ -103,9 +103,9 @@ describe('service principal', () => {
   test('a revoked peer is refused as a credential at its next request', async () => {
     const q = await quality();
     const peer = await q.enroll();
-    await resultOf(await q.invoke(peer, announce.id, { lot: 'L1' }));
+    await resultOf(await q.invoke(peer, requestInspection.id, { lot: 'L1' }));
     await q.command('peer.revoke', { peerId: peer.peerId });
-    const refused = await refusal(await q.invoke(peer, announce.id, { lot: 'L2' }));
+    const refused = await refusal(await q.invoke(peer, requestInspection.id, { lot: 'L2' }));
     expect(refused.details).toEqual({ credential: 'rejected' });
     const signed = await refusal(await q.ask(peer, whoami.id, {}, { subject: 'rita' }));
     expect(signed.details).toEqual({ credential: 'rejected' });
@@ -152,14 +152,18 @@ describe('on behalf of a person', () => {
       (await refusal(await q.invoke(peer, release.id, { lot: 'L1' }, { subject: 'rita' }))).code,
     ).toBe('FORBIDDEN');
     expect(
-      (await refusal(await q.invoke(peer, announce.id, { lot: 'L1' }, { subject: 'rita' }))).code,
+      (
+        await refusal(
+          await q.invoke(peer, requestInspection.id, { lot: 'L1' }, { subject: 'rita' }),
+        )
+      ).code,
     ).toBe('FORBIDDEN');
     expect(
       (await refusal(await q.invoke(peer, purge.id, { lot: 'L1' }, { subject: 'rita' }))).code,
     ).toBe('FORBIDDEN');
   });
 
-  test('the grant is the surface intersected with the mapping', async () => {
+  test('the grant is the API intersected with the mapping', async () => {
     const { q, peer } = await mapped();
     await q.command('peer.subject.map', {
       peerId: peer.peerId,
@@ -176,7 +180,7 @@ describe('on behalf of a person', () => {
         peerId: peer.peerId,
         subject: 'rita',
         principalId: 'ann',
-        operations: [announce.id],
+        operations: [requestInspection.id],
       }),
     ).rejects.toThrow('Not on-behalf-of operations');
   });
@@ -356,18 +360,18 @@ test('no credential or private key is kept in the workspace', async () => {
   const q = await quality();
   const { code } = await q.command('peer.enrollment.create', { label: 'Receiving' });
   const key = await generateAssertionKey();
-  const answer = (await (
+  const reply = (await (
     await q.redeem({ code, application: 'receiving', publicKey: key.publicKey })
   ).json()) as { token: string; peer: { id: string; audience: string } };
-  const peer = { token: answer.token, peerId: answer.peer.id, audience: answer.peer.audience, key };
+  const peer = { token: reply.token, peerId: reply.peer.id, audience: reply.peer.audience, key };
   await q.command('peer.subject.map', { peerId: peer.peerId, subject: 'rita', principalId: 'ann' });
-  await resultOf(await q.invoke(peer, announce.id, { lot: 'L1' }));
+  await resultOf(await q.invoke(peer, requestInspection.id, { lot: 'L1' }));
   const signed = await q.invoke(peer, hold.id, { lot: 'L2' }, { subject: 'rita' });
   await resultOf(signed);
   await q.host.close();
   for (const bytes of await files(q.directory))
     // The one-use code stays in the receipt of peer.enrollment.create, as device-link's does;
     // it is worthless once redeemed or expired.
-    for (const [name, secret] of Object.entries({ token: answer.token, key: key.privateKey }))
+    for (const [name, secret] of Object.entries({ token: reply.token, key: key.privateKey }))
       expect(bytes.includes(secret) ? name : undefined).toBeUndefined();
 });

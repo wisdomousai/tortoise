@@ -1,5 +1,5 @@
 import type { Extractor, FieldValue, Frame } from './ports';
-import { createPerception, valueMatches } from './perceive';
+import { createRecognizer, valueMatches } from './recognize';
 import type { StationProfile } from './profile';
 
 /** A recorded frame with the values a person confirmed it shows. */
@@ -33,7 +33,7 @@ export interface GoldenReport {
 }
 
 /**
- * Runs a profile's perception over labeled frames. Accuracy alone is not the gate: a model that
+ * Runs a profile's recognizer over labeled frames. Accuracy alone is not the gate: a model that
  * is often unsure only creates attention items, but one confident misread becomes a false fact.
  * Run it for every profile, extractor and model version change (the vendor-update safety net).
  */
@@ -43,7 +43,7 @@ export async function runGolden(
   frames: readonly GoldenFrame[],
   signal: AbortSignal = new AbortController().signal,
 ): Promise<GoldenReport> {
-  const perception = createPerception(profile, extractors);
+  const recognizer = createRecognizer(profile, extractors);
   const stats = new Map<
     string,
     {
@@ -57,10 +57,10 @@ export async function runGolden(
   >();
   let screensCorrect = 0;
   for (const golden of frames) {
-    const view = await perception.view(golden.frame, signal);
+    const view = await recognizer.view(golden.frame, signal);
     if ((view.screen ?? null) === golden.screen) screensCorrect++;
     for (const [fieldId, expected] of Object.entries(golden.expected)) {
-      const field = perception.field(fieldId);
+      const field = recognizer.field(fieldId);
       if (!field) throw new Error(`Golden frame ${golden.name} names unknown field ${fieldId}`);
       const entry = stats.get(fieldId) ?? {
         frames: 0,
@@ -87,7 +87,7 @@ export async function runGolden(
   }
   const fields = [...stats].map(([fieldId, entry]) => ({
     field: fieldId,
-    extractor: perception.field(fieldId)!.extractor,
+    extractor: recognizer.field(fieldId)!.extractor,
     frames: entry.frames,
     correct: entry.correct,
     confident: entry.confident,

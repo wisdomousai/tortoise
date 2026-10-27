@@ -1,5 +1,5 @@
 import { defineModule } from '@agent-native/contracts';
-import { arrivalOperations } from './contracts/arrivals';
+import { inspectionRequestOperations } from './contracts/inspection-requests';
 import { commandOperations } from './contracts/commands';
 import { queryOperations } from './contracts/queries';
 
@@ -20,7 +20,7 @@ export { qualityTarget } from './contracts/target';
 export const operations = {
   ...queryOperations,
   ...commandOperations,
-  ...arrivalOperations,
+  ...inspectionRequestOperations,
 } as const;
 
 export const qualityInspectionModule = defineModule({

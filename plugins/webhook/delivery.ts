@@ -47,7 +47,7 @@ async function deliverOnce(loop: Loop) {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ changes }),
     });
-    if (!response.ok) throw new Error(`Webhook answered ${response.status}`);
+    if (!response.ok) throw new Error(`Webhook returned ${response.status}`);
   } catch (error) {
     const message = errorEnvelope(error).message.slice(0, 500);
     if (message !== loop.lastError) {

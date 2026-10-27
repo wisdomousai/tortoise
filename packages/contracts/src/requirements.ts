@@ -35,7 +35,7 @@ export interface NetworkDestination {
    * site policy supplies the address, so code never embeds customer network names.
    */
   readonly host?: string;
-  /** Outbox targets whose effects travel over this destination. */
+  /** Outbox targets whose effects are sent over this destination. */
   readonly targets?: readonly string[];
   /** Targets whose remote queries read over this destination (`RemoteReadDeclaration`). */
   readonly reads?: readonly string[];

@@ -102,7 +102,7 @@ function metricOf(bytes: Uint8Array): Metric {
   if (isNull) value = null;
   else
     switch (datatype) {
-      // Signed values travel in the unsigned field as two's complement of 32 bits.
+      // Signed values are sent in the unsigned field as two's complement of 32 bits.
       case DataType.Int8:
       case DataType.Int16:
       case DataType.Int32:

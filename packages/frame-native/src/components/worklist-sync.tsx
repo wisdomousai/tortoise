@@ -31,7 +31,7 @@ export function SyncPill({ sync, issuer = 'the issuer' }: { sync: Sync; issuer?:
 }
 
 /**
- * What the issuer has taken: the worklist target's counts, when assignments last arrived, and
+ * What the issuer has taken: the worklist target's counts, when assignments were last received, and
  * every report with its state. A refused report shows the issuer's reason; it stays here and is
  * not sent again. The screen reads the worklist's status and `report.list` and passes them in;
  * `action` adds a control next to each report's state, such as a share button.

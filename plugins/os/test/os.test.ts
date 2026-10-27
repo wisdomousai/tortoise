@@ -310,7 +310,7 @@ describe('OS plugin', () => {
     }
   });
 
-  test('a link landing is the only cross-site request served, and only as a page', async () => {
+  test('the launch page for a link is the only cross-site request served, and only as a page', async () => {
     const { host } = await serve(notesApplication());
     try {
       const visit = (path: string, mode = 'navigate', dest = 'document') =>
@@ -321,9 +321,11 @@ describe('OS plugin', () => {
             'sec-fetch-dest': dest,
           },
         });
-      const landing = await visit(`/?os=${encodeURIComponent('web+devexamplenotes://notes/n-1')}`);
-      expect(landing.status).toBe(200);
-      expect(await landing.text()).toContain('<title>Notes</title>');
+      const launchPage = await visit(
+        `/?os=${encodeURIComponent('web+devexamplenotes://notes/n-1')}`,
+      );
+      expect(launchPage.status).toBe(200);
+      expect(await launchPage.text()).toContain('<title>Notes</title>');
       expect((await visit('/?os-shortcut=new-note')).status).toBe(200);
       for (const refused of [
         visit('/'),

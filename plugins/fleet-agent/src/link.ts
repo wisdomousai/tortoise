@@ -2,7 +2,7 @@ import type { NetworkPort } from '@agent-native/host/plugin';
 import { createPeerCall, PeerCallError } from '@agent-native/integration/peer-call';
 import { fleetEnrollPath } from './contracts';
 
-/** The fleet did not answer, or answered with an error; the message says which. */
+/** The fleet did not respond, or responded with an error; the message says which. */
 export class FleetUnavailable extends Error {
   constructor(
     message: string,
@@ -26,7 +26,7 @@ async function asFleet<T>(run: () => Promise<T>): Promise<T> {
     return await run();
   } catch (error) {
     if (!(error instanceof PeerCallError)) throw error;
-    if (error.kind !== 'answered')
+    if (error.kind !== 'responded')
       throw new FleetUnavailable(`The fleet is unreachable: ${error.message}`);
     throw new FleetUnavailable(
       error.envelope ? `The fleet refused: ${error.message}` : `The fleet ${error.message}`,
@@ -63,6 +63,6 @@ export async function enroll(network: () => NetworkPort, code: string): Promise<
     fleetCall(network).post<{ token?: unknown }>(fleetEnrollPath, { code }),
   );
   if (typeof token !== 'string' || !token)
-    throw new FleetUnavailable('The fleet answered the enrollment without a credential');
+    throw new FleetUnavailable('The fleet returned no credential for the enrollment');
   return token;
 }

@@ -6,7 +6,7 @@ import {
   rejectionSchema,
   type JsonValue,
 } from '@agent-native/contracts';
-import { assignmentLanes, type AnyAssignmentKind } from './kind';
+import { assigneeTypes, type AnyAssignmentKind } from './kind';
 
 /** What the requester decided: still a draft, sent, done by the assignee, withdrawn or closed. */
 export const assignmentStatusSchema = z.enum(['draft', 'sent', 'done', 'withdrawn', 'closed']);
@@ -30,10 +30,10 @@ export type AssignmentStage = z.output<typeof assignmentStageSchema>;
 /**
  * Who takes an assignment. `id` is a principal ID for a person, an agent definition's ID, a
  * device ID (principal `device:<id>`), a peer application's ID (principal `peer:<id>`) or a
- * target lane's name.
+ * assignment target's name.
  */
 export const assigneeSchema = z.strictObject({
-  type: z.enum(assignmentLanes),
+  type: z.enum(assigneeTypes),
   id: z.string().min(1).max(128),
 });
 export type Assignee = z.output<typeof assigneeSchema>;
@@ -44,7 +44,7 @@ export type ReviewState = z.output<typeof reviewStateSchema>;
 
 /** The most assignments one assignee may hold open; the feed carries all of them at once. */
 export const MAX_OPEN = 100;
-/** The most reports a target answers one offer with. */
+/** The most reports a target returns for one offer. */
 export const MAX_TARGET_REPORTS = 50;
 
 const principal = z.string().min(1).max(256);
@@ -74,7 +74,7 @@ export const assignmentShape = {
   closedAt: time.optional(),
   /** Why it was withdrawn. */
   reason: reason.optional(),
-  /** Target lane only: whether the target took the offer, and why it refused. */
+  /** Assignment target only: whether the target took the offer, and why it refused. */
   delivery: deliveryStatusSchema.optional(),
   rejection: rejectionSchema.optional(),
 };
@@ -176,13 +176,13 @@ export function anyFeedItemSchema<K extends AnyAssignmentKind, Extra extends z.Z
 }
 
 /**
- * What a target answers one offer with, as an item of its feed: the reports, each under an ID
+ * What a target returns for one offer, as an item of its feed: the reports, each under an ID
  * the target chose. Applying it marks the assignment done. Each body is checked against the
- * assignment's kind when the answer applies, so one malformed report does not hold back the lane.
+ * assignment's kind when the result is applied, so one malformed report does not hold back the others.
  */
-export const targetAnswerSchema = z.strictObject({
+export const targetResultSchema = z.strictObject({
   assignmentId: recordKeySchema,
-  /** The offer this answers; an answer to an older offer is ignored. */
+  /** The offer this is for; a result for an older offer is ignored. */
   effectId: z.string().min(1).max(128),
   reports: z
     .array(

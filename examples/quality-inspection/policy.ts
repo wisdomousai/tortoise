@@ -1,8 +1,8 @@
-import { peerLane, targetLane, targetRules } from '@agent-native/integration';
+import { peerAllowlist, targetAllowlist, targetRules } from '@agent-native/integration';
 import { definePolicy, membershipRule, own, type OperationRule } from '@agent-native/runtime';
 import { operations, qualityTarget } from './contracts';
 import { plantMembership } from './contracts/membership';
-import { qualityPeerSurface } from './contracts/peer';
+import { qualityPeerApi } from './contracts/peer';
 import { capturesAnywhere, plantRole, type PlantRole, type QualityState } from './domain';
 
 /**
@@ -59,9 +59,9 @@ const lotEvent = (type: string) => ({
 
 /**
  * Plant-scoped policy. Plant roles come from authoritative state; the integration principal may
- * only sync master data, settle outbox outcomes and read its watermark, and nobody else may do
+ * only sync master data, complete outbox outcomes and read its watermark, and nobody else may do
  * the first two. The instrument principal may only report readings, and nobody else may. A peer
- * application's service principal may only announce arrivals and read their outcomes; a peer
+ * application's service principal may only create inspection requests and read their outcomes; a peer
  * acting for a mapped person has that person's plant roles. Reads that list records are open to every caller and scoped to their plants in
  * the handler, before anything is counted. Commands are evaluated against the current and the
  * proposed state at commit time.
@@ -69,15 +69,18 @@ const lotEvent = (type: string) => ({
 export const qualityPolicy = definePolicy<QualityState, PlantRole>({
   roleOf: plantRole,
   integrations: [
-    targetLane(qualityTarget, (state, principalId) => principalId === state.integrationPrincipalId),
+    targetAllowlist(
+      qualityTarget,
+      (state, principalId) => principalId === state.integrationPrincipalId,
+    ),
     // The instrument driver only reports readings; it reads no journal events.
     {
       is: (state, principalId) => principalId === state.instrumentPrincipalId,
       operations: [operations.instrumentIngest.id],
       events: () => false,
     },
-    // Peer applications, as their service principals: announce arrivals and read their feed.
-    peerLane(qualityPeerSurface),
+    // Peer applications, as their service principals: create inspection requests and read their feed.
+    peerAllowlist(qualityPeerApi),
   ],
   operations: {
     ...targetRules(qualityTarget),
@@ -104,12 +107,12 @@ export const qualityPolicy = definePolicy<QualityState, PlantRole>({
         own(state.results, String(input.resultId))?.recordedBy === context.principalId,
     },
     [operations.plantSetMember.id]: membershipRule(plantMembership),
-    [operations.arrivalAnnounce.id]: 'integration',
-    [operations.arrivalFeed.id]: 'integration',
+    [operations.inspectionRequestCreate.id]: 'integration',
+    [operations.inspectionRequestFeed.id]: 'integration',
     // Scoped in the handler to people who capture at some plant.
-    [operations.arrivalList.id]: 'open',
-    [operations.arrivalGet.id]: 'open',
-    [operations.arrivalClose.id]: {
+    [operations.inspectionRequestList.id]: 'open',
+    [operations.inspectionRequestGet.id]: 'open',
+    [operations.inspectionRequestClose.id]: {
       allow: ({ state, context }) => capturesAnywhere(state, context.principalId),
     },
   },
@@ -121,7 +124,7 @@ export const qualityPolicy = definePolicy<QualityState, PlantRole>({
     // Master-data sync changes are visible to anyone who works at some plant.
     // Readings belong to the station, not a lot: anyone who captures somewhere may see them.
     instrument: (_id, state, context) => capturesAnywhere(state, context.principalId),
-    arrival: (_id, state, context) => capturesAnywhere(state, context.principalId),
+    'inspection-request': (_id, state, context) => capturesAnywhere(state, context.principalId),
     sync: (id, state, context) =>
       id === qualityTarget.target &&
       Object.keys(state.plants).some((plant) => plantRole(state, context.principalId, plant)),

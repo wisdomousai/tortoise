@@ -28,7 +28,7 @@ function CaptureSummary({ report }: { report: AssignmentReport }) {
 }
 
 /**
- * One survey and the captures reported on it. A capture is placed, read and accepted on its own
+ * One survey and the captures reported on it. A capture is linked, read and accepted on its own
  * screen, where its photos sit beside the values; this list links there.
  */
 export function SurveyScreen() {
@@ -52,7 +52,7 @@ export function SurveyScreen() {
                 params={{ captureId: report.id }}
                 className="text-sm text-primary hover:underline"
               >
-                Place, read and accept
+                Link, read and accept
               </Link>
             ),
           },

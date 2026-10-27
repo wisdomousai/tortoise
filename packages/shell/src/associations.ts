@@ -17,7 +17,7 @@ const fingerprintPattern = /^[0-9A-F]{2}(?::[0-9A-F]{2}){31}$/;
  * The two files a web host serves so the phones open its links in the app: Apple's
  * `apple-app-site-association` (at `/.well-known/`) and Android's `assetlinks.json`. Only
  * handlers that declare `verified` are listed, each path with its parameters as wildcards; the
- * matcher still checks the exact path and parameters when a link arrives. Throws on a malformed
+ * matcher still checks the exact path and parameters when a link is opened. Throws on a malformed
  * team id or fingerprint, and when no handler is verified, because an empty association would
  * claim nothing.
  */

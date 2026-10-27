@@ -19,7 +19,7 @@ export interface ChamberObserverOptions {
   readonly retryMs?: number;
 }
 
-/** The ingest input: the gated readings without their provenance, which the record does not keep. */
+/** The ingest input: the debounced readings without their provenance, which the record does not keep. */
 const toInput =
   (source: 'opcua' | 'mqtt') =>
   ({ observedAt, readings }: ObservationBase) => ({

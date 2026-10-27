@@ -128,7 +128,7 @@ export class OpcUaClient {
     const results = reader.array(() => readDataValue(reader));
     if (results.length !== nodes.length)
       throw new OpcUaError(
-        `The server answered ${results.length} values for ${nodes.length} nodes`,
+        `The server returned ${results.length} values for ${nodes.length} nodes`,
       );
     return results;
   }
@@ -302,7 +302,7 @@ export class OpcUaClient {
     return new Promise<Reader>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new OpcUaError('The OPC UA server did not answer in time'));
+        reject(new OpcUaError('The OPC UA server did not respond in time'));
       }, this.timeoutMs);
       this.pending.set(id, { resolve, reject, chunks: [], timer });
       try {
@@ -323,7 +323,7 @@ export class OpcUaClient {
       const header = readResponseHeader(reader);
       throw new OpcUaError('The server refused the request', header.serviceResult);
     }
-    throw new OpcUaError('The server answered with an unexpected message');
+    throw new OpcUaError('The server replied with an unexpected message');
   }
 
   private checkHeader(reader: Reader) {
@@ -376,7 +376,7 @@ export class OpcUaClient {
     if (type === 'OPN') {
       if (reader.string() !== securityPolicyNone)
         throw new OpcUaError(
-          'The server answered with a security policy this client did not ask for',
+          'The server replied with a security policy this client did not ask for',
         );
       reader.byteString();
       reader.byteString();

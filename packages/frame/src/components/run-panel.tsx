@@ -20,7 +20,7 @@ export type Run = {
 };
 const finished = ['succeeded', 'failed', 'cancelled', 'interrupted'];
 
-/** Recent agent runs. Run state is host metadata, polled; business data arrives live. */
+/** Recent agent runs. Run state is host metadata, polled; business data comes from live queries. */
 export function useRuns() {
   return useQuery({
     queryKey: ['runs'],

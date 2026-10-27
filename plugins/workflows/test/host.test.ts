@@ -39,7 +39,7 @@ test('a serving host advances instances and resumes them after a restart', async
     const [effect] = await host.application.pendingEffects(person('owner'));
     await invoke(
       host,
-      'carrier.settle',
+      'carrier.complete',
       { id: 'p1', effect: effect!.id, accepted: true },
       person('owner'),
     );

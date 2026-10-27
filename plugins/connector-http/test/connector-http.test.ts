@@ -112,7 +112,7 @@ describe('HTTP target', () => {
     const port = httpTargetPort(options(networkTo(origin)));
     const effect = conformanceEffect({ id: 'e1', target: 'erp', type: 'x', payload: { sku: 'A' } });
     system.failNext = 401;
-    await expect(port.deliver(effect, signal())).rejects.toThrow('The system answered 401');
+    await expect(port.deliver(effect, signal())).rejects.toThrow('The system returned 401');
     await system.stop();
     await expect(port.deliver(effect, signal())).rejects.toThrow('erp could not be reached');
   });

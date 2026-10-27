@@ -7,21 +7,21 @@ import type { StoredAssignment, StoredReport } from './slice';
 export type AssignmentAction = 'plan' | 'read' | 'work' | 'review' | 'integrate';
 
 /**
- * The application's answer to who may do what with assignments. The feature's policy asks only
+ * The application's decision on who may do what with assignments. The feature's policy asks only
  * this; the application's own policy never sees assignment operations, so `allows` must apply
  * the application's membership gate itself.
  */
 export interface AssignmentAccess {
   /**
    * Whether `context` may take `action` on assignments of kind `scope`, or for `integrate`, on
-   * the target lane named `scope`. Without `scope`: whether it may take the action on any kind,
+   * the assignment target named `scope`. Without `scope`: whether it may take the action on any kind,
    * which gates the generic reads.
    *
    * - `plan`: create, send and withdraw assignments, and mark one done for its assignee;
    * - `read`: see assignments and their reports;
    * - `work`: take assignments sent to the caller and report on them;
-   * - `review`: place, discard and accept reports, and close assignments;
-   * - `integrate`: settle offers to a target lane and apply its answers.
+   * - `review`: link, discard and accept reports, and close assignments;
+   * - `integrate`: complete offers to an assignment target and apply its results.
    */
   allows(context: ExecutionContext, action: AssignmentAction, scope?: string): boolean;
 }

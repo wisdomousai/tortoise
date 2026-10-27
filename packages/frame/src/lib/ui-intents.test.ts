@@ -42,7 +42,7 @@ test('a selection the screen cannot show, or a screen without selection, rejects
   expect(plain.calls).toEqual([]);
 });
 
-test('a review is shown with its resources and left for the person to settle', async () => {
+test('a review is shown with its resources and left for the person to complete', async () => {
   const { reviews, handlers } = recorder();
   expect(
     await applyUiIntent(

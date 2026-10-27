@@ -209,12 +209,12 @@ export interface HandlerContext<State, Services> {
    */
   enqueue(effect: EffectRequest): string;
   /**
-   * Record a target's outcome for a pending effect inside an ordinary settlement command, so the
-   * outcome commits with the domain update it causes. Settling twice fails with CONFLICT. A
+   * Record a target's outcome for a pending effect inside an ordinary completion command, so the
+   * outcome commits with the domain update it causes. Completing twice fails with CONFLICT. A
    * dispatcher passes the fencing token of its claim; a token older than the effect's current
    * claim fails with CONFLICT. A reconciliation command by a person passes none.
    */
-  settleEffect(id: string, outcome: EffectOutcome, attempt?: { readonly fence?: number }): Effect;
+  completeEffect(id: string, outcome: EffectOutcome, attempt?: { readonly fence?: number }): Effect;
   /**
    * Withdraw a pending effect no worker ever claimed, so it is never sent; the domain command
    * updates its own record in the same transaction. Fails with CONFLICT once a worker claimed it,
@@ -304,7 +304,7 @@ export interface RemoteHandler<State, Services, C extends AnyCapability = AnyCap
   request(input: InputOf<C>, context: HandlerContext<State, Services>): JsonValue;
   /**
    * Turn one item the source returned into an output item, for example marking records already
-   * held locally, or drop it by returning `undefined`. Runs after the source answered, in a fresh
+   * held locally, or drop it by returning `undefined`. Runs after the source returned, in a fresh
    * snapshot under a repeated authorization. Output projection and validation follow.
    */
   item(found: unknown, context: HandlerContext<State, Services>): RemoteItemOf<C> | undefined;
@@ -322,7 +322,7 @@ export interface SourceCall {
   /** Aborts on caller cancellation and at the runtime's deadline. */
   readonly signal: AbortSignal;
 }
-export interface SourceAnswer {
+export interface SourceResult {
   readonly items: readonly unknown[];
   /** Opaque cursor of the next page (at most 512 characters); absent on the last page. */
   readonly next?: string;
@@ -330,14 +330,14 @@ export interface SourceAnswer {
   readonly identity: 'caller' | 'service';
 }
 /**
- * Port that answers remote queries for one target. It never writes application state. Throw an
+ * Port that serves remote queries for one target. It never writes application state. Throw an
  * `ApplicationError` with code `UNAVAILABLE` and a caller-safe message when the target cannot be
  * reached; an error that is not an `ApplicationError` is reported generically. Other codes reach
  * the caller as errors: `FORBIDDEN` when the caller has no credential for the target,
  * `INVALID_INPUT` for a page cursor the source does not accept from this caller.
  */
 export interface RemoteSource {
-  search(request: SourceRequest, call: SourceCall): Promise<SourceAnswer>;
+  search(request: SourceRequest, call: SourceCall): Promise<SourceResult>;
 }
 export interface Invocation<I = unknown> {
   readonly operation: string;

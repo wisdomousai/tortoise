@@ -1,4 +1,4 @@
-import { targetLane, targetRules } from '@agent-native/integration';
+import { targetAllowlist, targetRules } from '@agent-native/integration';
 import { definePolicy, own, type OperationRule } from '@agent-native/runtime';
 import { crmAccounts, crmContacts, operations } from './contracts';
 import { crmTarget } from './contracts/target';
@@ -21,11 +21,14 @@ const open = Object.fromEntries(
 /**
  * Membership and region policy. Searches, lists and status are open to members and scoped to
  * their regions in the handlers, before anything is counted. The integration principal may only
- * apply the feed, settle outcomes and read the watermark; nobody else may do either.
+ * apply the feed, complete outcomes and read the watermark; nobody else may do either.
  */
 export const crmPolicy = definePolicy<CrmState, never>({
   integrations: [
-    targetLane(crmTarget, (state, principalId) => principalId === state.integrationPrincipalId),
+    targetAllowlist(
+      crmTarget,
+      (state, principalId) => principalId === state.integrationPrincipalId,
+    ),
   ],
   caller: { allow: (state, context) => !!memberOf(state, context.principalId) },
   operations: {
@@ -33,8 +36,8 @@ export const crmPolicy = definePolicy<CrmState, never>({
     ...targetRules(crmTarget),
     [operations.accountGet.id]: onAccount,
     [operations.activityLog.id]: onAccount,
-    // Adopting starts with an account this workspace does not hold yet; the CRM decides then.
-    [operations.accountAdopt.id]: { grant: onAccount.grant! },
+    // Following starts with an account this workspace does not hold yet; the CRM decides then.
+    [operations.accountFollow.id]: { grant: onAccount.grant! },
   },
   events: {
     sync: () => true,

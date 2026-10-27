@@ -180,7 +180,7 @@ export const servicePolicy = definePolicy<ServiceState, Role>({
     [operations.taskSetStatus.id]: onTask(taskWorkOrder),
     [operations.taskRemind.id]: onTask(taskWorkOrder),
     // The reminder dispatcher: the workspace owner acting under its delegated grant, never a session.
-    [operations.taskRemindersSettle.id]: {
+    [operations.taskRemindersComplete.id]: {
       allow: ({ state, context }) =>
         state.workspaceOwnerId === context.principalId && context.grant !== undefined,
     },

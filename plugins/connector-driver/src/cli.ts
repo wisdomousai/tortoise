@@ -14,7 +14,7 @@ const usage = (message: string) => new ApplicationError('INVALID_INPUT', message
 export const driverUsage = (program: string) => `Drivers (offline; no instance or workspace needed):
   ${program} driver list
       each declared driver: the process ID to bind in the site policy, its contract digest,
-      and its actions with delivery mode and hazard class
+      and its actions with delivery mode and risk level
   ${program} driver check <driver-id> -- <absolute executable> [args...]
       start the executable and check it against the driver's contract; never invokes an action
   ${program} driver contract <driver-id> [--out file]
@@ -28,7 +28,7 @@ function list(contracts: readonly DriverContract[]) {
     lines.push(`  process  ${contract.process.id} (${contract.process.availability})`);
     lines.push(`  digest   ${driverContractDigest(contract)}`);
     for (const [id, action] of Object.entries(contract.actions))
-      lines.push(`  action   ${id}  ${action.delivery}, hazard ${action.hazard}`);
+      lines.push(`  action   ${id}  ${action.delivery}, risk ${action.risk}`);
   }
   process.stdout.write(lines.length ? `${lines.join('\n')}\n` : 'No driver is declared.\n');
   return 0;

@@ -54,7 +54,7 @@ export function FilingPanel({
           />
           {unavailable && (
             <p role="alert" className="text-sm text-amber-700">
-              The EAM is not answering. File once it is back, so no duplicate asset is created.
+              The EAM is not responding. File once it is back, so no duplicate asset is created.
             </p>
           )}
           <ul aria-label="EAM matches" className="divide-y text-sm">

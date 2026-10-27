@@ -41,7 +41,7 @@ export class FakeLims {
     if (registration) registration.state = 'registered';
   }
 
-  /** The LIMS loses a registration it acknowledged, so its lookup answers 404. */
+  /** The LIMS loses a registration it acknowledged, so its lookup returns 404. */
   forget(key: string) {
     this.registrations.delete(key);
   }

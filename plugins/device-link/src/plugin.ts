@@ -21,7 +21,7 @@ const listOf = (setting: string | undefined) =>
 /**
  * The hub side of device pairing on a serving host. Its slice holds devices and enrollments by
  * digest only. Once the host listens it serves the enrollment route and resolves device
- * credentials on every request; before that both answer as unavailable. Startup refuses sync
+ * credentials on every request; before that both respond as unavailable. Startup refuses sync
  * operations the catalog does not contain.
  *
  * `syncOperations` is the application's default for what a field device may call; the

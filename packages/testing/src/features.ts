@@ -10,9 +10,9 @@ export interface FeatureRequest {
 }
 
 export interface FeatureConformanceOptions<Slice, Access> {
-  /** An access view that answers yes to every question the feature asks the application. */
+  /** An access view that allows every check the feature asks the application to make. */
   readonly allowAll: Access;
-  /** An access view that answers no to every question. */
+  /** An access view that denies every check. */
   readonly denyAll: Access;
   /** A slice holding records, so rules over records have something to decide. Default: `create`. */
   readonly sampleSlice?: Slice;

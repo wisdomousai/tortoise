@@ -205,7 +205,7 @@ export const profileDocument = {
     {
       id: 'recipe.load',
       title: 'Load recipe',
-      hazard: 'operator-present',
+      risk: 'operator-present',
       rerunnable: false,
       timeoutMs: 10_000,
       maxSteps: 6,

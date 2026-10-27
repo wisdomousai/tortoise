@@ -17,7 +17,7 @@ export function StationBack() {
   );
 }
 
-/** Seat and mode for people who cannot take the seat, scanner and bridge setup, and mute. */
+/** Control holder and mode for people who cannot take over, scanner and bridge setup, and mute. */
 export function StationHeaderActions({
   station,
   person,
@@ -30,17 +30,17 @@ export function StationHeaderActions({
   onMuted: (muted: boolean) => void;
 }) {
   const { bridge } = station;
-  const seatLabel =
-    bridge.seat === 'agent'
+  const controlLabel =
+    bridge.controlHolder === 'agent'
       ? 'Agent at screen'
-      : bridge.seat === 'operator'
+      : bridge.controlHolder === 'operator'
         ? 'Operator has the screen'
         : 'Screen idle';
   return (
     <>
       {!person || bridge.mode === 'monitor-only' ? (
         <span className="hidden text-base leading-tight opacity-80 md:block">
-          {seatLabel}
+          {controlLabel}
           <br />
           {bridge.mode === 'monitor-only' ? 'Watching the station screen' : modeWord[bridge.mode]}
         </span>

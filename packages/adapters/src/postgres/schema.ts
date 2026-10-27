@@ -1,7 +1,8 @@
+import { schemaVersionError, STORAGE_SCHEMA_VERSION } from '../schema-version';
 import { lockKey, type PgDriver } from './driver';
 
-/** The row layout of the SQLite storage's version 2, with `seq` keeping stored order. */
-export const PG_SCHEMA_VERSION = 2;
+/** The row layout of the SQLite row storage, with `seq` keeping stored order. */
+export const PG_SCHEMA_VERSION = STORAGE_SCHEMA_VERSION;
 
 const tables = [
   `CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -35,8 +36,8 @@ const tables = [
 
 /**
  * Create the tables once per database. Hosts that start together take a lock first, because two
- * concurrent `CREATE TABLE IF NOT EXISTS` can still collide in Postgres. A database written by a
- * newer schema is refused, so an older host never reads half a workspace.
+ * concurrent `CREATE TABLE IF NOT EXISTS` can still collide in Postgres. A database written by
+ * another schema version is refused, so no host reads a workspace under the wrong field names.
  */
 export function openPgSchema(driver: PgDriver): Promise<void> {
   return driver.transaction(async (tx) => {
@@ -44,7 +45,7 @@ export function openPgSchema(driver: PgDriver): Promise<void> {
     await tx.query('CREATE TABLE IF NOT EXISTS framework_schema (version INTEGER NOT NULL)');
     const [row] = await tx.query<{ version: number }>('SELECT version FROM framework_schema');
     if (row && Number(row.version) !== PG_SCHEMA_VERSION)
-      throw new Error('Unsupported storage schema version');
+      throw schemaVersionError(Number(row.version));
     for (const sql of tables) await tx.query(sql);
     if (!row) await tx.query('INSERT INTO framework_schema VALUES ($1)', [PG_SCHEMA_VERSION]);
   });

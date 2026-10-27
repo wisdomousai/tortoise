@@ -131,7 +131,7 @@ export function createMqttSubscriber(options: MqttSubscriberOptions) {
           // Nothing heard for one and a half keep-alive periods: the broker or the path is gone.
           if (Date.now() - lastHeard > keepAlive * 1_500) {
             opened.end();
-            return drop(new Error('The broker stopped answering'));
+            return drop(new Error('The broker stopped responding'));
           }
           opened.write(encodePingreq());
         },

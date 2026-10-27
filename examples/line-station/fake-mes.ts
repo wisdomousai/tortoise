@@ -78,7 +78,7 @@ export class FakeMes implements SystemOfRecordPort<MesItem> {
     });
     if (this.faults.loseNextResponse) {
       this.faults.loseNextResponse = false;
-      throw new DeliveryFailure('MES did not answer in time');
+      throw new DeliveryFailure('MES did not respond in time');
     }
     return { status: 'accepted', externalRef: ref };
   }

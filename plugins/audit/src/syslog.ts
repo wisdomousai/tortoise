@@ -19,13 +19,13 @@ export function syslogSink(
   let connection: Promise<Bun.Socket<undefined>> | undefined;
   let backlog = Buffer.alloc(0);
   let waiters: { resolve(): void; reject(error: Error): void }[] = [];
-  const settle = (error?: Error) => {
+  const complete = (error?: Error) => {
     for (const waiter of waiters.splice(0)) error ? waiter.reject(error) : waiter.resolve();
   };
   const reset = () => {
     connection = undefined;
     backlog = Buffer.alloc(0);
-    settle(new Error('Audit collector connection closed'));
+    complete(new Error('Audit collector connection closed'));
   };
   /** Write what the socket accepts; true when the backlog is empty. */
   const pump = (socket: Bun.Socket<undefined>) => {
@@ -34,7 +34,7 @@ export function syslogSink(
       if (written <= 0) return false;
       backlog = backlog.subarray(written);
     }
-    settle();
+    complete();
     return true;
   };
   const connect = () =>

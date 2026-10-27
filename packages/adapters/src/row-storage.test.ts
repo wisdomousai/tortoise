@@ -153,23 +153,29 @@ test('journal retention drops old entries, and a cursor behind them gets a reset
   }
 });
 
-test('a version 1 document file converts to rows, and the version 1 reader then refuses it', async () => {
+test('a file from an older schema version is refused, and each format refuses the other', async () => {
   const { directory, path } = await scratch();
   try {
-    const legacy = new SnapshotStorage(bunSqlDriver(path), initial);
-    await putItem(application(legacy), 'a', 'kept');
-    await legacy.close();
-    const storage = new SQLiteStorage(path, initial);
-    await storage.read('w', async (snapshot) => {
-      expect(snapshot.state.items.byId.a?.text).toBe('kept');
-      expect(snapshot.cursor).toBe(1);
-      expect(snapshot.journal).toHaveLength(1);
-      expect(Object.keys(snapshot.receipts)).toHaveLength(1);
-    });
-    await storage.close();
-    expect(() => new SnapshotStorage(bunSqlDriver(path), initial)).toThrow(
-      'Unsupported storage schema version',
-    );
+    for (const version of [1, 2]) {
+      const older = join(directory, `version-${version}.sqlite`);
+      const db = new Database(older, { create: true });
+      db.exec(`CREATE TABLE framework_schema (version INTEGER NOT NULL);
+        INSERT INTO framework_schema VALUES (${version});`);
+      db.close();
+      expect(() => new SQLiteStorage(older, initial)).toThrow(
+        `Unsupported storage schema version ${version}: version 3 renamed stored fields`,
+      );
+      expect(() => new SnapshotStorage(bunSqlDriver(older), initial)).toThrow(
+        'renamed stored fields',
+      );
+    }
+    const snapshots = new SnapshotStorage(bunSqlDriver(path), initial);
+    await putItem(application(snapshots), 'a', 'kept');
+    await snapshots.close();
+    expect(() => new SQLiteStorage(path, initial)).toThrow('holds snapshot storage');
+    const rows = join(directory, 'rows.sqlite');
+    await new SQLiteStorage(rows, initial).close();
+    expect(() => new SnapshotStorage(bunSqlDriver(rows), initial)).toThrow('holds row storage');
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -185,8 +191,8 @@ test('an online backup verifies and restores, and a damaged one is refused', asy
     await storage.backup(backup);
     await putItem(app, 'a', 'after');
     await storage.close();
-    expect(verifyBackup(backup)).toEqual({ schemaVersion: 2, workspaces: 1 });
-    expect(await restoreBackup(backup, path)).toEqual({ schemaVersion: 2, workspaces: 1 });
+    expect(verifyBackup(backup)).toEqual({ schemaVersion: 3, workspaces: 1 });
+    expect(await restoreBackup(backup, path)).toEqual({ schemaVersion: 3, workspaces: 1 });
     const restored = new SQLiteStorage(path, initial);
     await restored.read('w', async ({ state }) => expect(state.items.byId.a?.text).toBe('before'));
     await restored.close();

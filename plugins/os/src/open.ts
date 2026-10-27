@@ -27,8 +27,8 @@ export interface OsService {
   enable(kinds: { handlers?: readonly OsHandlerKind[]; actions?: readonly OsActionKind[] }): void;
   consume(consumer: string, receive: OsConsumer): void;
   /**
-   * Resolve claim codes this plugin issued for input that arrived without a session, such as a
-   * web share target's POST. The landing page submits `{ kind: 'claim', code }` as its session.
+   * Resolve claim codes this plugin issued for input received without a session, such as a
+   * web share target's POST. The launch page submits `{ kind: 'claim', code }` as its session.
    */
   hold(resolve: OsHolder): void;
   /**

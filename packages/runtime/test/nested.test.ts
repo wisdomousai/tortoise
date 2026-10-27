@@ -180,7 +180,7 @@ function setup(options: { log?: ReturnType<typeof createMemoryEventLog> } = {}) 
   return { app, control, seen, invoke, refused, snapshot, runs: () => runs };
 }
 
-describe('nested invocation', () => {
+describe('nested call', () => {
   test('a nested command returns its projected, typed output inside one transaction', async () => {
     const { control, invoke, snapshot } = setup();
     control.compose = async (_input, ctx) => {
@@ -444,7 +444,7 @@ describe('continuation as a tail frame', () => {
   });
 });
 
-describe('nested invocation across slices', () => {
+describe('nested call across slices', () => {
   const note = defineCapability({
     id: 'note.add',
     kind: 'command',

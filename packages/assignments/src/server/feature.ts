@@ -7,44 +7,44 @@ import { genericIssueHandlers, kindIssueHandlers } from './issue';
 import { assignmentPolicy } from './policy';
 import { genericReportHandlers, kindReportHandlers } from './report';
 import { createSlice, type AssignmentSlice } from './slice';
-import { targetLaneHandlers, type TargetAnswer } from './target-lane';
+import { assignmentTargetHandlers, type TargetResult } from './assignment-target';
 import type { OfferBlob } from './target-port';
 
-/** What a target lane's port is built from: the connect context and a reader of offer blobs. */
-export interface TargetLaneContext extends ConnectContext {
+/** What an assignment target's port is built from: the connect context and a reader of offer blobs. */
+export interface AssignmentTargetContext extends ConnectContext {
   readBlob(effectId: string, digest: string): Promise<OfferBlob | undefined>;
 }
 
-/** How one target lane connects. */
-export interface TargetLaneOptions {
-  /** The integration principal that settles the lane's offers and syncs its answers. */
+/** How one assignment target connects. */
+export interface AssignmentTargetOptions {
+  /** The integration principal that completes the target's offers and syncs its results. */
   readonly principalId: string;
-  /** The lane's port, usually `assignmentTargetPort`. */
-  readonly port: (context: TargetLaneContext) => SystemOfRecordPort<TargetAnswer>;
+  /** The target's port, usually `assignmentTargetPort`. */
+  readonly port: (context: AssignmentTargetContext) => SystemOfRecordPort<TargetResult>;
 }
 
 export interface AssignmentFeatureOptions {
-  /** One entry per target lane the kinds declare; a lane without one is not connected. */
-  readonly targets?: Readonly<Record<string, TargetLaneOptions>>;
+  /** One entry per assignment target the kinds declare; a target without one is not connected. */
+  readonly targets?: Readonly<Record<string, AssignmentTargetOptions>>;
 }
 
 /**
  * Assignments as a feature: the server part of `defineAssignments`. The slice keeps assignments,
- * reports and each target lane's watermark. The application supplies `AssignmentAccess` and,
+ * reports and each assignment target's watermark. The application supplies `AssignmentAccess` and,
  * optionally, `AssignmentHooks` when it mounts it. Accepting a report is person-only for every
- * application, and a target lane's settle and sync are for its integration principal only.
+ * application, and an assignment target's complete and sync are for its integration principal only.
  */
 export function assignmentFeature<K extends AnyAssignmentKind>(
   assignments: Assignments<K>,
   options: AssignmentFeatureOptions = {},
 ): Feature<AssignmentSlice, AssignmentAccess, AssignmentHooks> {
   const kinds = kindsById(assignments.kinds);
-  const lanes = Object.keys(assignments.targets);
+  const targets = Object.keys(assignments.targets);
   const connected = options.targets ?? {};
-  for (const lane of Object.keys(connected))
-    if (!lanes.includes(lane)) throw new Error(`No assignment kind has the target lane "${lane}"`);
+  for (const name of Object.keys(connected))
+    if (!targets.includes(name)) throw new Error(`No assignment kind has the target "${name}"`);
   const principals = Object.fromEntries(
-    Object.entries(connected).map(([lane, target]) => [lane, target.principalId]),
+    Object.entries(connected).map(([name, target]) => [name, target.principalId]),
   );
   const erased = assignments as unknown as Assignments;
   return defineFeature<AssignmentSlice, AssignmentAccess, AssignmentHooks>({
@@ -57,18 +57,20 @@ export function assignmentFeature<K extends AnyAssignmentKind>(
       ]),
       ...genericIssueHandlers(erased),
       ...genericReportHandlers(erased),
-      ...lanes.flatMap((lane) => targetLaneHandlers(lane, assignments.targets[lane]!, kinds)),
+      ...targets.flatMap((name) =>
+        assignmentTargetHandlers(name, assignments.targets[name]!, kinds),
+      ),
     ],
     authorization: {
       resourceTypes: ['assignment', 'assignment-report'],
-      port: assignmentPolicy(new Set(kinds.keys()), new Set(lanes), principals),
+      port: assignmentPolicy(new Set(kinds.keys()), new Set(targets), principals),
     },
     ...(Object.keys(connected).length
       ? {
           connect: (context: ConnectContext) => ({
-            integrations: Object.entries(connected).map(([lane, target]) =>
-              connectTarget<TargetAnswer>({
-                target: assignments.targets[lane]!,
+            integrations: Object.entries(connected).map(([name, target]) =>
+              connectTarget<TargetResult>({
+                target: assignments.targets[name]!,
                 application: context.application,
                 workspaceId: context.workspaceId,
                 principalId: target.principalId,

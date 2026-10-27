@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import {
-  StabilityGate,
+  Debouncer,
   createObserver,
-  gateReadings,
+  debounceReadings,
   type ObservationBase,
   type Reading,
 } from '@agent-native/observation';
@@ -44,13 +44,13 @@ const confidenceOf = (status: number) => (isBad(status) ? 0 : isUncertain(status
 /**
  * Poll OPC UA node values with the Read service and submit them through an ingest command.
  * Read-only. A lost connection is reopened on the next sample; until then each field keeps its
- * last value with confidence 0, so the gate marks it `uncertain` instead of dropping it, and the
+ * last value with confidence 0, so the debouncer marks it `uncertain` instead of dropping it, and the
  * domain sees that it is not current.
  */
 export function createOpcUaObserver(options: OpcUaObserverOptions) {
   const nodes: NodeId[] = options.fields.map((field) => parseNodeId(field.node));
   const byId = new Map(options.fields.map((field) => [field.id, field]));
-  const gate = new StabilityGate();
+  const debouncer = new Debouncer();
   const last = new Map<string, Scalar>();
   const now = options.now ?? Date.now;
   let client: OpcUaClient | undefined;
@@ -104,8 +104,8 @@ export function createOpcUaObserver(options: OpcUaObserverOptions) {
         destination: options.client.destination,
         observedAt,
         frameDigest,
-        readings: gateReadings(
-          gate,
+        readings: debounceReadings(
+          debouncer,
           readings.map((reading) => ({ ...reading, frameDigest })),
           (id) => {
             const field = byId.get(id);

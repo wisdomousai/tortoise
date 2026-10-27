@@ -1,7 +1,7 @@
 /**
  * A read-only npm registry on loopback that serves packed framework tarballs, so an application
  * can be installed from versions instead of workspace links before anything is published. It
- * answers package documents and tarball downloads for the packages in `directory` and 404 for
+ * serves package documents and tarball downloads for the packages in `directory` and 404 for
  * everything else; a `bunfig.toml` scope sends only `@agent-native/*` here. Holds no credentials
  * and accepts no uploads.
  */

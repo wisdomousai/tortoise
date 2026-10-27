@@ -15,9 +15,9 @@ export interface TestReference {
 /** A guide page and an optional heading on it, as `page` or `page#anchor` under `docs/`. */
 export type DocReference = string;
 
-export type Lane = 'world' | 'surfaces' | 'instance' | 'delivery' | 'records';
+export type Column = 'world' | 'surfaces' | 'instance' | 'delivery' | 'records';
 
-export const lanes: ReadonlyArray<{ readonly id: Lane; readonly title: string }> = [
+export const columns: ReadonlyArray<{ readonly id: Column; readonly title: string }> = [
   { id: 'world', title: 'Point of work' },
   { id: 'surfaces', title: 'Surfaces' },
   { id: 'instance', title: 'Instance' },
@@ -27,7 +27,7 @@ export const lanes: ReadonlyArray<{ readonly id: Lane; readonly title: string }>
 
 export interface Step {
   readonly id: string;
-  readonly lane: Lane;
+  readonly column: Column;
   readonly title: string;
   readonly summary: string;
   readonly doc: DocReference;
@@ -43,7 +43,7 @@ export interface RequestPath {
 
 const live: Step = {
   id: 'live',
-  lane: 'surfaces',
+  column: 'surfaces',
   title: 'Live query',
   summary:
     'Every open screen whose reads changed refetches from the journal, filtered by current read access.',
@@ -64,7 +64,7 @@ export const paths: readonly RequestPath[] = [
     steps: [
       {
         id: 'input',
-        lane: 'world',
+        column: 'world',
         title: 'Input',
         summary:
           "An operator presses a control, a scanner reads a code, a driver reports a reading or an observer reads a workstation application's screen.",
@@ -82,7 +82,7 @@ export const paths: readonly RequestPath[] = [
           },
           {
             file: 'packages/observation/test/observation.test.ts',
-            test: 'a reading passes the gate once it agrees across stable reads, with device provenance',
+            test: 'a reading counts once it agrees across stable reads, with device provenance',
           },
           {
             file: 'workstations/screen-bridge/test/observer.test.ts',
@@ -92,7 +92,7 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'surface',
-        lane: 'surfaces',
+        column: 'surfaces',
         title: 'Surface',
         summary:
           'The screen, HTTP, MCP or the CLI validates the input and derives the principal, workspace and grant from the session.',
@@ -107,7 +107,7 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'command',
-        lane: 'instance',
+        column: 'instance',
         title: 'Command',
         summary:
           'The runtime runs the handler and authorizes the operation, object and fields inside the transaction.',
@@ -122,11 +122,11 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'commit',
-        lane: 'instance',
+        column: 'instance',
         title: 'Commit',
         summary:
           'State, revisions, the receipt, journal entries and the outbox effect commit in one transaction, and the caller receives the receipt.',
-        doc: 'systems-of-record#outbox-and-settlement',
+        doc: 'systems-of-record#outbox-and-completion',
         sources: ['packages/runtime/src', 'packages/adapters/src/row-storage.ts'],
         tests: [
           {
@@ -142,7 +142,7 @@ export const paths: readonly RequestPath[] = [
       live,
       {
         id: 'dispatch',
-        lane: 'delivery',
+        column: 'delivery',
         title: 'Dispatcher',
         summary:
           'The dispatcher claims the effect and delivers it outside any transaction, at least once.',
@@ -151,7 +151,7 @@ export const paths: readonly RequestPath[] = [
         tests: [
           {
             file: 'packages/integration/test/dispatcher.test.ts',
-            test: 'delivers outside the transaction and settles through the domain command',
+            test: 'delivers outside the transaction and completes through the domain command',
           },
           {
             file: 'examples/quality-inspection/domain.test.ts',
@@ -161,7 +161,7 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'connector',
-        lane: 'delivery',
+        column: 'delivery',
         title: 'Connector',
         summary:
           "The connector reaches the system of record through the network port, an exchange folder, a driver process or a workstation application's screen.",
@@ -185,7 +185,7 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'target',
-        lane: 'records',
+        column: 'records',
         title: 'Decision',
         summary:
           'The ERP, MES, QMS, CRM or EAM accepts the change, rejects it or acknowledges it without a decision.',
@@ -194,22 +194,22 @@ export const paths: readonly RequestPath[] = [
         tests: [
           {
             file: 'packages/integration/test/dispatcher.test.ts',
-            test: 'a target rejection settles as business data instead of retrying',
+            test: 'a target rejection completes as business data instead of retrying',
           },
         ],
       },
       {
-        id: 'settle',
-        lane: 'instance',
-        title: 'Settle',
+        id: 'complete',
+        column: 'instance',
+        title: 'Complete',
         summary:
-          'A settle command commits the outcome with its domain update once; an outcome nobody can tell is held for a person.',
+          'A complete command commits the outcome with its domain update once; an outcome nobody can tell is held for a person.',
         doc: 'systems-of-record#held-effects',
         sources: ['packages/runtime/src', 'packages/integration/src'],
         tests: [
           {
             file: 'packages/runtime/test/outbox.test.ts',
-            test: 'settlement commits the outcome with its domain update exactly once',
+            test: 'completion commits the outcome with its domain update exactly once',
           },
           {
             file: 'packages/integration/test/held.test.ts',
@@ -225,7 +225,7 @@ export const paths: readonly RequestPath[] = [
     steps: [
       {
         id: 'feed',
-        lane: 'records',
+        column: 'records',
         title: 'Feed',
         summary: 'The target returns the records that changed after a watermark, page by page.',
         doc: 'systems-of-record#inbound-sync',
@@ -239,7 +239,7 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'sync',
-        lane: 'delivery',
+        column: 'delivery',
         title: 'Inbound sync',
         summary:
           'Inbound sync submits each page as a sync command bound to the watermark and never writes storage itself.',
@@ -254,16 +254,16 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'sync-commit',
-        lane: 'instance',
+        column: 'instance',
         title: 'Commit',
         summary:
-          'The sync command commits the working-set copy as the integration principal, which cannot drive operator commands.',
+          'The sync command commits the synced records as the integration principal, which cannot call operator commands.',
         doc: 'systems-of-record#inbound-sync',
         sources: ['packages/runtime/src'],
         tests: [
           {
             file: 'packages/integration/test/dispatcher.test.ts',
-            test: 'the integration grant cannot drive operator commands',
+            test: 'the integration grant cannot call operator commands',
           },
         ],
       },
@@ -276,7 +276,7 @@ export const paths: readonly RequestPath[] = [
     steps: [
       {
         id: 'remote-call',
-        lane: 'surfaces',
+        column: 'surfaces',
         title: 'Query',
         summary: 'A screen, an agent or the CLI calls a query that names a remote source.',
         doc: 'systems-of-record#remote-queries',
@@ -290,7 +290,7 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'remote-authorize',
-        lane: 'instance',
+        column: 'instance',
         title: 'Remote query',
         summary: 'The runtime authorizes the caller, then asks the source outside the snapshot.',
         doc: 'systems-of-record#remote-queries',
@@ -304,10 +304,10 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'remote-source',
-        lane: 'records',
+        column: 'records',
         title: 'Source',
         summary:
-          "The system of record answers under the caller's credential, or a permitted service account.",
+          "The system of record is read under the caller's credential, or a permitted service account.",
         doc: 'systems-of-record#credentials-and-paging',
         sources: ['packages/integration/src'],
         tests: [
@@ -319,11 +319,11 @@ export const paths: readonly RequestPath[] = [
       },
       {
         id: 'remote-result',
-        lane: 'surfaces',
+        column: 'surfaces',
         title: 'Result',
         summary:
           'The caller receives the rows with the source status and fetch time; nothing is stored, and an unreachable source is a status.',
-        doc: 'systems-of-record#failures-and-adoption',
+        doc: 'systems-of-record#failures-and-followed-records',
         sources: ['packages/runtime/src'],
         tests: [
           {
@@ -341,14 +341,14 @@ export const phaseSource = 'packages/runtime/src/effect-phase.ts';
 export const phaseTransitions: ReadonlyArray<readonly [from: string, to: string, via: string]> = [
   ['queued', 'claimed', 'claim'],
   ['retrying', 'claimed', 'claim'],
-  ['upstream', 'claimed', 'claim'],
+  ['acknowledged', 'claimed', 'claim'],
   ['claimed', 'retrying', 'attempt'],
-  ['claimed', 'upstream', 'attempt'],
+  ['claimed', 'acknowledged', 'attempt'],
   ['claimed', 'held', 'attempt'],
-  ['claimed', 'accepted', 'settle'],
-  ['claimed', 'rejected', 'settle'],
-  ['held', 'accepted', 'settle'],
-  ['held', 'rejected', 'settle'],
+  ['claimed', 'accepted', 'complete'],
+  ['claimed', 'rejected', 'complete'],
+  ['held', 'accepted', 'complete'],
+  ['held', 'rejected', 'complete'],
   ['held', 'queued', 'release'],
   ['queued', 'cancelled', 'cancel'],
 ];
@@ -364,11 +364,11 @@ export const properties: readonly Property[] = [
   {
     property: 'A command commits and returns its receipt before the system of record is contacted.',
     mechanism: 'The outbox effect commits with the state; the dispatcher delivers afterwards.',
-    doc: 'systems-of-record#outbox-and-settlement',
+    doc: 'systems-of-record#outbox-and-completion',
     tests: [
       {
         file: 'packages/integration/test/dispatcher.test.ts',
-        test: 'delivers outside the transaction and settles through the domain command',
+        test: 'delivers outside the transaction and completes through the domain command',
       },
       {
         file: 'examples/quality-inspection/domain.test.ts',
@@ -424,7 +424,7 @@ export const properties: readonly Property[] = [
   },
   {
     property: 'A delivery whose outcome is unknown is held for a person and never retried.',
-    mechanism: 'The held phase waits for a settle or release reconciliation command.',
+    mechanism: 'The held phase waits for a complete or release reconciliation command.',
     doc: 'systems-of-record#held-effects',
     tests: [
       {
@@ -434,13 +434,13 @@ export const properties: readonly Property[] = [
     ],
   },
   {
-    property: 'A workstation application is not driven while the operator holds the seat.',
-    mechanism: 'The workstation controller checks the bridge mode, hazard class and seat.',
-    doc: 'operator-workstations#seat',
+    property: 'A workstation application is not operated while the operator holds control.',
+    mechanism: 'The workstation controller checks the bridge mode, risk level and control holder.',
+    doc: 'operator-workstations#control-holder',
     tests: [
       {
         file: 'workstations/screen-bridge/test/controller.test.ts',
-        test: 'monitor-only, assist for hazardous procedures, and an operator seat block without acting',
+        test: 'monitor-only, assist for procedures above risk none, and an operator holding control block without acting',
       },
       {
         file: 'workstations/screen-bridge/test/controller.test.ts',
@@ -576,12 +576,12 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
   },
   receiving: {
     input: 'Counts on the receiving screen and advance shipping notices from an inbox folder.',
-    record: 'An ERP reached only through exchange folders, settled from receipt files.',
+    record: 'An ERP reached only through exchange folders, completed from receipt files.',
     sources: ['examples/receiving/erp-port.ts'],
   },
   'crm-capture': {
-    input: "A remote query of the CRM with the caller's access, then adoption of accounts.",
-    record: 'A fake CRM, with adoption through the outbox and updates from its feed.',
+    input: "A remote query of the CRM with the caller's access, then following accounts.",
+    record: 'A fake CRM, with follow requests through the outbox and updates from its feed.',
     sources: ['examples/crm-capture/fake-crm.ts'],
   },
   'asset-survey': {

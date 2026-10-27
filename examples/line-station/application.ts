@@ -61,7 +61,7 @@ export const stationAutomationPlugin = createDriverPlugin({
  * Demo only: bridge the simulated filler HMI when `STATION_HMI_URL` names it (start it with
  * `bun run dev:hmi`, or `bun run dev` in this directory). Counters come from
  * `STATION_VISION_BASE_URL` + `STATION_VISION_MODEL` (a local vision model),
- * `STATION_PERCEPTION_WORKER=1` (the `perception-worker` process the site policy binds), or, with `STATION_SIMULATOR=1` (the HMI is
+ * `STATION_RECOGNITION_WORKER=1` (the `recognition-worker` process the site policy binds), or, with `STATION_SIMULATOR=1` (the HMI is
  * the simulator), from its ground truth; the simulator also reports local input then. Explicit
  * configuration only; a deploying application passes its own station list, and the framework
  * never reads these.
@@ -80,7 +80,7 @@ export function demoStations(
           allowedHosts: (env.STATION_VISION_ALLOWED_HOSTS ?? '').split(',').filter(Boolean),
           reads: Number(env.STATION_VISION_READS ?? 3),
         }
-      : env.STATION_PERCEPTION_WORKER === '1'
+      : env.STATION_RECOGNITION_WORKER === '1'
         ? { kind: 'worker' }
         : env.STATION_SIMULATOR === '1'
           ? { kind: 'simulator' }

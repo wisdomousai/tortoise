@@ -8,9 +8,9 @@ import { live } from '@/lib/session';
 import { operations } from '../contracts';
 import { blobUrl, Empty, Page, when } from './shared';
 
-type Filter = 'new' | 'unplaced' | 'all';
+type Filter = 'new' | 'unlinked' | 'all';
 const inputFor = (filter: Filter) =>
-  filter === 'new' ? { review: 'new' as const } : filter === 'unplaced' ? { unplaced: true } : {};
+  filter === 'new' ? { review: 'new' as const } : filter === 'unlinked' ? { unlinked: true } : {};
 
 const readingText: Record<string, string> = {
   reading: 'Reading',
@@ -31,7 +31,7 @@ function ReviewQueue({ compact }: { compact: boolean }) {
       description={
         compact
           ? undefined
-          : 'Captures from the field. Place unplaced ones, check what the model read, and accept it onto the node.'
+          : 'Captures from the field. Link unlinked ones, check what the model read, and accept it onto the node.'
       }
       actions={
         <NativeSelect
@@ -40,7 +40,7 @@ function ReviewQueue({ compact }: { compact: boolean }) {
           onChange={(event) => setFilter(event.target.value as Filter)}
         >
           <option value="new">To review</option>
-          <option value="unplaced">Unplaced</option>
+          <option value="unlinked">Unlinked</option>
           <option value="all">All</option>
         </NativeSelect>
       }
@@ -71,7 +71,7 @@ function ReviewQueue({ compact }: { compact: boolean }) {
               />
               <span className="min-w-0 space-y-1 text-sm">
                 <span className="block font-medium">
-                  {capture.nodeId ? (designations.get(capture.nodeId) ?? 'Node') : 'Unplaced'} ·{' '}
+                  {capture.nodeId ? (designations.get(capture.nodeId) ?? 'Node') : 'Unlinked'} ·{' '}
                   {capture.kind}
                 </span>
                 <span className="block text-muted-foreground">{when(capture.takenAt)}</span>

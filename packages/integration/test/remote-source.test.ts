@@ -107,7 +107,7 @@ describe('remote source', () => {
     });
   });
 
-  test('implemented providers answer search and lookup through the runtime', async () => {
+  test('implemented providers handle search and lookup through the runtime', async () => {
     const app = createApplication({
       modules: [
         defineModule({

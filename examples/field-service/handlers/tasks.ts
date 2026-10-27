@@ -90,8 +90,8 @@ export const taskHandlers = (): HandlerContribution<ServiceState, WorkOrderServi
     value.reminder = 'pending';
     return dto(value, ctx, true);
   }),
-  handler(operations.taskRemindersSettle, (input, ctx) => {
-    const effect = ctx.settleEffect(
+  handler(operations.taskRemindersComplete, (input, ctx) => {
+    const effect = ctx.completeEffect(
       input.effectId,
       input.outcome,
       input.fence === undefined ? {} : { fence: input.fence },
@@ -100,7 +100,7 @@ export const taskHandlers = (): HandlerContribution<ServiceState, WorkOrderServi
       ? ctx.state.reminderEffects[effect.id]!
       : undefined;
     delete ctx.state.reminderEffects[effect.id];
-    // A task deleted meanwhile keeps no reminder state; the effect settles all the same.
+    // A task deleted meanwhile keeps no reminder state; the effect completes all the same.
     if (id && Object.hasOwn(ctx.state.tasks, id))
       ctx.state.tasks[id]!.reminder = input.outcome.status;
     ctx.change(effect.resource);

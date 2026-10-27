@@ -7,12 +7,12 @@ import { own, put, type StateMigrations } from '@agent-native/runtime';
  * machine state, the loaded recipe and counters; this application only observes them, with
  * provenance, through the station bridge. This application owns what happens at the station:
  * stops and their classification, count confirmations, operator verifications, the desired
- * recipe, the bridge mode and the seat. Forwarded records reach the MES through the outbox;
+ * recipe, the bridge mode and the control holder. Forwarded records reach the MES through the outbox;
  * desired station state reaches the station software through the outbox and its screen.
  */
 export type StationRole = 'operator' | 'supervisor' | 'viewer';
 export type BridgeMode = 'monitor-only' | 'assist' | 'actuate';
-export type Seat = 'operator' | 'agent' | 'idle';
+export type ControlHolder = 'operator' | 'agent' | 'idle';
 export type SyncStatus = 'pending' | 'accepted' | 'rejected';
 export type FieldValue = string | number | boolean | null;
 
@@ -60,12 +60,12 @@ export interface Station {
   name: string;
   line: string;
   members: Record<string, StationRole>;
-  /** The only principal that may report observations and settle screen procedures here. */
+  /** The only principal that may report observations and complete screen procedures here. */
   bridgePrincipalId: string;
   mode: BridgeMode;
-  seat: Seat;
-  seatChangedBy?: string;
-  seatChangedAt?: number;
+  controlHolder: ControlHolder;
+  controlChangedBy?: string;
+  controlChangedAt?: number;
   screen?: string | null;
   observedAt?: number;
   profile?: { id: string; version: string };
@@ -163,7 +163,7 @@ export function createLineState(
       bridgePrincipalId: bridgePrincipal(station.id),
       // Observation is the safe default; actuation is switched on per station by a supervisor.
       mode: 'monitor-only',
-      seat: 'idle',
+      controlHolder: 'idle',
       readings: {},
     });
   return {

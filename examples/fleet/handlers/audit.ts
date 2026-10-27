@@ -36,7 +36,7 @@ function breakIn(event: Partial<AuditEvent> | undefined, previous: { seq: number
   if (!Number.isSafeInteger(event.seq))
     return { at: previous.seq + 1, reason: 'has no sequence number' };
   if (event.seq !== previous.seq + 1)
-    return { at: previous.seq + 1, reason: `is missing; event ${event.seq} arrived instead` };
+    return { at: previous.seq + 1, reason: `is missing; event ${event.seq} was received instead` };
   const { hash, ...unsealed } = event as AuditEvent;
   if (event.prev !== previous.hash)
     return { at: event.seq!, reason: 'does not link to the event before it' };
@@ -59,7 +59,7 @@ function prune(ctx: Context, site: string, newest: number) {
  * sequence number, a `prev` equal to that event's hash, and its own hash over the event. The
  * first event that fails stops collection for the site, records why on the site, and commits,
  * so the break is visible instead of retried away. Events the fleet already holds are skipped:
- * a site reads the fleet's cursor before each batch, so a repeat arrives only when the reply to
+ * a site reads the fleet's cursor before each batch, so a batch is repeated only when the reply to
  * a batch was lost after the fleet committed it.
  */
 export function auditHandlers(): HandlerContribution<AppState, Services>[] {

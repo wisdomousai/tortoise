@@ -7,19 +7,19 @@ import { recordId } from './schemas';
 const WEEK = 7 * 86_400_000;
 
 /**
- * One capture from placement to the EAM: place it, send it to the model to read, wait until a
+ * One capture from linking to the EAM: link it, send it to the model to read, wait until a
  * person accepted the values, file the node into the EAM and export it. When the export is
  * refused, the EAM filing is withdrawn.
  */
 export const captureToEam = defineWorkflow({
   id: 'survey.capture-to-eam',
   version: 2,
-  text: 'Place a capture on its node, send it to the model to read, wait for a reviewer to accept the values, then file the node into the EAM and export it. A refused export withdraws the EAM filing.',
+  text: 'Link a capture to its node, send it to the model to read, wait for a reviewer to accept the values, then file the node into the EAM and export it. A refused export withdraws the EAM filing.',
   input: jsonSchema(z.strictObject({ captureId: recordId, nodeId: recordId })),
   maxDurationMs: 2 * WEEK,
   start: 'capture.file-workflow',
   steps: [
-    step.run('place', 'assignment.report.place', {
+    step.run('link', 'assignment.report.link', {
       input: { id: from.input('captureId'), subject: from.input('nodeId') },
     }),
     step.run('extract', 'assignment.extraction.create', {
@@ -52,7 +52,7 @@ export const captureFileWorkflow = operation('capture.file-workflow', 'command',
   output: instanceSchema,
   permission: { action: 'file', resourceType: 'Filing' },
   description:
-    'Start survey.capture-to-eam for an unplaced capture: it is placed on the node and sent to the model to read, and once a reviewer accepted its values the node is filed into the EAM and exported, as you. One instance per capture runs at a time. Follow it in workflow.list.',
+    'Start survey.capture-to-eam for an unlinked capture: it is linked to the node and sent to the model to read, and once a reviewer accepted its values the node is filed into the EAM and exported, as you. One instance per capture runs at a time. Follow it in workflow.list.',
   dependencies: ['assignment-report', 'filing'],
   invokes: ['workflow.start'],
 });

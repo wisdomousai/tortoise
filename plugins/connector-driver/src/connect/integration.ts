@@ -15,7 +15,7 @@ export interface DriverIntegrationOptions {
   readonly target: Target;
   readonly application: DispatcherApplication & DriverObserverOptions['application'];
   readonly workspaceId: string;
-  /** The integration principal; granted the target's settle and status operations only. */
+  /** The integration principal; granted the target's complete and status operations only. */
   readonly principalId: string;
   readonly contract: DriverContract;
   readonly supervisor: DriverSupervisor;
@@ -29,7 +29,7 @@ export interface DriverIntegrationOptions {
 
 /**
  * One driver wired as an outbox target, and optionally observed. Like `connectTarget` for a
- * system of record, but with no inbound sync: delivery settles through the target's fenced settle
+ * system of record, but with no inbound sync: delivery completes through the target's fenced complete
  * command, and the observer reports state through the application's ingest command. The
  * principal's grant names only those operations, so a misbehaving driver cannot reach business
  * commands. `start` runs the loops (delivery every second, observation every 2 s by default).
@@ -52,8 +52,8 @@ export function createDriverIntegration(options: DriverIntegrationOptions) {
     application: options.application,
     port,
     context,
-    settleOperation: options.target.settle.id,
-    settleInput: (effect, outcome, attempt) => ({
+    completeOperation: options.target.complete.id,
+    completeInput: (effect, outcome, attempt) => ({
       effectId: effect.id,
       outcome,
       fence: attempt.fence,

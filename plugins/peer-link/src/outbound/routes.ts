@@ -44,51 +44,51 @@ export async function connect(
   const key = await generateAssertionKey();
   const own = caller.application.discover(caller.context).application;
   const peer = createPeerCall({ client: () => options.network().client(declared.destination) });
-  let answer: {
+  let reply: {
     token: string;
     peer: { id: string; audience: string };
     contract: ContractApplication;
   };
   try {
-    answer = await peer.post(enrollPath, {
+    reply = await peer.post(enrollPath, {
       code,
       application: own.id,
       publicKey: key.publicKey,
       contract: { ...own },
     });
   } catch (error) {
-    if (error instanceof PeerCallError && error.kind === 'answered' && error.envelope)
+    if (error instanceof PeerCallError && error.kind === 'responded' && error.envelope)
       throw new ApplicationError(
         error.envelope.code === 'FORBIDDEN' ? 'FORBIDDEN' : 'UNAVAILABLE',
         `${target} refused the code: ${error.envelope.message}`,
       );
     throw new ApplicationError('UNAVAILABLE', `${target} could not be reached`);
   }
-  if (answer.contract?.id !== declared.application)
+  if (reply.contract?.id !== declared.application)
     throw new ApplicationError(
       'CONFLICT',
-      `The code was issued by ${answer.contract?.id ?? 'an unknown application'}, not ${declared.application}; ask its owner to revoke this enrollment`,
+      `The code was issued by ${reply.contract?.id ?? 'an unknown application'}, not ${declared.application}; ask its owner to revoke this enrollment`,
     );
-  const secret = { peerId: answer.peer.id, token: answer.token, privateKey: key.privateKey };
+  const secret = { peerId: reply.peer.id, token: reply.token, privateKey: key.privateKey };
   await options.secrets.write(target, secret);
   const receipt = await caller.application.invokeRaw(
     {
       operation: ops.connectionRecord.id,
       input: {
         target,
-        peerId: answer.peer.id,
-        audience: answer.peer.audience,
+        peerId: reply.peer.id,
+        audience: reply.peer.audience,
         contract: {
-          id: answer.contract.id,
-          contractVersion: answer.contract.contractVersion,
-          digest: answer.contract.digest,
+          id: reply.contract.id,
+          contractVersion: reply.contract.contractVersion,
+          digest: reply.contract.digest,
         },
       },
       idempotencyKey: `peer-connect:${crypto.randomUUID()}`,
     },
     context,
   );
-  options.outbound.hold(target, secret, answer.peer.audience);
+  options.outbound.hold(target, secret, reply.peer.audience);
   return receipt.result as { connection: Record<string, unknown> };
 }
 

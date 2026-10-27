@@ -33,7 +33,7 @@ let os: MobileOsConnection | undefined;
 /**
  * The app's one OS connection: links and files the OS opens the app with, submitted to the
  * instance's shell port. Made once, with the screens, so the background task never takes OS
- * input; what arrives before the frame mounts waits for it.
+ * input; what is received before the frame mounts waits for it.
  */
 function osConnection(opened: MobileInstance): MobileOsConnection {
   os ??= connectMobileShell(

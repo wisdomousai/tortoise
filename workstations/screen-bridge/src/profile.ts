@@ -120,7 +120,7 @@ export const stationProfileSchema = z.strictObject({
        * `none`: no machine motion. `low`: changes settings, no motion. `operator-present`: the
        * effect payload must carry a station-side confirmation (`presence.confirmedBy`).
        */
-      hazard: z.enum(['none', 'low', 'operator-present']),
+      risk: z.enum(['none', 'low', 'operator-present']),
       /** Safe to run again after an interruption; otherwise an interruption holds the effect. */
       rerunnable: z.boolean(),
       timeoutMs: z.number().int().min(1_000).max(600_000),

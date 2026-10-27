@@ -102,8 +102,12 @@ function start(input: InputOf<typeof ops.sessionStart>, ctx: Context) {
   badge.failures = 0;
   delete badge.lockedUntil;
   for (const [id, old] of Object.entries(ctx.state.sessions)) {
-    // One operator per seat: signing in ends whoever was signed in there before.
-    if (open(old, at) && old.seatPrincipal === input.seatPrincipal && old.seat === input.seat)
+    // One operator per terminal: signing in ends whoever was signed in there before.
+    if (
+      open(old, at) &&
+      old.terminalPrincipal === input.terminalPrincipal &&
+      old.terminal === input.terminal
+    )
       endSession(ctx, old, at);
     if (Math.min(old.endedAt ?? Infinity, old.expiresAt) + sessionRetentionMs < at) {
       delete ctx.state.sessions[id];
@@ -114,8 +118,8 @@ function start(input: InputOf<typeof ops.sessionStart>, ctx: Context) {
     id: newId('s'),
     badgeId: badge.id,
     principalId: badge.principalId,
-    seatPrincipal: input.seatPrincipal,
-    seat: input.seat,
+    terminalPrincipal: input.terminalPrincipal,
+    terminal: input.terminal,
     tokenDigest: input.tokenDigest,
     startedAt: at,
     expiresAt: at + sessionMinutes * 60_000,

@@ -27,7 +27,7 @@ export const ${kind.camel} = defineAssignmentKind({
   }),
   report: z.strictObject({ status: ${one.camel}Schema.shape.status, note: z.string().max(500) }),
   subject: '${one.kebab}',
-  lanes: ['person'],
+  assigneeTypes: ['person'],
   invokes: ['${one.kebab}.update'],
   changes: ['${one.kebab}'],
 });
@@ -130,7 +130,7 @@ export const ${kind.camel}Hooks = {
     return ${many.camel}In(assignment.scope).includes(subject);
   },
   async accept(report: Readonly<StoredReport>, _input: Body, _assignment: unknown, ctx: Context) {
-    if (!report.subject) throw new ApplicationError('CONFLICT', 'Place the report before accepting it');
+    if (!report.subject) throw new ApplicationError('CONFLICT', 'Link the report before accepting it');
     await ctx.invoke(operations.${one.camel}Update, {
       id: report.subject,
       status: report.body.status as 'open' | 'done',
@@ -221,7 +221,7 @@ function Board() {
   );
 }
 
-/** One ${kind.words} and its reports, each placed, discarded or accepted. */
+/** One ${kind.words} and its reports, each linked, discarded or accepted. */
 function AssignmentScreen() {
   const { assignmentId } = useParams({ strict: false }) as { assignmentId: string };
   return (
@@ -230,7 +230,7 @@ function AssignmentScreen() {
       <AssignmentReports
         list={assignmentOperations.reportList}
         discard={assignmentOperations.reportDiscard}
-        place={assignmentOperations.reportPlace}
+        link={assignmentOperations.reportLink}
         kinds={[{ kind: ${kind.camel}, accept: assignmentOperations.${kind.camel}Accept }]}
         input={{ assignmentId }}
       />
@@ -392,7 +392,7 @@ const mount = [
 ];
 
 /**
- * An assignment kind over one collection, for the person lane: the kind, its hooks, its board,
+ * An assignment kind over one collection, for person assignees: the kind, its hooks, its board,
  * reports and My screens, and a lifecycle test. The first kind also adds `defineAssignments`, the
  * member list for the assignee picker, the access view and the feature's mount; a later kind
  * joins those.

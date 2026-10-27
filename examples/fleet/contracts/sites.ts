@@ -26,7 +26,7 @@ export const siteSchema = z.strictObject({
   lastSeenAt: z.number().int().nonnegative(),
   pending: count,
   held: count,
-  upstream: count,
+  acknowledged: count,
   /** Outbox counts by target from the last report. */
   targets: siteReportSchema.shape.outbox.shape.targets,
   /** The site's audit head as it reported it, and the last event the fleet holds and verified. */

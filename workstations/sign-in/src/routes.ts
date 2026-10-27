@@ -14,12 +14,12 @@ export interface StationCaller {
 }
 
 export interface RouteOptions {
-  /** Principals whose screens are station seats; the local owner always is. */
-  readonly seats: ReadonlySet<string>;
+  /** Principals whose screens are station terminals; the local owner always is. */
+  readonly terminals: ReadonlySet<string>;
 }
 
 const pinPattern = /^\d{4,8}$/;
-const seatPattern = /^[a-z0-9-]{1,64}$/;
+const terminalPattern = /^[a-z0-9-]{1,64}$/;
 const text = (value: unknown, max: number) =>
   typeof value === 'string' && value.length > 0 && value.length <= max ? value : undefined;
 const invalid = (message: string) => new ApplicationError('INVALID_INPUT', message);
@@ -32,30 +32,32 @@ const command = (operation: string, input: unknown) => ({
 });
 
 /**
- * POST sign-in `{ badge, pin, seat }`, from the seat screen's own session:
+ * POST sign-in `{ badge, pin, terminal }`, from the terminal screen's own session:
  *
- * 1. Only a seat may sign people in, and never under a delegated grant, so an agent working at
- *    the seat cannot open a person's session.
+ * 1. Only a terminal may sign people in, and never under a delegated grant, so an agent working at
+ *    the terminal cannot open a person's session.
  * 2. The badge's PIN verifier is read and the PIN checked here, so the PIN never reaches a stored
  *    command input; then `station.session.start` records the attempt and applies the lockout.
- * 3. The operator token is generated here and answered once; state keeps only its digest.
+ * 3. The operator token is generated here and returned once; state keeps only its digest.
  */
 async function signIn(
   request: Request,
-  seat: ExecutionContext,
+  terminal: ExecutionContext,
   caller: StationCaller,
   options: RouteOptions,
 ) {
-  if (seat.grant)
+  if (terminal.grant)
     throw new ApplicationError('FORBIDDEN', 'A delegated caller cannot sign people in');
-  if (!options.seats.has(seat.principalId))
-    throw new ApplicationError('FORBIDDEN', 'This caller is not a station seat');
+  if (!options.terminals.has(terminal.principalId))
+    throw new ApplicationError('FORBIDDEN', 'This caller is not a station terminal');
   const body = await readJsonBody(request);
   const badge = text(body.badge, 256);
   const pin = typeof body.pin === 'string' && pinPattern.test(body.pin) ? body.pin : undefined;
-  const seatName =
-    typeof body.seat === 'string' && seatPattern.test(body.seat) ? body.seat : undefined;
-  if (!badge || !seatName) throw invalid('badge and seat are required');
+  const terminalName =
+    typeof body.terminal === 'string' && terminalPattern.test(body.terminal)
+      ? body.terminal
+      : undefined;
+  if (!badge || !terminalName) throw invalid('badge and terminal are required');
   const context = { ...caller.context, channel: 'http' as const };
   const found = await caller.application.queryRaw(
     { operation: ops.badgeVerifier.id, input: { badgeDigest: digestOf(badge) } },
@@ -70,8 +72,8 @@ async function signIn(
     command(ops.sessionStart.id, {
       badgeId: verifier.id,
       verified: pin !== undefined && pinMatches(pin, verifier),
-      seatPrincipal: seat.principalId,
-      seat: seatName,
+      terminalPrincipal: terminal.principalId,
+      terminal: terminalName,
       tokenDigest: digestOf(token),
     }),
     context,

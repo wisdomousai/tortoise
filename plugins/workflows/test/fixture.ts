@@ -53,8 +53,8 @@ const parcel = {
     z.strictObject({ id: z.string(), ref: z.string().optional() }),
   ),
   flaky: command('parcel.flaky'),
-  settle: command(
-    'carrier.settle',
+  complete: command(
+    'carrier.complete',
     z.strictObject({ id: z.string(), effect: z.string(), accepted: z.boolean() }),
   ),
   file: command('parcel.file', parcelId, { invokes: ['workflow.start'] }),
@@ -203,9 +203,9 @@ const handlers = [
     },
   },
   {
-    capability: parcel.settle,
+    capability: parcel.complete,
     handle(input: { id: string; effect: string; accepted: boolean }, ctx: Ctx) {
-      ctx.settleEffect(
+      ctx.completeEffect(
         input.effect,
         input.accepted
           ? { status: 'accepted', externalRef: `track-${input.id}` }

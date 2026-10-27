@@ -16,15 +16,15 @@ import {
 } from './context';
 
 /**
- * Commands that capture work locally and forward it to the CRM through the outbox: adopting an
- * account found by search, and logging an activity against an adopted one. Neither calls the CRM;
+ * Commands that capture work locally and forward it to the CRM through the outbox: following an
+ * account found by search, and logging an activity against a followed one. Neither calls the CRM;
  * both commit first and let the dispatcher deliver.
  */
 export const captureHandlers = (): HandlerContribution<CrmState, CrmServices>[] => [
-  handler(operations.accountAdopt, (input, ctx) => {
+  handler(operations.accountFollow, (input, ctx) => {
     const accounts = accountRecords(ctx);
     const existing = accounts.get(input.externalId);
-    // Following or adopted already: nothing to ask the CRM again.
+    // Requested or following already: nothing to ask the CRM again.
     if (existing && existing.status !== 'rejected')
       return { id: existing.id, status: existing.status };
     // The CRM checks the requester's access when it receives the follow request (effect.principalId).
@@ -38,19 +38,19 @@ export const captureHandlers = (): HandlerContribution<CrmState, CrmServices>[] 
       input.externalId,
       {
         id: input.externalId,
-        status: 'following',
+        status: 'requested',
         effectId,
-        adoptedBy: ctx.context.principalId,
-        adoptedAt: now(ctx),
+        followedBy: ctx.context.principalId,
+        followedAt: now(ctx),
       },
-      'adopted',
+      'followed',
     );
-    return { id: input.externalId, status: 'following' as const };
+    return { id: input.externalId, status: 'requested' as const };
   }),
   handler(operations.activityLog, (input, ctx) => {
     const accounts = accountRecords(ctx);
     const account = accounts.getExisting(input.accountId);
-    if (account.status !== 'adopted')
+    if (account.status !== 'following')
       throw new ApplicationError('CONFLICT', `Account is ${account.status}`, {
         status: account.status,
       });

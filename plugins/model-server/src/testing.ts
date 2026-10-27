@@ -10,7 +10,7 @@ export interface StandInMessage {
   }[];
 }
 
-/** One tool call, or a final answer. */
+/** One tool call, or a final reply. */
 export type StandInReply =
   | { readonly call: { readonly name: string; readonly arguments: unknown } }
   | { readonly content: string };
@@ -24,7 +24,7 @@ export type StandInResponder = (
  * The script of a stand-in for llama.cpp's `llama-server`, for tests and development launches.
  * Declare it as the model server's process with Bun as the executable and this path as the
  * first argument. It takes llama-server's flags, refuses a missing model file, lists the model
- * under its alias and streams chat completions. It answers:
+ * under its alias and streams chat completions. It replies:
  *
  * - with `FIXTURE_RESPONDER` naming a module, what that module's default `StandInResponder`
  *   returns;

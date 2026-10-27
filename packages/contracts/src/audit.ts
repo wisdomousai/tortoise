@@ -87,7 +87,7 @@ export const auditEventKinds = {
   'effect.attempted': 'A delivery attempt failed transiently and will be retried.',
   'effect.held': 'An uncertain delivery is held for operator reconciliation.',
   'effect.released': 'A held effect was released for redelivery.',
-  'effect.settled': 'The target accepted or rejected an effect.',
+  'effect.completed': 'The target accepted or rejected an effect.',
   'egress.allowed': 'The egress guard opened a declared, bound connection.',
   'egress.denied': 'The egress guard refused an undeclared, unbound or disallowed connection.',
   'egress.completed': 'A guarded request finished; carries status, size and duration.',

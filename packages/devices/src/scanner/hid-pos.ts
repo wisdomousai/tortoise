@@ -9,7 +9,7 @@ export const HID_POS_USAGE_PAGE = 0x8c;
  * Extracts scanned data from HID POS input reports. Devices differ in report layout, so the
  * profile names the byte holding the data length and the offset where data starts. The usual
  * layout is `[length, symbology identifier ×3, data…]` per report; verify against the device.
- * Data longer than one report arrives in several reports; a report shorter than the device's
+ * Data longer than one report is sent in several reports; a report shorter than the device's
  * maximum ends the scan.
  */
 export class HidReportAssembler {

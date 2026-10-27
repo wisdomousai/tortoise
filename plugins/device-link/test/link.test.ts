@@ -63,7 +63,7 @@ async function startHub(clock = { now: Date.now() }) {
 }
 
 /**
- * The field app on the mobile platform with Bun bindings. `link.drop` loses the hub's answer to the
+ * The field app on the mobile platform with Bun bindings. `link.drop` loses the hub's reply to the
  * next command after the hub has handled it, as a dropped connection would.
  */
 async function openField() {
@@ -128,7 +128,7 @@ test('a paired phone delivers captures with photos exactly once, and reads the a
     pairing: { deviceId: paired.deviceId },
   });
 
-  // The hub handles the record but its answer is lost: the effect stays pending.
+  // The hub handles the record but its response is lost: the effect stays pending.
   link.drop = true;
   expect(await deliver(field)).toMatchObject({ retried: 1 });
   expect(await query('captures.list')).toEqual({
@@ -150,7 +150,7 @@ test('a paired phone delivers captures with photos exactly once, and reads the a
   link.offline = false;
   expect(await deliver(field)).toMatchObject({ accepted: 1 });
 
-  // A record the hub refuses is settled as rejected and the device shows the hub's code.
+  // A record the hub refuses is completed as rejected and the device shows the hub's code.
   await capture(field, 'c3', 'reject');
   expect(await deliver(field)).toMatchObject({ rejected: 1 });
   expect((await captures(field)).captures.at(-1)).toEqual({

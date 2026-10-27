@@ -19,7 +19,7 @@ const memberEvent = (_id: string, state: LabSignalsRoot, context: { principalId:
 
 /**
  * Only members pass the caller gate: they read chambers, and technicians place specimens. The
- * chamber observer is an integration principal whose lane holds the ingest command alone, so it
+ * chamber observer is an integration principal whose allowlist holds the ingest command alone, so it
  * reads no chamber, request or event.
  */
 const chamberPolicy = definePolicy<LabSignalsRoot, Role>({

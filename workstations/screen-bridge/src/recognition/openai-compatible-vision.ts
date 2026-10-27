@@ -131,8 +131,8 @@ const fieldValue = (field: ExtractionField, raw: unknown): FieldValue =>
           : parseDisplayed(field, String(raw))
       : parseDisplayed(field, String(raw).slice(0, 200));
 
-/** Field values from the model's answer; unparseable output reads as nothing. */
-function parseAnswer(content: unknown, fields: readonly ExtractionField[]) {
+/** Field values from the model's reply; unparseable output reads as nothing. */
+function parseReply(content: unknown, fields: readonly ExtractionField[]) {
   let parsed: unknown;
   try {
     parsed =
@@ -196,9 +196,9 @@ export function createOpenAiCompatibleVisionExtractor(options: VisionExtractorOp
       body: requestBody(options.model, image, fields, width, height),
     });
     // Status only: response bodies may echo prompts or server details.
-    if (!response.ok) throw new Error(`Vision endpoint answered ${response.status}`);
+    if (!response.ok) throw new Error(`Vision endpoint returned ${response.status}`);
     const body = (await response.json()) as { choices?: { message?: { content?: unknown } }[] };
-    return parseAnswer(body.choices?.[0]?.message?.content, fields);
+    return parseReply(body.choices?.[0]?.message?.content, fields);
   }
 
   return {

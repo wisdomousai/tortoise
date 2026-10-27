@@ -13,8 +13,8 @@ export interface PermissionRequirement {
 }
 /**
  * Declares that a command's committed result is forwarded to an external system of record through
- * the transactional outbox. A receipt proves the local commit only; acceptance by `target` arrives
- * later through a settlement command and may be a rejection.
+ * the transactional outbox. A receipt proves the local commit only; acceptance by `target` is recorded
+ * later through a completion command and may be a rejection.
  */
 export interface IntegrationDeclaration {
   readonly target: string;

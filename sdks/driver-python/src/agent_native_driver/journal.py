@@ -1,7 +1,7 @@
 """What the driver did per effect ID, so retries and lookups survive a driver restart.
 
 The host may send an effect again after a lost reply, and asks ``action.lookup`` before resending
-a ``once`` action. Both answers have to come from what the equipment was told, not from memory
+a ``once`` action. Both responses have to come from what the equipment was told, not from memory
 that a crash erased. The journal records ``started`` before the driver acts and the outcome after,
 each line flushed and fsynced before the driver moves on. An effect that was started but has no
 outcome is ``uncertain``: the driver may have acted, and a person decides.
@@ -43,7 +43,7 @@ class Journal:
         if target.exists():
             for line in target.read_text(encoding="utf-8").splitlines():
                 # A torn last line from a crash mid-write is skipped: its effect stays started,
-                # which reads as uncertain, the safe answer.
+                # which reads as uncertain, the safe result.
                 try:
                     raw = json.loads(line)
                     entry = Entry(**raw)
