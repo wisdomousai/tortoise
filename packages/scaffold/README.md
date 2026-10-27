@@ -33,13 +33,14 @@ bun run scaffold add collection <type> [--tree] [--app <directory>]
 bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
 bun run scaffold add target <name> --collection <type> [--app <directory>]
 bun run scaffold add agent <name> --collection <type> [--app <directory>]
+bun run scaffold add assignment-kind <id> --collection <type> [--app <directory>]
 bun run scaffold add feature <id> [--screens] [--app <directory>]
 bun run scaffold versions [<application-directory>]
 ```
 
 - **Export** with `--example <name>` exports one [example](../../docs/glossary.md#example) as the hosted application, with the examples it imports. A field application keeps the hub application whose modules it shares. The export leaves the other examples, their reference sets, root dependencies and lockfile entries out.
 - **`new`** exports no example and generates one application in `examples/<name>`.
-- **`add`** extends that application with a collection, a [capability](../../docs/glossary.md#capability), a [target](../../docs/glossary.md#target), an agent or a [feature](../../docs/glossary.md#feature).
+- **`add`** extends that application with a collection, a [capability](../../docs/glossary.md#capability), a [target](../../docs/glossary.md#target), an agent, an [assignment kind](../../docs/glossary.md#assignment-kind) or a [feature](../../docs/glossary.md#feature).
 - **`versions`** checks that an installed application has one framework version.
 
 An export that leaves out examples (`--example`, `new`) or the framework source (`--published`) leaves out the [overview](../../docs/overview.md) map, whose claims cite files in both: `scripts/overview.ts`, `scripts/overview-curated.ts` and its VitePress view and data loader. `docs/overview.md` keeps its prose without the views, and `bun run generate` writes no `overview.json`.
@@ -66,6 +67,15 @@ With `--published` or `--registry <url>`, `new` leaves the framework source out 
 - adds `approvalAccess` to `policy.ts`: members request, read and approve, and only editors reject;
 - adds `'approval'` to the module's `requires`, because the agent requests approval through the feature's operations;
 - adds an Approvals screen where a person approves or rejects.
+
+`add assignment-kind <id> --collection <type>` writes an assignment kind for the person lane over that collection:
+
+- `contracts/<id>-assignment.ts`: the scope is up to 50 records, the brief holds their titles and statuses, and a report sets one record's status with a note;
+- `handlers/<id>-assignment.ts`: hooks that check the scope and the assignee, build the brief, and run `<type>.update` when an editor accepts a report;
+- `ui/<id>-assignments.tsx`: the assignment board, one assignment's reports and the assignee's own list, from the frame registry;
+- `test/<id>-assignment.test.ts`: the lifecycle and the roles through the application.
+
+The first kind also writes `contracts/assignments.ts`, the hook table in `handlers/assignments.ts` and the `assignee.list` query. It mounts `assignmentFeature` in `application.ts` and adds `assignmentAccess` to `policy.ts`: every member works on what is sent to them, editors also plan, read and review, and a delegated run only works. Later kinds insert into the kind list, the hook table and the screens. The `assign-work` skill (`packages/assignments/skills/assign-work/SKILL.md`) covers the agent, device, peer and target lanes.
 
 `add feature <id>` writes a [feature](../../docs/glossary.md#feature) in `features/<id>/`:
 

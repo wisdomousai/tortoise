@@ -10,7 +10,7 @@ A [feature](../../../../docs/glossary.md#feature) contributes [modules](../../..
 ## Before writing
 
 - Domain behavior for one application is a [capability](../../../../docs/glossary.md#capability) in that application; follow the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`).
-- Look in [primitives](../../../../docs/primitives.md#feature) for a feature that already covers the part.
+- Look in [primitives](../../../../docs/primitives.md#feature) for a feature that already covers the part. Work handed to someone who reports back is the `assignment` feature; follow the `assign-work` skill (`packages/assignments/skills/assign-work/SKILL.md`).
 - Pick the ID once. It is the state key, the `feature:<id>` stamp, the services key and the operation namespace, and journal resources and receipts keep it.
 
 ## Steps
@@ -25,7 +25,7 @@ In an application made by `scaffold new`, `bun run scaffold add feature <id> [--
    - `services`, exposed to every handler as `services[<id>]`;
    - `connect`, returning `integrations`, `observe` and `sources` named `<id>` or `<id>-…`.
 3. Define `Access` as the questions the policy and handlers need answered about the application, such as `allows(context, action, resource)`. The application answers them from its own state.
-4. Define `Hooks` for application work inside a command, such as recording an outcome on an application record. Hooks are optional members; supply a default in the feature when one is missing.
+4. Define `Hooks` for application work inside a handler, such as recording an outcome on an application record. Hooks are optional members; supply a default in the feature when one is missing. A query's hooks only read: a query whose hook changes the state fails.
 5. Decide person-only rules in the feature's own policy (`isDelegated` from `@agent-native/runtime`), not in the access view, so every application gets them.
 6. Mount it in the application:
    - list the manifest in `defineManifest({ features })`;

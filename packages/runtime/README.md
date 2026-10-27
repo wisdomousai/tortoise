@@ -17,7 +17,7 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 - [Collection](../../docs/primitives.md#collection): `records` (`Records`), `collectionGetHandler`, `collectionListHandler`, `collectionTreeHandler`, `collectionCommandHandlers` (`CollectionCommands`, `CollectionWriteOptions`), the tree helpers `subtree` and `ancestors`, `DEFAULT_PAGE`, and the prototype-safe `own` and `put`.
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceAnswer`, and the `sources` and `remoteDeadlineMs` options.
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
-- [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed [grant](../../docs/glossary.md#grant).
+- [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed [grant](../../docs/glossary.md#grant). The grant names the definition in `agent`, and a resource-scoped grant also covers the resource types the definition `creates`.
 - [Approval request](../../docs/primitives.md#approval-request):
   - `approvalFeature` (`ApprovalFeatureOptions`): the `approval` [feature](../../docs/glossary.md#feature), with its slice (`ApprovalSlice`), an `ApprovalAccess` view the application supplies, `newId` and `now` hooks (`ApprovalHooks`), and a policy in which approve and reject are person-only;
   - `approvalHandlers` (`ApprovalOptions`): the handlers the feature uses, over any store and visibility rule;

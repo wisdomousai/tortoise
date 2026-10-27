@@ -132,7 +132,7 @@ No public release has been made. The entries use these kinds of evidence:
 **Not shown.**
 
 - Removing a feature or plugin from an application drops its slice at the next commit. Nothing keeps or exports the dropped data.
-- Only `samples/notes-operations` declares [state migrations](glossary.md#state-migration). The examples keep their unversioned `upgradeState`.
+- crm-capture, fleet and quality-inspection keep their unversioned `upgradeState`. The other examples and `samples/notes-operations` declare [state migrations](glossary.md#state-migration).
 - A target port that maps effects by `contractVersion` has not been written.
 - The phone's storage stamps versions, but has no staged `migrate`.
 
@@ -213,7 +213,7 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 
 **Not shown.**
 
-- **Live:** receiving and quality-inspection have connected only in the two-host tests on loopback. Nobody has connected them through `bun run dev` and the Peers screens, and no pair has run across two machines.
+- **Live:** receiving and quality-inspection have connected only in the two-host tests on loopback. Nobody has connected them through `bun run dev` and the Peers screens. Only the two assignment samples have connected that way ([assignments](#assignments)), and no pair has run across two machines.
 - **Browser:** no browser test opens the Peers screen.
 - **Mobile:** the field application's drift check has run only under Bun, not in a Hermes build.
 
@@ -226,6 +226,23 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 - A peer target with no connection makes `integrations.sync()` and the CLI `sync` fail at that target, after the targets before it have synced.
 - Receiving's lot search returns the first 50 lots. Arrivals carry no plant, so everyone who captures at some plant sees all of them.
 - `asset-survey` and `asset-survey-field` keep the device link: a phone has no egress guard, and Ed25519 signing on Hermes is unproven.
+
+### Assignments
+
+**By hand, browser.** On 27 October 2026, `samples/notes-assignments` and `samples/notes-worklist` ran with `bun run dev:web`. Headless Chromium, driven step by step by a Playwright script, used the screens as a person would:
+
+- **Person:** a review of two notes sent to the owner showed under My reviews with its brief. Reports on both notes were recorded; a report on a note outside the review was refused with "The assignment does not cover this record". Done removed it from the list.
+- **Review:** the board showed the review done with two to review. Accepting the revise verdict with a comment appended `Review (revise): …` to the note. Discarding the other set the review to reviewed, and Close set it to closed.
+- **Agent:** after **Enable for a week** on the Automation screen, a review sent to Note reviewer was reported on per note by an agent run and marked done.
+- **Peer:** notes-worklist connected the `reviews` target with a code from the Peers screen. A review sent to it arrived in its list. Its two reports and the done mark reached notes-assignments. The report about a note outside the review arrived as not placed. Placing it outside the review was refused, and placing it on a covered note and accepting it wrote the verdict into that note.
+
+The run found that two accept forms on one page shared field IDs, so one comment field carried both labels and the other none. `CapabilityForm` now prefixes its field IDs per form, and the rebuilt screen labelled both.
+
+**Not shown.**
+
+- **Agent:** an agent assignee has run only with the deterministic harness (`packages/assignments/test/lanes.test.ts`, `samples/notes-assignments/test/agent.test.ts`). No model has read a brief and reported.
+- **Target:** the target lane has run only in tests, against a function port.
+- **Browser:** no Playwright spec covers the samples' assignment screens. Without slots, the generated forms show the brief as JSON and take the scope and a report's subject as typed record IDs.
 
 ### Connector plugins
 
@@ -325,7 +342,7 @@ Control mappings are indicative.
 - **Mobile platform:** it has not run on a device. The Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes.
 - **Native UI:** the native frame and components have not rendered.
 - **Native modules:** the plugins' Kotlin and Swift modules have not been compiled. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
-- **Field application:** its screens have not rendered. Taking photos, finding a node from a scan, and pairing from managed configuration have run only as the Bun pipeline test without the native plugins.
+- **Field application:** its screens have not rendered, including the worklist screens and the survey brief rebuilt on the [worklist](glossary.md#worklist) kit. Taking photos, finding a node from a scan, and pairing from managed configuration have run only as the Bun pipeline test without the native plugins. A phone at the version before the worklist has not been upgraded in place: the migration test shows the pairing kept and a workspace with pending records refused.
 - **Planned checks:** Test DPC restrictions, `simctl` managed configuration and `adb` scan broadcasts, to run on demand.
 
 ### OS integration
@@ -378,6 +395,8 @@ Control mappings are indicative.
 `test:scaffold:full` does not repeat the mobile steps, and no native build was made from the export.
 
 **By hand, features.** On 22 October 2026, in a `scaffold new` export, `add collection`, `add capability`, `add target`, `add agent` and `add feature stock --screens` produced an application that passed typecheck, build, its 17 unit tests and its Playwright spec. `bun run generate` was skipped ([known defects](#known-defects)).
+
+**By hand, assignment kinds.** On 27 October 2026, in a `scaffold new` export with collection `note`, `add agent closer --collection note`, `add assignment-kind inspection --collection note`, `add collection site --tree` and `add assignment-kind site-check --collection site` produced an application that installed frozen and passed format, typecheck and its 13 unit tests. `bun run generate` wrote the reference with the `assignment.*` operations of both kinds. No build or Playwright spec ran on that export.
 
 **Limits.**
 

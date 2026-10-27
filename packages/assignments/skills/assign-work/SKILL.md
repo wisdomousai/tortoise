@@ -16,6 +16,8 @@ An [assignment](../../../../docs/glossary.md#assignment) carries a [brief](../..
 
 ## Steps
 
+In an application made by `scaffold new`, `bun run scaffold add assignment-kind <id> --collection <type>` writes a person-lane kind over that collection with its hooks, screens and a test, and the first kind adds the access view and the mount. That covers steps 1 to 5, the mount in step 6 and step 10; change them from there.
+
 1. Declare each kind with `defineAssignmentKind` from `@agent-native/assignments` in the browser-safe contracts: `id`, `title`, `description`, `scope`, `brief`, `report`, `accept`, `subject`, `blobs`, `lanes`, `target` for a target lane, and the `invokes` and `changes` of the accept hook.
 2. Call `defineAssignments({ kinds })` and export its `operations` flat from the contracts, so screens bind them by name.
 3. List `assignments.manifest` in `defineManifest({ features })`.

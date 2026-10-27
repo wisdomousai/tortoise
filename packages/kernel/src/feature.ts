@@ -96,9 +96,10 @@ export interface MountBindings<Root, Access, Hooks, Services> {
    */
   readonly access?: (state: Root) => Access;
   /**
-   * Host code the feature calls inside a command, with the handler context over the
-   * application's state as the last argument. A hook may write application records; they commit
-   * with the command, without a policy check of their own.
+   * Host code the feature calls inside a handler, with the handler context over the
+   * application's state as the last argument. In a command a hook may write application records;
+   * they commit with the command, without a policy check of their own. A query calls hooks too,
+   * and fails with INTERNAL when one changes the state.
    */
   readonly hooks?: HostHooks<Hooks, Root, Services>;
   readonly adopt?: FeatureAdoption;

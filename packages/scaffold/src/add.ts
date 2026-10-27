@@ -5,6 +5,7 @@ import { prettierJson } from './json';
 import { appNames } from './new';
 import type { AppNames } from './templates/application';
 import { agent } from './templates/agent';
+import { assignmentKind } from './templates/assignment-kind';
 import { capability, type CapabilitySpec } from './templates/capability';
 import { collection, type Generated } from './templates/collection';
 import { featurePart } from './templates/feature';
@@ -17,6 +18,7 @@ export type AddRequest =
   | ({ readonly kind: 'capability' } & CapabilitySpec)
   | { readonly kind: 'target'; readonly name: string; readonly collection: string }
   | { readonly kind: 'agent'; readonly name: string; readonly collection: string }
+  | { readonly kind: 'assignment-kind'; readonly name: string; readonly collection: string }
   | { readonly kind: 'feature'; readonly name: string; readonly screens?: boolean };
 
 export interface AddOptions {
@@ -76,6 +78,14 @@ async function partFor(request: AddRequest, app: AppNames, directory: string): P
   if (!(await exists(join(directory, 'contracts', `${one.kebab}.ts`))))
     throw new Error(`No collection ${one.kebab}; add it first with scaffold add collection`);
   if (request.kind === 'target') return target(app, names(request.name, 'Target name'), one);
+  // The first kind declares the assignments and mounts the feature; later ones join them.
+  if (request.kind === 'assignment-kind')
+    return assignmentKind(
+      app,
+      names(request.name, 'Assignment kind'),
+      one,
+      !(await exists(join(directory, 'contracts', 'assignments.ts'))),
+    );
   // The first agent mounts the approval feature; later ones only add their definition.
   const manifest = await readFile(join(directory, 'manifest.ts'), 'utf8');
   return agent(

@@ -79,6 +79,12 @@ cd samples/notes-assignments
 bun run dev:web
 ```
 
+Add a person-lane kind over a collection to an application made by the scaffold:
+
+```sh
+bun run scaffold add assignment-kind inspection --collection note
+```
+
 Run the tests of the package, the samples and the asset survey:
 
 ```sh

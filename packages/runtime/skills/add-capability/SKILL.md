@@ -22,7 +22,7 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
    bun run scaffold add capability <dotted.id> --kind command|query --description "<what it does, for whom>"
    ```
 
-   `add collection`, `add target` and `add agent` generate the other parts.
+   `add collection`, `add target`, `add agent` and `add assignment-kind` generate the other parts.
 2. For keyed records, declare a collection and generate its operations instead of writing them:
    - reads with `collectionGet`, `collectionList` and, for a collection with a `parent`, `collectionTree`;
    - commands with `collectionCreate`, `collectionUpdate`, `collectionMove` (a `parent`) and `collectionRetire` (a `retiredField`);

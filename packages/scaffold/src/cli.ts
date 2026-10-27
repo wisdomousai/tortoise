@@ -11,6 +11,7 @@ const USAGE = `Usage:
   bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
   bun run scaffold add target <name> --collection <type> [--app <directory>]
   bun run scaffold add agent <name> --collection <type> [--app <directory>]
+  bun run scaffold add assignment-kind <id> --collection <type> [--app <directory>]
   bun run scaffold add feature <id> [--screens] [--app <directory>]
   bun run scaffold versions [<application-directory>]`;
 
@@ -41,7 +42,7 @@ function addRequest(
     if (operationKind !== 'command' && operationKind !== 'query') throw new Error(USAGE);
     return { kind, id: name, operationKind, description: option('--description') ?? '' };
   }
-  if (kind === 'target' || kind === 'agent')
+  if (kind === 'target' || kind === 'agent' || kind === 'assignment-kind')
     return { kind, name, collection: option('--collection') ?? '' };
   if (kind === 'feature') return { kind, name, screens: flag('--screens') };
   throw new Error(USAGE);
