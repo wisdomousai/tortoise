@@ -207,10 +207,13 @@ On 27 October 2026, `samples/lab-requests-local-model` ran with `bun run dev:web
 
 **Native.** On 17 October 2026, `bun run test:execution-host:linux` ran on Docker Desktop 29.4.0 (Linux 6.12.76-linuxkit, arm64). `IMAGE` named an image assembled by hand from a locally cached Alpine 3.23 base, with bubblewrap 0.12.0 and Bun 1.4.0 for musl. All 18 tests passed, including the eight in `test/sandbox.test.ts` under real bubblewrap and the plugin's seccomp filter. `test/linux/Dockerfile` itself was not built, because Docker Desktop's image pulls hung behind its proxy.
 
+**By hand, browser.** On 27 October 2026, `samples/lab-requests-sandbox` ran with `bun run dev:web` in Chrome on macOS. The request screen showed the execution host's reason that darwin has no backend, with **Analyze in the sandbox** disabled. Readings recorded on the screen listed live, and statistics entered by hand showed as entered by hand.
+
 **Not shown.**
 
 - **Platforms:** no run on x86-64, on glibc, or on a host kernel outside a container. No macOS or Windows backend exists.
 - **Agents:** no coding agent harness (Codex, Claude Code) has run inside a sandbox. The tasks were the probe script, the application CLI and an MCP client.
+- **Sample:** `samples/lab-requests-sandbox/test/sandbox.test.ts` has not run under bubblewrap. On macOS it skips, and the sample's other tests show the unavailable path.
 - **Egress:** the proxy path was shown to a loopback listener, not to a real provider over TLS.
 - **Distributions:** those that restrict unprivileged user namespaces, by Ubuntu's AppArmor rule or a disabled sysctl, were not tried.
 

@@ -58,6 +58,7 @@
         "@agent-native/sample-lab-requests-local-model": "workspace:*",
         "@agent-native/sample-lab-requests-operations": "workspace:*",
         "@agent-native/sample-lab-requests-review": "workspace:*",
+        "@agent-native/sample-lab-requests-sandbox": "workspace:*",
         "@agent-native/sample-lab-requests-sign-in": "workspace:*",
         "@agent-native/sample-lab-requests-signals": "workspace:*",
         "@agent-native/sample-lab-requests-site": "workspace:*",
@@ -827,6 +828,10 @@
       "name": "@agent-native/sample-lab-requests-review",
       "version": "0.1.0",
     },
+    "samples/lab-requests-sandbox": {
+      "name": "@agent-native/sample-lab-requests-sandbox",
+      "version": "0.1.0",
+    },
     "samples/lab-requests-sign-in": {
       "name": "@agent-native/sample-lab-requests-sign-in",
       "version": "0.1.0",
@@ -1002,6 +1007,8 @@
     "@agent-native/sample-lab-requests-operations": ["@agent-native/sample-lab-requests-operations@workspace:samples/lab-requests-operations"],
 
     "@agent-native/sample-lab-requests-review": ["@agent-native/sample-lab-requests-review@workspace:samples/lab-requests-review"],
+
+    "@agent-native/sample-lab-requests-sandbox": ["@agent-native/sample-lab-requests-sandbox@workspace:samples/lab-requests-sandbox"],
 
     "@agent-native/sample-lab-requests-sign-in": ["@agent-native/sample-lab-requests-sign-in@workspace:samples/lab-requests-sign-in"],
 
