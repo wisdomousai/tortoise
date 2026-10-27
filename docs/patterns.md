@@ -1,6 +1,6 @@
 # Patterns
 
-The [patterns](glossary.md#pattern) in `patterns/*` show one technical concern each, such as a system of record, an agent, a sandbox or plant signals. The [examples](glossary.md#example) in `examples/*` are whole applications for real-world cases instead. The patterns are small applications for one case: a manufacturer of power transformers whose oil lab tests samples drawn from transformers in service. `patterns/base` is the base application. A technician submits a test request for an oil sample with its transformer and a description, a technician assigns the test method, and viewers read the requests. Each other pattern imports the base's module, handlers, policy and screens unchanged and adds one concern next to them.
+The [patterns](glossary.md#pattern) in `patterns/*` show one technical concern each, such as a system of record, an agent, a sandbox or plant signals. The [examples](glossary.md#example) in `examples/*` are whole applications for real-world cases instead. The patterns are small applications for one case: a manufacturer of power transformers whose oil lab tests samples drawn from transformers in service. `patterns/base` is the base application. A technician submits a test request for an oil sample with its transformer and a description, a technician assigns the test method, and viewers read the requests. Each other pattern imports the base's module, handlers, policy and screens unchanged and adds one concern next to them. `worklist` also imports the contracts of `assignments`, whose sampling rounds it takes.
 
 ## Concepts
 
@@ -41,6 +41,8 @@ An extension pattern composes the base in each entrypoint:
 | `site` | 4359 | The oil lab as a site of the fleet example: enrollment, reports, audit forwarding, a signed release staged and installed with its unit and firewall rules | `createFleetAgentPlugin`, `createBundle`, `app install`, `network export`, the site, network and audit plugins |
 | `sandbox` | 4360 | Breakdown voltage readings analyzed by a tool in a bubblewrap sandbox, which reads and records through the application CLI with a run-bound token | `executionSandbox`, `createExecutionHostPlugin`, `agentGrant`, `defineHostPlugin`, the site, network and process plugins |
 | `hosted` | 4361 | The request desk served from Postgres under a workspace lease, with lab staff signed in through an OpenID Connect provider | `hostedPlatform`, `PostgresStorage`, `--hosted-workspace`, `identity: external`, `startIdentityProvider`, the site and network plugins |
+| `assignments` | 4362 | Sampling rounds at a substation sent to a member or a field crew's application; each sample is reported back, and accepting it submits a test request | `defineAssignmentKind`, `defineAssignments`, `assignmentFeature`, `byKind`, the `assignment-board`, `assignment-reports` and `my-assignments` registry items |
+| `worklist` | 4363 | A field crew's application that takes the rounds over the peer link and sends samples and done marks back through the outbox | `defineWorklist`, `worklistHandlers`, `connectWorklist`, the `worklist` registry item, the site, network, audit and peer link plugins |
 
 Each pattern's README lists its files, its trust boundary and one line per test file.
 
@@ -52,13 +54,13 @@ A dash means that no pattern, or no example, shows the primitive.
 | --- | --- | --- |
 | Capability | `test-requests` | `field-service` |
 | Module | `test-requests` | `field-service`, `asset-survey` |
-| Feature | `review` | `field-service`, `line-station`, `receiving` |
+| Feature | `review`, `assignments` | `field-service`, `line-station`, `receiving` |
 | Catalog | `test-requests` | `crm-capture` |
 | Generator | every pattern | every example |
 | Instance | `test-requests` | `field-service` |
 | Command | `test-requests` | `field-service` |
 | Query | `test-requests` | `field-service` |
-| Nested invocation | — | `asset-survey` |
+| Nested invocation | `assignments` | `asset-survey` |
 | Collection | `test-requests` | `fleet`, `receiving`, `quality-inspection` |
 | Execution context | `sandbox` | `crm-capture` |
 | Policy | `test-requests` | `field-service` |
@@ -87,21 +89,21 @@ A dash means that no pattern, or no example, shows the primitive.
 | Trigger | `agents` with a job, `local-model` with an agent definition | `line-station` |
 | Standing grant | `agents` | `line-station` |
 | Workflow | — | `asset-survey` |
-| Assignment | — | `asset-survey` |
-| Worklist | — | `asset-survey-field` |
+| Assignment | `assignments` | `asset-survey` |
+| Worklist | `worklist` | `asset-survey-field` |
 | Input source | `sign-in` | `line-station`, `asset-survey-field` |
 | OS handler | — | `field-service`, `asset-survey-field` |
 | OS action | — | `field-service`, `asset-survey-field` |
 | Shell port | — | `field-service` |
 | Process port | `local-model`, `sandbox` | `line-station`, `quality-inspection`, `asset-survey` |
 | UI registry | `sign-in` | `line-station`, `quality-inspection`, `asset-survey-field` |
-| Outbox effect | `system-of-record` | `quality-inspection`, `asset-survey` |
+| Outbox effect | `system-of-record`, `worklist` | `quality-inspection`, `asset-survey` |
 | Connector | `system-of-record` | `quality-inspection`, `receiving` |
 | Dispatcher | `system-of-record` | `quality-inspection` |
-| Inbound sync | `system-of-record` | `quality-inspection`, `asset-survey` |
+| Inbound sync | `system-of-record`, `worklist` | `quality-inspection`, `asset-survey` |
 | Target | `system-of-record` | `quality-inspection`, `receiving`, `crm-capture` |
-| Peer target | — | `asset-survey`, `asset-survey-field`, `quality-inspection`, `receiving` |
-| Peer link | — | `quality-inspection`, `receiving` |
+| Peer target | `worklist` | `asset-survey`, `asset-survey-field`, `quality-inspection`, `receiving` |
+| Peer link | `assignments`, `worklist` | `quality-inspection`, `receiving` |
 | Remote query | — | `crm-capture`, `asset-survey` |
 | Data provider | — | `crm-capture`, `asset-survey`, `receiving` |
 | Observation | `signals` | `line-station`, `quality-inspection` |
@@ -148,8 +150,8 @@ The generator, the scaffold and the framework release are tools that run on cont
 | `packages/client` | every web screen, through the frame; `site` `publish-release.ts`; the `field-service` tests |
 | `packages/frame` | every pattern and example except `asset-survey-field` |
 | `packages/frame-native`, `packages/mobile`, `apps/mobile` | `asset-survey-field` |
-| `packages/assignments` | `asset-survey`, `asset-survey-field` |
-| `packages/react` | `crm-capture`, `quality-inspection`, `asset-survey` |
+| `packages/assignments` | `assignments`, `worklist`; `asset-survey`, `asset-survey-field` |
+| `packages/react` | `assignments`; `crm-capture`, `quality-inspection`, `asset-survey` |
 | `packages/operator-ui` | `sign-in`, `line-station`, `quality-inspection`, through its registry items |
 | `packages/devices` | `line-station`, `asset-survey-field` |
 | `packages/integration` | `system-of-record`, `quality-inspection`, `receiving`, `crm-capture`, `asset-survey`, `line-station` |
@@ -159,8 +161,8 @@ The generator, the scaffold and the framework release are tools that run on cont
 | `packages/bundle` | `site`, `fleet` |
 | `packages/shell` | `field-service`, `asset-survey-field` |
 | `packages/scaffold` | `receiving`, `field-service` |
-| `plugins/site`, `plugins/network` | seven patterns, including `operations` and `site`; every example except `asset-survey-field` |
-| `plugins/audit` | `operations`, `site`, `signals`, `system-of-record`, `local-model`; every example except `asset-survey-field` |
+| `plugins/site`, `plugins/network` | eight patterns, including `operations` and `site`; every example except `asset-survey-field` |
+| `plugins/audit` | `operations`, `site`, `signals`, `system-of-record`, `local-model`, `worklist`; every example except `asset-survey-field` |
 | `plugins/compliance` | `field-service`, `quality-inspection`, `line-station`, `receiving`, `crm-capture`, `asset-survey` |
 | `plugins/automation` | `agents`, `local-model`, `line-station` |
 | `plugins/workflows` | `asset-survey` |
@@ -169,7 +171,7 @@ The generator, the scaffold and the framework release are tools that run on cont
 | `plugins/connector-files` | `receiving` |
 | `plugins/connector-mqtt`, `plugins/connector-opcua` | `signals` |
 | `plugins/connector-driver` | `line-station`, `quality-inspection` |
-| `plugins/peer-link` | `quality-inspection`, `receiving` |
+| `plugins/peer-link` | `assignments`, `worklist`; `quality-inspection`, `receiving` |
 | `plugins/device-link` | `asset-survey`, `fleet` |
 | `plugins/hub-link`, `plugins/intent-scanner`, `plugins/managed-config`, `plugins/android-intents` | `asset-survey-field` |
 | `plugins/os`, `plugins/share-target`, `plugins/notifications` | `field-service`, `asset-survey-field` |
@@ -218,7 +220,7 @@ The generator, the scaffold and the framework release are tools that run on cont
 | The Android intents Kotlin module | `asset-survey-field` |
 | .NET 10 | the `line-station` automation driver |
 | Python and `pyserial` | the `quality-inspection` instrument driver |
-| Playwright | the `e2e/` specs of every example except `asset-survey-field` |
+| Playwright | the `e2e/` specs of `assignments`, `worklist` and every example except `asset-survey-field` |
 | Changesets | the framework release |
 
 ## Use
@@ -237,13 +239,13 @@ bun test patterns/agents/
 bun test patterns
 ```
 
-A pattern with a `dev.ts` starts its fake system or seeds records first. `system-of-record` starts a fake LIMS on port 4371. `operations` starts the collector stand-in from `@agent-native/telemetry/testing` on port 4318 when no OpenTelemetry Collector listens there. `review` submits one request as a second technician, so the local owner has a request to review. `signals` starts an OPC UA gateway on port 4374 and an MQTT broker on port 4373 for its climate chambers. `local-model` binds its model server to port 4375 and runs the llama-server stand-in, or llama-server itself when `LOCAL_MODEL_GGUF` names weights. `site` writes a policy that binds the fleet example on port 4340 and a temporary releases folder, and prints the folder. `sandbox` binds its sandbox to `/usr/bin/bwrap` on Linux when bubblewrap is there. `hosted` starts the stand-in identity provider on port 4372 with the certificate its environment names, and needs `AGENT_NATIVE_DATABASE_URL`.
+A pattern with a `dev.ts` starts its fake system or seeds records first. `system-of-record` starts a fake LIMS on port 4371. `operations` starts the collector stand-in from `@agent-native/telemetry/testing` on port 4318 when no OpenTelemetry Collector listens there. `review` submits one request as a second technician, so the local owner has a request to review. `signals` starts an OPC UA gateway on port 4374 and an MQTT broker on port 4373 for its climate chambers. `local-model` binds its model server to port 4375 and runs the llama-server stand-in, or llama-server itself when `LOCAL_MODEL_GGUF` names weights. `site` writes a policy that binds the fleet example on port 4340 and a temporary releases folder, and prints the folder. `sandbox` binds its sandbox to `/usr/bin/bwrap` on Linux when bubblewrap is there. `hosted` starts the stand-in identity provider on port 4372 with the certificate its environment names, and needs `AGENT_NATIVE_DATABASE_URL`. `worklist` binds its `lab-peer` destination to `assignments` on port 4362, so start that one first.
 
 ## Limits
 
 - The execution host runs only on Linux with bubblewrap. Elsewhere `sandbox` shows the unavailable path, and its sandbox tests skip.
 - `hosted` runs only against a Postgres server, and its browser sign-in needs a certificate the browser trusts, such as one from mkcert. Its tests use PGlite and a throwaway CA instead.
-- The patterns have no Playwright specs. `bun run check` runs their behavioral and UI-binding tests.
+- Only `assignments` and `worklist` have Playwright specs. `bun run check` runs the behavioral and UI-binding tests of every pattern.
 - No content serves a model with vLLM. The model server's own tests cover its vLLM arguments.
 - No content reaches `expo-sharing`, which receives what another app shares, because `asset-survey-field` declares no share handler. Its share action uses the React Native share sheet.
 - No content runs the `reveal` and `open-file` OS actions, because the OS plugin has no file root.
@@ -264,6 +266,9 @@ A pattern with a `dev.ts` starts its fake system or seeds records first. `system
 - [Site pattern](../patterns/site/README.md)
 - [Sandbox pattern](../patterns/sandbox/README.md)
 - [Hosted pattern](../patterns/hosted/README.md)
+- [Assignments pattern](../patterns/assignments/README.md)
+- [Worklist pattern](../patterns/worklist/README.md)
+- [Assignments](assignments.md)
 - [Architecture](architecture.md)
 - [Capability authoring](capability-authoring.md)
 - [Primitives](primitives.md)

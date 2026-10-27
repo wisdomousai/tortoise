@@ -27,7 +27,7 @@ In an application made by `scaffold new`, `bun run scaffold add assignment-kind 
 7. For the agent lane, give the agent definition the assignment read, the kind's report command and `assignment.complete`, with `resourceTypes: ['assignment']` and `creates: ['assignment-report']`. Add an automation trigger on resource type `assignment`, the kind's create and send operations, and `offerEventType(agent.id)`.
 8. For a target lane, add a destination whose `targets` list `assignment-<target>`. Pass `targets: { <target>: { principalId, port } }` to `assignmentFeature`, where `port` returns `assignmentTargetPort({ lane, readBlob, work })` from the connect context's `readBlob`.
 9. For the device lane, pass `assignments.lanes.device.operations` to `createDeviceLinkPlugin({ syncOperations })`. For the peer lane, put `assignments.lanes.peer.commands` and `.queries` in the application's `definePeerSurface`.
-10. Bind the screens: the registry's `assignment-board`, `assignment-reports` and `my-assignments`. Fill their slots with a scope picker, a brief view, a report form, the subject's name, a placing input and the accept form, as `examples/asset-survey/ui/assignments.tsx` and `ui/my-work.tsx` do; without them the screens show JSON and take record keys. Follow the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`).
+10. Bind the screens: the registry's `assignment-board`, `assignment-reports` and `my-assignments`. Fill their slots with a scope picker, a brief view, a report form, the subject's name, a placing input and the accept form, as `patterns/assignments/ui/rounds.tsx` and `examples/asset-survey/ui/assignments.tsx` do; without them the screens show JSON and take record keys. Follow the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`).
 11. In the assignee's application, declare `defineWorklist({ namespace, target, assignments, issuer, lane, destination })` from the issuer's contracts.
 12. Keep a `createWorklistSlice()` in its state, add `worklistHandlers(worklist, { slice, newId, now })` (`arrived` runs in the feed's transaction for each assignment that arrives for the first time, for a notice), put `worklistRules(worklist)` in its `definePolicy` with the target's integration operations and event rules, and connect `connectWorklist(worklist, { application, workspaceId, principalId, client })`. The client is `network.client(target)` over hub-link and the peer link's service client over peer-link.
 13. Bind the worklist screens: the registry's `worklist` on the web, or `worklist-list` and `worklist-sync` from `packages/frame-native` on a phone.
@@ -55,4 +55,6 @@ Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/
 
 - [Assignments](../../../../docs/assignments.md)
 - [Assignments package](../../README.md)
+- [Assignments pattern](../../../../patterns/assignments/README.md)
+- [Worklist pattern](../../../../patterns/worklist/README.md)
 - [Asset survey example](../../../../examples/asset-survey/README.md)

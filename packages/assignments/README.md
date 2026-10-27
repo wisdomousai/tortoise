@@ -74,6 +74,8 @@ bun test packages/assignments
 
 `bun run test:portable` runs the same tests without the web globals.
 
+`patterns/worklist` runs the peer lane between two hosts, with `patterns/assignments` as the issuer.
+
 ## Limits
 
 - `assignmentTargetPort` keeps answers in memory until the lane's sync applies them. If the host stops in between, the offer stays settled without its answer, and the planner withdraws the assignment and sends it again.
@@ -89,3 +91,5 @@ bun test packages/assignments
 - [Feature](../../docs/glossary.md#feature)
 - [Peer target](../../docs/glossary.md#peer-target)
 - [Target](../../docs/primitives.md#target)
+- [Assignments pattern](../../patterns/assignments/README.md)
+- [Worklist pattern](../../patterns/worklist/README.md)

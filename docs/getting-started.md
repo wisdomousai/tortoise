@@ -47,7 +47,7 @@ In the same directory, `bun run dev:web` serves the browser instead. When an exa
 
 `asset-survey-field` runs on a phone or emulator instead; its README has the steps.
 
-The [patterns](glossary.md#pattern) in `patterns/*` run the same way, on ports 4350 to 4361:
+The [patterns](glossary.md#pattern) in `patterns/*` run the same way, on ports 4350 to 4363:
 
 ```sh
 cd patterns/base

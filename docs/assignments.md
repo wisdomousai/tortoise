@@ -10,6 +10,8 @@ An [outbox effect](glossary.md#effect) asks a [system of record](glossary.md#sys
 
 - `examples/asset-survey`: a survey of part of the plant structure goes to a paired phone or a person, and each capture is a report on one node. An extraction sends one capture to the model or a person to read.
 - `examples/asset-survey-field`: the phone's worklist of surveys.
+- `patterns/assignments`: a technician sends a sampling round at a substation to a member or a field crew, and accepts each sample reported back, which submits a test request for it.
+- `patterns/worklist`: the field crew's application that takes those rounds and reports back over the [peer link](glossary.md#peer-link).
 
 ## Assignment kinds
 
@@ -70,17 +72,31 @@ The assignee reports from its own copy of the brief, which may be out of date. A
 
 ## Use
 
+Run the base pattern with sampling rounds in the browser:
+
+```sh
+cd patterns/assignments
+bun run dev:web
+```
+
 Add a person-lane kind over a collection to an application made by the scaffold:
 
 ```sh
 bun run scaffold add assignment-kind inspection --collection note
 ```
 
-Run the tests of the package and the asset survey:
+Run the tests of the package, the patterns and the asset survey:
 
 ```sh
 bun test packages/assignments
+bun test patterns/assignments/ patterns/worklist/
 bun test examples/asset-survey examples/asset-survey-field
+```
+
+Run the patterns' screens in Chromium, through the person and peer lanes:
+
+```sh
+bunx playwright test patterns/assignments patterns/worklist
 ```
 
 ## Limits
@@ -94,6 +110,8 @@ bun test examples/asset-survey examples/asset-survey-field
 
 - [Assignments package](../packages/assignments/README.md)
 - [assign-work](../packages/assignments/skills/assign-work/SKILL.md)
+- [Assignments pattern](../patterns/assignments/README.md)
+- [Worklist pattern](../patterns/worklist/README.md)
 - [Asset survey example](../examples/asset-survey/README.md)
 - [Asset survey field example](../examples/asset-survey-field/README.md)
 - [Agents](agents.md)

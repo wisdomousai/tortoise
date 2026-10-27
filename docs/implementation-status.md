@@ -273,9 +273,11 @@ On 27 October 2026, `patterns/local-model` ran with `bun run dev:web` in Chrome 
 
 ### Assignments
 
+**Shown, browser.** `patterns/assignments/e2e/rounds.pw.ts` runs the person lane against the real host, from picking a round's transformers to placing an unplaced report and accepting samples into test requests. `patterns/worklist/e2e/worklist.pw.ts` runs the peer lane between two hosts, from the enrollment code to accepting the field crew's sample.
+
 **Not shown.**
 
-- **Browser:** no pattern runs the person, agent or peer lane. The notes applications that ran them by hand and in Playwright on 27 October 2026 were left out when the content moved to test requests, and have not been rebuilt there. The asset survey's screens have not run assignments in a browser.
+- **Browser:** no pattern has an agent lane, because the sampling kind takes people and peers only. The asset survey's screens have not run assignments in a browser.
 - **Agent:** an agent assignee has run only with the deterministic harness (`packages/assignments/test/lanes.test.ts`). No model has read a brief and reported.
 - **Target:** the target lane has run only in tests, against a function port.
 - **Screens:** an application that fills no slots still shows the brief as JSON and takes the scope and a report's subject as typed record keys.
