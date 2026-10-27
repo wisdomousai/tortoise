@@ -130,6 +130,7 @@
     "@agent-native/sample-lab-requests-agents": "workspace:*",
     "@agent-native/sample-lab-requests-host-plugin": "workspace:*",
     "@agent-native/sample-lab-requests-operations": "workspace:*",
+    "@agent-native/sample-lab-requests-review": "workspace:*",
     "@agent-native/sample-lab-requests-system-of-record": "workspace:*",
     "@agent-native/scaffold": "workspace:*",
     "@agent-native/screen-bridge": "workspace:*",

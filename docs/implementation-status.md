@@ -158,6 +158,7 @@ No public release has been made. The entries use these kinds of evidence:
 - **project-tasks:** live updates from an external MCP process, drafts that keep their base revision, and paging past the first page.
 - **quality-inspection:** keyboard-only capture, and a draft that keeps its sample when another caller records it first.
 - **crm-capture:** search, adopt and log.
+- **lab-requests-review:** on 27 October 2026, `bun run dev:web` in Chrome on macOS. As the local owner, an approval of the request `dev.ts` submitted as a second technician showed live. After a method change it was marked as on an earlier revision, and the owner signed the new revision. A second signature of that revision and a signature of the owner's own request were refused with their messages.
 
 ### Agents and providers
 

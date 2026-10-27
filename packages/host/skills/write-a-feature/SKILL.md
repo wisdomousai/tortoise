@@ -12,6 +12,7 @@ A [feature](../../../../docs/glossary.md#feature) contributes [modules](../../..
 - Domain behavior for one application is a [capability](../../../../docs/glossary.md#capability) in that application; follow the `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`).
 - Look in [primitives](../../../../docs/primitives.md#feature) for a feature that already covers the part.
 - Pick the ID once. It is the state key, the `feature:<id>` stamp, the services key and the operation namespace, and journal resources and receipts keep it.
+- `samples/lab-requests-review` writes a feature next to the application that mounts it: a four-eyes review whose access view names each record's author, with a panel the application places on its own record screen.
 
 ## Steps
 
@@ -57,3 +58,4 @@ Then follow the `check-a-change` skill (`packages/testing/skills/check-a-change/
 
 - [Architecture](../../../../docs/architecture.md#features-and-host-plugins)
 - [State migration](../../../../docs/primitives.md#state-migration)
+- [Lab requests review sample](../../../../samples/lab-requests-review/README.md)

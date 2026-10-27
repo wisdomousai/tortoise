@@ -34,6 +34,7 @@ An extension sample composes the base in each entrypoint:
 | `lab-requests-agents` | 4352 | Test method suggestions as approval requests, a trigger, UI intents from a run | `defineAgent`, `approvalHandlers`, `defineTrigger`, `useUiSession` |
 | `lab-requests-host-plugin` | 4353 | An `activity` host plugin written in the sample | `definePluginManifest`, `defineHostPlugin`, `definePluginScreens` |
 | `lab-requests-operations` | 4354 | A versioned state migration and telemetry on a site | `StateMigrations`, the site, network, audit and telemetry plugins |
+| `lab-requests-review` | 4355 | A four-eyes review of a test request, written as a feature with an access view and hooks | `defineFeatureManifest`, `defineFeature`, `mountFeature`, `defineFeatureScreens`, `featureConformance` |
 
 Each sample's README lists its files, its trust boundary and one line per test file.
 
@@ -53,7 +54,7 @@ bun test samples/lab-requests-agents/
 bun test samples
 ```
 
-A sample with a `dev.ts` starts its fake system first. `lab-requests-system-of-record` starts a fake LIMS on port 4371. `lab-requests-operations` starts the collector stand-in from `@agent-native/telemetry/testing` on port 4318 when no OpenTelemetry Collector listens there.
+A sample with a `dev.ts` starts its fake system or seeds records first. `lab-requests-system-of-record` starts a fake LIMS on port 4371. `lab-requests-operations` starts the collector stand-in from `@agent-native/telemetry/testing` on port 4318 when no OpenTelemetry Collector listens there. `lab-requests-review` submits one request as a second technician, so the local owner has a request to review.
 
 ## Limits
 
@@ -68,5 +69,6 @@ A sample with a `dev.ts` starts its fake system first. `lab-requests-system-of-r
 - [Lab requests agents](../samples/lab-requests-agents/README.md)
 - [Lab requests host plugin](../samples/lab-requests-host-plugin/README.md)
 - [Lab requests operations](../samples/lab-requests-operations/README.md)
+- [Lab requests review](../samples/lab-requests-review/README.md)
 - [Architecture](architecture.md)
 - [Capability authoring](capability-authoring.md)
