@@ -13,13 +13,13 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
   - **Processes**: `ProcessBinding`, `DeclaredProcess` and `ResolvedProcess` bind a declared process to an absolute executable, arguments, working directory, optional SHA-256 pin and environment. Findings refuse an undeclared or unbound required process, a relative path, and a variable the process plugin owns: proxy, loader or a declared secret.
   - **Certificates** (`policy/certificates`): `ResolvedPolicy.certificates` holds the validity of the listener certificate, the client CA and each destination CA bundle. `loadSitePolicy` reads them without the key. `judgeCertificates` gives `CERTIFICATE_EXPIRED`, `CERTIFICATE_NOT_YET_VALID` and `CERTIFICATE_EXPIRING` at a given time. Load reports them as findings, and adds `CERTIFICATE_INVALID` for a file with no readable PEM.
   - **Addresses** (`cidr`): `parseCidr`, `cidrContains`, `cidrIsPrivate`, `isPrivateAddress`, `isLoopbackAddress`, `isLoopbackHost`, for the networks a binding may resolve to.
-- [Task package](../../docs/primitives.md#task-package): `site install <bundle>`, `site status` and `site uninstall` (`installVerb`, `installBundle`, `installStatus`, `uninstall`, `installLayout`, `InstallRecord`). They run in the bundled binary of the application being installed.
+- [Task package](../../docs/primitives.md#task-package): `app install <bundle>`, `app status` and `app uninstall` (`installVerb`, `installBundle`, `installStatus`, `uninstall`, `installLayout`, `InstallRecord`). They run in the bundled binary of the application being installed.
 - [Workforce sign-in](../../docs/primitives.md#workforce-sign-in): `createWorkforceSignIn`, `WorkforceConfig`, `discover`, `providerJson`, `ProviderMetadata`, `DestinationFetch`, and `workforceIdentityComponent`, which declares the `workforce-idp` destination. Under `identity: external` on a serving host, `openSite` serves the `/auth/sign-in`, `/auth/callback` and `/auth/sign-out` routes as `publicRoute`. It resolves their session cookies through `authenticateCookie`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `sitePlugin` is written only against `@agent-native/host/plugin`. It provides the `identity` port and declares the ports its policy `needs`.
 
-### Site install
+### Install
 
-`site install` runs these steps in order:
+`app install` runs these steps in order:
 
 1. verify the bundle against `--trust`;
 2. admit it against the installed release and `--approval`;
@@ -93,7 +93,7 @@ Workforce sign-in is a public OpenID Connect client with PKCE (S256):
 
 The install verbs trust only what verifies against `--trust`. The copy in the release directory is verified again before anything runs from it. A failed admission, policy check, render or migration leaves `current` on the previous release, with its data untouched.
 
-The service account name is restricted to a plain account name, because it goes into shell commands and unit files. `site status` exits 1 when the active release no longer verifies, and reports the signed best-before date of a verified release. `uninstall` keeps the workspace and the audit log unless `--purge` is given.
+The service account name is restricted to a plain account name, because it goes into shell commands and unit files. `app status` exits 1 when the active release no longer verifies, and reports the signed best-before date of a verified release. `uninstall` keeps the workspace and the audit log unless `--purge` is given.
 
 Before a purge deletes the data directory, `install/outbox.ts` runs the installed release's `drain` with the service's site policy and audit log. The release is verified against `--trust` first, because it runs with the installer's rights. While effects remain pending, held or awaiting their target's decision, the purge is refused with `CONFLICT` and the counts by target, and nothing is removed. `--discard-undelivered` purges anyway and lists what it deleted.
 

@@ -135,7 +135,7 @@ A relay request's headers and body are stored only while it waits, are never lis
 3. Create a `field-sync` enrollment on the fleet's Devices screen. The screen calls this kind a phone, as device link names it.
 4. Start the site once with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`. The plugin stores the credential, so later starts need no code.
 5. Set `fleet-trust` (`AGENT_NATIVE_FLEET_TRUST`) to the publisher's `key.pub.json` or an array of keys. Without it, no release is staged.
-6. Activate a staged release with `site install <releases folder>/<release id> --trust key.pub.json`, by hand or from a timer the site runs.
+6. Activate a staged release with `app install <releases folder>/<release id> --trust key.pub.json`, by hand or from a timer the site runs.
 7. Set `fleet-relay` (`AGENT_NATIVE_FLEET_RELAY`) to `on` only when remote access is wanted. The relay is off by default.
 
 `createFleetAgentPlugin({ intervalMs, relayMs })` changes the cycle and the relay poll.

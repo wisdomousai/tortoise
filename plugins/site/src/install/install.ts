@@ -121,7 +121,7 @@ async function renderService(
 }
 
 /**
- * `site install`: verify the bundle against the trusted keys, admit it against the installed
+ * `app install`: verify the bundle against the trusted keys, admit it against the installed
  * release and the site approval, place the release, render the service and firewall files with
  * the release's own binary, migrate the workspace with it (staged, see `migrate`), then switch
  * `current` to it. A refusal or a failed migration leaves the previous release active and its
@@ -187,7 +187,7 @@ export async function installBundle(
 }
 
 /**
- * `site status`: the install record, the release `current` points at, and whether that release
+ * `app status`: the install record, the release `current` points at, and whether that release
  * still verifies against the trusted keys (a changed file on disk shows here). A verified release
  * that carries a best-before date reports it and whether it has passed; nothing is refused for it.
  */
@@ -234,7 +234,7 @@ export interface UninstallOptions {
 }
 
 /**
- * `site uninstall`: with `apply`, stop and unregister the service and remove its firewall rules;
+ * `app uninstall`: with `apply`, stop and unregister the service and remove its firewall rules;
  * then remove the releases, `current`, the configuration and the record. The workspace and the
  * audit log stay unless `purge` is set, so uninstalling never deletes business records by default.
  *

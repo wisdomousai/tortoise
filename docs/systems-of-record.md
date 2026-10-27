@@ -220,7 +220,7 @@ The instance verbs open the workspace or serve it:
 | --- | --- | --- |
 | 0 | | Success |
 | 1 | `INTERNAL`, `INVALID_OUTPUT` | Internal failure |
-| 1 | | `site status`: a site release is installed but not verified |
+| 1 | | `app status`: a site release is installed but not verified |
 | 1 | | `driver check`: a check failed |
 | 1 | | `serve --hosted-workspace`: the instance lost its workspace lease |
 | 2 | `INVALID_INPUT` | Invalid input or usage; also `site check` and `network export` when the deployment policy has error findings. |

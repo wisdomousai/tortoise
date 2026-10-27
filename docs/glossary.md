@@ -195,7 +195,7 @@ One declaration of a kind of record that lives in a system of record and can be 
 
 ### Decommissioning
 
-Removing an application from a site after its [systems of record](#system-of-record) hold every record it captured. The workspace, the audit log and the blobs are deleted with the data directory, so `site uninstall --purge` refuses while the outbox still holds effects. Lives in [`plugins/site`](../plugins/site/README.md); explained in [application lifecycle](application-lifecycle.md#decommissioning-procedure).
+Removing an application from a site after its [systems of record](#system-of-record) hold every record it captured. The workspace, the audit log and the blobs are deleted with the data directory, so `app uninstall --purge` refuses while the outbox still holds effects. Lives in [`plugins/site`](../plugins/site/README.md); explained in [application lifecycle](application-lifecycle.md#decommissioning-procedure).
 
 Do not use: retirement, sunsetting.
 
@@ -667,7 +667,7 @@ Do not use: location (for a site), deployment (for a site), customer (for a site
 
 ### Site bundle
 
-One signed, versioned directory per application and platform, checked before a site installs it. It holds the payload, a manifest with every file's digest and the declared requirements, and an Ed25519 signature. `site install` verifies it and places it as a release, and a failed step leaves the previous release current. Lives in [`packages/bundle`](../packages/bundle/README.md) and [`plugins/site`](../plugins/site/README.md).
+One signed, versioned directory per application and platform, checked before a site installs it. It holds the payload, a manifest with every file's digest and the declared requirements, and an Ed25519 signature. `app install` verifies it and places it as a release, and a failed step leaves the previous release current. Lives in [`packages/bundle`](../packages/bundle/README.md) and [`plugins/site`](../plugins/site/README.md).
 
 ### Snapshot
 

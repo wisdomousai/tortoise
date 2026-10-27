@@ -38,17 +38,18 @@ async function siteCheck(manifest: ApplicationManifest, args: string[]) {
 
 /**
  * `site check` for one application's manifest: the findings startup refuses on, without opening
- * a workspace. Returns undefined when `args` is not a `site` verb.
+ * a workspace. `install`, `status` and `uninstall` place, report and remove the release of the
+ * application this binary carries. Returns undefined for any other verb.
  */
 export async function siteCommand(
   manifest: ApplicationManifest,
   args: string[],
 ): Promise<number | undefined> {
   const [verb, sub, ...rest] = args;
+  if (verb === 'install' || verb === 'status' || verb === 'uninstall')
+    return installVerb(manifest, verb, args.slice(1));
   if (verb !== 'site') return undefined;
   if (sub === 'check') return siteCheck(manifest, rest);
-  if (sub === 'install' || sub === 'status' || sub === 'uninstall')
-    return installVerb(manifest, sub, rest);
   throw usage('Unknown site command; see help');
 }
 

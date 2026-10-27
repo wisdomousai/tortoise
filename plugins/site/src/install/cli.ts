@@ -7,13 +7,15 @@ import type { ApplicationManifest } from '@agent-native/host/manifest';
 import { installBundle, installStatus, uninstall } from './install';
 import type { ServiceManager } from './layout';
 
-export const installUsage = (program: string) => `Site install (run as root on the site host):
-  ${program} site install <bundle> --trust key.pub.json --site-policy file [--approval file]
+export const installUsage = (
+  program: string,
+) => `Install (run as root on the host the release runs on):
+  ${program} install <bundle> --trust key.pub.json --site-policy file [--approval file]
       [--prefix dir] [--service systemd|windows|none] [--user name] [--apply]
                                                     verify, admit, place, migrate and switch a release
-  ${program} site status [--prefix dir] --trust key.pub.json   the active release and whether it still verifies
-  ${program} site uninstall [--prefix dir] [--apply]  remove the service and releases; the data stays
-  ${program} site uninstall --purge --trust key.pub.json [--discard-undelivered] [--prefix dir] [--apply]
+  ${program} status [--prefix dir] --trust key.pub.json   the active release and whether it still verifies
+  ${program} uninstall [--prefix dir] [--apply]  remove the service and releases; the data stays
+  ${program} uninstall --purge --trust key.pub.json [--discard-undelivered] [--prefix dir] [--apply]
                                                     also delete the data; refused while the outbox holds effects
 `;
 
@@ -48,7 +50,7 @@ function rejectRemaining(args: string[]) {
   if (args.length) throw invalid(`Unexpected argument "${args[0]}"`);
 }
 
-/** `site install|status|uninstall` for the application this binary carries. */
+/** `install`, `status` and `uninstall` for the application this binary carries. */
 export async function installVerb(manifest: ApplicationManifest, verb: string, args: string[]) {
   const prefix = resolve(takeFlag(args, 'prefix') ?? '/');
   if (verb === 'install') {
@@ -66,7 +68,7 @@ export async function installVerb(manifest: ApplicationManifest, verb: string, a
       ...(approval ? { approval: await readJson<SiteApproval>(resolve(approval)) } : {}),
     };
     const bundle = args.shift();
-    if (!bundle) throw invalid('site install requires a bundle directory');
+    if (!bundle) throw invalid('install requires a bundle directory');
     rejectRemaining(args);
     print({
       installed: true,

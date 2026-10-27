@@ -6,7 +6,7 @@ import { SQLiteStorage } from '@agent-native/adapters/sqlite';
 import { createBundle, generateSigningKey, type SigningKey } from '@agent-native/bundle';
 
 /**
- * `site install` end to end on a staged prefix: the bundles' binaries are scripts running the
+ * `app install` end to end on a staged prefix: the bundles' binaries are scripts running the
  * fixture CLI, so the release's own `network export` and `migrate` run as they would on a site.
  * Nothing here loads a service; the OS steps run only with --apply.
  */
@@ -53,7 +53,7 @@ async function bundle(version: string, state: number, bestBefore?: string) {
 }
 
 async function site(args: string[]) {
-  const child = Bun.spawn([process.execPath, cli, 'site', ...args, '--prefix', prefix], {
+  const child = Bun.spawn([process.execPath, cli, ...args, '--prefix', prefix], {
     stdout: 'pipe',
     stderr: 'pipe',
     env: { ...process.env, FIXTURE_STATE: '1' },

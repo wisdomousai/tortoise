@@ -38,7 +38,7 @@ An extension pattern composes the base in each entrypoint:
 | `lab-requests-signals` | 4356 | Climate chamber temperature over OPC UA and humidity from Sparkplug B edge nodes, recorded through an ingest command | `opcUaServer`, `mqttBroker`, `createOpcUaObserver`, `createMqttObserver`, the site, network and audit plugins |
 | `lab-requests-local-model` | 4357 | The method suggester run by a trigger on a measured local model, a dataset of decided suggestions and a gated fine-tune | `defineModelEntry`, `createModelServer`, `createAutomationPlugin`, `exportApprovalDataset`, `gateModel` |
 | `lab-requests-sign-in` | 4358 | Technicians sign in at a shared bench with a badge and PIN and submit test requests as themselves; the owner enrolls badges | `createStationSignInPlugin`, `stationSignInScreens`, `useOperatorSession`, `useScanner`, `numeric-pad` |
-| `lab-requests-site` | 4359 | The lab as a site of the fleet example: enrollment, reports, audit forwarding, a signed release staged and installed with its unit and firewall rules | `createFleetAgentPlugin`, `createBundle`, `site install`, `network export`, the site, network and audit plugins |
+| `lab-requests-site` | 4359 | The lab as a site of the fleet example: enrollment, reports, audit forwarding, a signed release staged and installed with its unit and firewall rules | `createFleetAgentPlugin`, `createBundle`, `app install`, `network export`, the site, network and audit plugins |
 | `lab-requests-sandbox` | 4360 | Tensile readings analyzed by a tool in a bubblewrap sandbox, which reads and records through the application CLI with a run-bound token | `executionSandbox`, `createExecutionHostPlugin`, `agentGrant`, `defineHostPlugin`, the site, network and process plugins |
 | `lab-requests-hosted` | 4361 | The request desk served from Postgres under a workspace lease, with lab staff signed in through an OpenID Connect provider | `hostedPlatform`, `PostgresStorage`, `--hosted-workspace`, `identity: external`, `startIdentityProvider`, the site and network plugins |
 
@@ -205,7 +205,7 @@ The generator, the scaffold and the framework release are tools that run on cont
 | OPC UA | `lab-requests-signals` |
 | MQTT and Sparkplug B | `lab-requests-signals` |
 | OpenTelemetry over OTLP | `lab-requests-operations` |
-| systemd units and nftables rules | `lab-requests-site`, through `site install` and `network export` |
+| systemd units and nftables rules | `lab-requests-site`, through `app install` and `network export` |
 | React, Vite, TanStack Router, Query and Table | every web screen, through the frame |
 | TanStack Form | `crm-capture`, `quality-inspection`, `asset-survey` |
 | shadcn and Tailwind CSS | every web screen; the registry items `lab-requests-sign-in` uses |

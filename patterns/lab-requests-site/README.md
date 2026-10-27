@@ -1,6 +1,6 @@
 # @agent-native/pattern-lab-requests-site
 
-`pattern-lab-requests-site` runs the [lab requests pattern](../lab-requests/README.md) unchanged as a site instance that a [fleet](../../docs/glossary.md#fleet) manages. The [fleet agent](../../plugins/fleet-agent/README.md) enrolls the lab with the [fleet example](../../examples/fleet/README.md). It then reports health and backlog, forwards the audit log, and stages the signed releases the lab's channel assigns. A [deployment policy](../../docs/glossary.md#deployment-policy) binds the fleet destination and the releases folder, `bun run bundle` signs a [site bundle](../../docs/glossary.md#site-bundle), and `site install` installs it with a systemd unit and firewall rules.
+`pattern-lab-requests-site` runs the [lab requests pattern](../lab-requests/README.md) unchanged as a site instance that a [fleet](../../docs/glossary.md#fleet) manages. The [fleet agent](../../plugins/fleet-agent/README.md) enrolls the lab with the [fleet example](../../examples/fleet/README.md). It then reports health and backlog, forwards the audit log, and stages the signed releases the lab's channel assigns. A [deployment policy](../../docs/glossary.md#deployment-policy) binds the fleet destination and the releases folder, `bun run bundle` signs a [site bundle](../../docs/glossary.md#site-bundle), and `app install` installs it with a systemd unit and firewall rules.
 
 ## Layer
 
@@ -14,7 +14,7 @@ The pattern is one [application](../../docs/primitives.md#application). It compo
 - [egress guard](../../docs/primitives.md#egress-guard): the network guard, with the fleet binding's `maxResponseBytes` raised for release files, and the nftables and systemd rules `network export` renders;
 - [audit log](../../docs/primitives.md#audit-log): the events the fleet agent forwards;
 - [fleet agent](../../docs/primitives.md#fleet-agent): enrollment with a one-use code, reports, audit forwarding and release staging, all outbound;
-- [task package](../../docs/primitives.md#task-package): a signed site bundle, its verification against `fleet-trust`, admission with a site approval, and `site install`.
+- [task package](../../docs/primitives.md#task-package): a signed site bundle, its verification against `fleet-trust`, admission with a site approval, and `app install`.
 
 Its own files:
 
@@ -40,7 +40,7 @@ Its own files:
 
 The site opens no inbound port for the fleet. Every report, audit batch and release download is an outbound request through the network guard, to the destination the policy binds. The site credential from enrollment stays in the workspace.
 
-The fleet stores a release's signature without checking it. The site verifies every file against the signed manifest, and the whole bundle against its own `fleet-trust` keys, before it renames the download into `fleet-releases/<release id>`. A site without `fleet-trust` stages nothing. Staging installs nothing: `site install` admits the bundle again, and a release that widens the requirements needs a site approval.
+The fleet stores a release's signature without checking it. The site verifies every file against the signed manifest, and the whole bundle against its own `fleet-trust` keys, before it renames the download into `fleet-releases/<release id>`. A site without `fleet-trust` stages nothing. Staging installs nothing: `app install` admits the bundle again, and a release that widens the requirements needs a site approval.
 
 `publish-release.ts` signs nothing. It uploads a bundle that `bun run bundle create` already signed, with the fleet owner's token from the fleet's connection file.
 
@@ -90,15 +90,15 @@ Run the pattern against the fleet example on this machine:
 8. Install it under a prefix, without loading anything:
 
    ```sh
-   <bundle>/files/bin/agent-native-desktop-starter site install <releases>/1.2.0 \
+   <bundle>/files/bin/agent-native-desktop-starter install <releases>/1.2.0 \
      --trust <dir>/key.pub.json --site-policy patterns/lab-requests-site/site-policy.json \
      --approval approval.json --prefix <prefix> --service systemd
    ```
 
-   The prefix then holds the release under `opt/agent-native/lab-requests-site`, the systemd unit and `egress.nft`. `site status --prefix <prefix> --trust <dir>/key.pub.json` verifies the current release. `--apply` would load the unit and the rules.
-9. Export the firewall rules on their own with `network export --site patterns/lab-requests-site/site-policy.json --format nftables --resolver <ip> --user agent-native`. `--resolver` admits DNS to the site's resolver, and `--user` matches the account `site install` runs the service as.
+   The prefix then holds the release under `opt/agent-native/lab-requests-site`, the systemd unit and `egress.nft`. `app status --prefix <prefix> --trust <dir>/key.pub.json` verifies the current release. `--apply` would load the unit and the rules.
+9. Export the firewall rules on their own with `network export --site patterns/lab-requests-site/site-policy.json --format nftables --resolver <ip> --user agent-native`. `--resolver` admits DNS to the site's resolver, and `--user` matches the account `app install` runs the service as.
 
-The staged binary keeps mode 0644, so step 8 runs the binary from the bundle `bun run bundle create` wrote. `site install` sets mode 0755 on the copy it installs.
+The staged binary keeps mode 0644, so step 8 runs the binary from the bundle `bun run bundle create` wrote. `app install` sets mode 0755 on the copy it installs.
 
 ## Skills
 

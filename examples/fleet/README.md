@@ -290,7 +290,7 @@ The example uses no fake system of record. Its tests replace the site's network 
 - **Credentials.** A site credential is not rotated, and a lost one needs a new enrollment code.
 - **Downloads.** Staging downloads each release file whole without resuming.
 - **Devices screen wording.** The Devices screen calls a `field-sync` device a phone, as device-link names it.
-- **Evidence.** No site has reported across a real network behind an outbound-only firewall. No staged release has been activated by `site install` on a real machine ([implementation status](../../docs/implementation-status.md#fleet-agent)).
+- **Evidence.** No site has reported across a real network behind an outbound-only firewall. No staged release has been activated by `app install` on a real machine ([implementation status](../../docs/implementation-status.md#fleet-agent)).
 
 ## Skills
 

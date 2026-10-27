@@ -184,7 +184,7 @@ export const fleetLinkComponent = defineHostComponent({
     folders: [
       {
         id: 'fleet-releases',
-        purpose: 'Verified releases from the fleet, staged for `site install` to activate.',
+        purpose: 'Verified releases from the fleet, staged for `app install` to activate.',
         access: 'write',
         dataClasses: ['release-bundle'],
         availability: 'optional',

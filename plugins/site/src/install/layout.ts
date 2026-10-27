@@ -39,7 +39,7 @@ export function installLayout(prefix: string, application: string) {
 }
 export type InstallLayout = ReturnType<typeof installLayout>;
 
-/** What `site install` wrote, read back by `status`, the next install and `uninstall`. */
+/** What `app install` wrote, read back by `status`, the next install and `uninstall`. */
 export interface InstallRecord {
   readonly application: string;
   readonly version: string;

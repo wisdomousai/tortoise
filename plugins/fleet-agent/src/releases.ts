@@ -19,11 +19,11 @@ const exists = (path: string) =>
   );
 
 /**
- * Fetch `release` into `folder/<release id>` and verify it as `site install` will: the signature
+ * Fetch `release` into `folder/<release id>` and verify it as `app install` will: the signature
  * by a key in `trusted`, and every file against the manifest's digest and size. Each file is
  * checked as it arrives and written under a temporary directory, which is renamed into place only
  * once the whole bundle verifies, so the folder never holds a partial or unverified release.
- * Activation is not done here: the operator's `site install` (or a timer that runs it) installs
+ * Activation is not done here: the operator's `app install` (or a timer that runs it) installs
  * a staged release, so the instance never replaces itself.
  */
 export async function stageRelease(

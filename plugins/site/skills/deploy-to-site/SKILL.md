@@ -39,9 +39,9 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 10. Build and sign a [site bundle](../../../../docs/glossary.md#site-bundle) with `bun run bundle create --key key.json --out <dir>`. `create` writes the contract, security manifest and SBOM from the catalog into the bundle.
 11. Verify the bundle with `bun run bundle verify <dir> --trust key.pub.json`.
 12. Admit it with `bun run bundle admit <dir> --trust key.pub.json --approval <file>`.
-13. Install with the bundled binary: `site install <bundle> --trust key.pub.json --approval <file>`. Stage it under `--prefix` first, then apply it with `--apply`. A refused admission, policy check, render or migration leaves the previous release current.
-14. Use `site status` to check the active release and its best-before date. It exits 1 when that release no longer verifies.
-15. Remove a release with `site uninstall`, which keeps the data. To delete the data too, follow the `decommission-an-application` skill (`plugins/site/skills/decommission-an-application/SKILL.md`).
+13. Install with the bundled binary: `app install <bundle> --trust key.pub.json --approval <file>`. Stage it under `--prefix` first, then apply it with `--apply`. A refused admission, policy check, render or migration leaves the previous release current.
+14. Use `app status` to check the active release and its best-before date. It exits 1 when that release no longer verifies.
+15. Remove a release with `app uninstall`, which keeps the data. To delete the data too, follow the `decommission-an-application` skill (`plugins/site/skills/decommission-an-application/SKILL.md`).
 16. Produce evidence with `app audit verify --log <dir>` and `app compliance report --log <dir> --site <file> --format markdown`. A running host re-checks posture, including certificate validity, on every check.
 
 ## Checks
@@ -62,7 +62,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
    UPDATE_GOLDEN=1 bun test plugins/network
    ```
 
-3. Record a by-hand bundle build, install or firewall load in [implementation status](../../../../docs/implementation-status.md#site-install), with its platform. The tests compare the exporters with golden files as text, and none loads a rule into a firewall or cluster.
+3. Record a by-hand bundle build, install or firewall load in [implementation status](../../../../docs/implementation-status.md#install), with its platform. The tests compare the exporters with golden files as text, and none loads a rule into a firewall or cluster.
 
 ## References
 

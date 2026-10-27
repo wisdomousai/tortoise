@@ -25,7 +25,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 5. Create a `field-sync` enrollment on the fleet.
 6. Start the site once with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`. The plugin stores the credential, so later starts need no code.
 7. Set `fleet-trust` to the publisher's `key.pub.json` to stage releases. A staged release appears in `fleet-releases/<release id>` only after it verifies.
-8. Activate a staged release with `site install <that directory> --trust key.pub.json`, by hand or from a timer the site runs. A release that widens the requirements also needs `--approval`. The staged files keep mode 0644, so run `site install` from the installed release's binary, or on a first install from a copy of the bundle.
+8. Activate a staged release with `app install <that directory> --trust key.pub.json`, by hand or from a timer the site runs. A release that widens the requirements also needs `--approval`. The staged files keep mode 0644, so run `app install` from the installed release's binary, or on a first install from a copy of the bundle.
 9. Set `fleet-relay` to `on` only when remote access is wanted. A remote caller still needs a session the site issued, for example through the site's [workforce sign-in](../../../../docs/glossary.md#workforce-sign-in).
 
 ### Fleet side

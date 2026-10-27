@@ -61,7 +61,7 @@ No public release has been made. The entries use these kinds of evidence:
 **Not shown.**
 
 - No site has reported to a [fleet](glossary.md#fleet) across a real network, behind a firewall that allows only outbound https.
-- No staged release has been activated by `site install` from the `fleet-releases` folder on a real machine with a loaded system service. The fleet-agent test and the 27 October run ([site install](#site-install)) do it on a staged prefix without `--apply`.
+- No staged release has been activated by `app install` from the `fleet-releases` folder on a real machine with a loaded system service. The fleet-agent test and the 27 October run ([install](#install)) do it on a staged prefix without `--apply`.
 
 **Limits.**
 
@@ -70,7 +70,7 @@ No public release has been made. The entries use these kinds of evidence:
 - Staging fetches each release file whole. There is no resumed download.
 - The fleet's Devices screen calls a `field-sync` enrollment a phone, as device-link names it. A site is enrolled with that kind.
 - A failed cycle is kept only in the agent's in-process `lastError`. It is neither logged nor reported, so a site that cannot stage a release shows at the fleet as drift with no reason.
-- Staged release files keep mode 0644, so the staged binary cannot run `site install` itself.
+- Staged release files keep mode 0644, so the staged binary cannot run `app install` itself.
 - The fleet example's screens show times as raw milliseconds.
 
 ### Telemetry
@@ -97,18 +97,18 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Not shown.**
 
-- `site install` consumes a bundle ([site install](#site-install)), but nothing verifies one again at launch.
+- `app install` consumes a bundle ([install](#install)), but nothing verifies one again at launch.
 - Bundles are directories rather than archives.
 - Approvals are unsigned site data.
 - No cross-platform build has been verified on its target.
 
-### Site install
+### Install
 
 **Added, not yet run.** The `site-install` CI job on Ubuntu runs `plugins/site/test/install.test.ts`. It applies `systemd-analyze verify` to the unit and `nft -c -f` to the rules.
 
-**By hand.** On 27 October 2026, on macOS arm64, `site install` installed release 1.2.0 of `patterns/lab-requests-site` from the folder the fleet agent staged it in. It ran with `--prefix`, `--service systemd`, `patterns/lab-requests-site/site-policy.json` and a site approval, without `--apply`. It rendered the unit and `egress.nft` and set mode 0755 on the installed binary, and `site status` verified the current release. Neither file was loaded, because the machine is not Linux.
+**By hand.** On 27 October 2026, on macOS arm64, `app install` installed release 1.2.0 of `patterns/lab-requests-site` from the folder the fleet agent staged it in. It ran with `--prefix`, `--service systemd`, `patterns/lab-requests-site/site-policy.json` and a site approval, without `--apply`. It rendered the unit and `egress.nft` and set mode 0755 on the installed binary, and `app status` verified the current release. Neither file was loaded, because the machine is not Linux.
 
-**By hand, 27 October 2026.** On macOS arm64, `site install` placed that project-tasks bundle in a staged prefix with `--service none` and an approval of its requirements. `site status` reported the release verified, with its best-before date. `site uninstall --purge --trust` ran the installed release's `drain` and then removed the release, configuration and data directories.
+**By hand, 27 October 2026.** On macOS arm64, `app install` placed that project-tasks bundle in a staged prefix with `--service none` and an approval of its requirements. `app status` reported the release verified, with its best-before date. `app uninstall --purge --trust` ran the installed release's `drain` and then removed the release, configuration and data directories.
 
 **Not shown.**
 
@@ -126,7 +126,7 @@ No public release has been made. The entries use these kinds of evidence:
 - No Playwright spec covers the frame's best-before notice.
 - No fleet has received a best-before date from a site across a real network.
 
-**Limits.** `network export` on its own names the application ID as the socket owner, while `site install` runs the service as `agent-native`. An export made apart from the install needs `--user`.
+**Limits.** `network export` on its own names the application ID as the socket owner, while `app install` runs the service as `agent-native`. An export made apart from the install needs `--user`.
 
 ### Workforce sign-in
 

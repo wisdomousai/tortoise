@@ -29,7 +29,7 @@ const lastLine = (text: string): unknown => {
 
 /**
  * What the workspace outbox still holds, read by the installed release's own `drain`: that
- * binary knows its targets and effect types, which the binary running `site uninstall` may not.
+ * binary knows its targets and effect types, which the binary running `app uninstall` may not.
  * The release is verified against the trusted keys first, since it runs with the installer's
  * rights. `drain` delivers what it can before counting, with the site policy and audit log the
  * service uses, and refuses while a running service owns the workspace.

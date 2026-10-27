@@ -393,7 +393,6 @@ test('the fleet stages an upgrade that the site installs, migrating its state wh
     const child = Bun.spawn(
       [
         ...binary,
-        'site',
         'install',
         bundle,
         '--trust',

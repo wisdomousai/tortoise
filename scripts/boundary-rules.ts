@@ -89,7 +89,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
   'examples/line-station/station-bridge.ts':
     "Launches Chromium for the workstation application's screen and reads simulator counters; to be routed through the screen-bridge destination.",
   'plugins/site/src/install/native.ts':
-    'Operator verbs only, never inside an instance: `site install` runs the release it placed (network export, migrate), `site uninstall --purge` runs its `drain`, and, with --apply, the OS service manager and firewall loader.',
+    'Operator verbs only, never inside an instance: `app install` runs the release it placed (network export, migrate), `app uninstall --purge` runs its `drain`, and, with --apply, the OS service manager and firewall loader.',
   'plugins/execution-host/src/relay.ts':
     "Forwards a sandbox's unix socket to one fixed loopback port: the host's own API listener or the egress CONNECT proxy, which applies the destination rules.",
   'plugins/execution-host/sandbox/':

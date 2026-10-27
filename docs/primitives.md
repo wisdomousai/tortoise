@@ -509,7 +509,7 @@ partial · [`packages/bundle`](../packages/bundle/README.md) [`scripts/bundle.ts
 
 ### Shelf life
 
-_The days each build stays within its best-before date. The manifest declares it, the build stamps the build time, and a site bundle signs the date. Hosts, site status, posture and fleet health show it, and nothing is refused after it._
+_The days each build stays within its best-before date. The manifest declares it, the build stamps the build time, and a site bundle signs the date. Hosts, `app status`, posture and fleet health show it, and nothing is refused after it._
 
 implemented · [`packages/kernel/src/build.ts`](../packages/kernel/src/build.ts) [`packages/bundle`](../packages/bundle/README.md) [`plugins/site/src/install`](../plugins/site/src/install) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/frame`](../packages/frame/README.md)
 

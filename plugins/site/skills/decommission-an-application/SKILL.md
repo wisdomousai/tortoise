@@ -5,23 +5,23 @@ description: Remove an agent-native application from a site without losing recor
 
 # Decommission an application
 
-An application keeps records its [systems of record](../../../../docs/glossary.md#system-of-record) have not settled only in its workspace. [Decommissioning](../../../../docs/glossary.md#decommissioning) delivers or decides them, then deletes the data directory. `site uninstall --purge` refuses while the installed release's `drain` still counts pending, held or upstream effects.
+An application keeps records its [systems of record](../../../../docs/glossary.md#system-of-record) have not settled only in its workspace. [Decommissioning](../../../../docs/glossary.md#decommissioning) delivers or decides them, then deletes the data directory. `app uninstall --purge` refuses while the installed release's `drain` still counts pending, held or upstream effects.
 
 ## Before writing
 
 - The site decides when an application goes. Add no owner, term, approval or renewal record to an application, and refuse nothing because a build is past its best-before date.
 - A [held effect](../../../../docs/systems-of-record.md#held-effects) waits for a person's decision, which only the running instance records. Decide held effects before the service stops.
-- The purge check runs the installed release's binary, so it needs the publisher keys that `site install` used.
+- The purge check runs the installed release's binary, so it needs the publisher keys that `app install` used.
 - Records no target receives, the audit log and the blobs exist only in the data directory.
 
 ## Steps
 
 1. Give the application a shelf life: set `shelfLifeDays` in its manifest. The scaffold writes 180.
-2. Read the best-before date of an installed release with `site status --trust key.pub.json`.
+2. Read the best-before date of an installed release with `app status --trust key.pub.json`.
 3. Decide each held effect on the application's reconciliation screen while the service runs.
 4. Stop the service, then run `app drain` with the service's `--workspace`, `--site-policy` and `--audit-log` until it exits 0.
 5. Copy `var/lib/agent-native/<app>` when a retention rule covers its records or audit log.
-6. Run `app site uninstall --purge --trust key.pub.json --apply`.
+6. Run `app uninstall --purge --trust key.pub.json --apply`.
 7. When the purge is refused, read the per-target counts in the error details. Start the service to deliver or decide them, then repeat from step 3.
 8. Pass `--discard-undelivered` only when the remaining effects may be lost. The result lists what was deleted.
 9. On the fleet, revoke the site's device, then call `site.remove` from the site's screen.
@@ -38,7 +38,7 @@ An application keeps records its [systems of record](../../../../docs/glossary.m
    ```
 
 2. A change to the purge check keeps the install tests' refusal, settle and override cases.
-3. Record a decommissioning on a real site host in [implementation status](../../../../docs/implementation-status.md#site-install), with its platform.
+3. Record a decommissioning on a real site host in [implementation status](../../../../docs/implementation-status.md#install), with its platform.
 
 ## References
 

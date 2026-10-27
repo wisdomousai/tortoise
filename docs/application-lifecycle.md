@@ -22,17 +22,17 @@ The date shows in these places:
 | `GET /api/v1/build` | The build time, shelf life, date and whether it has passed, for a session |
 | Web frame | "Best before" and the date in the panel's status box, and a notice from the day after |
 | Audit log | The build time and date in `config.loaded` |
-| `site status` | `bestBefore` and `pastBestBefore` of the verified release |
+| `app status` | `bestBefore` and `pastBestBefore` of the verified release |
 | Compliance posture | The `best-before` check: `pass`, then `warn` from 30 days before the date |
 | Fleet health | The `past-best-before` state |
 
-The posture check reports `info` for a build without a date and never `fail`. Commands keep committing, `site install` admits a bundle past its date, and the service keeps running.
+The posture check reports `info` for a build without a date and never `fail`. Commands keep committing, `app install` admits a bundle past its date, and the service keeps running.
 
 ## What decommissioning removes
 
 An effect waiting in the outbox exists only in the workspace. Once the outbox is empty and every [held effect](systems-of-record.md#held-effects) is decided, the systems of record hold every record a target receives. Records no target receives, the [audit log](glossary.md#audit-log) and the blobs exist only in the data directory, `var/lib/agent-native/<app>` on a site.
 
-`site uninstall --purge` runs the installed release's own `drain` before it removes anything. It verifies that release against the keys given with `--trust`, because the binary runs with the installer's rights. The release knows its targets and effect types, which the binary running the uninstall may not. With `--apply` the service stops first, and without it a running service owns the workspace and `drain` refuses.
+`app uninstall --purge` runs the installed release's own `drain` before it removes anything. It verifies that release against the keys given with `--trust`, because the binary runs with the installer's rights. The release knows its targets and effect types, which the binary running the uninstall may not. With `--apply` the service stops first, and without it a running service owns the workspace and `drain` refuses.
 
 `drain` delivers what it can and then counts what remains for each target: pending effects, held effects and effects awaiting the target's decision. While any remain, the purge is refused with `CONFLICT` and the counts in the error details, and every file stays in place. `--discard-undelivered` purges anyway and lists the deleted counts in the result. `plugins/site/test/install.test.ts` covers the refusal, a purge after the target settles, and the override.
 
@@ -57,7 +57,7 @@ Here `app` stands for the application's CLI and `<app>` for its ID.
 5. Remove the service, the releases and the data:
 
    ```sh
-   app site uninstall --purge --trust key.pub.json --apply
+   app uninstall --purge --trust key.pub.json --apply
    ```
 
 6. On the fleet, revoke the site's device on the Devices screen, then remove the site on its Sites screen.
