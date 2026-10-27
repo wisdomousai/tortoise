@@ -89,7 +89,7 @@ Driver actions pass the same interlock as the screen bridge's procedures. The co
 4. While the `control` field shows local control, it sends nothing, and the effect waits.
 5. Unmet preconditions reject the effect, and preconditions it cannot read with confidence make the effect wait.
 
-The application's control query supplies the bridge mode for each action. It can also refuse delivery for its own reasons; `examples/line-station` refuses while the operator holds [control](glossary.md#control-holder) of the station.
+The application's control query supplies the bridge mode for each action. It can also refuse delivery for its own reasons; `showcase/examples/line-station` refuses while the operator holds [control](glossary.md#control-holder) of the station.
 
 A driver starts in `monitor-only` at its handshake. Every `action.invoke` carries the mode, and the SDKs check mode and presence again inside the driver. `plugins/connector-driver/test/driver.test.ts` covers mode refusal on both sides and the operator confirmation.
 
@@ -133,11 +133,11 @@ app driver list
 
 ### Measuring instrument
 
-`examples/quality-inspection` observes only. A Python driver reads a gauge or balance over its serial data output, and its contract has no actions. Each stable reading becomes an instrument reading through an ingest command. The inspector records it as a result with **Use reading**. The tests run the real serial code over a pseudo-terminal pair.
+`showcase/examples/quality-inspection` observes only. A Python driver reads a gauge or balance over its serial data output, and its contract has no actions. Each stable reading becomes an instrument reading through an ingest command. The inspector records it as a result with **Use reading**. The tests run the real serial code over a pseudo-terminal pair.
 
 ### Station automation
 
-`examples/line-station` actuates. A .NET driver reaches the workstation application through its COM automation server instead of its screen. Its contract reports the screen profile's fields. It loads recipes as a convergent `operator-present` action, with the screen procedure's precondition and readback. The domain is the same on both routes, and each station is configured on one route. A simulated station stands in for the COM server in the tests and the demo.
+`showcase/examples/line-station` actuates. A .NET driver reaches the workstation application through its COM automation server instead of its screen. Its contract reports the screen profile's fields. It loads recipes as a convergent `operator-present` action, with the screen procedure's precondition and readback. The domain is the same on both routes, and each station is configured on one route. A simulated station stands in for the COM server in the tests and the demo.
 
 ## Limits
 

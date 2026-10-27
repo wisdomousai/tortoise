@@ -119,7 +119,7 @@ bun test packages/adapters
 
 Postgres storage and the lease are tested in `packages/testing`, in `test/storage.test.ts` and `test/postgres-lease.test.ts`. The storage conformance suite and the PGlite driver live there. Set `STORAGE_POSTGRES_URL` to run them against a server too.
 
-Surface parity is proven in content, where real capabilities exist. `examples/field-service/test/transport-conformance.test.ts` runs the same scenarios through direct, HTTP, CLI subprocess and MCP.
+Surface parity is proven in content, where real capabilities exist. `showcase/examples/field-service/test/transport-conformance.test.ts` runs the same scenarios through direct, HTTP, CLI subprocess and MCP.
 
 ## Skills
 

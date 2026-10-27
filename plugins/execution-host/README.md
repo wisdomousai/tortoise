@@ -116,7 +116,7 @@ bun run test:execution-host:linux
 - a process left behind not outliving the sandbox;
 - output, wall-time and cancellation stops.
 
-`test:execution-host:linux` also takes test paths and runs those in the same container instead. `patterns/lab-requests-sandbox` runs its own sandbox tests this way.
+`test:execution-host:linux` also takes test paths and runs those in the same container instead. `showcase/patterns/sandbox` runs its own sandbox tests this way.
 
 ## Skills
 

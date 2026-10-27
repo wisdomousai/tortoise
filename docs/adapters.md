@@ -63,7 +63,7 @@ A new storage adapter passes `storageConformance` from `packages/testing`, which
 
 ```sh
 bun test packages/testing/test/storage.test.ts
-bun test examples/field-service/test/transport-conformance.test.ts
+bun test showcase/examples/field-service/test/transport-conformance.test.ts
 ```
 
 The first runs the suite on the memory, SQLite and Postgres adapters. The second compares results and errors across the in-process, HTTP, CLI and MCP adapters.

@@ -1,0 +1,13 @@
+{
+  "name": "@agent-native/pattern-hosted",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:web": "bun ../../../scripts/dev-example.ts --port 4361 --hosted-workspace test-requests"
+  },
+  "exports": {
+    "./screens": "./screens.tsx",
+    "./*": "./*.ts"
+  }
+}

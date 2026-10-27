@@ -4,10 +4,10 @@ Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before 
 
 ## Layers
 
-The layers are **framework** `packages/*`, **workstations** `workstations/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*` and `patterns/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
+The layers are **framework** `packages/*`, **workstations** `workstations/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `showcase/examples/*` and `showcase/patterns/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
 
 - The framework and the starter name no domain and import no workstation package, plugin, example or pattern. The starter hosts the one application named in `app.config.json`.
-- An example in `examples/<name>` is a whole application for a real-world case in a covered domain. A pattern in `patterns/<name>` is a small application of the same shape that shows one technical concern. `patterns/lab-requests` is the base; every other pattern imports it unchanged and adds one concern.
+- An example in `showcase/examples/<name>` is a whole application for a real-world case in a covered domain. A pattern in `showcase/patterns/<name>` is a small application of the same shape that shows one technical concern. `showcase/patterns/base` is the base; every other pattern imports it unchanged and adds one concern.
 - An example is an application with a browser-safe `manifest` entrypoint, a server `application` entrypoint and a browser `screens` entrypoint. Its domain code, fakes, screens and tests stay in the example; framework tests never import one.
 - A cross-cutting concern (deployment policy, network, audit, compliance) is a host plugin in `plugins/<name>`, with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. A plugin imports the framework and the plugins it requires, reaches the network, ingress, identity and audit log through host ports, and writes only through its own commands.
 - It imports the framework only. The screen bridge and workstation sign-in live there.

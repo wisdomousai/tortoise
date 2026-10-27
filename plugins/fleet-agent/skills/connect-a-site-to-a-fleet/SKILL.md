@@ -12,7 +12,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 - The site side needs a provided network port, so startup refuses an application without one.
 - The site acts at the fleet as one device-link principal, never on behalf of a person. Two applications that call each other for people use the peer link instead, as the `connect-two-applications` skill (`plugins/peer-link/skills/connect-two-applications/SKILL.md`) describes.
 - The `fleet` destination is declared `authenticated`, so the site check refuses a plain-text binding off loopback.
-- `patterns/lab-requests-site` composes the site side against `examples/fleet`. Its `publish-release.ts` publishes a signed bundle to a channel, and its README installs the staged release.
+- `showcase/patterns/site` composes the site side against `showcase/examples/fleet`. Its `publish-release.ts` publishes a signed bundle to a channel, and its README installs the staged release.
 
 ## Steps
 
@@ -35,8 +35,8 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 3. Compose the device-link plugin with `syncOperations: fleetSiteOperationIds`.
 4. Attach release files to a resource the site's policy lets it read, so `GET /api/v1/blobs/<digest>` serves them.
 5. Store forwarded audit events as received, and accept each sequence once. The site reads your cursor before each batch, so a batch is sent again only when its reply was lost.
-6. Store the report's `bestBefore` with the site, and show a site past it without refusing anything, as `fleet.health` in `examples/fleet` does.
-7. Remove a decommissioned site after its device is revoked, as `site.remove` in `examples/fleet` does. A site still linked reports again and comes back.
+6. Store the report's `bestBefore` with the site, and show a site past it without refusing anything, as `fleet.health` in `showcase/examples/fleet` does.
+7. Remove a decommissioned site after its device is revoked, as `site.remove` in `showcase/examples/fleet` does. A site still linked reports again and comes back.
 
 ## Checks
 
@@ -44,12 +44,12 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 
    ```sh
    bun test plugins/fleet-agent
-   bun test patterns/lab-requests-site/
+   bun test showcase/patterns/site/
    ```
 
 2. Put a new protocol capability in `src/contracts.ts` and in the fixture fleet in `test/fixtures.ts`.
 3. Test what the site does when the fleet refuses the new capability or is unreachable.
-4. To test a fleet against real sites, start each site with `fleetNetworkFixture(reach)` from `@agent-native/fleet-agent/testing` in place of the network plugin. `reach` maps the `fleet` destination onto the fleet's loopback port, as `examples/fleet/test/site.ts` does.
+4. To test a fleet against real sites, start each site with `fleetNetworkFixture(reach)` from `@agent-native/fleet-agent/testing` in place of the network plugin. `reach` maps the `fleet` destination onto the fleet's loopback port, as `showcase/examples/fleet/test/site.ts` does.
 5. Fail, drop or change responses in `reach` to stand in for an unreliable uplink.
 6. Record a run against a real fleet across a network as by-hand evidence in [implementation status](../../../../docs/implementation-status.md#fleet-agent).
 7. Follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) for the rest.
@@ -58,5 +58,5 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 
 - [Hosting](../../../../docs/hosting.md#fleet)
 - [`@agent-native/fleet-agent`](../../README.md#trust-boundary)
-- [`examples/fleet`](../../../../examples/fleet/README.md)
-- [Lab requests site pattern](../../../../patterns/lab-requests-site/README.md)
+- [`showcase/examples/fleet`](../../../../showcase/examples/fleet/README.md)
+- [Site pattern](../../../../showcase/patterns/site/README.md)

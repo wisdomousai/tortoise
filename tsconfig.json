@@ -22,8 +22,7 @@
     "workstations",
     "plugins",
     "apps",
-    "examples",
-    "patterns",
+    "showcase",
     "sdks",
     "scripts",
     "tests",
@@ -44,8 +43,8 @@
     "packages/frame-native/src/os-provenance.tsx",
     "packages/frame-native/src/native-env.d.ts",
     "plugins/*/src/expo",
-    "examples/asset-survey-field/application.ts",
-    "examples/asset-survey-field/screens-native.tsx",
-    "examples/asset-survey-field/ui-native"
+    "showcase/examples/asset-survey-field/application.ts",
+    "showcase/examples/asset-survey-field/screens-native.tsx",
+    "showcase/examples/asset-survey-field/ui-native"
   ]
 }

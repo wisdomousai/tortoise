@@ -122,7 +122,7 @@ bun run check:registry:operator
 - `packages/operator-ui/test/primitives.test.ts`: numeric entry, the tap guard, key-burst filtering and registry drift.
 - `plugins/intent-scanner/test/source.test.ts`: the intent source over a fake receiver.
 
-`examples/line-station/e2e/station.pw.ts` covers the kit and the bound workstation screen in Chromium.
+`showcase/examples/line-station/e2e/station.pw.ts` covers the kit and the bound workstation screen in Chromium.
 
 ## Limits
 

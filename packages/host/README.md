@@ -21,7 +21,7 @@ Framework (`packages/*`). The starter's `apps/service` calls it. Content calls o
 - [UI session context](../../docs/primitives.md#ui-session-context): a run started from a UI session gets the `ui.open`, `ui.select` and `ui.request-review` tools, which send intents to that session through `UiSessionStore.sendFromRun`. The host checks each named resource under the run's grant and against `selectableResources`.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus the host components that the generators read.
 
-Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`examples/field-service/application.ts`](../../examples/field-service/application.ts).
+Each example's `manifest.ts` and `application.ts` show the two content entrypoints, for example [`showcase/examples/field-service/application.ts`](../../showcase/examples/field-service/application.ts).
 
 ### Bun platform
 
@@ -125,7 +125,7 @@ The host reads these variables, plus each composed plugin's declared settings (`
 
 ## Dependencies
 
-Framework: `@agent-native/kernel`, `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/adapters`, `@agent-native/client`, `@agent-native/agents`, `@agent-native/react` (types only). External: `@modelcontextprotocol/sdk`, `@ai-sdk/openai`. The host must never import `apps/*` or `examples/*`; `bun run check:boundaries` fails if it does.
+Framework: `@agent-native/kernel`, `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/adapters`, `@agent-native/client`, `@agent-native/agents`, `@agent-native/react` (types only). External: `@modelcontextprotocol/sdk`, `@ai-sdk/openai`. The host must never import `apps/*` or `showcase/examples/*`; `bun run check:boundaries` fails if it does.
 
 ## Tests
 
@@ -152,7 +152,7 @@ bun run test:service
 - `test/migrations.test.ts`: runs `migrate` with a pending effect, after a failed step and over a compatible step, and checks that storage refuses older code.
 - `test/providers.test.ts`: no credential reads at startup, single-use OAuth callbacks bound to their session, explicit API-key funding and no leaked provider error text.
 
-The shell and delivery routes are tested with a fixture application in `plugins/os/test/os.test.ts`. Host behavior against real capabilities is tested in content: each example's `test/application.test.ts`, and `examples/field-service/test/host.test.ts`, `hardening.test.ts` and `security-conformance.test.ts`.
+The shell and delivery routes are tested with a fixture application in `plugins/os/test/os.test.ts`. Host behavior against real capabilities is tested in content: each example's `test/application.test.ts`, and `showcase/examples/field-service/test/host.test.ts`, `hardening.test.ts` and `security-conformance.test.ts`.
 
 ## Skills
 

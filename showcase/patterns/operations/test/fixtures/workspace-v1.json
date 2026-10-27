@@ -1,0 +1,16 @@
+{
+  "testRequests": {
+    "members": { "owner": "technician", "viewer": "viewer" },
+    "requests": {
+      "r1": {
+        "id": "r1",
+        "sampleId": "OS-24-0417",
+        "unit": "TR-40517",
+        "description": "Drawn from the bottom valve of T2, Substation Nord",
+        "tests": "IEC 60567 dissolved gas analysis",
+        "requester": "owner",
+        "updatedAt": 1000
+      }
+    }
+  }
+}

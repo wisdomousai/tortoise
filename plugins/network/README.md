@@ -66,7 +66,7 @@ Gaps: the guard is in-process. Real containment needs the exported rules applied
 ```sh
 bun test plugins/network
 UPDATE_GOLDEN=1 bun test plugins/network   # after an intended exporter change; review the diff
-bun test plugins/webhook examples/field-service/test/security.test.ts examples/field-service/test/hardening.test.ts
+bun test plugins/webhook showcase/examples/field-service/test/security.test.ts showcase/examples/field-service/test/hardening.test.ts
 ```
 
 - `test/guard.test.ts` runs the guard against a loopback server. It covers origin, redirect and address checks, audited decisions, fail-closed recording, response caps, a binding's own timeout and response cap, and the child proxy admitting only declared destinations.

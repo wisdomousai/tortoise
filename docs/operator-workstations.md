@@ -1,6 +1,6 @@
 # Operator workstations
 
-An [application](glossary.md#application) observes and operates a [workstation application](glossary.md#workstation-application) through its [screen](glossary.md#screen). The example is [`examples/line-station`](../examples/line-station/README.md).
+An [application](glossary.md#application) observes and operates a [workstation application](glossary.md#workstation-application) through its [screen](glossary.md#screen). The example is [`showcase/examples/line-station`](../showcase/examples/line-station/README.md).
 
 A workstation application has no API and must stay unmodified. Where its only stable interface is its screen, the application treats it as a [system of record](systems-of-record.md) reached through that screen. Software with an automation interface, such as COM, a local RPC service, files or a decodable network protocol, is reached through a [driver](hardware-drivers.md) instead, as [Automation route](#automation-route) describes.
 
@@ -178,7 +178,7 @@ A terminal is the local owner or a principal listed in the `station-sign-in-term
 
 Signing in does not take control from the bridge. The operator takes the screen back with the takeover command. `workstations/sign-in/test/sign-in.test.ts` tests these rules.
 
-The plugin's terminal screen reads the badge from a scanner and the PIN from the operator registry's keypad. It then shows the application's own screen as the operator, until sign-out, inactivity or expiry. Its badge screen enrolls and revokes badges. `patterns/lab-requests-sign-in` composes both at a lab bench.
+The plugin's terminal screen reads the badge from a scanner and the PIN from the operator registry's keypad. It then shows the application's own screen as the operator, until sign-out, inactivity or expiry. Its badge screen enrolls and revokes badges. `showcase/patterns/sign-in` composes both at a lab bench.
 
 ## Data ownership
 
@@ -194,9 +194,9 @@ The plugin's terminal screen reads the badge from a scanner and the PIN from the
 
 ```sh
 bun test workstations/screen-bridge
-bun test examples/line-station
-cd examples/line-station && bun run dev
-cd examples/line-station && bun run station:golden
+bun test showcase/examples/line-station
+cd showcase/examples/line-station && bun run dev
+cd showcase/examples/line-station && bun run station:golden
 ```
 
 `bun run dev` starts the fake HMI in the same process and bridges it. A host starts a bridge only when `STATION_HMI_URL` is set.

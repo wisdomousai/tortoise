@@ -74,7 +74,7 @@ Limits:
 - Tests only: `@agent-native/testing` and `@agent-native/event-log`.
 - External: `zod`, `react`, `@tanstack/react-query` and `lucide-react`.
 
-The screen uses the starter's `@/components/ui` primitives and `@/lib/session`. The plugin never imports `apps/*` or `examples/*`, and its tests use a fixture parcels application.
+The screen uses the starter's `@/components/ui` primitives and `@/lib/session`. The plugin never imports `apps/*` or `showcase/examples/*`, and its tests use a fixture parcels application.
 
 ## Tests
 

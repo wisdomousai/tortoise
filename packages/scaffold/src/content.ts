@@ -1,6 +1,6 @@
 /** A content workspace generated into an export instead of copied from the source. */
 export interface GeneratedContent {
-  /** Workspace directory, for example `examples/field-notes`. */
+  /** Workspace directory, for example `showcase/examples/field-notes`. */
   readonly directory: string;
   readonly packageName: string;
   /** File contents by path relative to `directory`. */

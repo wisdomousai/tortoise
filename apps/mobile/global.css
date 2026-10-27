@@ -5,7 +5,7 @@
 
 /* Classes are found by scanning sources: the native frame and the applications it can host. */
 @source '../../packages/frame-native/src';
-@source '../../examples';
+@source '../../showcase/examples';
 @source '../../plugins';
 @source './fixture';
 

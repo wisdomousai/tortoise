@@ -21,14 +21,14 @@ The host keeps the workspace in `.workspace/` by default. These environment vari
 
 `bun run dev:web` serves the browser without opening the window.
 
-In `field-service`, the task list updates when [commands](glossary.md#command) commit. The [caller](glossary.md#caller) editing a task keeps the caller's draft when another caller changes the committed record. `examples/field-service/e2e/workspace.pw.ts` checks both through MCP and the browser.
+In `field-service`, the task list updates when [commands](glossary.md#command) commit. The [caller](glossary.md#caller) editing a task keeps the caller's draft when another caller changes the committed record. `showcase/examples/field-service/e2e/workspace.pw.ts` checks both through MCP and the browser.
 
 ## Other examples
 
 Each [example](glossary.md#example) has its own port, its own desktop window and a workspace inside its directory. Run one from that directory:
 
 ```sh
-cd examples/<name>
+cd showcase/examples/<name>
 bun run dev
 ```
 
@@ -36,21 +36,21 @@ In the same directory, `bun run dev:web` serves the browser instead. When an exa
 
 | Example | Port | Guide |
 | --- | --- | --- |
-| [`field-service`](../examples/field-service/README.md) | 4321 | [State and reactivity](state-and-reactivity.md) |
-| [`quality-inspection`](../examples/quality-inspection/README.md) | 4322 | [Systems of record](systems-of-record.md) |
-| [`line-station`](../examples/line-station/README.md) | 4323 | [Operator workstations](operator-workstations.md) |
-| [`crm-capture`](../examples/crm-capture/README.md) | 4324 | [Systems of record](systems-of-record.md) |
-| [`asset-survey`](../examples/asset-survey/README.md) | 4326 | [Mobile](mobile.md) |
-| [`receiving`](../examples/receiving/README.md) | 4330 | [Systems of record](systems-of-record.md) |
-| [`fleet`](../examples/fleet/README.md) | 4340 | [Hosting](hosting.md#fleet) |
-| [`asset-survey-field`](../examples/asset-survey-field/README.md) | none | [Mobile](mobile.md) |
+| [`field-service`](../showcase/examples/field-service/README.md) | 4321 | [State and reactivity](state-and-reactivity.md) |
+| [`quality-inspection`](../showcase/examples/quality-inspection/README.md) | 4322 | [Systems of record](systems-of-record.md) |
+| [`line-station`](../showcase/examples/line-station/README.md) | 4323 | [Operator workstations](operator-workstations.md) |
+| [`crm-capture`](../showcase/examples/crm-capture/README.md) | 4324 | [Systems of record](systems-of-record.md) |
+| [`asset-survey`](../showcase/examples/asset-survey/README.md) | 4326 | [Mobile](mobile.md) |
+| [`receiving`](../showcase/examples/receiving/README.md) | 4330 | [Systems of record](systems-of-record.md) |
+| [`fleet`](../showcase/examples/fleet/README.md) | 4340 | [Hosting](hosting.md#fleet) |
+| [`asset-survey-field`](../showcase/examples/asset-survey-field/README.md) | none | [Mobile](mobile.md) |
 
 `asset-survey-field` runs on a phone or emulator instead; its README has the steps.
 
-The [patterns](glossary.md#pattern) in `patterns/*` run the same way, on ports 4350 to 4361:
+The [patterns](glossary.md#pattern) in `showcase/patterns/*` run the same way, on ports 4350 to 4361:
 
 ```sh
-cd patterns/lab-requests
+cd showcase/patterns/base
 bun run dev:web
 ```
 
@@ -59,7 +59,7 @@ bun run dev:web
 `quality-inspection` captures measurements and delivers them to a deterministic fake quality system. Set `DEMO_QUALITY_LOCKED_LOTS` to make the fake system reject results for a lot.
 
 ```sh
-cd examples/quality-inspection
+cd showcase/examples/quality-inspection
 DEMO_QUALITY_LOCKED_LOTS=4000002 bun run dev
 ```
 
@@ -69,7 +69,7 @@ DEMO_QUALITY_LOCKED_LOTS=4000002 bun run dev
 4. Capture a value for lot 4000002. The fake system rejects it with `LOT_LOCKED`.
 5. Open **Needs attention** and send a correction for the rejected result.
 
-`examples/quality-inspection/e2e/inspection.pw.ts` runs these steps in a browser.
+`showcase/examples/quality-inspection/e2e/inspection.pw.ts` runs these steps in a browser.
 
 ## Command line
 
@@ -147,7 +147,7 @@ bun run generate
 bun run dev
 ```
 
-The new directory must not exist. The generated application in `examples/<name>` has:
+The new directory must not exist. The generated application in `showcase/examples/<name>` has:
 
 - one [collection](glossary.md#collection) with default list and record screens;
 - the site, network, audit and compliance plugins;

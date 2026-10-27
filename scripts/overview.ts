@@ -305,9 +305,9 @@ export async function overview(root: string, manifests: readonly ApplicationMani
 
   // Examples: composition from the manifest, declarations from the security manifest.
   const examples = manifests
-    .filter((manifest) => existsSync(join(root, 'examples', manifest.id)))
+    .filter((manifest) => existsSync(join(root, 'showcase', 'examples', manifest.id)))
     .map((manifest) => {
-      const directory = `examples/${manifest.id}`;
+      const directory = `showcase/examples/${manifest.id}`;
       const route = curated.exampleRoutes[manifest.id];
       if (!route) throw new Error(`${directory} has no entry in exampleRoutes`);
       for (const source of route.sources) checkFile(root, source, `example ${manifest.id}`);

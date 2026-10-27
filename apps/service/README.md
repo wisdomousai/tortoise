@@ -43,7 +43,7 @@ The starter names no [host plugin](../../docs/glossary.md#host-plugin); the appl
 
 ## Dependencies
 
-Framework: `@agent-native/host` only. The package must never import `examples/*`. `bun run check:boundaries` fails a static import from content by path or package name.
+Framework: `@agent-native/host` only. The package must never import `showcase/examples/*`. `bun run check:boundaries` fails a static import from content by path or package name.
 
 ## Tests
 

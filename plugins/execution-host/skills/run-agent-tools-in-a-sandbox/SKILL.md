@@ -13,7 +13,7 @@ The [execution host](../../../../docs/glossary.md#execution-host) runs an agent'
 - Decide the paths. A working directory is bound read-write at `/work`, and anything else is read-only, such as a checkout to read. Nothing else of the host is visible.
 - List the [destinations](../../../../docs/glossary.md#destination) the tools must reach, such as a model API. The manifest declares each one, and the [deployment policy](../../../../docs/glossary.md#deployment-policy) binds it.
 - A sandbox without destinations has no network except the host API.
-- `patterns/lab-requests-sandbox` runs a tool that reads and records through the application CLI, started from a plugin route as the signed-in caller.
+- `showcase/patterns/sandbox` runs a tool that reads and records through the application CLI, started from a plugin route as the signed-in caller.
 - Decide who the sandbox acts as. Its context must carry a delegated grant, normally from `agentGrant(catalog, agentId, issuer, { now, runId })` in `@agent-native/runtime`. The sandbox can then call only what the agent definition allows.
 
 ## Steps
@@ -32,7 +32,7 @@ The [execution host](../../../../docs/glossary.md#execution-host) runs an agent'
 
 1. On any platform, run `bun test plugins/execution-host`. It covers the filter, the layout and the broker.
 2. Call `availability(sandbox)` to learn why a sandbox cannot run: not Linux, no bubblewrap binding, or no serving host.
-3. On Linux, or anywhere with Docker, run `bun run test:execution-host:linux`. Add test paths to run an application's own sandbox tests in the same container, such as `bun run test:execution-host:linux patterns/lab-requests-sandbox`.
+3. On Linux, or anywhere with Docker, run `bun run test:execution-host:linux`. Add test paths to run an application's own sandbox tests in the same container, such as `bun run test:execution-host:linux showcase/patterns/sandbox`.
 4. For an application's own task, copy the pattern in `plugins/execution-host/test/sandbox.test.ts`. Start the host with the plugin and run the task.
 5. Assert the receipts, the refused calls outside the grant, and the denied file and network attempts that matter to the task.
 
@@ -41,4 +41,4 @@ Record a run in a container separately from a run on a deployed host in [impleme
 ## References
 
 - [Security and compliance](../../../../docs/security-and-compliance.md#agent-tool-sandboxes)
-- [Lab requests sandbox pattern](../../../../patterns/lab-requests-sandbox/README.md)
+- [Sandbox pattern](../../../../showcase/patterns/sandbox/README.md)

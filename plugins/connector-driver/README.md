@@ -61,7 +61,7 @@ In `connect`:
 2. Wire each driver with `createDriverIntegration`. Pass a `defineTarget` target named after the contract, the bridge mode through `control`, and optionally an ingest command for the observer.
 3. For events that should become records, start `createDriverEventIngest` from `observe`. It submits one ingest command per event, keyed `driver:<id>:<session>:<seq>`. It also keeps an event-only driver running, since such a driver gets no other request.
 
-`examples/quality-inspection` wires a measuring instrument this way. It starts the instrument's driver only when `processes.availability` says the site binds it.
+`showcase/examples/quality-inspection` wires a measuring instrument this way. It starts the instrument's driver only when `processes.availability` says the site binds it.
 
 The deployment policy binds each driver's process ID to an absolute executable, and optionally pins its hash. `app driver list` prints the process IDs and contract digests to bind.
 

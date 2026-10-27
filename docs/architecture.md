@@ -14,7 +14,7 @@ Terms: [application](glossary.md#application), [instance](glossary.md#instance),
 | [Workstation](glossary.md#workstation) | `workstations/*` | The edge-workstation opinion: the [screen bridge](glossary.md#screen-bridge) and [workstation sign-in](glossary.md#workstation-sign-in). |
 | Plugins | `plugins/*` | [Host plugins](#host-plugins) for cross-cutting concerns an application chooses to compose, such as [deployment policy](glossary.md#deployment-policy), network, audit and compliance. |
 | [Starter](glossary.md#starter) | `apps/*` | Thin wiring its owner forks and extends: configuration, entrypoints, web root, stock UI primitives and the desktop and mobile wrappers. |
-| Content | `examples/*`, `patterns/*` or the owner's code | [Applications](#application-entrypoints), with their tests and demo scripts. Each [pattern](glossary.md#pattern) composes the lab requests base and adds one concern. |
+| Content | `showcase/examples/*`, `showcase/patterns/*` or the owner's code | [Applications](#application-entrypoints), with their tests and demo scripts. Each [pattern](glossary.md#pattern) composes the base pattern and adds one concern. |
 | Driver SDKs | `sdks/*` | The driver protocol in Python and C#, for [hardware drivers](hardware-drivers.md). |
 
 The starter learns its application from configuration. Generic behavior goes into framework packages. A new application therefore does not edit the starter, and an owner who forks it keeps receiving framework changes.
@@ -225,7 +225,7 @@ The telemetry plugin derives OpenTelemetry metrics and spans from the audit log 
 
 `bun run check` and the conformance suites test these:
 
-- Each capability has one handler. The screens, HTTP, MCP and the CLI reach it with the same validation, authorization, results and errors (`examples/field-service/test/transport-conformance.test.ts`).
+- Each capability has one handler. The screens, HTTP, MCP and the CLI reach it with the same validation, authorization, results and errors (`showcase/examples/field-service/test/transport-conformance.test.ts`).
 - Surfaces, schemas, API descriptions and agent skills are generated from the catalog. Contracts import no handlers, adapters or provider SDKs.
 - The host derives the principal, the workspace and the grant from the session. Input cannot choose or widen them.
 - Authorization is rechecked inside the transaction, on replay and on event delivery. Rows are filtered before they are counted or paged.
@@ -277,18 +277,18 @@ The framework packages can be packed and published at one version. The workstati
 
 ## Examples
 
-Each [example](glossary.md#example) is an application under `examples/` and serves as a test fixture.
+Each [example](glossary.md#example) is an application under `showcase/examples/` and serves as a test fixture.
 
 | Example | Exercises | Host plugins |
 | --- | --- | --- |
-| [`field-service`](../examples/field-service/README.md) | Work orders with dispatcher, technician and customer roles, field projection, revisions, live updates, a deterministic agent, OS handlers and actions, and a webhook for the customer portal, with no system of record. The fixture for the transport, storage and security conformance suites. | site, network, audit, compliance, os, share-target, notifications, os-shortcuts, webhook |
-| [`quality-inspection`](../examples/quality-inspection/README.md) | Outbox delivery and inbound sync against a fake quality system, keyboard capture and an instrument driver. The CLI and MCP run under a grant file in a stripped environment, from source or as the compiled binary. | site, network, audit, compliance, process, connector-driver |
-| [`line-station`](../examples/line-station/README.md) | A workstation application operated through its screen as an outbox connector, MES sync, scanner routing and held effects ([operator workstations](operator-workstations.md)). | site, network, process, audit, compliance, automation, connector-driver |
-| [`crm-capture`](../examples/crm-capture/README.md) | Remote queries of a fake CRM with each caller's own access, follow requests through the outbox and the CRM's feed, and an unreachable CRM shown as a status. | site, network, audit, compliance |
-| [`asset-survey`](../examples/asset-survey/README.md) | A site structure under reference designations, assignments for paired phones, model extraction from photos with review, and filing into a fake EAM. Blobs, [device link](glossary.md#device-link) pairing and a compact tablet screen. | site, network, process, audit, compliance, device-link |
-| [`receiving`](../examples/receiving/README.md) | Goods receiving against an ERP through files: notices are read from an inbox folder, and receipts are posted as files and completed from receipt files. An agent requests approval for discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and approval requests. | site, network, audit, compliance |
-| [`fleet`](../examples/fleet/README.md) | The [fleet](hosting.md#fleet) that site instances report to: enrollment through device link, signed releases on channels, a health screen, audit events checked against each site's hash chain, and relayed remote access. Runs on a site host or as a hosted instance. | site, network, audit, device-link |
-| [`asset-survey-field`](../examples/asset-survey-field/README.md) | The phone side of the survey on the [mobile host](mobile.md): offline capture with photos and scans, delivered to the [hub](glossary.md#hub) through the peer connector, and assignments received through the hub's feed. Asset tags are received as Android intents, work requests leave as intents, captures are shared and new assignments are announced as notifications. | hub-link, os, share-target, notifications, android-intents, managed-config, intent-scanner |
+| [`field-service`](../showcase/examples/field-service/README.md) | Work orders with dispatcher, technician and customer roles, field projection, revisions, live updates, a deterministic agent, OS handlers and actions, and a webhook for the customer portal, with no system of record. The fixture for the transport, storage and security conformance suites. | site, network, audit, compliance, os, share-target, notifications, os-shortcuts, webhook |
+| [`quality-inspection`](../showcase/examples/quality-inspection/README.md) | Outbox delivery and inbound sync against a fake quality system, keyboard capture and an instrument driver. The CLI and MCP run under a grant file in a stripped environment, from source or as the compiled binary. | site, network, audit, compliance, process, connector-driver |
+| [`line-station`](../showcase/examples/line-station/README.md) | A workstation application operated through its screen as an outbox connector, MES sync, scanner routing and held effects ([operator workstations](operator-workstations.md)). | site, network, process, audit, compliance, automation, connector-driver |
+| [`crm-capture`](../showcase/examples/crm-capture/README.md) | Remote queries of a fake CRM with each caller's own access, follow requests through the outbox and the CRM's feed, and an unreachable CRM shown as a status. | site, network, audit, compliance |
+| [`asset-survey`](../showcase/examples/asset-survey/README.md) | A site structure under reference designations, assignments for paired phones, model extraction from photos with review, and filing into a fake EAM. Blobs, [device link](glossary.md#device-link) pairing and a compact tablet screen. | site, network, process, audit, compliance, device-link |
+| [`receiving`](../showcase/examples/receiving/README.md) | Goods receiving against an ERP through files: notices are read from an inbox folder, and receipts are posted as files and completed from receipt files. An agent requests approval for discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and approval requests. | site, network, audit, compliance |
+| [`fleet`](../showcase/examples/fleet/README.md) | The [fleet](hosting.md#fleet) that site instances report to: enrollment through device link, signed releases on channels, a health screen, audit events checked against each site's hash chain, and relayed remote access. Runs on a site host or as a hosted instance. | site, network, audit, device-link |
+| [`asset-survey-field`](../showcase/examples/asset-survey-field/README.md) | The phone side of the survey on the [mobile host](mobile.md): offline capture with photos and scans, delivered to the [hub](glossary.md#hub) through the peer connector, and assignments received through the hub's feed. Asset tags are received as Android intents, work requests leave as intents, captures are shared and new assignments are announced as notifications. | hub-link, os, share-target, notifications, android-intents, managed-config, intent-scanner |
 
 ## References
 

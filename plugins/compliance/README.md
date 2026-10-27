@@ -73,7 +73,7 @@ bun test plugins/compliance
   - audit-event paging;
   - [behavioral scenarios](../../docs/glossary.md#behavioral-scenario) through the direct driver.
 - Each example's `test/ui-bindings.test.ts` checks the screen's bindings.
-- `examples/quality-inspection/e2e/compliance.pw.ts` drives the screen in Chromium.
+- `showcase/examples/quality-inspection/e2e/compliance.pw.ts` drives the screen in Chromium.
 
 ## Skills
 

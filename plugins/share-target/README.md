@@ -72,7 +72,7 @@ bun test plugins/share-target
 - an undeclared type never read;
 - a share action opening the share sheet.
 
-`examples/asset-survey-field/test/os.test.ts` shares a capture's summary from an application on a phone.
+`showcase/examples/asset-survey-field/test/os.test.ts` shares a capture's summary from an application on a phone.
 
 ## Skills
 

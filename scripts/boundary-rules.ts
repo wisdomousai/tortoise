@@ -11,10 +11,10 @@ export const forbiddenBrowserImport =
  * Every plugin in `plugins/*` follows one layout: `plugin-manifest`, `plugin-screens`,
  * `contracts` and the `ui/` and `components/` folders are browser code, at the package root or
  * under `src/`; everything else is server code. A pattern's own plugin, in
- * `patterns/<name>/plugins/<plugin>`, follows the same layout.
+ * `showcase/patterns/<name>/plugins/<plugin>`, follows the same layout.
  */
 export const pluginBrowserSource =
-  /^(?:(?:patterns\/[^/]+\/)?plugins\/[^/]+|workstations\/sign-in)\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
+  /^(?:(?:showcase\/patterns\/[^/]+\/)?plugins\/[^/]+|workstations\/sign-in)\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
 /** The browser-safe subpaths of a plugin package, for `@agent-native/<plugin>/<subpath>`. */
 export const pluginBrowserEntry = /^(?:plugin-manifest|plugin-screens|contracts)$/;
 /** Resolved source paths of server-only framework and plugin packages. */
@@ -60,9 +60,9 @@ export const directEgress: readonly { readonly api: string; readonly pattern: Re
  * reaches only its own origin and cannot open sockets, so it is out of scope.
  */
 export const serverSource =
-  /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|plugins\/|workstations\/|(?:examples|patterns)\/)/;
+  /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|plugins\/|workstations\/|showcase\/)/;
 export const browserSource =
-  /^(?:packages\/(?:contracts|client|react|operator-ui|frame)\/|packages\/devices\/src\/(?!server\.ts$)|packages\/assignments\/src\/(?!server\/)|(?:examples|patterns)\/[^/]+\/(?:ui\/|screens\.tsx$))/;
+  /^(?:packages\/(?:contracts|client|react|operator-ui|frame)\/|packages\/devices\/src\/(?!server\.ts$)|packages\/assignments\/src\/(?!server\/)|showcase\/(?:examples|patterns)\/[^/]+\/(?:ui\/|screens\.tsx$))/;
 
 /**
  * Reviewed exceptions, each with the reason it is safe. Keep this list short: it is what an
@@ -86,7 +86,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'The desktop shell starts its own instance sidecar, which listens on loopback.',
   'apps/desktop/src/os-shell.ts':
     'The desktop shell submits OS requests to and polls OS actions from its loopback instance.',
-  'examples/line-station/station-bridge.ts':
+  'showcase/examples/line-station/station-bridge.ts':
     "Launches Chromium for the workstation application's screen and reads simulator counters; to be routed through the screen-bridge destination.",
   'plugins/site/src/install/native.ts':
     'Operator verbs only, never inside an instance: `app install` runs the release it placed (network export, migrate), `app uninstall --purge` runs its `drain`, and, with --apply, the OS service manager and firewall loader.',
@@ -104,9 +104,9 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Starts declared child processes from site-policy bindings with a built environment; the process port is the only caller.',
   'workstations/screen-bridge/src/recognition/openai-compatible-vision.ts':
     'Falls back to global fetch when no fetch is injected; to be made required so the host passes the guard.',
-  'examples/line-station/fake-hmi/':
+  'showcase/examples/line-station/fake-hmi/':
     'Test fixture: the simulated workstation application and its recorder.',
-  'examples/asset-survey-field/test/fixtures.ts':
+  'showcase/examples/asset-survey-field/test/fixtures.ts':
     "Test fixture: the phone's fetch to the loopback hub, which a test drops or alters as a lost network or a newer hub release would.",
   'plugins/fleet-agent/src/relay.ts':
     "Forwards a remote-access request from the fleet to the host's own listener (`PluginStartContext.origin`) under `/api/v1/` only, adding no credential and never following a redirect.",

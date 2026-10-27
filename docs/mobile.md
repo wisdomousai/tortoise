@@ -85,6 +85,6 @@ bun run dev:mobile
 - [Hosting](hosting.md#fleet)
 - [Security and compliance](security-and-compliance.md#hardening-profiles)
 - [Architecture](architecture.md#embedded-and-attached-modes)
-- [`examples/asset-survey-field`](../examples/asset-survey-field/README.md)
+- [`showcase/examples/asset-survey-field`](../showcase/examples/asset-survey-field/README.md)
 - [Implementation status](implementation-status.md#mobile)
 - [extend-mobile-host](../packages/mobile/skills/extend-mobile-host/SKILL.md)

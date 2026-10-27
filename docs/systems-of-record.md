@@ -212,7 +212,7 @@ The instance verbs open the workspace or serve it:
 
 `drain` reports per target what awaits delivery, what is held, what is acknowledged, and whether this process can deliver there. Only effects awaiting delivery count toward the exit code, including those for a target this process cannot deliver. An orchestrator keeps an ephemeral sandbox container, or its workspace, until `drain` exits 0.
 
-`examples/quality-inspection/test/sandbox.test.ts` runs the CLI in embedded mode from source. `bun run test:sandbox` runs the same test against the compiled binary.
+`showcase/examples/quality-inspection/test/sandbox.test.ts` runs the CLI in embedded mode from source. `bun run test:sandbox` runs the same test against the compiled binary.
 
 ### Exit codes
 

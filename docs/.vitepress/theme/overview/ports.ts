@@ -48,7 +48,9 @@ export const ports: View = (element, data, links) => {
           ],
           list(plugin.requires.map((id) => pluginLink(data, id, links))),
           plugin.platforms.join(', '),
-          list(composedBy(plugin.id).map((id) => link(links.workspace(`examples/${id}`), id))),
+          list(
+            composedBy(plugin.id).map((id) => link(links.workspace(`showcase/examples/${id}`), id)),
+          ),
         ]),
       ),
       h('p', { class: 'ov-label' }, 'Connector packages'),

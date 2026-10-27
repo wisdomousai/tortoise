@@ -13,7 +13,7 @@ Framework (`packages/*`). Browser-safe. The bindings trust the [instance](../../
 - [Journal and live query](../../docs/primitives.md#journal-and-live-query): `createLiveBindings`, `changedResourceTypes`, `isAffected`.
 - [UI session context](../../docs/primitives.md#ui-session-context): `captureUiContext`, `UiContext`, and `UiIntent` from `@agent-native/contracts`.
 
-The quality-inspection capture screen ([`examples/quality-inspection/ui/capture-station.tsx`](../../examples/quality-inspection/ui/capture-station.tsx)) uses the form and capture bindings together.
+The quality-inspection capture screen ([`showcase/examples/quality-inspection/ui/capture-station.tsx`](../../showcase/examples/quality-inspection/ui/capture-station.tsx)) uses the form and capture bindings together.
 
 ## Entrypoints
 

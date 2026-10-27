@@ -83,7 +83,7 @@ Integration loops run while the application is in the foreground. In the backgro
 
 ## Dependencies
 
-Framework: `@agent-native/mobile`, `@agent-native/frame-native`, `@agent-native/kernel` (types). External: `expo`, `react`, `react-native` (also pinned in this manifest for `expo prebuild`), `uniwind`, and `expo-background-task` as a config plugin. The fixture adds `@agent-native/contracts`, `@agent-native/runtime`, `@tanstack/react-query`, `lucide-react-native` and `zod`. The package must never import `examples/*`.
+Framework: `@agent-native/mobile`, `@agent-native/frame-native`, `@agent-native/kernel` (types). External: `expo`, `react`, `react-native` (also pinned in this manifest for `expo prebuild`), `uniwind`, and `expo-background-task` as a config plugin. The fixture adds `@agent-native/contracts`, `@agent-native/runtime`, `@tanstack/react-query`, `lucide-react-native` and `zod`. The package must never import `showcase/examples/*`.
 
 ## Tests
 

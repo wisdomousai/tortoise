@@ -23,7 +23,7 @@ Framework (`packages/*`). Browser code, plus a build-time Vite plugin. The frame
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginScreens`, `PluginScreens`, the same shape. `defineScreens({ manifest, plugins })` merges plugin screens after feature screens.
 - [Shelf life](../../docs/primitives.md#shelf-life): `useBuild` (`src/lib/build.ts`) reads `GET /api/v1/build` every hour. `app-shell` shows the build's best-before date under the status slot and, once the date has passed, a notice above the screen. Nothing is disabled.
 
-A worked `screens` entrypoint is [`examples/field-service/screens.tsx`](../../examples/field-service/screens.tsx).
+A worked `screens` entrypoint is [`showcase/examples/field-service/screens.tsx`](../../showcase/examples/field-service/screens.tsx).
 
 ## Entrypoints
 
@@ -102,7 +102,7 @@ bun run build:web:examples
 bun run test:e2e
 ```
 
-`test/screens.test.ts` covers feature and plugin merging and the manifest checks. The frame has no other unit suite. `check:boundaries` builds every example's screens through the starter's real Vite config. The Playwright specs in `examples/*/e2e` and `patterns/*/e2e` drive the frame in Chromium, including live updates, draft conflicts and the assignment screens with their slots.
+`test/screens.test.ts` covers feature and plugin merging and the manifest checks. The frame has no other unit suite. `check:boundaries` builds every example's screens through the starter's real Vite config. The Playwright specs in `showcase/examples/*/e2e` and `showcase/patterns/*/e2e` drive the frame in Chromium, including live updates, draft conflicts and the assignment screens with their slots.
 
 ## Skills
 

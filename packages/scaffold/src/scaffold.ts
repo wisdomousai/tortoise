@@ -30,7 +30,7 @@ export interface ScaffoldOptions {
   readonly displayName?: string;
   readonly sourceRoot?: string;
   /**
-   * Export only this example (`examples/<example>`) as the application's content, configured as
+   * Export only this example (`showcase/examples/<example>`) as the application's content, configured as
    * the application the starter hosts. Without it, every example is exported and the source's
    * configured application is kept.
    */
@@ -132,7 +132,10 @@ async function applicationOf(options: ScaffoldOptions, sourceRoot: string, displ
     ? options.content.packageName
     : options.example
       ? (JSON.parse(
-          await readFile(join(sourceRoot, 'examples', options.example, 'package.json'), 'utf8'),
+          await readFile(
+            join(sourceRoot, 'showcase', 'examples', options.example, 'package.json'),
+            'utf8',
+          ),
         ).name as string)
       : sourceConfig.application;
   const application: ScaffoldManifest['application'] = {

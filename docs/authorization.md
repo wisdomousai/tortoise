@@ -107,7 +107,7 @@ It is not a general CASL-to-SQL translator. A new codebase supplies explicit map
 
 ```sh
 bun test packages/runtime/test packages/adapters/src/casl.test.ts
-bun test examples/field-service/test/security-conformance.test.ts
+bun test showcase/examples/field-service/test/security-conformance.test.ts
 ```
 
 ## References

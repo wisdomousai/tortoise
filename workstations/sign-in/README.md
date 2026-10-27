@@ -96,7 +96,7 @@ bun test workstations/sign-in
 
 `test/scenarios.test.ts` runs the capabilities through the direct driver. `test/ui-bindings.test.ts` checks that the badge screen references `station.badge.list` and `station.badge.revoke`.
 
-`patterns/lab-requests-sign-in` runs the terminal and badge screens in a browser launch.
+`showcase/patterns/sign-in` runs the terminal and badge screens in a browser launch.
 
 ## Skills
 

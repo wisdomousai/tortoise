@@ -71,7 +71,7 @@ bun test plugins/android-intents
   - startup refused without the plugin.
 - `packages/shell/test/intents.test.ts` covers intent matching, listening and the instruction checks.
 - `packages/mobile/test/intent-filters.test.ts` covers the config plugin.
-- `examples/asset-survey-field/test/os.test.ts` composes the plugin in an application on a phone: an asset tag intent opens a selectable resource, and a work request starts the maintenance app's package.
+- `showcase/examples/asset-survey-field/test/os.test.ts` composes the plugin in an application on a phone: an asset tag intent opens a selectable resource, and a work request starts the maintenance app's package.
 
 `bun run check` does not compile the Kotlin module.
 

@@ -23,14 +23,14 @@ async function fresh() {
     displayName: 'Field notes',
     collection: 'note',
   });
-  return { target, app: join(target, 'examples/field-notes') };
+  return { target, app: join(target, 'showcase/examples/field-notes') };
 }
 
 const read = (path: string) => readFile(path, 'utf8');
 
 test('new writes one generated application and copies no example', async () => {
   const { target, app } = await fresh();
-  expect(await readdir(join(target, 'examples'))).toEqual(['field-notes']);
+  expect(await readdir(join(target, 'showcase', 'examples'))).toEqual(['field-notes']);
   expect(JSON.parse(await read(join(target, 'app.config.json'))).application).toBe(
     '@field-notes/application',
   );
@@ -38,15 +38,15 @@ test('new writes one generated application and copies no example', async () => {
     '@field-notes/application': 'workspace:*',
   });
   const lock = await read(join(target, 'bun.lock'));
-  expect(lock).toContain('"examples/field-notes": {');
+  expect(lock).toContain('"showcase/examples/field-notes": {');
   expect(lock).toContain('"@field-notes/application": ["@field-notes/application@workspace:');
-  expect(lock).not.toContain('examples/field-service');
+  expect(lock).not.toContain('showcase/examples/field-service');
   // The patterns go too, with their workspace entry and root dependencies.
-  expect(await readdir(target)).not.toContain('patterns');
-  expect(lock).not.toContain('patterns/lab-requests');
+  expect(await readdir(join(target, 'showcase'))).not.toContain('patterns');
+  expect(lock).not.toContain('showcase/patterns/base');
   const root = JSON.parse(await read(join(target, 'package.json')));
-  expect(root.workspaces).not.toContain('patterns/*');
-  expect(root.dependencies).not.toHaveProperty('@agent-native/pattern-lab-requests');
+  expect(root.workspaces).not.toContain('showcase/patterns/*');
+  expect(root.dependencies).not.toHaveProperty('@agent-native/pattern-base');
   for (const path of ['manifest.ts', 'policy.ts', 'contracts/note.ts', 'ui/note.tsx'])
     expect(await read(join(app, path))).not.toContain('{{');
   expect(await read(join(app, 'manifest.ts'))).toContain('title: "Field notes"');
@@ -88,7 +88,7 @@ test('a published-framework export depends on framework versions instead of copy
   expect(await readdir(join(target, 'scripts'))).not.toContain('reviewed-surface.json');
   expect(await readdir(join(target, 'scripts'))).toContain('skills-link.ts');
   const root = JSON.parse(await read(join(target, 'package.json')));
-  expect(root.workspaces).toEqual(['apps/*', 'examples/*']);
+  expect(root.workspaces).toEqual(['apps/*', 'showcase/examples/*']);
   expect(root.dependencies).toMatchObject({
     '@agent-native/kernel': version,
     '@agent-native/site': version,
@@ -119,7 +119,7 @@ test('add extends the application at its markers and refuses to overwrite a part
     { kind: 'capability', id: 'note.archive', operationKind: 'command', description: 'Archive.' },
     { root: target },
   );
-  expect(added).toMatchObject({ directory: 'examples/field-notes' });
+  expect(added).toMatchObject({ directory: 'showcase/examples/field-notes' });
   expect(added.written).toContain('contracts/note-archive.ts');
   await scaffoldAdd({ kind: 'collection', name: 'site', tree: true }, { root: target });
   const sites = await read(join(app, 'contracts/site.ts'));
@@ -253,7 +253,7 @@ test('add extends the application at its markers and refuses to overwrite a part
 
 test('add refuses an application that was not generated', async () => {
   const { target } = await fresh();
-  await rm(join(target, 'examples/field-notes/policy.ts'));
+  await rm(join(target, 'showcase/examples/field-notes/policy.ts'));
   await expect(scaffoldAdd({ kind: 'collection', name: 'site' }, { root: target })).rejects.toThrow(
     'was not created by scaffold new',
   );
@@ -279,27 +279,27 @@ test('the workspace goes into each lockfile section in code-point order', () => 
     '        "@z/x": "workspace:*",',
     '      },',
     '    },',
-    '    "examples/a": {',
+    '    "showcase/examples/a": {',
     '      "name": "@a/x",',
     '    },',
     '  },',
     '  "packages": {',
-    '    "@a/x": ["@a/x@workspace:examples/a"],',
+    '    "@a/x": ["@a/x@workspace:showcase/examples/a"],',
     '',
     '    "@z/x": ["@z/x@workspace:packages/z"],',
     '  }',
     '}',
   ].join('\n');
   const next = addWorkspace(lock, {
-    directory: 'examples/m',
+    directory: 'showcase/examples/m',
     packageName: '@m/application',
     files: {},
   }).split('\n');
   const at = (text: string) => next.findIndex((line) => line.includes(text));
   expect(at('"@a/x": "workspace')).toBeLessThan(at('"@m/application": "workspace'));
   expect(at('"@m/application": "workspace')).toBeLessThan(at('"@z/x": "workspace'));
-  expect(at('"examples/a": {')).toBeLessThan(at('"examples/m": {'));
-  expect(at('"@m/application": ["@m/application@workspace:examples/m"]')).toBeLessThan(
+  expect(at('"showcase/examples/a": {')).toBeLessThan(at('"showcase/examples/m": {'));
+  expect(at('"@m/application": ["@m/application@workspace:showcase/examples/m"]')).toBeLessThan(
     at('"@z/x": ['),
   );
 });
@@ -365,7 +365,7 @@ acceptance(
       await run(['bun', 'run', 'scaffold', 'add', 'target', 'ledger', '--collection', 'note']);
       await run(['bun', 'run', 'format']);
       await run(['bun', 'run', 'check']);
-      await run(['bunx', 'playwright', 'test', 'examples/field-notes']);
+      await run(['bunx', 'playwright', 'test', 'showcase/examples/field-notes']);
     } finally {
       await registry.stop();
     }
@@ -411,8 +411,8 @@ acceptance(
     await run([...cli, 'feature', 'stock', '--screens']);
     for (const script of ['format', 'generate', 'typecheck', 'build'])
       await run(['bun', 'run', script]);
-    await run(['bun', 'test', 'examples/field-notes']);
-    await run(['bunx', 'playwright', 'test', 'examples/field-notes']);
+    await run(['bun', 'test', 'showcase/examples/field-notes']);
+    await run(['bunx', 'playwright', 'test', 'showcase/examples/field-notes']);
   },
   600_000,
 );

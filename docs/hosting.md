@@ -116,17 +116,17 @@ The health screen lists sites in any of these states:
 - a staged release other than their channel's release;
 - a build past its best-before date.
 
-Its thresholds are constants in `examples/fleet/handlers/sites.ts`.
+Its thresholds are constants in `showcase/examples/fleet/handlers/sites.ts`.
 
 `site.remove` deletes a decommissioned site's record and its relay requests and keeps the audit events it forwarded. It needs an operator who is a person. A site whose device link still works adds itself again with its next report, so the device is revoked first.
 
 A relay request's headers and body are stored only while it waits, are never listed, and are dropped when the site takes the request. The take command's [receipt](glossary.md#receipt) still keeps the returned request, headers included, for replays with the same [idempotency key](glossary.md#idempotency-key), so pass short-lived site sessions.
 
-`bun test examples/fleet` runs these tests:
+`bun test showcase/examples/fleet` runs these tests:
 
-- `examples/fleet/test/fleet.test.ts` runs the fleet with one or two plant instances on the real fleet agent. It covers the health screen, a build past its best-before date, removing a site, release channels, a release whose blobs are not exactly its files, a forged audit event that stops collection, the protocol's per-site scope and the relay.
-- `examples/fleet/test/ui-bindings.test.ts` checks that every bound capability is on a screen.
-- `examples/fleet/e2e/fleet.pw.ts` runs the real host in a browser, from enrollment to release drift on the health screen.
+- `showcase/examples/fleet/test/fleet.test.ts` runs the fleet with one or two plant instances on the real fleet agent. It covers the health screen, a build past its best-before date, removing a site, release channels, a release whose blobs are not exactly its files, a forged audit event that stops collection, the protocol's per-site scope and the relay.
+- `showcase/examples/fleet/test/ui-bindings.test.ts` checks that every bound capability is on a screen.
+- `showcase/examples/fleet/e2e/fleet.pw.ts` runs the real host in a browser, from enrollment to release drift on the health screen.
 
 ### Site setup
 
@@ -150,7 +150,7 @@ A fleet attaches a release's files to a resource the site's policy lets it read,
 2. Call `release.publish`. Its `release` holds the ID, the version, the parsed `bundle.json` as `manifest` and the parsed `bundle.sig` as `signature`, and `files` holds the returned blob references.
 3. Call `channel.assign` to point a channel at the release.
 
-To test a fleet against real sites, compose `fleetNetworkFixture` from `@agent-native/fleet-agent/testing` in place of the network plugin. The test supplies the function that reaches the fleet, as `examples/fleet/test/site.ts` does, and can fail, drop or change responses there.
+To test a fleet against real sites, compose `fleetNetworkFixture` from `@agent-native/fleet-agent/testing` in place of the network plugin. The test supplies the function that reaches the fleet, as `showcase/examples/fleet/test/site.ts` does, and can fail, drop or change responses there.
 
 ## References
 
@@ -163,5 +163,5 @@ To test a fleet against real sites, compose `fleetNetworkFixture` from `@agent-n
 - [Architecture](architecture.md#instances-and-hosts)
 - [deploy-to-site](../plugins/site/skills/deploy-to-site/SKILL.md)
 - [Adapters](adapters.md#storage)
-- [`examples/fleet`](../examples/fleet/README.md)
+- [`showcase/examples/fleet`](../showcase/examples/fleet/README.md)
 - [connect-a-site-to-a-fleet](../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md)

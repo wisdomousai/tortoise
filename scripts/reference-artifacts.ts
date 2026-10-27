@@ -34,7 +34,7 @@ export async function applications(): Promise<ApplicationManifest[]> {
   const found = new Map<string, ApplicationManifest>();
   const configured = await loadManifest(config);
   found.set(configured.id, configured);
-  for (const layer of ['examples', 'patterns'])
+  for (const layer of ['showcase/examples', 'showcase/patterns'])
     for (const entry of await readdir(join(root, layer), { withFileTypes: true }).catch(() => []))
       if (
         entry.isDirectory() &&

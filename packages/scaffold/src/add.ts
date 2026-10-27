@@ -42,14 +42,16 @@ async function hostedDirectory(root: string): Promise<string> {
   const config = JSON.parse(await readFile(join(root, 'app.config.json'), 'utf8')) as {
     application?: string;
   };
-  for (const entry of await readdir(join(root, 'examples'), { withFileTypes: true })) {
+  for (const entry of await readdir(join(root, 'showcase', 'examples'), { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const manifest = join(root, 'examples', entry.name, 'package.json');
+    const manifest = join(root, 'showcase', 'examples', entry.name, 'package.json');
     if (!(await exists(manifest))) continue;
     if (JSON.parse(await readFile(manifest, 'utf8')).name === config.application)
-      return join(root, 'examples', entry.name);
+      return join(root, 'showcase', 'examples', entry.name);
   }
-  throw new Error(`No examples/* workspace is the hosted application ${config.application}`);
+  throw new Error(
+    `No showcase/examples/* workspace is the hosted application ${config.application}`,
+  );
 }
 
 /** The names an application was generated with, read back from its manifest. */

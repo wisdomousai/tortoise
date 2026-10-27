@@ -1,6 +1,6 @@
 /**
  * Keeps workspace READMEs reachable and their links working. For every workspace in
- * `packages/*`, `workstations/*`, `plugins/*`, `apps/*`, `examples/*`, `patterns/*` and `sdks/*` it fails when `README.md` is missing or
+ * `packages/*`, `workstations/*`, `plugins/*`, `apps/*`, `showcase/examples/*`, `showcase/patterns/*` and `sdks/*` it fails when `README.md` is missing or
  * its title is not the package name, or when a relative link points at a missing file or a
  * missing heading in a Markdown file. What a README says, and how it is organized, is left to
  * its author. Reads files only; writes nothing.
@@ -17,7 +17,15 @@ interface Manifest {
 
 const errors: string[] = [];
 const workspaces: string[] = [];
-for (const layer of ['packages', 'workstations', 'plugins', 'apps', 'examples', 'patterns', 'sdks'])
+for (const layer of [
+  'packages',
+  'workstations',
+  'plugins',
+  'apps',
+  'showcase/examples',
+  'showcase/patterns',
+  'sdks',
+])
   for (const entry of existsSync(resolve(root, layer))
     ? readdirSync(resolve(root, layer), { withFileTypes: true })
     : [])
