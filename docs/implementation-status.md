@@ -179,11 +179,15 @@ The runs found these defects, now fixed and covered by deterministic tests:
 - `expectedRevisions` was offered on queries and `approval.request`, where it means nothing, and models filled it with invented keys.
 - The egress guard's 30-second request timeout cut off a model that reasons before it answers. A destination binding now takes `timeoutMs`.
 
+On 27 October 2026, `samples/lab-requests-local-model/test/live.test.ts` passed once, in 75 seconds, on the same machine, server and weights. A submitted test request started the method suggester through its trigger on the measured `lab-methods` entry. For the description "Tensile strength of the weld coupon", the model requested approval for `test-request.update` with the method `ASTM E8`. The request's input repeated the unchanged specimen and description. Its `baseRevisions` key was the bare ID wrapped in Gemma's `<|"|>` string tokens, not `test-request:<id>`. `approval.request` accepted that key, and the live run did not decide the request. Closing the host during the run's last model turn logged an `ECONNRESET` from the cancelled call.
+
 Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these fixes, and was not rerun after them. No vLLM and no fine-tune has run. Weights are not yet delivered as bundle artifacts.
 
 **Agent scenarios, live.** Gemma 4 E4B-it Q4_0 on llama-server 0.7.0 passed the model server's `requests approval for a note on a real model`, described above. The [agent scenarios](glossary.md#agent-scenario) in `packages/testing` and `examples/receiving` have passed with the deterministic harness only.
 
 **By hand, browser.** On 22 October 2026, `samples/notes-agents`, which `samples/lab-requests-agents` replaced, ran with `bun run dev:web` in Chrome on macOS. On an untitled note, **Suggest a title (offline run)** started a deterministic run from the note screen's UI session. The run requested approval for `note.update` and called `ui.request-review` naming the approval request. The screen showed the review above the pending suggestion; acknowledging closed it, and approving set the title on the open screen. The run's `ui.open` named the note already open, so no navigation was shown. `packages/frame/src/lib/ui-intents.test.ts` shows that an open intent reaches the open handler, and no test covers the default handler's navigation through `screens.resources`.
+
+On 27 October 2026, `samples/lab-requests-local-model` ran with `bun run dev:web` in Chrome on macOS, on the llama-server stand-in that `dev.ts` starts. After the trigger was enabled on the automation screen, a test request submitted without a method showed the suggested method "ASTM E8 tensile test" on its screen. Approving it set the method.
 
 ### Execution host
 

@@ -1,0 +1,1 @@
+Stand-in weights for the lab requests local model sample. The llama-server stand-in loads any file; the model server measures this one against the lab-methods entry.

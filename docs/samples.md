@@ -36,6 +36,7 @@ An extension sample composes the base in each entrypoint:
 | `lab-requests-operations` | 4354 | A versioned state migration and telemetry on a site | `StateMigrations`, the site, network, audit and telemetry plugins |
 | `lab-requests-review` | 4355 | A four-eyes review of a test request, written as a feature with an access view and hooks | `defineFeatureManifest`, `defineFeature`, `mountFeature`, `defineFeatureScreens`, `featureConformance` |
 | `lab-requests-signals` | 4356 | Climate chamber temperature over OPC UA and humidity from Sparkplug B edge nodes, recorded through an ingest command | `opcUaServer`, `mqttBroker`, `createOpcUaObserver`, `createMqttObserver`, the site, network and audit plugins |
+| `lab-requests-local-model` | 4357 | The method suggester run by a trigger on a measured local model, a dataset of decided suggestions and a gated fine-tune | `defineModelEntry`, `createModelServer`, `createAutomationPlugin`, `exportApprovalDataset`, `gateModel` |
 
 Each sample's README lists its files, its trust boundary and one line per test file.
 
@@ -55,11 +56,11 @@ bun test samples/lab-requests-agents/
 bun test samples
 ```
 
-A sample with a `dev.ts` starts its fake system or seeds records first. `lab-requests-system-of-record` starts a fake LIMS on port 4371. `lab-requests-operations` starts the collector stand-in from `@agent-native/telemetry/testing` on port 4318 when no OpenTelemetry Collector listens there. `lab-requests-review` submits one request as a second technician, so the local owner has a request to review. `lab-requests-signals` starts an OPC UA gateway on port 4374 and an MQTT broker on port 4373 for its climate chambers.
+A sample with a `dev.ts` starts its fake system or seeds records first. `lab-requests-system-of-record` starts a fake LIMS on port 4371. `lab-requests-operations` starts the collector stand-in from `@agent-native/telemetry/testing` on port 4318 when no OpenTelemetry Collector listens there. `lab-requests-review` submits one request as a second technician, so the local owner has a request to review. `lab-requests-signals` starts an OPC UA gateway on port 4374 and an MQTT broker on port 4373 for its climate chambers. `lab-requests-local-model` binds its model server to port 4375 and runs the llama-server stand-in, or llama-server itself when `LOCAL_MODEL_GGUF` names weights.
 
 ## Limits
 
-- No sample serves a local model or runs agent tools in the execution host. The model-server stand-in is exported only from that plugin's tests, and the execution host runs only on Linux with bubblewrap.
+- No sample runs agent tools in the execution host, which runs only on Linux with bubblewrap.
 - The samples have no Playwright specs. `bun run check` runs their behavioral and UI-binding tests.
 
 ## References
@@ -71,5 +72,6 @@ A sample with a `dev.ts` starts its fake system or seeds records first. `lab-req
 - [Lab requests operations](../samples/lab-requests-operations/README.md)
 - [Lab requests review](../samples/lab-requests-review/README.md)
 - [Lab requests signals](../samples/lab-requests-signals/README.md)
+- [Lab requests local model](../samples/lab-requests-local-model/README.md)
 - [Architecture](architecture.md)
 - [Capability authoring](capability-authoring.md)

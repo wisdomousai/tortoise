@@ -55,6 +55,7 @@
         "@agent-native/sample-lab-requests": "workspace:*",
         "@agent-native/sample-lab-requests-agents": "workspace:*",
         "@agent-native/sample-lab-requests-host-plugin": "workspace:*",
+        "@agent-native/sample-lab-requests-local-model": "workspace:*",
         "@agent-native/sample-lab-requests-operations": "workspace:*",
         "@agent-native/sample-lab-requests-review": "workspace:*",
         "@agent-native/sample-lab-requests-signals": "workspace:*",
@@ -812,6 +813,10 @@
       "name": "@agent-native/sample-lab-requests-host-plugin",
       "version": "0.1.0",
     },
+    "samples/lab-requests-local-model": {
+      "name": "@agent-native/sample-lab-requests-local-model",
+      "version": "0.1.0",
+    },
     "samples/lab-requests-operations": {
       "name": "@agent-native/sample-lab-requests-operations",
       "version": "0.1.0",
@@ -973,6 +978,8 @@
     "@agent-native/sample-lab-requests-agents": ["@agent-native/sample-lab-requests-agents@workspace:samples/lab-requests-agents"],
 
     "@agent-native/sample-lab-requests-host-plugin": ["@agent-native/sample-lab-requests-host-plugin@workspace:samples/lab-requests-host-plugin"],
+
+    "@agent-native/sample-lab-requests-local-model": ["@agent-native/sample-lab-requests-local-model@workspace:samples/lab-requests-local-model"],
 
     "@agent-native/sample-lab-requests-operations": ["@agent-native/sample-lab-requests-operations@workspace:samples/lab-requests-operations"],
 

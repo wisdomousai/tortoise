@@ -129,6 +129,7 @@
     "@agent-native/sample-lab-requests": "workspace:*",
     "@agent-native/sample-lab-requests-agents": "workspace:*",
     "@agent-native/sample-lab-requests-host-plugin": "workspace:*",
+    "@agent-native/sample-lab-requests-local-model": "workspace:*",
     "@agent-native/sample-lab-requests-operations": "workspace:*",
     "@agent-native/sample-lab-requests-review": "workspace:*",
     "@agent-native/sample-lab-requests-signals": "workspace:*",
