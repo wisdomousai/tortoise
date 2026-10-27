@@ -4,7 +4,7 @@
 
 Global process change is slow, so a site builds software for one task at one place. Such an application runs at the edge in two senses: at the last step before the physical work, and far from corporate IT governance, where software becomes shadow IT. It costs little to build, pays back quickly and is removed once it stops paying. A single-user application on the expert's own machine responds at once, works without a network, and composes with the other programs there, including the control software that runs equipment. Agent harnesses such as Claude Code and Codex run on the same machine and act through its CLIs and MCP servers.
 
-Tortoise is a reference architecture and [framework](docs/glossary.md#framework) for agent-native, hyper-specialized applications for the edge workforce. The framework is the part under active maintenance; each application built on it serves one task for a limited time. People and agents operate each application together. An application declares what it reaches, records what it does in an audit log and delivers its work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES. Each build carries a [best-before date](docs/glossary.md#best-before-date).
+Tortoise is a reference architecture and [framework](docs/glossary.md#framework) for agent-native applications that each serve one task for frontline workers. The framework is the part under active maintenance; each application built on it serves one task for a limited time. People and agents operate each application together. An application declares what it reaches, records what it does in an audit log and delivers its work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES. Each build carries a [best-before date](docs/glossary.md#best-before-date).
 
 ## Name
 
@@ -17,7 +17,7 @@ Tortoise is named for the animal:
 
 ## Capabilities and surfaces
 
-Each [command](docs/glossary.md#command) or [query](docs/glossary.md#query) is declared once as a [capability](docs/glossary.md#capability). The composed [catalog](docs/glossary.md#catalog) drives HTTP, MCP, the CLI and typed React calls from the [screens](docs/glossary.md#screen). Each of these is a [surface](docs/glossary.md#surface). The [generators](docs/glossary.md#generator) read the same catalog to write the reference documents.
+Each [command](docs/glossary.md#command) or [query](docs/glossary.md#query) is declared once as a [capability](docs/glossary.md#capability). HTTP, MCP, the CLI and the typed React calls from the [screens](docs/glossary.md#screen) are generated from the composed [catalog](docs/glossary.md#catalog). Each of these is a [surface](docs/glossary.md#surface). The [generators](docs/glossary.md#generator) read the same catalog to write the reference documents.
 
 People, agents, scripts and devices call the same capabilities with the same validation and authorization. A change committed through any surface reaches every open screen through the [journal](docs/glossary.md#journal).
 

@@ -4,7 +4,7 @@ An application observes and controls equipment through a driver process. A drive
 
 ## Concepts
 
-Terms: [driver](glossary.md#driver), [driver contract](glossary.md#driver-contract), [driver SDK](glossary.md#driver-sdk), [delivery mode](glossary.md#delivery-mode), [hazard class](glossary.md#hazard-class) and [gated actuator](glossary.md#gated-actuator).
+Terms: [driver](glossary.md#driver), [driver contract](glossary.md#driver-contract), [driver SDK](glossary.md#driver-sdk), [delivery mode](glossary.md#delivery-mode), [risk level](glossary.md#risk-level) and [interlock](glossary.md#interlock).
 
 ## Driver processes
 
@@ -27,7 +27,7 @@ The driver plugin's manifest declares each driver's process as a [requirement de
 
 The host and the driver exchange JSON-RPC 2.0 messages, one per line, over the driver's standard input and output. The host drains the driver's standard error and never shows it.
 
-| Method | Sent by | Request | Answer |
+| Method | Sent by | Request | Response |
 | --- | --- | --- | --- |
 | `initialize` | host | Protocol version, expected contract digest, host configuration and bridge mode | Driver ID and version, the digest, a session ID and its units |
 | `state.read` | host | Field names | Values, optional confidence per field, and the read time |
@@ -46,62 +46,62 @@ A driver error carries a kind, which decides what happens to the [outbox effect]
 
 | Kind | Meaning | Outcome for the effect |
 | --- | --- | --- |
-| `rejected` | The equipment refused, and retrying will not help. | Settled as a business rejection with the driver's code. |
-| `precondition` | The equipment is not in a state to do it now. | Settled as a business rejection. |
+| `rejected` | The equipment refused, and retrying will not help. | Completed as a business rejection with the driver's code. |
+| `precondition` | The equipment is not in a state to do it now. | Completed as a business rejection. |
 | `transient` | Nothing was done, and a retry may succeed. | Retried with backoff. |
 | `uncertain` | The equipment may have acted. | Held for a person to reconcile. |
 | `refused` | The bridge mode or the driver's own rules forbid the action. | Retried, so the effect waits until the mode or the rules allow the action. |
 
-An action in flight when the driver exits, times out or is cancelled fails transiently, as does a malformed answer. Before the [dispatcher](glossary.md#dispatcher) sends that effect again, the action's delivery mode decides whether the earlier attempt took effect.
+An action in flight when the driver exits, times out or is cancelled fails transiently, as does a malformed response. Before the [dispatcher](glossary.md#dispatcher) sends that effect again, the action's delivery mode decides whether the earlier attempt took effect.
 
 ## Driver contract
 
 A driver contract is browser-safe data written with `defineDriverContract` in the application. It declares:
 
 - state fields, with type, options, decimals, unit, minimum confidence and the number of agreeing reads that make a value stable;
-- actions, each with an input schema, a delivery mode, a hazard class, a timeout, and optionally preconditions and a readback on state;
+- actions, each with an input schema, a delivery mode, a risk level, a timeout, and optionally preconditions and a readback on state;
 - events, each with a kind (telemetry, occurrence or progress) and a maximum rate;
 - the `control` field that shows when the operator works the equipment locally;
-- whether the driver answers lookups;
+- whether the driver supports lookups;
 - the process the driver runs as, with its devices and network destinations.
 
 A convergent action needs a readback, and a `once` action needs a driver with lookup.
 
-`app driver contract <id>` writes the contract document and its digest as JSON. The digest is the SHA-256 of the document's canonical JSON. The SDK stub generators recompute the digest, refuse a file that does not match, and write the digest into the driver. The handshake refuses a driver that answers with another digest, so a driver built against an older contract does not run.
+`app driver contract <id>` writes the contract document and its digest as JSON. The digest is the SHA-256 of the document's canonical JSON. The SDK stub generators recompute the digest, refuse a file that does not match, and write the digest into the driver. The handshake refuses a driver that replies with another digest, so a driver built against an older contract does not run.
 
 ### Delivery modes
 
 - **`idempotent`:** the driver deduplicates by effect ID, so a resend is safe.
 - **`convergent`:** the host reads the readback first and accepts without acting when it already holds. After acting, it accepts once the readback holds across the fields' stable reads.
-- **`once`:** the driver records each effect in a journal before acting and answers `action.lookup` from it. After a lost reply, the dispatcher asks before sending again.
+- **`once`:** the driver records each effect in a journal before acting and responds to `action.lookup` from it. After a lost reply, the dispatcher asks before sending again.
 
 After a lost reply to a convergent action, the host reads back. It accepts a result the equipment shows, and otherwise holds the effect unless it knows it never acted. A person who [reconciles](glossary.md#reconciliation) a held convergent effect as not applied releases it, and the next delivery acts again.
 
-A `once` journal entry that started and has no outcome answers `uncertain`, which holds the effect.
+A lookup of a `once` journal entry that started and has no outcome returns `uncertain`, which holds the effect.
 
-## Gate
+## Interlock
 
-Driver actions pass the same gate as the screen bridge's procedures, which makes the driver connector a gated actuator. The connector checks each effect in this order:
+Driver actions pass the same interlock as the screen bridge's procedures. The connector checks each effect in this order:
 
 1. It rejects an unknown action, invalid input, or an `operator-present` action whose input lacks a confirmation that a person is at the machine.
-2. The [bridge mode](glossary.md#bridge-mode) must allow the hazard class: `monitor-only` refuses every action, `assist` allows only `none`, and `actuate` allows all. Otherwise the effect waits.
+2. The [bridge mode](glossary.md#bridge-mode) must allow the risk level: `monitor-only` refuses every action, `assist` allows only `none`, and `actuate` allows all. Otherwise the effect waits.
 3. It accepts without acting when the readback already holds.
 4. While the `control` field shows local control, it sends nothing, and the effect waits.
 5. Unmet preconditions reject the effect, and preconditions it cannot read with confidence make the effect wait.
 
-The application's control query supplies the bridge mode for each action. It can also refuse delivery for its own reasons; `examples/line-station` refuses while the operator holds the station [seat](glossary.md#seat).
+The application's control query supplies the bridge mode for each action. It can also refuse delivery for its own reasons; `examples/line-station` refuses while the operator holds [control](glossary.md#control-holder) of the station.
 
-A driver starts in `monitor-only` at its handshake. The mode travels with every `action.invoke`, and the SDKs check mode and presence again inside the driver. `plugins/connector-driver/test/driver.test.ts` covers mode refusal on both sides and the operator confirmation.
+A driver starts in `monitor-only` at its handshake. Every `action.invoke` carries the mode, and the SDKs check mode and presence again inside the driver. `plugins/connector-driver/test/driver.test.ts` covers mode refusal on both sides and the operator confirmation.
 
 ## Timing and rates
 
 The framework is not real-time. Timing-critical loops stay in the driver or the controller below it: closed-loop control, motion profiles, anything under a second. To the framework such a routine is one action. An interrupted run is held unless its delivery mode can show the outcome. Supervisory sequences, with steps of seconds or longer and operator checkpoints, are separate actions that the dispatcher sends one at a time.
 
-Every committed observation is a command, with a row write, a receipt and a journal entry. The observer submits a state value only after its stability gate, and resends unchanged content once per heartbeat window. The SDKs drop events above their declared rate before they get a sequence number, so the host sees no gap. High-rate data stays in the driver or goes to a historian.
+Every committed observation is a command, with a row write, a receipt and a journal entry. The observer submits a state value only after it is debounced, and resends unchanged content once per heartbeat window. The SDKs drop events above their declared rate before they get a sequence number, so the host sees no gap. High-rate data stays in the driver or goes to a historian.
 
 ## Driver SDKs
 
-The [Python SDK](../sdks/driver-python/README.md) and the [.NET SDK](../sdks/driver-dotnet/README.md) answer the protocol, and the driver author writes the handlers that touch the equipment. Both enforce the same rules:
+The [Python SDK](../sdks/driver-python/README.md) and the [.NET SDK](../sdks/driver-dotnet/README.md) implement the protocol, and the driver author writes the handlers that touch the equipment. Both enforce the same rules:
 
 - **Mode:** the bridge mode and the presence confirmation are checked before a handler runs.
 - **Deadline:** an expired action is refused as transient without running.

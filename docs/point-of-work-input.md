@@ -15,7 +15,7 @@ Terms: [scanner profiles](glossary.md#scanner-profile), [input sources](glossary
 
 - **No precision gestures.** Drag, double-tap, long text entry, small close buttons, hover-only affordances and swipes fail with gloves. Targets follow the operator size tokens, which are larger at glove density.
 - **Scanner and keypad first.** A task should work with a scanner, a numeric keypad or a pedal mapped to keys. Touch is the fallback, and typing is the last resort.
-- **Fixed layout.** The screen shows the operator and the station at the top, then station signals, the current task, what needs a person, and seat control. The layout stays fixed during a press.
+- **Fixed layout.** The screen shows the operator and the station at the top, then station signals, the current task, what needs a person, and screen control. The layout stays fixed during a press.
 - **Hold to confirm.** Starting an order, confirming counts or reporting that a held procedure took effect takes a hold instead of a tap. The hold cancels when the finger slides off.
 - **Tap guard.** A tap guard ignores double taps, taps during scroll or layout shift, and taps while a request is pending.
 - **Icon plus text.** State is readable from 1 to 2 m, and color is never the only signal. Observed values show their age and confidence.

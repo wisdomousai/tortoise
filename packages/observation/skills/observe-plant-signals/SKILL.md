@@ -1,6 +1,6 @@
 ---
 name: observe-plant-signals
-description: Read values from plant control systems into an agent-native application as gated readings, through an MQTT broker (plain topics or Sparkplug B) or an OPC UA server. Use when a module needs machine state, counters or process values that only a broker or controller gateway has, when writing an ingest command for such readings, or when binding a broker or OPC UA server in a deployment policy. Covers packages/observation, plugins/connector-mqtt and plugins/connector-opcua.
+description: Read values from plant control systems into an agent-native application as debounced readings, through an MQTT broker (plain topics or Sparkplug B) or an OPC UA server. Use when a module needs machine state, counters or process values that only a broker or controller gateway has, when writing an ingest command for such readings, or when binding a broker or OPC UA server in a deployment policy. Covers packages/observation, plugins/connector-mqtt and plugins/connector-opcua.
 ---
 
 # Observe plant signals
@@ -13,7 +13,7 @@ A broker or an OPC UA server is a source that can be read but not queried for hi
   - a Sparkplug group, node, optional device and metric;
   - a plain topic and JSON pointer;
   - an OPC UA node ID such as `ns=2;s=Press.Temperature`.
-- Decide what an `uncertain` reading means in the domain. A stale Sparkplug value, an uncertain or bad OPC UA status, and a lost connection all arrive as `uncertain`. Route them to a person, not to a record.
+- Decide what an `uncertain` reading means in the domain. A stale Sparkplug value, an uncertain or bad OPC UA status, and a lost connection are all ingested as `uncertain`. Route them to a person, not to a record.
 - `patterns/lab-requests-signals` reads climate chamber temperature over OPC UA and humidity from Sparkplug B edge nodes into one ingest command, and shows the steps below in a running application.
 - Both connectors only read. A write to a controller is a declared procedure with readback, which these connectors do not offer. For actions on equipment, see the `write-hardware-driver` skill (`plugins/connector-driver/skills/write-hardware-driver/SKILL.md`).
 

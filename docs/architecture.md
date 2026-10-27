@@ -39,7 +39,7 @@ Every surface calls the same instance.
 
 | Surface | Entry | Identity |
 | --- | --- | --- |
-| HTTP | `/api/v1/commands/<id>`, `/api/v1/queries/<id>`, `/api/v1/blobs` | Browser: a one-time [launch exchange](glossary.md#launch-exchange), then an HttpOnly cookie. Process: a bearer token the host issues. |
+| HTTP | `/api/v1/commands/<id>`, `/api/v1/queries/<id>`, `/api/v1/blobs` | Browser: a one-time [launch key exchange](glossary.md#launch-key-exchange), then an HttpOnly cookie. Process: a bearer token the host issues. |
 | Live updates | `/api/v1/events` (SSE) | The same session, filtered by current read access. |
 | MCP | stdio, one tool per [capability](glossary.md#capability) (`task.create` becomes `task_create`) | A [connection file](glossary.md#connection-file) in [attached mode](#embedded-and-attached-modes), a [grant file](glossary.md#grant-file) in [embedded mode](#embedded-and-attached-modes). |
 | CLI | Subcommands generated from the catalog | A connection file in attached mode, a grant file in embedded mode. |
@@ -121,7 +121,7 @@ A replacement adapter passes the storage conformance suite in `packages/testing`
 
 A [system of record](glossary.md#system-of-record) owns records the application reads or changes, and decides what it accepts. It cannot join the application's transaction. The application reaches it through a target and the target's [connector](glossary.md#connector).
 
-A command commits an [outbox effect](glossary.md#effect) with its [receipt](glossary.md#receipt). The dispatcher delivers the effect outside the transaction, at least once. It relies on the system of record's idempotency or on a lookup, and a settle command records the outcome. The effect's phase keeps accepted, rejected and held outcomes apart.
+A command commits an [outbox effect](glossary.md#effect) with its [receipt](glossary.md#receipt). The dispatcher delivers the effect outside the transaction, at least once. It relies on the system of record's idempotency or on a lookup, and a complete command records the outcome. The effect's phase keeps accepted, rejected and held outcomes apart.
 
 Inbound sync imports changes through ordinary commands. No transaction spans two systems.
 
@@ -215,7 +215,7 @@ Startup refuses the composition in these cases:
 - **line-station** mounts `approval` and `device`.
 - **asset-survey** mounts `assignment` and `approval`.
 
-Each answers the access views from its own roles in `policy.ts`, repeating the membership gate its application policy applies, and adopted the data its version 1 state kept.
+Each implements the access views from its own roles in `policy.ts`, repeating the membership gate its application policy applies, and adopted the data its version 1 state kept.
 
 ### Telemetry
 
@@ -283,12 +283,12 @@ Each [example](glossary.md#example) is an application under `examples/` and serv
 | --- | --- | --- |
 | [`field-service`](../examples/field-service/README.md) | Work orders with dispatcher, technician and customer roles, field projection, revisions, live updates, a deterministic agent, OS handlers and actions, and a webhook for the customer portal, with no system of record. The fixture for the transport, storage and security conformance suites. | site, network, audit, compliance, os, share-target, notifications, os-shortcuts, webhook |
 | [`quality-inspection`](../examples/quality-inspection/README.md) | Outbox delivery and inbound sync against a fake quality system, keyboard capture and an instrument driver. The CLI and MCP run under a grant file in a stripped environment, from source or as the compiled binary. | site, network, audit, compliance, process, connector-driver |
-| [`line-station`](../examples/line-station/README.md) | A workstation application driven through its screen as an outbox connector, MES sync, scanner routing and held effects ([operator workstations](operator-workstations.md)). | site, network, process, audit, compliance, automation, connector-driver |
-| [`crm-capture`](../examples/crm-capture/README.md) | Remote queries of a fake CRM with each caller's own access, adoption through the outbox and the CRM's feed, and an unreachable CRM shown as a status. | site, network, audit, compliance |
+| [`line-station`](../examples/line-station/README.md) | A workstation application operated through its screen as an outbox connector, MES sync, scanner routing and held effects ([operator workstations](operator-workstations.md)). | site, network, process, audit, compliance, automation, connector-driver |
+| [`crm-capture`](../examples/crm-capture/README.md) | Remote queries of a fake CRM with each caller's own access, follow requests through the outbox and the CRM's feed, and an unreachable CRM shown as a status. | site, network, audit, compliance |
 | [`asset-survey`](../examples/asset-survey/README.md) | A site structure under reference designations, assignments for paired phones, model extraction from photos with review, and filing into a fake EAM. Blobs, [device link](glossary.md#device-link) pairing and a compact tablet screen. | site, network, process, audit, compliance, device-link |
-| [`receiving`](../examples/receiving/README.md) | Goods receiving against an ERP through files: notices arrive in an inbox folder, and receipts are posted as files and settled from receipt files. An agent requests approval for discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and approval requests. | site, network, audit, compliance |
+| [`receiving`](../examples/receiving/README.md) | Goods receiving against an ERP through files: notices are read from an inbox folder, and receipts are posted as files and completed from receipt files. An agent requests approval for discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and approval requests. | site, network, audit, compliance |
 | [`fleet`](../examples/fleet/README.md) | The [fleet](hosting.md#fleet) that site instances report to: enrollment through device link, signed releases on channels, a health screen, audit events checked against each site's hash chain, and relayed remote access. Runs on a site host or as a hosted instance. | site, network, audit, device-link |
-| [`asset-survey-field`](../examples/asset-survey-field/README.md) | The phone side of the survey on the [mobile host](mobile.md): offline capture with photos and scans, delivered to the [hub](glossary.md#hub) through the peer connector, and assignments received through the hub's feed. Asset tags arrive as Android intents, work requests leave as intents, captures are shared and new assignments are announced as notifications. | hub-link, os, share-target, notifications, android-intents, managed-config, intent-scanner |
+| [`asset-survey-field`](../examples/asset-survey-field/README.md) | The phone side of the survey on the [mobile host](mobile.md): offline capture with photos and scans, delivered to the [hub](glossary.md#hub) through the peer connector, and assignments received through the hub's feed. Asset tags are received as Android intents, work requests leave as intents, captures are shared and new assignments are announced as notifications. | hub-link, os, share-target, notifications, android-intents, managed-config, intent-scanner |
 
 ## References
 

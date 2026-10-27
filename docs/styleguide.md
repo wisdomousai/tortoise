@@ -41,7 +41,7 @@ A guide in `docs/` explains one topic. Sections, in order, each present when it 
 
 1. First paragraph: what the subject is and does, stated directly.
 2. Concepts: optional. One line, `Terms:` followed by links to the [glossary](glossary.md) entries for the terms the page defines, with no definitions. Other terms link to the glossary at their first use in the text.
-3. Mechanism: how the code does it, in the order a request or a record travels.
+3. Mechanism: how the code does it, in the order the code handles a request or a record.
 4. Use: the commands that apply the mechanism.
 5. Limits: what the code does not do at all. A caveat about one mechanism stays with that mechanism.
 6. References.
@@ -105,20 +105,20 @@ After:
 
 Before:
 
-> The dispatcher claims queued, retrying and upstream effects, delivers each through the connector outside any transaction, retries a transient failure after backoff, and holds an effect when the target may have acted.
+> The dispatcher claims queued, retrying and acknowledged effects, delivers each through the connector outside any transaction, retries a transient failure after backoff, and holds an effect when the target may have acted.
 
 After:
 
 > The dispatcher:
 >
-> 1. claims queued, retrying and upstream effects;
+> 1. claims queued, retrying and acknowledged effects;
 > 2. delivers each through the connector, outside any transaction;
 > 3. retries a transient failure after backoff;
 > 4. holds an effect when the target may have acted.
 
 ## Headings
 
-- A heading is a noun phrase of at most six words, in sentence case: "Outbox and settlement", "Trust boundary", "Tests".
+- A heading is a noun phrase of at most six words, in sentence case: "Outbox and completion", "Trust boundary", "Tests".
 - A heading has no count, contrast, question, verb, slogan or subtitle after a colon or dash.
 - A heading names the topic of the section below it and nothing else.
 - Headings are unique on a page.
@@ -174,6 +174,18 @@ needless to say, at its core, at its heart, under the hood, battle-tested, seaml
 robust, powerful, elegant, leverage, delve, tapestry, journey, first-class,
 out of the box, ", or nothing", never stands in for
 ```
+
+Identifiers, capability IDs, UI copy and prose use the word the industry or plain engineering uses for the thing. A coined metaphor is renamed. These words are banned in names and prose, matched as whole words without regard to case:
+
+```text
+settle, settlement, land, lands, landed, landing, arrive, arrives, arrived, arrival,
+lane, seat, travels, rides, mint, mints, minted, on the same footing
+```
+
+- A person answers a question. A system returns, responds, handles or implements.
+- A caller calls a command. A generator generates a document from the catalog.
+- A screen bridge operates a workstation application's screen.
+- The glossary's `Do not use:` lines list the retired terms, such as working set, gated actuator and peer surface.
 
 ## Code and commands
 

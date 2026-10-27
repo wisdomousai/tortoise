@@ -82,7 +82,7 @@ bun test plugins/hub-link
 - `test/ui-bindings.test.ts` checks the pairing screen.
 - `test/attached.test.ts` checks the launch request and the origin check.
 
-The tests in `plugins/device-link/test` run pairing end to end against a real hub, with delivery and revocation. The `link.test.ts` file there also runs the launch exchange, the browser session's capabilities and their revocation. The WebView has not run on a device. The pairing screen has been type-checked, not rendered on a device.
+The tests in `plugins/device-link/test` run pairing end to end against a real hub, with delivery and revocation. The `link.test.ts` file there also runs the launch key exchange, the browser session's capabilities and their revocation. The WebView has not run on a device. The pairing screen has been type-checked, not rendered on a device.
 
 ## Skills
 

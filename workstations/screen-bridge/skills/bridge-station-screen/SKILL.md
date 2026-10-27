@@ -1,6 +1,6 @@
 ---
 name: bridge-station-screen
-description: Bridge a workstation application (vendor HMI, test-bench software, MES client) that has no API and must stay unmodified, so an application can observe it and drive declared procedures. Use when writing or changing a StationProfile, an extractor, a screen connector or the golden-frame gate, or when choosing the screen route or a driver. Covers workstations/screen-bridge, packages/observation and examples/line-station.
+description: Bridge a workstation application (vendor HMI, test-bench software, MES client) that has no API and must stay unmodified, so an application can observe it and run declared procedures on it. Use when writing or changing a StationProfile, an extractor, a screen connector or the golden test, or when choosing the screen route or a driver. Covers workstations/screen-bridge, packages/observation and examples/line-station.
 ---
 
 # Bridge a workstation application through its screen
@@ -11,7 +11,7 @@ A [workstation application](../../../../docs/glossary.md#workstation-application
 
 - When the workstation application has an automation interface, such as COM, OPC UA or a vendor export, follow the automation route below instead of the screen.
 - Among screen sources, prefer accessibility to OCR or vision.
-- List the screens, the fields and the [procedures](../../../../docs/glossary.md#procedure) with their [hazard class](../../../../docs/glossary.md#hazard-class).
+- List the screens, the fields and the [procedures](../../../../docs/glossary.md#procedure) with their [risk level](../../../../docs/glossary.md#risk-level).
 - List the regions no procedure may touch: emergency-stop reset, interlock override, manual jog.
 - The bridge never operates safety functions. It is not a safety-rated system.
 
@@ -24,10 +24,10 @@ A [workstation application](../../../../docs/glossary.md#workstation-application
 3. Report what the screen shows through an observer, `createStationObserver`, that submits an ingest command under `station-bridge:<station>`.
 4. Keep each reading's provenance: extractor, model, confidence and frame digest.
 5. Turn an uncertain reading into an attention item for a person. It never becomes a silent value.
-6. Put the site particulars in a versioned [station profile](../../../../docs/glossary.md#station-profile), `StationProfile`, as in `examples/line-station/station-profile.json`. It holds screens by anchors, fields, forbidden regions, and procedures with preconditions, readback, hazard class and rerun safety. `validateProfile` rejects steps that target forbidden regions or unknown fields.
+6. Put the site particulars in a versioned [station profile](../../../../docs/glossary.md#station-profile), `StationProfile`, as in `examples/line-station/station-profile.json`. It holds screens by anchors, fields, forbidden regions, and procedures with preconditions, readback, risk level and rerun safety. `validateProfile` rejects steps that target forbidden regions or unknown fields.
 7. Set the [bridge mode](../../../../docs/glossary.md#bridge-mode) to `monitor-only` by default.
 8. Make starting procedures that need a person, reconciling held effects and taking over the screen person-only commands. Deny them to agent runs and grants.
-9. Give the computer-use agent no catalog write tools beyond ingest and settle, under its own [integration principal](../../../../docs/glossary.md#integration-principal).
+9. Give the computer-use agent no catalog write tools beyond ingest and complete, under its own [integration principal](../../../../docs/glossary.md#integration-principal).
 10. Choose an [extractor](../../../../docs/glossary.md#extractor):
     - `createAccessibilityExtractor`;
     - `createWorkerExtractor`, a JSON-lines worker started through the process port;
@@ -35,13 +35,13 @@ A [workstation application](../../../../docs/glossary.md#workstation-application
     - `createFixtureExtractor` for CI.
 11. Build the workstation's screen from the operator registry in `packages/operator-ui`, following the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`).
 12. Add scanners from `packages/devices` with the `add-scanner-input` skill (`packages/devices/skills/add-scanner-input/SKILL.md`).
-13. Where operators share a workstation, compose `workstations/sign-in` with the `sign-in-at-a-seat` skill (`workstations/sign-in/skills/sign-in-at-a-seat/SKILL.md`). Each operator then signs in by badge and PIN and acts as their own [principal](../../../../docs/glossary.md#principal).
+13. Where operators share a workstation, compose `workstations/sign-in` with the `sign-in-at-a-terminal` skill (`workstations/sign-in/skills/sign-in-at-a-terminal/SKILL.md`). Each operator then signs in by badge and PIN and acts as their own [principal](../../../../docs/glossary.md#principal).
 
 ### Automation route
 
 A station whose software has an automation interface is reached through a [driver](../../../../docs/glossary.md#driver) instead of its screen. Handlers, contracts and screens stay the same on either route.
 
-1. Give the driver's contract the same fields and procedures, with the same preconditions, readback and hazard classes.
+1. Give the driver's contract the same fields and procedures, with the same preconditions, readback and risk levels.
 2. Run its bridge as the same station principal, with the same grant and target.
 3. Use the contract's `control` field in place of the screen's local input check.
 4. Configure each station on one route, as `examples/line-station` does. Its C# driver reaches a COM server (`examples/line-station/drivers/automation`).
@@ -49,9 +49,9 @@ A station whose software has an automation interface is reached through a [drive
 
 ## Checks
 
-1. Gate every profile or perception change with the [golden check](../../../../docs/glossary.md#golden-check) on labeled frames: `cd examples/line-station && bun run station:golden` (`scripts/station-golden.ts`). Without a configured model it replays recorded expectations and checks only the wiring.
+1. Gate every profile or recognition change with the [golden test](../../../../docs/glossary.md#golden-test) on labeled frames: `cd examples/line-station && bun run station:golden` (`scripts/station-golden.ts`). Without a configured model it replays recorded expectations and checks only the wiring.
 2. Re-record frames from the fake HMI with the example's `station:record-golden` script.
-3. Add a composed conformance test for surface parity and lane separation.
+3. Add a composed conformance test for surface parity and for each principal calling only its own operations.
 4. Add a browser test against a separate fake HMI process (`examples/line-station/e2e/station.pw.ts`).
 5. Run the tests:
 

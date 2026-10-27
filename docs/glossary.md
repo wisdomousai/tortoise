@@ -57,7 +57,7 @@ Do not use: proposal, suggestion (for an approval request).
 
 ### Assignee
 
-Who takes an assignment: a person, an agent definition, a paired device, a peer or a target lane. The assignment feature matches the caller to the assignee itself; a target never calls, and its lane's sync stores its reports. Lives in [`packages/assignments`](../packages/assignments/README.md).
+Who takes an assignment: a person, an agent definition, a paired device, a peer or an assignment target. The assignment feature matches the caller to the assignee itself; a target never calls, and its sync stores its reports. Lives in [`packages/assignments`](../packages/assignments/README.md).
 
 ### Assignment
 
@@ -67,7 +67,7 @@ Do not use: task (for an assignment), job (for an assignment), dispatch.
 
 ### Assignment kind
 
-The declaration of one kind of assignment: the scope a planner fills in, the brief, one report's body and subject, the reviewer's accept input, and the lanes that may take it. Declared with `defineAssignmentKind` in [`packages/assignments`](../packages/assignments/README.md).
+The declaration of one kind of assignment: the scope a planner fills in, the brief, one report's body and subject, the reviewer's accept input, and the assignee types that may take it. Declared with `defineAssignmentKind` in [`packages/assignments`](../packages/assignments/README.md).
 
 ### Assignment report
 
@@ -103,7 +103,7 @@ Do not use: file upload (for a blob), asset (for a blob).
 
 ### Bridge mode
 
-How far a screen bridge or a driver bridge may act. `monitor-only` never acts, `assist` runs only actions of hazard class `none`, and `actuate` runs every declared action. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [operator workstations](operator-workstations.md).
+How far a screen bridge or a driver bridge may act. `monitor-only` never acts, `assist` runs only actions of risk level `none`, and `actuate` runs every declared action. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [operator workstations](operator-workstations.md).
 
 ### Brief
 
@@ -167,7 +167,7 @@ A private JSON file with a loopback endpoint and a bearer token, which the host 
 
 ### Connector
 
-An implementation of the system-of-record port for one target. It delivers effects, looks up earlier deliveries and, where the target supports it, pulls changes and answers searches. Ready-made connectors live in `plugins/connector-*`; the port lives in [`packages/integration`](../packages/integration/README.md). Explained in [systems of record](systems-of-record.md).
+An implementation of the system-of-record port for one target. It delivers effects, looks up earlier deliveries and, where the target supports it, pulls changes and runs searches. Ready-made connectors live in `plugins/connector-*`; the port lives in [`packages/integration`](../packages/integration/README.md). Explained in [systems of record](systems-of-record.md).
 
 Do not use: integration (for a connector), adapter (for a connector), bridge (for a connector).
 
@@ -179,7 +179,13 @@ Do not use: scope (for a container).
 
 ### Continuation
 
-A command a handler asks for with `continueWith`, run after the handler's frame as a [nested invocation](#nested-invocation) in the same transaction under the same context. The caller lists it in `invokes`, and the nesting limits apply. It has no idempotency key of its own; the top-level receipt covers it. A refusal rolls back the caller. Lives in [`packages/runtime`](../packages/runtime/README.md).
+A command a handler asks for with `continueWith`, run after the handler's frame as a [nested call](#nested-call) in the same transaction under the same context. The caller lists it in `invokes`, and the nesting limits apply. It has no idempotency key of its own; the top-level receipt covers it. A refusal rolls back the caller. Lives in [`packages/runtime`](../packages/runtime/README.md).
+
+### Control holder
+
+Who controls a workstation application's screen: `operator`, `agent` for the screen bridge, or `idle`. The screen bridge reads the holder before every action and does not act while the operator holds control. Only a person can request control. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md#control-holder).
+
+Do not use: seat, seat owner.
 
 ### Credential vault
 
@@ -201,21 +207,21 @@ Do not use: retirement, sunsetting.
 
 ### Delivery mode
 
-How a driver action avoids acting twice. `idempotent`: the driver deduplicates by effect ID. `convergent`: the host reads the declared state before and after acting. `once`: the driver answers a lookup, and an unknown outcome holds the effect. A procedure for a workstation application is always convergent. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [hardware drivers](hardware-drivers.md).
+How a driver action avoids acting twice. `idempotent`: the driver deduplicates by effect ID. `convergent`: the host reads the declared state before and after acting. `once`: the host asks the driver whether it already acted, and an unknown outcome holds the effect. A procedure for a workstation application is always convergent. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [hardware drivers](hardware-drivers.md).
 
 ### Delivery outcome
 
 What one delivery attempt returns to the dispatcher. The target accepts or rejects the effect, or acknowledges it and decides later. A transient failure is retried. A stop where the target may have acted throws `DeliveryUncertain` and holds the effect. Lives in [`packages/integration`](../packages/integration/README.md); explained in [systems of record](systems-of-record.md).
-
-### Destination
-
-A network endpoint that a module, host component or child process declares by ID, with its direction, scope, protocol and data classes. The deployment policy binds it to an address, so code never names a customer host. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in [security and compliance](security-and-compliance.md#declarations).
 
 ### Deployment policy
 
 The policy one host runs under. It names the hardening floor, the identity floor, destination and folder bindings, process pins and ingress. A site runs under one. A desktop-local host can run under one. That host is not a site. The launcher setting is `--site-policy`. Lives in [`plugins/site`](../plugins/site/README.md); explained in [security and compliance](security-and-compliance.md#deployment-policy).
 
 Do not use: site policy, deployment config, environment file, settings (for the deployment policy).
+
+### Destination
+
+A network endpoint that a module, host component or child process declares by ID, with its direction, scope, protocol and data classes. The deployment policy binds it to an address, so code never names a customer host. Lives in [`packages/contracts`](../packages/contracts/README.md); explained in [security and compliance](security-and-compliance.md#declarations).
 
 ### Device
 
@@ -227,7 +233,7 @@ Pairing a phone or tablet with a hub. An administrator creates a one-use enrollm
 
 ### Dispatcher
 
-The worker that claims queued, retrying and upstream effects, delivers them through the connector outside any transaction, and settles their outcome under the integration principal. Lives in [`packages/integration`](../packages/integration/README.md); explained in [systems of record](systems-of-record.md).
+The worker that claims queued, retrying and acknowledged effects, delivers them through the connector outside any transaction, and records each outcome under the integration principal. Lives in [`packages/integration`](../packages/integration/README.md); explained in [systems of record](systems-of-record.md).
 
 Do not use: outbox worker, relay (for the dispatcher).
 
@@ -243,17 +249,23 @@ Do not use: agent (for a driver), daemon.
 
 ### Driver contract
 
-The browser-safe description of one driver: its state fields, its actions with delivery mode and hazard class, its events, and what it needs from the deployment. The host checks a running driver against the contract's digest at every handshake. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md).
+The browser-safe description of one driver: its state fields, its actions with delivery mode and risk level, its events, and what it needs from the deployment. The host checks a running driver against the contract's digest at every handshake. Lives in [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
 ### Driver SDK
 
-A library in another language that answers the driver protocol for a driver author: bridge-mode gating, a journal for `once` actions, events, and stubs generated from the driver contract. Each SDK proves itself against the reference contract of `plugins/connector-driver`. Lives in [`sdks/driver-python`](../sdks/driver-python/README.md) and [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md).
+A library in another language that implements the driver protocol for a driver author: bridge-mode gating, a journal for `once` actions, events, and stubs generated from the driver contract. Each SDK proves itself against the reference contract of `plugins/connector-driver`. Lives in [`sdks/driver-python`](../sdks/driver-python/README.md) and [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md).
 
 ### Effect
 
-A durable intent to change another system, committed with the command that causes it and delivered later by the dispatcher. Pages call it an outbox effect on first use. Its phases are queued, claimed, retrying, upstream, held, accepted, rejected and cancelled. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [systems of record](systems-of-record.md).
+A durable intent to change another system, committed with the command that causes it and delivered later by the dispatcher. Pages call it an outbox effect on first use. Its phases are queued, claimed, retrying, acknowledged, held, accepted, rejected and cancelled. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [systems of record](systems-of-record.md).
 
 Do not use: delivery intent, durable intent, message (for an effect), job (for an effect), uncertain (for the held phase).
+
+### Effect completion
+
+Recording a system of record's outcome for one effect, accepted or rejected, through the target's complete command. The dispatcher completes under the integration principal with its fencing token. A person completes a held effect through reconciliation. Lives in [`packages/integration`](../packages/integration/README.md); explained in [systems of record](systems-of-record.md).
+
+Do not use: settle, settlement.
 
 ### Egress guard
 
@@ -323,17 +335,15 @@ Do not use: core (for the framework), platform (for the framework), library (alo
 
 The framework, workstation and plugin packages published together at one version. `bun run check:manifests` refuses packages at different versions, and `bun run check:framework` reports an application that installed more than one. Lives in `scripts/release.ts`; explained in [development and testing](development-and-testing.md).
 
-### Gated actuator
-
-A connector that acts on a screen or on equipment only after a deterministic gate: the bridge mode, the seat or local control, and a readback that confirms the result. A model may resolve a target or suggest a step; it never acts itself. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
-
 ### Generator
 
 A pure transformation from the catalog to a reference document. The outputs are the catalog contract, OpenAPI, the capability, workflow and agent references, the application skill, and the security manifest with its data flows. MCP tools, the HTTP API and schemas are generated when served. `bun run generate` writes the rest to `dist/reference/`, and nothing generated is committed. Lives in `scripts/reference-artifacts.ts`.
 
-### Golden check
+### Golden test
 
 Replays labeled frames through a station profile and its extractors and reports per-field accuracy and confidence. It is run before a profile or model change is used, and a confident wrong reading must stay at zero. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
+
+Do not use: golden check, golden-frame gate.
 
 ### Grant
 
@@ -362,10 +372,6 @@ Do not use: profile (alone, for a hardening profile), security level, mode (for 
 The adapter that runs one model turn for an agent run and returns its tool calls and output. Codex, Claude, the AI SDK, a local model and a deterministic fixture are harnesses. Lives in [`packages/agents`](../packages/agents/README.md); explained in [agents](agents.md).
 
 Do not use: LLM harness, agent runtime, model adapter.
-
-### Hazard class
-
-What a declared action can do to people or equipment. `none` runs in assist mode, `low` needs actuate mode, and `operator-present` needs actuate mode and a confirmation at the workstation in the effect payload. Procedures for a workstation application and driver actions use the same classes. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
 
 ### Host
 
@@ -423,11 +429,23 @@ One application opened on one workspace: its plugins and ports, storage, the run
 
 Do not use: authority, application runtime, server (for the instance).
 
+### Integration allowlist
+
+A policy rule that recognizes one integration principal and lists the only capabilities it may call. A target's allowlist covers its complete and sync commands. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/integration`](../packages/integration/README.md).
+
+Do not use: lane, policy lane, integration lane.
+
 ### Integration principal
 
-The narrow principal the dispatcher and inbound sync run as. It can settle, sync and read status, and nothing else.
+The narrow principal the dispatcher and inbound sync run as. It can complete, sync and read status, and nothing else.
 
 Do not use: system principal, bot user.
+
+### Interlock
+
+The checks a connector passes before it acts on a screen or on equipment: the bridge mode, the control holder or local control, and a readback that confirms the result. A model may resolve a target or suggest a step; it never acts itself. The interlock is not safety-rated, and a machine's safety interlocks stay with the machine. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [operator workstations](operator-workstations.md#interlock) and [hardware drivers](hardware-drivers.md#interlock).
+
+Do not use: gated actuator, gate (for an interlock).
 
 ### Journal
 
@@ -435,9 +453,11 @@ The ordered record of committed changes that live queries follow. Each entry nam
 
 Do not use: event stream (for the journal), changelog, event log (for the journal).
 
-### Launch exchange
+### Launch key exchange
 
 How a browser gets its session. The host issues a one-use launch key that expires after 60 seconds, and the web frame exchanges it for the session cookie. Lives in [`packages/adapters`](../packages/adapters/README.md) and [`packages/frame`](../packages/frame/README.md).
+
+Do not use: launch exchange.
 
 ### Live query
 
@@ -469,11 +489,11 @@ The browser-safe unit a domain contributes to the catalog: capabilities, require
 
 Do not use: capability module, domain module, bounded context, package (for a module).
 
-### Nested invocation
+### Nested call
 
 A command or query that a handler runs with `ctx.invoke` or `ctx.query` inside its own command's transaction, under the same context. The capability lists the operations it may call in `invokes`. Each call is authorized on its own, with `via` naming the enclosing operations, and a refusal rolls back the whole command. Calls go at most 4 levels deep and 64 per command. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [capability authoring](capability-authoring.md#nested-calls).
 
-Do not use: sub-command (for a nested invocation).
+Do not use: sub-command (for a nested call), nested invocation.
 
 ### Observation
 
@@ -513,9 +533,15 @@ Do not use: sample, demo (for a pattern).
 
 ### Peer
 
-Another agent-native application enrolled with this one through the peer link. It calls the peer surface as its service principal, `peer:<id>`, or on behalf of a person through a subject assertion. Lives in [`plugins/peer-link`](../plugins/peer-link/README.md).
+Another agent-native application enrolled with this one through the peer link. It calls the peer API as its service principal, `peer:<id>`, or on behalf of a person through a subject assertion. Lives in [`plugins/peer-link`](../plugins/peer-link/README.md).
 
 Do not use: partner, remote application, federation (for a peer).
+
+### Peer API
+
+The commands and queries an application lets a peer call: those its service principal may call, and those a peer may call on behalf of a mapped person. Declared with `definePeerApi` in [`packages/contracts`](../packages/contracts/README.md).
+
+Do not use: peer surface.
 
 ### Peer link
 
@@ -523,17 +549,9 @@ Enrollment of, and calls between, two agent-native applications. An administrato
 
 Do not use: device link (for a peer link; a device link pairs a phone with a hub).
 
-### Peer surface
-
-The commands and queries an application lets a peer call: those its service principal may call, and those a peer may call on behalf of a mapped person. Declared with `definePeerSurface` in [`packages/contracts`](../packages/contracts/README.md). A peer surface is not a [surface](#surface).
-
 ### Peer target
 
-A target that is another agent-native application, declared with `definePeerTarget` from the peer surface that application publishes. It adds a network destination, effect requests parsed by the peer commands' input schemas, and a feed from a service query of the surface. Declared in [`packages/contracts`](../packages/contracts/README.md); connected with `connectPeerTarget` from [`packages/integration`](../packages/integration/README.md).
-
-### Perception source
-
-An extractor for screen captures in `workstations/screen-bridge/src/perception`: the accessibility tree, a perception worker process speaking JSON lines, or a vision model behind an OpenAI-compatible endpoint. A vision endpoint must be loopback or explicitly allowlisted. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
+A target that is another agent-native application, declared with `definePeerTarget` from the peer API that application publishes. It adds a network destination, effect requests parsed by the peer commands' input schemas, and a feed from a service query of the peer API. Declared in [`packages/contracts`](../packages/contracts/README.md); connected with `connectPeerTarget` from [`packages/integration`](../packages/integration/README.md).
 
 ### Person
 
@@ -557,10 +575,6 @@ The port that decides operation, object, row and field access for a principal, b
 
 Do not use: permissions (for the policy), authorization layer, RBAC.
 
-### Policy lane
-
-A policy rule that recognizes one integration principal and lists the only capabilities it may call. A target's lane covers its settle and sync commands. Lives in [`packages/runtime`](../packages/runtime/README.md) and [`packages/integration`](../packages/integration/README.md).
-
 ### Principal
 
 The identity a caller acts as: a person, a device, the integration principal or an agent run's issuer. The host derives it from the session; input cannot choose it. Explained in [authorization](authorization.md).
@@ -569,7 +583,7 @@ Do not use: identity (for the principal), account (for the principal), user ID.
 
 ### Procedure
 
-A declared sequence of screen steps in a station profile, run for one effect type. It carries preconditions, a hazard class, a readback that proves it took effect, and whether it may run again after an interruption. The screen bridge runs nothing else. A driver's counterpart is an action in its driver contract. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
+A declared sequence of screen steps in a station profile, run for one effect type. It carries preconditions, a risk level, a readback that proves it took effect, and whether it may run again after an interruption. The screen bridge runs nothing else. A driver's counterpart is an action in its driver contract. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md).
 
 ### Process port
 
@@ -589,7 +603,7 @@ Do not use: result record, response cache, ack (for a receipt).
 
 ### Reconciliation
 
-The tracked state and procedure for effects whose outcome no one can establish automatically. A person settles or releases a held effect through the framework's reconciliation commands. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [systems of record](systems-of-record.md).
+The tracked state and procedure for effects whose outcome no one can establish automatically. A person completes or releases a held effect through the framework's reconciliation commands. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [systems of record](systems-of-record.md).
 
 Do not use: manual resolution, exception handling (for reconciliation).
 
@@ -615,6 +629,12 @@ The per-resource counter a command bumps. `expectedRevisions` makes a stale writ
 
 Do not use: version (for a revision), etag.
 
+### Risk level
+
+What a declared action can do to people or equipment. `none` runs in assist mode, `low` needs actuate mode, and `operator-present` needs actuate mode and a confirmation at the workstation in the effect payload. Procedures for a workstation application and driver actions use the same levels. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md).
+
+Do not use: hazard class, hazard.
+
 ### Scaffold
 
 The tool that exports the framework, the starter and content as a standalone application, or generates a new application and its parts. Lives in [`packages/scaffold`](../packages/scaffold/README.md).
@@ -633,23 +653,21 @@ Do not use: view (for a screen), page (for a screen), frontend (for the screens)
 
 ### Screen bridge
 
-The connector that reads a workstation application through its screen and drives declared procedures on it. It is not the workstation. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
+The connector that reads a workstation application through its screen and runs declared procedures on it. It is not the workstation. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
 
 Do not use: station (for the screen bridge), computer use (for the screen bridge).
 
-### Seat
+### Screen recognizer
 
-The working position at a workstation and who holds it. The screen bridge reads the holder, `operator`, `agent` or `idle`, before every action and does not act while the operator holds it. For workstation sign-in, a seat is a principal listed as one, whose session may sign operators in. Explained in [operator workstations](operator-workstations.md).
+An extractor for screen captures in `workstations/screen-bridge/src/recognition`: the accessibility tree, a recognition worker process speaking JSON lines, or a vision model behind an OpenAI-compatible endpoint. A vision endpoint must be loopback or explicitly allowlisted. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md); explained in [operator workstations](operator-workstations.md).
+
+Do not use: perception source, perception.
 
 ### Session
 
-What a host issues to an authenticated caller; the execution context is derived from it. It is a browser cookie after the launch exchange, the bearer token of a connection file, or a paired device's credential. It is also a workforce sign-in cookie or a workstation sign-in. Lives in [`packages/adapters`](../packages/adapters/README.md).
+What a host issues to an authenticated caller; the execution context is derived from it. It is a browser cookie after the launch key exchange, the bearer token of a connection file, or a paired device's credential. It is also a workforce sign-in cookie or a workstation sign-in. Lives in [`packages/adapters`](../packages/adapters/README.md).
 
 Do not use: login (for a session), token (alone, for a session), connection (for a session).
-
-### Settlement
-
-Recording a system of record's outcome for one effect, accepted or rejected, through the target's settle command. The dispatcher settles under the integration principal with its fencing token. A person settles a held effect through reconciliation. Lives in [`packages/integration`](../packages/integration/README.md); explained in [systems of record](systems-of-record.md).
 
 ### Shelf life
 
@@ -674,12 +692,6 @@ One signed, versioned directory per application and platform, checked before a s
 One consistent read of a workspace at a journal cursor. A query reads one snapshot.
 
 Do not use: state dump, checkpoint (for a snapshot), copy (for a snapshot).
-
-### Standing grant
-
-A person's recorded, expiring permission for a trigger to act as that principal. Lives in [`plugins/automation`](../plugins/automation/README.md).
-
-Do not use: persistent grant, saved permission, long-lived grant.
 
 ### Starter
 
@@ -715,9 +727,15 @@ The called application's table from a peer's subject IDs to its own principals. 
 
 ### Surface
 
-One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. A surface adapter maps one surface onto the instance's command and query entry points. Lives in [`packages/adapters`](../packages/adapters/README.md). A [peer surface](#peer-surface) is unrelated.
+One way callers reach the catalog: the screens, HTTP, MCP, the CLI or the typed client. A surface adapter maps one surface onto the instance's command and query entry points. Lives in [`packages/adapters`](../packages/adapters/README.md).
 
 Do not use: transport (for a surface), channel (for a surface), interface (for a surface), API (alone).
+
+### Synced records
+
+The copies of system-of-record records that an application keeps for its tasks, such as inspection lots or MES orders. Inbound sync keeps them current, and the system of record stays authoritative for them. Lives in each application's state.
+
+Do not use: working set, cache (for synced records), mirror.
 
 ### System of record
 
@@ -727,17 +745,19 @@ Do not use: SoR, external system, upstream system, backend system, legacy system
 
 ### Target
 
-The declaration of one system of record with `defineTarget`: its settle, sync and status commands and queries, the integration principal's capabilities and its policy lane. A target's connector delivers its effects. The manifest's `targets` field is unrelated; it lists delivery platforms. Declared in [`packages/contracts`](../packages/contracts/README.md); its handlers and policy lane live in [`packages/integration`](../packages/integration/README.md).
+The declaration of one system of record with `defineTarget`: its complete, sync and status commands and queries, the integration principal's capabilities and its integration allowlist. A target's connector delivers its effects. The manifest's `targets` field is unrelated; it lists delivery platforms. Declared in [`packages/contracts`](../packages/contracts/README.md); its handlers and integration allowlist live in [`packages/integration`](../packages/integration/README.md).
 
 Do not use: destination (for a target; a destination is a network binding), integration (for a target), endpoint (for a target).
-
-### Task package
-
-The name [primitives](primitives.md) uses for a site bundle together with its install: a signed, versioned package with declared requirements, staged activation and rollback. Pages say site bundle.
 
 ### Telemetry
 
 OpenTelemetry metrics and traces of commands, outbox delivery and backlog, and runs, derived from the audit log and the outbox. The metrics and traces are exported through the egress guard without record contents. A driver's `telemetry` event is different: it enters as an observation. Lives in [`plugins/telemetry`](../plugins/telemetry/README.md).
+
+### Terminal
+
+A principal whose session may sign operators in at a workstation: the local owner, or a principal listed in the `station-sign-in-terminals` setting, such as an attached tablet's. Lives in [`workstations/sign-in`](../workstations/sign-in/README.md); explained in [operator workstations](operator-workstations.md#workstation-sign-in).
+
+Do not use: seat, sign-in seat.
 
 ### Tortoise
 
@@ -747,9 +767,15 @@ Do not use: agent-native desktop starter (for the project).
 
 ### Trigger
 
-Work that starts on a committed change or a schedule instead of a person's prompt. A trigger submits commands under a standing grant like any caller. Lives in [`plugins/automation`](../plugins/automation/README.md).
+Work that starts on a committed change or a schedule instead of a person's prompt. A trigger submits commands under a trigger grant like any caller. Lives in [`plugins/automation`](../plugins/automation/README.md).
 
 Do not use: hook (for a trigger), cron job, automation (alone, for a trigger).
+
+### Trigger grant
+
+A person's recorded, expiring permission for a trigger to act as that principal. Lives in [`plugins/automation`](../plugins/automation/README.md).
+
+Do not use: standing grant, persistent grant, saved permission, long-lived grant.
 
 ### UI binding
 
@@ -801,31 +827,9 @@ People signing in to a serving host through the site's identity provider under `
 
 Do not use: SSO (alone), enterprise login, OIDC login (for the primitive).
 
-### Working set
-
-The copies of system-of-record records that an application keeps for its tasks, such as inspection lots or MES orders. Inbound sync keeps them current, and the system of record stays authoritative for them. Lives in each application's state.
-
-Do not use: cache (for the working set), mirror.
-
 ### Worklist
 
 The assignee side of assignments in another application, such as a phone or a peer. It holds the open assignments from the issuer's feed. Each report or done mark is recorded and queued for the issuer in one transaction. Declared with `defineWorklist` in [`packages/assignments`](../packages/assignments/README.md).
-
-### Workstation
-
-The edge workplace where operators sign in at a seat. A workstation application already running there is read and driven through the screen bridge. The packages live under `workstations/`, between the framework and the host plugins. Explained in [operator workstations](operator-workstations.md).
-
-Do not use: station (for a workstation).
-
-### Workstation application
-
-Software already running at a workstation that has no API and must stay unmodified. A vendor HMI, test-bench software and an MES client are workstation applications. The screen bridge reads and drives its screen. Explained in [operator workstations](operator-workstations.md).
-
-Do not use: station software, bridged program, application (alone, for a workstation application), HMI (for a workstation application; an HMI is one kind).
-
-### Workstation sign-in
-
-An operator signing in at a workstation by badge and PIN, for a short-lived session issued to that operator. Only a seat's own session may sign people in, and signing in does not move a seat an agent holds. Lives in [`workstations/sign-in`](../workstations/sign-in/README.md).
 
 ### Workspace
 
@@ -838,6 +842,22 @@ Do not use: database (for a workspace), tenant, project (for a workspace), data 
 One instance's hold on a hosted workspace, kept in the shared database with a fencing token that every commit checks. Another instance can take the workspace over once the lease expires. Lives in [`packages/adapters`](../packages/adapters/README.md); explained in [hosting](hosting.md).
 
 Do not use: lock (for a lease), ownership record, heartbeat (for the lease).
+
+### Workstation
+
+A station PC or panel where operators work and sign in. A workstation application already running there is read and operated through the screen bridge. The packages live under `workstations/`, between the framework and the host plugins. Explained in [operator workstations](operator-workstations.md).
+
+Do not use: station (for a workstation).
+
+### Workstation application
+
+Software already running at a workstation that has no API and must stay unmodified. A vendor HMI, test-bench software and an MES client are workstation applications. The screen bridge reads its screen and runs declared procedures on it. Explained in [operator workstations](operator-workstations.md).
+
+Do not use: station software, bridged program, application (alone, for a workstation application), HMI (for a workstation application; an HMI is one kind).
+
+### Workstation sign-in
+
+An operator signing in at a workstation by badge and PIN, for a short-lived session issued to that operator. Only a terminal's own session may sign people in, and never under a delegated grant. Lives in [`workstations/sign-in`](../workstations/sign-in/README.md).
 
 ## References
 

@@ -64,7 +64,7 @@ The screens act as the local [owner](../../docs/glossary.md#owner), the person h
 
 ### Shares and notifications
 
-Shares arrive through `expo-sharing`, which is experimental. It opens the starter with `<scheme>://expo-sharing`, and `expoOsBindings` takes the raw shared items once and clears them. It does not resolve them, because resolving a shared web page fetches it. A share action opens React Native's share sheet. On Android the URL travels in the message, which has no URL field there.
+Shares are received through `expo-sharing`, which is experimental. It opens the starter with `<scheme>://expo-sharing`, and `expoOsBindings` takes the raw shared items once and clears them. It does not resolve them, because resolving a shared web page fetches it. A share action opens React Native's share sheet. On Android the URL is sent in the message, which has no URL field there.
 
 Notifications are local, through `expo-notifications`; there is no push service. The notify binding:
 

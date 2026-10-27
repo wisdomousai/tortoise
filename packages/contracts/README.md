@@ -22,7 +22,7 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 - [Data provider](../../docs/primitives.md#data-provider): `defineDataProvider`, `DataProvider`, `DataProviderSpec`.
 - [Membership](../../docs/primitives.md#membership): `defineMembership`, `Membership`, `MembershipSpec`, `SetMemberInput`, `SetMemberOutput`.
 - [Target](../../docs/primitives.md#target): `defineTarget`, `Target`, `TargetSpec`, `SyncBatch`, `effectOutcomeSchema`, `EffectOutcomeInput`, `deliveryStatusSchema`, `rejectionSchema`, `deliveryShape`.
-- [Peer target](../../docs/primitives.md#peer-target): `definePeerSurface`, `PeerSurface` and `peerSurfaceOperations`, what an application lets a peer call as its service principal or on behalf of a person; `definePeerTarget`, `PeerTarget` and `PeerEffectRequest`, another application as an outbox target through its surface, with an authenticated destination, a host component requiring it, and effects parsed by the peer's input schemas.
+- [Peer target](../../docs/primitives.md#peer-target): `definePeerApi`, `PeerApi` and `peerApiOperations`, what an application lets a peer call as its service principal or on behalf of a person; `definePeerTarget`, `PeerTarget` and `PeerEffectRequest`, another application as an outbox target through its surface, with an authenticated destination, a host component requiring it, and effects parsed by the peer's input schemas.
 - [Approval request](../../docs/primitives.md#approval-request): `approvalOperations` under fixed `approval.*` IDs, `approvalModule` and `approvalFeatureManifest`, `approvalRequestSchema` with `Approval request`, `approvalStatusSchema` with `ApprovalStatus`, and the `approval requests` collection.
 - [Reconciliation](../../docs/primitives.md#reconciliation): `reconciliationOperations` for `reconciliation.list` and `reconciliation.resolve`, `reconciliationModule` and `reconciliationFeatureManifest`, `heldEffectSchema` with `HeldEffect`, and `reconciliationDecisionSchema` with `ReconciliationDecision`.
 - [Collection](../../docs/primitives.md#collection): `defineCollection` (with an optional `parent` and `retiredField`), `Collection`, the generated reads `collectionGet`, `collectionList` and `collectionTree`, the generated commands `collectionCreate`, `collectionUpdate`, `collectionMove` and `collectionRetire`, `listFilters`, `listSearches`, `recordKeySchema`, `MAX_PAGE`, `MAX_TREE`, and the `CollectionPage` and `CollectionTreePage` output shapes.
@@ -56,7 +56,7 @@ The worked example is [`examples/field-service/contracts.ts`](../../examples/fie
 
 The requirement errors are an outbox target without a queuing destination or queuing notify action, a process naming an undeclared destination, and a remote query whose target no destination `reads`. A declaration grants nothing by itself. A [deployment policy](../../docs/glossary.md#deployment-policy) binds it, and the [egress guard](../../docs/glossary.md#egress-guard) enforces it.
 
-An OS handler describes requests from any application or web page on the device. Its params and templates are therefore validated again when a request arrives. The catalog only proves that the declaration is coherent.
+An OS handler describes requests from any application or web page on the device. Its params and templates are therefore validated again when a request is received. The catalog only proves that the declaration is coherent.
 
 Audit events carry references and digests. Input values appear only for the fields a capability lists in `audit.fields`.
 
@@ -75,13 +75,13 @@ bun test packages/contracts
 - `test/tool-envelope.test.ts`: every `$ref` of a wrapped recursive schema resolves from its root, and only commands other than `approval.request` are offered `expectedRevisions`.
 - `test/feature.test.ts`: the built-in feature manifests keep their operation ids, and a feature manifest is refused for an operation, module or target outside its id.
 - `test/contracts.test.ts`: rejects a capability without a UI binding or declared exception, duplicates, cycles, unresolved workflows, colliding MCP names and invalid requirements.
-- `test/peer.test.ts`: a peer surface's operation lists and its refusals of a wrong kind, a command on both lists and blobs on behalf of a person; a peer target's destination and component, parsed effects, whose an effect is, and a feed that must be a service query.
+- `test/peer.test.ts`: a peer API's operation lists and its refusals of a wrong kind, a command on both lists and blobs on behalf of a person; a peer target's destination and component, parsed effects, whose an effect is, and a feed that must be a service query.
 - `test/os.test.ts`: catalog output, refused paths, templates, prefill targets and payload limits, duplicate claims, refused open URLs, and notify actions with reply handlers and outbox targets.
 
 ## Skills
 
 - [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
-- [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox settlement, sync and live reads.
+- [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox completion, sync and live reads.
 - [add-os-integration](../shell/skills/add-os-integration/SKILL.md): OS handlers, actions and native registrations.
 
 ## References

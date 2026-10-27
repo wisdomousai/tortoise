@@ -26,22 +26,22 @@ Plugins (`plugins/*`). Bun only, because a hub is a serving [host](../../docs/gl
 - **`field-sync`**: a phone that keeps its own [workspace](../../docs/glossary.md#workspace). It acts as [principal](../../docs/glossary.md#principal) `device:<id>`, with a [grant](../../docs/glossary.md#grant) of the sync capabilities.
 - **`attached`**: a tablet that shows the hub's screens. It acts as the person who created the code, with a grant of the capabilities chosen at enrollment, or of every capability except `link.*` when none were chosen.
 
-The sync capabilities come from the `device-link-sync-operations` setting, a comma-separated list (environment `AGENT_NATIVE_DEVICE_LINK_SYNC_OPERATIONS`). An application that knows its field capabilities passes them as the default with `createDeviceLinkPlugin({ syncOperations })`. The setting still overrides that default. The application's [policy](../../docs/glossary.md#policy) decides what `device:*` principals may do within the grant. For the `assignment` feature's device lane, the feature's policy decides instead, and it lets a device work only on what was sent to it. Startup fails when the setting names a capability the [catalog](../../docs/glossary.md#catalog) lacks.
+The sync capabilities come from the `device-link-sync-operations` setting, a comma-separated list (environment `AGENT_NATIVE_DEVICE_LINK_SYNC_OPERATIONS`). An application that knows its field capabilities passes them as the default with `createDeviceLinkPlugin({ syncOperations })`. The setting still overrides that default. The application's [policy](../../docs/glossary.md#policy) decides what `device:*` principals may do within the grant. For the `assignment` feature's device assignees, the feature's policy decides instead, and it lets a device work only on what was sent to it. Startup fails when the setting names a capability the [catalog](../../docs/glossary.md#catalog) lacks.
 
 ### Enrollment route
 
-`POST /api/v1/link/enroll` with `{ "code": "..." }` answers `201 { token, device: { id, label, kind } }` with `Cache-Control: no-store`. An enrollment code:
+`POST /api/v1/link/enroll` with `{ "code": "..." }` returns `201 { token, device: { id, label, kind } }` with `Cache-Control: no-store`. An enrollment code:
 
 - is ten characters from an alphabet without look-alike letters;
 - is accepted without case or separators;
 - is valid for ten minutes;
 - is pruned from state a day after it expires or is used.
 
-The token is 32 random bytes in base64url. Failed exchanges are limited to ten per minute for all callers together. After that, the route answers `UNAVAILABLE` until the window passes.
+The token is 32 random bytes in base64url. Failed exchanges are limited to ten per minute for all callers together. After that, the route returns `UNAVAILABLE` until the window passes.
 
 ## Trust boundary
 
-The enrollment route runs before the session check, so anyone who reaches the listener can reach it. The route only redeems a code, through the [instance](../../docs/glossary.md#instance), as the local [owner](../../docs/glossary.md#owner) narrowed to the redeem and resolve capabilities. The plugin gets that context when the host starts listening, and before then the route answers `UNAVAILABLE`. One message covers an unknown, an expired and a used code.
+The enrollment route runs before the session check, so anyone who reaches the listener can reach it. The route only redeems a code, through the [instance](../../docs/glossary.md#instance), as the local [owner](../../docs/glossary.md#owner) narrowed to the redeem and resolve capabilities. The plugin gets that context when the host starts listening, and before then the route returns `UNAVAILABLE`. One message covers an unknown, an expired and a used code.
 
 The hub stores SHA-256 digests of codes and tokens, never the values. The redeemed code stays in the redeem command's stored [receipt](../../docs/glossary.md#receipt), which is harmless once the code is used. The [audit log](../../docs/glossary.md#audit-log) records none of the redeem input.
 
@@ -72,7 +72,7 @@ bun test plugins/device-link
   - a capture taken before pairing, which waits with the reason;
   - a wrong code, which the device shows;
   - a lost response after pairing, replayed without a second capture on the hub;
-  - the photo arriving before the record;
+  - the photo uploaded before the record;
   - an offline capture, which goes once the network returns;
   - a hub rejection, which reaches the device with its code;
   - assignments, which come back through the feed;

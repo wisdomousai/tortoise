@@ -29,7 +29,7 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 6. Give its `harness` to the automation plugin's `agentHarnesses`, or to whatever starts the runs.
 7. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `local-inference` to a loopback URL.
 8. Bind the process to the server executable, pinned, with the arguments that make it listen there: `--host 127.0.0.1 --port <port>`. The plugin adds the load arguments.
-9. Give that binding a `timeoutMs` of a few minutes. A model that reasons before it answers outlasts the egress guard's default of 30 seconds.
+9. Give that binding a `timeoutMs` of a few minutes. A model that reasons before it responds outlasts the egress guard's default of 30 seconds.
 10. Size the agent's `wallTimeMs` budget the same way.
 11. Export training data with `exportApprovalDataset(application, context, { operations, redact })` from `@agent-native/runtime`. The [approval dataset](../../../../docs/glossary.md#approval-dataset) holds only decided approval requests the caller may see.
 12. Redact free-text fields that can carry personal data, and the rationale and rejection reason, as the deployment requires.
@@ -41,7 +41,7 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 
 ## Checks
 
-In tests and development launches, bind the process to Bun with `llamaServerStandIn` from `@agent-native/model-server/testing` as its first argument. It takes llama-server's flags. `FIXTURE_RESPONDER` names a module whose default `StandInResponder` scripts the model's answers.
+In tests and development launches, bind the process to Bun with `llamaServerStandIn` from `@agent-native/model-server/testing` as its first argument. It takes llama-server's flags. `FIXTURE_RESPONDER` names a module whose default `StandInResponder` scripts the model's replies.
 
 1. Run the tests:
 

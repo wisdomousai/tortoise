@@ -32,7 +32,7 @@ The framework registers the launchers from the shortcut handlers, so a forked st
 
 ## Trust boundary
 
-Any app or web page can open the shortcut link, as any web page can open the web landing. A shortcut is therefore an unsolicited OS request. It only opens or prefills, and the person confirms through the form it opens.
+Any app or web page can open the shortcut link, as any web page can open the launch page. A shortcut is therefore an unsolicited OS request. It only opens or prefills, and the person confirms through the form it opens.
 
 A shortcut link carries an ID and nothing else. A host, a path, a fragment, credentials or any other parameter make it an ordinary link. An undeclared ID is refused as `no-handler`. The OS plugin parses, matches, rate-limits and audits a shortcut like any request.
 

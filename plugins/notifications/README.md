@@ -11,7 +11,7 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 - [OS action](../../docs/primitives.md#os-action): enabling `notify` actions. `createNotificationPort` builds the notify instruction from an effect and relays it through `services.os.relay`.
 - [OS handler](../../docs/primitives.md#os-handler): enabling `reply` handlers. `replyConsumer` receives the replies that name `notifications` as their consumer.
 - [Connector](../../docs/primitives.md#connector): `createNotificationPort`, the outbox port of one [target](../../docs/glossary.md#target) that a notify action carries.
-- [Dispatcher](../../docs/primitives.md#dispatcher): `openNotifications` starts one [dispatcher](../../docs/glossary.md#dispatcher) per such target. `settleOperationOf` names the settle command each one uses.
+- [Dispatcher](../../docs/primitives.md#dispatcher): `openNotifications` starts one [dispatcher](../../docs/glossary.md#dispatcher) per such target. `completeOperationOf` names the complete command each one uses.
 - [Host plugin](../../docs/primitives.md#host-plugin):
   - `notificationsPlugin`, `createNotificationsPlugin` and `notificationsPluginManifest`, whose operations keep the namespace `notification`;
   - the module `notificationsModule` with `notificationOperations` and `issuedReplySchema`;
@@ -33,7 +33,7 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
 The application writes:
 
 - a `notify` action whose `targets` name outbox targets and whose `offline` is `queue`;
-- one `<target>.effect.settle` command per target, which takes `{ effectId, outcome, fence }` as a `defineTarget` settle does; the [catalog](../../docs/glossary.md#catalog) refuses a target without one;
+- one `<target>.effect.complete` command per target, which takes `{ effectId, outcome, fence }` as a `defineTarget` complete does; the [catalog](../../docs/glossary.md#catalog) refuses a target without one;
 - a command that enqueues an effect to that target, with an `OsNotificationPayload` as its payload.
 
 The payload holds:
@@ -46,7 +46,7 @@ The payload holds:
 ### Delivery
 
 1. Once started, the dispatcher takes each pending effect. It starts on the serving host after the host listens, and on a phone at each foreground.
-2. The dispatcher checks the payload against the action. A payload that does not fit is settled as rejected.
+2. The dispatcher checks the payload against the action. A payload that does not fit is completed as rejected.
 3. While no adapter is attached for the notified [principal](../../docs/glossary.md#principal), the effect stays pending. A reminder made in the browser therefore waits for the desktop or phone host.
 4. Otherwise the dispatcher creates one nonce per offered button and records their digests with `notification.issue`.
 5. The dispatcher relays the notification, whose ID is the effect ID. A repeated delivery replaces the notification instead of adding a second one.
@@ -69,7 +69,7 @@ A reply is an OS request like any other. Whoever can submit to the shell port ca
 
 Continuations are fixed when the effect commits, so a reply can choose only between commands the application wrote. Only nonce digests are stored. A nonce is 32 random bytes and lives for a day by default (`replyTtlMs`). A retried delivery issues new nonces and drops the old ones, which never reached a person.
 
-`notification.reply.get` and `notification.redeem` are allowed only on the `shell` [channel](../../docs/glossary.md#channel). The consumer sets that channel and no surface does, so no screen, agent run or MCP client can call them. `notification.issue` is allowed only for the [owner](../../docs/glossary.md#owner) acting under a delegated grant, which is the dispatcher. The dispatcher runs as the owner narrowed to `notification.issue` and the target's settle command. A compromised adapter can therefore drive no other command.
+`notification.reply.get` and `notification.redeem` are allowed only on the `shell` [channel](../../docs/glossary.md#channel). The consumer sets that channel and no surface does, so no screen, agent run or MCP client can call them. `notification.issue` is allowed only for the [owner](../../docs/glossary.md#owner) acting under a delegated grant, which is the dispatcher. The dispatcher runs as the owner narrowed to `notification.issue` and the target's complete command. A compromised adapter can therefore drive no other command.
 
 The enqueuing command decides who may be notified, because the payload's `principal` is whatever that command wrote. Notification titles and bodies leave the instance for the OS's notification center and lock screen, so declare their data classes on the action. Text replies are not passed on, and the `text` of a reply is ignored.
 
@@ -96,10 +96,10 @@ bun test plugins/notifications
 - a button the notification did not offer, or a forged nonce, which does nothing;
 - the real reply, which completes the reminder once even when repeated;
 - a reply as another principal, a direct call of `notification.redeem`, and a reply after expiry, which change nothing;
-- an undeclared category or button, and an action the site turned off, which settle as rejected;
-- startup refused without the plugin, and a carried target without a settle command refused.
+- an undeclared category or button, and an action the site turned off, which complete as rejected;
+- startup refused without the plugin, and a carried target without a complete command refused.
 
-`examples/field-service/test/os.test.ts` covers the desktop path over HTTP, from the Electron relay to the reply. `examples/asset-survey-field/test/os.test.ts` covers a phone: a notice without buttons that inbound sync queues, shown once per new assignment and settled.
+`examples/field-service/test/os.test.ts` covers the desktop path over HTTP, from the Electron relay to the reply. `examples/asset-survey-field/test/os.test.ts` covers a phone: a notice without buttons that inbound sync queues, shown once per new assignment and completed.
 
 ## Skills
 

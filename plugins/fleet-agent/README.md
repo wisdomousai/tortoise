@@ -41,7 +41,7 @@ The network guard caps a response at 32 MiB, and a release file such as the site
 - **Fleet outages.** The plugin writes nothing to the workspace. A failed cycle records its reason in `status().lastError`, and the site keeps committing and delivering while the fleet is unreachable.
 - **Reports.** The plugin reads the outbox with the host's trusted identity (`pendingEffects`). Only [effect](../../docs/glossary.md#effect) counts per target leave the site, with the build's [best-before date](../../docs/glossary.md#best-before-date) from the open context when it has one. `examples/fleet/test/fleet.test.ts` covers the date reaching the fleet.
 - **Audit forwarding.** The site keeps no forwarding state and sends events unchanged, so the fleet can check the hash chain.
-- **Releases.** Each file is checked against the signed manifest as it arrives, and the whole bundle is verified with `verifyBundle` against `fleet-trust`. Only then is the temporary directory renamed into `fleet-releases/<release id>`.
+- **Releases.** Each file is checked against the signed manifest as it is downloaded, and the whole bundle is verified with `verifyBundle` against `fleet-trust`. Only then is the temporary directory renamed into `fleet-releases/<release id>`.
 - **Activation.** Activation stays with the site operator's `app install`. The instance never replaces itself.
 - **Relay.** The relay forwards a request to the host's own listener under `/api/v1/` only and adds no credential. A relayed request reaches a [capability](../../docs/glossary.md#capability) only with a [session](../../docs/glossary.md#session) the site issued ([hosting](../../docs/hosting.md#relay)).
 - **Relay exemption.** `scripts/boundary-rules.ts` lists `src/relay.ts` as a reviewed exemption from the [egress guard](../../docs/glossary.md#egress-guard), because its only target is the host itself.
@@ -66,7 +66,7 @@ bun test plugins/fleet-agent
 - audit forwarding with a lost reply;
 - a site that keeps committing while the fleet is unreachable, then reports the backlog;
 - a release changed in transit or at the fleet, which never reaches the folder;
-- a relay that answers 403 without a credential or with the fleet credential, and 200 with a session the site issued.
+- a relay that returns 403 without a credential or with the fleet credential, and 200 with a session the site issued.
 
 The upgrade test installs version 1 of the site with `app install` and runs it with two effects queued for an unreachable [system of record](../../docs/glossary.md#system-of-record). It stages the 2.0.0 release the fleet assigns. The installed release's binary then runs `app install` on the staged folder. The new binary migrates the workspace before `current` switches. The effects stay pending with contract version 1 recorded, and version 2 then queues its own. The test's releases run `test/site-cli.ts`.
 

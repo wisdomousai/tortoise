@@ -14,10 +14,10 @@ Content (`examples/*`). Domain code, screens, the demonstration job and tests li
 
 The example is one [application](../../docs/primitives.md#application). It composes:
 
-- a [module](../../docs/primitives.md#module) of fourteen [capabilities](../../docs/primitives.md#capability) (`work-order.*`, `task.*` and `task-reminders.effect.settle`). The `approval` [feature](../../docs/primitives.md#feature) adds the six [approval request](../../docs/primitives.md#approval-request) capabilities, and the plugins add `compliance.*` and `webhook.*`.
+- a [module](../../docs/primitives.md#module) of fourteen [capabilities](../../docs/primitives.md#capability) (`work-order.*`, `task.*` and `task-reminders.effect.complete`). The `approval` [feature](../../docs/primitives.md#feature) adds the six [approval request](../../docs/primitives.md#approval-request) capabilities, and the plugins add `compliance.*` and `webhook.*`.
 - the `site`, `network`, `audit`, `compliance`, [`os`](../../plugins/os/README.md), [`share-target`](../../plugins/share-target/README.md), [`notifications`](../../plugins/notifications/README.md) and [`os-shortcuts`](../../plugins/os-shortcuts/README.md) [host plugins](../../docs/primitives.md#host-plugin). The example plugin [`webhook`](../../plugins/webhook/README.md) comes after them.
 - [OS handlers](../../docs/primitives.md#os-handler) in `os.ts`, listed under [OS requests](#os-requests).
-- [OS actions](../../docs/primitives.md#os-action), listed under [OS requests](#os-requests). For `task.reminder`, `task.remind` queues an [outbox effect](../../docs/primitives.md#outbox-effect) to `task-reminders`, which the notifications plugin shows on the desktop or phone. Its Mark done reply (`task.reminder-reply`) runs `task.set-status` to done. `task-reminders.effect.settle` records on the task whether the reminder was shown.
+- [OS actions](../../docs/primitives.md#os-action), listed under [OS requests](#os-requests). For `task.reminder`, `task.remind` queues an [outbox effect](../../docs/primitives.md#outbox-effect) to `task-reminders`, which the notifications plugin shows on the desktop or phone. Its Mark done reply (`task.reminder-reply`) runs `task.set-status` to done. `task-reminders.effect.complete` records on the task whether the reminder was shown.
 - the [blob store](../../docs/primitives.md#blob-store). `task.create` attaches an optional site photo or PDF within `attachmentLimits` (`attachments.ts`), `task.delete` drops the reference, and the task row links to the bytes.
 - a CASL [policy](../../docs/primitives.md#policy) with row scopes (`taskReadScope`) and a dispatcher-only protected field.
 - [live queries](../../docs/primitives.md#journal-and-live-query) through the frame's session bindings in its screen, so changes from any caller appear without a refresh.
@@ -102,7 +102,7 @@ The prefilled task (`ui/work-orders/prepared-task.tsx`) shows where the values c
 
 An attached file is uploaded before the request is submitted. It stays staged, readable by nobody, until the person adds the task. The runtime lets only the uploading principal attach it, within `attachmentLimits`. When a prefill is discarded, the blob store sweeps the file.
 
-A reminder notifies the person who asked for it, and only their reply counts. Mark done runs `task.set-status` as them at the moment they choose it. A person who lost edit access since the reminder therefore cannot use it. A reminder asked for in the browser waits until the desktop or phone application runs, because a web page shows no notifications. Only the notification [dispatcher](../../docs/glossary.md#dispatcher) may call `task-reminders.effect.settle`, as the workspace owner under its [delegated grant](../../docs/glossary.md#grant). That dispatcher is the plugin's effect delivery loop, not the dispatcher role.
+A reminder notifies the person who asked for it, and only their reply counts. Mark done runs `task.set-status` as them at the moment they choose it. A person who lost edit access since the reminder therefore cannot use it. A reminder asked for in the browser waits until the desktop or phone application runs, because a web page shows no notifications. Only the notification [dispatcher](../../docs/glossary.md#dispatcher) may call `task-reminders.effect.complete`, as the workspace owner under its [delegated grant](../../docs/glossary.md#grant). That dispatcher is the plugin's effect delivery loop, not the dispatcher role.
 
 ## Dependencies
 
@@ -136,7 +136,7 @@ bunx playwright test examples/field-service/e2e
   - a reminder waits for the desktop relay, shows with Mark done, and its reply sets the task to done once;
   - a site opens as an OpenStreetMap search URL, a summary is shared as text, and an undeclared parameter is refused for each.
 - `e2e/workspace.pw.ts`, in Chromium: agent writes appear without a refresh, drafts survive conflicts, and the deterministic harness works without a provider.
-- `e2e/os.pw.ts`, in Chromium: a protocol-handler landing opens the task, files and shares prefill tasks the person adds, a reminder waits, and a shortcut starts a task.
+- `e2e/os.pw.ts`, in Chromium: a protocol-handler launch opens the task, files and shares prefill tasks the person adds, a reminder waits, and a shortcut starts a task.
 
 ## Demonstrated mechanisms
 
@@ -159,7 +159,7 @@ Example paths are relative to `examples/field-service`. Framework paths start at
 | [Agent definition](../../docs/primitives.md#agent-definition) that requests approval | `contracts.ts`: `work-order.planner` in `workOrderPlannerModule`, which requires the approval module | No test in this example |
 | [Agent run](../../docs/primitives.md#agent-run) with [UI session context](../../docs/primitives.md#ui-session-context) | `ui/work-orders/agent-panel.tsx`; `selectableResources` in `application.ts` | `test/host.test.ts`: "real host preserves delegated instance…"; `test/ui-sessions.test.ts`; `e2e/workspace.pw.ts` |
 | [Blob store](../../docs/primitives.md#blob-store) references with limits | `attachments.ts`; `handlers/tasks.ts` | `test/os.test.ts`: "an image is staged…" |
-| [Outbox effect](../../docs/primitives.md#outbox-effect) and its settle command | `task.remind`, `task-reminders.effect.settle` in `handlers/tasks.ts` | `test/os.test.ts`: "a reminder waits for the desktop…" |
+| [Outbox effect](../../docs/primitives.md#outbox-effect) and its complete command | `task.remind`, `task-reminders.effect.complete` in `handlers/tasks.ts` | `test/os.test.ts`: "a reminder waits for the desktop…" |
 | [Dispatcher](../../docs/primitives.md#dispatcher) for the reminder target | `plugins/notifications/src/open.ts`: `createEffectDispatcher`, one per notify target | `test/os.test.ts`: "a reminder waits for the desktop…" |
 | [OS handlers](../../docs/primitives.md#os-handler) and the notify, open and share [OS actions](../../docs/primitives.md#os-action) | `os.ts`: `fieldServiceOs`; `ui/work-orders/work-order-screen.tsx`: `SiteActions` | `test/os.test.ts`; `e2e/os.pw.ts` |
 | [Shell port](../../docs/primitives.md#shell-port) for OS requests and instructions | `plugins/os`; the host's `shell/actions` and `shell/requests` routes | `test/os.test.ts`: "a reminder waits for the desktop…" |
@@ -208,14 +208,14 @@ Example paths are relative to `examples/field-service`. Framework paths start at
 
 ## Task reminder flow
 
-A reminder is an outbox effect that the notifications plugin delivers to the desktop window or phone. The person's reply arrives as a separate shell request.
+A reminder is an outbox effect that the notifications plugin delivers to the desktop window or phone. The person's reply is received as a separate shell request.
 
 1. The bell on a task row calls `task.remind`. The policy allows dispatchers and technicians of an open work order.
 2. The handler enqueues an effect to the `task-reminders` target. Its notification payload names the caller, the category, the task title and one reply that sets the task to done.
 3. The handler records which task the effect is about and sets the task's reminder to pending. The effect commits with the command or not at all.
 4. The notifications plugin's dispatcher claims the effect as the workspace owner under a narrow delegated grant. While no desktop window or phone is attached for the notified person, the effect stays pending.
 5. The Electron main process polls the host for OS instructions with the connection-file session, which the window shares. It receives a notify instruction with a Mark done button that carries a single-use code.
-6. After the relay, the dispatcher calls `task-reminders.effect.settle` with the outcome. The handler settles the effect and copies the outcome onto the task.
+6. After the relay, the dispatcher calls `task-reminders.effect.complete` with the outcome. The handler completes the effect and copies the outcome onto the task.
 7. Choosing Mark done sends a reply request to the host's shell port. The notifications plugin redeems the code once and continues with `task.set-status` as the replying person.
 8. A second report of the same choice changes nothing. The task's revision stays the same, as the reminder test in `test/os.test.ts` checks.
 
@@ -277,7 +277,7 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
    - Remove the `caller` gate and the `editor` rule.
    - Pass `definePolicy` a `roleOf` option that returns the caller's role in a container, as `workOrderRole` does in the example.
    - Give every rule a `container` and `roles`. The runtime consults the option only for a rule with a container, and an open rule admits any principal once the gate is gone.
-   - Rewrite `approvalAccess` to answer from work order roles, as the example's does. The `caller` gate never applied to the approval feature, so the access view must refuse non-members itself.
+   - Rewrite `approvalAccess` to decide from work order roles, as the example's does. The `caller` gate never applied to the approval feature, so the access view must refuse non-members itself.
 10. Keep a tombstone that maps each deleted record to its container, as `deletedTasks` does. Replays and event checks resolve the container from it.
 11. Shape each contract with `defineCapability`. A generated capability starts with empty input and output, the application as resource type and a headless UI exception; give it these parts.
     - **ID:** stable and dotted, such as `task.remind`.
@@ -304,8 +304,8 @@ The steps start from `scaffold new`. The scaffold's add commands edit only files
 25. Enqueue the notification with `ctx.enqueue`, passing `target`, `type`, `resource` and an `OsNotificationPayload` as `payload`. The payload holds the principal, the category, a title, an optional body and optional replies, as the [notifications plugin README](../../plugins/notifications/README.md) lists.
 26. Declare a notify OS action whose `targets` list the outbox target and whose offline mode is `queue`. Give it `dataClasses` for the payload's fields and a category whose buttons name a reply handler.
 27. Declare that reply handler with `consumer: 'notifications'`.
-28. Add a settle command named `<target>.effect.settle` whose input holds `effectId`, an `outcome` typed with `effectOutcomeSchema` and an optional `fence`. Its handler passes all three to `ctx.settleEffect`, and the catalog refuses a notify target without this command, per the [notifications plugin README](../../plugins/notifications/README.md).
-29. Allow the settle command only to the stored owner ID under a delegated grant, which is how the notifications dispatcher calls it.
+28. Add a complete command named `<target>.effect.complete` whose input holds `effectId`, an `outcome` typed with `effectOutcomeSchema` and an optional `fence`. Its handler passes all three to `ctx.completeEffect`, and the catalog refuses a notify target without this command, per the [notifications plugin README](../../plugins/notifications/README.md).
+29. Allow the complete command only to the stored owner ID under a delegated grant, which is how the notifications dispatcher calls it.
 30. Keep the notifications plugin as the reminder target's connector. This example uses no fake system; `createNotificationPort` in that plugin delivers its effects.
 31. For effects that must reach a system of record, add a target with `bun run scaffold add target <name> --collection <type>`. Replace its generated fake with a connector that implements `SystemOfRecordPort`, as the [connect-system-of-record skill](../../packages/integration/skills/connect-system-of-record/SKILL.md) describes.
 32. Extend the screens in `screens.tsx`, following the [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md). List routes, navigation, capability screens, resource paths and plugin screens.

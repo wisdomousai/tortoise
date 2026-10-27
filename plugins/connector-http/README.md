@@ -46,7 +46,7 @@ The `externalRef`, `items`, `cursor` and `more` fields are JSON pointers (RFC 69
 - A status that a rejection rule lists is rejected with the code and message the rule points at, so a rejection is business data.
 - Anything else is a transient failure that the [dispatcher](../../docs/glossary.md#dispatcher) retries. That includes a dropped connection, a body cut off and a timeout (`timeoutMs`, 30 seconds by default).
 
-The port needs an idempotency header, a lookup, or both. With a header, the system deduplicates a resend, and the port describes itself as idempotent. With only a lookup, the dispatcher asks before every resend. A lookup that answers 404 means the request never arrived, and `pendingWhen` marks a found record that has not been decided.
+The port needs an idempotency header, a lookup, or both. With a header, the system deduplicates a resend, and the port describes itself as idempotent. With only a lookup, the dispatcher asks before every resend. A lookup that returns 404 means the system never received the request, and `pendingWhen` marks a found record that has not been decided.
 
 ## Trust boundary
 

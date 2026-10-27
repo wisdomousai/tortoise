@@ -5,7 +5,7 @@ description: Remove an agent-native application from a site without losing recor
 
 # Decommission an application
 
-An application keeps records its [systems of record](../../../../docs/glossary.md#system-of-record) have not settled only in its workspace. [Decommissioning](../../../../docs/glossary.md#decommissioning) delivers or decides them, then deletes the data directory. `app uninstall --purge` refuses while the installed release's `drain` still counts pending, held or upstream effects.
+An application keeps records its [systems of record](../../../../docs/glossary.md#system-of-record) have not completed only in its workspace. [Decommissioning](../../../../docs/glossary.md#decommissioning) delivers or decides them, then deletes the data directory. `app uninstall --purge` refuses while the installed release's `drain` still counts pending, held or acknowledged effects.
 
 ## Before writing
 
@@ -37,7 +37,7 @@ An application keeps records its [systems of record](../../../../docs/glossary.m
    bun test examples/fleet
    ```
 
-2. A change to the purge check keeps the install tests' refusal, settle and override cases.
+2. A change to the purge check keeps the install tests' refusal, complete and override cases.
 3. Record a decommissioning on a real site host in [implementation status](../../../../docs/implementation-status.md#install), with its platform.
 
 ## References

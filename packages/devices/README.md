@@ -38,7 +38,7 @@ A scan is input data and grants no permission. Sources are registered explicitly
 
 ### Configuration
 
-The `device` feature is domain-neutral. The mounting application decides who reads or administers a station with a `DeviceAccess` view, whose `relation` must apply the application's membership gate and integration lanes, because the application's policy never sees device operations. The feature's policy applies a delegated grant's resource scope, `device:<station>`. Routes are compiled before they are stored, and stale writers conflict on the expected revision. Profiles are configuration and hold no secrets.
+The `device` feature is domain-neutral. The mounting application decides who reads or administers a station with a `DeviceAccess` view, whose `relation` must apply the application's membership gate and integration allowlists, because the application's policy never sees device operations. The feature's policy applies a delegated grant's resource scope, `device:<station>`. Routes are compiled before they are stored, and stale writers conflict on the expected revision. Profiles are configuration and hold no secrets.
 
 ### Device requirements
 

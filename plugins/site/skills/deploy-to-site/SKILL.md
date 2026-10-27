@@ -21,7 +21,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 1. Write the policy, starting from `examples/quality-inspection/site-policy.sandbox.json`. Set:
    - `profile` and `mode`;
    - `destinations` with `url` and `addresses`, the CIDRs needed for DNS-rebinding checks and firewall exports;
-   - `timeoutMs` on a destination that answers slowly, and `maxResponseBytes` on one that serves files over 32 MiB, such as a fleet's releases;
+   - `timeoutMs` on a destination that responds slowly, and `maxResponseBytes` on one that serves files over 32 MiB, such as a fleet's releases;
    - `ca` or `certificatePins` where required;
    - `audit`;
    - `identity`, either `grant-file` or `external` with `workforce` for [workforce sign-in](../../../../docs/glossary.md#workforce-sign-in);

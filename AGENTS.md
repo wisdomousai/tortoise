@@ -47,19 +47,19 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Start an application, export an example, pick the next skill | [create-agent-native-app](packages/scaffold/skills/create-agent-native-app/SKILL.md) |
 | Add or change a command or query, a record shape or a trigger | [add-capability](packages/runtime/skills/add-capability/SKILL.md) |
 | Write or mount a feature: a reusable domain part with its slice, policy and hooks | [write-a-feature](packages/host/skills/write-a-feature/SKILL.md) |
-| Hand out work and review the reports: assignment kinds, lanes, the worklist | [assign-work](packages/assignments/skills/assign-work/SKILL.md) |
+| Hand out work and review the reports: assignment kinds, assignee types, the worklist | [assign-work](packages/assignments/skills/assign-work/SKILL.md) |
 | Write a host plugin for a cross-cutting concern | [write-host-plugin](packages/host/skills/write-host-plugin/SKILL.md) |
 | Choose the checks and report the evidence | [check-a-change](packages/testing/skills/check-a-change/SKILL.md) |
-| Connect a system of record: outbox, settle, sync, live reads | [connect-system-of-record](packages/integration/skills/connect-system-of-record/SKILL.md) |
+| Connect a system of record: outbox, complete, sync, live reads | [connect-system-of-record](packages/integration/skills/connect-system-of-record/SKILL.md) |
 | Build screens and registry components | [build-screens](packages/frame/skills/build-screens/SKILL.md) |
 | Bridge a workstation application through its screen | [bridge-station-screen](workstations/screen-bridge/skills/bridge-station-screen/SKILL.md) |
-| Sign operators in at a shared seat: badge, PIN, operator session, badge enrollment | [sign-in-at-a-seat](workstations/sign-in/skills/sign-in-at-a-seat/SKILL.md) |
+| Sign operators in at a shared terminal: badge, PIN, operator session, badge enrollment | [sign-in-at-a-terminal](workstations/sign-in/skills/sign-in-at-a-terminal/SKILL.md) |
 | Add scanner and point-of-work input | [add-scanner-input](packages/devices/skills/add-scanner-input/SKILL.md) |
 | Add OS handlers, actions and native registrations | [add-os-integration](packages/shell/skills/add-os-integration/SKILL.md) |
 | Extend the mobile host: native plugins, pairing | [extend-mobile-host](packages/mobile/skills/extend-mobile-host/SKILL.md) |
 | Read plant signals from MQTT, Sparkplug B or OPC UA | [observe-plant-signals](packages/observation/skills/observe-plant-signals/SKILL.md) |
 | Declare a durable workflow: steps, waits, compensations, the runner | [declare-a-workflow](plugins/workflows/skills/declare-a-workflow/SKILL.md) |
-| Connect two agent-native applications: peer surface, peer target, enrollment, subject mapping | [connect-two-applications](plugins/peer-link/skills/connect-two-applications/SKILL.md) |
+| Connect two agent-native applications: peer API, peer target, enrollment, subject mapping | [connect-two-applications](plugins/peer-link/skills/connect-two-applications/SKILL.md) |
 | Write a hardware driver | [write-hardware-driver](plugins/connector-driver/skills/write-hardware-driver/SKILL.md) |
 | Run agent tools in a sandbox: bubblewrap, grants, egress | [run-agent-tools-in-a-sandbox](plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md) |
 | Serve a local or fine-tuned model: entries, digests, datasets, the gate | [serve-a-local-model](plugins/model-server/skills/serve-a-local-model/SKILL.md) |

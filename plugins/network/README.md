@@ -39,7 +39,7 @@ What the plugin does at each lifecycle hook:
 A destination-scoped client allows only the bound scheme, host and port. It also:
 
 - rechecks every redirect hop;
-- checks DNS answers against the bound networks before connecting;
+- checks resolved addresses against the bound networks before connecting;
 - applies CA bundles and certificate pins;
 - caps response size and time, at 32 MiB and 30 seconds unless a binding sets `maxResponseBytes` or `timeoutMs`.
 

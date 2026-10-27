@@ -1,6 +1,6 @@
 # @agent-native/driver-sdk-python
 
-The Python package `agent-native-driver` (module `agent_native_driver`), for writing a hardware [driver](../../docs/glossary.md#driver) for an agent-native [host](../../docs/glossary.md#host) in Python. The SDK answers the driver protocol, and the driver author writes the handlers that touch the equipment.
+The Python package `agent-native-driver` (module `agent_native_driver`), for writing a hardware [driver](../../docs/glossary.md#driver) for an agent-native [host](../../docs/glossary.md#host) in Python. The SDK implements the driver protocol, and the driver author writes the handlers that touch the equipment.
 
 ## Layer
 
@@ -66,13 +66,13 @@ The SDK enforces these rules whatever the handlers do:
 
 - **Mode.** The host sends its [bridge mode](../../docs/glossary.md#bridge-mode) with every action, and the SDK checks it before the handler runs:
   - `monitor-only` refuses every action;
-  - `assist` refuses any [hazard class](../../docs/glossary.md#hazard-class) other than `none`;
+  - `assist` refuses any [risk level](../../docs/glossary.md#risk-level) other than `none`;
   - an `operator-present` action needs `presence.confirmedBy`.
 
 - **Deadline.** An action whose deadline has passed is refused as transient without running.
 - **Once per effect.** Actions with the `idempotent` or `once` [delivery mode](../../docs/glossary.md#delivery-mode) run at most once per effect ID:
   - a repeat returns the recorded outcome;
-  - `action.lookup` answers from the journal;
+  - `action.lookup` returns the journal's record;
   - `convergent` actions are not deduplicated, because the host reads the equipment back before it resends one.
 - **Journal.** The journal records `started` and fsyncs it before a handler runs, then records the outcome. An effect that started and has no outcome reads as `uncertain`, and the host holds it for a person.
 - **Journal file.** A contract with `once` actions needs `journal=`, so lookups survive a restart.

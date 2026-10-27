@@ -71,7 +71,7 @@ A case returns `{ passed: true }`, or `{ skipped: reason }` when its hook is mis
 
 ### Feature conformance
 
-`featureConformance(feature, options)` checks a [feature](../../docs/glossary.md#feature)'s server part the way composition uses it. `options` holds an access view that answers yes to everything, one that answers no, a sample slice, and optionally sample requests, sample events and the person-only operations. The cases:
+`featureConformance(feature, options)` checks a [feature](../../docs/glossary.md#feature)'s server part the way composition uses it. `options` holds an access view that allows everything, one that denies everything, a sample slice, and optionally sample requests, sample events and the person-only operations. The cases:
 
 - every operation has one handler, every handler an operation, and a remote handler exactly when the operation declares `remote`;
 - a new slice is unchanged by a JSON round trip and by `upgrade`;
@@ -166,5 +166,5 @@ Elsewhere:
 ## Skills
 
 - [add-capability](../runtime/skills/add-capability/SKILL.md): commands, queries, policy, record shapes and triggers.
-- [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox settlement, sync and live reads.
+- [connect-system-of-record](../integration/skills/connect-system-of-record/SKILL.md): targets, outbox completion, sync and live reads.
 - [check-a-change](skills/check-a-change/SKILL.md): which checks to run and how to report the evidence.

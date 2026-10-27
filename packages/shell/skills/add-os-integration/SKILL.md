@@ -30,7 +30,7 @@ An application declares what the OS may send it and what it may ask of the OS as
 3. List the serving plugin and `plugins/os` in the application's manifest and application entrypoints. A site turns individual IDs off with the `os-disabled` setting.
 4. For `notify`, write what the [notifications README](../../../../plugins/notifications/README.md#entrypoints) lists under "What the application writes":
    - a notify action over outbox targets with `offline: 'queue'`;
-   - a `<target>.effect.settle` command per target. It calls `ctx.settleEffect` and then `ctx.change(effect.resource)`, because a command that touches an effect must change the effect's resource;
+   - a `<target>.effect.complete` command per target. It calls `ctx.completeEffect` and then `ctx.change(effect.resource)`, because a command that touches an effect must change the effect's resource;
    - a command that enqueues an `OsNotificationPayload` with the replies it offers.
 5. Declare the data classes an action carries. Notification text leaves the [instance](../../../../docs/glossary.md#instance) for the lock screen.
 6. Show the delivery on the screen. The web frame and `packages/frame-native` apply deliveries and show provenance (`describeProvenance`) above a prefilled form. A screen asks for an action with `runOsAction` from the web frame's `@/lib/os-browser`, or `useOsAction` from `@agent-native/frame-native/os-actions` on a device.

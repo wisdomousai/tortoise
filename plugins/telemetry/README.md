@@ -22,7 +22,7 @@ Plugins (`plugins/*`). Server only. The plugin trusts the audit plugin's log as 
 | `@agent-native/telemetry/plugin` | server | `createTelemetryPlugin`, `telemetryPlugin`, the service and status types |
 | `@agent-native/telemetry/recorder` | server | `createRecorder`: audit events to cumulative metrics and finished spans |
 | `@agent-native/telemetry/otlp` | server | `metricsRequest` and `tracesRequest`, the OTLP/HTTP JSON bodies |
-| `@agent-native/telemetry/testing` | server (tests and development) | `startCollector`, an OTLP/HTTP collector stand-in on loopback that keeps the newest 1,000 requests and can answer 503 |
+| `@agent-native/telemetry/testing` | server (tests and development) | `startCollector`, an OTLP/HTTP collector stand-in on loopback that keeps the newest 1,000 requests and can return 503 |
 
 ### Composition
 
@@ -47,9 +47,9 @@ The service at `services.telemetry` offers `status()` and `flush()`. `status()` 
 | `agent_native.commands` | counter | `agent_native.operation`, `agent_native.outcome` (committed, replayed, recovered, aborted, failed, denied), `agent_native.channel`, `error.type` |
 | `agent_native.command.duration` | histogram, ms | operation ID and outcome; from `command.accepted` to the outcome |
 | `agent_native.deliveries` | counter | `agent_native.target`, `agent_native.effect.status` (accepted, rejected, cancelled) |
-| `agent_native.delivery.duration` | histogram, ms | target and status; from the committing command to settlement |
-| `agent_native.delivery.attempts` | counter | target, `agent_native.attempt.result` (retry, held, upstream, superseded) |
-| `agent_native.outbox.backlog` | gauge | target, `agent_native.outbox.state` (pending, held, upstream) |
+| `agent_native.delivery.duration` | histogram, ms | target and status; from the committing command to completion |
+| `agent_native.delivery.attempts` | counter | target, `agent_native.attempt.result` (retry, held, acknowledged, superseded) |
+| `agent_native.outbox.backlog` | gauge | target, `agent_native.outbox.state` (pending, held, acknowledged) |
 | `agent_native.runs` | counter | `agent_native.harness`, `agent_native.run.state`, `error.type` |
 | `agent_native.run.duration` | histogram, ms | harness and state; from queued to ended |
 
@@ -58,7 +58,7 @@ The service at `services.telemetry` offers `status()` and `flush()`. `status()` 
 The plugin emits:
 
 - one span per command, named by its operation ID;
-- one span per settled delivery (`deliver <target>`), a child of the command that enqueued it;
+- one span per completed delivery (`deliver <target>`), a child of the command that enqueued it;
 - one span per run (`run`), the parent of the commands the run issued.
 
 Trace and span IDs are SHA-256 digests of correlation, effect and run IDs. The resource carries `service.name`, which is the application ID, and `service.instance.id`.

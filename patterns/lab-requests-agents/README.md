@@ -14,7 +14,7 @@ The pattern is one [application](../../docs/primitives.md#application). It claim
 - [agent runs](../../docs/primitives.md#agent-run) on the deterministic harness, started from the test request screen;
 - [approval requests](../../docs/primitives.md#approval-request) for `test-request.update`, held in their own `suggestions` slice;
 - a [trigger](../../docs/primitives.md#trigger), `suggest-methods-for-new-requests`, on `test-request.submit`;
-- the [standing grant](../../docs/primitives.md#standing-grant) a person issues before the trigger runs;
+- the [trigger grant](../../docs/primitives.md#trigger-grant) a person issues before the trigger runs;
 - the [UI session context](../../docs/primitives.md#ui-session-context) that the test request screen registers;
 - [agent scenarios](../../docs/primitives.md#agent-scenario) that judge the agent by what it commits and requests.
 
@@ -32,7 +32,7 @@ Its own files:
 
 `methodFor` in `method.ts` matches words such as tensile, hardness, salt spray and moisture to an ASTM method. It returns an empty string when no word matches, so the job and the screen suggest nothing.
 
-The trigger reacts to `test-request.submit`. Its job reads the request and, when the method is empty and the description names a test, requests approval for `test-request.update` with that method. It runs as the person who issued its standing grant, narrowed to `test-request.get` and `approval.request`, so it never changes a request. It is a deterministic job, so a dev launch needs no model.
+The trigger reacts to `test-request.submit`. Its job reads the request and, when the method is empty and the description names a test, requests approval for `test-request.update` with that method. It runs as the person who issued its trigger grant, narrowed to `test-request.get` and `approval.request`, so it never changes a request. It is a deterministic job, so a dev launch needs no model.
 
 The test request screen registers the open request as the UI session context, because `test-request` is a selectable resource. **Suggest a method (offline run)** starts a deterministic run that requests approval for the method and then calls `ui.request-review`. The screen shows the review above the pending suggestions. `screens.resources` maps `test-request` and `approval-request` to the screens a `ui.open` intent leads to.
 

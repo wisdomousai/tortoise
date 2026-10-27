@@ -29,7 +29,7 @@ The quality-inspection capture screen ([`examples/quality-inspection/ui/capture-
 
 Nothing here is a security boundary. The bindings protect correctness on the client.
 
-`useCapabilityForm` mints the idempotency key when the form opens. It reuses the key for every retry until commit, so double taps and scanner double-sends record once. Mapped input is frozen per attempt, so a retry replays the original [receipt](../../docs/glossary.md#receipt). Server field errors land on the field, and a `CONFLICT` keeps the draft.
+`useCapabilityForm` creates the idempotency key when the form opens. It reuses the key for every retry until commit, so double taps and scanner double-sends record once. Mapped input is frozen per attempt, so a retry replays the original [receipt](../../docs/glossary.md#receipt). Server field errors are shown on the field, and a `CONFLICT` keeps the draft.
 
 `createLiveBindings` serves one session: one instance, [principal](../../docs/glossary.md#principal) and [grant](../../docs/glossary.md#grant). Discard it on sign-out. The fence works like this:
 

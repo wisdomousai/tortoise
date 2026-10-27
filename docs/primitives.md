@@ -75,7 +75,7 @@ _An authorized read that changes nothing._
 
 implemented · [`packages/runtime`](../packages/runtime/README.md)
 
-### Nested invocation
+### Nested call
 
 _A command or query run by another command's handler inside the same transaction, each authorized on its own._
 
@@ -245,7 +245,7 @@ _Work that starts on a committed change or a schedule instead of a person's prom
 
 implemented · [`plugins/automation`](../plugins/automation/README.md)
 
-### Standing grant
+### Trigger grant
 
 _A person's recorded, expiring permission for a trigger to act as that principal._
 
@@ -309,7 +309,7 @@ implemented · [`packages/integration`](../packages/integration/README.md) [`wor
 
 ### Dispatcher
 
-_The worker that delivers pending effects and settles them under the narrow integration principal._
+_The worker that delivers pending effects and completes them under the narrow integration principal._
 
 implemented · [`packages/integration`](../packages/integration/README.md)
 
@@ -321,19 +321,19 @@ implemented · [`packages/integration`](../packages/integration/README.md)
 
 ### Target
 
-_A system of record declared once: its settle, sync and status capabilities, the integration principal's grant and its policy lane._
+_A system of record declared once: its complete, sync and status capabilities, the integration principal's grant and its integration allowlist._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md)
 
 ### Peer target
 
-_Another agent-native application as a target, through the peer surface it publishes: the commands and queries it lets a peer call as a service principal or on behalf of a mapped person._
+_Another agent-native application as a target, through the peer API it publishes: the commands and queries it lets a peer call as a service principal or on behalf of a mapped person._
 
 partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/integration`](../packages/integration/README.md) [`examples/receiving`](../examples/receiving/README.md) [`examples/asset-survey-field`](../examples/asset-survey-field/README.md)
 
 ### Peer link
 
-_Enrollment of another agent-native application, which then calls the peer surface as its service principal or, with a signed subject assertion, as a mapped person._
+_Enrollment of another agent-native application, which then calls the peer API as its service principal or, with a signed subject assertion, as a mapped person._
 
 partial · [`plugins/peer-link`](../plugins/peer-link/README.md) [`packages/integration`](../packages/integration/README.md) [`examples/quality-inspection`](../examples/quality-inspection/README.md) [`examples/receiving`](../examples/receiving/README.md)
 
@@ -361,15 +361,15 @@ _A reading from a source that cannot be queried, submitted through an ingest com
 
 implemented · [`packages/observation`](../packages/observation/README.md) [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md) [`plugins/connector-opcua`](../plugins/connector-opcua/README.md)
 
-### Gated actuator
+### Interlock
 
-_A connector in which a model may suggest screen actions and deterministic code executes and verifies them._
+_The checks a connector passes before it acts on a screen or on equipment. A model may suggest an action; deterministic code checks, executes and verifies it._
 
 implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) [`packages/integration`](../packages/integration/README.md) [`plugins/connector-driver`](../plugins/connector-driver/README.md)
 
 ### Driver contract
 
-_A driver's state fields, its actions with delivery mode and hazard class, and its events, as data with a digest the driver must echo at its handshake._
+_A driver's state fields, its actions with delivery mode and risk level, and its events, as data with a digest the driver must echo at its handshake._
 
 partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`examples/quality-inspection`](../examples/quality-inspection/README.md) [`examples/line-station`](../examples/line-station/README.md)
 
@@ -381,7 +381,7 @@ partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [
 
 ### Driver SDK
 
-_A library in another language that answers the driver protocol for a driver author: bridge-mode gating, once-per-effect delivery with a journal, events and stubs generated from the driver contract. Each SDK proves itself against the reference contract in `plugins/connector-driver`._
+_A library in another language that implements the driver protocol for a driver author: bridge-mode gating, once-per-effect delivery with a journal, events and stubs generated from the driver contract. Each SDK proves itself against the reference contract in `plugins/connector-driver`._
 
 partial · [`sdks/driver-python`](../sdks/driver-python/README.md) [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md)
 
@@ -431,7 +431,7 @@ partial · [`plugins/site/src/workforce`](../plugins/site/src/workforce) [`packa
 
 ### Workstation sign-in
 
-_An operator signing in at a shared workstation seat by badge and PIN, for a short-lived session issued to that operator._
+_An operator signing in at a shared workstation terminal by badge and PIN, for a short-lived session issued to that operator._
 
 partial · [`workstations/sign-in`](../workstations/sign-in/README.md) [`packages/kernel/src/plugin.ts`](../packages/kernel/src/plugin.ts)
 
@@ -465,7 +465,7 @@ _The `device` feature: per-workstation device configuration, the scanner profile
 
 implemented · [`packages/devices`](../packages/devices/README.md)
 
-### Golden check
+### Golden test
 
 _A replay of labeled inputs through a station profile and its extractors, run before a station profile change or a model change is used._
 
@@ -501,9 +501,9 @@ _The framework and plugin packages published together at one version, each with 
 
 implemented · [`scripts/release.ts`](../scripts/release.ts) [`scripts/check-manifests.ts`](../scripts/check-manifests.ts) [`scripts/local-registry.ts`](../scripts/local-registry.ts) [`packages/scaffold/src/versions.ts`](../packages/scaffold/src/versions.ts) [`.changeset`](../.changeset)
 
-### Task package
+### Site bundle
 
-_A signed, versioned package with declared requirements and staged activation. A failed install step leaves the previous release current._
+_A signed, versioned directory per application and platform, with declared requirements and staged activation. A failed install step leaves the previous release current._
 
 partial · [`packages/bundle`](../packages/bundle/README.md) [`scripts/bundle.ts`](../scripts/bundle.ts) [`plugins/site/src/install`](../plugins/site/src/install)
 

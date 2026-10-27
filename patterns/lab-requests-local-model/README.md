@@ -26,7 +26,7 @@ Its own files:
 | `domain.ts`, `handlers.ts`, `policy.ts` | Server | The `suggestions` slice, the approval handlers and their route |
 | `application.ts` | Server | `composeLabRequestsLocalModel`, which returns the application and the model server |
 | `screens.tsx`, `ui/suggestions.tsx` | Browser | Suggested methods on the test request screen, the approvals screen and the automation screen |
-| `responder.ts` | Stand-in process | The stand-in model's answers: read the request, then request approval for its method |
+| `responder.ts` | Stand-in process | The stand-in model's responses: read the request, then request approval for its method |
 | `dev.ts` | Dev launch | Writes the site policy for the stand-in, or for llama-server on `LOCAL_MODEL_GGUF` |
 
 The model comes from the deployment. `methodModelFrom` reads the JSON file `LAB_METHOD_MODEL` names, with `entry`, `files` and an optional `activation`. Without it, the pattern serves the stand-in entry. `standInModel` writes the stand-in weights, a fixed text whose digest the entry names, to the temporary directory, because a source export carries no weight files.
@@ -45,7 +45,7 @@ The stand-in model is `llamaServerStandIn` from `@agent-native/model-server/test
 
 The deployment chooses the entry, the weights and the activation. At every start, the model server proves that the files on disk have the entry's digests, and refuses a fine-tune without a passing activation for exactly those digests. The site policy pins the server executable and binds `local-inference` to loopback. The server needs no network.
 
-The trigger does nothing until a person issues a standing grant for it. Its runs act as that person, narrowed to the suggester's operations, so a run reads test requests and requests approval but changes nothing. Approving runs `test-request.update` as the approver, so a viewer's approval is refused.
+The trigger does nothing until a person issues a trigger grant for it. Its runs act as that person, narrowed to the suggester's operations, so a run reads test requests and requests approval but changes nothing. Approving runs `test-request.update` as the approver, so a viewer's approval is refused.
 
 The dataset holds only decided approval requests the exporting caller may see. The test blanks the rationale, which can quote record contents.
 

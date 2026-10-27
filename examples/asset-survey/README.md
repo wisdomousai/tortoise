@@ -19,8 +19,8 @@ Content (`examples/*`). The default extractor and the EAM are demo fakes in this
 The example is one [application](../../docs/primitives.md#application). It composes:
 
 - two [assignment](../../docs/primitives.md#assignment) kinds in [`contracts/kinds.ts`](contracts/kinds.ts), mounted with the `assignment` feature:
-  - `survey`: the scope is a set of subtrees and capture kinds, the brief is that slice of the structure, and each report is one capture about a node. Its lanes are device and person.
-  - `extraction`: the scope is one capture, the brief is its photos, and the report is the values read with a confidence each. Its lanes are the `model` target and a person.
+  - `survey`: the scope is a set of subtrees and capture kinds, the brief is that slice of the structure, and each report is one capture about a node. Its assignee types are device and person.
+  - `extraction`: the scope is one capture, the brief is its photos, and the report is the values read with a confidence each. Its assignee types are the `model` target and a person.
 - the [approval](../../docs/primitives.md#approval-request) feature for `structure.node.create`, so an agent requests nodes and a manager approves them.
 - three [modules](../../docs/primitives.md#module) in [`contracts.ts`](contracts.ts): structure and documents, review, and filing. Each carries a workflow text for agents.
 - [collections](../../docs/primitives.md#collection) for nodes and documents, with generated writes and the node tree. Hooks in `handlers/structure.ts` normalize and check designations.
@@ -28,8 +28,8 @@ The example is one [application](../../docs/primitives.md#application). It compo
 - three [targets](../../docs/primitives.md#target), wired with `connectTarget`. The assignment feature owns `assignment-model`, which sends extraction offers through the [outbox](../../docs/glossary.md#outbox) and takes readings back through its feed. `eam` sends filings and returns asset snapshots, and `export` sends filings as folders with no feed.
 - a [data provider](../../docs/primitives.md#data-provider), `eam.asset`, for live EAM search and lookup with the integration's service account.
 - [requirement declarations](../../docs/primitives.md#requirement-declaration) for the `model-api` (internet) and `eam-api` (site) destinations, both `offline: 'queue'`. The optional `filing-export` process carries the `export` target.
-- the `site`, `network`, `process`, `audit`, `compliance`, `device-link` and `workflows` [host plugins](../../docs/primitives.md#host-plugin). Device link pairs phones and authenticates them as `device:<id>`. The application passes `FIELD_SYNC_OPERATIONS`, the device lane of the assignments, as its default grant.
-- a peer surface, `hubSurface` in [`contracts/peer.ts`](contracts/peer.ts), listing the device lane: `assignment.survey.report`, `assignment.complete` and `assignment.feed`. The field application's [worklist](../../docs/primitives.md#worklist) declares the hub as a [peer target](../../docs/primitives.md#peer-target) through it and checks the hub's served contract against it.
+- the `site`, `network`, `process`, `audit`, `compliance`, `device-link` and `workflows` [host plugins](../../docs/primitives.md#host-plugin). Device link pairs phones and authenticates them as `device:<id>`. The application passes `FIELD_SYNC_OPERATIONS`, the device assignee operations of the assignments, as its default grant.
+- a peer API, `hubApi` in [`contracts/peer.ts`](contracts/peer.ts), listing the device assignee operations: `assignment.survey.report`, `assignment.complete` and `assignment.feed`. The field application's [worklist](../../docs/primitives.md#worklist) declares the hub as a [peer target](../../docs/primitives.md#peer-target) through it and checks the hub's served contract against it.
 - [capability bindings](../../docs/primitives.md#capability-binding) on every screen, and a `compact` variant of the review queue for tablets.
 
 The structure names nodes by reference designations: IEC 81346, KKS and ANSI/IEEE C37.2 device numbers. The scheme tables in [`contracts/schemes.ts`](contracts/schemes.ts) hold the common class letters and device numbers, not the full standards.
@@ -71,25 +71,25 @@ The demo EAM holds `EAM-1001` (`=G1-Q1`, active, with a serial) and `EAM-1002` (
 Roles are per member:
 
 - managers edit the structure, plan and send surveys, approve requested nodes and file;
-- reviewers take survey work, place, discard and accept captures, and send captures to be read;
+- reviewers take survey work, link, discard and accept captures, and send captures to be read;
 - viewers read.
 
 `surveyAccess` in `policy.ts` is the assignment feature's view of these roles. A survey or extraction sent to a person is refused unless that person is a member who is not a viewer. Accepting a reading, a capture or a requested node requires a person. An agent run under a [delegated grant](../../docs/glossary.md#grant) may prepare the review, but its accept is refused.
 
 A paired device (`device:<id>`) may read its own feed, report captures on surveys sent to it and mark them done. It may do nothing else: no structure query and no journal events. The [device link](../../docs/glossary.md#device-link) grant limits it to `FIELD_SYNC_OPERATIONS`, and the assignment feature matches the device to the survey's assignee. Revoking the device refuses its next request.
 
-A capture names its node, and the hub decides whether the survey covers it. A node outside the survey's subtrees reaches the hub unplaced when a device reports it, and a person on the hub is refused. Placing a capture is limited to nodes its survey covers.
+A capture names its node, and the hub decides whether the survey covers it. A node outside the survey's subtrees reaches the hub unlinked when a device reports it, and a person on the hub is refused. Linking a capture is limited to nodes its survey covers.
 
-The [integration principal](../../docs/glossary.md#integration-principal) settles and syncs the `assignment-model`, `eam` and `export` targets only. A reading never writes attributes. An EAM snapshot only updates `assetStatus` of nodes filed as that asset.
+The [integration principal](../../docs/glossary.md#integration-principal) completes and syncs the `assignment-model`, `eam` and `export` targets only. A reading never writes attributes. An EAM snapshot only updates `assetStatus` of nodes filed as that asset.
 
-The model's answer is untrusted input. The model extractor keeps only values under valid attribute names, from photos of the request, with confidence and regions clamped. Every value is a proposal that a person accepts or corrects. The extractor's requests reach only the `model-api` [destination](../../docs/glossary.md#destination) through the network port. The deployment policy decides the endpoint, and a request elsewhere fails.
+The model's output is untrusted input. The model extractor keeps only values under valid attribute names, from photos of the request, with confidence and regions clamped. Every value is a proposal that a person accepts or corrects. The extractor's requests reach only the `model-api` [destination](../../docs/glossary.md#destination) through the network port. The deployment policy decides the endpoint, and a request elsewhere fails.
 
 The export directory belongs to the site. The deployment policy binds `filing-export` to an executable and its arguments. The reference [`export/worker.ts`](export/worker.ts) takes the directory as its last argument, for example `{ "executable": "/usr/local/bin/bun", "args": ["<repo>/examples/asset-survey/export/worker.ts", "/srv/survey-export"] }`. The worker:
 
 - accepts one path segment as the folder name;
 - writes only photos whose bytes match their digest;
 - assembles the folder under a temporary name and renames it into place;
-- answers a folder that already holds the same effect as written.
+- reports a folder that already holds the same effect as written.
 
 When `filing-export` is unbound or the worker fails, the filing stays pending and is retried. The connector records a fixed message, never the worker's output.
 
@@ -112,7 +112,7 @@ bunx playwright test examples/asset-survey/e2e
   - designations are validated per scheme and unique among active nodes; a move under a descendant and retiring a parent are refused;
   - an agent requests a node and only a manager approves it;
   - a survey's feed reaches only its device, with a content cursor;
-  - a report is idempotent by ID, a node outside the survey arrives unplaced, and placing is limited to the survey;
+  - a report is idempotent by ID, a capture of a node outside the survey is recorded unlinked, and linking is limited to the survey;
   - the model's reading flags values, acceptance records edits, and the node is filed into the EAM;
   - a person takes a survey at the desk and reads a capture by hand;
   - a filing waits while the EAM is down;
@@ -123,22 +123,22 @@ bunx playwright test examples/asset-survey/e2e
 - `test/export.test.ts`:
   - an unbound export waits while the EAM filing of the same node goes out, and a second export of the node conflicts;
   - bound through a deployment policy, the process writes one folder with the record and photos that match their digests, and the filing names it;
-  - the worker answers a repeated effect as written;
+  - the worker reports a repeated effect as written;
   - the worker refuses another effect for the same folder, a photo that does not match its digest and a folder outside the directory.
 - `test/model-extractor.test.ts`:
   - against a mock model, every photo goes out in one structured call;
   - malformed names, empty values and unknown photo numbers are dropped, confidence and regions are clamped, and the more confident of two values is kept;
   - configured from the environment, the extractor does nothing without `ASSET_SURVEY_MODEL` and ignores an ambient `OPENAI_API_KEY`;
   - the one request goes to `model-api` with the configured key.
-- `test/nameplates.test.ts`: the demo extractor reads each sample photo as its ground truth. It doubts the values marked hard to read and gives no region. The text rides in a JPEG comment and leaves the image data alone.
+- `test/nameplates.test.ts`: the demo extractor reads each sample photo as its ground truth. It doubts the values marked hard to read and gives no region. The text is stored in a JPEG comment and leaves the image data alone.
 - `test/conformance.test.ts`:
   - a device paired through the enrollment route reads its feed, uploads a photo and reports a capture over HTTP with its own token;
   - the same device is refused elsewhere;
   - the capture reads the same directly, over HTTP, the CLI and MCP;
   - MCP marks EAM search read-only and filing open-world.
-- `test/place-and-extract.test.ts`: `capture.place-and-extract` places a capture and sends it to the model in one commit on every surface, and rolls back with a grant that lacks the extraction.
+- `test/link-and-extract.test.ts`: `capture.link-and-extract` links a capture and sends it to the model in one commit on every surface, and rolls back with a grant that lacks the extraction.
 - `test/capture-to-eam.test.ts`, with the runner driven one pass at a time on a test clock:
-  - `survey.capture-to-eam` places the capture, waits for the review, files the node into the EAM and exports it;
+  - `survey.capture-to-eam` links the capture, waits for the review, files the node into the EAM and exports it;
   - a refused export withdraws the EAM filing, which retires the created asset and clears the node's asset ID;
   - a cancel during the wait stops the instance;
   - a review not done within a week fails the instance.
@@ -170,10 +170,10 @@ Paths are relative to `examples/asset-survey`.
 | [Approval requests](../../docs/primitives.md#approval-request) for node creation | `approvalFeature` in `application.ts`; `proposalAccess` in `policy.ts` | `test/application.test.ts`, "an agent requests a node" |
 | [Modules](../../docs/primitives.md#module) with workflow text for agents | `contracts.ts` (`structureModule`, `reviewModule`, `filingModule`) | The workflow reference check in `packages/contracts/test/contracts.test.ts`, "duplicate IDs, dependencies, cycles, workflow references" |
 | [Collections](../../docs/primitives.md#collection) with generated writes and a tree | `contracts/structure.ts`; `collectionCommandHandlers` and `collectionTreeHandler` in `handlers/structure.ts` | `test/application.test.ts` |
-| [Policy](../../docs/primitives.md#policy) with roles, person-only rules and integration lanes | `policy.ts` (`surveyPolicy`) | `test/application.test.ts`, "outsiders and the integration principal" |
+| [Policy](../../docs/primitives.md#policy) with roles, person-only rules and integration allowlists | `policy.ts` (`surveyPolicy`) | `test/application.test.ts`, "outsiders and the integration principal" |
 | [Blob store](../../docs/primitives.md#blob-store): attach and connector reads | `blobs` limits in `contracts/kinds.ts` and `contracts/structure.ts`; `ctx.attach` in `handlers/filing.ts`; `readBlob` in `connectors/extractor.ts` | `test/conformance.test.ts`, `test/export.test.ts`; no test exercises the `photoLimits` size and type limits |
-| [Outbox effects](../../docs/primitives.md#outbox-effect) on three [targets](../../docs/primitives.md#target) | the `model` target lane in `contracts/kinds.ts`; `eamTarget` and `exportTarget` in `contracts/filing.ts` | `test/application.test.ts`, "the model reads a capture"; `test/export.test.ts` |
-| Settle, sync and status handlers | generated by the assignment feature for `assignment-model`; `targetHandlers` and `settleDelivery` in `handlers/filing.ts` | `test/application.test.ts` |
+| [Outbox effects](../../docs/primitives.md#outbox-effect) on three [targets](../../docs/primitives.md#target) | the `model` assignment target in `contracts/kinds.ts`; `eamTarget` and `exportTarget` in `contracts/filing.ts` | `test/application.test.ts`, "the model reads a capture"; `test/export.test.ts` |
+| Complete, sync and status handlers | generated by the assignment feature for `assignment-model`; `targetHandlers` and `completeDelivery` in `handlers/filing.ts` | `test/application.test.ts` |
 | [Dispatcher](../../docs/primitives.md#dispatcher) retry on a transient failure | `connectTarget` in `application.ts`; `DeliveryFailure` in `connectors/fake-eam.ts` | `test/application.test.ts`, "a filing waits while the EAM is unreachable" |
 | [Inbound sync](../../docs/primitives.md#inbound-sync) from two feeds | `assignmentTargetPort` in `connectors/extractor.ts`; `pull` in `connectors/fake-eam.ts` | `test/application.test.ts` |
 | [Connectors](../../docs/primitives.md#connector) as `SystemOfRecordPort` | `createExtractionPort`, `FakeEam`, `createExportPort` | `test/application.test.ts`, `test/export.test.ts` |
@@ -182,12 +182,12 @@ Paths are relative to `examples/asset-survey`.
 | Model calls through the network port | `modelApiFetch` and `modelExtractorFromEnv` in `connectors/model-extractor.ts` | `test/model-extractor.test.ts`, "live extraction is configured only explicitly", with a hand-written network port; no example test runs the [egress guard](../../docs/primitives.md#egress-guard) |
 | [Process port](../../docs/primitives.md#process-port) behind a target | `bunProcesses` in `application.ts`; `export/connector.ts`, `export/worker.ts` | `test/export.test.ts` |
 | [Device link](../../docs/primitives.md#device-link) with a sync grant | `createDeviceLinkPlugin({ syncOperations })` in `application.ts` | `test/conformance.test.ts`; `test/application.test.ts`, "a survey's feed reaches only its device" |
-| [Nested invocation](../../docs/glossary.md#nested-invocation) of feature operations | `placeAndExtract` in `handlers/survey.ts`; the extraction `accept` hook | `test/place-and-extract.test.ts` |
+| [Nested call](../../docs/glossary.md#nested-call) of feature operations | `linkAndExtract` in `handlers/survey.ts`; the extraction `accept` hook | `test/link-and-extract.test.ts` |
 | [UI session context](../../docs/primitives.md#ui-session-context) selections | `selectableResources` in `application.ts` | No example test covers it |
 | [Surface adapters](../../docs/primitives.md#surface-adapter): HTTP, CLI and MCP | Generated from the catalog | `test/conformance.test.ts` |
 | [Capability bindings](../../docs/primitives.md#capability-binding) and [live queries](../../docs/primitives.md#journal-and-live-query) | `ui/*.tsx` | `test/ui-bindings.test.ts`, `e2e/survey.pw.ts` |
 | Compact route variant | `review` route in `screens.tsx`, `ReviewScreenCompact` in `ui/review.tsx` | `e2e/survey.pw.ts`, "the review queue is one column" |
-| [Nested invocation](../../docs/primitives.md#nested-invocation) of two commands in one transaction | `capture.place-and-extract` in `contracts/extraction.ts` and `handlers/review.ts`; `workflow.start` from `capture.file-workflow` in `handlers/filing.ts` | `test/place-and-extract.test.ts` |
+| [Nested call](../../docs/primitives.md#nested-call) of two commands in one transaction | `capture.link-and-extract` in `contracts/extraction.ts` and `handlers/review.ts`; `workflow.start` from `capture.file-workflow` in `handlers/filing.ts` | `test/link-and-extract.test.ts` |
 | [Workflow](../../docs/primitives.md#workflow) with a compensation | `captureToEam` and `captureFileWorkflow` in `contracts/workflow.ts`; `filing.withdraw` in `handlers/filing.ts`; `createWorkflowsPlugin` in `application.ts` | `test/capture-to-eam.test.ts` |
 | [Host plugins](../../docs/primitives.md#host-plugin) site, network, process, audit, compliance, device-link, workflows | `manifest.ts`, `application.ts` | `test/conformance.test.ts`, `test/export.test.ts` |
 
@@ -197,7 +197,7 @@ Paths are relative to `examples/asset-survey`.
 | --- | --- |
 | `manifest.ts` | The browser-safe manifest: ID `asset-survey`, the three modules, the two feature manifests and the plugin manifests. |
 | `contracts.ts` | The modules, their workflow text and requirement declarations, and `operations` by short name, the assignments' included. |
-| `contracts/` | The assignment kinds (`kinds.ts`), capabilities by concern, record schemas, designation schemes, the `operation` helper and the hub's peer surface (`peer.ts`). The field application imports these. |
+| `contracts/` | The assignment kinds (`kinds.ts`), capabilities by concern, record schemas, designation schemes, the `operation` helper and the hub's peer API (`peer.ts`). The field application imports these. |
 | `domain.ts` | State shape, initial state, roles, the device principal prefix, survey scope and brief, and how a capture's reading stands. |
 | `migration.ts` | `adoptAssignments`, which turns version 1 field work into the assignment slice, and the version 2 step. |
 | `handlers/` | Handlers for structure, the survey's hooks and reads, and filing; `context.ts` holds collections, services and error helpers. |
@@ -218,49 +218,49 @@ A reading is this example's record of the values a model or a person read from o
 2. `assignment.survey.create` stores the subtrees and capture kinds. With an assignee it sends the survey at once; otherwise `assignment.survey.send` sends the draft later. The `brief` hook computes the slice of active nodes below the roots when the survey is sent. The Assignments screen offers the paired devices and the members who take survey work.
 3. The device reads `assignment.feed` as principal `device:<id>` and receives only its own open surveys with their briefs. The cursor is a hash of that set, so an unchanged set returns no items. A person reads the same feed on the My work screen.
 4. The device uploads each photo to the blob store, then calls `assignment.survey.report` with an ID it generated. The assignment feature refuses a survey not sent to the caller and attaches the photos to the report.
-5. A repeated report ID with the same body returns the first result, and a different body under that ID is `CONFLICT`. A node the survey does not cover is dropped from a device's report, so the capture arrives unplaced.
-6. A reviewer sends a capture to be read with `assignment.extraction.create`, assigned to the `model` target or to a person. The `scope` hook refuses a capture already reviewed. `capture.place-and-extract` places an unplaced capture and sends it to the model in one transaction through two [nested invocations](../../docs/glossary.md#nested-invocation), each authorized on its own.
+5. A repeated report ID with the same body returns the first result, and a different body under that ID is `CONFLICT`. A node the survey does not cover is dropped from a device's report, so the capture is recorded unlinked.
+6. A reviewer sends a capture to be read with `assignment.extraction.create`, assigned to the `model` target or to a person. The `scope` hook refuses a capture already reviewed. `capture.link-and-extract` links an unlinked capture and sends it to the model in one transaction through two [nested calls](../../docs/glossary.md#nested-call), each authorized on its own.
 7. Sending to the model enqueues an offer on `assignment-model` with the photos attached. The dispatcher delivers it to `createExtractionPort` in `connectors/extractor.ts`, which reads the photos through `readEffectBlob`, calls the extractor and keeps the reading for inbound sync to pull. A photo it cannot read refuses the offer with `PHOTO_UNAVAILABLE`.
 8. Inbound sync applies the reading as the extraction's report, and the extraction becomes done. A refused offer stays sent with its delivery rejected; a reviewer withdraws it on the Assignments screen and sends the capture again.
 9. `capture.get` returns each value read with its confidence, its photo region and an attention flag below the `ATTENTION_BELOW` confidence of 0.8.
 10. A person calls `assignment.extraction.accept` with the values to keep, and the feature refuses a delegated agent. The `accept` hook invokes `assignment.survey.accept`, which writes each value to the node with the capture ID and an edited flag and marks the capture accepted. A reviewer may also type values and accept the capture with `assignment.survey.accept` directly.
 
-Each target has at most one pending filing per node. The assignment feature derives each survey's stage: sent, working once captures arrive, done when the assignee marks it done, and reviewed when no capture waits for review.
+Each target has at most one pending filing per node. The assignment feature derives each survey's stage: sent, working once captures are received, done when the assignee marks it done, and reviewed when no capture waits for review.
 
 The extraction port keeps readings in memory until the hub syncs them. A restart in between loses the reading, and the reviewer sends the capture again.
 
 ## Filing flow
 
-1. A member searches the EAM with `eam.asset.search`, which the runtime answers through the `eam` remote source and the EAM connector's `search`. The item mapper in `handlers/filing.ts` drops malformed records and names the node already filed as each asset.
+1. A member searches the EAM with `eam.asset.search`, which the runtime serves through the `eam` remote source and the EAM connector's `search`. The item mapper in `handlers/filing.ts` drops malformed records and names the node already filed as each asset.
 2. `filing.file` runs `fileNode` in `handlers/filing.ts`, which refuses a node without accepted attributes or with a filing to the same target still pending.
 3. `fileNode` attaches the photos of every capture an attribute came from to the filing. It enqueues `asset.update` when an asset ID is given or already on the node, and `asset.create` otherwise.
-4. The dispatcher delivers the effect to `FakeEam` in `connectors/fake-eam.ts`, which reads the evidence photos through `readEffectBlob` and answers with the asset ID. A create without a serial, or with an active asset's designation, comes back as a business rejection.
-5. `filing.settle` records the outcome on the filing with `settleDelivery` and, on acceptance, stores the asset ID on the node.
+4. The dispatcher delivers the effect to `FakeEam` in `connectors/fake-eam.ts`, which reads the evidence photos through `readEffectBlob` and returns the asset ID. A create without a serial, or with an active asset's designation, comes back as a business rejection.
+5. `filing.complete` records the outcome on the filing with `completeDelivery` and, on acceptance, stores the asset ID on the node.
 6. Inbound sync pulls asset changes into `filing.sync`, which updates the asset status only on nodes filed as that asset.
 7. `filing.export` enqueues a `filing.export` effect for the `export` target with the record, the filer and the time.
-8. `createExportPort` in `export/connector.ts` starts the `filing-export` process through the process port. It writes one request line to standard input and reads one answer line, as `export/protocol.ts` defines.
+8. `createExportPort` in `export/connector.ts` starts the `filing-export` process through the process port. It writes one request line to standard input and reads one response line, as `export/protocol.ts` defines.
 9. The worker in `export/worker.ts` checks each photo against its digest, writes the folder `<designation>_<filing>` with `record.json` and `photos/<digest>.<ext>` under a temporary name and renames it into place. The folder name becomes the filing's external reference.
 10. When the site binds no `filing-export` process, the start fails. The dispatcher records a transient failure and retries the effect.
 11. `filing.withdraw` undoes an accepted EAM filing with an `asset.withdraw` effect. `FakeEam` retires the asset the filing created, or restores the name, attributes and evidence an update replaced. The withdrawal is a filing of its own; a withdrawn create clears the node's asset ID, so the next filing creates an asset.
 
 ## Workflow from capture to EAM
 
-`capture.file-workflow` starts `survey.capture-to-eam` in `contracts/workflow.ts` for an unplaced capture, as the manager who calls it, with the capture ID as its key. The workflows plugin then runs its steps:
+`capture.file-workflow` starts `survey.capture-to-eam` in `contracts/workflow.ts` for an unlinked capture, as the manager who calls it, with the capture ID as its key. The workflows plugin then runs its steps:
 
-1. `assignment.report.place` places the capture on the node.
+1. `assignment.report.link` links the capture to the node.
 2. `assignment.extraction.create` sends it to the model.
 3. `assignment.report.get` is checked whenever a report changes, until the capture's review is `accepted`; after a week the instance fails.
 4. `filing.file` files the node into the EAM and completes once the EAM accepted it.
 5. `filing.export` exports the node and completes once the folder is written.
 
-When the export is refused, the plugin runs the file step's compensation, `filing.withdraw`, and the instance ends `compensated`. The `/workflows` screen lists instances, and the "Place and file" button in `ui/capture/place-or-discard.tsx` starts one.
+When the export is refused, the plugin runs the file step's compensation, `filing.withdraw`, and the instance ends `compensated`. The `/workflows` screen lists instances, and the "Link and file" button in `ui/capture/link-or-discard.tsx` starts one.
 
 ## Version 1 workspaces
 
 The application's state is at version 2. A workspace written by version 1 is upgraded when it is first read:
 
 - the `assignment` feature adopts it first with `adoptAssignments`: each assignment becomes a survey with the same ID, sent to its device, and each capture becomes a survey report with the same ID;
-- an extraction the model answered becomes an extraction assignment `extraction-<capture>` with the reading as its report, and a refused one stays sent with its delivery rejected;
+- an extraction the model responded to becomes an extraction assignment `extraction-<capture>` with the reading as its report, and a refused one stays sent with its delivery rejected;
 - the version 2 step drops the old records, the model cursor and each node's `source` and `documentId`.
 
 The step refuses a workspace that still holds requested nodes or extractions waiting for the model. Resolve them with version 1 first. A `survey.capture-to-eam` instance started by version 1 stalls, because version 2 changed its steps. Paired phones keep their pairing and upgrade their own workspaces.
@@ -298,7 +298,7 @@ The step refuses a workspace that still holds requested nodes or extractions wai
    bun run scaffold add target <name> --collection <type>
    ```
 
-5. Declare the work handed out as assignment kinds with `defineAssignmentKind` and `defineAssignments`, as `contracts/kinds.ts` does, following the [assign-work skill](../../packages/assignments/skills/assign-work/SKILL.md). A kind with a `target` lane replaces a hand-written target for a service that does the work, such as the model.
+5. Declare the work handed out as assignment kinds with `defineAssignmentKind` and `defineAssignments`, as `contracts/kinds.ts` does, following the [assign-work skill](../../packages/assignments/skills/assign-work/SKILL.md). A kind with the `target` assignee type replaces a hand-written target for a service that does the work, such as the model.
 6. Declare each other capability with `defineCapability`, as `contracts/operation.ts` does, following the [add-capability skill](../../packages/runtime/skills/add-capability/SKILL.md). In an application created with `scaffold new`, run the command below.
    - `blobs` limits on capabilities that carry photos;
    - `integration: { target, delivery: 'outbox' }` on each command that enqueues an effect for a target from step 4;
@@ -309,7 +309,7 @@ The step refuses a workspace that still holds requested nodes or extractions wai
    ```
 
 7. Group the capabilities with `defineModule` in `contracts.ts`, adding `workflows` text for agents and these `requirements`. The catalog refuses an outbox target that no network destination, folder or process names.
-   - one network destination per system, with `targets`, `reads` for a searched target and `offline: 'queue'`; a target lane is named `assignment-<lane>`;
+   - one network destination per system, with `targets`, `reads` for a searched target and `offline: 'queue'`; an assignment target is named `assignment-<name>`;
    - one process per child program, with `targets`.
 
 8. Write `manifest.ts` with `defineManifest` from `@agent-native/host/manifest`, listing the modules, the feature manifests and the plugin manifests. List the plugins in the order the application composes them, because `checkPlugins` in `packages/kernel/src/plugins/compose.ts` refuses a different list or order.
@@ -322,7 +322,7 @@ The step refuses a workspace that still holds requested nodes or extractions wai
     - `implementDataProvider` with an item mapper that validates each record.
 11. Write the policy with `definePolicy`, as [authorization](../../docs/authorization.md) describes, and the feature access views:
     - `person: true` on rules a delegated agent may not pass;
-    - one integration lane per principal kind;
+    - one integration allowlist per principal kind;
     - `targetRules` for each target;
     - an `AssignmentAccess` that repeats the application's membership gate, because the application policy never sees feature operations.
 12. Implement one connector per target, following the [connect-system-of-record skill](../../packages/integration/skills/connect-system-of-record/SKILL.md):
@@ -330,7 +330,7 @@ The step refuses a workspace that still holds requested nodes or extractions wai
     - EAM evidence: a hand-written `SystemOfRecordPort` whose `deliver` reads each photo through `readEffectBlob`, for an EAM that must receive the photos.
     - EAM search: `createRemoteSource` takes a full `SystemOfRecordPort`, so the search port also implements `describe` and `deliver` or delegates them to the port built in `connect`. Its `search` reads the network port from a variable that `connect` sets, as `application.ts` does with `readEvidence`, and throws `DeliveryFailure` until then.
     - EAM credentials: a `CallerCredentials` the application implements, with `forPrincipal` for each person's EAM login and `service` for the technical account that `caller-or-service` allows.
-    - Model lane: `assignmentTargetPort` with a `work` function, as `createExtractionPort` does; `createModelExtractor` takes an AI SDK model whose `fetch` goes through the network port, and `modelExtractorFromEnv` shows the wiring.
+    - Model target: `assignmentTargetPort` with a `work` function, as `createExtractionPort` does; `createModelExtractor` takes an AI SDK model whose `fetch` goes through the network port, and `modelExtractorFromEnv` shows the wiring.
     - Export: `createExportPort` with any executable that speaks `export/protocol.ts`.
 13. Write your own `application.ts`, because the `eam` option of `createAssetSurveyApplication` accepts only a factory that returns a `FakeEam`. Call `defineApplication` with these fields:
     - `manifest`, the default export of `manifest.ts`;
@@ -339,7 +339,7 @@ The step refuses a workspace that still holds requested nodes or extractions wai
     - `features`: `mountFeature(assignmentFeature(assignments, { targets }), { access, hooks })` and any other feature;
     - `services`, when tests inject IDs or a clock;
     - `selectableResources`, the read query for each record kind an agent run may capture;
-    - `plugins`, in the manifest's order, including `createDeviceLinkPlugin({ syncOperations: assignments.lanes.device.operations })`;
+    - `plugins`, in the manifest's order, including `createDeviceLinkPlugin({ syncOperations: assignments.assignees.device.operations })`;
     - `sources`, with `createRemoteSource` for each searched target;
     - `connect`, returning one `connectTarget` per application target and passing `application.readEffectBlob` and `bunProcesses(processes)` to the connectors.
 14. Build the screens with `defineScreens`, `useCommand`, `live.liveQueryOptions` and `live.remoteQueryOptions`, following the [build-screens skill](../../packages/frame/skills/build-screens/SKILL.md). Give a route used on tablets a `compact` component and list the plugin screens.
@@ -409,12 +409,12 @@ The step refuses a workspace that still holds requested nodes or extractions wai
 ## Limits
 
 - **In-memory fakes.** The EAM is an in-memory fake, and the default extractor reads text embedded in generated photos. The model extractor has run only against a mock model and nothing against a real EAM, as the [implementation status](../../docs/implementation-status.md) records.
-- **Reading storage.** The extraction port keeps readings in memory until inbound sync pulls them, and records answered offers in memory. A restart in between loses the reading, and an offer redelivered after a restart asks the model again.
+- **Reading storage.** The extraction port keeps readings in memory until inbound sync pulls them, and records the offers it has responded to in memory. A restart in between loses the reading, and an offer redelivered after a restart asks the model again.
 - **Asset feed.** The fake EAM's asset feed restarts empty. Asset changes after a restart are skipped until its count passes the stored watermark.
 - **Refused readings.** A reading the model refused stays sent with its delivery rejected until a reviewer withdraws it. Sending the capture again creates a new extraction.
 - **Device IDs.** A survey sent to a device ID that no paired device holds never reaches a phone. The assignment feature does not check pairing.
 - **Feed of a manager.** A manager's own `assignment.feed` lists only work sent to that manager, which is empty unless a survey names the manager. A viewer's feed is refused.
-- **Held effects.** None of the connectors reports an uncertain outcome, and the example composes no [reconciliation capabilities](../../docs/systems-of-record.md). A replacement connector that reports uncertainty leaves effects held, with no capability here to settle or release them.
+- **Held effects.** None of the connectors reports an uncertain outcome, and the example composes no [reconciliation capabilities](../../docs/systems-of-record.md). A replacement connector that reports uncertainty leaves effects held, with no capability here to complete or release them.
 - **Roles.** Members and roles are set when a workspace is created, with the owner as the only manager by default. No capability adds a person or changes a role.
 - **Agent definitions.** The three modules carry workflow text, but the example declares no agent definition and has no agent scenario.
 - **Scheme tables.** `contracts/schemes.ts` labels common class letters and device numbers only. An unknown letter or number is valid syntax without a label.

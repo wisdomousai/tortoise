@@ -31,10 +31,10 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 ### Fleet side
 
 1. Compose `fleetSiteModule` from `@agent-native/fleet-agent/contracts` in the fleet application.
-2. Implement its handlers. Each handler acts for `ctx.context.principalId`, the calling site, and answers only about that site.
+2. Implement its handlers. Each handler acts for `ctx.context.principalId`, the calling site, and returns data only about that site.
 3. Compose the device-link plugin with `syncOperations: fleetSiteOperationIds`.
 4. Attach release files to a resource the site's policy lets it read, so `GET /api/v1/blobs/<digest>` serves them.
-5. Store forwarded audit events as received, and accept each sequence once. The site reads your cursor before each batch, so a batch arrives again only when its reply was lost.
+5. Store forwarded audit events as received, and accept each sequence once. The site reads your cursor before each batch, so a batch is sent again only when its reply was lost.
 6. Store the report's `bestBefore` with the site, and show a site past it without refusing anything, as `fleet.health` in `examples/fleet` does.
 7. Remove a decommissioned site after its device is revoked, as `site.remove` in `examples/fleet` does. A site still linked reports again and comes back.
 
@@ -50,7 +50,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 2. Put a new protocol capability in `src/contracts.ts` and in the fixture fleet in `test/fixtures.ts`.
 3. Test what the site does when the fleet refuses the new capability or is unreachable.
 4. To test a fleet against real sites, start each site with `fleetNetworkFixture(reach)` from `@agent-native/fleet-agent/testing` in place of the network plugin. `reach` maps the `fleet` destination onto the fleet's loopback port, as `examples/fleet/test/site.ts` does.
-5. Fail, drop or change answers in `reach` to stand in for an unreliable uplink.
+5. Fail, drop or change responses in `reach` to stand in for an unreliable uplink.
 6. Record a run against a real fleet across a network as by-hand evidence in [implementation status](../../../../docs/implementation-status.md#fleet-agent).
 7. Follow the `check-a-change` skill (`packages/testing/skills/check-a-change/SKILL.md`) for the rest.
 

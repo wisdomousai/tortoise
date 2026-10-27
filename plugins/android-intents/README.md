@@ -30,7 +30,7 @@ The framework owns the rest of the path, so a forked starter keeps it without na
 - `expoOsBindings` in `@agent-native/mobile/expo` binds `intents` and `startIntent` through `expoIntentBindings` when the build has `AgentNativeOsIntents`. Without the module it leaves them out. `OsIntentsNativeModule` is the module's type.
 - `connectMobileShell` reports an Android build that declares intent handlers but lacks the module.
 
-On the desktop, the web and iOS, the plugin opens and enables both kinds. No intent arrives there, and the adapter refuses an intent action as `failed`.
+On the desktop, the web and iOS, the plugin opens and enables both kinds. No intent is received there, and the adapter refuses an intent action as `failed`.
 
 ## Trust boundary
 

@@ -10,7 +10,7 @@ The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attach
 
 ## First run
 
-`bun install --frozen-lockfile` installs the dependencies. `bun run dev` builds the web screens, then opens the desktop window on `field-service`, the application `app.config.json` names. The host also prints a [launch link](glossary.md#launch-exchange) for a browser. That link signs a browser in once and expires after one minute.
+`bun install --frozen-lockfile` installs the dependencies. `bun run dev` builds the web screens, then opens the desktop window on `field-service`, the application `app.config.json` names. The host also prints a [launch link](glossary.md#launch-key-exchange) for a browser. That link signs a browser in once and expires after one minute.
 
 The host keeps the workspace in `.workspace/` by default. These environment variables change the defaults:
 
@@ -63,7 +63,7 @@ cd examples/quality-inspection
 DEMO_QUALITY_LOCKED_LOTS=4000002 bun run dev
 ```
 
-1. Open **Lots**. The lots arrive from the fake quality system through [inbound sync](glossary.md#inbound-sync).
+1. Open **Lots**. The lots are imported from the fake quality system through [inbound sync](glossary.md#inbound-sync).
 2. Choose a lot and capture values with the keyboard. Enter records a value and moves to the next measurement.
 3. Watch each result. The [dispatcher](glossary.md#dispatcher) delivers it from the [outbox](glossary.md#outbox), and the quality system's reference or its rejection appears without a refresh.
 4. Capture a value for lot 4000002. The fake system rejects it with `LOT_LOCKED`.
@@ -157,7 +157,7 @@ The new directory must not exist. The generated application in `examples/<name>`
 
 - `collection`: its contract, handlers, policy rules, default screens and test.
 - `capability`: its contract, handler, policy rule and behavioral test.
-- `target`: a [target](glossary.md#target) with its contract, handlers, policy lane, an in-memory fake [connector](glossary.md#connector), a status screen and a test. Its network destination is listed as disabled in `apps/desktop/site-policy.json` until the deployment policy binds it.
+- `target`: a [target](glossary.md#target) with its contract, handlers, integration allowlist, an in-memory fake [connector](glossary.md#connector), a status screen and a test. Its network destination is listed as disabled in `apps/desktop/site-policy.json` until the deployment policy binds it.
 - `agent`: an [agent definition](glossary.md#agent-definition) that requests approval, with a test. The first agent also adds the [approval request](glossary.md#approval-request) capabilities and a screen of pending approval requests.
 
 With `--registry <url>`, the new application installs the framework packages from that registry at the repository's framework version instead of copying their source; `--published` uses npm's registry. No lockfile is exported in that case, so the first install runs without the frozen-lockfile flag and writes it. To try this before anything is published, serve the packages on loopback:

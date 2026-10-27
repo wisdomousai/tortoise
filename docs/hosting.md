@@ -62,7 +62,7 @@ The fleet agent [host plugin](glossary.md#host-plugin) (`plugins/fleet-agent`) c
 
 ### Fleet protocol
 
-The protocol is one module, `fleetSiteModule`. The fleet enrolls each site through the [device link](glossary.md#device-link) plugin. Each site then calls the protocol as its own [principal](glossary.md#principal) `device:<id>`, and the fleet answers only about that site. The protocol has these [capabilities](glossary.md#capability):
+The protocol is one module, `fleetSiteModule`. The fleet enrolls each site through the [device link](glossary.md#device-link) plugin. Each site then calls the protocol as its own [principal](glossary.md#principal) `device:<id>`, and the fleet returns data only about that site. The protocol has these [capabilities](glossary.md#capability):
 
 | Capability | Kind | What the site does with it |
 | --- | --- | --- |
@@ -70,8 +70,8 @@ The protocol is one module, `fleetSiteModule`. The fleet enrolls each site throu
 | `fleet.site.desired` | query | Reads the release it should run. |
 | `fleet.audit.cursor` | query | Asks where the fleet's copy of its audit log ends. |
 | `fleet.audit.ingest` | command | Sends the events after that point as the JSON lines of its local log, 100 at a time. |
-| `fleet.relay.take` | command | Takes the oldest remote-access request waiting for it. |
-| `fleet.relay.answer` | command | Returns the site's response to that request. |
+| `fleet.relay.claim` | command | Claims the oldest remote-access request queued for it. |
+| `fleet.relay.respond` | command | Returns the site's response to that request. |
 
 A release is the signed bundle manifest and signature from `packages/bundle`. Each file is the fleet blob `sha256:<file sha256>`.
 
@@ -85,7 +85,7 @@ A report holds [effect](glossary.md#effect) counts per target and no effect payl
 
 Audit forwarding keeps no state on the site. The fleet says where its copy ends, so after a lost reply or a restart the site sends the same events again. Events leave unchanged, so the fleet can check the hash chain.
 
-The plugin verifies a release before it appears in the releases folder. Each file is checked against the signed manifest as it arrives. The whole bundle is then verified against the `fleet-trust` keys before the temporary directory is renamed into the folder. Staging fetches each file whole and does not resume a download. Activation stays with the operator's `app install`, and the instance never replaces itself.
+The plugin verifies a release before it appears in the releases folder. Each file is checked against the signed manifest as it is downloaded. The whole bundle is then verified against the `fleet-trust` keys before the temporary directory is renamed into the folder. Staging fetches each file whole and does not resume a download. Activation stays with the operator's `app install`, and the instance never replaces itself.
 
 The fleet credential goes only to the fleet. The network port's `fleet` client resolves every path against the bound origin and refuses redirects. The plugin keeps the credential in the platform's secret store when the platform has one, and otherwise in `<workspace>/fleet-agent/credential` with mode 0600. The credential is not rotated, so a fleet that loses one re-enrolls the site with a new code.
 
@@ -101,7 +101,7 @@ A relayed request reaches a capability only with a [session](glossary.md#session
 
 It keeps site records, release channels, forwarded audit events and relay requests, and has a health screen. It has no outbox target and needs nothing from a site, so it can run as a hosted instance.
 
-Only workspace members pass the fleet's caller gate. Operators update sites, publish, assign and relay, and viewers read. Device link lets only the local owner create enrollments. An enrolled site is an integration lane that may call only the protocol and read only the release its channel assigns, so it can fetch no other blob. Relaying needs a person, so an agent run cannot reach a site through the fleet.
+Only workspace members pass the fleet's caller gate. Operators update sites, publish, assign and relay, and viewers read. Device link lets only the local owner create enrollments. An enrolled site is an integration allowlist that may call only the protocol and read only the release its channel assigns, so it can fetch no other blob. Relaying needs a person, so an agent run cannot reach a site through the fleet.
 
 The fleet checks that a release's manifest is a bundle manifest and that the uploaded blobs are exactly its files, by digest and size. Each site checks the signature against its own trusted keys before staging, and the fleet does not judge it. A compromised fleet can withhold releases but cannot install one.
 
@@ -142,7 +142,7 @@ A relay request's headers and body are stored only while it waits, are never lis
 
 ### Fleet setup
 
-A fleet composes the protocol module and implements its handlers. It composes the device link plugin with the protocol's capabilities as its sync operations. Each handler acts for the calling site and answers only about that site. A fleet stores forwarded audit events as received and accepts each sequence number once, because the site resends after a lost reply.
+A fleet composes the protocol module and implements its handlers. It composes the device link plugin with the protocol's capabilities as its sync operations. Each handler acts for the calling site and returns data only about that site. A fleet stores forwarded audit events as received and accepts each sequence number once, because the site resends after a lost reply.
 
 A fleet attaches a release's files to a resource the site's policy lets it read, so `GET /api/v1/blobs/<digest>` serves them to the site. A build pipeline publishes a release over HTTP with an operator's session:
 
@@ -150,7 +150,7 @@ A fleet attaches a release's files to a resource the site's policy lets it read,
 2. Call `release.publish`. Its `release` holds the ID, the version, the parsed `bundle.json` as `manifest` and the parsed `bundle.sig` as `signature`, and `files` holds the returned blob references.
 3. Call `channel.assign` to point a channel at the release.
 
-To test a fleet against real sites, compose `fleetNetworkFixture` from `@agent-native/fleet-agent/testing` in place of the network plugin. The test supplies the function that reaches the fleet, as `examples/fleet/test/site.ts` does, and can fail, drop or change answers there.
+To test a fleet against real sites, compose `fleetNetworkFixture` from `@agent-native/fleet-agent/testing` in place of the network plugin. The test supplies the function that reaches the fleet, as `examples/fleet/test/site.ts` does, and can fail, drop or change responses there.
 
 ## References
 

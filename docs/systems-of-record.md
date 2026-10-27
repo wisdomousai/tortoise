@@ -4,14 +4,14 @@ A [system of record](glossary.md#system-of-record) owns records an [application]
 
 ## Concepts
 
-Terms: [system of record](glossary.md#system-of-record), [outbox effect](glossary.md#effect), [dispatcher](glossary.md#dispatcher), [connector](glossary.md#connector), [delivery outcome](glossary.md#delivery-outcome), [settlement](glossary.md#settlement), [reconciliation](glossary.md#reconciliation), [grant file](glossary.md#grant-file), [remote query](glossary.md#remote-query), [peer target](glossary.md#peer-target), [peer surface](glossary.md#peer-surface) and [peer link](glossary.md#peer-link).
+Terms: [system of record](glossary.md#system-of-record), [outbox effect](glossary.md#effect), [dispatcher](glossary.md#dispatcher), [connector](glossary.md#connector), [delivery outcome](glossary.md#delivery-outcome), [effect completion](glossary.md#effect-completion), [reconciliation](glossary.md#reconciliation), [grant file](glossary.md#grant-file), [remote query](glossary.md#remote-query), [peer target](glossary.md#peer-target), [peer API](glossary.md#peer-api) and [peer link](glossary.md#peer-link).
 
-The application keeps its working set, its pending effects and their outcomes. People at [screens](glossary.md#screen), the CLI and agents through MCP reach the same [capabilities](glossary.md#capability) under the same authorization. These [examples](glossary.md#example) connect a system of record:
+The application keeps its synced records, its pending effects and their outcomes. People at [screens](glossary.md#screen), the CLI and agents through MCP reach the same [capabilities](glossary.md#capability) under the same authorization. These [examples](glossary.md#example) connect a system of record:
 
-- `quality-inspection`: inspection lots, specifications and code groups arrive from an in-memory quality system. Inspectors or an agent record values and codes, and each result is delivered, then accepted or rejected.
-- `crm-capture`: the [caller](glossary.md#caller) searches a fake CRM with the caller's access and adopts the accounts the caller finds.
-- `receiving`: an ERP reached only through shared folders. Notices are imported from an inbox, and goods receipts are delivered as files and settled from receipt files.
-- `receiving` and `quality-inspection` as peers: a received line marked for inspection is announced as an arrival, and the inspector's outcome comes back to the line.
+- `quality-inspection`: inspection lots, specifications and code groups are imported from an in-memory quality system. Inspectors or an agent record values and codes, and each result is delivered, then accepted or rejected.
+- `crm-capture`: the [caller](glossary.md#caller) searches a fake CRM with the caller's access and follows the accounts the caller finds.
+- `receiving`: an ERP reached only through shared folders. Notices are imported from an inbox, and goods receipts are delivered as files and completed from receipt files.
+- `receiving` and `quality-inspection` as peers: a received line marked for inspection is sent as an inspection request, and the inspector's outcome comes back to the line.
 
 ## Topologies
 
@@ -33,14 +33,14 @@ The credential's location decides the mode. In embedded mode the dispatcher, and
 
 The topology does not isolate the agent. Isolation comes from a sandbox container or a separate OS user, the egress policy and the [delegated grant](glossary.md#grant).
 
-## Outbox and settlement
+## Outbox and completion
 
 A [command](glossary.md#command) enqueues an effect on a resource it changed. The effect commits to the [outbox](glossary.md#outbox) in the same transaction as the state change, the [receipt](glossary.md#receipt) and the [journal](glossary.md#journal) entry. A replayed command returns its stored receipt and does not run the handler again, so it enqueues no second effect. The receipt lists the effect ID.
 
-The dispatcher delivers pending effects outside any transaction and records each outcome through the target's settle command, under the [integration principal](glossary.md#integration-principal). That command's [idempotency key](glossary.md#idempotency-key) derives from the effect ID, so a lost settlement response is safe to repeat. Once a target's integration starts, the dispatcher delivers every second and [inbound sync](glossary.md#inbound-sync) pulls every 5 seconds by default.
+The dispatcher delivers pending effects outside any transaction and records each outcome through the target's complete command, under the [integration principal](glossary.md#integration-principal). That command's [idempotency key](glossary.md#idempotency-key) derives from the effect ID, so a lost completion response is safe to repeat. Once a target's integration starts, the dispatcher delivers every second and [inbound sync](glossary.md#inbound-sync) pulls every 5 seconds by default.
 
 - A transient failure is journaled as an attempt, so screens show the effect retrying. Backoff grows from one second to 60 seconds by default.
-- A business rejection is settled as data and never retried.
+- A business rejection is completed as data and never retried.
 - Failure text reaches the workspace only when the connector marked it caller-safe.
 
 Delivery is at least once. A target either deduplicates by effect ID or offers a lookup, which the dispatcher consults before every send. The dispatcher refuses a target with neither.
@@ -51,25 +51,25 @@ A record that carries an effect also carries its effect ID and these fields:
 - `sorRef`: the target's reference, once accepted.
 - `rejection`: the target's code and message, once rejected.
 
-Settle refuses an outcome for a record that carried a different effect. The effect keeps its attempts and last failure text while pending, and its settlement time once settled. In `quality-inspection`, a correction supersedes a result and is delivered again.
+Complete refuses an outcome for a record that carried a different effect. The effect keeps its attempts and last failure text while pending, and its completion time once completed. In `quality-inspection`, a correction supersedes a result and is delivered again.
 
 ## Targets
 
 An application declares each system of record once with `defineTarget`. The declaration produces:
 
-- the settle, sync and status capabilities, by default `<target>.effect.settle`, `<target>.sync` and `<target>.sync.status`;
+- the complete, sync and status capabilities, by default `<target>.effect.complete`, `<target>.sync` and `<target>.sync.status`;
 - the integration principal's grant, naming only those capabilities;
-- a [policy lane](glossary.md#policy-lane) that gives settle and sync to the integration principal only, and status to every caller, scoped by its handler.
+- a [integration allowlist](glossary.md#integration-allowlist) that gives complete and sync to the integration principal only, and status to every caller, scoped by its handler.
 
-The integration principal can therefore only settle, sync and read status, and a misbehaving connector cannot drive business commands. A target without a [feed](glossary.md#feed) has no sync capability and only delivers. The target's `operations` option renames the three capabilities.
+The integration principal can therefore only complete, sync and read status, and a misbehaving connector cannot call business commands. A target without a [feed](glossary.md#feed) has no sync capability and only delivers. The target's `operations` option renames the three capabilities.
 
-`targetHandlers` checks that a sync batch starts at the stored [watermark](glossary.md#watermark), and that a settled effect belongs to this target, inside the transaction. Status adds the watermark and last sync time to the application's counts. The application supplies how an outcome changes its record, how a feed item changes local state, and which records the caller may count.
+`targetHandlers` checks that a sync batch starts at the stored [watermark](glossary.md#watermark), and that a completed effect belongs to this target, inside the transaction. Status adds the watermark and last sync time to the application's counts. The application supplies how an outcome changes its record, how a feed item changes local state, and which records the caller may count.
 
 ## Worker claims
 
 The dispatcher takes a [worker claim](glossary.md#worker-claim) on each effect before sending it. The claim names the worker, expires after 120 seconds by default, and carries a [fencing token](glossary.md#fencing-token) that grows with each claim. Two dispatchers for one target must use different worker names.
 
-An attempt or settlement under an older token than the current claim is refused with a conflict. A worker that stalled past its claim's expiry therefore cannot overwrite the worker that took over. Its late attempt goes to the [audit log](glossary.md#audit-log) as denied and changes nothing in the workspace. `packages/integration/test/reliability.test.ts` covers a paused worker against its successor.
+An attempt or completion under an older token than the current claim is refused with a conflict. A worker that stalled past its claim's expiry therefore cannot overwrite the worker that took over. Its late attempt goes to the [audit log](glossary.md#audit-log) as denied and changes nothing in the workspace. `packages/integration/test/reliability.test.ts` covers a paused worker against its successor.
 
 An expired claim does not tell the new worker whether the target received the effect. For a target without idempotent delivery, the dispatcher therefore looks the effect up before every send.
 
@@ -79,7 +79,7 @@ Before the first claim, the dispatcher authorizes the person who committed the e
 
 ## Acknowledged effects
 
-A target can acknowledge an effect before it decides it. Its connector then returns `pending`, and the effect becomes upstream. The dispatcher never sends it again and polls the target's lookup until the target decides, so such a target must offer a lookup.
+A target can acknowledge an effect before it decides it. Its connector then returns `pending`, and the effect becomes acknowledged. The dispatcher never sends it again and polls the target's lookup until the target decides, so such a target must offer a lookup.
 
 ## Held effects
 
@@ -90,9 +90,9 @@ The dispatcher holds an effect in these cases:
 - Lost acknowledgement: the target no longer reports an effect it acknowledged, or offers no lookup.
 - Denied recheck: the recheck before the first claim denies the effect's committer.
 
-The dispatcher never retries a held effect. Only a domain command settles or releases it. Releasing a held effect returns it to delivery on the next pass, without backoff, and drops any acknowledgement.
+The dispatcher never retries a held effect. Only a domain command completes or releases it. Releasing a held effect returns it to delivery on the next pass, without backoff, and drops any acknowledgement.
 
-`reconciliationFeature` serves the reconciliation capabilities as the `reconciliation` [feature](glossary.md#feature). The application mounts it with a `ReconciliationAccess` view and an `onResolved` hook. One capability lists held effects by target or record. The other records a person's decision: applied settles the effect as accepted, with the person's reference or a reference naming the person. Refused settles the effect as rejected, and not applied releases the effect. The domain's `onResolved` runs in the same transaction, and resolving is refused to a delegated caller.
+`reconciliationFeature` serves the reconciliation capabilities as the `reconciliation` [feature](glossary.md#feature). The application mounts it with a `ReconciliationAccess` view and an `onResolved` hook. One capability lists held effects by target or record. The other records a person's decision: applied completes the effect as accepted, with the person's reference or a reference naming the person. Refused completes the effect as rejected, and not applied releases the effect. The domain's `onResolved` runs in the same transaction, and resolving is refused to a delegated caller.
 
 An effect that the access view's `sees` hides from the caller reads as missing, in the list and in a decision. The held and reconciliation tests in `packages/integration/test` cover this.
 
@@ -103,12 +103,12 @@ An effect that the access view's `sees` hides from the caller reads as missing, 
 - `queued`: committed and never attempted.
 - `claimed`: a worker holds a live claim.
 - `retrying`: an attempt failed transiently and waits for backoff.
-- `upstream`: the target acknowledged it and has not decided.
+- `acknowledged`: the target acknowledged it and has not decided.
 - `held`: waiting for a person to reconcile it.
-- `accepted` or `rejected`: settled with the target's answer.
+- `accepted` or `rejected`: completed with the target's response.
 - `cancelled`: withdrawn by a command and never sent.
 
-Only the outbox changes a phase: a claim, an attempt, a settlement, the release of a held effect or a cancellation. A claim whose expiry passed reads as the phase before it.
+Only the outbox changes a phase: a claim, an attempt, a completion, the release of a held effect or a cancellation. A claim whose expiry passed reads as the phase before it.
 
 A command cancels an effect with `ctx.cancelEffect` and a reason, only while no worker has ever claimed it. After a claim the target may have the effect, so the domain must reconcile instead.
 
@@ -123,7 +123,7 @@ A feed can deliver an older version of a record after a newer one. Such a feed s
 A connector implements `SystemOfRecordPort`. These connectors are ready-made:
 
 - [`connector-http`](../plugins/connector-http/README.md): a REST system through the network port, with requests, rejection rules and lookup as data. It needs an idempotency header or a lookup.
-- [`connector-files`](../plugins/connector-files/README.md): shared folders. Effects are dropped as files and settled from receipt files or the archive; result exports feed inbound sync.
+- [`connector-files`](../plugins/connector-files/README.md): shared folders. Effects are dropped as files and completed from receipt files or the archive; result exports feed inbound sync.
 - [`connector-driver`](../plugins/connector-driver/README.md): equipment behind a [driver](hardware-drivers.md) process.
 - [Screen bridge](../workstations/screen-bridge/README.md): a [workstation application](glossary.md#workstation-application) reached through its screen.
 - [Peer port](../packages/integration/README.md#peer-applications): another agent-native [host](glossary.md#host), through its HTTP API ([peer applications](#peer-applications)).
@@ -134,7 +134,7 @@ The folders of `connector-files` are [requirement declarations](glossary.md#requ
 
 ## Remote queries
 
-The outbox and inbound sync keep a working set current. A remote query answers when the caller runs the query.
+The outbox and inbound sync keep synced records current. A remote query reads the system of record when the caller runs it.
 
 Importing the whole system of record through inbound sync would copy records that the caller may not see under that system's own sharing rules, and the copy is stale between pulls. Calling the source from a handler would put the call inside the transaction, where it cannot be authorized again.
 
@@ -164,24 +164,24 @@ The source uses the caller's own credential first. A delegated agent's context c
 
 Page numbers shift as the source changes, so paging uses the source's opaque cursors. Each result carries the cursor while there is more, and the next request sends it back. A connector must bind each cursor to the search and the credential that produced it, and refuse it otherwise; the fake CRM does. Local scoping can shorten or empty a page, so only a missing cursor ends the list.
 
-### Failures and adoption
+### Failures and followed records
 
-A missing, slow or failing source returns an unavailable status with a safe message. Only a message the connector marked caller-safe is passed on, cut to 200 characters. Adopted records stay usable.
+A missing, slow or failing source returns an unavailable status with a safe message. Only a message the connector marked caller-safe is passed on, cut to 200 characters. Followed records stay usable.
 
-Nothing is stored until a caller adopts a result, and results carry the time they were read. Adopting is a domain command. In `crm-capture` it records the account as followed and enqueues a follow effect. On delivery, the CRM checks the adopting person's access, and the feed then brings the record in through inbound sync. Record content therefore comes from the integration principal, never from caller input, and is then an ordinary local record.
+Nothing is stored until a caller follows a result, and results carry the time they were read. Following is a domain command. In `crm-capture` it records the account as requested and enqueues a follow effect. On delivery, the CRM checks the requesting person's access, and the feed then brings the record in through inbound sync. Record content therefore comes from the integration principal, never from caller input, and is then an ordinary local record.
 
 ## Peer applications
 
-A [peer target](glossary.md#peer-target) is another agent-native application in the role of a system of record. The called application declares a [peer surface](glossary.md#peer-surface) with `definePeerSurface` and serves it through the [peer link](glossary.md#peer-link) plugin. The calling application declares the target with `definePeerTarget` from that surface and wires it with `connectPeerTarget`.
+A [peer target](glossary.md#peer-target) is another agent-native application in the role of a system of record. The called application declares a [peer API](glossary.md#peer-api) with `definePeerApi` and serves it through the [peer link](glossary.md#peer-link) plugin. The calling application declares the target with `definePeerTarget` from that surface and wires it with `connectPeerTarget`.
 
 1. **Connect.** An administrator of the called application creates a one-use enrollment code on its Peers screen. A person enters the code on the calling application's Peers screen. The calling host redeems it through the network port with a new Ed25519 key, and keeps the credential and private key in its secret store.
 2. **Map.** An administrator of the called application maps each subject that may act there to one of its people with `peer.subject.map`. An enrollment with `subjects: 'same'` maps a subject to the principal of the same ID.
-3. **Deliver.** A command enqueues `target.effect(command, { resource, payload })`, which parses the payload with the peer command's input schema. The dispatcher delivers it through the peer port, with an idempotency key derived from the effect ID. A resend after a lost answer gets the first answer again.
-4. **Act.** A command on the surface's service list runs at the peer as its service principal, `peer:<id>`. A command on its on-behalf-of list runs as the person mapped to the effect's principal, under that person's policy there. The [subject assertion](glossary.md#subject-assertion) says `act: agent` when an agent run enqueued the effect.
-5. **Settle and sync.** The peer's answer settles the effect. A service query of the surface that answers `{ items, cursor, more? }` is the target's feed.
+3. **Deliver.** A command enqueues `target.effect(command, { resource, payload })`, which parses the payload with the peer command's input schema. The dispatcher delivers it through the peer port, with an idempotency key derived from the effect ID. A resend after a lost response gets the first response again.
+4. **Act.** A command on the peer API's service list runs at the peer as its service principal, `peer:<id>`. A command on its on-behalf-of list runs as the person mapped to the effect's principal, under that person's policy there. The [subject assertion](glossary.md#subject-assertion) says `act: agent` when an agent run enqueued the effect.
+5. **Complete and sync.** The peer's response completes the effect. A service query of the peer API that returns `{ items, cursor, more? }` is the target's feed.
 6. **Read.** A [data provider](glossary.md#data-provider) over a peer target reads through `createPeerSource`, as the caller's mapped person unless the query is declared `service`. An unmapped caller is refused with `FORBIDDEN`.
 
-The drift check, `createPeerDrift`, compares each surface operation's schema digest with the contract the peer serves. It reads the contract on first contact, every ten minutes, and after the peer answers `INVALID_INPUT`. While an operation differs, its effects stay pending with a message and its reads are unavailable.
+The drift check, `createPeerDrift`, compares each peer API operation's schema digest with the contract the peer serves. It reads the contract on first contact, every ten minutes, and after the peer returns `INVALID_INPUT`. While an operation differs, its effects stay pending with a message and its reads are unavailable.
 
 `asset-survey-field` declares its [hub](glossary.md#hub) as a peer target with the same drift check, over the [device link](glossary.md#device-link) instead of the peer link. The device credential is its only identity at the hub, so it makes no calls on behalf of a person.
 
@@ -210,7 +210,7 @@ The instance verbs open the workspace or serve it:
 - `drain` delivers to every target until nothing awaits delivery or the timeout passes.
 - `backup`, `restore` and `migrate` copy, replace or migrate the workspace state.
 
-`drain` reports per target what awaits delivery, what is held, what is upstream, and whether this process can deliver there. Only effects awaiting delivery count toward the exit code, including those for a target this process cannot deliver. An orchestrator keeps an ephemeral sandbox container, or its workspace, until `drain` exits 0.
+`drain` reports per target what awaits delivery, what is held, what is acknowledged, and whether this process can deliver there. Only effects awaiting delivery count toward the exit code, including those for a target this process cannot deliver. An orchestrator keeps an ephemeral sandbox container, or its workspace, until `drain` exits 0.
 
 `examples/quality-inspection/test/sandbox.test.ts` runs the CLI in embedded mode from source. `bun run test:sandbox` runs the same test against the compiled binary.
 

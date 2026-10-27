@@ -1,6 +1,6 @@
 # @agent-native/frame
 
-The [web frame](../../docs/glossary.md#web-frame): the domain-neutral browser shell around one application's [screens](../../docs/glossary.md#screen). It supplies the [launch exchange](../../docs/glossary.md#launch-exchange) and session, hash routing, navigation, the capability palette, the agent run panel and accounts, and fills them from the configured application's `screens` entrypoint. Its Vite plugin binds that entrypoint to a virtual module, so the starter's source never names content. The same parts ship as a shadcn registry, so a starter can copy and own any of them.
+The [web frame](../../docs/glossary.md#web-frame): the domain-neutral browser shell around one application's [screens](../../docs/glossary.md#screen). It supplies the [launch key exchange](../../docs/glossary.md#launch-key-exchange) and session, hash routing, navigation, the capability palette, the agent run panel and accounts, and fills them from the configured application's `screens` entrypoint. Its Vite plugin binds that entrypoint to a virtual module, so the starter's source never names content. The same parts ship as a shadcn registry, so a starter can copy and own any of them.
 
 ## Layer
 
@@ -16,7 +16,7 @@ Framework (`packages/*`). Browser code, plus a build-time Vite plugin. The frame
 - [Display metadata](../../docs/primitives.md#display-metadata): `CollectionScreen`, `RecordScreen`, `capability-form` and the command palette read a capability's `display`.
 - [Reconciliation](../../docs/primitives.md#reconciliation): `reconciliation-review` lists held effects live with what was sent, and offers Applied, Not applied and Refused.
 - [OS handler](../../docs/primitives.md#os-handler): `useOsDeliveries` (mounted at the frame root), `usePreparedInput`, `useShownProvenance`, `OsProvenanceNotice`, `describeProvenance` and `ApplicationScreens.resources`, the screen that shows each selectable resource kind. `describeProvenance` is re-exported from `@agent-native/shell/provenance`, which the native frame shares.
-- [OS handler](../../docs/primitives.md#os-handler): `useBrowserOsInput`, mounted at the frame root, is the browser shell adapter. It submits the link, shortcut or share claim in a landing URL and the files an installed web application was launched with.
+- [OS handler](../../docs/primitives.md#os-handler): `useBrowserOsInput`, mounted at the frame root, is the browser shell adapter. It submits the link, shortcut or share claim in a launch URL and the files an installed web application was launched with.
 - [OS action](../../docs/primitives.md#os-action): `runOsAction` asks for a declared action. When no adapter performs it, the frame runs the returned open or share in the browser.
 - [Generator](../../docs/primitives.md#generator): the `frame` Vite plugin writes `icon.svg` and `manifest.webmanifest`, with the name, the icon, and the protocol handlers, file handlers and shortcuts from `webManifestOs`.
 - [Feature](../../docs/primitives.md#feature): `defineFeatureScreens`, `FeatureScreens`. `defineScreens({ manifest, features })` merges a feature's routes, navigation and capability screens before its checks.
@@ -54,9 +54,9 @@ The shell's two-column breakpoint is 64rem. Below it, on phones and on tablets i
 
 ### Launch and session
 
-The frame imports no application, feature or plugin. Their screens arrive through `defineScreens({ features, plugins })`, and `virtual:agent-native/screens` is resolved from `app.config.json` at build time.
+The frame imports no application, feature or plugin. Their screens are passed in through `defineScreens({ features, plugins })`, and `virtual:agent-native/screens` is resolved from `app.config.json` at build time.
 
-The launch credential travels in the URL fragment and never reaches a server log. The frame removes it from the address bar first and exchanges it once for an HttpOnly session cookie. The transport carries no token. Cache and bindings live as long as the document, and a new launch reloads it with an empty cache. The window title comes from the trusted starter identity, not the template.
+The launch credential is sent in the URL fragment and never reaches a server log. The frame removes it from the address bar first and exchanges it once for an HttpOnly session cookie. The transport carries no token. Cache and bindings live as long as the document, and a new launch reloads it with an empty cache. The window title comes from the trusted starter identity, not the template.
 
 ### Palette and components
 
@@ -81,9 +81,9 @@ What an OS request asks for, such as a link or an opened file, reaches the frame
 
 A prefill fills `CapabilityForm` fields only, never its fixed inputs. The form shows the prefill's provenance above it and commits only when the person submits. A purpose-built form reads the prefill with `usePreparedInput`. Provenance labels come from the sender and are rendered as text.
 
-In a browser the frame root also submits OS input. A landing URL counts only with exactly one `os` or `os-shortcut` parameter. The frame removes the parameter from the address before anything else, so a reload never submits it again.
+In a browser the frame root also submits OS input. A launch URL counts only with exactly one `os` or `os-shortcut` parameter. The frame removes the parameter from the address before anything else, so a reload never submits it again.
 
-A file from the launch queue is read only when a declared file handler lists its extension or media type, within that handler's `maxBytes`. A text payload is read as strict UTF-8. A blob payload is first uploaded to `/api/v1/blobs` as the document's session and then submitted as its reference. Any web page can link to a landing URL, so such a request can only open or prefill.
+A file from the launch queue is read only when a declared file handler lists its extension or media type, within that handler's `maxBytes`. A text payload is read as strict UTF-8. A blob payload is first uploaded to `/api/v1/blobs` as the document's session and then submitted as its reference. Any web page can link to a launch URL, so such a request can only open or prefill.
 
 `runOsAction` opens a URL only from an instruction the host built from a declaration. It opens the URL in a new browsing context without an opener. The web manifest's handlers take effect only after the person installs the application in a Chromium browser. The manifest is generated from the trusted identity and the declarations, never from content at runtime.
 

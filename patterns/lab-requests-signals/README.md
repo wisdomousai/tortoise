@@ -22,7 +22,7 @@ Its own files:
 | `contracts.ts` | Browser and server | The `chambers` module: `chamber.list`, `chamber.conditions`, `chamber.place` and the ingest command, and both components |
 | `domain.ts` | Server | The chamber definitions with their OPC UA node, Sparkplug metric, setpoint and tolerance, and the `chambers` slice |
 | `handlers.ts` | Server | The chamber handlers. Ingest records a temperature or humidity as a condition |
-| `policy.ts` | Server | The route for the `chambers` module, with the observer's lane |
+| `policy.ts` | Server | The route for the `chambers` module, with the observer's integration allowlist |
 | `observers.ts` | Server | `createChamberObservers`, both observers over the network port |
 | `application.ts` | Server | The base handlers in the `labRequests` slice, the chamber handlers, both routes, the plugins and `connect`, which starts the observers |
 | `screens.tsx`, `ui/chambers.tsx` | Browser | The climate chambers screen, and a chamber section on the base test request screen |
@@ -51,7 +51,7 @@ A chamber is conditioned when both its temperature and humidity are observed and
 
 The observers reach the gateway and the broker only through the network port, so the site policy decides where `chamber-gateway` and `chamber-broker` point. Until it binds them, the observers reach nothing and no condition is recorded.
 
-The observers submit as `chamber-observer`. Its lane admits only `chamber.reading.ingest` and no event, so a compromised gateway or broker can record conditions and nothing else. People cannot call the ingest command. Members read chambers, and technicians place specimens.
+The observers submit as `chamber-observer`. Its integration allowlist admits only `chamber.reading.ingest` and no event, so a compromised gateway or broker can record conditions and nothing else. People cannot call the ingest command. Members read chambers, and technicians place specimens.
 
 Both connectors only read. The MQTT client subscribes and never publishes, and the OPC UA client uses the Read service. The OPC UA connection uses security policy None and an anonymous session, so it belongs on a segmented control network; the connector's README lists its limits. A real broker on port 8883 is bound with `tls: true`.
 

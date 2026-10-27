@@ -4,7 +4,7 @@ The share target [host plugin](../../docs/glossary.md#host-plugin). It serves th
 
 ## Layer
 
-Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`. The plugin trusts no session on an incoming share post. It relies on the OS plugin to attribute the claimed share to the landing session.
+Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-manifest`. The plugin trusts no session on an incoming share post. It relies on the OS plugin to attribute the claimed share to the launch page session.
 
 ## Primitives
 
@@ -29,9 +29,9 @@ Where a share comes from depends on the platform:
 
 ## Trust boundary
 
-The share target's POST is a top-level navigation from whichever app or web page shared. It carries no session the host could trust, so the route runs before the host's origin and session checks. The route submits nothing. It holds what was posted, and the landing session claims it.
+The share target's POST is a top-level navigation from whichever app or web page shared. It carries no session the host could trust, so the route runs before the host's origin and session checks. The route submits nothing. It holds what was posted, and the launch page session claims it.
 
-The claim attributes the request to the landing session. A file is staged in the [blob](../../docs/glossary.md#blob) store under that session. Only that session can attach it, and only through a command whose blob limits accept it. Any web page can post a share and send the browser to its landing. A share is therefore an unsolicited OS request, and it only prefills a form that the person confirms.
+The claim attributes the request to the launch page session. A file is staged in the [blob](../../docs/glossary.md#blob) store under that session. Only that session can attach it, and only through a command whose blob limits accept it. Any web page can post a share and send the browser to its launch URL. A share is therefore an unsolicited OS request, and it only prefills a form that the person confirms.
 
 The route refuses a post before reading it when:
 
@@ -57,7 +57,7 @@ bun test plugins/share-target
 
 `test/web.test.ts` serves a fixture notes application over HTTP. It covers:
 
-- shared text held and claimed once as a prefill, with the cross-site landing;
+- shared text held and claimed once as a prefill, with the cross-site launch page;
 - an unknown or reused code;
 - a link and its text going to the link handler;
 - a shared PDF staged for the claiming session;

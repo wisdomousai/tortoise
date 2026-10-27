@@ -4,11 +4,11 @@ Agents act on an application's records through agent runs, with the same capabil
 
 ## Concepts
 
-Terms: [harness](glossary.md#harness), [agent run](glossary.md#agent-run), [agent definition](glossary.md#agent-definition), [approval request](glossary.md#approval-request), [assignment](glossary.md#assignment), [trigger](glossary.md#trigger), [standing grant](glossary.md#standing-grant) and [model entry](glossary.md#model-entry).
+Terms: [harness](glossary.md#harness), [agent run](glossary.md#agent-run), [agent definition](glossary.md#agent-definition), [approval request](glossary.md#approval-request), [assignment](glossary.md#assignment), [trigger](glossary.md#trigger), [trigger grant](glossary.md#trigger-grant) and [model entry](glossary.md#model-entry).
 
 ## Harnesses
 
-A harness runs a model turn and lets the model call the application's tools. The harness contracts in `packages/agents` contain no vendor SDK types. Each adapter turns its provider's native events into text, progress and tool events. Domain changes still arrive only as command [receipts](glossary.md#receipt) and [journal](glossary.md#journal) entries.
+A harness runs a model turn and lets the model call the application's tools. The harness contracts in `packages/agents` contain no vendor SDK types. Each adapter turns its provider's native events into text, progress and tool events. Domain changes are still recorded only as command [receipts](glossary.md#receipt) and [journal](glossary.md#journal) entries.
 
 | Adapter       | Execution                                      | Credential boundary                                         |
 | ------------- | ---------------------------------------------- | ----------------------------------------------------------- |
@@ -32,7 +32,7 @@ The run supervisor executes runs that share a conversation ID one after another,
 
 Output is bounded, and known credential formats are redacted, including a secret split across streamed chunks.
 
-The host keeps run snapshots in a separate SQLite database, `runs.sqlite`, in the workspace directory. At startup, runs that had not settled become interrupted. The host never silently repeats a model turn or a committed command. Resume identifiers are provider-specific and are not a portable conversation format. The host appends each run's start and end to the [audit log](glossary.md#audit-log), without its prompt or output.
+The host keeps run snapshots in a separate SQLite database, `runs.sqlite`, in the workspace directory. At startup, runs that had not completed become interrupted. The host never silently repeats a model turn or a committed command. Resume identifiers are provider-specific and are not a portable conversation format. The host appends each run's start and end to the [audit log](glossary.md#audit-log), without its prompt or output.
 
 ## Application tools
 
@@ -52,15 +52,15 @@ A run under a definition acts under a [delegated grant](glossary.md#grant) that 
 
 ## Approval requests
 
-An approval request lets an agent ask for a command it may not run itself. `approvalFeature` in `packages/runtime` implements the approval request capabilities as the `approval` [feature](glossary.md#feature), with approval requests in its own state slice. The application mounts it with an `ApprovalAccess` view that answers who may request, approve, reject, expire and read approval requests about a record, and that applies the application's membership gate, integration lanes and grant scope:
+An approval request lets an agent ask for a command it may not run itself. `approvalFeature` in `packages/runtime` implements the approval request capabilities as the `approval` [feature](glossary.md#feature), with approval requests in its own state slice. The application mounts it with an `ApprovalAccess` view that decides who may request, approve, reject, expire and read approval requests about a record, and that applies the application's membership gate, integration allowlists and grant scope:
 
-| Capability                      | Usual caller          | What it does                                                 |
-| ------------------------------- | --------------------- | ------------------------------------------------------------ |
-| `approval.request`               | A requesting agent run | Records a command, its input, a rationale and revisions read |
-| `approval.approve`               | A person              | Runs the command as the approver, in the same transaction    |
-| `approval.reject`               | A person              | Closes the approval request with an optional reason                  |
-| `approval.expire`               | A job                 | Closes an approval request past its expiry, 24 hours by default       |
-| `approval.list`, `approval.get` | Anyone who may see it | Reads approval requests, filtered by visibility before paging        |
+| Capability                      | Usual caller           | What it does                                                    |
+| ------------------------------- | ---------------------- | --------------------------------------------------------------- |
+| `approval.request`              | A requesting agent run | Records a command, its input, a rationale and revisions read    |
+| `approval.approve`              | A person               | Runs the command as the approver, in the same transaction       |
+| `approval.reject`               | A person               | Closes the approval request with an optional reason             |
+| `approval.expire`               | A job                  | Closes an approval request past its expiry, 24 hours by default |
+| `approval.list`, `approval.get` | Anyone who may see it  | Reads approval requests, filtered by visibility before paging   |
 
 Submission refuses an unknown command, input its schema rejects, and a request for an approval operation. The requester's principal and run ID come from the [execution context](glossary.md#execution-context), never from the input. A model name the requester states is its own label; the run's recorded model is the trusted one. A resource-scoped run requests approval only for the records it started on ([authorization](authorization.md#delegation-and-replay)).
 
@@ -74,15 +74,15 @@ An [assignment](glossary.md#assignment) can name an agent definition as its [ass
 
 The run reads the brief, records its reports and marks the assignment done. A person accepts or discards each report, because the feature refuses accepting to any delegated caller.
 
-## Triggers and standing grants
+## Triggers and their grants
 
 [`plugins/automation`](../plugins/automation/README.md) runs work without a person at the screen. A trigger starts an agent definition or a deterministic job on a committed change or on a schedule. Triggers are declared in code with `defineTrigger`, never at run time, and checked when the plugin opens. The check refuses unknown capabilities, jobs or agents, a schedule under one minute, and a run that would start its own trigger again.
 
-A trigger does nothing until a person enables the trigger by issuing a standing grant. A person issues, renews or revokes only the standing grant of that principal. A grant lasts from one minute to 90 days. Issuing replaces any other active grant for the trigger, so one event never starts two runs. Revoking a grant stops future runs, and a run in progress finishes within its budget.
+A trigger does nothing until a person enables the trigger by issuing a trigger grant. A person issues, renews or revokes only the trigger grant of that principal. A grant lasts from one minute to 90 days. Issuing replaces any other active grant for the trigger, so one event never starts two runs. Revoking a grant stops future runs, and a run in progress finishes within its budget.
 
 Each pass of the trigger loop visits every trigger with an active grant. An event trigger reads the journal after its cursor as the issuer, narrowed to the capabilities it reacts to. A schedule trigger checks whether a new slot began. The loop starts one run per matching event or slot and records progress before the next, so a failed run is recorded and never retried. An idle loop writes nothing.
 
-A trigger run acts as the grant's issuer under a delegated grant that lists the trigger's capabilities, narrowed again by `agentGrant` for an agent. That grant expires at the earlier of the standing grant's expiry and the run's wall-time budget. Policy authorizes every call as the issuer, so a role the issuer lost since issuing is refused. The refusal becomes an open failure that only the issuer sees and resolves (`plugins/automation/test/automation.test.ts`).
+A trigger run acts as the grant's issuer under a delegated grant that lists the trigger's capabilities, narrowed again by `agentGrant` for an agent. That grant expires at the earlier of the trigger grant's expiry and the run's wall-time budget. Policy authorizes every call as the issuer, so a role the issuer lost since issuing is refused. The refusal becomes an open failure that only the issuer sees and resolves (`plugins/automation/test/automation.test.ts`).
 
 A job's command keys come from the run, the capability, its input and how often the run made that call. A job repeated after a crash therefore replays what it already committed. An agent's keys are its model's tool-call IDs, which change across a repeat. Give event triggers to requesting agents, whose repeat adds at most a second approval request.
 

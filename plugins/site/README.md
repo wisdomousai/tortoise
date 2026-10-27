@@ -13,7 +13,7 @@ Plugins (`plugins/*`), shipped with the framework. Server only, except `plugin-m
   - **Processes**: `ProcessBinding`, `DeclaredProcess` and `ResolvedProcess` bind a declared process to an absolute executable, arguments, working directory, optional SHA-256 pin and environment. Findings refuse an undeclared or unbound required process, a relative path, and a variable the process plugin owns: proxy, loader or a declared secret.
   - **Certificates** (`policy/certificates`): `ResolvedPolicy.certificates` holds the validity of the listener certificate, the client CA and each destination CA bundle. `loadSitePolicy` reads them without the key. `judgeCertificates` gives `CERTIFICATE_EXPIRED`, `CERTIFICATE_NOT_YET_VALID` and `CERTIFICATE_EXPIRING` at a given time. Load reports them as findings, and adds `CERTIFICATE_INVALID` for a file with no readable PEM.
   - **Addresses** (`cidr`): `parseCidr`, `cidrContains`, `cidrIsPrivate`, `isPrivateAddress`, `isLoopbackAddress`, `isLoopbackHost`, for the networks a binding may resolve to.
-- [Task package](../../docs/primitives.md#task-package): `app install <bundle>`, `app status` and `app uninstall` (`installVerb`, `installBundle`, `installStatus`, `uninstall`, `installLayout`, `InstallRecord`). They run in the bundled binary of the application being installed.
+- [Site bundle](../../docs/primitives.md#site-bundle): `app install <bundle>`, `app status` and `app uninstall` (`installVerb`, `installBundle`, `installStatus`, `uninstall`, `installLayout`, `InstallRecord`). They run in the bundled binary of the application being installed.
 - [Workforce sign-in](../../docs/primitives.md#workforce-sign-in): `createWorkforceSignIn`, `WorkforceConfig`, `discover`, `providerJson`, `ProviderMetadata`, `DestinationFetch`, and `workforceIdentityComponent`, which declares the `workforce-idp` destination. Under `identity: external` on a serving host, `openSite` serves the `/auth/sign-in`, `/auth/callback` and `/auth/sign-out` routes as `publicRoute`. It resolves their session cookies through `authenticateCookie`.
 - [Host plugin](../../docs/primitives.md#host-plugin): `sitePlugin` is written only against `@agent-native/host/plugin`. It provides the `identity` port and declares the ports its policy `needs`.
 
@@ -137,7 +137,7 @@ Applications that compose the plugin exercise it:
 - the network suite shows a connected policy refused without the network plugin;
 - the desktop test covers the shipped deployment policy.
 
-`test/install.test.ts` installs signed fixture bundles into a staged prefix. Their binaries run `test/fixtures/install-cli.ts`, an application composing this plugin and the network and audit plugins, with commands that queue and settle an effect. It covers:
+`test/install.test.ts` installs signed fixture bundles into a staged prefix. Their binaries run `test/fixtures/install-cli.ts`, an application composing this plugin and the network and audit plugins, with commands that queue and complete an effect. It covers:
 
 - a first install refused without approval;
 - the rendered unit, rules and modes;
@@ -146,7 +146,7 @@ Applications that compose the plugin exercise it:
 - a tampered bundle refused while `current` stays put;
 - uninstall keeping data;
 - the best-before date in `status`;
-- a purge refused while an effect is pending, allowed once it settles, and forced with `--discard-undelivered`.
+- a purge refused while an effect is pending, allowed once it completes, and forced with `--discard-undelivered`.
 
 With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the install test also runs `systemd-analyze verify` on the unit and `nft -c -f` on the rules.
 
@@ -161,7 +161,7 @@ With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the ins
 - the workforce issuer rules;
 - listener files loaded next to the policy.
 
-`test/workforce.test.ts` signs in against a fake provider answered by the injected destination fetch. It covers:
+`test/workforce.test.ts` signs in against a fake provider served by the injected destination fetch. It covers:
 
 - the redirect parameters and PKCE pair;
 - a one-use state, sign-out and session expiry;

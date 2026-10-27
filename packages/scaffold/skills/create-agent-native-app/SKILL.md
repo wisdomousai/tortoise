@@ -32,7 +32,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | --- | --- |
 | `examples/field-service` | the smallest whole application: capabilities, policy, OS handlers and actions, agent definitions, a background job |
 | `examples/quality-inspection` | capture against a system of record through the outbox, and a measuring instrument through a Python driver |
-| `examples/crm-capture` | live search of a CRM and adoption of its records |
+| `examples/crm-capture` | live search of a CRM and following its records |
 | `examples/line-station` | an operator workstation over workstation application reached through its screen or a .NET driver |
 | `examples/asset-survey` and `examples/asset-survey-field` | a hub with blob evidence, a declared workflow, assignments and a paired mobile field application that takes them |
 | `examples/receiving` | an application generated with `scaffold new` and `scaffold add`: a file exchange with an ERP, reconciliation and an agent that requests approval |
@@ -61,7 +61,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | Plant signals from MQTT, Sparkplug B or OPC UA | `packages/observation/skills/observe-plant-signals/SKILL.md` |
 | A sequence that waits on people or systems between steps | `plugins/workflows/skills/declare-a-workflow/SKILL.md` |
 | Two agent-native applications that call each other | `plugins/peer-link/skills/connect-two-applications/SKILL.md` |
-| Operators who sign in at a shared seat by badge and PIN | `workstations/sign-in/skills/sign-in-at-a-seat/SKILL.md` |
+| Operators who sign in at a shared terminal by badge and PIN | `workstations/sign-in/skills/sign-in-at-a-terminal/SKILL.md` |
 | Which checks to run and how to report them | `packages/testing/skills/check-a-change/SKILL.md` |
 
 `bun install` links these skills for Claude Code and Codex. An application that installs the framework from a registry gets these skills from the installed packages under `node_modules/@agent-native/`. There, the steps that change framework source apply in the framework checkout instead.

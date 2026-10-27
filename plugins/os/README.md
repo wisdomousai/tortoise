@@ -62,12 +62,12 @@ bun test plugins/os
 
 `test/os.test.ts` serves a fixture notes application over HTTP and covers:
 
-- the shell API answering 503 without the plugin;
+- the shell API returning 503 without the plugin;
 - a link and a text file delivered to the submitting session only, with no content in the log;
 - an unreadable resource refused when queued;
 - refusal reasons for unknown, malformed, disabled and rate-limited requests;
-- an open action returned to a screen, and relayed to an adapter that only its own session can answer;
-- a link landing as the only cross-site request served, and only as a top-level page;
+- an open action returned to a screen, and relayed to an adapter that only its own session can respond to;
+- the launch page for a link as the only cross-site request served, and only as a top-level page;
 - startup refused for an unserved kind or an unknown disabled ID.
 
 `test/mobile.test.ts` runs a fixture application on the mobile instance with Bun bindings for the device. It covers:

@@ -8,10 +8,10 @@ Framework (`packages/*`). Server only, because the observer hashes payloads with
 
 ## Primitives
 
-- [Observation](../../docs/primitives.md#observation): readings with provenance, the stability gate and the observer.
+- [Observation](../../docs/primitives.md#observation): readings with provenance, the debouncer and the observer.
   - `Reading`, `RawReading`, `FieldValue`: a field value with its provenance: the extractor, the frame's time and digest, and the `ModelIdentity` or `DeviceIdentity` of the model or driver that read it. A device identity records the driver ID and version, the unit's serial number and its firmware.
   - `Extractor<Frame, Field, Modality>`: the [extractor](../../docs/glossary.md#extractor) that turns one frame, such as a screen capture or a driver's state read, into raw readings. `@agent-native/screen-bridge` fixes it to screen captures and screen fields.
-  - `StabilityGate` and `gateReadings`: a reading counts only once the same value arrives on `stableReads` consecutive frames. A stable reading below the field's `minConfidence` is marked `uncertain`, so the domain asks a person instead of recording it.
+  - `Debouncer` and `debounceReadings`: a reading counts only once the same value is read on `stableReads` consecutive frames. A stable reading below the field's `minConfidence` is marked `uncertain`, so the domain asks a person instead of recording it.
   - `createObserver`: samples on an interval and submits each observation through the ingest capability. Unchanged content, which excludes times and digests, is resubmitted at most once per heartbeat window.
 
 `createStationObserver` in `@agent-native/screen-bridge` is the screen observer built on these parts. A driver connector builds the instrument observer the same way.
@@ -20,14 +20,14 @@ Framework (`packages/*`). Server only, because the observer hashes payloads with
 
 | Import                        | Runs in     | Contents                                                                            |
 | ----------------------------- | ----------- | ----------------------------------------------------------------------------------- |
-| `@agent-native/observation`   | server only | Readings, extractor type, stability gate, observer and `clampConfidence`.           |
+| `@agent-native/observation`   | server only | Readings, extractor type, debouncer, observer and `clampConfidence`.           |
 | `@agent-native/observation/*` | server only | One source file: `readings`, `stability` or `observer`.                             |
 
 ## Trust boundary
 
 An observer submits as the principal in its `context`. The application's policy should grant that principal the ingest capability only. The domain's ingest handler decides what a reading changes.
 
-The gate filters flicker and one-off misreads. It cannot detect a source that is steadily wrong.
+The debouncer filters flicker and one-off misreads. It cannot detect a source that is steadily wrong.
 
 Each idempotency key is `observe:<source>:<fingerprint of the exact payload>`, so a retry reuses its key and different input never does. A failed submission is not remembered, so the next pass sends it again under the same key.
 
@@ -41,7 +41,7 @@ Framework: `@agent-native/runtime`. Node: `node:crypto`.
 bun test packages/observation workstations/screen-bridge
 ```
 
-- `test/observation.test.ts`: the gate with device provenance, uncertain and unknown fields, and the heartbeat and key rules.
+- `test/observation.test.ts`: the debouncer with device provenance, uncertain and unknown fields, and the heartbeat and key rules.
 
 The station suites cover the same rules through the screen observer.
 

@@ -24,6 +24,6 @@ bun run format && bun run generate
 
 To start from a working reference instead, `bun run scaffold <absent-target> --name <app> --example field-service` exports one example as the hosted application. Do not present the example as the finished requested application. Customize the starter in `apps/*` freely, but put domain code in the application, and keep the framework packages free of domain-specific imports.
 
-For an application over existing systems of record, define one bounded interaction (see the [system-of-record pattern](../../../../../docs/systems-of-record.md)): trigger, input or evidence, the system of record, allowed outcomes and exception owner. The `connect-system-of-record` skill covers the connector, settlement and held effects.
+For an application over existing systems of record, define one bounded interaction (see the [system-of-record pattern](../../../../../docs/systems-of-record.md)): trigger, input or evidence, the system of record, allowed outcomes and exception owner. The `connect-system-of-record` skill covers the connector, completion and held effects.
 
 For agents in a sandbox, ship `bun run build:cli` output: `mcp --embedded --grant-file` serves them in-process under an orchestrator-written grant, and `drain` must exit 0 before the sandbox is discarded. A process running as the same OS user is not a sandbox ([agent harnesses](../../../../../docs/agents.md)), so choose an actual isolation backend if the requested application runs arbitrary tool code. For signed site bundles and `app install`, follow the `deploy-to-site` skill.

@@ -1,6 +1,6 @@
 # @agent-native/automation
 
-This [host plugin](../../docs/glossary.md#host-plugin) runs work without a [person](../../docs/glossary.md#person) at the [screen](../../docs/glossary.md#screen). A [trigger](../../docs/glossary.md#trigger) starts an [agent definition](../../docs/glossary.md#agent-definition) or a deterministic job on a committed change or on a schedule. A trigger does nothing until a person issues a [standing grant](../../docs/glossary.md#standing-grant) for it, and every run acts as that person, narrowed to the trigger's [capabilities](../../docs/glossary.md#capability).
+This [host plugin](../../docs/glossary.md#host-plugin) runs work without a [person](../../docs/glossary.md#person) at the [screen](../../docs/glossary.md#screen). A [trigger](../../docs/glossary.md#trigger) starts an [agent definition](../../docs/glossary.md#agent-definition) or a deterministic job on a committed change or on a schedule. A trigger does nothing until a person issues a [trigger grant](../../docs/glossary.md#trigger-grant) for it, and every run acts as that person, narrowed to the trigger's [capabilities](../../docs/glossary.md#capability).
 
 ## Layer
 
@@ -9,7 +9,7 @@ Plugin layer, with the three plugin entrypoints an application lists. It trusts 
 ## Primitives
 
 - [Trigger](../../docs/primitives.md#trigger): `defineTrigger`, `TriggerDefinition`, `TriggerSource`, the jobs a trigger runs (`Job`, `JobContext`, `TriggerEvent`), and the checks `resolveTriggers` applies when the plugin opens.
-- [Standing grant](../../docs/primitives.md#standing-grant): `automation.grant.issue`, `renew` and `revoke`, the `standingGrantSchema` record, and `runContext`, which turns a grant into the context one run executes under.
+- [Trigger grant](../../docs/primitives.md#trigger-grant): `automation.grant.issue`, `renew` and `revoke`, the `triggerGrantSchema` record, and `runContext`, which turns a grant into the context one run executes under.
 - [Host plugin](../../docs/primitives.md#host-plugin): `createAutomationPlugin`, `automationPluginManifest`, `automationScreens`.
 - [Agent run](../../docs/primitives.md#agent-run): runs go through the plugin's own run supervisor. Its harnesses are the job harness (`createJobHarness`), the local harness when `localModel` is set, and any `agentHarnesses`.
 
@@ -45,7 +45,7 @@ The prompt starts with `agentInstructions`: the definition's instructions and, f
 
 ## Trust boundary
 
-A run's context is the grant's issuer, under a [delegated grant](../../docs/glossary.md#grant) that lists the trigger's capabilities. For an agent, `agentGrant` narrows it again. The delegated grant expires at the earlier of the standing grant's expiry and the run's wall-time budget. The application's policy authorizes every call as the issuer, so a role the issuer lost since issuing is refused. The refusal becomes an open failure.
+A run's context is the grant's issuer, under a [delegated grant](../../docs/glossary.md#grant) that lists the trigger's capabilities. For an agent, `agentGrant` narrows it again. The delegated grant expires at the earlier of the trigger grant's expiry and the run's wall-time budget. The application's policy authorizes every call as the issuer, so a role the issuer lost since issuing is refused. The refusal becomes an open failure.
 
 Only a person issues, renews or revokes a grant, and only their own; no run and no grant can. Issuing replaces any other active grant for the trigger, so one event never starts two runs.
 
@@ -93,4 +93,4 @@ bun test plugins/automation
 
 ## References
 
-- [Agents](../../docs/agents.md#triggers-and-standing-grants)
+- [Agents](../../docs/agents.md#triggers-and-their-grants)

@@ -111,20 +111,20 @@ bunx playwright test tests/e2e/desktop.pw.ts
 
 Without `DESKTOP_EXECUTABLE` the tests skip.
 
-## Station bridge demo and opt-in perception
+## Station bridge demo and opt-in recognition
 
-A line-station host starts a station bridge only when `STATION_HMI_URL` is set. `cd examples/line-station && bun run dev` starts the fake HMI in the same process and sets that variable. It also sets simulator mode unless a vision model or perception worker is configured. To bridge another HMI, set the URL yourself.
+A line-station host starts a station bridge only when `STATION_HMI_URL` is set. `cd examples/line-station && bun run dev` starts the fake HMI in the same process and sets that variable. It also sets simulator mode unless a vision model or recognition worker is configured. To bridge another HMI, set the URL yourself.
 
-The fake HMI shows its counters only as pixels, so reading them needs a [perception source](glossary.md#perception-source):
+The fake HMI shows its counters only as pixels, so reading them needs a [screen recognizer](glossary.md#screen-recognizer):
 
 | Variable                                                                                                  | Effect                                                                                                        |
 | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `STATION_SIMULATOR=1`                                                                                     | Counters come from the simulator's ground truth. For demos and tests only.                                    |
 | `STATION_VISION_BASE_URL`, `STATION_VISION_MODEL`, `STATION_VISION_ALLOWED_HOSTS`, `STATION_VISION_READS` | A local OpenAI-compatible vision model, on loopback unless allowlisted. Confidence is agreement across reads. |
-| `STATION_PERCEPTION_WORKER=1`                                                                             | The `perception-worker` process the deployment policy binds under `processes`, started by the process plugin.       |
+| `STATION_RECOGNITION_WORKER=1`                                                                             | The `recognition-worker` process the deployment policy binds under `processes`, started by the process plugin.       |
 | `STATION_ID`, `STATION_PROFILE`, `STATION_OBSERVE_MS`                                                     | Station ID, profile path and observation interval.                                                            |
 
-`bun run station:golden` in the example runs the [golden check](glossary.md#golden-check) on a profile or perception change. Without a model configured, it replays recorded expectations, which checks only the wiring. `STATION_GOLDEN_WORKER` names a worker command for the gate as a JSON array, started with an empty environment.
+`bun run station:golden` in the example runs the [golden test](glossary.md#golden-test) on a profile or recognition change. Without a model configured, it replays recorded expectations, which checks only the wiring. `STATION_GOLDEN_WORKER` names a worker command for the gate as a JSON array, started with an empty environment.
 
 `station:record-golden` re-records the frames from the fake HMI. Exported projects contain no golden images, so a configured model refuses to run there until they are recorded. A result from a live model is recorded apart from the deterministic gate.
 
@@ -136,7 +136,7 @@ The fake HMI shows its counters only as pixels, so reading them needs a [percept
 - **Durability and ownership:** processes killed before and after commit, competing owners, path aliases and a killed owner.
 - **HTTP and live queries:** origin checks, one-time launch credentials, revoked sessions, identity spoofing, session-bound cursors and projection. The gap between a snapshot and its live query, and resets that leak no identifiers.
 - **Client and UI context:** out-of-order responses, revocation during a refresh, stable captured targets and fenced updates.
-- **Integration:** effects commit only with their command. Delivery handles failure, rejection, lost settlement and targets that are not idempotent.
+- **Integration:** effects commit only with their command. Delivery handles failure, rejection, lost completion and targets that are not idempotent.
 - **Capture:** a scanner burst records exactly one result per sample.
 - **Agents:** [agent scenarios](glossary.md#agent-scenario) judge a run by its receipts and approval requests, never its text. CI runs them with the deterministic harness; a live run needs a configured harness and `AGENT_SCENARIOS=live`, and is recorded apart.
 - **Surfaces:** conformance runs the real HTTP, CLI and MCP adapters and compares results and error codes.

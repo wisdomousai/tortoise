@@ -13,7 +13,7 @@ Framework (`packages/*`). Server-side CLI. The scaffold trusts the source checko
 
 Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` and `collection-tree` [UI registry](../../docs/primitives.md#ui-registry) items.
 
-Skills live in each package's `skills/` directory and travel with it. A source export copies them, and an installed-framework export gets them from the installed packages. Neither carries the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
+Skills live in each package's `skills/` directory and ship with it. A source export copies them, and an installed-framework export gets them from the installed packages. Neither carries the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
 
 ## Entrypoints
 
@@ -68,14 +68,14 @@ With `--published` or `--registry <url>`, `new` leaves the framework source out 
 - adds `'approval'` to the module's `requires`, because the agent requests approval through the feature's operations;
 - adds an Approvals screen where a person approves or rejects.
 
-`add assignment-kind <id> --collection <type>` writes an assignment kind for the person lane over that collection:
+`add assignment-kind <id> --collection <type>` writes an assignment kind for person assignees over that collection:
 
 - `contracts/<id>-assignment.ts`: the scope is up to 50 records, the brief holds their titles and statuses, and a report sets one record's status with a note;
 - `handlers/<id>-assignment.ts`: hooks that check the scope and the assignee, build the brief, and run `<type>.update` when an editor accepts a report;
 - `ui/<id>-assignments.tsx`: the assignment board, one assignment's reports and the assignee's own list, from the frame registry;
 - `test/<id>-assignment.test.ts`: the lifecycle and the roles through the application.
 
-The first kind also writes `contracts/assignments.ts`, the hook table in `handlers/assignments.ts` and the `assignee.list` query. It mounts `assignmentFeature` in `application.ts` and adds `assignmentAccess` to `policy.ts`: every member works on what is sent to them, editors also plan, read and review, and a delegated run only works. Later kinds insert into the kind list, the hook table and the screens. The `assign-work` skill (`packages/assignments/skills/assign-work/SKILL.md`) covers the agent, device, peer and target lanes.
+The first kind also writes `contracts/assignments.ts`, the hook table in `handlers/assignments.ts` and the `assignee.list` query. It mounts `assignmentFeature` in `application.ts` and adds `assignmentAccess` to `policy.ts`: every member works on what is sent to them, editors also plan, read and review, and a delegated run only works. Later kinds insert into the kind list, the hook table and the screens. The `assign-work` skill (`packages/assignments/skills/assign-work/SKILL.md`) covers agent, device, peer and target assignees.
 
 `add feature <id>` writes a [feature](../../docs/glossary.md#feature) in `features/<id>/`:
 
@@ -91,7 +91,7 @@ It also adds the access view to `policy.ts` (members read, editors record), the 
 
 The application skeleton is a set of `.tpl` files in `templates/application`, rendered with `{{name}}` placeholders. A placeholder without a value throws. The skeleton is text rather than code, so the boundary check does not read its plugin imports as the scaffold's own. Functions in `src/templates/` generate the parts, because parts differ by kind: a command or a query, a target's collection.
 
-A generated application keeps `// scaffold:<list>` comments in its capabilities, `requires`, handlers, policy rules, access views, lanes, state, options, integrations, features, routes and navigation. `add` inserts on the lines before the marker, so the marker stays last. `add` refuses:
+A generated application keeps `// scaffold:<list>` comments in its capabilities, `requires`, handlers, policy rules, access views, state, options, integrations, features, routes and navigation. `add` inserts on the lines before the marker, so the marker stays last. `add` refuses:
 
 - an application without its manifest and policy;
 - a part whose file already exists;
@@ -111,7 +111,7 @@ No credentials or workspace data leave the checkout. Source files are text and a
 
 Files are staged and moved into place only when the export completes. `add` edits only files of the application it was pointed at.
 
-A generated application lists the site, network, audit and compliance plugins. It gives each target an [integration principal](../../docs/glossary.md#integration-principal) with its own lane and no role. Commands are for editors and reads for members; adjust `policy.ts` before adding people.
+A generated application lists the site, network, audit and compliance plugins. It gives each target an [integration principal](../../docs/glossary.md#integration-principal) with its own integration allowlist and no role. Commands are for editors and reads for members; adjust `policy.ts` before adding people.
 
 `versions` reads package manifests under `node_modules` only. A published-framework export trusts the configured registry for the `@agent-native` scope as it trusts npm for other packages. The lockfile then pins each tarball's integrity.
 

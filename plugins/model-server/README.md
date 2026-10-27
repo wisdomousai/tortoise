@@ -24,7 +24,7 @@ Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`.
 | `@agent-native/model-server/plugin`          | server only        | `createModelServer`, its options, status and service.          |
 | `@agent-native/model-server/arguments`       | server only        | `serverArguments`: what each runtime is told to load.          |
 | `@agent-native/model-server/measure`         | server only        | `measure`: the `sha256:` digest of a weights file or directory. |
-| `@agent-native/model-server/testing` | server (tests and development launches) | `llamaServerStandIn`, the path of a llama-server stand-in, and the `StandInResponder` type for scripting its answers. |
+| `@agent-native/model-server/testing` | server (tests and development launches) | `llamaServerStandIn`, the path of a llama-server stand-in, and the `StandInResponder` type for scripting its replies. |
 
 ### Composition
 
@@ -100,7 +100,7 @@ A harness for an externally run server records the digests it was given with `ve
 bun test plugins/model-server
 ```
 
-`test/model-server.test.ts` serves a notes fixture application with the site, network, process and model server plugins. It starts `llamaServerStandIn` from `src/testing.ts` through the process port, a stand-in that takes llama-server's flags and answers with an approval request tool call. It covers:
+`test/model-server.test.ts` serves a notes fixture application with the site, network, process and model server plugins. It starts `llamaServerStandIn` from `src/testing.ts` through the process port, a stand-in that takes llama-server's flags and replies with an approval request tool call. It covers:
 
 - weights that differ from the entry, refused with the reason given by the harness;
 - a fine-tune without an activation, with a failing one and with one for another adapter, each refused;

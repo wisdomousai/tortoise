@@ -25,14 +25,14 @@ In an application made by `scaffold new`, `bun run scaffold add feature <id> [--
    - `authorization` with resource types named `<id>` or `<id>-…` and a `FeaturePolicy` over the slice and `access`;
    - `services`, exposed to every handler as `services[<id>]`;
    - `connect`, returning `integrations`, `observe` and `sources` named `<id>` or `<id>-…`.
-3. Define `Access` as the questions the policy and handlers need answered about the application, such as `allows(context, action, resource)`. The application answers them from its own state.
+3. Define `Access` as the checks the policy and handlers need the application to make, such as `allows(context, action, resource)`. The application implements them from its own state.
 4. Define `Hooks` for application work inside a handler, such as recording an outcome on an application record. Hooks are optional members; supply a default in the feature when one is missing. A query's hooks only read: a query whose hook changes the state fails.
 5. Decide person-only rules in the feature's own policy (`isDelegated` from `@agent-native/runtime`), not in the access view, so every application gets them.
 6. Mount it in the application:
    - list the manifest in `defineManifest({ features })`;
    - mount it in `defineApplication({ features: [mountFeature(feature, { access, hooks, adopt })] })` in the same order;
    - add its screens, declared with `defineFeatureScreens` from `@agent-native/frame/feature-screens`, to `defineScreens({ manifest, features })`; the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`) covers screens.
-7. In `access`, replicate the gates the application's own policy applies: membership (`caller`), [integration principal](../../../../docs/glossary.md#integration-principal) lanes and delegated-grant scope. The application policy never sees the feature's operations.
+7. In `access`, replicate the gates the application's own policy applies: membership (`caller`), [integration allowlists](../../../../docs/glossary.md#integration-allowlist) and delegated-grant scope. The application policy never sees the feature's operations.
 8. Remove any application policy rule for the feature's operations and any event rule for its resource types. Composition refuses both when the application policy is built with `definePolicy`.
 9. When the data lived in application state before, adopt it:
    - add an application migration step to a new version that removes the old fields, without `compatible`;

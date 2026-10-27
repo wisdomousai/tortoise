@@ -24,7 +24,7 @@ The runtime checks a command in this order (`packages/runtime/src/application/co
 
 The context, cancellation included, is checked again after every awaited step and before the commit. Any failure rolls the whole command back.
 
-A [nested invocation](glossary.md#nested-invocation) (`ctx.invoke`, `ctx.query`, `continueWith`) takes steps 1 to 5 for its own operation under the same context. The grant must list that operation, and the calling capability must list it in `invokes`. The policy request carries `via`, the enclosing operations, outermost first, at the `invoke`, `commit` and `replay` phases. A refusal fails the whole command, even when the calling handler catches it. A query is authorized again after projection. `packages/runtime/test/runtime.test.ts` covers the rechecks.
+A [nested call](glossary.md#nested-call) (`ctx.invoke`, `ctx.query`, `continueWith`) takes steps 1 to 5 for its own operation under the same context. The grant must list that operation, and the calling capability must list it in `invokes`. The policy request carries `via`, the enclosing operations, outermost first, at the `invoke`, `commit` and `replay` phases. A refusal fails the whole command, even when the calling handler catches it. A query is authorized again after projection. `packages/runtime/test/runtime.test.ts` covers the rechecks.
 
 ## Policy port
 
@@ -37,14 +37,14 @@ In the `field-service` example, the workspace owner creates work orders and is a
 `definePolicy` builds the policy port from data and denies any operation it does not list. Each example lists every operation it serves as one of these:
 
 - `open`: the handler scopes the rows.
-- `integration`: only a [policy lane](glossary.md#policy-lane) may call it.
+- `integration`: only a [integration allowlist](glossary.md#integration-allowlist) may call it.
 - A rule: it resolves the container from authoritative state and names the roles allowed. It can also name the resource a limited grant must contain, and refuse a delegated run.
 
 It evaluates a command on both the current and the proposed state, so a rule cannot forget the commit-time check (`packages/runtime/test/policy.test.ts`). Roles come from a membership, whose `set-member` command refuses a change to the caller's own role.
 
 ## Feature policies
 
-A [feature](glossary.md#feature)'s operations and resource types are decided by the feature's own policy (`routeAuthorization` in `packages/runtime/src/compose.ts`). The application's policy never sees them, so its `caller` gate and [policy lanes](glossary.md#policy-lane) do not apply. The feature's policy reads an access view that the application computes from its own state, and the view applies the application's membership, its integration principals' lanes and a delegated grant's resource scope. A command is checked against the access views of the current and the previous state.
+A [feature](glossary.md#feature)'s operations and resource types are decided by the feature's own policy (`routeAuthorization` in `packages/runtime/src/compose.ts`). The application's policy never sees them, so its `caller` gate and [integration allowlists](glossary.md#integration-allowlist) do not apply. The feature's policy reads an access view that the application computes from its own state, and the view applies the application's membership, its integration allowlists and a delegated grant's resource scope. A command is checked against the access views of the current and the previous state.
 
 Person-only rules sit in the feature's policy, so every application gets them: approving or rejecting an [approval request](glossary.md#approval-request) and resolving a held effect refuse a delegated caller. A caller who cannot read an approval request gets `NOT_FOUND` for it, not a refusal that confirms it exists.
 
@@ -62,7 +62,7 @@ A grant scoped to resources may change only those records. Its `creates` list le
 
 A retry with the same [idempotency key](glossary.md#idempotency-key) returns the stored [receipt](glossary.md#receipt) after current authorization and projection, without running the handler again. The receipt records the nested commands with their inputs, and the retry authorizes each of them again in the `replay` phase with its `via`. A revoked record, a newly restricted field or a lost nested operation therefore cannot be recovered through an old receipt.
 
-Before the [dispatcher](glossary.md#dispatcher) first claims an [outbox effect](glossary.md#effect), the person who committed it is authorized again in the `dispatch` phase. The check runs without the delegation the command ran under. `definePolicy` answers it from containers and roles only, because the command's preconditions no longer hold after it committed. A denial holds the effect for a person. Later claims are not rechecked, so a target's answer is still recorded, and the principal who lost access does not see it (`packages/integration/test/reliability.test.ts`).
+Before the [dispatcher](glossary.md#dispatcher) first claims an [outbox effect](glossary.md#effect), the person who committed it is authorized again in the `dispatch` phase. The check runs without the delegation the command ran under. `definePolicy` decides it from containers and roles only, because the command's preconditions no longer hold after it committed. A denial holds the effect for a person. Later claims are not rechecked, so a target's response is still recorded, and the principal who lost access does not see it (`packages/integration/test/reliability.test.ts`).
 
 ## Revocation
 

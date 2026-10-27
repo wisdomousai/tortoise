@@ -14,7 +14,7 @@ The pattern is one [application](../../docs/primitives.md#application). It compo
 - [egress guard](../../docs/primitives.md#egress-guard): the network guard, with the fleet binding's `maxResponseBytes` raised for release files, and the nftables and systemd rules `network export` renders;
 - [audit log](../../docs/primitives.md#audit-log): the events the fleet agent forwards;
 - [fleet agent](../../docs/primitives.md#fleet-agent): enrollment with a one-use code, reports, audit forwarding and release staging, all outbound;
-- [task package](../../docs/primitives.md#task-package): a signed site bundle, its verification against `fleet-trust`, admission with a site approval, and `app install`.
+- [site bundle](../../docs/primitives.md#site-bundle): a signed bundle, its verification against `fleet-trust`, admission with a site approval, and `app install`.
 
 Its own files:
 

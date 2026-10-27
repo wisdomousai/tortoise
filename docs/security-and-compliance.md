@@ -65,7 +65,7 @@ export const auditCollectorComponent = defineHostComponent({
 Building the catalog applies these rules (`packages/contracts/src/requirements.ts`):
 
 - **Fixed hosts.** A declaration names a host only for a fixed vendor endpoint. The deployment policy names site systems.
-- **Outbox targets.** Every [target](glossary.md#target) travels over a declared destination, exchange folder or child process. A destination that carries [outbox effects](glossary.md#effect) must queue while offline.
+- **Outbox targets.** Every [target](glossary.md#target) is reached through a declared destination, exchange folder or child process. A destination that carries [outbox effects](glossary.md#effect) must queue while offline.
 - **Child processes.** A child process lists the only destinations it may reach.
 - **Exchange folders.** A folder that another system reads or writes is declared by ID with its access (`read`, `write` or `read-write`), data classes and outbox targets. Code reaches a folder only through the folder port, so a module never names a path.
 - **Audit fields.** A capability lists the input fields that are safe to record in plain text. The audit log records the rest of the input as a digest.
@@ -92,9 +92,9 @@ A policy file under the `sandbox` profile:
 ```
 
 - **Bindings** name declared destinations and must match their protocol, host and port.
-- **`addresses`** are CIDRs. The addresses let the guard check DNS answers, which defeats DNS rebinding, and the rule exports need the addresses. A binding without addresses gets a warning, and the exports keep it blocked instead of widening it.
+- **`addresses`** are CIDRs. The addresses let the guard check DNS responses, which defeats DNS rebinding, and the rule exports need the addresses. A binding without addresses gets a warning, and the exports keep it blocked instead of widening it.
 - **`ca`** replaces the trust store for one destination, and **`certificatePins`** pin its server certificates.
-- **`timeoutMs`** replaces the guard's 30-second request timeout for one destination, from 1 second to an hour. A local model server that reasons before it answers needs minutes.
+- **`timeoutMs`** replaces the guard's 30-second request timeout for one destination, from 1 second to an hour. A local model server that reasons before it responds needs minutes.
 - **`maxResponseBytes`** replaces the guard's 32 MiB response cap for one destination, from 1 MiB to 1 GiB. A fleet serves release files, and a site's compiled binary is larger than 32 MiB.
 - **`folders`** binds each declared folder ID to an absolute directory or disables it with a reason. The directory can be a POSIX path, a Windows drive path or a UNC share. A disabled or unbound folder is unavailable through the folder port.
 - **Connected mode** requires every required destination to be bound or explicitly disabled. The findings list each closed destination with its offline consequence.
@@ -193,14 +193,14 @@ The [model server plugin](../plugins/model-server/README.md) hashes the weights 
 
 ## Peer applications
 
-The [peer link](glossary.md#peer-link) admits another application to the [peer surface](glossary.md#peer-surface) an application declares. Each threat and the control that meets it:
+The [peer link](glossary.md#peer-link) admits another application to the [peer API](glossary.md#peer-api) an application declares. Each threat and the control that meets it:
 
 | Threat | Control |
 | --- | --- |
 | A stranger who reaches the listener enrolls | The enrollment route redeems only a one-use code, valid for ten minutes, with ten failed exchanges per minute for all callers together. |
-| A peer calls beyond the surface | The service principal's grant holds the surface's service operations, or the narrower list the enrollment named. Its policy lane reads no journal events. |
+| A peer calls beyond the peer API | The service principal's grant holds the peer API's service operations, or the narrower list the enrollment named. Its integration allowlist reads no journal events. |
 | A peer acts as any person | A call on behalf of a person needs a [subject assertion](glossary.md#subject-assertion) signed by the key enrolled with the credential, and a [subject mapping](glossary.md#subject-mapping). No subject maps to a `peer:` or `device:` principal or to a reserved principal. |
-| A peer does what the person may not | The mapped person's own policy applies within the surface's on-behalf-of operations, and a person-only rule refuses the call. An assertion with `act: agent` is refused unless the application allows agents. |
+| A peer does what the person may not | The mapped person's own policy applies within the peer API's on-behalf-of operations, and a person-only rule refuses the call. An assertion with `act: agent` is refused unless the application allows agents. |
 | A captured assertion is replayed or moved | The assertion binds the audience, the request line and the body digest. It lives at most 120 seconds, and its `jti` is accepted once. |
 | A peer opens a session as the person | A call on behalf of a person opens no browser session and no event stream. |
 | A revoked peer or unmapped subject keeps calling | Every request resolves the credential and the mapping again, so a revocation or an unmapping applies to the next request. |
@@ -213,7 +213,7 @@ The [peer link](glossary.md#peer-link) admits another application to the [peer s
 These risks remain:
 
 - The `jti` cache is in memory. An assertion captured within two minutes before a restart can be presented once more after it, still only with the peer's bearer credential.
-- A stolen credential together with the private key can assert any mapped subject, within the surface and that person's policy.
+- A stolen credential together with the private key can assert any mapped subject, within the peer API and that person's policy.
 - The one-use code stays in the stored receipt of `peer.enrollment.create`, worthless once redeemed or expired.
 
 ## Audit log

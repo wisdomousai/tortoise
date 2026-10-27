@@ -13,7 +13,7 @@ Plugins (`plugins/*`). Server only, except `plugin-manifest` and `contracts`. Li
 - [Process port](../../docs/primitives.md#process-port): every sandbox starts through it. The [deployment policy](../../docs/glossary.md#deployment-policy) therefore binds and can pin the bwrap executable, and the start is audited like any child.
 - [Egress guard](../../docs/primitives.md#egress-guard): a sandbox that declares destinations gets the CONNECT proxy, with the per-process credential the network port issues.
 - [Execution context](../../docs/primitives.md#execution-context): a task's context must carry a delegated grant. The run's token ends when the grant or the run ends.
-- [Host plugin](../../docs/primitives.md#host-plugin): the plugin's `authenticate` hook answers for the tokens it issued.
+- [Host plugin](../../docs/primitives.md#host-plugin): the plugin's `authenticate` hook handles the tokens it issued.
 - [Audit log](../../docs/primitives.md#audit-log): `sandbox.started` and `sandbox.exited` records with the run's [principal](../../docs/glossary.md#principal) and run ID.
 
 ## Entrypoints
@@ -75,7 +75,7 @@ The caller of `run` is trusted host code and decides the task and its context. T
   - module, BPF and kexec loading;
   - keyrings, `userfaultfd`, `perf_event_open` and `io_uring`;
   - clock and swap changes, `personality` and `open_by_handle_at`.
-- **Other calls.** `clone3` answers ENOSYS so the C library falls back to `clone`. Another architecture or the x32 ABI is killed, and filters exist for x86-64 and arm64.
+- **Other calls.** `clone3` returns ENOSYS so the C library falls back to `clone`. Another architecture or the x32 ABI is killed, and filters exist for x86-64 and arm64.
 - **Network.** The network namespace has loopback only, and the two relays connect to fixed ports. The sandbox reaches the host's HTTP API, which checks its token on every request, and the egress proxy, which checks and audits its process ID's declared destinations.
 - **Other addresses.** The sandbox cannot reach any other host port or address. A sandbox without destinations gets no proxy relay.
 - **Credentials.** The token stands for the run's context only and is refused once revoked or expired, or once the run ended. The host checks it per request through `authenticate`, and [policy](../../docs/glossary.md#policy) and the grant are still checked inside each transaction.

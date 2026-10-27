@@ -57,7 +57,7 @@ A receipt that cannot be read returns the `uncertain` status, which holds the ef
 
 ### Inbound sync
 
-The [cursor](../../docs/glossary.md#cursor) is the time a file arrived and its name. Arrival is the latest of the file's modification, status-change and creation times, because copy tools keep the source's modification time. Each file is read once, and a file replaced later is read again.
+The [cursor](../../docs/glossary.md#cursor) is the time a file was received and its name. The received time is the latest of the file's modification, status-change and creation times, because copy tools keep the source's modification time. Each file is read once, and a file replaced later is read again.
 
 A file is read only after it has been quiet for `quietMs`, 2 seconds by default. Dotfiles and other extensions are skipped. A record that `map` refuses, or a file that does not parse, fails the pass instead of being skipped. The inbox is never written to.
 
@@ -69,7 +69,7 @@ A folder that the deployment policy disables or does not bind is unavailable thr
 
 Limits:
 
-- the arrival watermark trusts the share's clock, so a file server whose clock runs behind the host can sort a new file before the watermark;
+- the received-time watermark trusts the share's clock, so a file server whose clock runs behind the host can sort a new file before the watermark;
 - there is no file locking, and the partial-then-rename write is atomic on one file system but not across a copy tool that writes in place;
 - folders are polled, not watched.
 
@@ -88,7 +88,7 @@ bun test plugins/connector-files
 - each format's round trip and refusals;
 - receipts that accept, reject or cannot be read;
 - unsafe effect IDs, and a drop with neither receipts nor archive;
-- the feed's quiet period, hidden and foreign files, and paging by arrival;
+- the feed's quiet period, hidden and foreign files, and paging by received time;
 - a copied file that keeps an old modification time, a replaced file, and a file that does not parse;
 - the component's declarations with and without the folders.
 

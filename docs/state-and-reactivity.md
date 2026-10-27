@@ -22,7 +22,7 @@ Any failure rolls everything back. A handler that changes state without declarin
 
 ## Revisions
 
-A command increments the revision of each resource it declares changed. A commit gives each resource one revision and one journal entry, even when several [nested invocations](glossary.md#nested-invocation) of the command declared it; the entry carries the type and operation of the innermost one. Optimistic concurrency is opt-in: a command names the revisions it expects, and a changed one conflicts. Two callers holding the same revision cannot both overwrite it. The authorization revision counts the workspace's policy changes.
+A command increments the revision of each resource it declares changed. A commit gives each resource one revision and one journal entry, even when several [nested calls](glossary.md#nested-call) of the command declared it; the entry carries the type and operation of the innermost one. Optimistic concurrency is opt-in: a command names the revisions it expects, and a changed one conflicts. Two callers holding the same revision cannot both overwrite it. The authorization revision counts the workspace's policy changes.
 
 ## Snapshots and storage
 
@@ -60,7 +60,7 @@ Keep drafts in separate component state, so a live update refreshes the record u
 
 ## Cancellation
 
-Cancellation stops future work and is checked before commit, but does not undo committed commands. Cancelling an [agent run](glossary.md#agent-run) aborts its tool calls still in flight. A host session revoked during a request does not stop that request, a [known defect](implementation-status.md). After a restart, unsettled runs are marked interrupted rather than replayed. Only a receipt shows that a change committed; a finished stream or run does not.
+Cancellation stops future work and is checked before commit, but does not undo committed commands. Cancelling an [agent run](glossary.md#agent-run) aborts its tool calls still in flight. A host session revoked during a request does not stop that request, a [known defect](implementation-status.md). After a restart, incomplete runs are marked interrupted rather than replayed. Only a receipt shows that a change committed; a finished stream or run does not.
 
 ## References
 

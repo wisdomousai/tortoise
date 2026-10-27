@@ -22,7 +22,7 @@ Framework (`packages/*`). Pure functions with no Node, Bun or browser API, so th
   - `intentToStart` for the explicit intent an instruction starts.
 - [Shell port](../../docs/primitives.md#shell-port):
   - desktop: `createDesktopShell`, `DesktopShell`, `DesktopShellClient`, `DesktopShellDependencies`, `desktopArguments`, `receivedArguments`, `pathName`, `DesktopArguments`;
-  - the browser adapter in the frame and the desktop alike: `landingRequest`, `fileHandlerFor`, `fileRequest`, `BlobUpload` and `strictText`;
+  - the browser adapter in the frame and the desktop alike: `launchRequest`, `fileHandlerFor`, `fileRequest`, `BlobUpload` and `strictText`;
   - Android and iOS: `createMobileShell`, `MobileShell`, `MobileShellDependencies`, `MobileFileInfo` and `mobileInput`.
 - [Generator](../../docs/primitives.md#generator): `nativeOsConfig`, `desktopOsConfig`, `webManifestOs`, `webScheme`, `OsIdentity`, `OsRegistrationOptions`, `ExpoIntentFilter`; `associationFiles` and `AssociationIdentity` for the files a verified link's domain serves.
 
@@ -109,9 +109,9 @@ The store sweeps the blob when nothing attaches it. The matcher refuses a blob w
 
 A relayed open is checked against the declarations again before it runs. The adapter hands the declarations to `launchers` once it has read them. A launcher that fails to register is reported, and the adapter keeps running. The adapter runs a share action only when its caller supplies a share menu, which the desktop starter does on macOS. It runs a notify action only when its caller supplies `notify`. The buttons stay in memory, and a chosen one submits its reply. The [instance](../../docs/glossary.md#instance) checks the nonce; the adapter does not.
 
-### Browser landing and shortcuts
+### Launch page and shortcuts
 
-`landingRequest` accepts a browser landing only with exactly one of these parameters:
+`launchRequest` accepts a launch URL only with exactly one of these parameters:
 
 - `os`: a link of at most 2048 characters;
 - `os-shortcut`;
@@ -150,7 +150,7 @@ bun test packages/shell
 - `test/shares.test.ts`:
   - the web manifest's share target and the `expo-sharing` config plugin from the share handlers;
   - the share handler lookup and file request limits;
-  - claim codes and their landing, and a mobile shell without share bindings.
+  - claim codes and their launch URL, and a mobile shell without share bindings.
 - `test/shortcuts.test.ts`:
   - the shortcut link form and the links that are not one;
   - the shell port reading a shortcut link before a root link handler;

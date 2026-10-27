@@ -150,16 +150,16 @@ No public release has been made. The entries use these kinds of evidence:
 - an operator signs in with badge and PIN and acts as that operator;
 - the lockout holds even against the right PIN;
 - a session expires;
-- a second sign-in at the [seat](glossary.md#seat) ends the first session;
+- a second sign-in at the [terminal](glossary.md#terminal) ends the first session;
 - revoking a badge ends its sessions;
 - neither the badge value nor the PIN reaches the workspace database.
 
-**By hand, browser.** On 27 October 2026, `patterns/lab-requests-sign-in` ran with `bun run dev:web` in Chrome on macOS, with badges typed as keyboard-wedge bursts. Badges enrolled on the badge screen showed live. At the seat, a specimen label was refused as not a badge. A technician signed in with a PIN starting with zero, scanned a specimen label into the bench screen and submitted a request that recorded the technician as requester. A wrong PIN for the viewer's badge got "Badge or PIN not recognized". After the viewer signed in, the technician's session was gone and the viewer's submission was refused. Leaving the seat screen ended the viewer's session at the host, and so did two idle minutes in a second run.
+**By hand, browser.** On 27 October 2026, `patterns/lab-requests-sign-in` ran with `bun run dev:web` in Chrome on macOS, with badges typed as keyboard-wedge bursts. Badges enrolled on the badge screen showed live. At the terminal, a specimen label was refused as not a badge. A technician signed in with a PIN starting with zero, scanned a specimen label into the bench screen and submitted a request that recorded the technician as requester. A wrong PIN for the viewer's badge got "Badge or PIN not recognized". After the viewer signed in, the technician's session was gone and the viewer's submission was refused. Leaving the terminal screen ended the viewer's session at the host, and so did two idle minutes in a second run.
 
 **Not shown.**
 
 - No physical badge reader has been tested.
-- Signing in does not move a seat that an agent holds.
+- Signing in does not take screen control from an agent.
 - A page reload loses the operator token, and its session stays open until it expires.
 
 ### State migrations
@@ -192,7 +192,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 - **field-service:** live updates from an external MCP process, drafts that keep their base revision, and paging past the first page.
 - **quality-inspection:** keyboard-only capture, and a draft that keeps its sample when another caller records it first.
-- **crm-capture:** search, adopt and log.
+- **crm-capture:** search, follow and log.
 - **lab-requests-review:** on 27 October 2026, `bun run dev:web` in Chrome on macOS. As the local owner, an approval of the request `dev.ts` submitted as a second technician showed live. After a method change it was marked as on an earlier revision, and the owner signed the new revision. A second signature of that revision and a signature of the owner's own request were refused with their messages.
 - **lab-requests-signals:** on 27 October 2026, `bun run dev:web` in Chrome on macOS, against the plant stand-in that `dev.ts` starts. A test request placed in chamber 2 showed the chamber's temperature from OPC UA and humidity from Sparkplug B, updating live. When the humidity drifted to 64.7 % RH, the chambers screen marked chamber 2 out of tolerance while chamber 1 stayed conditioned. The audit log recorded the egress to both destinations.
 
@@ -204,7 +204,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 `plugins/model-server/test/live.test.ts` passed 5 times in 5. The plugin started the real server through the [process port](glossary.md#process-port), measured the weights and served the `note.suggester` agent. Given the task "Request approval for adding a note with id n1 that says "Call the supplier"", the model requested approval for `note.add` with that input. The run recorded the [model entry](glossary.md#model-entry), the measured digest and `verified: true`. Each run took 22–31 seconds, including the server start.
 
-`plugins/automation/test/live.test.ts` passed 3 times in 3. A received lot started the `lot.reviewer` run through its trigger and [standing grant](glossary.md#standing-grant). The model read the lot, then requested approval for `lot.inspect` on `l1`. A viewer's approval was refused, and an inspector's approval committed the inspection. Each run took 41–68 seconds.
+`plugins/automation/test/live.test.ts` passed 3 times in 3. A received lot started the `lot.reviewer` run through its trigger and [trigger grant](glossary.md#trigger-grant). The model read the lot, then requested approval for `lot.inspect` on `l1`. A viewer's approval was refused, and an inspector's approval committed the inspection. Each run took 41–68 seconds.
 
 The runs found these defects, now fixed and covered by deterministic tests:
 
@@ -212,7 +212,7 @@ The runs found these defects, now fixed and covered by deterministic tests:
 - A requesting agent's model was never told which commands it may request approval for or their inputs. A trigger run's prompt left out the agent's instructions. Both now start with `agentInstructions`.
 - An application refusal or a malformed call ended an AI SDK run. The model now reads the error and may correct the call.
 - `expectedRevisions` was offered on queries and `approval.request`, where it means nothing, and models filled it with invented keys.
-- The egress guard's 30-second request timeout cut off a model that reasons before it answers. A destination binding now takes `timeoutMs`.
+- The egress guard's 30-second request timeout cut off a model that reasons before it responds. A destination binding now takes `timeoutMs`.
 
 On 27 October 2026, `patterns/lab-requests-local-model/test/live.test.ts` passed once, in 75 seconds, on the same machine, server and weights. A submitted test request started the method suggester through its trigger on the measured `lab-methods` entry. For the description "Tensile strength of the weld coupon", the model requested approval for `test-request.update` with the method `ASTM E8`. The request's input repeated the unchanged specimen and description. Its `baseRevisions` key was the bare ID wrapped in Gemma's `<|"|>` string tokens, not `test-request:<id>`. `approval.request` accepted that key, and the live run did not decide the request. Closing the host during the run's last model turn logged an `ECONNRESET` from the cancelled call.
 
@@ -251,7 +251,7 @@ On 27 October 2026, `patterns/lab-requests-local-model` ran with `bun run dev:we
 - Two dispatcher processes cannot share a local workspace, because the OS lock refuses the second (`packages/adapters/src/ownership.test.ts`). Dispatchers race only within one process, which the reliability tests cover, or across hosted instances under the fenced lease.
 - Capture timings come from synthetic runs.
 
-**By hand, browser.** On 27 October 2026, `patterns/lab-requests-system-of-record` ran with `bun run dev:web` in Chrome on macOS, with its fake LIMS on 127.0.0.1:4371 and the destination bound by `site-policy.dev.json`. **Register in LIMS** on a request with a method was accepted as `LIMS-1`. While the LIMS reviewed, a request submitted through the CLI stayed pending with **Register again** disabled. After the LIMS forgot it, the dispatcher held the effect after six attempts, and the request screen showed it live. Resolving it as applied with the reference `LIMS-2` accepted the publication with that reference. A request without a method was rejected with the LIMS's reason, and a request registered at another site arrived through the feed as submitted by `lims-integration`.
+**By hand, browser.** On 27 October 2026, `patterns/lab-requests-system-of-record` ran with `bun run dev:web` in Chrome on macOS, with its fake LIMS on 127.0.0.1:4371 and the destination bound by `site-policy.dev.json`. **Register in LIMS** on a request with a method was accepted as `LIMS-1`. While the LIMS reviewed, a request submitted through the CLI stayed pending with **Register again** disabled. After the LIMS forgot it, the dispatcher held the effect after six attempts, and the request screen showed it live. Resolving it as applied with the reference `LIMS-2` accepted the publication with that reference. A request without a method was rejected with the LIMS's reason, and a request registered at another site was imported through the feed as submitted by `lims-integration`.
 
 ### Peer applications
 
@@ -268,16 +268,16 @@ On 27 October 2026, `patterns/lab-requests-local-model` ran with `bun run dev:we
 - The Peers screen does not show drift status. Only an effect's pending message and an unavailable read report a drifted operation.
 - An assertion says `act: agent` only when the effect or the read carries a run ID.
 - A peer target with no connection makes `integrations.sync()` and the CLI `sync` fail at that target, after the targets before it have synced.
-- Receiving's lot search returns the first 50 lots. Arrivals carry no plant, so everyone who captures at some plant sees all of them.
+- Receiving's lot search returns the first 50 lots. Inspection requests carry no plant, so everyone who captures at some plant sees all of them.
 - `asset-survey` and `asset-survey-field` keep the device link: a phone has no egress guard, and Ed25519 signing on Hermes is unproven.
 
 ### Assignments
 
 **Not shown.**
 
-- **Browser:** no pattern runs the person, agent or peer lane. The notes applications that ran them by hand and in Playwright on 27 October 2026 were left out when the content moved to lab requests, and have not been rebuilt there. The asset survey's screens have not run assignments in a browser.
-- **Agent:** an agent assignee has run only with the deterministic harness (`packages/assignments/test/lanes.test.ts`). No model has read a brief and reported.
-- **Target:** the target lane has run only in tests, against a function port.
+- **Browser:** no pattern runs person, agent or peer assignees. The notes applications that ran them by hand and in Playwright on 27 October 2026 were left out when the content moved to lab requests, and have not been rebuilt there. The asset survey's screens have not run assignments in a browser.
+- **Agent:** an agent assignee has run only with the deterministic harness (`packages/assignments/test/assignees.test.ts`). No model has read a brief and reported.
+- **Target:** an assignment target has run only in tests, against a function port.
 - **Screens:** an application that fills no slots still shows the brief as JSON and takes the scope and a report's subject as typed record keys.
 
 ### Connector plugins
@@ -292,7 +292,7 @@ On 27 October 2026, `patterns/lab-requests-local-model` ran with `bun run dev:we
 
 - the notice is imported from the inbox;
 - a line is counted, classified and posted, and the goods receipt file appears in the drop folder;
-- the test answers as the ERP with a receipt file, and the ERP screen shows it accepted.
+- the test responds as the ERP with a receipt file, and the ERP screen shows it accepted.
 
 A second spec ran the same day and leaves the receipt unreadable. The Held receipts screen shows the held goods receipt with the reason. Recording it as applied empties the list and counts it accepted on the ERP screen.
 
@@ -388,13 +388,13 @@ Control mappings are indicative.
 **Shown, browser.** `examples/field-service/e2e/os.pw.ts`:
 
 - The served web manifest carries the protocol and file handlers.
-- A `?os=` landing with a task link opens that task's work order, shows where it came from and clears the address.
+- A `?os=` launch URL with a task link opens that task's work order, shows where it came from and clears the address.
 - A submitted Markdown file shows the prefilled task with its provenance, and adding it creates the task.
 - An uploaded image shows its attachment in the prefill. The added task links to bytes the page can download.
-- A share target form is posted cross-site from a blank page, first with a link and then with a PNG. Each lands on the application, shows the prefilled task with its provenance, and the added task is created.
+- A share target form is posted cross-site from a blank page, first with a link and then with a PNG. Each opens the application, shows the prefilled task with its provenance, and the added task is created.
 - A reminder asked for in the page shows as waiting for the desktop or phone application.
-- The web manifest lists the New task shortcut. Its landing shows an empty prefilled task opened from a shortcut.
-- Open map opens the OpenStreetMap search for the site in a new browsing context without an opener. The test answers that URL locally. Send summary passes the work order's title and summary text to `navigator.share`, which the test replaces with a recorder.
+- The web manifest lists the New task shortcut. Its launch page shows an empty prefilled task opened from a shortcut.
+- Open map opens the OpenStreetMap search for the site in a new browsing context without an opener. The test serves that URL locally. Send summary passes the work order's title and summary text to `navigator.share`, which the test replaces with a recorder.
 
 **Not shown.** Nothing has been registered with, received from or performed through a real OS.
 
@@ -419,7 +419,7 @@ Control mappings are indicative.
 
 **Opt-in run.** On 17 October 2026, `bun run test:scaffold:full`. `scaffold new` generates an application that installs with a frozen lockfile. After `add collection`, `add capability` and `add target`, it passes format, generation, typecheck, build and its unit tests. It also passes a Playwright spec that creates, opens and edits a record through the default screens.
 
-**Opt-in run, complete export.** On 17 October 2026, `bun run test:scaffold:full`. The complete source export installs frozen and passes format, typecheck, generation, build and its 810 tests. The driver SDKs, .NET projects and certificate fixture are now exported. An authored capability with its policy rule answers over the exported HTTP host.
+**Opt-in run, complete export.** On 17 October 2026, `bun run test:scaffold:full`. The complete source export installs frozen and passes format, typecheck, generation, build and its 810 tests. The driver SDKs, .NET projects and certificate fixture are now exported. An authored capability with its policy rule responds over the exported HTTP host.
 
 **Opt-in run, installed framework.** On 17 October 2026, `bun run test:scaffold:full`. The framework packs into 39 tarballs served by the loopback registry, and `scaffold new --registry` exports without framework source. The export installs, and reinstalls with `--frozen-lockfile` from a clean `node_modules`. It adds a target with the installed [scaffold](glossary.md#scaffold) and passes its whole `bun run check` and its Playwright spec.
 
@@ -467,7 +467,7 @@ These were fixed by inspection only and have no regression test:
 - Give each session an abort signal that fires on revocation and expiry, and combine it with the request's signal. This fixes the known defect.
 - Share event, receipt and cancellation adaptation between the HTTP and direct surface adapters. The known defect is one place where the adapters still diverge.
 - Extract a reusable draft model from capture and scanner setup: target, base revision, local values and conflict state.
-- Consolidate the repeated polling, delay-cancellation and credential-refresh lifecycles once their semantics settle.
+- Consolidate the repeated polling, delay-cancellation and credential-refresh lifecycles once their semantics complete.
 - Before a 1.0 version, replace the `./*` wildcard exports with explicit entrypoints. Today every source file of a package is a public entrypoint.
 
 ## Out of scope

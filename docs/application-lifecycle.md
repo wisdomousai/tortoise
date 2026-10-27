@@ -1,6 +1,6 @@
 # Application lifecycle
 
-An [application](glossary.md#application) built on the [framework](glossary.md#framework) serves one task at one [site](glossary.md#site) until the site removes it. Each build carries a best-before date that the host, `app status`, the compliance posture and the fleet show, and nothing is refused after it. Removing an application deletes its data directory only after the [outbox](glossary.md#outbox) holds no effect that a [system of record](glossary.md#system-of-record) has not settled.
+An [application](glossary.md#application) built on the [framework](glossary.md#framework) serves one task at one [site](glossary.md#site) until the site removes it. Each build carries a best-before date that the host, `app status`, the compliance posture and the fleet show, and nothing is refused after it. Removing an application deletes its data directory only after the [outbox](glossary.md#outbox) holds no effect that a [system of record](glossary.md#system-of-record) has not completed.
 
 ## Concepts
 
@@ -34,7 +34,7 @@ An effect waiting in the outbox exists only in the workspace. Once the outbox is
 
 `app uninstall --purge` runs the installed release's own `drain` before it removes anything. It verifies that release against the keys given with `--trust`, because the binary runs with the installer's rights. The release knows its targets and effect types, which the binary running the uninstall may not. With `--apply` the service stops first, and without it a running service owns the workspace and `drain` refuses.
 
-`drain` delivers what it can and then counts what remains for each target: pending effects, held effects and effects awaiting the target's decision. While any remain, the purge is refused with `CONFLICT` and the counts in the error details, and every file stays in place. `--discard-undelivered` purges anyway and lists the deleted counts in the result. `plugins/site/test/install.test.ts` covers the refusal, a purge after the target settles, and the override.
+`drain` delivers what it can and then counts what remains for each target: pending effects, held effects and effects awaiting the target's decision. While any remain, the purge is refused with `CONFLICT` and the counts in the error details, and every file stays in place. `--discard-undelivered` purges anyway and lists the deleted counts in the result. `plugins/site/test/install.test.ts` covers the refusal, a purge after the target completes, and the override.
 
 ## Decommissioning procedure
 

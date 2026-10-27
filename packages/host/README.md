@@ -16,8 +16,8 @@ Framework (`packages/*`). The starter's `apps/service` calls it. Content calls o
 - [Host platform](../../docs/primitives.md#host-platform): `hostedPlatform` (`HostedPlatformOptions`), the Bun platform with the workspace in Postgres under a [workspace lease](../../docs/glossary.md#workspace-lease). `serve --hosted-workspace <name>` selects it, with `AGENT_NATIVE_DATABASE_URL`.
 - [Shell port](../../docs/primitives.md#shell-port): the shell routes and the delivery routes, listed under [Shell and delivery routes](#shell-and-delivery-routes).
 - [State migration](../../docs/primitives.md#state-migration): `migrate [--dry-run]`, described under [Migrate command](#migrate-command).
-- [Shelf life](../../docs/primitives.md#shelf-life): a definition stamped by its build entry gives `startHost` its build facts. They are in the `listening` record, in each plugin's open context, and at `GET /api/v1/build` for a signed-in session. A run from source answers `{}`.
-- [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
+- [Shelf life](../../docs/primitives.md#shelf-life): a definition stamped by its build entry gives `startHost` its build facts. They are in the `listening` record, in each plugin's open context, and at `GET /api/v1/build` for a signed-in session. A run from source returns `{}`.
+- [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source returns `unavailable`.
 - [UI session context](../../docs/primitives.md#ui-session-context): a run started from a UI session gets the `ui.open`, `ui.select` and `ui.request-review` tools, which send intents to that session through `UiSessionStore.sendFromRun`. The host checks each named resource under the run's grant and against `selectableResources`.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus the host components that the generators read.
 
@@ -94,7 +94,7 @@ Two providers of one port refuse startup, and so does a supplied setting no plug
 
 ### Plugin routes
 
-Public routes are tried in order: agent provider callbacks, then the composed plugins' `publicRoute`. The host offers a bearer token that is not a host session to the plugins' `authenticate`, and such a session cookie to their `authenticateCookie`. An authenticated `/api/` request that none of the host's routes answer goes to the plugins' `route`. The context a plugin returns passes the same policy and grant checks as a session.
+Public routes are tried in order: agent provider callbacks, then the composed plugins' `publicRoute`. The host offers a bearer token that is not a host session to the plugins' `authenticate`, and such a session cookie to their `authenticateCookie`. An authenticated `/api/` request that none of the host's routes handle goes to the plugins' `route`. The context a plugin returns passes the same policy and grant checks as a session.
 
 ### Provider access
 
@@ -104,13 +104,13 @@ Startup and status never read the vault.
 
 ### Shell routes
 
-The shell routes answer `UNAVAILABLE` unless a plugin provides the [shell port](../../docs/glossary.md#shell-port). A request an adapter submits is delivered only to the submitting session's frame, after the delivery store authorizes it. The response says only whether it was delivered, consumed or refused.
+The shell routes return `UNAVAILABLE` unless a plugin provides the [shell port](../../docs/glossary.md#shell-port). A request an adapter submits is delivered only to the submitting session's frame, after the delivery store authorizes it. The response says only whether it was delivered, consumed or refused.
 
-An adapter in another process attaches by long-polling `GET /api/v1/shell/actions` with its own bearer token. Only that session can answer the instructions it took. An unanswered instruction counts as not performed after 30 seconds. A relay that stops polling for a minute, or whose session is revoked, is detached. The embedded instance (one-shot CLI, embedded MCP) has no shell routes and attaches no adapter.
+An adapter in another process attaches by long-polling `GET /api/v1/shell/actions` with its own bearer token. Only that session can post results for the instructions it took. An instruction without a posted result counts as not performed after 30 seconds. A relay that stops polling for a minute, or whose session is revoked, is detached. The embedded instance (one-shot CLI, embedded MCP) has no shell routes and attaches no adapter.
 
 ### Cross-site requests
 
-Every cross-site request is refused except two public routes: the provider OAuth callback, and the browser landing for OS links (`serveOsLanding`). The landing serves only `index.html`, for a top-level document navigation to `/` with exactly one `os` or `os-shortcut` parameter. A top-level document navigation carries `Sec-Fetch-Mode: navigate` and `Sec-Fetch-Dest: document`. The landing is exempt from the cross-site refusal because a protocol handler navigates there from whichever site held the link. The page then submits the link same-origin as its own session.
+Every cross-site request is refused except two public routes: the provider OAuth callback, and the launch page for OS links (`serveOsLaunchPage`). The launch page serves only `index.html`, for a top-level document navigation to `/` with exactly one `os` or `os-shortcut` parameter. A top-level document navigation carries `Sec-Fetch-Mode: navigate` and `Sec-Fetch-Dest: document`. The launch page is exempt from the cross-site refusal because a protocol handler navigates there from whichever site held the link. The page then submits the link same-origin as its own session.
 
 ### Environment
 

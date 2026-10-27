@@ -65,7 +65,7 @@ bun run test:execution-host:linux patterns/lab-requests-sandbox
 - `test/results.test.ts`, on any platform:
   - `summarize` on four readings and on one.
   - A technician records readings for a submitted request and enters statistics by hand, which record no run. A viewer can do neither, and readings for an unknown request are `NOT_FOUND`.
-  - With no bubblewrap bound, the status route answers the execution host's reason, and the run route answers `UNAVAILABLE` with 503.
+  - With no bubblewrap bound, the status route returns the execution host's reason, and the run route returns `UNAVAILABLE` with 503.
   - `analysisReadOnly` contains no workspace of the checkout.
 - `test/sandbox.test.ts`, only on Linux with bubblewrap:
   - The owner's run, started through the route, reads and records through the CLI in the sandbox. The analysis equals `summarize`, and `analysisRun` is the run's ID.

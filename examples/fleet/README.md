@@ -8,7 +8,7 @@ A site uses the fleet to:
 - report its outbox backlog by target;
 - forward its [audit log](../../docs/glossary.md#audit-log);
 - stage the signed release its channel assigns;
-- answer remote-access requests that operators relay to its own API.
+- respond to remote-access requests that operators relay to its own API.
 
 ## Layer
 
@@ -19,7 +19,7 @@ Content (`examples/*`).
 The example is one [application](../../docs/primitives.md#application). It uses:
 
 - [collections](../../docs/primitives.md#collection) of sites, releases, channels, audit events and relay requests, with generated reads and the default list and record screens, which their [display metadata](../../docs/primitives.md#display-metadata) labels;
-- a [policy](../../docs/primitives.md#policy) built with `definePolicy`, with enrolled sites as an integration lane;
+- a [policy](../../docs/primitives.md#policy) built with `definePolicy`, with enrolled sites as an integration allowlist;
 - the [device link](../../docs/primitives.md#device-link) plugin, to enroll sites as `field-sync` devices;
 - the [fleet agent](../../docs/primitives.md#fleet-agent) protocol, `fleetSiteModule`, as its second module;
 - [blob store](../../docs/primitives.md#blob-store) attachments for release files;
@@ -51,7 +51,7 @@ The example is one [application](../../docs/primitives.md#application). It uses:
 
 A site's report holds its application, instance, outbox counts by target, audit position, staged release and the running build's [best-before date](../../docs/glossary.md#best-before-date). `fleet.health` lists the sites that need attention, by the issue kinds in [Report and release flow](#report-and-release-flow).
 
-The fleet protocol capabilities are for enrolled sites only: `fleet.site.report`, `fleet.site.desired`, `fleet.audit.cursor`, `fleet.audit.ingest`, `fleet.relay.take` and `fleet.relay.answer`.
+The fleet protocol capabilities are for enrolled sites only: `fleet.site.report`, `fleet.site.desired`, `fleet.audit.cursor`, `fleet.audit.ingest`, `fleet.relay.claim` and `fleet.relay.respond`.
 
 ### Release publishing
 
@@ -73,11 +73,11 @@ Enroll a site from the Devices screen. Then start the site with `--fleet-enrollm
 ## Trust boundary
 
 - **People.** Only workspace members pass the caller gate. Operators enroll, update sites, publish, assign and relay, and viewers read. `relay.request` needs a person, so an agent run cannot reach a site through the fleet.
-- **Sites.** An enrolled site is the device-link principal `device:<id>`, an integration lane that calls only the protocol capabilities. Each handler acts for the calling site alone. A site reports about itself, reads its own cursor, and takes and answers only its own relay requests.
+- **Sites.** An enrolled site is the device-link principal `device:<id>`, an integration allowlist that calls only the protocol capabilities. Each handler acts for the calling site alone. A site reports about itself, reads its own cursor, and takes and responds to only its own relay requests.
 - **Site reads.** Of the fleet's records, a site can read only the release its channel assigns. `GET /api/v1/blobs/<digest>` serves the site that release's files and no other blob.
 - **Releases.** The fleet checks that the manifest is a bundle manifest and that the uploaded blobs are exactly its files, by digest and size. It does not judge the signature. Each site checks the signature against its own trusted keys before staging, so a compromised fleet can withhold releases but cannot install one.
 - **Audit.** Each forwarded event must have the next sequence number, link to the hash of the event before it, and match its own hash (`hashEvent` from `@agent-native/event-log/chain`). The first event that fails stops collection for that site and records the reason on the site, where the health screen shows it.
-- **Audit retention.** The fleet skips events it already holds. A site reads the fleet's cursor before each batch, so a batch arrives again only when its reply was lost.
+- **Audit retention.** The fleet skips events it already holds. A site reads the fleet's cursor before each batch, so a batch is sent again only when its reply was lost.
 - **Removal.** `site.remove` needs an operator and a person. It deletes no audit event, so the record of what a removed site did stays in the fleet. It does not revoke the site's device link, which belongs to the device-link plugin, so revoke the device first or the site's next report adds it again.
 - **Relay.** A request's headers and body are stored on the request only while it waits. The command receipt keeps the input for as long as receipts are kept. They are never listed and are dropped when the site takes the request. The site adds no credential, so a request reaches a capability only with a session the site issued. The site checks that session as it checks any other caller's.
 
@@ -117,10 +117,10 @@ bun test examples/fleet
 | [Collection](../../docs/primitives.md#collection) records with generated list and record reads | `contracts/*.ts` `defineCollection`, `collectionList`, `collectionGet`; `collectionListHandler` and `records` in `handlers/*.ts` | `test/fleet.test.ts` |
 | A [module](../../docs/primitives.md#module) shared from a plugin package's contracts entrypoint | `manifest.ts` `modules: [fleetModule, fleetSiteModule]` | `test/fleet.test.ts`, "a site calls only the fleet protocol, about itself" |
 | [Device link](../../docs/primitives.md#device-link) `field-sync` pairing with the protocol capabilities as the device grant | `application.ts` `createDeviceLinkPlugin({ syncOperations: fleetSiteOperationIds })` | `test/fleet.test.ts` `startFleet`; `e2e/fleet.pw.ts` |
-| Integration lane in a declarative [policy](../../docs/primitives.md#policy) | `policy.ts` `appPolicy`, its `integrations` lane | `test/fleet.test.ts`, "a site calls only the fleet protocol, about itself" |
+| Integration allowlist in a declarative [policy](../../docs/primitives.md#policy) | `policy.ts` `appPolicy`, its `integrations` entry | `test/fleet.test.ts`, "a site calls only the fleet protocol, about itself" |
 | [Membership](../../docs/primitives.md#membership) caller gate and a person-only rule | `policy.ts` `caller`, `relayRequest` with `person: true` | `packages/runtime/test/policy.test.ts` (framework test only) |
 | Audit field allow-list on a capability | `contracts/relay.ts` `relayRequest` `audit.fields`; `contracts/releases.ts` `channelAssign` | `packages/runtime/test/audit.test.ts` (framework test only) |
-| [Blob store](../../docs/primitives.md#blob-store) files attached to a record and readable through it | `handlers/releases.ts` `ctx.attach`; `policy.ts` lane `events` | `test/fleet.test.ts`, "a release reaches the sites on its channel, verified, and no other release is readable" |
+| [Blob store](../../docs/primitives.md#blob-store) files attached to a record and readable through it | `handlers/releases.ts` `ctx.attach`; `policy.ts` allowlist `events` | `test/fleet.test.ts`, "a release reaches the sites on its channel, verified, and no other release is readable" |
 | Bundle manifest check with the signature stored unchecked | `handlers/releases.ts` `parseBundleManifest` | `test/fleet.test.ts`, "a release whose blobs are not exactly its files is refused"; `e2e/fleet.pw.ts` publishes with a placeholder signature |
 | Hash chain check of a forwarded [audit log](../../docs/primitives.md#audit-log) | `handlers/audit.ts` `breakIn` with `hashEvent` | `test/fleet.test.ts`, "forwarded audit events are verified, and a forged one stops collection visibly" |
 | Computed query bound to a [live query](../../docs/primitives.md#journal-and-live-query) | `handlers/sites.ts` `fleet.health`; its `dependencies` in `contracts/sites.ts`; `ui/health.tsx` `live.liveQueryOptions` | `test/fleet.test.ts` for the issues; `packages/react/src/bindings.test.ts` for the refetch (framework test only) |
@@ -144,13 +144,13 @@ bun test examples/fleet
 | [contracts/audit.ts](contracts/audit.ts) | Forwarded audit event collection and the per-site limit |
 | [contracts/relay.ts](contracts/relay.ts) | Relay request collection and `relay.request` |
 | [domain.ts](domain.ts) | `AppState`, roles, `siteIdOf` and `desiredRelease` |
-| [policy.ts](policy.ts) | `appPolicy`: the site lane, the membership gate and per-capability rules |
+| [policy.ts](policy.ts) | `appPolicy`: the site integration allowlist, the membership gate and per-capability rules |
 | [server.ts](server.ts) | `createHandlers`, every handler including the protocol's |
 | [handlers/context.ts](handlers/context.ts) | `Services` and the `handler` binder |
 | [handlers/sites.ts](handlers/sites.ts) | Site reads, update and removal, health, the report and desired-release handlers |
 | [handlers/releases.ts](handlers/releases.ts) | Release and channel reads, publish and channel assignment |
 | [handlers/audit.ts](handlers/audit.ts) | Audit event reads, the audit cursor and ingest |
-| [handlers/relay.ts](handlers/relay.ts) | Relay reads, the request, take and answer handlers |
+| [handlers/relay.ts](handlers/relay.ts) | Relay reads, the request, take and respond handlers |
 | [ui/health.tsx](ui/health.tsx) | Health screen |
 | [ui/sites.tsx](ui/sites.tsx) | Site list, and the site screen with the remote-access and removal forms |
 | [ui/releases.tsx](ui/releases.tsx) | Release and channel screens |
@@ -164,13 +164,13 @@ bun test examples/fleet
 
 1. An operator creates a `field-sync` enrollment code on the Devices screen, which runs `link.enrollment.create` from the device-link plugin.
 2. The site's fleet agent exchanges the code at `/api/v1/link/enroll` for a bearer credential. The device-link plugin resolves it on every request to the principal `device:<id>`, with a grant of the protocol capabilities.
-3. Each cycle the site submits `fleet.site.report`. The lane in [policy.ts](policy.ts) matches `device:` principals and admits only the protocol capabilities.
+3. Each cycle the site submits `fleet.site.report`. The integration allowlist in [policy.ts](policy.ts) matches `device:` principals and admits only the protocol capabilities.
 4. The report handler in [handlers/sites.ts](handlers/sites.ts) takes the site ID from the principal. It inserts the site record on the first report and then overwrites its outbox counts, audit head, staged release and best-before date.
 5. A build pipeline with an operator's session uploads each release file as a blob and calls `release.publish`. The handler in [handlers/releases.ts](handlers/releases.ts) parses the bundle manifest and requires exactly one blob per file, matched by digest and size.
 6. The handler inserts the release record and attaches each blob to the resource `release:<id>`. It stores the signature without checking it.
-7. An operator points a channel at the release with `channel.assign` and assigns the site to it with `site.update`. An unknown channel answers `NOT_FOUND`.
+7. An operator points a channel at the release with `channel.assign` and assigns the site to it with `site.update`. An unknown channel returns `NOT_FOUND`.
 8. When the site has trusted release keys set, it queries `fleet.site.desired`. The handler returns the release the site's channel assigns, through `desiredRelease` in [domain.ts](domain.ts).
-9. The site downloads each file from `/api/v1/blobs/sha256:<digest>`. The runtime serves a blob only when the caller may read a resource it is attached to, and the lane's `events` rule admits only the release the site's channel assigns.
+9. The site downloads each file from `/api/v1/blobs/sha256:<digest>`. The runtime serves a blob only when the caller may read a resource it is attached to, and the allowlist's `events` rule admits only the release the site's channel assigns.
 10. The site verifies every file and the signature against its trusted keys and stages the release ([releases.ts](../../plugins/fleet-agent/src/releases.ts)). Its next report carries the staged release ID.
 11. The `fleet.health` query computes each site's issues on every read, and the Health screen binds it as a live query. The issue kinds are these:
     - **Stale.** No report for 15 minutes.
@@ -183,7 +183,7 @@ bun test examples/fleet
 
 ## Audit forwarding flow
 
-1. The site's fleet agent queries `fleet.audit.cursor`. The handler in [handlers/audit.ts](handlers/audit.ts) returns the last sequence the fleet holds, and answers `NOT_FOUND` before the first report.
+1. The site's fleet agent queries `fleet.audit.cursor`. The handler in [handlers/audit.ts](handlers/audit.ts) returns the last sequence the fleet holds, and `NOT_FOUND` before the first report.
 2. The site reads its own audit log after that sequence and sends up to 100 JSON lines per `fleet.audit.ingest` call ([audit.ts](../../plugins/fleet-agent/src/audit.ts)). The idempotency key names the first and last sequence and the last hash.
 3. The ingest handler skips events at or below the fleet's head, so an overlapping batch stores each sequence once. After a lost reply, the next cycle queries the cursor again and sends only the events that follow it.
 4. For each following event it checks the sequence number, the link to the previous hash and the event's own hash with `hashEvent` from `@agent-native/event-log/chain`.
@@ -197,10 +197,10 @@ bun test examples/fleet
 1. An operator submits `relay.request` from the site screen with a method, a path under `/api/v1/`, headers and a body. The policy rule requires the operator role and a person, so a delegated run is refused.
 2. The capability's `audit.fields` list puts the site, method and path in the audit log in plain text. For the other input fields the audit log records only their names, along with a digest of the whole input.
 3. The handler in [handlers/relay.ts](handlers/relay.ts) checks that the site exists and stores the request as `waiting`. The headers and the base64 body go in a field that reads never return.
-4. A site with `fleet-relay` set to `on` polls `fleet.relay.take`. The handler marks the oldest waiting request for the calling site as taken, drops its stored headers and body, and returns them with the request.
-5. The site forwards the request to its own API with an allow-list of headers and no added credential ([relay.ts](../../plugins/fleet-agent/src/relay.ts)). A request without a session the site issued answers 403.
-6. The site submits `fleet.relay.answer`. The handler answers `NOT_FOUND` for an unknown request and `CONFLICT` unless the calling site holds it as taken. Otherwise it records the status, headers and base64 body.
-7. After each answer, the handler removes the oldest answered requests beyond 200 in total. It never removes a waiting or taken request.
+4. A site with `fleet-relay` set to `on` polls `fleet.relay.claim`. The handler marks the oldest queued request for the calling site as claimed, drops its stored headers and body, and returns them with the request.
+5. The site forwards the request to its own API with an allow-list of headers and no added credential ([relay.ts](../../plugins/fleet-agent/src/relay.ts)). A request without a session the site issued gets 403.
+6. The site submits `fleet.relay.respond`. The handler returns `NOT_FOUND` for an unknown request and `CONFLICT` unless the calling site claimed it. Otherwise it records the status, headers and base64 body.
+7. After each response, the handler removes the oldest responded requests beyond 200 in total. It never removes a queued or claimed request.
 
 ## Implementation steps
 
@@ -243,7 +243,7 @@ These steps build a new application with `scaffold new` and add the fleet's part
    - **Application.** `createDeviceLinkPlugin({ syncOperations: fleetSiteOperationIds })` from `@agent-native/device-link/plugin` in `plugins`.
    - **Screens.** `deviceLinkScreens` from `@agent-native/device-link/plugin-screens` in the plugins of `defineScreens`.
    - **UI-binding test.** Add the device-link plugin's `ui` directory to the directories the generated test scans. Without it the test fails on the device-link capabilities from this step on.
-8. Write the policy with `definePolicy`. Add an integration lane whose `is` matches `device:` principals, whose `operations` list is `fleetSiteOperationIds`, and whose `events` rule admits only the release the site may read. Mark each protocol capability `integration`, use `person: true` for remote access, and give the policy an `events` rule for each record type.
+8. Write the policy with `definePolicy`. Add an integration allowlist whose `is` matches `device:` principals, whose `operations` list is `fleetSiteOperationIds`, and whose `events` rule admits only the release the site may read. Mark each protocol capability `integration`, use `person: true` for remote access, and give the policy an `events` rule for each record type.
 9. List in `audit.fields` the input fields that are safe in plain text, and leave out headers, bodies and anything that carries a session.
 10. Build the screens with `defineScreens` and the registry items `CollectionScreen`, `RecordScreen` and `CapabilityForm`. Map each operation ID prefix to a screen in `capabilityScreens`.
 11. Write the behavior tests, as [test/site.ts](test/site.ts) and [test/fleet.test.ts](test/fleet.test.ts) do.
@@ -280,10 +280,10 @@ The example uses no fake system of record. Its tests replace the site's network 
 
 ## Limits
 
-- **Relay receipts.** The receipts of `relay.request` and `fleet.relay.take` keep the request headers for replays. A site session passed for remote access stays in the fleet's state, so pass short-lived sessions.
+- **Relay receipts.** The receipts of `relay.request` and `fleet.relay.claim` keep the request headers for replays. A site session passed for remote access stays in the fleet's state, so pass short-lived sessions.
 - **Broken audit chain.** Collection stops at the first failed event and stays stopped. No capability inspects the break or resumes from the site's current head.
 - **Health thresholds.** The stale and audit-behind thresholds are constants in [handlers/sites.ts](handlers/sites.ts). They cannot be set per site or per deployment.
-- **Retention.** The fleet keeps the newest 1,000 audit events per site, and the site's own audit log keeps every event. After each answer, the fleet removes the oldest answered relay requests beyond 200 in total, and never a waiting or taken one.
+- **Retention.** The fleet keeps the newest 1,000 audit events per site, and the site's own audit log keeps every event. After each response, the fleet removes the oldest responded relay requests beyond 200 in total, and never a queued or claimed one.
 - **Missing removals.** No capability deletes a release or channel. `site.remove` leaves the device link, and a removed site's newest 1,000 forwarded audit events stay with no capability to delete them.
 - **Release size.** A release has at most 1,000 files of up to 256 MiB each.
 - **Relay transport.** The site polls for relay requests every two seconds by default and forwards one at a time. Request bodies reach up to 1,000,000 characters and response bodies up to 1 MiB, with no event streams.

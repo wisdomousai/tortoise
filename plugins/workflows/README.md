@@ -10,7 +10,7 @@ Plugin layer, with the three plugin entrypoints an application lists. It trusts 
 
 - [Workflow](../../docs/primitives.md#workflow): the instances, runner and screen that run `defineWorkflow` declarations.
 - [Host plugin](../../docs/primitives.md#host-plugin): `createWorkflowsPlugin`, `workflowsPluginManifest`, `workflowsScreens`.
-- [Nested invocation](../../docs/primitives.md#nested-invocation): `workflow.advance` runs each step as a nested call (`invokes: 'any'`), so the step and the instance record commit together.
+- [Nested call](../../docs/primitives.md#nested-call): `workflow.advance` runs each step as a nested call (`invokes: 'any'`), so the step and the instance record commit together.
 
 ## Entrypoints
 
@@ -27,14 +27,14 @@ An instance stores its input, a `seq` that grows with every advance, the index o
 
 | Status                                  | Meaning                                                                                                                                                                     |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `running`                               | The next step runs when due: now, after a retry backoff, or once the effects it awaits settled.                                                                             |
+| `running`                               | The next step runs when due: now, after a retry backoff, or once the effects it awaits completed.                                                                           |
 | `waiting`                               | A wait step's condition did not hold; it is checked again when a watched resource type changes, at its recheck interval, and at its timeout.                                |
 | `compensating`                          | Completed steps are being undone, latest first.                                                                                                                             |
 | `succeeded`, `compensated`, `cancelled` | Finished.                                                                                                                                                                   |
 | `failed`                                | A step failed for good and no completed step had a compensation; its starter may retry or resolve it.                                                                       |
 | `stalled`                               | Waits for a person: the definition changed (`DEFINITION_CHANGED`), the instance grant expired (`GRANT_EXPIRED`), or a compensation failed for good (`COMPENSATION_FAILED`). |
 
-A step with `await: 'effects'` completes once every outbox effect its command enqueued was accepted. A rejected or cancelled effect fails the step with the target's code, and a held effect shows the instance as `held` until a person settles or releases it.
+A step with `await: 'effects'` completes once every outbox effect its command enqueued was accepted. A rejected or cancelled effect fails the step with the target's code, and a held effect shows the instance as `held` until a person completes or releases it.
 
 `UNAVAILABLE` and `CONFLICT` are retried, and so are the codes a step's `retry.on` lists, up to `retry.attempts` with a doubling backoff from `retry.backoffMs`. A step without a policy, and every compensation, gets three attempts one second apart. Any other code, `TIMEOUT` from a wait and `DEADLINE` past the maximum duration fail for good.
 

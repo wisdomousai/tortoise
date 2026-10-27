@@ -4,11 +4,11 @@ The framework builds applications that run at the [point of work](glossary.md#po
 
 ## Concepts
 
-Terms: [point of work](glossary.md#point-of-work), [working set](glossary.md#working-set), [operator](glossary.md#operator), [workstation](glossary.md#workstation), [target](glossary.md#target), [outbox effect](glossary.md#effect) and [deployment policy](glossary.md#deployment-policy).
+Terms: [point of work](glossary.md#point-of-work), [synced records](glossary.md#synced-records), [operator](glossary.md#operator), [workstation](glossary.md#workstation), [target](glossary.md#target), [outbox effect](glossary.md#effect) and [deployment policy](glossary.md#deployment-policy).
 
 ## Data ownership
 
-The system of record is authoritative for master data and for the postings it accepts. The application holds a working set: copies of the records a task needs, kept current by [inbound sync](glossary.md#inbound-sync). The application also holds the records it captured, its pending effects and their outcomes. Observed workstation state is held as copies with provenance ([operator workstations](operator-workstations.md#data-ownership)). No transaction spans the application and a system of record.
+The system of record is authoritative for master data and for the postings it accepts. The application holds synced records: copies of the records a task needs, kept current by [inbound sync](glossary.md#inbound-sync). The application also holds the records it captured, its pending effects and their outcomes. Observed workstation state is held as copies with provenance ([operator workstations](operator-workstations.md#data-ownership)). No transaction spans the application and a system of record.
 
 ## Request path
 
@@ -23,7 +23,7 @@ A command takes this path:
 5. Every open screen whose reads changed refetches through its [live query](glossary.md#live-query).
 6. The [dispatcher](glossary.md#dispatcher) delivers the effect outside any transaction, through the target's [connector](glossary.md#connector).
 7. The system of record accepts the change, rejects it or acknowledges it without a decision.
-8. A settle command records the outcome. An effect whose outcome nobody can tell is held for a person.
+8. A complete command records the outcome. An effect whose outcome nobody can tell is held for a person.
 
 ### Effect phases
 
@@ -40,7 +40,7 @@ An outbox effect is in one phase at a time.
 | Instrument or controller | A driver process reports readings and runs declared actions. | [`plugins/connector-driver`](../plugins/connector-driver/README.md), [`sdks/driver-python`](../sdks/driver-python/README.md), [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md) | `quality-inspection`, `line-station` |
 | Workstation application | The screen bridge reads the workstation application's screen and runs declared procedures. | [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) | `line-station` |
 | Plant signals | MQTT, Sparkplug B or OPC UA readings pass the observation gate into an ingest command. | [`packages/observation`](../packages/observation/README.md), [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md), [`plugins/connector-opcua`](../plugins/connector-opcua/README.md) | `lab-requests-signals` pattern |
-| Files | An inbox folder feeds inbound sync, and delivered files settle from receipt files. | [`plugins/connector-files`](../plugins/connector-files/README.md) | `receiving` |
+| Files | An inbox folder feeds inbound sync, and delivered files complete from receipt files. | [`plugins/connector-files`](../plugins/connector-files/README.md) | `receiving` |
 | Phone | A paired phone takes [assignments](glossary.md#assignment) from its [hub](glossary.md#hub), captures offline and delivers the reports. | [`packages/mobile`](../packages/mobile/README.md), [`packages/assignments`](../packages/assignments/README.md), [`plugins/device-link`](../plugins/device-link/README.md), [`plugins/hub-link`](../plugins/hub-link/README.md) | `asset-survey-field` |
 | Operating system | A link, file, share, Android intent, launcher shortcut or notification reply opens a screen or prefills a form that a person confirms. | [`packages/shell`](../packages/shell/README.md), [`plugins/os`](../plugins/os/README.md), [`plugins/share-target`](../plugins/share-target/README.md), [`plugins/os-shortcuts`](../plugins/os-shortcuts/README.md), [`plugins/android-intents`](../plugins/android-intents/README.md), [`plugins/notifications`](../plugins/notifications/README.md) | `field-service`, `asset-survey-field` |
 
@@ -66,7 +66,7 @@ A [deployment policy](glossary.md#deployment-policy) binds the destinations, chi
 
 ## Limits
 
-- Nothing in the framework is safety-rated. The screen bridge never talks to the PLC, and a driver acts only through declared actions under its [bridge mode](glossary.md#bridge-mode) and [hazard class](glossary.md#hazard-class).
+- Nothing in the framework is safety-rated. The screen bridge never talks to the PLC, and a driver acts only through declared actions under its [bridge mode](glossary.md#bridge-mode) and [risk level](glossary.md#risk-level).
 - The MQTT and OPC UA connectors only read. Only the `lab-requests-signals` pattern composes them.
 - The [execution host](glossary.md#execution-host) sandbox runs only on Linux with bubblewrap, and no harness launches its tools through it yet ([agents](agents.md#limits)).
 - The [egress guard](glossary.md#egress-guard) runs in the host process. Containing other processes needs the [generated rules](security-and-compliance.md#generated-rules).

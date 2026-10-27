@@ -18,7 +18,7 @@ A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [h
 
 ### Hosted instance
 
-1. Provide a Postgres 15 or newer database the instance can create tables in.
+1. Provide a Postgres 15 or newer database the instance can create tables in. The adapter refuses a database written by another storage schema version (`STORAGE_SCHEMA_VERSION`, 3), so a workspace from an earlier version starts in a new database.
 2. Put the database URL with its credentials in `AGENT_NATIVE_DATABASE_URL`, from the deployment's secret store. Never put it in a flag or a policy file.
 3. Start the instance with `app serve --workspace <dir> --hosted-workspace <name> --port <n>`. `<name>` is the workspace's key in the database, and every instance of one workspace uses the same name. A second instance is refused with `CONFLICT` while the lease is held. A development launch takes the same flag: `bun ../../scripts/dev-example.ts --port <n> --hosted-workspace <name>` from the application's directory.
 4. Supervise the instance and restart it when it exits. An instance that loses its lease logs a `lease-lost` record on stderr and exits with code 1. A restarted instance does not wait for the lease. It is refused until the lease expires after 30 seconds without renewal, or is released.

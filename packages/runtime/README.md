@@ -12,10 +12,10 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 - [Module](../../docs/primitives.md#module): `sliceHandlers`, `composeAuthorization` and `authorizationRoute` compose independently authored [modules](../../docs/glossary.md#module) into one state and policy.
 - [Feature](../../docs/primitives.md#feature): the server part of a feature, `FeatureServer`, with `FeatureState`, `FeatureHandler`, `FeatureHandlerContext`, `FeaturePolicy` and `FeatureComposition`. `featureHandlers` binds a feature's handlers to its slice, the application's access view and hooks. `routeAuthorization` routes each operation, event and resource read to the owning unit's policy or to the application's, and refuses a unit that claims an operation or resource type in the application port's `covers`. `definePolicy` fills `covers`. `StateMigrations` and `MigrationStep` describe a slice's versions.
 - [Command](../../docs/primitives.md#command): `createHandlerFactory`, `HandlerContext` (with `continueWith`), `CommandReceipt` (with `continuation`), `StoredReceipt` (with the nested `calls` a retry authorizes again).
-- [Nested invocation](../../docs/primitives.md#nested-invocation): `HandlerContext.invoke`, `query`, `invokeRaw` and `queryRaw` run an operation the capability lists in `invokes` inside the same transaction; `AuthorizationRequest.via` names the enclosing operations.
+- [Nested call](../../docs/primitives.md#nested-call): `HandlerContext.invoke`, `query`, `invokeRaw` and `queryRaw` run an operation the capability lists in `invokes` inside the same transaction; `AuthorizationRequest.via` names the enclosing operations.
 - [Query](../../docs/primitives.md#query): `QueryResult`.
 - [Collection](../../docs/primitives.md#collection): `records` (`Records`), `collectionGetHandler`, `collectionListHandler`, `collectionTreeHandler`, `collectionCommandHandlers` (`CollectionCommands`, `CollectionWriteOptions`), the tree helpers `subtree` and `ancestors`, `DEFAULT_PAGE`, and the prototype-safe `own` and `put`.
-- [Remote query](../../docs/primitives.md#remote-query): `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceAnswer`, and the `sources` and `remoteDeadlineMs` options.
+- [Remote query](../../docs/primitives.md#remote-query): `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceResult`, and the `sources` and `remoteDeadlineMs` options.
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
 - [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed [grant](../../docs/glossary.md#grant). The grant names the definition in `agent`, and a resource-scoped grant also covers the resource types the definition `creates`.
 - [Approval request](../../docs/primitives.md#approval-request):
@@ -23,17 +23,17 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
   - `approvalHandlers` (`ApprovalOptions`): the handlers the feature uses, over any store and visibility rule;
   - approving continues with the requested command as the approver.
 - [Approval dataset](../../docs/primitives.md#approval-dataset): `exportApprovalDataset` reads the closed approval requests a caller may see through `approval.list` and applies the `DatasetRedaction`. It returns the rows with their `sha256:` digest (`datasetDigest`), which a fine-tuned model entry names.
-- [Policy](../../docs/primitives.md#policy): the `AuthorizationPort` (`AuthorizationRequest`, `Decision`), and `definePolicy` with `PolicySpec`, `OperationRule`, `IntegrationLane`, `EventRule`, `Access` and `isDelegated`.
+- [Policy](../../docs/primitives.md#policy): the `AuthorizationPort` (`AuthorizationRequest`, `Decision`), and `definePolicy` with `PolicySpec`, `OperationRule`, `IntegrationAllowlist`, `EventRule`, `Access` and `isDelegated`.
 - [Membership](../../docs/primitives.md#membership): `membershipHandler`, `membershipRule`, `roleIn`, `MembershipStore`.
 - [Storage](../../docs/primitives.md#storage): the `Storage` port, `WorkspaceSnapshot`, `createMemoryStorage`, `createWorkspaceSnapshot`.
 - [Journal and live query](../../docs/primitives.md#journal-and-live-query): `ChangeEvent`, `EventBatch`.
-- [Outbox effect](../../docs/primitives.md#outbox-effect): `Effect` (with the `runId` of the agent or job run that enqueued it), `EffectRequest`, `EffectOutcome`, and on `HandlerContext` the methods `enqueue`, `settleEffect` (with a fencing token) and `cancelEffect`.
-- [Worker claims](../../docs/primitives.md#worker-claims): `EffectClaim`, the host-only `claimEffect` (`ClaimResult`) and `recordAttempt` (`AttemptRecord`, with `fence` and `upstream`). The `dispatch` authorization phase is checked before the first claim.
+- [Outbox effect](../../docs/primitives.md#outbox-effect): `Effect` (with the `runId` of the agent or job run that enqueued it), `EffectRequest`, `EffectOutcome`, and on `HandlerContext` the methods `enqueue`, `completeEffect` (with a fencing token) and `cancelEffect`.
+- [Worker claims](../../docs/primitives.md#worker-claims): `EffectClaim`, the host-only `claimEffect` (`ClaimResult`) and `recordAttempt` (`AttemptRecord`, with `fence` and `acknowledged`). The `dispatch` authorization phase is checked before the first claim.
 - [Reconciliation](../../docs/primitives.md#reconciliation):
   - `effectPhase` and `EffectPhase`: the phases an effect passes through and the transitions the outbox allows;
   - `reconciliationFeature`: the `reconciliation` feature, with a `ReconciliationAccess` view (`allows` and `sees`), an `onResolved` hook (`ReconciliationHooks`), and a policy in which resolving is person-only;
   - `reconciliationHandlers` (`ReconciliationOptions`): the handlers the feature uses: the held effects of every target a caller may see, and a person's decision;
-  - the decision settles or releases the effect and calls the domain's `onResolved` in the same transaction.
+  - the decision completes or releases the effect and calls the domain's `onResolved` in the same transaction.
 - [Blob store](../../docs/primitives.md#blob-store):
   - the `BlobStore` port (`StoredBlob`), `BlobRecord` and `createMemoryBlobStore`;
   - `attach` and `detach` on `HandlerContext`, and `canReadResource` on the `AuthorizationPort`;
@@ -69,7 +69,7 @@ No network or model call may run while a transaction is held. Handlers queue eff
 
 ### Remote queries
 
-A [remote query](../../docs/glossary.md#remote-query) calls `sources[target]` only between two read snapshots, outside any transaction. The runtime authorizes again after the source answers, and the query's handler steps cannot mutate state. The source's `next` cursor is returned untouched and bounded to 512 characters. An oversized or non-string cursor makes the answer malformed. Source failures become `unavailable` with a safe message, while `FORBIDDEN` and cancellation propagate.
+A [remote query](../../docs/glossary.md#remote-query) calls `sources[target]` only between two read snapshots, outside any transaction. The runtime authorizes again after the source returns, and the query's handler steps cannot mutate state. The source's `next` cursor is returned untouched and bounded to 512 characters. An oversized or non-string cursor makes the result malformed. Source failures become `unavailable` with a safe message, while `FORBIDDEN` and cancellation propagate.
 
 ### Blobs
 
@@ -90,12 +90,12 @@ bun test packages/runtime
 - `test/remote-query.test.ts`:
   - paging passes the cursor in and `next` out, even for a page that scoping emptied;
   - a denied caller does not reach the source, and a revocation during the call drops the result;
-  - policy projects the source's rows, and a service answer to a caller-only query is refused;
+  - policy projects the source's rows, and a service result for a caller-only query is refused;
   - deadline and cancellation reach the source, and the audit log records no rows.
 - `test/compose.test.ts`: modules see only their slice; unrouted capabilities fail closed.
 - `test/feature.test.ts`: a feature handler sees its slice, a lazy access view and hooks whose writes commit or roll back with the command; the feature policy decides its operations, events and resource reads; a unit claiming an application rule is refused.
 - `test/policy.test.ts`:
-  - the fixed decision order of `definePolicy`: lanes, caller gate, person-only, grant resources, container roles, both snapshots or the previous one at commit, event types;
+  - the fixed decision order of `definePolicy`: integration allowlists, caller gate, person-only, grant resources, container roles, both snapshots or the previous one at commit, event types;
   - `set-member` refusing non-managers, self-changes and reserved principals.
 - `test/agent-grant.test.ts`: an agent's grant stays within the issuer's capabilities, resources and expiry. It leaves a requesting agent's commands out and is bound to the issuer and run.
 - `test/approval-feature.test.ts`: through an application, a run requests and a person approves in one commit; a delegated approval, a viewer's approval and a non-member's request, list and approval are refused; a hidden record cannot be requested; a list and the journal show only what the access view allows.

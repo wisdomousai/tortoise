@@ -66,13 +66,13 @@ Direct and HTTP cursors carry the authorization revision they were issued under.
 
 `createHttpHandler` resolves a bearer token or a session cookie through its own sessions first. It then asks `authenticateToken(token, via)`, a `TokenAuthenticator` that the host fills from plugins that issue credentials. A bearer is offered as `'bearer'`. A cookie is offered as `'cookie'`, and only when there is no bearer.
 
-A stored session minted from such a credential keeps its `via`. Every recheck uses it: each request, each event-stream pull and a launch exchange. A credential is therefore accepted only from the source it was issued for (`CredentialSource`). Cookie-authenticated writes still need a same-origin `Origin`. A token that neither step resolves is refused with `FORBIDDEN` and `details.credential: 'rejected'`, which a client tells apart from a denied request.
+A stored session created from such a credential keeps its `via`. Every recheck uses it: each request, each event-stream pull and a launch key exchange. A credential is therefore accepted only from the source it was issued for (`CredentialSource`). Cookie-authenticated writes still need a same-origin `Origin`. A token that neither step resolves is refused with `FORBIDDEN` and `details.credential: 'rejected'`, which a client tells apart from a denied request.
 
 The host, origin and cross-site checks run before authentication. `publicRoute` runs after the Host and Origin checks and before the session check.
 
 The session cookie is `agent_session`, or `agent_session_<port>` when the origin's port is not its scheme's default. Browsers send a host's cookies to every port on it, so two hosts on one machine, such as a fleet and a site, keep separate sessions. `sessionCookie(origin, token, maxAge)` writes the `Set-Cookie` value, with `Secure` on https, and `readSessionCookie(request, origin)` reads it. A plugin that sets its own session, such as workforce sign-in, uses both.
 
-A session that stands for such a credential (`HostSession.credential`) can mint a launch key like any other session. The [launch exchange](../../docs/glossary.md#launch-exchange) opens a browser session of its own, whose cookie is a new token. That session keeps the credential's name and rechecks it on every request and every event-stream poll. Revoking the credential, such as a paired tablet's, ends the browser session at its next request and closes its stream. A bearer credential's own event stream is rechecked the same way.
+A session that stands for such a credential (`HostSession.credential`) can issue a launch key like any other session. The [launch key exchange](../../docs/glossary.md#launch-key-exchange) opens a browser session of its own, whose cookie is a new token. That session keeps the credential's name and rechecks it on every request and every event-stream poll. Revoking the credential, such as a paired tablet's, ends the browser session at its next request and closes its stream. A bearer credential's own event stream is rechecked the same way.
 
 ### Blobs
 
@@ -92,7 +92,7 @@ The database URL and its credentials are launcher configuration. `bunPostgres` c
 
 ### Row storage and ownership
 
-Row storage keeps each workspace's state version stamps as `version` rows, and its `upgrade` option is a `StateUpgrade`. It keeps the last committed snapshot in memory only while the stored generation matches. A second connection's commit is therefore always reloaded. A restore removes the old write-ahead log before it renames the copy into place, so the old log's pages never replay onto the restored file. The caller of a restore must own the workspace.
+Row, snapshot and Postgres storage write storage schema version 3 and refuse a database from another version. Version 3 renamed stored fields, so a workspace written before it is refused instead of read under the wrong names. Row storage keeps each workspace's state version stamps as `version` rows, and its `upgrade` option is a `StateUpgrade`. It keeps the last committed snapshot in memory only while the stored generation matches. A second connection's commit is therefore always reloaded. A restore removes the old write-ahead log before it renames the copy into place, so the old log's pages never replay onto the restored file. The caller of a restore must own the workspace.
 
 Ownership never trusts PID files. A live `EXCLUSIVE` SQLite transaction is the lock, and a crash releases it. CASL scopes accept scalar columns only, and unsupported conditions fail closed. A connection file is a local credential.
 
@@ -107,7 +107,7 @@ bun test packages/adapters
 ```
 
 - `src/casl.test.ts`: CASL, memory and SQL scopes agree, and rules fail closed.
-- `src/row-storage.test.ts`: a commit writes only changed rows, and the cached snapshot is dropped after a failure or another connection's commit. It also covers retention and the journal reset, version 1 conversion, backup, verification and restore, and a large-state benchmark against the document layout.
+- `src/row-storage.test.ts`: a commit writes only changed rows, and the cached snapshot is dropped after a failure or another connection's commit. It also covers retention and the journal reset, refusal of older schema versions and of the other SQLite layout, backup, verification and restore, and a large-state benchmark against the document layout.
 - `src/sqlite.test.ts`: a rolled-back transaction leaves the initial state untouched; blob references persist, and older documents load without them.
 - `src/blob-files.test.ts`: storing, listing, reading and removing by digest; a repeated store refreshes `storedAt`; invalid digests never become paths.
 - `src/http-blobs.test.ts`: upload, attach and read over HTTP with the client transport; sandboxed download headers; size and media-type refusals; blobs on the direct transport.

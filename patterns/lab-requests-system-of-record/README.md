@@ -1,6 +1,6 @@
 # @agent-native/pattern-lab-requests-system-of-record
 
-`pattern-lab-requests-system-of-record` composes the lab requests pattern unchanged with a [system of record](../../docs/glossary.md#system-of-record): an enterprise LIMS with a REST API. Registering a test request in the LIMS queues an [outbox](../../docs/glossary.md#outbox) effect, and the LIMS's answer settles a publication record. Requests registered at other sites' LIMS front desks arrive through its change feed and become test requests here.
+`pattern-lab-requests-system-of-record` composes the lab requests pattern unchanged with a [system of record](../../docs/glossary.md#system-of-record): an enterprise LIMS with a REST API. Registering a test request in the LIMS queues an [outbox](../../docs/glossary.md#outbox) effect, and the LIMS's response completes a publication record. Requests registered at other sites' LIMS front desks are imported through its change feed as test requests here.
 
 ## Layer
 
@@ -10,9 +10,9 @@ Content (`patterns/*`). It imports the base pattern, the framework, `@agent-nati
 
 The pattern is one [application](../../docs/primitives.md#application). It composes:
 
-- the `lims` [target](../../docs/primitives.md#target), with its settle, sync and status operations, the `lims-integration` principal and its policy lane;
+- the `lims` [target](../../docs/primitives.md#target), with its complete, sync and status operations, the `lims-integration` principal and its integration allowlist;
 - `publication.publish`, which records a pending publication and enqueues a `test-request.publish` [outbox effect](../../docs/primitives.md#outbox-effect) in the same transaction;
-- a [connector](../../docs/primitives.md#connector) built with `httpTargetPort`, which the [dispatcher](../../docs/primitives.md#dispatcher) drives under [worker claims](../../docs/primitives.md#worker-claims);
+- a [connector](../../docs/primitives.md#connector) built with `httpTargetPort`, which the [dispatcher](../../docs/primitives.md#dispatcher) calls under [worker claims](../../docs/primitives.md#worker-claims);
 - [inbound sync](../../docs/primitives.md#inbound-sync) from the LIMS change feed, with a watermark cursor in the `publishing` slice;
 - [reconciliation](../../docs/primitives.md#reconciliation) of a held publication, which a technician resolves;
 - a [requirement declaration](../../docs/primitives.md#requirement-declaration) for the `lims-api` destination, which a [deployment policy](../../docs/primitives.md#deployment-policy) binds;
@@ -24,17 +24,17 @@ Its own files:
 | --- | --- | --- |
 | `contracts.ts` | Browser and server | The `request-publishing` module: the `publication` collection, `publication.publish`, the `lims` target and the reconciliation operations. The module declares the `lims-api` network destination |
 | `domain.ts` | Server | The `publishing` slice: publications and the feed cursor |
-| `handlers.ts` | Server | Publishing, the target's settle, sync and status handlers, and reconciliation of held publications |
-| `policy.ts` | Server | The route for the `request-publishing` module, with the integration lane for the LIMS principal |
+| `handlers.ts` | Server | Publishing, the target's complete, sync and status handlers, and reconciliation of held publications |
+| `policy.ts` | Server | The route for the `request-publishing` module, with the integration allowlist for the LIMS principal |
 | `lims-port.ts` | Server | The REST connector, built with `httpTargetPort` over the network port |
 | `fake-lims.ts` | Server, tests and dev | A LIMS on loopback with a review queue, idempotency keys, a by-key lookup and a change feed |
 | `application.ts` | Server | The base handlers in the `labRequests` slice, the publishing handlers, both routes, the plugins and `connect`, which connects the target |
 | `screens.tsx`, `ui/publishing.tsx` | Browser | The base test request screen with a publishing section, and the publications screen with delivery status and held publications |
 | `dev.ts`, `site-policy.dev.json` | Dev launch | Starts the fake LIMS on port 4371 and binds `lims-api` to it |
 
-The dispatcher posts each effect with the effect id as the `Idempotency-Key`. The LIMS answers in one of these ways:
+The dispatcher posts each effect with the effect id as the `Idempotency-Key`. The LIMS responds in one of these ways:
 
-| Answer | Result |
+| Response | Result |
 | --- | --- |
 | 201 | The publication is accepted with the LIMS id |
 | 422 | The publication is rejected with the LIMS's code and message, such as `NO_METHOD` for a request without a test method |
@@ -55,7 +55,7 @@ The change feed adds each request registered at another site once, as `lims-<id>
 
 The connector reaches the LIMS only through the network port, so the site policy decides where `lims-api` points. The manifest declares it as optional, offline-queued egress to `loopback` over `http`, which fits the fake LIMS; a real deployment declares `site` or `internet` over `https`. Until a site policy binds the destination, publications wait in the outbox.
 
-Settle and sync run as the `lims-integration` principal. Its lane admits only the target's settle, sync and status operations, so it cannot submit test requests or publish. Publishing needs a technician in the base pattern's members, and resolving a held publication needs a technician who is a person. A publication accepts one delivery at a time, so a late outcome never lands on a newer one.
+Complete and sync run as the `lims-integration` principal. Its integration allowlist admits only the target's complete, sync and status operations, so it cannot submit test requests or publish. Publishing needs a technician in the base pattern's members, and resolving a held publication needs a technician who is a person. A publication accepts one delivery at a time, so a late outcome is never applied to a newer one.
 
 ## Dependencies
 
@@ -67,7 +67,7 @@ Settle and sync run as the `lims-integration` principal. Its lane admits only th
 bun test patterns/lab-requests-system-of-record/
 ```
 
-- `test/publishing.test.ts`: against the fake LIMS, a published request is registered with the LIMS id, a request without a test method is rejected with the LIMS's reason, and a reviewed one stays pending until the lookup finds it registered. A publication the LIMS lost is held, a viewer may not resolve it, and a technician's refusal rejects it. A request registered at another site arrives once through the feed. The integration principal and a viewer may not submit requests or publish. Without a bound destination, a publication stays pending and nothing reaches the LIMS.
+- `test/publishing.test.ts`: against the fake LIMS, a published request is registered with the LIMS id, a request without a test method is rejected with the LIMS's reason, and a reviewed one stays pending until the lookup finds it registered. A publication the LIMS lost is held, a viewer may not resolve it, and a technician's refusal rejects it. A request registered at another site is imported once through the feed. The integration principal and a viewer may not submit requests or publish. Without a bound destination, a publication stays pending and nothing reaches the LIMS.
 - `test/ui-bindings.test.ts`: every bound capability is referenced by a screen in this pattern or the base.
 
 Run the pattern in the browser:

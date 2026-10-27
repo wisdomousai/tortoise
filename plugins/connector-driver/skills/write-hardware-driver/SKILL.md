@@ -17,13 +17,13 @@ A [driver](../../../../docs/glossary.md#driver) is an executable in any language
   - `idempotent` when the driver can deduplicate by effect ID;
   - `convergent` when a readback shows the result;
   - `once` with a journal otherwise.
-- Give each action a [hazard class](../../../../docs/glossary.md#hazard-class). The [bridge mode](../../../../docs/glossary.md#bridge-mode) defaults to `monitor-only`, which refuses every action.
+- Give each action a [risk level](../../../../docs/glossary.md#risk-level). The [bridge mode](../../../../docs/glossary.md#bridge-mode) defaults to `monitor-only`, which refuses every action.
 
 ## Steps
 
 1. Write the [driver contract](../../../../docs/glossary.md#driver-contract) in the application with `defineDriverContract`. It holds:
    - state fields with units and stable reads;
-   - actions with input schema, mode, hazard, timeout, preconditions and readback;
+   - actions with input schema, mode, risk level, timeout, preconditions and readback;
    - events with a maximum rate;
    - the `control` field and the process.
 2. Wire the application as in [Wiring an application](../../README.md#wiring-an-application):

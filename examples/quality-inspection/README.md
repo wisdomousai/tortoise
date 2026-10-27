@@ -1,10 +1,10 @@
 # @agent-native/quality-inspection
 
-`quality-inspection` captures quality inspection results on top of an external quality system, which is the [system of record](../../docs/glossary.md#system-of-record). The system of record owns inspection lots, specifications and code catalogs, which arrive through the integration principal's sync command. This application owns what is recorded at the moment of inspection: results, defects and usage decisions, each forwarded to the system of record through the [outbox](../../docs/glossary.md#outbox).
+`quality-inspection` captures quality inspection results on top of an external quality system, which is the [system of record](../../docs/glossary.md#system-of-record). The system of record owns inspection lots, specifications and code catalogs, which the integration principal's sync command imports. This application owns what is recorded at the moment of inspection: results, defects and usage decisions, each forwarded to the system of record through the [outbox](../../docs/glossary.md#outbox).
 
 Records are append-only, and a correction supersedes a result instead of editing it. Inspectors, supervisors and viewers hold roles per plant.
 
-Other agent-native applications call it as peers through the surface in `contracts/peer.ts`. A receiving application announces arrivals of received goods, an inspector closes each with an outcome, and the receiving application reads the outcomes of its own arrivals back. On behalf of a person mapped to someone here, a peer lists and reads lots under that person's plant roles.
+Other agent-native applications call it as peers through the API in `contracts/peer.ts`. A receiving application requests inspection of received goods, an inspector closes each request with an outcome, and the receiving application reads the outcomes of its own requests back. On behalf of a person mapped to someone here, a peer lists and reads lots under that person's plant roles.
 
 ## Layer
 
@@ -16,7 +16,7 @@ The example is one [application](../../docs/primitives.md#application). It compo
 
 - a [module](../../docs/primitives.md#module) of `inspection.*` [capabilities](../../docs/primitives.md#capability), plus the `compliance` module from its plugin.
 - the `site`, `network`, `audit`, `compliance`, `process`, `driver` (`connector-driver`) and `peer-link` [host plugins](../../docs/primitives.md#host-plugin). The screens compose the compliance, driver and peers screens.
-- a [peer target](../../docs/primitives.md#peer-target) surface, `qualityPeerSurface`, served by the [peer link](../../docs/primitives.md#peer-link) with the integration and instrument principals reserved.
+- a peer API for [peer targets](../../docs/primitives.md#peer-target), `qualityPeerApi`, served by the [peer link](../../docs/primitives.md#peer-link) with the integration and instrument principals reserved.
 - a [driver contract](../../docs/primitives.md#driver-contract) for the capture station's measuring instrument (`contracts/instrument.ts`), and a Python [driver process](../../docs/primitives.md#driver-process) for it in `drivers/instrument/`.
 - [outbox effects](../../docs/primitives.md#outbox-effect) for every captured record, delivered by a [dispatcher](../../docs/primitives.md#dispatcher) through a [connector](../../docs/primitives.md#connector). [Inbound sync](../../docs/primitives.md#inbound-sync) brings in lots and code groups. One [target](../../docs/primitives.md#target) in `contracts/target.ts` declares both directions.
 - [capability bindings](../../docs/primitives.md#capability-binding) for keyboard-first capture: `useCapabilityForm`, capture timing and wedge-scan routing.
@@ -30,8 +30,8 @@ The example is one [application](../../docs/primitives.md#application). It compo
 | --- | --- | --- |
 | `@agent-native/quality-inspection/manifest` | browser and server | Default export: `defineManifest` with ID `quality-inspection`. |
 | `@agent-native/quality-inspection/application` | server only | Default export: `defineApplication`, whose `connect` wires the quality-system target and the instrument's readings. |
-| `@agent-native/quality-inspection/screens` | browser | Default export: `defineScreens` with Inspection, Capture, Arrivals, Synchronization, the sync badge and the plugin screens. |
-| `@agent-native/quality-inspection/contracts/peer` | browser and any host | `qualityPeerSurface`, the arrival operations and the feed item schema, for a calling application's `definePeerTarget`. |
+| `@agent-native/quality-inspection/screens` | browser | Default export: `defineScreens` with Inspection, Capture, Inspection requests, Synchronization, the sync badge and the plugin screens. |
+| `@agent-native/quality-inspection/contracts/peer` | browser and any host | `qualityPeerApi`, the inspection request operations and the feed item schema, for a calling application's `definePeerTarget`. |
 | `@agent-native/quality-inspection/*` | see file | Other modules by name: `contracts` (browser-safe), `domain`, `policy`, `server`, `fake-sor`. |
 
 `appendResult` in `server/` validates a measurement, picks the sample and queues forwarding, all in the caller's transaction.
@@ -83,9 +83,9 @@ The driver is optional. Without a deployment policy binding for the `instrument-
 
 Plant roles come from state. Handlers scope lots and results to the caller's plants before filtering, counting and pagination.
 
-The quality-system integration runs as its own principal (`INTEGRATION_PRINCIPAL`), whose grant can sync and settle but cannot capture. The instrument driver runs as another principal (`INSTRUMENT_PRINCIPAL`), which can only report readings. Readings are visible to people who capture at some plant.
+The quality-system integration runs as its own principal (`INTEGRATION_PRINCIPAL`), whose grant can sync and complete but cannot capture. The instrument driver runs as another principal (`INSTRUMENT_PRINCIPAL`), which can only report readings. Readings are visible to people who capture at some plant.
 
-A peer's service principal, `peer:<id>`, may only announce arrivals and read the feed, which answers only the arrivals that peer announced. A peer acting on behalf of a person runs as the person the subject is mapped to, with that person's plant roles, and may only list and read lots. Arrivals belong to no plant: everyone who captures at some plant sees and closes them.
+A peer's service principal, `peer:<id>`, may only create inspection requests and read the feed, which returns only the requests that peer created. A peer acting on behalf of a person runs as the person the subject is mapped to, with that person's plant roles, and may only list and read lots. Inspection requests belong to no plant: everyone who captures at some plant sees and closes them.
 
 A commit [receipt](../../docs/glossary.md#receipt) proves the local write only. The sync badge and the Synchronization screen show whether the system of record has accepted it. Capture telemetry does not influence authorization.
 
@@ -112,11 +112,11 @@ bunx playwright test examples/quality-inspection/e2e
   - system-of-record outcomes and corrections;
   - outage behavior;
   - metrics.
-- `test/conformance.test.ts`: a datapoint captured over any surface commits once, is forwarded once and settles live.
+- `test/conformance.test.ts`: a datapoint captured over any surface commits once, is forwarded once and completes live.
 - `test/application.test.ts`: the embedded instance syncs and drains the target it declares.
 - `test/sandbox.test.ts`: the compiled binary with an empty environment runs embedded MCP capture under a grant, returns drain exit codes and runs a grant-bound `serve`.
 - `test/security.test.ts`: auditors read posture over HTTP, and the CLI verifies, reports and detects tampering.
-- `test/arrivals.test.ts`: each peer reads only its own arrivals' outcomes from its cursor, a delivery announced again while open gets its open arrival, and peers, viewers and inspectors are each refused the others' part. The two-host run with a receiving application is `examples/receiving/test/quality-peer.test.ts`.
+- `test/inspection-requests.test.ts`: each peer reads only its own requests' outcomes from its cursor, a delivery sent again while open gets its open request, and peers, viewers and inspectors are each refused the others' part. The two-host run with a receiving application is `examples/receiving/test/quality-peer.test.ts`.
 - `test/ui-bindings.test.ts`: every capability that claims a UI binding is referenced by a screen.
 - `test/instrument.test.ts`, with the in-process fake driver:
   - an event becomes a reading, an inspector confirms it once, and the forwarded record names the instrument;
@@ -142,17 +142,17 @@ Paths under the packages and scripts directories are relative to the repository 
 | [Module](../../docs/primitives.md#module) | `contracts.ts` `qualityInspectionModule` | `test/conformance.test.ts` |
 | [Capability](../../docs/primitives.md#capability) with a description and a UI binding or exception | `contracts/operation.ts` `operation` | `test/ui-bindings.test.ts` |
 | [Collection](../../docs/primitives.md#collection) of lots per plant, scoped before counting | `contracts/collections.ts` `lots`; `handlers/lots.ts` | `domain.test.ts`, "plant roles scope lists, reads and events before counting" |
-| [Membership](../../docs/primitives.md#membership) of plant roles | `contracts/membership.ts` `plantMembership`; `handlers/supervision.ts` | `domain.test.ts`, "the integration principal cannot capture and operators cannot settle"; `e2e/inspection.pw.ts` |
+| [Membership](../../docs/primitives.md#membership) of plant roles | `contracts/membership.ts` `plantMembership`; `handlers/supervision.ts` | `domain.test.ts`, "the integration principal cannot capture and operators cannot complete"; `e2e/inspection.pw.ts` |
 | [Policy](../../docs/primitives.md#policy) per lot, plant role and resource grant | `policy.ts` `qualityPolicy` | `domain.test.ts`, "roles govern capture, correction and the usage decision" |
 | Revision precondition on the usage decision | `handlers/supervision.ts`; `ui/capture/decision-panel.tsx` | `domain.test.ts`, "roles govern capture, correction and the usage decision" |
-| [Target](../../docs/primitives.md#target) with settle, sync and status capabilities | `contracts/target.ts` `qualityTarget`; `handlers/integration.ts` | `domain.test.ts`, "inbound sync applies SoR master data under an ordered watermark" |
+| [Target](../../docs/primitives.md#target) with complete, sync and status capabilities | `contracts/target.ts` `qualityTarget`; `handlers/integration.ts` | `domain.test.ts`, "inbound sync applies SoR master data under an ordered watermark" |
 | [Outbox effect](../../docs/primitives.md#outbox-effect) per result, defect and decision | `server/append-result.ts` `forward`; `handlers/capture.ts`; `handlers/supervision.ts` | `domain.test.ts`, "a batch commits all measurements or none", "SoR outcomes return as live business data, and corrections resolve rejections" and "roles govern capture, correction and the usage decision" |
-| [Dispatcher](../../docs/primitives.md#dispatcher) with outcomes settled as data | `application.ts` `connectTarget`; `handlers/integration.ts` `settleDelivery` | `domain.test.ts`, "SoR outcomes return as live business data, and corrections resolve rejections" |
-| [Worker claims](../../docs/primitives.md#worker-claims) with fenced settlement and a first-claim recheck | `packages/integration/src/target.ts` `connectTarget`; `packages/integration/src/dispatcher/delivery.ts` | `test/conformance.test.ts`, "a datapoint captured over any transport commits once, is forwarded once and settles live"; `packages/integration/test/reliability.test.ts`, "a worker that paused past its lease cannot overwrite the worker after it" and "the original actor is authorized again before the first delivery" |
+| [Dispatcher](../../docs/primitives.md#dispatcher) with outcomes completed as data | `application.ts` `connectTarget`; `handlers/integration.ts` `completeDelivery` | `domain.test.ts`, "SoR outcomes return as live business data, and corrections resolve rejections" |
+| [Worker claims](../../docs/primitives.md#worker-claims) with fenced completion and a first-claim recheck | `packages/integration/src/target.ts` `connectTarget`; `packages/integration/src/dispatcher/delivery.ts` | `test/conformance.test.ts`, "a datapoint captured over any transport commits once, is forwarded once and completes live"; `packages/integration/test/reliability.test.ts`, "a worker that paused past its lease cannot overwrite the worker after it" and "the original actor is authorized again before the first delivery" |
 | Transient delivery failure and retry with backoff | `packages/integration/src/dispatcher.ts`; `fake-sor.ts` `faults.unavailable` switches the failure on in tests | `domain.test.ts`, "an unavailable SoR leaves captured data committed and visibly retrying" |
 | [Inbound sync](../../docs/primitives.md#inbound-sync) under a watermark | `handlers/integration.ts` `applyBatch`; `fake-sor.ts` `toSyncInput` | `domain.test.ts`, "inbound sync applies SoR master data under an ordered watermark" |
 | [Connector](../../docs/primitives.md#connector) as an in-memory quality system | `fake-sor.ts` `FakeQualitySystem` | `test/application.test.ts` |
-| Integration principal limited to the target's capabilities | `policy.ts` `targetLane`; `application.ts` `INTEGRATION_PRINCIPAL` | `domain.test.ts`, "the integration principal cannot capture and operators cannot settle"; `e2e/compliance.pw.ts` |
+| Integration principal limited to the target's capabilities | `policy.ts` `targetAllowlist`; `application.ts` `INTEGRATION_PRINCIPAL` | `domain.test.ts`, "the integration principal cannot capture and operators cannot complete"; `e2e/compliance.pw.ts` |
 | Idempotency key kept across retries and surfaces | `ui/capture-station/use-capture.tsx` `useCapabilityForm` | `domain.test.ts`, "a scanner double-send with one idempotency key records one datapoint"; `test/conformance.test.ts` |
 | [Surface adapters](../../docs/primitives.md#surface-adapter) for HTTP, CLI and MCP | `packages/adapters` | `test/conformance.test.ts` |
 | [Embedded mode](../../docs/systems-of-record.md#topologies) with a grant file and drain | `scripts/build-cli.ts`; `scripts/application-entry.ts` | `test/sandbox.test.ts` |
@@ -169,7 +169,7 @@ Paths under the packages and scripts directories are relative to the repository 
 | [Requirement declaration](../../docs/primitives.md#requirement-declaration) for the target and the driver | `contracts.ts`; `contracts/instrument.ts` | `test/security.test.ts` |
 | [Deployment policy](../../docs/primitives.md#deployment-policy) and [egress guard](../../docs/primitives.md#egress-guard) export | `site-policy.sandbox.json` | `test/security.test.ts` |
 | [Audit log](../../docs/primitives.md#audit-log) and [compliance bundle](../../docs/primitives.md#compliance-bundle) | The audit and compliance plugins | `test/security.test.ts`; `test/sandbox.test.ts` |
-| [Peer link](../../docs/primitives.md#peer-link) serving a peer surface | `contracts/peer.ts` `qualityPeerSurface`; `application.ts` `qualityPeerLinkPlugin`; `policy.ts` `peerLane`; `handlers/arrivals.ts` | `test/arrivals.test.ts`; [`../receiving/test/quality-peer.test.ts`](../receiving/test/quality-peer.test.ts) |
+| [Peer link](../../docs/primitives.md#peer-link) serving a peer API | `contracts/peer.ts` `qualityPeerApi`; `application.ts` `qualityPeerLinkPlugin`; `policy.ts` `peerAllowlist`; `handlers/inspection-requests.ts` | `test/inspection-requests.test.ts`; [`../receiving/test/quality-peer.test.ts`](../receiving/test/quality-peer.test.ts) |
 | [State migration](../../docs/primitives.md#state-migration) without numbered versions | `application.ts` `upgradeState` | `test/instrument.test.ts`, "state saved before readings existed is upgraded with an empty set" |
 
 ## Structure
@@ -180,7 +180,7 @@ Paths under the packages and scripts directories are relative to the repository 
 | `application.ts` | The application definition: state, handlers, composed policy, plugins, `connect` and the fake quality system configured from environment variables. |
 | `screens.tsx` | Routes, navigation, capability screens, the sync badge and the compliance and driver plugin screens. |
 | `contracts.ts` | The module: all capabilities, the network requirement for the quality system and the agent workflows. |
-| `contracts/` | Browser-safe schemas, the `operation` helper and its descriptions, queries, commands, the lot collection, plant membership, the target, the driver contract, arrivals and the peer surface. |
+| `contracts/` | Browser-safe schemas, the `operation` helper and its descriptions, queries, commands, the lot collection, plant membership, the target, the driver contract, inspection requests and the peer API. |
 | `domain.ts` | State types, plant roles, evaluation against specification limits, progress and the next open `sample` to measure. |
 | `policy.ts` | `qualityPolicy`, and the mapping from a journal or outbox resource to its lot and plant. |
 | `server.ts`, `server/` | The handler list and the code the handler groups share, including `appendResult`. |
@@ -203,8 +203,8 @@ Paths under the packages and scripts directories are relative to the repository 
 7. The commit writes state, revisions, the receipt, journal entries and the effect together. The receipt returns the result with `sync: 'pending'` and the effect ID, and proves the local commit only.
 8. The dispatcher that `connectTarget` builds in `application.ts` claims the effect after the commit and receives a fencing token. At the first claim the runtime checks again that the recording principal may still run the command.
 9. The dispatcher delivers the effect through the port. `FakeQualitySystem.deliver` accepts with a `QM-` reference, rejects with `LOT_LOCKED` or `LOT_CLOSED`, or throws `DeliveryFailure`.
-10. A transient failure is recorded as an attempt and retried after a backoff. An outcome is submitted as `inspection.effect.settle` under the integration principal, with the fencing token.
-11. The settle handler from `targetHandlers` checks that the effect belongs to the target. `settleDelivery` then writes `sync`, `sorRef` or `rejection` on the record that carries that effect ID.
+10. A transient failure is recorded as an attempt and retried after a backoff. An outcome is submitted as `inspection.effect.complete` under the integration principal, with the fencing token.
+11. The complete handler from `targetHandlers` checks that the effect belongs to the target. `completeDelivery` then writes `sync`, `sorRef` or `rejection` on the record that carries that effect ID.
 12. The live queries for the lot, the sync badge and the Needs attention screen refetch.
 13. A rejected result is resolved with `inspection.result.correct`, which appends a superseding result. The correction enqueues a `result.correct` effect with the reason, and with the original's reference when the quality system gave one.
 
@@ -258,7 +258,7 @@ Steps that cite a file of an existing example give its path from the framework r
 4. Read what the target command wrote, because later steps adapt it instead of adding it again:
    - the files `contracts/<system-name>-target.ts`, `handlers/<system-name>-target.ts`, `<system-name>-port.ts`, `ui/<system-name>-target.tsx` and `test/<system-name>-target.test.ts`;
    - the target's capabilities and a network requirement with `offline: 'queue'` in `contracts.ts`;
-   - `targetLane` and `targetRules` in `policy.ts`, and handlers built with `targetHandlers` in `server.ts`;
+   - `targetAllowlist` and `targetRules` in `policy.ts`, and handlers built with `targetHandlers` in `server.ts`;
    - `connectTarget` with the fake port in `application.ts`, and a route in `screens.tsx`;
    - a disabled `<system-name>-api` destination in `apps/desktop/site-policy.json`;
    - a `<system-name>.send` command that forwards one record.
@@ -266,7 +266,7 @@ Steps that cite a file of an existing example give its path from the framework r
 ### Records and capabilities
 
 1. Write strict Zod schemas in `contracts/schemas.ts` for the master data the system of record publishes and for each captured record. Give every captured record the fields of `Delivered` from `@agent-native/integration`: `effectId`, `sync`, `sorRef` and `rejection`.
-2. Without the scaffold, declare the target with `defineTarget` in the browser-safe contracts, as the [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) skill describes. The declaration names the capability IDs, the settled resource types, the feed item and the status fields.
+2. Without the scaffold, declare the target with `defineTarget` in the browser-safe contracts, as the [connect-system-of-record](../../packages/integration/skills/connect-system-of-record/SKILL.md) skill describes. The declaration names the capability IDs, the completed resource types, the feed item and the status fields.
 3. Declare each capture command with `defineCapability`, as the [add-capability](../../packages/runtime/skills/add-capability/SKILL.md) skill describes. Set `integration: { target, delivery: 'outbox' }`, the `dependencies` its live queries follow, and `ui.binding` or a stated `ui.exception`.
 4. Declare container roles with `defineMembership`, as `examples/quality-inspection/contracts/membership.ts` does.
 5. Declare keyed records with `defineCollection` and `collectionList`, as `examples/quality-inspection/contracts/collections.ts` does.
@@ -281,14 +281,14 @@ Steps that cite a file of an existing example give its path from the framework r
    - calls `ctx.change` for every changed resource.
 2. Throw `ApplicationError` with `details.field` for an invalid input, so form bindings attach the message to the field.
 3. Handle the membership command with `membershipHandler` from `@agent-native/runtime`. Pass `reserved` so no one can give the integration principal a role, as `examples/quality-inspection/handlers/supervision.ts` does.
-4. Implement settle, sync and status with `targetHandlers` from `@agent-native/integration`, or adapt the generated handlers, with these options:
+4. Implement complete, sync and status with `targetHandlers` from `@agent-native/integration`, or adapt the generated handlers, with these options:
    - `cursor`, which returns the state object that holds `watermark` and `lastSyncAt`;
-   - `onOutcome`, which calls `settleDelivery` on the record that forwarded the effect;
+   - `onOutcome`, which calls `completeDelivery` on the record that forwarded the effect;
    - `applyBatch`, which applies feed items to local state;
    - `status`, which counts only records the caller may see.
 5. In a generated application, remove the generated send command once the capture commands enqueue their own effects. Remove its handler, policy rule, screen form and test cases with it.
 6. Write the policy with `definePolicy` as [Authorization](../../docs/authorization.md) describes, and pass `roleOf`, which returns the caller's role in a container. Without `roleOf` every container rule denies.
-7. Keep or add `targetLane` for the integration principal and `targetRules` for the target's capabilities.
+7. Keep or add `targetAllowlist` for the integration principal and `targetRules` for the target's capabilities.
 8. Give each capture capability a rule with a `container`, a `grant` and `roles`, and the membership command a `membershipRule`.
 9. Declare `events` visibility per resource type in the policy.
 10. Scope list rows before counting with the `visible` option of `collectionListHandler`, as `examples/quality-inspection/handlers/lots.ts` does.
@@ -332,7 +332,7 @@ Follow the [write-hardware-driver](../../plugins/connector-driver/skills/write-h
 3. List `processPlugin` and `createDriverPlugin({ contracts })` in the application.
 4. List `driverScreens` in the screens.
 5. Add an ingest command for the driver's event with a `ui.exception`, and give it the rule `'integration'` in the policy.
-6. Give the instrument principal its own policy lane with only the ingest command and `events: () => false`.
+6. Give the instrument principal its own integration allowlist with only the ingest command and `events: () => false`.
 7. In the `observe` hook of `connect`, return no ingest unless `processes.availability` reports the driver process available.
 8. Pass the ingest command to `createDriverEventIngest`, with `driverServiceOf(services)` and a context whose grant names only that command. Call `start` on the result and return it from `observe`.
 9. Print the declared drivers to find the driver ID. It is the `id` given to `defineDriverContract`, which is `measuring-instrument` in this example.
@@ -416,7 +416,7 @@ Follow the [write-hardware-driver](../../plugins/connector-driver/skills/write-h
 - **Measurement age.** The instance refuses a measurement more than 24 hours old. A batch holds at most 100 measurements for one lot.
 - **Held effects.** The example composes no reconciliation capabilities, so a held effect has no screen or command a person can use. The dispatcher holds an effect when the principal that committed it may no longer run its command at the first claim.
 - **Uncertain deliveries.** The fake quality system is idempotent by effect ID and never reports an uncertain outcome. A real connector can also cause held effects for uncertain deliveries and lost acknowledgements.
-- **Arrival plants.** An arrival names no plant, so everyone who captures at some plant sees every arrival.
+- **Inspection request plants.** An inspection request names no plant, so everyone who captures at some plant sees every request.
 - **State versions.** The example declares no numbered state migrations. Its `upgradeState` fills fields that older state lacks.
 
 ## Skills

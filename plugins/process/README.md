@@ -1,6 +1,6 @@
 # @agent-native/process
 
-The process [host plugin](../../docs/glossary.md#host-plugin). It provides the host's [process port](../../docs/glossary.md#process-port), which starts the child processes that modules and host components declare. Each start uses the executable, arguments, working directory, pin and environment variables that the [deployment policy](../../docs/glossary.md#deployment-policy) binds under `processes`. Server code that needs a child, such as a perception worker or a hardware driver, asks the port by process ID and never names an executable itself.
+The process [host plugin](../../docs/glossary.md#host-plugin). It provides the host's [process port](../../docs/glossary.md#process-port), which starts the child processes that modules and host components declare. Each start uses the executable, arguments, working directory, pin and environment variables that the [deployment policy](../../docs/glossary.md#deployment-policy) binds under `processes`. Server code that needs a child, such as a recognition worker or a hardware driver, asks the port by process ID and never names an executable itself.
 
 ## Layer
 
@@ -95,7 +95,7 @@ bun test plugins/process packages/kernel/test/processes.test.ts
 - secrets refused without a secret store;
 - abort and close stopping the tree.
 
-`packages/kernel/test/processes.test.ts` covers the refusing default and two providers refused at composition. The station's perception tests run the worker protocol over an injected start.
+`packages/kernel/test/processes.test.ts` covers the refusing default and two providers refused at composition. The station's recognition tests run the worker protocol over an injected start.
 
 ## Skills
 

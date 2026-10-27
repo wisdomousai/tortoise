@@ -30,7 +30,7 @@ An extension pattern composes the base in each entrypoint:
 | Pattern | Port | Concern | Framework parts it composes |
 | --- | --- | --- | --- |
 | `lab-requests` | 4350 | Collections, roles, revisions, idempotency, live queries, CLI and MCP without screens | `defineCollection`, `definePolicy`, `CollectionScreen`, `RecordScreen` |
-| `lab-requests-system-of-record` | 4351 | Requests registered in an enterprise LIMS over REST: outbox, settlement, a held effect, inbound sync | `defineTarget`, `connectTarget`, `httpTargetPort`, `reconciliationHandlers` |
+| `lab-requests-system-of-record` | 4351 | Requests registered in an enterprise LIMS over REST: outbox, completion, a held effect, inbound sync | `defineTarget`, `connectTarget`, `httpTargetPort`, `reconciliationHandlers` |
 | `lab-requests-agents` | 4352 | Test method suggestions as approval requests, a trigger, UI intents from a run | `defineAgent`, `approvalHandlers`, `defineTrigger`, `useUiSession` |
 | `lab-requests-host-plugin` | 4353 | An `activity` host plugin written in the pattern | `definePluginManifest`, `defineHostPlugin`, `definePluginScreens` |
 | `lab-requests-operations` | 4354 | A versioned state migration and telemetry on a site | `StateMigrations`, the site, network, audit and telemetry plugins |
@@ -58,7 +58,7 @@ A dash means that no pattern, or no example, shows the primitive.
 | Instance | `lab-requests` | `field-service` |
 | Command | `lab-requests` | `field-service` |
 | Query | `lab-requests` | `field-service` |
-| Nested invocation | — | `asset-survey` |
+| Nested call | — | `asset-survey` |
 | Collection | `lab-requests` | `fleet`, `receiving`, `quality-inspection` |
 | Execution context | `lab-requests-sandbox` | `crm-capture` |
 | Policy | `lab-requests` | `field-service` |
@@ -85,7 +85,7 @@ A dash means that no pattern, or no example, shows the primitive.
 | Approval request | `lab-requests-agents` | `field-service`, `receiving`, `line-station` |
 | Approval dataset | `lab-requests-local-model` | — |
 | Trigger | `lab-requests-agents` with a job, `lab-requests-local-model` with an agent definition | `line-station` |
-| Standing grant | `lab-requests-agents` | `line-station` |
+| Trigger grant | `lab-requests-agents` | `line-station` |
 | Workflow | — | `asset-survey` |
 | Assignment | — | `asset-survey` |
 | Worklist | — | `asset-survey-field` |
@@ -105,7 +105,7 @@ A dash means that no pattern, or no example, shows the primitive.
 | Remote query | — | `crm-capture`, `asset-survey` |
 | Data provider | — | `crm-capture`, `asset-survey`, `receiving` |
 | Observation | `lab-requests-signals` | `line-station`, `quality-inspection` |
-| Gated actuator | — | `line-station` |
+| Interlock | — | `line-station` |
 | Driver contract | — | `line-station`, `quality-inspection` |
 | Driver process | — | `line-station`, `quality-inspection` |
 | Driver SDK | — | `line-station` with .NET, `quality-inspection` with Python |
@@ -122,13 +122,13 @@ A dash means that no pattern, or no example, shows the primitive.
 | Execution host | `lab-requests-sandbox` | — |
 | Station and scanner profiles | — | `line-station` |
 | Device configuration | — | `line-station` |
-| Golden check | — | `line-station` |
+| Golden test | — | `line-station` |
 | Compliance bundle | — | `quality-inspection` |
 | Behavioral scenario | `lab-requests`, `lab-requests-host-plugin`, `lab-requests-review` | `field-service` |
 | Agent scenario | `lab-requests-agents`, `lab-requests-local-model` | `receiving` |
 | Scaffold | — | `receiving`, `field-service` |
 | Framework release | — | — |
-| Task package | `lab-requests-site` | — |
+| Site bundle | `lab-requests-site` | — |
 | Fleet agent | `lab-requests-site` | `fleet` |
 | Telemetry | `lab-requests-operations` | — |
 

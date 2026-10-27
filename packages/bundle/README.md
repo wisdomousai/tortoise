@@ -12,7 +12,7 @@ Framework (`packages/*`). Server only. It trusts only the keys a site lists and 
 
 ## Primitives
 
-- [Task package](../../docs/primitives.md#task-package), the site bundle and its install:
+- [Site bundle](../../docs/primitives.md#site-bundle) and its install:
   - creation: `createBundle`, `BundleDescription`;
   - verification: `verifyBundle`, `BundleRefused`;
   - the manifest: `BundleManifest`, `BundleFile`, `BundleRequirements`, `parseBundleManifest`, `safeBundlePath`;

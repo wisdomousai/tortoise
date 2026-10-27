@@ -63,13 +63,13 @@ A command that changes access calls `ctx.invalidateAuthorization()` or declares 
 A command whose writes must commit together with another operation's runs that operation inside its own transaction. The capability lists what it calls in `invokes`, and the handler calls `ctx.invoke` or `ctx.query` with the imported capability, so input and output are typed. `invokeRaw` and `queryRaw` take an operation ID and suit a command that runs whatever its input names, declared with `invokes: 'any'`.
 
 ```ts
-export const placeAndExtract = operation('capture.place-and-extract', 'command', {
+export const linkAndExtract = operation('capture.link-and-extract', 'command', {
   // ...
-  invokes: ['assignment.report.place', 'assignment.extraction.create'],
+  invokes: ['assignment.report.link', 'assignment.extraction.create'],
 });
 
-handler(placeAndExtract, async (input, ctx) => {
-  const capture = await ctx.invoke(reportPlace, { id: input.id, subject: input.nodeId });
+handler(linkAndExtract, async (input, ctx) => {
+  const capture = await ctx.invoke(reportLink, { id: input.id, subject: input.nodeId });
   const extraction = await ctx.invoke(extractionCreate, {
     title: 'Read the nameplate',
     scope: { reportId: input.id },
@@ -98,12 +98,12 @@ A sequence that waits on people or systems of record between its steps is a decl
 export const captureToEam = defineWorkflow({
   id: 'survey.capture-to-eam',
   version: 1,
-  text: 'Place a capture, request its extraction, wait for review, then file and export the node.',
+  text: 'Link a capture, request its extraction, wait for review, then file and export the node.',
   input: jsonSchema(z.strictObject({ captureId: recordId, nodeId: recordId })),
   maxDurationMs: 2 * WEEK,
   start: 'capture.file-workflow',
   steps: [
-    step.run('place', 'capture.place', {
+    step.run('link', 'capture.link', {
       input: { id: from.input('captureId'), nodeId: from.input('nodeId') },
     }),
     step.wait('reviewed', 'capture.get', {
@@ -129,7 +129,7 @@ Each step runs as the starter inside its own `workflow.advance` command, so it p
 
 - A nested call: both writes must commit together, as one caller, in one transaction.
 - A declared workflow: steps follow each other over minutes to weeks, wait on a person or an outbox outcome, and a later failure undoes earlier steps.
-- A [trigger](glossary.md#trigger): work starts on a committed change or a schedule, under a person's standing grant, with no sequence to keep.
+- A [trigger](glossary.md#trigger): work starts on a committed change or a schedule, under a person's trigger grant, with no sequence to keep.
 
 ## Collections
 
@@ -180,7 +180,7 @@ When a stored record shape changes, add a step to the application's `StateMigrat
 
 ## Triggers
 
-A [trigger](glossary.md#trigger) runs a job or an agent definition on a committed change or a schedule. Declare it with `defineTrigger` from [`plugins/automation`](../plugins/automation/README.md). Each run acts as the issuer of the trigger's [standing grant](glossary.md#standing-grant), narrowed to the trigger's operations, and its commands are authorized like any caller's.
+A [trigger](glossary.md#trigger) runs a job or an agent definition on a committed change or a schedule. Declare it with `defineTrigger` from [`plugins/automation`](../plugins/automation/README.md). Each run acts as the issuer of the trigger's [trigger grant](glossary.md#trigger-grant), narrowed to the trigger's operations, and its commands are authorized like any caller's.
 
 ## Scenarios
 

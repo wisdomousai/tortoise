@@ -1,6 +1,6 @@
 # @agent-native/driver-sdk-dotnet
 
-The .NET library `AgentNative.Driver`, for writing a hardware [driver](../../docs/glossary.md#driver) for an agent-native [host](../../docs/glossary.md#host) in C#. The SDK answers the driver protocol, and the driver author writes the handlers that touch the equipment.
+The .NET library `AgentNative.Driver`, for writing a hardware [driver](../../docs/glossary.md#driver) for an agent-native [host](../../docs/glossary.md#host) in C#. The SDK implements the driver protocol, and the driver author writes the handlers that touch the equipment.
 
 ## Layer
 
@@ -72,13 +72,13 @@ The SDK enforces the same rules as the [Python SDK](../driver-python/README.md),
 
 - **Mode.** The host sends its [bridge mode](../../docs/glossary.md#bridge-mode) with every action, and the SDK checks it before the handler runs:
   - `monitor-only` refuses every action;
-  - `assist` refuses any [hazard class](../../docs/glossary.md#hazard-class) other than `none`;
+  - `assist` refuses any [risk level](../../docs/glossary.md#risk-level) other than `none`;
   - an `operator-present` action needs `presence.confirmedBy`.
 
 - **Deadline.** An action whose deadline has passed is refused as transient without running.
 - **Once per effect.** Actions with the `idempotent` or `once` [delivery mode](../../docs/glossary.md#delivery-mode) run at most once per effect ID:
   - a repeat returns the recorded outcome;
-  - `action.lookup` answers from the journal;
+  - `action.lookup` returns the journal's record;
   - `convergent` actions are not deduplicated, because the host reads the equipment back before it resends one.
 - **Journal.** `Started` is written and flushed to disk before a handler runs, and the outcome after. An effect that started and has no outcome reads as `uncertain`, and the host holds it for a person.
 - **Journal file.** A contract with `once` actions needs `Journal`. The file format is the Python SDK's.
@@ -102,7 +102,7 @@ bun test sdks/driver-dotnet
 
 The host test runs from the repository root as part of `bun run check`. It is skipped when `dotnet` is not on PATH. It:
 
-1. builds the solution into a temporary artifacts directory, so no `bin` or `obj` lands in the tree;
+1. builds the solution into a temporary artifacts directory, so no `bin` or `obj` is written to the tree;
 2. runs the unit tests;
 3. checks that the committed `ChamberContract.cs` is what the generator writes from the reference contract (`chamber` in `@agent-native/connector-driver/testing`);
 4. checks the simulated chamber with `checkDriver`;
