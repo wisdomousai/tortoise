@@ -78,8 +78,8 @@ Unless a [deployment policy](glossary.md#deployment-policy) sets another identit
 ```sh
 export AGENT_NATIVE_CONNECTION="$(pwd)/.workspace/.connection.json"
 bun run cli list
-bun run cli project create --name Launch --key create-launch
-bun run cli project list
+bun run cli work-order create --name "Pump station 4" --site "Harbor Road 12" --key create-pump-4
+bun run cli work-order list
 ```
 
 `bun run cli` runs the application `app.config.json` names, and `list` prints its [catalog](glossary.md#catalog). Every [capability](glossary.md#capability) is also a generated subcommand with typed flags. A capability subcommand takes these arguments:

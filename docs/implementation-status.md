@@ -153,7 +153,6 @@ No public release has been made. The entries use these kinds of evidence:
 **Not shown.**
 
 - Removing a feature or plugin from an application drops its slice at the next commit. Nothing keeps or exports the dropped data.
-- Only `samples/lab-requests-operations` declares [state migrations](glossary.md#state-migration). The examples keep their unversioned `upgradeState`.
 - A target port that maps effects by `contractVersion` has not been written.
 - The phone's storage stamps versions, but has no staged `migrate`.
 
@@ -399,6 +398,8 @@ Control mappings are indicative.
 **Opt-in run, complete export.** On 17 October 2026, `bun run test:scaffold:full`. The complete source export installs frozen and passes format, typecheck, generation, build and its 810 tests. The driver SDKs, .NET projects and certificate fixture are now exported. An authored capability with its policy rule answers over the exported HTTP host.
 
 **Opt-in run, installed framework.** On 17 October 2026, `bun run test:scaffold:full`. The framework packs into 39 tarballs served by the loopback registry, and `scaffold new --registry` exports without framework source. The export installs, and reinstalls with `--frozen-lockfile` from a clean `node_modules`. It adds a target with the installed [scaffold](glossary.md#scaffold) and passes its whole `bun run check` and its Playwright spec.
+
+**Opt-in run.** On 27 October 2026, `bun run test:scaffold:full` passed its 16 tests with `field-service` as the configured application. The complete source export wrote the local-model sample's stand-in weights at run time. The framework packed into 49 tarballs for the registry install.
 
 **By hand, mobile export.** On 17 October 2026, `bun run scaffold <dir> --name field-survey --example asset-survey-field` exported `apps/mobile`, the field application and the hub example it imports. In the export, these passed:
 

@@ -101,7 +101,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/ad
 
 ### Membership
 
-_Roles that people hold in a container: a project, plant or station._
+_Roles that people hold in a container: a work order, plant or station._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md)
 

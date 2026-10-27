@@ -44,6 +44,180 @@ An extension sample composes the base in each entrypoint:
 
 Each sample's README lists its files, its trust boundary and one line per test file.
 
+## Primitive coverage
+
+A dash means that no sample, or no example, shows the primitive.
+
+| Primitive | Sample | Example |
+| --- | --- | --- |
+| Capability | `lab-requests` | `field-service` |
+| Module | `lab-requests` | `field-service`, `asset-survey` |
+| Feature | `lab-requests-review` | `field-service`, `line-station`, `receiving` |
+| Catalog | `lab-requests` | `crm-capture` |
+| Generator | every sample | every example |
+| Instance | `lab-requests` | `field-service` |
+| Command | `lab-requests` | `field-service` |
+| Query | `lab-requests` | `field-service` |
+| Nested invocation | — | `asset-survey` |
+| Collection | `lab-requests` | `fleet`, `receiving`, `quality-inspection` |
+| Execution context | `lab-requests-sandbox` | `crm-capture` |
+| Policy | `lab-requests` | `field-service` |
+| Membership | — | `line-station`, `quality-inspection`, `fleet` |
+| Storage | `lab-requests`, `lab-requests-hosted` | `field-service` |
+| State migration | `lab-requests-operations` | `field-service`, `line-station`, `quality-inspection`, `receiving` |
+| Blob store | — | `field-service`, `asset-survey` |
+| Journal and live query | `lab-requests` | `field-service` |
+| Application | every sample | every example |
+| Host | every sample | every example |
+| Host plugin | `lab-requests-host-plugin` | `field-service` |
+| Host platform | `lab-requests-hosted` | `field-service`, `asset-survey-field` |
+| Workspace lease | `lab-requests-hosted` | `field-service` |
+| Web frame | every sample | every example except `asset-survey-field` |
+| Native frame | — | `asset-survey-field` |
+| Starter | — | `field-service`, the application `app.config.json` names |
+| Surface adapter | `lab-requests` | `field-service` |
+| Capability binding | `lab-requests` | every example |
+| Display metadata | `lab-requests` | `fleet` |
+| UI session context | `lab-requests-agents` | `field-service` |
+| Agent run | `lab-requests-agents` | `field-service` |
+| Agent definition | `lab-requests-agents`, `lab-requests-local-model`, `lab-requests-sandbox` | `field-service`, `line-station`, `receiving` |
+| Model entry | `lab-requests-local-model` | — |
+| Approval request | `lab-requests-agents` | `field-service`, `receiving`, `line-station` |
+| Approval dataset | `lab-requests-local-model` | — |
+| Trigger | `lab-requests-agents` with a job, `lab-requests-local-model` with an agent definition | `line-station` |
+| Standing grant | `lab-requests-agents` | `line-station` |
+| Workflow | — | `asset-survey` |
+| Input source | `lab-requests-sign-in` | `line-station`, `asset-survey-field` |
+| OS handler | — | `field-service`, `asset-survey-field` |
+| OS action | — | `field-service`, `asset-survey-field` |
+| Shell port | — | `field-service` |
+| Process port | `lab-requests-local-model`, `lab-requests-sandbox` | `line-station`, `quality-inspection`, `asset-survey` |
+| UI registry | `lab-requests-sign-in` | `line-station`, `quality-inspection`, `asset-survey-field` |
+| Outbox effect | `lab-requests-system-of-record` | `quality-inspection`, `asset-survey` |
+| Connector | `lab-requests-system-of-record` | `quality-inspection`, `receiving` |
+| Dispatcher | `lab-requests-system-of-record` | `quality-inspection` |
+| Inbound sync | `lab-requests-system-of-record` | `quality-inspection`, `asset-survey` |
+| Target | `lab-requests-system-of-record` | `quality-inspection`, `receiving`, `crm-capture` |
+| Peer target | — | `asset-survey`, `asset-survey-field`, `quality-inspection`, `receiving` |
+| Peer link | — | `quality-inspection`, `receiving` |
+| Remote query | — | `crm-capture`, `asset-survey` |
+| Data provider | — | `crm-capture`, `asset-survey`, `receiving` |
+| Observation | `lab-requests-signals` | `line-station`, `quality-inspection` |
+| Gated actuator | — | `line-station` |
+| Driver contract | — | `line-station`, `quality-inspection` |
+| Driver process | — | `line-station`, `quality-inspection` |
+| Driver SDK | — | `line-station` with .NET, `quality-inspection` with Python |
+| Reconciliation | `lab-requests-system-of-record` | `receiving`, `quality-inspection`, `line-station` |
+| Worker claims | `lab-requests-system-of-record` | `quality-inspection` |
+| Credential vault | — | `field-service` |
+| Device link | — | `asset-survey`, `asset-survey-field`, `fleet` |
+| Requirement declaration | `lab-requests-system-of-record`, `lab-requests-signals` | `asset-survey`, `quality-inspection` |
+| Deployment policy | `lab-requests-operations`, `lab-requests-site` | `quality-inspection`, `receiving`, `field-service` |
+| Workforce sign-in | `lab-requests-hosted` | `field-service` |
+| Workstation sign-in | `lab-requests-sign-in` | — |
+| Egress guard | `lab-requests-system-of-record`, `lab-requests-signals` | `field-service`, `quality-inspection` |
+| Audit log | `lab-requests-operations`, `lab-requests-site` | `field-service`, `fleet`, `quality-inspection` |
+| Execution host | `lab-requests-sandbox` | — |
+| Station and scanner profiles | — | `line-station` |
+| Device configuration | — | `line-station` |
+| Golden check | — | `line-station` |
+| Compliance bundle | — | `quality-inspection` |
+| Behavioral scenario | `lab-requests`, `lab-requests-host-plugin`, `lab-requests-review` | `field-service` |
+| Agent scenario | `lab-requests-agents`, `lab-requests-local-model` | `receiving` |
+| Scaffold | — | `receiving`, `field-service` |
+| Framework release | — | — |
+| Task package | `lab-requests-site` | — |
+| Fleet agent | `lab-requests-site` | `fleet` |
+| Telemetry | `lab-requests-operations` | — |
+
+The generator, the scaffold and the framework release are tools that run on content:
+
+- `bun run generate` writes the reference of every sample and example to `dist/reference/`.
+- `receiving` was generated with `scaffold new` and extended with `scaffold add`. `bun run test:scaffold:full` exports the starter with `field-service`, and generates an application with `scaffold new`.
+- The same suite packs the framework release, serves it from a loopback registry as `bun run release:serve` does, and installs it into an application made with `scaffold new --registry`.
+
+## Workspace coverage
+
+| Workspace | Shown in |
+| --- | --- |
+| `packages/contracts`, `packages/runtime`, `packages/host`, `packages/testing` | every sample and example |
+| `packages/kernel` | every sample and example, through `packages/host` |
+| `packages/adapters` | every sample and example, through HTTP, the CLI and MCP |
+| `packages/client` | every web screen, through the frame; `lab-requests-site` `publish-release.ts`; the `field-service` tests |
+| `packages/frame` | every sample and example except `asset-survey-field` |
+| `packages/frame-native`, `packages/mobile`, `apps/mobile` | `asset-survey-field` |
+| `packages/react` | `crm-capture`, `quality-inspection`, `asset-survey` |
+| `packages/operator-ui` | `lab-requests-sign-in`, `line-station`, `quality-inspection`, through its registry items |
+| `packages/devices` | `line-station`, `asset-survey-field` |
+| `packages/integration` | `lab-requests-system-of-record`, `quality-inspection`, `receiving`, `crm-capture`, `asset-survey`, `line-station` |
+| `packages/observation` | `lab-requests-signals` |
+| `packages/agents` | `lab-requests-agents`, `lab-requests-local-model`, `field-service`, `receiving` |
+| `packages/event-log` | `lab-requests-operations`, `field-service`, `fleet`, `quality-inspection` |
+| `packages/bundle` | `lab-requests-site`, `fleet` |
+| `packages/shell` | `field-service`, `asset-survey-field` |
+| `packages/scaffold` | `receiving`, `field-service` |
+| `plugins/site`, `plugins/network` | seven samples, including `lab-requests-operations` and `lab-requests-site`; every example except `asset-survey-field` |
+| `plugins/audit` | `lab-requests-operations`, `lab-requests-site`, `lab-requests-signals`, `lab-requests-system-of-record`, `lab-requests-local-model`; every example except `asset-survey-field` |
+| `plugins/compliance` | `field-service`, `quality-inspection`, `line-station`, `receiving`, `crm-capture`, `asset-survey` |
+| `plugins/automation` | `lab-requests-agents`, `lab-requests-local-model`, `line-station` |
+| `plugins/workflows` | `asset-survey` |
+| `plugins/process` | `lab-requests-local-model`, `lab-requests-sandbox`, `line-station`, `quality-inspection`, `asset-survey` |
+| `plugins/connector-http` | `lab-requests-system-of-record` |
+| `plugins/connector-files` | `receiving` |
+| `plugins/connector-mqtt`, `plugins/connector-opcua` | `lab-requests-signals` |
+| `plugins/connector-driver` | `line-station`, `quality-inspection` |
+| `plugins/peer-link` | `quality-inspection`, `receiving` |
+| `plugins/device-link` | `asset-survey`, `fleet` |
+| `plugins/hub-link`, `plugins/intent-scanner`, `plugins/managed-config`, `plugins/android-intents` | `asset-survey-field` |
+| `plugins/os`, `plugins/share-target`, `plugins/notifications` | `field-service`, `asset-survey-field` |
+| `plugins/os-shortcuts`, `plugins/webhook` | `field-service` |
+| `plugins/model-server` | `lab-requests-local-model` |
+| `plugins/execution-host` | `lab-requests-sandbox` |
+| `plugins/fleet-agent` | `lab-requests-site`, `fleet` |
+| `plugins/telemetry` | `lab-requests-operations` |
+| `workstations/screen-bridge` | `line-station` |
+| `workstations/sign-in` | `lab-requests-sign-in` |
+| `sdks/driver-dotnet` | `line-station` |
+| `sdks/driver-python` | `quality-inspection` |
+| `apps/service`, `apps/web` | `bun run dev:web` in every sample and example |
+| `apps/desktop` | `bun run dev` in every sample and example; `bun run package:stage` packages `field-service` |
+
+## Technology coverage
+
+| Technology | Shown in |
+| --- | --- |
+| SQLite through `bun:sqlite` | every sample and example on a desktop or server |
+| Postgres through `Bun.SQL` | `lab-requests-hosted` |
+| PGlite | the tests of `lab-requests-hosted`; `field-service` `test/storage-conformance.test.ts` |
+| CASL | `field-service` `policy.ts` |
+| Zod and JSON Schema | every contract |
+| Model Context Protocol SDK | `bun run mcp` for every application; `field-service` `test/transport-conformance.test.ts` |
+| OpenID Connect through `jose` | `lab-requests-hosted` |
+| OS keychain through `@napi-rs/keyring` | the `field-service` agent panel's provider keys |
+| AI SDK | the `field-service` agent panel; the local harness in `lab-requests-local-model` |
+| Claude Agent SDK, Codex app-server | the `field-service` agent panel, with a staged runtime manifest |
+| llama.cpp `llama-server` | `lab-requests-local-model`, with `LOCAL_MODEL_GGUF` |
+| vLLM | — |
+| bubblewrap | `lab-requests-sandbox` on Linux |
+| OPC UA | `lab-requests-signals` |
+| MQTT and Sparkplug B | `lab-requests-signals` |
+| OpenTelemetry over OTLP | `lab-requests-operations` |
+| systemd units and nftables rules | `lab-requests-site`, through `site install` and `network export` |
+| React, Vite, TanStack Router, Query and Table | every web screen, through the frame |
+| TanStack Form | `crm-capture`, `quality-inspection`, `asset-survey` |
+| shadcn and Tailwind CSS | every web screen; the registry items `lab-requests-sign-in` uses |
+| `bwip-js` barcodes | the `line-station` scanner setup |
+| Electron and electron-builder | `bun run dev` desktop windows; `bun run package:stage` |
+| Expo, React Native, React Navigation, Uniwind | `asset-survey-field` |
+| `expo-notifications`, `expo-sqlite`, `expo-secure-store`, `expo-background-task`, `expo-file-system` | `asset-survey-field` |
+| `expo-sharing` | — |
+| `react-native-webview` | `asset-survey-field`, through hub link |
+| The Android intents Kotlin module | `asset-survey-field` |
+| .NET 10 | the `line-station` automation driver |
+| Python and `pyserial` | the `quality-inspection` instrument driver |
+| Playwright | the `e2e/` specs of every example except `asset-survey-field` |
+| Changesets | the framework release |
+
 ## Use
 
 Run a sample in the browser from its directory:
@@ -65,8 +239,13 @@ A sample with a `dev.ts` starts its fake system or seeds records first. `lab-req
 ## Limits
 
 - The execution host runs only on Linux with bubblewrap. Elsewhere `lab-requests-sandbox` shows the unavailable path, and its sandbox tests skip.
-- `lab-requests-hosted` runs only against a Postgres server, and its browser sign-in needs a certificate the browser trusts. Its tests use PGlite and a throwaway CA instead.
+- `lab-requests-hosted` runs only against a Postgres server, and its browser sign-in needs a certificate the browser trusts, such as one from mkcert. Its tests use PGlite and a throwaway CA instead.
 - The samples have no Playwright specs. `bun run check` runs their behavioral and UI-binding tests.
+- No content serves a model with vLLM. The model server's own tests cover its vLLM arguments.
+- No content reaches `expo-sharing`, which receives what another app shares, because `asset-survey-field` declares no share handler. Its share action uses the React Native share sheet.
+- No content runs the `reveal` and `open-file` OS actions, because the OS plugin has no file root.
+- The Codex and Claude harnesses in `field-service` need a staged runtime manifest and the person's own accounts. The implementation ledger records no provider run on `field-service`.
+- The native parts of `asset-survey-field`, the Android intents module and the Expo config plugins, compile only in a native build.
 
 ## References
 
@@ -84,3 +263,6 @@ A sample with a `dev.ts` starts its fake system or seeds records first. `lab-req
 - [Lab requests hosted](../samples/lab-requests-hosted/README.md)
 - [Architecture](architecture.md)
 - [Capability authoring](capability-authoring.md)
+- [Primitives](primitives.md)
+- [Examples](architecture.md#examples)
+- [Implementation status](implementation-status.md)

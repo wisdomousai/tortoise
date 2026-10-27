@@ -18,7 +18,7 @@ Content (`examples/*`).
 
 The example is one [application](../../docs/primitives.md#application). It uses:
 
-- [collections](../../docs/primitives.md#collection) of sites, releases, channels, audit events and relay requests, with generated reads and the default list and record screens;
+- [collections](../../docs/primitives.md#collection) of sites, releases, channels, audit events and relay requests, with generated reads and the default list and record screens, which their [display metadata](../../docs/primitives.md#display-metadata) labels;
 - a [policy](../../docs/primitives.md#policy) built with `definePolicy`, with enrolled sites as an integration lane;
 - the [device link](../../docs/primitives.md#device-link) plugin, to enroll sites as `field-sync` devices;
 - the [fleet agent](../../docs/primitives.md#fleet-agent) protocol, `fleetSiteModule`, as its second module;

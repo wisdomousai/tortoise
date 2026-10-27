@@ -29,6 +29,7 @@ These protect data and security; `bun run check` and the conformance suites test
 This section is advice; depart from it when the code is better for it, and say why in the commit message.
 
 - Look for an existing primitive before adding one.
+- A new primitive, plugin or integrated technology gets a sample or example and a row in `docs/samples.md`. Content stays in the domains the repository addresses: manufacturing, field service, customer service, logistics, lab controls, industrial automation HMIs and APIs, and test and quality.
 - Move a domain concept into the framework when a second application needs it. Reusable UI ships as a shadcn registry built from stock primitives.
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.

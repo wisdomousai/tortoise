@@ -11,7 +11,7 @@ Content (`samples/*`). It imports the base sample, the framework and `workstatio
 The sample is one [application](../../docs/primitives.md#application). It composes:
 
 - [workstation sign-in](../../docs/primitives.md#workstation-sign-in): the station sign-in plugin, the seat screen for `bench-2` and the badge screen;
-- the operator registry's scanner input, keypad, scan prompt and idle return, through the seat screen and the bench screen;
+- the operator [UI registry](../../docs/primitives.md#ui-registry)'s scanner [input source](../../docs/primitives.md#input-source), keypad, scan prompt and idle return, through the seat screen and the bench screen;
 - the base sample's [policy](../../docs/glossary.md#policy), under which `ana` is a technician and `ben` a viewer, so a signed-in viewer reads requests but cannot submit one.
 
 Its own files:

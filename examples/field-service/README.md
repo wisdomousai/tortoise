@@ -74,6 +74,8 @@ The agent panel's **Agent to use** list offers the harnesses the host can run. A
 | Codex | A ChatGPT sign-in, and the bundled Codex runtime. |
 | Claude | A Claude API key saved in the panel, and the bundled Claude Code runtime. |
 
+The panel saves a key in the host's [credential vault](../../docs/primitives.md#credential-vault), which keeps it in the OS keychain under a name derived from the workspace path.
+
 A dev launch has no bundled runtimes, so Codex and Claude report "Bundled native runtime manifest not configured". To run them from source, stage the runtimes once and point the host at the staged manifest. Run this from the repository root, with the target of the machine.
 
 ```sh

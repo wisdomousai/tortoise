@@ -13,7 +13,7 @@ The sample is one [application](../../docs/primitives.md#application). It compos
 - the `lab-methods` [model entry](../../docs/primitives.md#model-entry), served by `createModelServer` and named by the agent definition's `models`, so the suggester runs on no other model;
 - a [trigger](../../docs/glossary.md#trigger) that starts the agent definition on each submitted test request, with the model server's harness as the automation plugin's `agentHarnesses`;
 - [approval requests](../../docs/glossary.md#approval-request), which a technician approves or rejects;
-- an [approval dataset](../../docs/glossary.md#approval-dataset) exported from the decided requests, and a fine-tune gated on an [agent scenario](../../docs/glossary.md#agent-scenario) before it serves, in the tests;
+- an [approval dataset](../../docs/primitives.md#approval-dataset) exported from the decided requests, and a fine-tune gated on an [agent scenario](../../docs/glossary.md#agent-scenario) before it serves, in the tests;
 - the `llm` process, which a [deployment policy](../../docs/primitives.md#deployment-policy) binds and the [audit log](../../docs/primitives.md#audit-log) records starting.
 
 Its own files:
