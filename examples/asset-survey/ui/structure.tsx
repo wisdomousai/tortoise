@@ -1,77 +1,60 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
-import { useCommand } from '@agent-native/react';
+import { approvalOperations } from '@agent-native/contracts';
+import { ApprovalReview } from '@/components/approval-review';
+import { CollectionTree } from '@/components/collection-tree';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { live, transport } from '@/lib/session';
+import { live } from '@/lib/session';
 import { operations } from '../contracts';
 import { NodeForm } from './structure/node-form';
-import { Empty, ErrorText, Page, quietly } from './shared';
 
-/** The site structure depth first, with proposed nodes waiting for a manager. */
+type Row = { depth: number } & Record<string, unknown>;
+
+/** What a node has gathered: accepted attributes and the EAM asset it was filed as. */
+function NodeBadges({ row }: { row: Row }) {
+  const attributes = Object.keys((row.attributes as object | undefined) ?? {}).length;
+  const retired = row.assetStatus === 'retired';
+  return (
+    <>
+      {row.label ? (
+        <span className="text-xs text-muted-foreground">{String(row.label)}</span>
+      ) : null}
+      <span className="text-sm">{String(row.name)}</span>
+      {attributes > 0 && <Badge variant="secondary">{attributes} attributes</Badge>}
+      {row.assetId ? (
+        <Badge variant={retired ? 'destructive' : 'outline'}>
+          {String(row.assetId)}
+          {retired ? ' retired in EAM' : ''}
+        </Badge>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * The site structure depth first, the form that adds a node, and the node creations an agent
+ * requested from a schematic or plan, each waiting for a manager.
+ */
 export function StructureScreen() {
   const tree = useQuery(live.liveQueryOptions(operations.tree, {}));
-  const accept = useCommand(transport, operations.nodeAccept);
-  const nodes = tree.data?.nodes ?? [];
   return (
-    <Page
-      title="Structure"
-      description="Reference designations of the site (IEC 81346, KKS, ANSI device numbers). Field assignments cover subtrees of it."
-    >
-      <NodeForm parents={nodes.filter((node) => node.source !== 'proposed')} />
-      <ErrorText error={tree.error?.message ?? accept.error} />
-      {nodes.length ? (
-        <ul aria-label="Structure" className="divide-y rounded-xl border bg-card">
-          {nodes.map((node) => (
-            <li
-              key={node.id}
-              className="flex flex-wrap items-center justify-between gap-2 py-2 pr-3"
-              style={{ paddingLeft: `${0.75 + node.depth * 1.25}rem` }}
-            >
-              <div className="min-w-0">
-                <Link
-                  to="/structure/$nodeId"
-                  params={{ nodeId: node.id }}
-                  className="font-mono text-sm font-medium hover:underline"
-                >
-                  {node.designation}
-                </Link>
-                <span className="ml-2 text-sm">{node.name}</span>
-                {node.label && (
-                  <span className="ml-2 text-xs text-muted-foreground">{node.label}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {Object.keys(node.attributes).length > 0 && (
-                  <Badge variant="secondary">
-                    {Object.keys(node.attributes).length} attributes
-                  </Badge>
-                )}
-                {node.assetId && (
-                  <Badge variant={node.assetStatus === 'retired' ? 'destructive' : 'outline'}>
-                    {node.assetId}
-                    {node.assetStatus === 'retired' ? ' retired in EAM' : ''}
-                  </Badge>
-                )}
-                {node.source === 'proposed' && (
-                  <>
-                    <Badge variant="outline">Proposed</Badge>
-                    <Button
-                      size="sm"
-                      disabled={accept.pending}
-                      onClick={() => quietly(accept.execute({ id: node.id }))}
-                    >
-                      Accept {node.designation}
-                    </Button>
-                  </>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        tree.data && <Empty>No nodes yet. Add the plant or a first bay above.</Empty>
-      )}
-    </Page>
+    <div className="mx-auto max-w-5xl space-y-6">
+      <CollectionTree
+        title="Structure"
+        tree={operations.tree}
+        open={(row) => `/structure/${String(row.id)}`}
+        aside={(row) => <NodeBadges row={row} />}
+        empty="No nodes yet. Add the plant or a first bay below."
+      />
+      <NodeForm parents={tree.data?.items ?? []} />
+      <ApprovalReview
+        title="Requested nodes"
+        list={approvalOperations.approvalList}
+        approve={approvalOperations.approvalApprove}
+        reject={approvalOperations.approvalReject}
+        describe={(approval) =>
+          `${String(approval.input.designation ?? '')} ${String(approval.input.name ?? '')}`.trim()
+        }
+      />
+    </div>
   );
 }

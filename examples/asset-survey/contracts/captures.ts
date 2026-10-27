@@ -1,119 +1,95 @@
 import { z } from 'zod';
 import { operation } from './operation';
-import {
-  assignmentSchema,
-  captureDetailSchema,
-  captureInputSchema,
-  captureKind,
-  captureSchema,
-  fieldAssignmentSchema,
-  photoLimits,
-  recordId,
-  reviewStatus,
-  text,
-} from './schemas';
+import { captureSchema, nodeSchema, proposedFieldSchema, recordId, timestamp } from './schemas';
+
+const read = { action: 'read', resourceType: 'AssignmentReport' };
+const review = { action: 'review', resourceType: 'AssignmentReport' };
+
+/** Where the reading of a capture stands, from its latest extraction assignment. */
+export const readingStatus = z.enum(['reading', 'proposed', 'accepted', 'refused', 'withdrawn']);
+
+/** A capture: one survey report with its node and how its reading stands. */
+export const captureItemSchema = z.strictObject({
+  id: z.string(),
+  assignmentId: z.string(),
+  nodeId: z.string().optional(),
+  ...captureSchema.shape,
+  reportedBy: z.string(),
+  reportedAt: timestamp,
+  review: z.enum(['new', 'accepted', 'discarded']),
+  reason: z.string().optional(),
+  reading: readingStatus.optional(),
+  /** A proposed value is below the attention threshold. */
+  attention: z.boolean(),
+});
+export const readingSchema = z.strictObject({
+  assignmentId: z.string(),
+  status: readingStatus,
+  /** Whom the reading was sent to: the model, or a person. */
+  assignee: z.string().optional(),
+  reportId: z.string().optional(),
+  model: z.string().optional(),
+  fields: z.array(z.strictObject({ ...proposedFieldSchema.shape, attention: z.boolean() })),
+  rejection: z.strictObject({ code: z.string(), message: z.string() }).optional(),
+});
+export const captureDetailSchema = z.strictObject({
+  ...captureItemSchema.shape,
+  accepted: z.record(z.string(), z.string()).optional(),
+  reviewedBy: z.string().optional(),
+  node: nodeSchema.optional(),
+  extraction: readingSchema.optional(),
+});
+
+export const assigneeOptionSchema = z.strictObject({
+  type: z.enum(['person', 'target']),
+  id: z.string().min(1).max(128),
+  label: z.string().max(200),
+});
 
 /**
- * Assignments sent to field devices and the captures that come back. `assignment.feed`,
- * `assignment.return` and `capture.ingest` are a paired field device's operations; the hub's
- * people dispatch and review.
+ * Captures are survey reports; these reads join each with its node and its reading for review.
+ * Placing and extracting in one step, and the assignees a planner picks from, are the survey's.
  */
-export const fieldOperations = {
-  assignmentCreate: operation('assignment.create', 'command', {
-    input: z.strictObject({
-      title: text(200),
-      roots: z.array(recordId).min(1).max(50),
-      kinds: z.array(captureKind).min(1),
-      note: z.string().max(2000).optional(),
-    }),
-    output: assignmentSchema,
-    permission: { action: 'plan', resourceType: 'Assignment' },
-    description:
-      'Plan field work: the subtrees to visit (roots) and the kinds of capture wanted there, such as nameplates of every breaker under =G1. Starts as a draft.',
-    dependencies: ['assignment'],
-  }),
-  assignmentDispatch: operation('assignment.dispatch', 'command', {
-    input: z.strictObject({ id: recordId, deviceId: z.string().min(1).max(64) }),
-    output: assignmentSchema,
-    permission: { action: 'plan', resourceType: 'Assignment' },
-    description:
-      'Send a draft assignment to one paired field device (link.device.list names them). The device receives it with its structure slice at its next sync.',
-    dependencies: ['assignment'],
-  }),
-  assignmentList: operation('assignment.list', 'query', {
-    input: z.strictObject({}),
-    output: z.strictObject({ items: z.array(assignmentSchema) }),
-    permission: { action: 'read', resourceType: 'Assignment' },
-    description:
-      'Every assignment with its stage: draft, dispatched, in-field once captures arrive, returned when the device is done, processed when every capture is reviewed, filed when every node it covers that has attributes is filed.',
-    dependencies: ['assignment', 'capture', 'filing'],
-  }),
-  assignmentFeed: operation('assignment.feed', 'query', {
-    input: z.strictObject({ cursor: z.string().max(64).optional() }),
-    output: z.strictObject({
-      items: z.array(fieldAssignmentSchema),
-      cursor: z.string(),
-      more: z.boolean(),
-    }),
-    permission: { action: 'sync', resourceType: 'Assignment' },
-    description:
-      'Field device only: the assignments dispatched to the calling device with their structure slices. Returns nothing new while cursor is current.',
-    dependencies: ['assignment', 'node'],
-    exception: 'read by the field app through its hub sync, not by a hub screen',
-  }),
-  assignmentReturn: operation('assignment.return', 'command', {
-    input: z.strictObject({ id: recordId }),
-    output: assignmentSchema,
-    permission: { action: 'return', resourceType: 'Assignment' },
-    description:
-      'Mark field work on an assignment done. The field device returns its own assignments; a manager may return one for a lost device.',
-    dependencies: ['assignment'],
-  }),
-  captureIngest: operation('capture.ingest', 'command', {
-    input: captureInputSchema,
-    output: z.strictObject({ id: recordId }),
-    permission: { action: 'ingest', resourceType: 'Capture' },
-    description:
-      'Field device only: hand over one capture with its photos (uploaded first as blobs). The capture ID comes from the device, so delivering it again is harmless; a different capture under the same ID conflicts.',
-    dependencies: ['capture', 'assignment'],
-    blobs: photoLimits,
-    exception: 'sent by the field app through its outbox, not by a hub screen',
-  }),
+export const captureOperations = {
   captureList: operation('capture.list', 'query', {
     input: z.strictObject({
       assignmentId: recordId.optional(),
       nodeId: recordId.optional(),
-      review: reviewStatus.optional(),
+      review: z.enum(['new', 'accepted', 'discarded']).optional(),
       unplaced: z.boolean().optional(),
     }),
-    output: z.strictObject({ items: z.array(captureSchema) }),
-    permission: { action: 'read', resourceType: 'Capture' },
+    output: z.strictObject({ items: z.array(captureItemSchema) }),
+    permission: read,
     description:
-      'Captures, newest first, filtered by assignment, node, review status, or unplaced (taken without a node). The review queue is review new.',
-    dependencies: ['capture', 'extraction'],
+      'Captures, newest first, filtered by assignment, node, review state, or unplaced (taken without a node). The review queue is review new.',
+    dependencies: ['assignment-report', 'assignment'],
   }),
   captureGet: operation('capture.get', 'query', {
     input: z.strictObject({ id: recordId }),
     output: captureDetailSchema,
-    permission: { action: 'read', resourceType: 'Capture' },
+    permission: read,
     description:
-      'One capture with its node and its extraction: each proposed value with its confidence, the photo region it was read from, and attention set where confidence is low.',
-    dependencies: ['capture', 'extraction', 'node'],
+      'One capture with its node and its latest reading: each value read with its confidence, the photo region it was read from, and attention set where confidence is low.',
+    dependencies: ['assignment-report', 'assignment', 'node'],
   }),
-  capturePlace: operation('capture.place', 'command', {
+  placeAndExtract: operation('capture.place-and-extract', 'command', {
     input: z.strictObject({ id: recordId, nodeId: recordId }),
-    output: captureSchema,
-    permission: { action: 'review', resourceType: 'Capture' },
+    output: z.strictObject({
+      capture: captureItemSchema,
+      extraction: z.strictObject({ id: z.string() }),
+    }),
+    permission: review,
     description:
-      'Place a capture on a node: an unplaced capture, or one the device put on the wrong node. Accepted attributes stay with the node they were accepted on.',
-    dependencies: ['capture'],
+      'Place a capture on a node and send it to the model to read, in one step: both happen or neither does. Refused as a whole when either one would be.',
+    dependencies: ['assignment-report', 'assignment'],
+    invokes: ['assignment.report.place', 'assignment.extraction.create'],
   }),
-  captureDiscard: operation('capture.discard', 'command', {
-    input: z.strictObject({ id: recordId, reason: text(500) }),
-    output: captureSchema,
-    permission: { action: 'review', resourceType: 'Capture' },
+  assigneeList: operation('survey.assignee.list', 'query', {
+    input: z.strictObject({}),
+    output: z.strictObject({ items: z.array(assigneeOptionSchema) }),
+    permission: { action: 'read', resourceType: 'Assignment' },
     description:
-      'Discard a capture that is unusable (blurred, wrong object, duplicate) with the reason. Its photos stay readable for the record.',
-    dependencies: ['capture'],
+      'Who can take survey work here besides paired devices (link.device.list): the members, and the model for extractions.',
+    dependencies: [],
   }),
 } as const;

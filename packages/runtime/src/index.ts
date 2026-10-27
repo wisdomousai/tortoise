@@ -9,6 +9,7 @@ export {
   type ApplicationOptions,
 } from './application.js';
 export * from './collection.js';
+export * from './collection-commands.js';
 export * from './policy.js';
 export * from './membership.js';
 export * from './agent-grant.js';

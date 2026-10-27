@@ -34,28 +34,12 @@ export function conflict(message: string, details?: JsonValue): never {
 const label = (one: string, many: string) => ({ one, many });
 export const nodeRecords = (ctx: Context) =>
   records(ctx, { type: 'node', label: label('Node', 'Nodes') }, ctx.state.nodes);
-export const documentRecords = (ctx: Context) =>
-  records(ctx, { type: 'document', label: label('Document', 'Documents') }, ctx.state.documents);
-export const assignmentRecords = (ctx: Context) =>
-  records(
-    ctx,
-    { type: 'assignment', label: label('Assignment', 'Assignments') },
-    ctx.state.assignments,
-  );
-export const captureRecords = (ctx: Context) =>
-  records(ctx, { type: 'capture', label: label('Capture', 'Captures') }, ctx.state.captures);
-export const extractionRecords = (ctx: Context) =>
-  records(
-    ctx,
-    { type: 'extraction', label: label('Extraction', 'Extractions') },
-    ctx.state.extractions,
-  );
 export const filingRecords = (ctx: Context) =>
   records(ctx, { type: 'filing', label: label('Filing', 'Filings') }, ctx.state.filings);
 
 /** A node as callers see it: no bookkeeping, plus the scheme's label for its designation. */
 export function nodeDto(node: SurveyNode) {
-  const { createdBy: _by, createdAt: _at, documentId: _document, ...visible } = node;
+  const { createdBy: _by, createdAt: _at, ...visible } = node;
   return compact({ ...visible, label: schemes[node.scheme].describe(node.designation) });
 }
 

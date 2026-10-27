@@ -8,13 +8,13 @@ import type { BlobRef } from '@agent-native/contracts';
 import { HoldButton } from '@agent-native/frame-native/components/hold-button';
 import { useOsAction } from '@agent-native/frame-native/os-actions';
 import { useSession } from '@agent-native/frame-native/session';
-import type { CaptureKind } from '@agent-native/asset-survey/domain';
+import type { CaptureBody, SurveyBrief } from './brief';
 import { fieldOperations as ops } from '../contracts';
-import type { FieldCapture } from '../domain';
 import { refusal, workRequest } from './os-requests';
 import { ActionButton, ErrorText, Screen } from './shared';
 
-type Condition = NonNullable<FieldCapture['condition']>;
+type CaptureKind = CaptureBody['kind'];
+type Condition = NonNullable<CaptureBody['condition']>;
 const conditions: Condition[] = ['good', 'fair', 'poor', 'failed'];
 const maxPhotos = 8;
 
@@ -59,10 +59,11 @@ function Chips<T extends string>({
 
 /**
  * Take photos and record one capture. Each photo is stored as a blob on the device as soon as it
- * is taken, so the capture command only references them; the camera's temporary files are
+ * is taken, so the report command only references them; the camera's temporary files are
  * deleted when the screen closes. The capture goes to the hub through the outbox whenever the
- * device reaches it. On Android, a node's capture can also raise a work request in the
- * maintenance app, with the note as its text.
+ * device reaches it. One visit records one capture: a retried save reuses its idempotency key.
+ * On Android, a node's capture can also raise a work request in the maintenance app, with the
+ * note as its text.
  */
 export function CaptureScreen() {
   const params = useRoute().params as { assignmentId: string; nodeId?: string; codes?: string[] };
@@ -72,19 +73,17 @@ export function CaptureScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
   const files = useRef<File[]>([]);
+  const key = useRef(crypto.randomUUID());
   const [photos, setPhotos] = useState<{ ref: BlobRef; uri: string }[]>([]);
   const [kind, setKind] = useState<CaptureKind>();
   const [condition, setCondition] = useState<Condition>();
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>();
-  const assignment = useQuery(live.liveQueryOptions(ops.assignmentList, {})).data?.items.find(
-    (item) => item.id === params.assignmentId,
-  );
-  const node = useQuery(
-    live.liveQueryOptions(ops.nodeList, { assignmentId: params.assignmentId }),
-  ).data?.items.find((item) => item.id === params.nodeId);
-  const kinds = assignment?.kinds ?? [];
+  const brief = useQuery(live.liveQueryOptions(ops.assignmentGet, { id: params.assignmentId })).data
+    ?.brief as SurveyBrief | undefined;
+  const node = brief?.nodes.find((item) => item.id === params.nodeId);
+  const kinds = brief?.kinds ?? [];
   const chosenKind = kind ?? (kinds.length === 1 ? kinds[0] : undefined);
 
   useEffect(
@@ -122,22 +121,22 @@ export function CaptureScreen() {
     if (!chosenKind) return;
     setBusy(true);
     setError(undefined);
-    const id = crypto.randomUUID();
     client
       .command(
-        ops.captureRecord,
+        ops.surveyReport,
         {
-          id,
           assignmentId: params.assignmentId,
-          ...(params.nodeId ? { nodeId: params.nodeId } : {}),
-          kind: chosenKind,
-          photos: photos.map((photo) => photo.ref),
-          codes: params.codes ?? [],
-          ...(condition ? { condition } : {}),
-          note: note.trim(),
-          takenAt: Date.now(),
+          ...(params.nodeId ? { subject: params.nodeId } : {}),
+          body: {
+            kind: chosenKind,
+            photos: photos.map((photo) => photo.ref),
+            codes: params.codes ?? [],
+            ...(condition ? { condition } : {}),
+            note: note.trim(),
+            takenAt: Date.now(),
+          },
         },
-        { idempotencyKey: id },
+        { idempotencyKey: key.current },
       )
       .then(() => navigation.goBack(), setError)
       .finally(() => setBusy(false));

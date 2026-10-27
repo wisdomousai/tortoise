@@ -213,8 +213,9 @@ Startup refuses the composition in these cases:
 - **receiving** mounts `approval` and `reconciliation`.
 - **field-service** mounts `approval`.
 - **line-station** mounts `approval` and `device`.
+- **asset-survey** mounts `assignment` and `approval`.
 
-Each answers the access views from its own roles in `policy.ts`, and adopted the data its version 1 state kept.
+Each answers the access views from its own roles in `policy.ts`, repeating the membership gate its application policy applies, and adopted the data its version 1 state kept.
 
 ### Telemetry
 

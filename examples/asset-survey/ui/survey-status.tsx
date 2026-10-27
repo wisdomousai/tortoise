@@ -2,19 +2,24 @@ import { useQuery } from '@tanstack/react-query';
 import { CircleAlert, CircleCheck, RefreshCw } from 'lucide-react';
 import { live } from '@/lib/session';
 import { cn } from '@/lib/utils';
-import { operations } from '../contracts';
+import { modelLane, operations } from '../contracts';
 
 /** Model and EAM at a glance, in the sidebar footer. */
 export function SurveyStatus({ className }: { className?: string }) {
-  const model = useQuery(live.liveQueryOptions(operations.extractionStatus, {}));
+  const model = useQuery(live.liveQueryOptions(modelLane.status, {}));
+  const queue = useQuery(live.liveQueryOptions(operations.captureList, { review: 'new' }));
   const eam = useQuery(live.liveQueryOptions(operations.filingStatus, {}));
-  if (!model.data || !eam.data) return null;
+  if (!model.data || !queue.data || !eam.data) return null;
+  const proposed = queue.data.items.filter((capture) => capture.reading === 'proposed');
+  const attention = proposed.filter((capture) => capture.attention).length;
   const lines = [
-    model.data.requested
-      ? { tone: 'busy', text: `Model: reading ${model.data.requested}` }
-      : model.data.attention
-        ? { tone: 'warn', text: `${model.data.attention} proposals to check` }
-        : { tone: 'ok', text: `${model.data.proposed} proposals ready` },
+    model.data.waiting
+      ? { tone: 'busy', text: `Model: reading ${model.data.waiting}` }
+      : model.data.refused
+        ? { tone: 'warn', text: `Model refused ${model.data.refused}` }
+        : attention
+          ? { tone: 'warn', text: `${attention} proposals to check` }
+          : { tone: 'ok', text: `${proposed.length} proposals ready` },
     eam.data.rejected
       ? { tone: 'warn', text: `EAM refused ${eam.data.rejected}` }
       : eam.data.pending

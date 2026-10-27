@@ -1,11 +1,14 @@
-import { targetRules } from '@agent-native/integration';
 import { definePolicy } from '@agent-native/runtime';
-import { fieldOperations as ops, hubTarget } from './contracts';
+import { worklistRules } from '@agent-native/assignments/server';
+import { fieldOperations, worklist } from './contracts';
 import type { FieldState } from './domain';
+
+const owns = (state: FieldState, context: { principalId: string }) =>
+  context.principalId === state.ownerId;
 
 /**
  * The device has one person, its owner. The integration principal delivers to the hub and
- * applies its feed and nothing else. The hub decides again on every record it receives, as the
+ * applies its feed and nothing else. The hub decides again on every capture it receives, as the
  * device's own principal, so nothing here widens what the device may do there.
  */
 export const fieldPolicy = definePolicy<FieldState, 'owner'>({
@@ -13,29 +16,22 @@ export const fieldPolicy = definePolicy<FieldState, 'owner'>({
   integrations: [
     {
       is: (state, principalId) => principalId === state.integrationPrincipalId,
-      operations: hubTarget.integrationOperations,
+      operations: worklist.target.integrationOperations,
     },
   ],
-  caller: { allow: (state, context) => context.principalId === state.ownerId },
+  caller: { allow: owns },
   operations: {
-    ...targetRules(hubTarget),
-    [ops.assignmentList.id]: 'open',
-    [ops.nodeList.id]: 'open',
-    [ops.captureRecord.id]: 'open',
-    [ops.captureList.id]: 'open',
-    [ops.assignmentReturn.id]: 'open',
-    [ops.tagGet.id]: 'open',
+    ...worklistRules(worklist),
+    [fieldOperations.tagGet.id]: 'open',
     // The notification dispatcher: the owner under its delegated grant, never a screen.
-    [ops.noticesSettle.id]: {
+    [fieldOperations.noticesSettle.id]: {
       allow: ({ state, context }) =>
         state.ownerId === context.principalId && context.grant !== undefined,
     },
   },
-  events: Object.fromEntries(
-    ['assignment', 'capture', 'sync'].map((type) => [
-      type,
-      (_id: string, state: FieldState, context: { principalId: string }) =>
-        context.principalId === state.ownerId,
-    ]),
-  ),
+  events: {
+    [worklist.types.assignment]: (_id, state, context) => owns(state, context),
+    [worklist.types.report]: (_id, state, context) => owns(state, context),
+    sync: (_id, state, context) => owns(state, context),
+  },
 });

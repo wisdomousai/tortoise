@@ -1,12 +1,9 @@
-import type { z } from 'zod';
 import type { BlobRef } from '@agent-native/contracts';
-import type { PullBatch, SystemOfRecordPort } from '@agent-native/integration';
-import type { Effect } from '@agent-native/runtime';
-import type { proposalSchema } from '../contracts/extraction';
+import { assignmentTargetPort } from '@agent-native/assignments/server';
+import type { extraction } from '../contracts/kinds';
 import type { ProposedField } from '../domain';
 import { nameplateText } from './nameplate-photo';
 
-export type Proposal = z.output<typeof proposalSchema>;
 export interface Photo {
   readonly ref: BlobRef;
   readonly data: Uint8Array;
@@ -51,60 +48,34 @@ export const nameplateTextExtractor: Extractor = {
 };
 
 /**
- * The extraction model as a system of record. `deliver` reads the request's photos, asks the
- * extractor and keeps the proposal for the feed; delivering the same request again returns the
- * kept answer, so a retry never asks twice. `pull` hands out proposals in order.
- *
- * Proposals live in memory until the hub's sync applies them. If the host stops in between, the
- * request is settled but its proposal is lost, and the reviewer requests it again; an extractor
- * that runs as its own service keeps them.
+ * The extraction model as the assignments' `model` target lane: each offer carries one
+ * capture's photos, and the port answers with one reading. A photo no longer stored refuses the
+ * offer, which the planner sees on the extraction. The lane port keeps answers in memory until
+ * the hub syncs them (see `assignmentTargetPort`).
  */
-export function createExtractorPort(options: {
+export function createExtractionPort(options: {
   readonly extractor: Extractor;
-  readonly readBlob: (effect: Readonly<Effect>, digest: string) => Promise<Photo | undefined>;
-}): SystemOfRecordPort<Proposal> & { readonly proposals: readonly Proposal[] } {
-  const proposals: Proposal[] = [];
-  const answered = new Map<string, number>();
-  return {
-    proposals,
-    describe: () => ({ target: 'model', idempotentDelivery: true }),
-    async deliver(effect, signal) {
-      const known = answered.get(effect.id);
-      if (known !== undefined) return { status: 'accepted', externalRef: `proposal-${known}` };
-      const payload = effect.payload as unknown as {
-        captureId: string;
-        kind: string;
-        photos: BlobRef[];
-      };
+  readonly readBlob: (effectId: string, digest: string) => Promise<Photo | undefined>;
+}) {
+  return assignmentTargetPort<typeof extraction>({
+    lane: 'model',
+    readBlob: options.readBlob,
+    async work(offer, { readBlob, signal }) {
       const photos: Photo[] = [];
-      for (const ref of payload.photos) {
-        const photo = await options.readBlob(effect, ref.digest);
+      for (const ref of offer.brief.photos) {
+        const photo = await readBlob(ref.digest);
         if (!photo)
           return {
-            status: 'rejected',
-            code: 'PHOTO_UNAVAILABLE',
-            message: 'A photo of the capture is no longer stored',
+            refused: {
+              code: 'PHOTO_UNAVAILABLE',
+              message: 'A photo of the capture is no longer stored',
+            },
           };
         photos.push(photo);
       }
-      const fields = await options.extractor.extract(photos, payload.kind, signal);
-      proposals.push({
-        captureId: payload.captureId,
-        effectId: effect.id,
-        model: options.extractor.model,
-        fields,
-      });
-      answered.set(effect.id, proposals.length);
-      return { status: 'accepted', externalRef: `proposal-${proposals.length}` };
+      const fields = await options.extractor.extract(photos, offer.brief.kind, signal);
+      return [{ body: { model: options.extractor.model, fields } }];
     },
-    async pull(cursor): Promise<PullBatch<Proposal>> {
-      const from = Number(cursor ?? 0);
-      const items = proposals.slice(from, from + 50);
-      return {
-        items,
-        cursor: String(from + items.length),
-        more: from + items.length < proposals.length,
-      };
-    },
-  };
+  });
 }
+export type ExtractionPort = ReturnType<typeof createExtractionPort>;

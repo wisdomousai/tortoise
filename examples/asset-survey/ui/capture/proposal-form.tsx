@@ -20,11 +20,12 @@ interface Field {
  * flagged; focusing a value outlines where on the photo it was read. Unticked values are dropped.
  */
 export function ProposalForm({
-  captureId,
+  reportId,
   fields,
   onFocusField,
 }: {
-  captureId: string;
+  /** The reading's report: accepting it accepts the capture with these values. */
+  reportId: string;
   fields: readonly Field[];
   onFocusField: (field: Field | undefined) => void;
 }) {
@@ -40,7 +41,7 @@ export function ProposalForm({
         .filter(([name, value]) => kept.has(name) && value.trim())
         .map(([name, value]) => [name, value.trim()]),
     );
-    void quietly(accept.execute({ captureId, values: chosen }));
+    void quietly(accept.execute({ id: reportId, values: chosen }));
   };
   return (
     <form

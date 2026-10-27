@@ -33,6 +33,7 @@ This section is advice; depart from it when the code is better for it, and say w
 - Move a domain concept into the framework when a second application needs it. Reusable UI ships as a shadcn registry built from stock primitives.
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.
+- Hand work to a person, device, agent, peer or service as an assignment, and take results back as reports a person accepts; use an outbox effect when another system decides.
 - Each workspace has a README saying what it is for, what it trusts, and how to run its tests. Comment the non-obvious: transaction and authorization ordering, trust boundaries, failure behavior.
 - When a primitive's meaning or status changes, update its entry in `docs/primitives.md`. `docs/implementation-status.md` records only what `bun run check` cannot show (browser, device, live and by-hand runs) and the known gaps; don't restate what tests prove.
 
@@ -45,6 +46,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Start an application, export an example, pick the next skill | [create-agent-native-app](packages/scaffold/skills/create-agent-native-app/SKILL.md) |
 | Add or change a command or query, a record shape or a trigger | [add-capability](packages/runtime/skills/add-capability/SKILL.md) |
 | Write or mount a feature: a reusable domain part with its slice, policy and hooks | [write-a-feature](packages/host/skills/write-a-feature/SKILL.md) |
+| Hand out work and review the reports: assignment kinds, lanes, the worklist | [assign-work](packages/assignments/skills/assign-work/SKILL.md) |
 | Write a host plugin for a cross-cutting concern | [write-host-plugin](packages/host/skills/write-host-plugin/SKILL.md) |
 | Choose the checks and report the evidence | [check-a-change](packages/testing/skills/check-a-change/SKILL.md) |
 | Connect a system of record: outbox, settle, sync, live reads | [connect-system-of-record](packages/integration/skills/connect-system-of-record/SKILL.md) |

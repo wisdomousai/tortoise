@@ -14,10 +14,10 @@ Framework (`packages/*`). Application state is opaque to the runtime. Domains su
 - [Command](../../docs/primitives.md#command): `createHandlerFactory`, `HandlerContext` (with `continueWith`), `CommandReceipt` (with `continuation`), `StoredReceipt` (with the nested `calls` a retry authorizes again).
 - [Nested invocation](../../docs/primitives.md#nested-invocation): `HandlerContext.invoke`, `query`, `invokeRaw` and `queryRaw` run an operation the capability lists in `invokes` inside the same transaction; `AuthorizationRequest.via` names the enclosing operations.
 - [Query](../../docs/primitives.md#query): `QueryResult`.
-- [Collection](../../docs/primitives.md#collection): `records` (`Records`), `collectionGetHandler`, `collectionListHandler`, `DEFAULT_PAGE`, and the prototype-safe `own` and `put`.
+- [Collection](../../docs/primitives.md#collection): `records` (`Records`), `collectionGetHandler`, `collectionListHandler`, `collectionTreeHandler`, `collectionCommandHandlers` (`CollectionCommands`, `CollectionWriteOptions`), the tree helpers `subtree` and `ancestors`, `DEFAULT_PAGE`, and the prototype-safe `own` and `put`.
 - [Remote query](../../docs/primitives.md#remote-query): `createRemoteQueryFactory`, `RemoteHandler`, `RemoteSource`, `SourceRequest`, `SourceCall`, `SourceAnswer`, and the `sources` and `remoteDeadlineMs` options.
 - [Execution context](../../docs/primitives.md#execution-context): `ExecutionContext`, `DelegationGrant`.
-- [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed [grant](../../docs/glossary.md#grant).
+- [Agent definition](../../docs/primitives.md#agent-definition): `agentGrant` (`AgentGrantOptions`) turns a definition and its issuer's context into the run's narrowed [grant](../../docs/glossary.md#grant). The grant names the definition in `agent`, and a resource-scoped grant also covers the resource types the definition `creates`.
 - [Approval request](../../docs/primitives.md#approval-request):
   - `approvalFeature` (`ApprovalFeatureOptions`): the `approval` [feature](../../docs/glossary.md#feature), with its slice (`ApprovalSlice`), an `ApprovalAccess` view the application supplies, `newId` and `now` hooks (`ApprovalHooks`), and a policy in which approve and reject are person-only;
   - `approvalHandlers` (`ApprovalOptions`): the handlers the feature uses, over any store and visibility rule;
@@ -107,6 +107,7 @@ bun test packages/runtime
   - the dataset export holds only decided approval requests the caller may see;
   - the export applies field, rationale and reason redaction before the digest, and gives the same digest for the same rows.
 - `test/collection.test.ts`: generated lists scope before filters, counts and pages; a hidden record reads as missing; writes declare their resource and conflict on a stale revision.
+- `test/collection-commands.test.ts`: generated commands key, default, normalize and validate a record; a hidden parent is missing; moves refuse cycles and retired parents; retiring needs the children retired or moved; referenced blobs attach and replaced ones detach; the tree read scopes, walks depth first and stops at its depth and limit.
 - `test/audit.test.ts`: a failed required append rolls the commit back; crash recovery.
 - `test/blobs.test.ts`:
   - references commit with the command, and only they enter the snapshot;

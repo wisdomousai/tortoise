@@ -1,47 +1,32 @@
-import { FlatList } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { ListRow } from '@agent-native/frame-native/components/list-row';
-import { StatusPill } from '@agent-native/frame-native/components/status-pill';
+import { WorklistList } from '@agent-native/frame-native/components/worklist-list';
 import { useFrameNavigation } from '@agent-native/frame-native/frame';
 import { useSession } from '@agent-native/frame-native/session';
+import type { SurveyBrief } from './brief';
 import { fieldOperations as ops } from '../contracts';
-import { Empty, ErrorText, Screen } from './shared';
+import { ErrorText, Screen } from './shared';
 
-/** The assignments the hub dispatched to this device, open ones first. */
+/** The surveys the hub sent this device, open ones first. */
 export function AssignmentsScreen() {
   const { live } = useSession();
   const { open } = useFrameNavigation();
   const assignments = useQuery(live.liveQueryOptions(ops.assignmentList, {}));
-  const items = [...(assignments.data?.items ?? [])].sort(
-    (a, b) => Number(a.returned) - Number(b.returned),
-  );
+  const items = assignments.data?.items ?? [];
+  const brief = (id: string) => items.find((item) => item.id === id)?.brief as SurveyBrief;
   return (
     <Screen>
       <ErrorText error={assignments.error} />
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ListRow
-            title={item.title}
-            detail={`${item.nodes} nodes · ${item.captures} captures · ${item.kinds.join(', ')}`}
-            trailing={
-              item.returned ? (
-                <StatusPill
-                  signal={item.returnSync === 'pending' ? 'pending' : 'idle'}
-                  label="Returned"
-                />
-              ) : undefined
-            }
-            onPress={() => open('/assignment', { assignmentId: item.id })}
-          />
-        )}
-        ListEmptyComponent={
-          <Empty>
-            {assignments.isPending
-              ? 'Loading…'
-              : 'No assignments yet. They arrive from the hub once this device is paired and dispatched.'}
-          </Empty>
+      <WorklistList
+        items={items}
+        issuer="the hub"
+        detail={(item) =>
+          `${brief(item.id).nodes.length} nodes · ${item.reports} captures · ${brief(item.id).kinds.join(', ')}`
+        }
+        onOpen={(item) => open('/assignment', { assignmentId: item.id })}
+        empty={
+          assignments.isPending
+            ? 'Loading…'
+            : 'No surveys yet. They arrive from the hub once this device is paired and sent one.'
         }
       />
     </Screen>

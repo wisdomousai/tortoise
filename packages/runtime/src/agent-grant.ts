@@ -19,9 +19,11 @@ const intersect = (allowed: readonly string[], limit: readonly string[] | undefi
  * catalog has it, never its commands),
  * resources are the run's starting resources of the definition's types within the issuer's
  * resources, and it expires at the earlier of the issuer's expiry and the definition's wall-time
- * budget. A resource-scoped requesting run may also create approval requests (`creates`). It is bound to
- * the issuer's principal and workspace and to the run. Policy still authorizes every call; the
- * grant cannot widen it. Throws `NOT_FOUND` for an agent the catalog does not define.
+ * budget. A resource-scoped run may also create records of the definition's `creates` types, and a
+ * resource-scoped requesting run approval requests. It is bound to the issuer's principal and
+ * workspace, to the run and to the agent (`agent`), which policy may match. Policy still
+ * authorizes every call; the grant cannot widen it. Throws `NOT_FOUND` for an agent the catalog
+ * does not define.
  */
 export function agentGrant(
   catalog: Catalog,
@@ -53,10 +55,14 @@ export function agentGrant(
   const resources = scoped
     ? intersect(scoped, issuer.grant?.resources)
     : issuer.grant?.resources && [...issuer.grant.resources];
-  // A scoped requesting run creates its approval requests, which no resource list can name in advance;
-  // `approval.request` still checks that the requested record is one the run was started on.
-  const creates =
-    resources && operations.includes('approval.request') && agent.output === 'request-approval';
+  // A scoped run creates records no resource list can name in advance: its declared types, and a
+  // requesting run's approval requests. `approval.request` still checks that the requested record
+  // is one the run was started on.
+  const requests =
+    operations.includes('approval.request') && agent.output === 'request-approval'
+      ? ['approval-request']
+      : [];
+  const creates = resources ? [...new Set([...(agent.creates ?? []), ...requests])] : [];
   const budgetEnd = options.now + agent.budgets.wallTimeMs;
   const expiresAt = Math.min(issuer.grant?.expiresAt ?? budgetEnd, budgetEnd);
   return {
@@ -65,7 +71,8 @@ export function agentGrant(
     principalId: issuer.principalId,
     workspaceId: issuer.workspaceId,
     ...(resources ? { resources } : {}),
-    ...(creates ? { creates: ['approval-request'] } : {}),
+    ...(creates.length ? { creates } : {}),
     ...(options.runId ? { runId: options.runId } : {}),
+    agent: agent.id,
   };
 }

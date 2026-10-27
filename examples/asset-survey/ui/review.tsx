@@ -12,11 +12,11 @@ type Filter = 'new' | 'unplaced' | 'all';
 const inputFor = (filter: Filter) =>
   filter === 'new' ? { review: 'new' as const } : filter === 'unplaced' ? { unplaced: true } : {};
 
-const extractionText: Record<string, string> = {
-  requested: 'Reading',
+const readingText: Record<string, string> = {
+  reading: 'Reading',
   proposed: 'Proposal ready',
   accepted: 'Accepted',
-  failed: 'Extraction failed',
+  refused: 'Model refused',
 };
 
 /** The review queue: captures from the field, with where each stands. */
@@ -24,7 +24,7 @@ function ReviewQueue({ compact }: { compact: boolean }) {
   const [filter, setFilter] = useState<Filter>('new');
   const captures = useQuery(live.liveQueryOptions(operations.captureList, inputFor(filter)));
   const tree = useQuery(live.liveQueryOptions(operations.tree, {}));
-  const designations = new Map((tree.data?.nodes ?? []).map((node) => [node.id, node.designation]));
+  const designations = new Map((tree.data?.items ?? []).map((node) => [node.id, node.designation]));
   return (
     <Page
       title="Review"
@@ -77,8 +77,8 @@ function ReviewQueue({ compact }: { compact: boolean }) {
                 <span className="block text-muted-foreground">{when(capture.takenAt)}</span>
                 <span className="flex flex-wrap gap-1">
                   {capture.review !== 'new' && <Badge variant="secondary">{capture.review}</Badge>}
-                  {capture.extraction && (
-                    <Badge variant="outline">{extractionText[capture.extraction]}</Badge>
+                  {capture.reading && (
+                    <Badge variant="outline">{readingText[capture.reading]}</Badge>
                   )}
                 </span>
               </span>

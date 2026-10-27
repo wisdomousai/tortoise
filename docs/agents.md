@@ -4,7 +4,7 @@ Agents act on an application's records through agent runs, with the same capabil
 
 ## Concepts
 
-Terms: [harness](glossary.md#harness), [agent run](glossary.md#agent-run), [agent definition](glossary.md#agent-definition), [approval request](glossary.md#approval-request), [trigger](glossary.md#trigger), [standing grant](glossary.md#standing-grant) and [model entry](glossary.md#model-entry).
+Terms: [harness](glossary.md#harness), [agent run](glossary.md#agent-run), [agent definition](glossary.md#agent-definition), [approval request](glossary.md#approval-request), [assignment](glossary.md#assignment), [trigger](glossary.md#trigger), [standing grant](glossary.md#standing-grant) and [model entry](glossary.md#model-entry).
 
 ## Harnesses
 
@@ -67,6 +67,12 @@ Submission refuses an unknown command, input its schema rejects, and a request f
 Approving marks the approval request approved and continues with its command as a [continuation](glossary.md#continuation) under the approver's context. The command's grant check, [policy](glossary.md#policy) and commit recheck apply to the approver. The revisions the requester read act as expected revisions, so a record changed since then conflicts. A refusal or a conflict rolls the approval back and leaves the approval request pending. A requesting agent's grant leaves the command out, so it cannot approve its own approval request. The feature's policy refuses approve and reject to any delegated caller (`packages/runtime/test/approval.test.ts`, `packages/runtime/test/approval-feature.test.ts`).
 
 The web frame's `approval-review` [UI registry](glossary.md#ui-registry) item lists pending approval requests live with Approve and Reject. A refusal or conflict shows on the approval request, which stays pending. The operator registry's attention queue shows an approval request with the same choices.
+
+## Assignments to agents
+
+An [assignment](glossary.md#assignment) can name an agent definition as its [assignee](glossary.md#assignee). Sending it writes a journal entry whose event type names the definition, and a trigger on that event type starts the run. `agentGrant` records the definition on the run's grant, and the `assignment` feature matches the assignee against it. A definition limited to the assignment resource type reads only the assignment that started it. Its `creates` field lets the run create report resources, which a resource-scoped grant would otherwise refuse.
+
+The run reads the brief, records its reports and marks the assignment done. A person accepts or discards each report, because the feature refuses accepting to any delegated caller.
 
 ## Triggers and standing grants
 
@@ -131,6 +137,7 @@ No host route starts an agent run from an agent definition. Definitions run thro
 ## References
 
 - [Providers](providers.md)
+- [Assignments](assignments.md)
 - [Authorization](authorization.md)
 - [Security and compliance](security-and-compliance.md)
 - [State and reactivity](state-and-reactivity.md)

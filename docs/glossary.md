@@ -55,6 +55,24 @@ A command that one caller, usually an agent run, asks a person to approve before
 
 Do not use: proposal, suggestion (for an approval request).
 
+### Assignee
+
+Who takes an assignment: a person, an agent definition, a paired device, a peer or a target lane. The assignment feature matches the caller to the assignee itself; a target never calls, and its lane's sync stores its reports. Lives in [`packages/assignments`](../packages/assignments/README.md).
+
+### Assignment
+
+Work that a caller hands to an assignee with a brief, and the reports the assignee sends back. Its status is draft, sent, done, withdrawn or closed; its stage adds working and reviewed from its reports. Lives in [`packages/assignments`](../packages/assignments/README.md); explained in [assignments](assignments.md).
+
+Do not use: task (for an assignment), job (for an assignment), dispatch.
+
+### Assignment kind
+
+The declaration of one kind of assignment: the scope a planner fills in, the brief, one report's body and subject, the reviewer's accept input, and the lanes that may take it. Declared with `defineAssignmentKind` in [`packages/assignments`](../packages/assignments/README.md).
+
+### Assignment report
+
+One result an assignee sends back on an assignment, under an ID the reporter chose. It holds a body in the kind's report schema, an optional subject record and its blobs. A person accepts it into the application's records or discards it. Lives in [`packages/assignments`](../packages/assignments/README.md).
+
 ### Attached mode
 
 Running a CLI, MCP bridge, desktop window or phone against an instance that another process owns, through a session that instance issued. The opposite of embedded mode. Explained in [architecture](architecture.md#instances-and-hosts).
@@ -80,6 +98,10 @@ Do not use: file upload (for a blob), asset (for a blob).
 ### Bridge mode
 
 How far a screen bridge or a driver bridge may act. `monitor-only` never acts, `assist` runs only actions of hazard class `none`, and `actuate` runs every declared action. Lives in [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) and [`plugins/connector-driver`](../plugins/connector-driver/README.md); explained in [operator workstations](operator-workstations.md).
+
+### Brief
+
+What an assignee receives with an assignment: the kind's brief schema, computed from the scope when the assignment is sent and unchanged after. A device or a peer receives it through the feed, without blobs. Lives in [`packages/assignments`](../packages/assignments/README.md).
 
 ### Caller
 
@@ -768,6 +790,10 @@ Do not use: SSO (alone), enterprise login, OIDC login (for the primitive).
 The copies of system-of-record records that an application keeps for its tasks, such as inspection lots or MES orders. Inbound sync keeps them current, and the system of record stays authoritative for them. Lives in each application's state.
 
 Do not use: cache (for the working set), mirror.
+
+### Worklist
+
+The assignee side of assignments in another application, such as a phone or a peer. It holds the open assignments from the issuer's feed. Each report or done mark is recorded and queued for the issuer in one transaction. Declared with `defineWorklist` in [`packages/assignments`](../packages/assignments/README.md).
 
 ### Workstation
 

@@ -5,6 +5,7 @@ import { prettierJson } from './json';
 import { appNames } from './new';
 import type { AppNames } from './templates/application';
 import { agent } from './templates/agent';
+import { assignmentKind } from './templates/assignment-kind';
 import { capability, type CapabilitySpec } from './templates/capability';
 import { collection, type Generated } from './templates/collection';
 import { featurePart } from './templates/feature';
@@ -13,10 +14,11 @@ import { target } from './templates/target';
 
 /** What `scaffold add` generates into an application created by `scaffold new`. */
 export type AddRequest =
-  | { readonly kind: 'collection'; readonly name: string }
+  | { readonly kind: 'collection'; readonly name: string; readonly tree?: boolean }
   | ({ readonly kind: 'capability' } & CapabilitySpec)
   | { readonly kind: 'target'; readonly name: string; readonly collection: string }
   | { readonly kind: 'agent'; readonly name: string; readonly collection: string }
+  | { readonly kind: 'assignment-kind'; readonly name: string; readonly collection: string }
   | { readonly kind: 'feature'; readonly name: string; readonly screens?: boolean };
 
 export interface AddOptions {
@@ -67,7 +69,8 @@ async function readAppNames(directory: string): Promise<AppNames> {
 }
 
 async function partFor(request: AddRequest, app: AppNames, directory: string): Promise<Generated> {
-  if (request.kind === 'collection') return collection(app, names(request.name, 'Collection type'));
+  if (request.kind === 'collection')
+    return collection(app, names(request.name, 'Collection type'), request.tree === true);
   if (request.kind === 'capability') return capability(app, request);
   if (request.kind === 'feature')
     return featurePart(app, names(request.name, 'Feature ID'), request.screens === true);
@@ -75,6 +78,14 @@ async function partFor(request: AddRequest, app: AppNames, directory: string): P
   if (!(await exists(join(directory, 'contracts', `${one.kebab}.ts`))))
     throw new Error(`No collection ${one.kebab}; add it first with scaffold add collection`);
   if (request.kind === 'target') return target(app, names(request.name, 'Target name'), one);
+  // The first kind declares the assignments and mounts the feature; later ones join them.
+  if (request.kind === 'assignment-kind')
+    return assignmentKind(
+      app,
+      names(request.name, 'Assignment kind'),
+      one,
+      !(await exists(join(directory, 'contracts', 'assignments.ts'))),
+    );
   // The first agent mounts the approval feature; later ones only add their definition.
   const manifest = await readFile(join(directory, 'manifest.ts'), 'utf8');
   return agent(

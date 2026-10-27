@@ -22,23 +22,29 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
    bun run scaffold add capability <dotted.id> --kind command|query --description "<what it does, for whom>"
    ```
 
-   `add collection`, `add target` and `add agent` generate the other parts.
-2. Write the contract in the browser-safe [module](../../../../docs/glossary.md#module) (`contracts.ts`): a stable ID, strict JSON input and output schemas, the permission, and a [UI binding](../../../../docs/glossary.md#ui-binding) or a stated headless exception. For a capability whose output is a record or a list of records, declare `display`: a label, the resource kind, the title field and the shown fields.
-3. Add workflow text when agents need a sequence of capabilities. It names operation IDs, never transport tool names. A declared workflow (`defineWorkflow` with `step.run` and `step.wait`) adds steps that run over hours or days; the catalog checks its bindings, waits and durations, and the application lists the [workflows plugin](../../../../plugins/workflows/README.md) to run them. A `compensate` command undoes a step when a later one fails for good.
-4. Write the [handler](../../../../docs/glossary.md#handler) in the server entrypoint with `createHandlerFactory`. Declare every changed resource with `ctx.change`. To run another operation inside the same transaction, as the same caller:
+   `add collection`, `add target`, `add agent` and `add assignment-kind` generate the other parts.
+2. For keyed records, declare a collection and generate its operations instead of writing them:
+   - reads with `collectionGet`, `collectionList` and, for a collection with a `parent`, `collectionTree`;
+   - commands with `collectionCreate`, `collectionUpdate`, `collectionMove` (a `parent`) and `collectionRetire` (a `retiredField`);
+   - one handler set from `collectionCommandHandlers`, whose `defaults`, `normalize` and `validate` hooks hold the domain rules, such as a canonical form or a unique name.
+
+   `add collection <type> --tree` generates a tree collection. Write a command by hand only when it does more than change one record's fields.
+3. Write the contract in the browser-safe [module](../../../../docs/glossary.md#module) (`contracts.ts`): a stable ID, strict JSON input and output schemas, the permission, and a [UI binding](../../../../docs/glossary.md#ui-binding) or a stated headless exception. For a capability whose output is a record or a list of records, declare `display`: a label, the resource kind, the title field and the shown fields.
+4. Add workflow text when agents need a sequence of capabilities. It names operation IDs, never transport tool names. A declared workflow (`defineWorkflow` with `step.run` and `step.wait`) adds steps that run over hours or days; the catalog checks its bindings, waits and durations, and the application lists the [workflows plugin](../../../../plugins/workflows/README.md) to run them. A `compensate` command undoes a step when a later one fails for good.
+5. Write the [handler](../../../../docs/glossary.md#handler) in the server entrypoint with `createHandlerFactory`. Declare every changed resource with `ctx.change`. To run another operation inside the same transaction, as the same caller:
    - list it in the capability's `invokes`; `'any'` is for a command that runs whatever its input names, such as `approval.approve`;
    - call `ctx.invoke(capability, input, expectedRevisions?)` or `ctx.query(capability, input)` and await each call before the next;
    - the catalog refuses an unknown target, a query that invokes a command, a cycle, and a chain deeper than 4;
    - the operation's destinations, processes and folders, and the grants of agents and job triggers that list it, include what it invokes.
-5. Make no network call inside the transaction. Enqueue an [outbox effect](../../../../docs/glossary.md#effect) with `ctx.enqueue` and declare `integration` on the capability instead. The framework's reconciliation capabilities decide the effects the dispatcher holds, without a new command; the `connect-system-of-record` skill covers them.
-6. Write the policy for the operation, the object, current and proposed fields, and grant scope. Filter rows before paging or counting.
-7. Compose through the application's `manifest.ts` and `application.ts`, never in `apps/*`.
-8. Declare what it reaches: network destinations, exchange folders, devices, child processes, and the input fields safe to log in plain text.
-9. Bind it to a [screen](../../../../docs/glossary.md#screen) with the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`). Keep `useCapabilityForm`, so a retry reuses one [idempotency key](../../../../docs/glossary.md#idempotency-key).
-10. Prove it with a [behavioral scenario](../../../../docs/glossary.md#behavioral-scenario): permitted and denied access, a stale revision, a repeated idempotency key, and the change visible to another process. Use `packages/testing` for cross-surface scenarios.
-11. When a stored shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. The `packages/kernel` README and [state migration](../../../../docs/primitives.md#state-migration) describe the steps; `samples/lab-requests-operations/migrations.ts` has one.
-12. For a scheduled or event-driven job, declare a [trigger](../../../../docs/glossary.md#trigger) from `plugins/automation`. It submits commands under its standing grant like any caller. `samples/lab-requests-agents/automation.ts` runs a job that requests approval instead of committing.
-13. When an agent definition gains or loses a capability, or a capability an agent uses changes, add or update the agent's scenarios in `examples/<app>/test/agent-scenarios.test.ts` with `runAgentScenarios` from `@agent-native/testing/agent-scenarios`. A scenario holds:
+6. Make no network call inside the transaction. Enqueue an [outbox effect](../../../../docs/glossary.md#effect) with `ctx.enqueue` and declare `integration` on the capability instead. The framework's reconciliation capabilities decide the effects the dispatcher holds, without a new command; the `connect-system-of-record` skill covers them.
+7. Write the policy for the operation, the object, current and proposed fields, and grant scope. Filter rows before paging or counting.
+8. Compose through the application's `manifest.ts` and `application.ts`, never in `apps/*`.
+9. Declare what it reaches: network destinations, exchange folders, devices, child processes, and the input fields safe to log in plain text.
+10. Bind it to a [screen](../../../../docs/glossary.md#screen) with the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`). Keep `useCapabilityForm`, so a retry reuses one [idempotency key](../../../../docs/glossary.md#idempotency-key).
+11. Prove it with a [behavioral scenario](../../../../docs/glossary.md#behavioral-scenario): permitted and denied access, a stale revision, a repeated idempotency key, and the change visible to another process. Use `packages/testing` for cross-surface scenarios.
+12. When a stored shape changes, add a step to the application's `StateMigrations` instead of reading both shapes in the handler. The `packages/kernel` README and [state migration](../../../../docs/primitives.md#state-migration) describe the steps; `samples/lab-requests-operations/migrations.ts` has one.
+13. For a scheduled or event-driven job, declare a [trigger](../../../../docs/glossary.md#trigger) from `plugins/automation`. It submits commands under its standing grant like any caller. `samples/lab-requests-agents/automation.ts` runs a job that requests approval instead of committing.
+14. When an agent definition gains or loses a capability, or a capability an agent uses changes, add or update the agent's scenarios in `examples/<app>/test/agent-scenarios.test.ts` with `runAgentScenarios` from `@agent-native/testing/agent-scenarios`. A scenario holds:
     - a task and fixture state;
     - the commits and approval requests expected;
     - the calls that must be refused.
@@ -46,9 +52,9 @@ A [capability](../../../../docs/glossary.md#capability) is one domain behavior i
     Scenarios judge the receipts, never the agent's text.
 
     An agent that requests approval needs the `approval` feature: mount `approvalFeature()` with an `ApprovalAccess` view, as the `write-a-feature` skill (`packages/host/skills/write-a-feature/SKILL.md`) describes.
-14. For an agent that names a local model in `models`, and the [approval dataset](../../../../docs/glossary.md#approval-dataset) its decisions become, follow the `serve-a-local-model` skill (`plugins/model-server/skills/serve-a-local-model/SKILL.md`).
-15. Write a command's `description` for a model as well as a person. A run under an agent definition starts its prompt with `agentInstructions(catalog, agentId)`, which lists a requesting agent's commands and their inputs with those descriptions.
-16. For a new surface or harness, build a capability's tool schema with `operationToolSchema` from `@agent-native/contracts`, or `toolEnvelopeSchema` for the surface's own envelope fields. A recursive input schema (`jsonValueSchema`, `z.lazy`) carries `$defs` that resolve only from the envelope's root. llama.cpp and strict MCP clients refuse the tool otherwise.
+15. For an agent that names a local model in `models`, and the [approval dataset](../../../../docs/glossary.md#approval-dataset) its decisions become, follow the `serve-a-local-model` skill (`plugins/model-server/skills/serve-a-local-model/SKILL.md`).
+16. Write a command's `description` for a model as well as a person. A run under an agent definition starts its prompt with `agentInstructions(catalog, agentId)`, which lists a requesting agent's commands and their inputs with those descriptions.
+17. For a new surface or harness, build a capability's tool schema with `operationToolSchema` from `@agent-native/contracts`, or `toolEnvelopeSchema` for the surface's own envelope fields. A recursive input schema (`jsonValueSchema`, `z.lazy`) carries `$defs` that resolve only from the envelope's root. llama.cpp and strict MCP clients refuse the tool otherwise.
 
 ## Checks
 

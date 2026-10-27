@@ -6,7 +6,7 @@ import { workflowOperations } from '@agent-native/workflows/contracts';
 import { eamAssets, eamTarget, exportTarget, filingOperations as ops } from '../contracts/filing';
 import { captureFileWorkflow, captureToEam } from '../contracts/workflow';
 import type { assetSnapshotSchema } from '../contracts/schemas';
-import type { Filing, SurveyState } from '../domain';
+import { captureBody, captureOf, type Filing, type SurveyState } from '../domain';
 import {
   compact,
   conflict,
@@ -41,7 +41,7 @@ function filingDto(ctx: Context, id: string) {
  */
 function fileNode(ctx: Context, nodeId: string, target: Filing['target'], asset?: string) {
   const node = nodeRecords(ctx).getExisting(nodeId);
-  if (node.retired || node.source === 'proposed') conflict('Node is not active');
+  if (node.retired) conflict('Node is not active');
   const attributes = Object.entries(node.attributes);
   if (!attributes.length) conflict('Node has no accepted attributes');
   const filings = filingRecords(ctx);
@@ -58,11 +58,13 @@ function fileNode(ctx: Context, nodeId: string, target: Filing['target'], asset?
   const resource = filings.resource(id);
   // Evidence: the photos of every capture an attribute was read from.
   const photos: BlobRef[] = [];
-  for (const captureId of new Set(attributes.map(([, attribute]) => attribute.captureId)))
-    for (const photo of (captureId && own(ctx.state.captures, captureId)?.photos) || []) {
+  for (const captureId of new Set(attributes.map(([, attribute]) => attribute.captureId))) {
+    const capture = captureId === undefined ? undefined : captureOf(ctx.state, captureId);
+    for (const photo of capture ? captureBody(capture).photos : []) {
       ctx.attach(resource, photo);
       photos.push(photo);
     }
+  }
   const assetId = target === 'eam' ? (asset ?? node.assetId) : undefined;
   const filedAt = now(ctx);
   const record = {

@@ -26,6 +26,7 @@ export const guides: ReadonlyArray<readonly [file: string, text: string]> = [
   ['point-of-work-input', 'Point-of-work input'],
   ['hardware-drivers', 'Hardware drivers'],
   ['agents', 'Agents'],
+  ['assignments', 'Assignments'],
   ['hosting', 'Hosting'],
   ['providers', 'Providers'],
   ['security-and-compliance', 'Security and compliance'],

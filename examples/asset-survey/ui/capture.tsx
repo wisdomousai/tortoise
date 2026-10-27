@@ -8,6 +8,7 @@ import { live, transport } from '@/lib/session';
 import { operations } from '../contracts';
 import { PlaceOrDiscard } from './capture/place-or-discard';
 import { ProposalForm } from './capture/proposal-form';
+import { ValuesForm } from './capture/values-form';
 import { blobUrl, ErrorText, Page, quietly, when } from './shared';
 
 type Region = { x: number; y: number; width: number; height: number };
@@ -16,7 +17,7 @@ type Region = { x: number; y: number; width: number; height: number };
 export function CaptureScreen() {
   const { captureId } = useParams({ strict: false }) as { captureId: string };
   const capture = useQuery(live.liveQueryOptions(operations.captureGet, { id: captureId }));
-  const request = useCommand(transport, operations.extractionRequest);
+  const request = useCommand(transport, operations.extractionCreate);
   const [highlight, setHighlight] = useState<{ digest: string; region?: Region }>();
   if (capture.error) return <p role="alert">{capture.error.message}</p>;
   if (!capture.data) return <p role="status">Loading capture…</p>;
@@ -28,7 +29,10 @@ export function CaptureScreen() {
       title={`${data.kind} ${data.node ? `of ${data.node.designation}` : '(unplaced)'}`}
       description={
         <>
-          Taken {when(data.takenAt)} on device {data.deviceId}
+          Taken {when(data.takenAt)}{' '}
+          {data.reportedBy.startsWith('device:')
+            ? `on device ${data.reportedBy.slice('device:'.length)}`
+            : `by ${data.reportedBy}`}
           {data.condition && ` · condition ${data.condition}`}
           {data.codes.length > 0 && ` · scanned ${data.codes.join(', ')}`}
           {data.node && (
@@ -77,9 +81,9 @@ export function CaptureScreen() {
         </div>
         <div className="space-y-4">
           {open && <PlaceOrDiscard captureId={data.id} placed={data.node !== undefined} />}
-          {extraction?.status === 'proposed' && open && data.node ? (
+          {extraction?.status === 'proposed' && extraction.reportId && open && data.node ? (
             <ProposalForm
-              captureId={data.id}
+              reportId={extraction.reportId}
               fields={extraction.fields}
               onFocusField={(field) =>
                 setHighlight(
@@ -98,25 +102,47 @@ export function CaptureScreen() {
               <p>
                 {!extraction
                   ? 'Not read yet.'
-                  : extraction.status === 'requested'
-                    ? 'The model is reading the photos.'
-                    : extraction.status === 'failed'
+                  : extraction.status === 'reading'
+                    ? extraction.assignee === 'target:model'
+                      ? 'The model is reading the photos.'
+                      : `Sent to ${extraction.assignee} to read.`
+                    : extraction.status === 'refused'
                       ? `The model could not read it: ${extraction.rejection?.message}`
                       : extraction.status === 'accepted'
-                        ? `Accepted by ${extraction.acceptedBy}.`
+                        ? `Accepted by ${data.reviewedBy}.`
                         : 'Place the capture on a node to accept the proposal.'}
               </p>
-              {open && extraction?.status !== 'requested' && (
+              {open && extraction?.status !== 'reading' && (
                 <Button
                   variant="outline"
                   disabled={request.pending}
-                  onClick={() => void quietly(request.execute({ captureId: data.id }))}
+                  onClick={() =>
+                    void quietly(
+                      request.execute({
+                        title: `Read ${data.kind}${data.node ? ` on ${data.node.designation}` : ''}`,
+                        scope: { reportId: data.id },
+                        assignee: { type: 'target', id: 'model' },
+                      }),
+                    )
+                  }
                 >
                   {extraction ? 'Read again' : 'Read with the model'}
                 </Button>
               )}
+              {extraction?.reportId && (
+                <Link
+                  to="/review/readings/$reportId"
+                  params={{ reportId: extraction.reportId }}
+                  className="block text-primary hover:underline"
+                >
+                  What was read
+                </Link>
+              )}
               <ErrorText error={request.error} />
             </section>
+          )}
+          {open && data.node && extraction?.status !== 'proposed' && (
+            <ValuesForm captureId={data.id} />
           )}
         </div>
       </div>

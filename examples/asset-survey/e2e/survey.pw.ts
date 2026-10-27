@@ -40,17 +40,13 @@ async function pairPhone(host: Host) {
       const input = {
         id,
         assignmentId,
-        nodeId,
-        kind: 'nameplate',
-        photos: [photo],
-        codes: [],
-        note: '',
-        takenAt: Date.now(),
+        subject: nodeId,
+        body: { kind: 'nameplate', photos: [photo], codes: [], note: '', takenAt: Date.now() },
       };
       expect(
         (
           await device(
-            '/api/v1/commands/capture.ingest',
+            '/api/v1/commands/assignment.survey.report',
             JSON.stringify({ input, idempotencyKey: id }),
           )
         ).ok,
@@ -63,7 +59,9 @@ async function pairPhone(host: Host) {
       );
       return (
         (await response.json()) as {
-          data: { items: { id: string; nodes: { id: string; designation: string }[] }[] };
+          data: {
+            items: { id: string; brief: { nodes: { id: string; designation: string }[] } }[];
+          };
         }
       ).data.items;
     },
@@ -76,7 +74,7 @@ async function addNode(page: Page, parent: string, designation: string, name: st
   await page.getByLabel('Name').fill(name);
   await page.getByRole('button', { name: 'Add node' }).click();
   await expect(
-    page.getByRole('list', { name: 'Structure' }).getByRole('link', { name: designation }),
+    page.getByRole('list', { name: 'Structure' }).getByRole('button', { name: designation }),
   ).toBeVisible();
 }
 
@@ -101,20 +99,20 @@ test('prepare, send to a phone, review what the model read and file it into the 
     const phone = await pairPhone(host);
     const nav = page.getByRole('navigation', { name: 'Sections' });
     await nav.getByRole('link', { name: 'Assignments' }).click();
-    await page.getByLabel('Title').fill('Nameplates of =G1');
-    await page
-      .getByRole('form', { name: 'New assignment' })
-      .getByText('=G1', { exact: true })
-      .click();
-    await page.getByRole('button', { name: 'Create assignment' }).click();
-    await page.getByLabel('Send Nameplates of =G1 to').selectOption({ label: 'Field phone' });
-    await expect(page.getByText('Sent to device')).toBeVisible();
+    await page.getByRole('button', { name: 'New survey' }).click();
+    const form = page.getByRole('form', { name: 'New Survey' });
+    await form.getByLabel('Title').fill('Nameplates of =G1');
+    await form.getByLabel('Assignee').selectOption({ label: 'Field phone' });
+    await form.getByText('=G1', { exact: true }).click();
+    await form.getByRole('button', { name: 'Create and send' }).click();
+    const survey = page.getByRole('listitem', { name: 'Nameplates of =G1' });
+    await expect(survey.getByText('sent', { exact: true })).toBeVisible();
 
     const [assignment] = await phone.feed();
-    const valve = assignment!.nodes.find((node) => node.designation === '=G1-QM1')!;
+    const valve = assignment!.brief.nodes.find((node) => node.designation === '=G1-QM1')!;
     // The valve's plate is rusted across the serial, so the reading doubts it.
     await phone.capture('cap-1', assignment!.id, valve.id, await samplePhoto('valve'));
-    await expect(page.getByText('Captures arriving')).toBeVisible();
+    await expect(survey.getByText('1 to review')).toBeVisible();
 
     await nav.getByRole('link', { name: 'Review' }).click();
     await page.getByRole('list', { name: 'Captures' }).getByRole('link').first().click();

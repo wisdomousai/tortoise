@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { defineCapability } from './capability';
+import { readDisplay, readPermission, type UiDeclaration } from './collection-display';
 import type { DisplayField } from './display';
 import { jsonSchema } from './schema';
 
@@ -23,6 +24,16 @@ export interface CollectionSpec<Type extends string, Item extends z.ZodObject> {
   readonly titleField?: keyof Item['shape'] & string;
   /** Fields of `item` that generated screens show, in order; the scalar fields when omitted. */
   readonly fields?: readonly DisplayField[];
+  /**
+   * Field of `item` that holds the parent record's key, which makes the collection a tree: it
+   * enables `collectionMove` and `collectionTree`, and creates and moves check the parent.
+   */
+  readonly parent?: keyof Item['shape'] & string;
+  /**
+   * Boolean field of `item` that marks a retired record, which enables `collectionRetire`. A
+   * retired record keeps its history but cannot be changed, and trees leave it out by default.
+   */
+  readonly retiredField?: keyof Item['shape'] & string;
 }
 
 /**
@@ -42,6 +53,12 @@ export function defineCollection<const Type extends string, Item extends z.ZodOb
     throw new Error(`Collection container is not an item field: ${spec.container}`);
   if (spec.titleField && !(spec.titleField in spec.item.shape))
     throw new Error(`Collection title field is not an item field: ${spec.titleField}`);
+  if (spec.parent && !(spec.parent in spec.item.shape))
+    throw new Error(`Collection parent is not an item field: ${spec.parent}`);
+  if (spec.retiredField && !(spec.retiredField in spec.item.shape))
+    throw new Error(`Collection retired field is not an item field: ${spec.retiredField}`);
+  if (spec.parent === key || (spec.retiredField && spec.retiredField === key))
+    throw new Error(`Collection key cannot be its parent or retired field: ${key}`);
   return Object.freeze({
     type: spec.type,
     resourceType: spec.resourceType,
@@ -51,6 +68,8 @@ export function defineCollection<const Type extends string, Item extends z.ZodOb
     label: spec.label ?? { one: spec.type, many: `${spec.type}s` },
     ...(spec.titleField ? { titleField: spec.titleField } : {}),
     ...(spec.fields ? { fields: spec.fields } : {}),
+    ...(spec.parent ? { parent: spec.parent } : {}),
+    ...(spec.retiredField ? { retiredField: spec.retiredField } : {}),
     /** The journal resource of one record. */
     resource: (id: string): `${Type}:${string}` => `${spec.type}:${id}`,
   });
@@ -59,9 +78,6 @@ export type Collection<
   Type extends string = string,
   Item extends z.ZodObject = z.ZodObject,
 > = ReturnType<typeof defineCollection<Type, Item>>;
-
-/** A UI binding, or the reason an operation has none. Defaults to binding the operation. */
-type UiDeclaration = { readonly binding?: string; readonly exception?: string };
 
 export interface CollectionReadSpec<Id extends string> {
   /** Operation prefix, for example `crm.account`; yields `<id>.get` or `<id>.list`. */
@@ -86,20 +102,6 @@ export interface CollectionListSpec<
 
 /** The largest page a generated list returns. */
 export const MAX_PAGE = 100;
-
-const readPermission = (collection: Collection) => ({
-  action: 'read',
-  resourceType: collection.resourceType,
-});
-
-/** A generated read's display: the collection's names, resource kind, key and fields. */
-const readDisplay = (collection: Collection, label: string) => ({
-  label,
-  resource: collection.type,
-  key: collection.key,
-  ...(collection.titleField ? { titleField: collection.titleField } : {}),
-  ...(collection.fields ? { fields: collection.fields } : {}),
-});
 
 /**
  * Generate `<id>.get`: one record by key, or `NOT_FOUND` when it is absent or the caller may not

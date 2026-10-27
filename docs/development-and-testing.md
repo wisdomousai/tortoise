@@ -76,7 +76,7 @@ Split a file that `check:size` lists only when it holds a second responsibility.
 | `bun run cli`, `bun run mcp`                     | Run `apps/service/src/cli.ts` or `packages/adapters/src/mcp.ts` from source.                    |
 | `bun run build:cli`                              | Compile the configured application's CLI.                                                       |
 | `bun run build:web`                              | Build the web frame for the configured application.                                             |
-| `bun run build:web:examples`                     | Build the web frame once per example into `dist/web/<application id>`, as Playwright's setup.   |
+| `bun run build:web:examples`                     | Build the web frame per example and per sample with specs into `dist/web/<application id>`.     |
 | `bun run build:registry`                         | Build the agent-native shadcn registry.                                                         |
 | `bun run build:registry:<name>`                  | Build the `operator`, `compliance`, `native` or `driver` shadcn registry.                       |
 | `bun run bundle`                                 | Generate a signing key, or create, verify and admit a [site bundle](glossary.md#site-bundle).   |
@@ -101,7 +101,7 @@ Subprocess tests use temporary workspaces and stop only the processes the tests 
 
 ## Browser and desktop
 
-Browser specs live with the application in `examples/<name>/e2e/`. The specs start a host through the shared e2e helper.
+Browser specs live with the application in `examples/<name>/e2e/` or `samples/<name>/e2e/`. The specs start a host through the shared e2e helper. Playwright's setup builds the web frame of every example and of each sample with an `e2e` directory.
 
 Packaged desktop tests need a built application. Set `DESKTOP_EXECUTABLE` and run:
 

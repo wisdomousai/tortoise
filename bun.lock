@@ -10,6 +10,7 @@
         "@agent-native/android-intents": "workspace:*",
         "@agent-native/asset-survey": "workspace:*",
         "@agent-native/asset-survey-field": "workspace:*",
+        "@agent-native/assignments": "workspace:*",
         "@agent-native/audit": "workspace:*",
         "@agent-native/automation": "workspace:*",
         "@agent-native/bundle": "workspace:*",
@@ -222,6 +223,23 @@
         "ai": "7.0.130",
         "jose": "6.2.12",
         "zod": "4.6.5",
+      },
+    },
+    "packages/assignments": {
+      "name": "@agent-native/assignments",
+      "version": "0.1.0",
+      "dependencies": {
+        "@agent-native/contracts": "workspace:*",
+        "@agent-native/integration": "workspace:*",
+        "@agent-native/kernel": "workspace:*",
+        "@agent-native/runtime": "workspace:*",
+        "@noble/hashes": "2.4.0",
+        "zod": "4.6.5",
+      },
+      "devDependencies": {
+        "@agent-native/adapters": "workspace:*",
+        "@agent-native/agents": "workspace:*",
+        "@agent-native/testing": "workspace:*",
       },
     },
     "packages/bundle": {
@@ -906,6 +924,8 @@
     "@agent-native/asset-survey": ["@agent-native/asset-survey@workspace:examples/asset-survey"],
 
     "@agent-native/asset-survey-field": ["@agent-native/asset-survey-field@workspace:examples/asset-survey-field"],
+
+    "@agent-native/assignments": ["@agent-native/assignments@workspace:packages/assignments"],
 
     "@agent-native/audit": ["@agent-native/audit@workspace:plugins/audit"],
 

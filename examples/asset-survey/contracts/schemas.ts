@@ -20,8 +20,6 @@ export const text = (max: number) =>
 export const designation = z.string().min(1).max(64);
 export const captureKind = z.enum(['nameplate', 'overview', 'label', 'defect', 'schematic']);
 export const condition = z.enum(['good', 'fair', 'poor', 'failed']);
-/** `proposed` nodes came from a document or an agent and wait for a manager to accept them. */
-export const nodeSource = z.enum(['manual', 'proposed', 'accepted']);
 /** Attribute names are camelCase words, such as `manufacturer` or `ratedVoltage`. */
 export const attributeName = z
   .string()
@@ -33,19 +31,19 @@ export const attributeName = z
 export const attributeSchema = z.strictObject({
   value: z.string().max(200),
   captureId: z.string().optional(),
-  /** The reviewer changed the value the extraction proposed. */
+  /** The reviewer changed the value the extraction proposed, or entered it without one. */
   edited: z.boolean(),
 });
 
+/** One node of the site structure. Writes take its fields with these schemas. */
 export const nodeSchema = z.strictObject({
   id: recordId,
   parentId: recordId.optional(),
   scheme,
-  designation: z.string(),
-  name: z.string(),
+  designation,
+  name: text(120),
   /** What the class letter or device number means, when the scheme table knows it. */
   label: z.string().optional(),
-  source: nodeSource,
   attributes: z.record(z.string(), attributeSchema),
   retired: z.boolean(),
   /** The EAM asset this node was filed as. */
@@ -53,60 +51,26 @@ export const nodeSchema = z.strictObject({
   /** The asset's status in the EAM, from its feed. */
   assetStatus: z.enum(['active', 'retired']).optional(),
 });
-export const treeNodeSchema = z.strictObject({ ...nodeSchema.shape, depth: z.number().int() });
 
 export const documentKind = z.enum(['schematic', 'plan', 'datasheet', 'manual', 'other']);
 export const documentSchema = z.strictObject({
   id: recordId,
-  title: z.string(),
+  title: text(200),
   kind: documentKind,
   file: blobRefSchema,
-  pages: z.number().int().positive().optional(),
+  pages: z.number().int().positive().max(2000).optional(),
   nodeId: recordId.optional(),
   addedBy: z.string(),
   addedAt: timestamp,
 });
 
-/** Where an assignment stands; `in-field`, `processed` and `filed` follow from its captures. */
-export const assignmentStage = z.enum([
-  'draft',
-  'dispatched',
-  'in-field',
-  'returned',
-  'processed',
-  'filed',
-]);
-export const assignmentSchema = z.strictObject({
-  id: recordId,
-  title: z.string(),
-  roots: z.array(recordId),
-  kinds: z.array(captureKind),
-  note: z.string().optional(),
-  stage: assignmentStage,
-  deviceId: z.string().optional(),
-  captures: z.number().int(),
-  createdBy: z.string(),
-  createdAt: timestamp,
-  dispatchedAt: timestamp.optional(),
-  returnedAt: timestamp.optional(),
-});
-
-/** The slice of the structure a field device receives with an assignment. */
+/** The slice of the structure a survey's brief carries to the field. */
 export const fieldNodeSchema = z.strictObject({
   id: recordId,
   parentId: recordId.optional(),
   scheme,
   designation: z.string(),
   name: z.string(),
-});
-export const fieldAssignmentSchema = z.strictObject({
-  id: recordId,
-  title: z.string(),
-  kinds: z.array(captureKind),
-  note: z.string().optional(),
-  nodes: z.array(fieldNodeSchema).max(2000),
-  /** The hub has the device's return; the device keeps it read-only. */
-  returned: z.boolean(),
 });
 
 /** Photos a capture may carry: JPEG or PNG, up to 8 MiB each. */
@@ -117,13 +81,8 @@ export const documentLimits = {
   mediaTypes: ['application/pdf', 'image/png', 'image/jpeg'],
 };
 
-/** One capture as the field device records it and the hub ingests it. */
-export const captureInputSchema = z.strictObject({
-  /** Generated on the device, so the same capture is recognised however often it is delivered. */
-  id: recordId,
-  assignmentId: recordId,
-  /** Absent while the capture is unplaced: taken in the field without knowing its node. */
-  nodeId: recordId.optional(),
+/** One capture as the field records it: the body of a survey report. */
+export const captureSchema = z.strictObject({
   kind: captureKind,
   photos: z.array(blobRefSchema).min(1).max(8),
   /** Barcodes or tags scanned with the capture. */
@@ -132,9 +91,6 @@ export const captureInputSchema = z.strictObject({
   note: z.string().max(1000),
   takenAt: timestamp,
 });
-
-/** Where a capture stands in review. */
-export const reviewStatus = z.enum(['new', 'reviewed', 'discarded']);
 
 /** One value an extraction read, with how sure it is and where on which photo it was found. */
 export const proposedFieldSchema = z.strictObject({
@@ -151,30 +107,9 @@ export const proposedFieldSchema = z.strictObject({
       .optional(),
   }),
 });
-export const extractionStatus = z.enum(['requested', 'proposed', 'accepted', 'failed']);
-export const extractionSchema = z.strictObject({
-  captureId: recordId,
-  status: extractionStatus,
-  model: z.string().optional(),
-  fields: z.array(z.strictObject({ ...proposedFieldSchema.shape, attention: z.boolean() })),
-  accepted: z.record(z.string(), z.string()).optional(),
-  acceptedBy: z.string().optional(),
-  rejection: z.strictObject({ code: z.string(), message: z.string() }).optional(),
-});
 
-export const captureSchema = z.strictObject({
-  ...captureInputSchema.shape,
-  deviceId: z.string(),
-  receivedAt: timestamp,
-  review: reviewStatus,
-  discardReason: z.string().optional(),
-  extraction: extractionStatus.optional(),
-});
-export const captureDetailSchema = z.strictObject({
-  ...captureSchema.shape,
-  extraction: extractionSchema.optional(),
-  node: nodeSchema.optional(),
-});
+/** The values a reviewer accepts onto a node: names absent are left as they are. */
+export const valuesSchema = z.record(attributeName, text(200));
 
 export const filingSchema = z.strictObject({
   id: recordId,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { AnyCapability, InputOf, JsonObject, OutputOf } from '@agent-native/contracts';
 import type { Receipt } from '@agent-native/client';
 import { useCapabilityForm } from '@agent-native/react/form';
@@ -180,7 +180,9 @@ function FormBody<C extends AnyCapability>({
       onCommitted?.(receipt);
     },
   });
-  const id = (name: string) => `${capability.id}-${name}`;
+  // One prefix per form, so two forms for the same command on a page keep their labels apart.
+  const prefix = useId();
+  const id = (name: string) => `${prefix}${capability.id}-${name}`;
   return (
     <form
       className="grid gap-3 sm:grid-cols-2"

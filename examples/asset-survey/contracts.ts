@@ -1,24 +1,29 @@
 import { defineModule } from '@agent-native/contracts';
-import { fieldOperations } from './contracts/captures';
-import { extractionOperations, modelTarget } from './contracts/extraction';
+import { captureOperations } from './contracts/captures';
+import { assignmentOperations } from './contracts/kinds';
 import { eamAssets, eamTarget, exportTarget, filingOperations } from './contracts/filing';
 import { structureOperations } from './contracts/structure';
 import { captureFileWorkflow, captureToEam } from './contracts/workflow';
 
-export { fieldOperations } from './contracts/captures';
-export { extractionOperations, modelTarget, ATTENTION_BELOW } from './contracts/extraction';
+export { captureOperations } from './contracts/captures';
+export {
+  assignmentOperations,
+  assignments,
+  modelLane,
+  ATTENTION_BELOW,
+  extraction,
+  reportPlace,
+  survey,
+} from './contracts/kinds';
 export { eamAssets, eamTarget, exportTarget, filingOperations } from './contracts/filing';
-export { structureOperations } from './contracts/structure';
+export { documents, nodes, structureOperations } from './contracts/structure';
 export { captureFileWorkflow, captureToEam } from './contracts/workflow';
 
-/** Every operation of the hub by short name, for screens and tests. */
+/** Every operation of the hub by short name, for screens and tests, the assignments' included. */
 export const operations = {
   ...structureOperations,
-  ...fieldOperations,
-  extractionRequest: extractionOperations.request,
-  extractionAccept: extractionOperations.accept,
-  extractionStatus: extractionOperations.status,
-  capturePlaceAndExtract: extractionOperations.placeAndExtract,
+  ...captureOperations,
+  ...assignmentOperations,
   filingFile: filingOperations.file,
   filingWithdraw: filingOperations.withdraw,
   filingList: filingOperations.list,
@@ -34,30 +39,16 @@ export const structureModule = defineModule({
   workflows: [
     {
       id: 'prepare-structure',
-      operations: [
-        'structure.tree',
-        'structure.node.search',
-        'document.list',
-        'structure.node.propose',
-      ],
-      text: 'Read structure.tree and the documents of the area. For each object a schematic or plan shows that the tree lacks, check structure.node.search for its designation, then propose it with structure.node.propose under the right parent, naming the document. A manager accepts proposals; never create nodes yourself.',
+      operations: ['structure.tree', 'structure.node.search', 'document.list', 'approval.request'],
+      text: 'Read structure.tree and the documents of the area. For each object a schematic or plan shows that the tree lacks, check structure.node.search for its designation, then request approval for structure.node.create under the right parent, naming the document in the rationale. A manager approves each request; never create nodes yourself.',
     },
   ],
 });
 
-export const fieldModule = defineModule({
-  id: 'survey-field',
-  capabilities: Object.values(fieldOperations),
-});
-
-export const extractionModule = defineModule({
-  id: 'survey-extraction',
-  capabilities: [
-    extractionOperations.request,
-    extractionOperations.accept,
-    extractionOperations.placeAndExtract,
-    ...modelTarget.capabilities,
-  ],
+/** Captures are survey reports; the extraction model is the assignments' `model` target lane. */
+export const reviewModule = defineModule({
+  id: 'survey-review',
+  capabilities: Object.values(captureOperations),
   requirements: {
     network: [
       {
@@ -67,7 +58,7 @@ export const extractionModule = defineModule({
         direction: 'egress',
         scope: 'internet',
         protocol: 'https',
-        targets: ['model'],
+        targets: ['assignment-model'],
         dataClasses: ['equipment-photo', 'nameplate-values'],
         availability: 'optional',
         offline: 'queue',
@@ -81,12 +72,12 @@ export const extractionModule = defineModule({
         'capture.list',
         'capture.get',
         'structure.node.search',
-        'capture.place',
-        'extraction.request',
-        'extraction.accept',
-        'capture.discard',
+        'assignment.report.place',
+        'assignment.extraction.create',
+        'assignment.extraction.accept',
+        'assignment.report.discard',
       ],
-      text: 'Work through capture.list with review new. Open each with capture.get. Place an unplaced capture with capture.place after finding its node through structure.node.search on a scanned code or the designation on the photo. Request an extraction for nameplates without one. When the proposal arrives, compare every value flagged attention with the photo region and correct what is wrong; then a person accepts it with extraction.accept. An agent prepares and reports which captures are ready and which values it doubts; it cannot accept. Discard unusable captures with the reason.',
+      text: 'Work through capture.list with review new. Open each with capture.get. Place an unplaced capture with assignment.report.place after finding its node through structure.node.search on a scanned code or the designation on the photo. Send a nameplate without a reading to the model with assignment.extraction.create, scope reportId and assignee the model target. When the reading arrives, compare every value flagged attention with the photo region and correct what is wrong; then a person accepts it with assignment.extraction.accept. An agent prepares and reports which captures are ready and which values it doubts; it cannot accept. Discard unusable captures with assignment.report.discard and the reason.',
     },
   ],
 });
@@ -146,4 +137,4 @@ export const filingModule = defineModule({
   ],
 });
 
-export const surveyModules = [structureModule, fieldModule, extractionModule, filingModule];
+export const surveyModules = [structureModule, reviewModule, filingModule];

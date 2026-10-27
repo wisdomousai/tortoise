@@ -7,10 +7,11 @@ import { installedFramework } from './versions';
 const USAGE = `Usage:
   bun run scaffold <absent-target-directory> --name <app-name> [--display-name <label>] [--example <name>]
   bun run scaffold new <absent-target-directory> --name <app-name> [--display-name <label>] [--collection <type>] [--published | --registry <url>]
-  bun run scaffold add collection <type> [--app <directory>]
+  bun run scaffold add collection <type> [--tree] [--app <directory>]
   bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
   bun run scaffold add target <name> --collection <type> [--app <directory>]
   bun run scaffold add agent <name> --collection <type> [--app <directory>]
+  bun run scaffold add assignment-kind <id> --collection <type> [--app <directory>]
   bun run scaffold add feature <id> [--screens] [--app <directory>]
   bun run scaffold versions [<application-directory>]`;
 
@@ -20,7 +21,7 @@ function parse(args: readonly string[]) {
     return index < 0 ? undefined : args[index + 1];
   };
   // Flags take no value, so the argument after one is positional.
-  const flags = new Set(['--published', '--screens']);
+  const flags = new Set(['--published', '--screens', '--tree']);
   const positional = args.filter((arg, index) => {
     const previous = args[index - 1];
     return !arg.startsWith('--') && !(previous?.startsWith('--') && !flags.has(previous));
@@ -35,13 +36,13 @@ function addRequest(
   flag: (name: string) => boolean,
 ): AddRequest {
   if (!name) throw new Error(USAGE);
-  if (kind === 'collection') return { kind, name };
+  if (kind === 'collection') return { kind, name, tree: flag('--tree') };
   if (kind === 'capability') {
     const operationKind = option('--kind');
     if (operationKind !== 'command' && operationKind !== 'query') throw new Error(USAGE);
     return { kind, id: name, operationKind, description: option('--description') ?? '' };
   }
-  if (kind === 'target' || kind === 'agent')
+  if (kind === 'target' || kind === 'agent' || kind === 'assignment-kind')
     return { kind, name, collection: option('--collection') ?? '' };
   if (kind === 'feature') return { kind, name, screens: flag('--screens') };
   throw new Error(USAGE);

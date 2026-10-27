@@ -121,7 +121,15 @@ test('add extends the application at its markers and refuses to overwrite a part
   );
   expect(added).toMatchObject({ directory: 'examples/field-notes' });
   expect(added.written).toContain('contracts/note-archive.ts');
-  await scaffoldAdd({ kind: 'collection', name: 'site' }, { root: target });
+  await scaffoldAdd({ kind: 'collection', name: 'site', tree: true }, { root: target });
+  const sites = await read(join(app, 'contracts/site.ts'));
+  for (const key of [
+    "parent: 'parentId',",
+    'siteTree: collectionTree(',
+    'siteMove: collectionMove(',
+  ])
+    expect(sites).toContain(key);
+  expect(await read(join(app, 'ui/site.tsx'))).toContain('<CollectionTree');
   const ledger = await scaffoldAdd(
     { kind: 'target', name: 'ledger', collection: 'note' },
     { root: target },
@@ -144,6 +152,8 @@ test('add extends the application at its markers and refuses to overwrite a part
   ).toHaveLength(1);
   const policy = await read(join(app, 'policy.ts'));
   expect(policy).toContain('[operations.noteArchive.id]: editor,');
+  expect(policy).toContain("[operations.siteTree.id]: 'open',");
+  expect(policy).toContain('[operations.siteRetire.id]: editor,');
   expect(policy).toContain('targetLane(ledgerTarget');
   expect(await read(join(app, 'screens.tsx'))).toContain(
     "{ path: 'ledger', component: LedgerScreen }",
@@ -190,6 +200,40 @@ test('add extends the application at its markers and refuses to overwrite a part
   const headless = await scaffoldAdd({ kind: 'feature', name: 'tally' }, { root: target });
   expect(headless.written).not.toContain('features/tally/screens.tsx');
   expect(await read(join(app, 'screens.tsx'))).not.toContain('tallyScreens');
+  // The first assignment kind declares the assignments and mounts the feature; a second joins.
+  const inspection = await scaffoldAdd(
+    { kind: 'assignment-kind', name: 'inspection', collection: 'note' },
+    { root: target },
+  );
+  expect(inspection.written).toEqual(
+    expect.arrayContaining([
+      'contracts/inspection-assignment.ts',
+      'contracts/assignments.ts',
+      'handlers/assignments.ts',
+      'ui/inspection-assignments.tsx',
+      'test/inspection-assignment.test.ts',
+    ]),
+  );
+  const siteCheck = await scaffoldAdd(
+    { kind: 'assignment-kind', name: 'site-check', collection: 'site' },
+    { root: target },
+  );
+  expect(siteCheck.written).not.toContain('contracts/assignees.ts');
+  expect(await read(join(app, 'contracts/assignments.ts'))).toMatch(/inspection,\n\s*siteCheck,/);
+  expect(await read(join(app, 'handlers/assignments.ts'))).toContain(
+    "'site-check': siteCheckHooks,",
+  );
+  const mounted = await read(join(app, 'application.ts'));
+  expect(mounted.match(/assignmentFeature\(assignments\)/g)).toHaveLength(1);
+  expect(mounted.match(/import \{ mountFeature \}/g)).toHaveLength(1);
+  expect((await read(join(app, 'manifest.ts'))).match(/assignments\.manifest,/g)).toHaveLength(1);
+  expect(await read(join(app, 'policy.ts'))).toContain('export const assignmentAccess');
+  await expect(
+    scaffoldAdd(
+      { kind: 'assignment-kind', name: 'audit', collection: 'missing' },
+      { root: target },
+    ),
+  ).rejects.toThrow('No collection missing');
   await expect(scaffoldAdd({ kind: 'feature', name: 'Stock' }, { root: target })).rejects.toThrow(
     'Feature ID must be lowercase words',
   );
@@ -352,7 +396,7 @@ acceptance(
     };
     await run(['bun', 'install', '--frozen-lockfile', '--ignore-scripts']);
     const cli = ['bun', 'run', 'scaffold', 'add'];
-    await run([...cli, 'collection', 'site']);
+    await run([...cli, 'collection', 'site', '--tree']);
     await run([
       ...cli,
       'capability',

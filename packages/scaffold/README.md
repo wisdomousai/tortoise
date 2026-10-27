@@ -11,7 +11,7 @@ Framework (`packages/*`). Server-side CLI. The scaffold trusts the source checko
 - [Scaffold](../../docs/primitives.md#scaffold): `scaffold`, `scaffoldNew`, `scaffoldAdd`, `ScaffoldOptions`, `ScaffoldManifest`, `NewOptions`, `AddRequest`, `AddOptions`.
 - [Framework release](../../docs/primitives.md#framework-release): `installedFramework`, the check behind `bun run check:framework`.
 
-Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` [UI registry](../../docs/primitives.md#ui-registry) item.
+Generated applications use [Collection](../../docs/primitives.md#collection), [Policy](../../docs/primitives.md#policy), [Target](../../docs/primitives.md#target) and the frame's `collection-screen` and `collection-tree` [UI registry](../../docs/primitives.md#ui-registry) items.
 
 Skills live in each package's `skills/` directory and travel with it. A source export copies them, and an installed-framework export gets them from the installed packages. Neither carries the `.claude/skills` and `.agents/skills` links, which `bun install` writes in the new checkout.
 
@@ -29,17 +29,18 @@ The commands run from `src/cli.ts`:
 ```sh
 bun run scaffold <absent-target-directory> --name <app-name> [--display-name <label>] [--example <name>]
 bun run scaffold new <absent-target-directory> --name <app-name> [--display-name <label>] [--collection <type>] [--published | --registry <url>]
-bun run scaffold add collection <type> [--app <directory>]
+bun run scaffold add collection <type> [--tree] [--app <directory>]
 bun run scaffold add capability <operation-id> --kind command|query --description <text> [--app <directory>]
 bun run scaffold add target <name> --collection <type> [--app <directory>]
 bun run scaffold add agent <name> --collection <type> [--app <directory>]
+bun run scaffold add assignment-kind <id> --collection <type> [--app <directory>]
 bun run scaffold add feature <id> [--screens] [--app <directory>]
 bun run scaffold versions [<application-directory>]
 ```
 
 - **Export** with `--example <name>` exports one [example](../../docs/glossary.md#example) as the hosted application, with the examples it imports. A field application keeps the hub application whose modules it shares. The export leaves the other examples, their reference sets, root dependencies and lockfile entries out.
 - **`new`** exports no example and generates one application in `examples/<name>`.
-- **`add`** extends that application with a collection, a [capability](../../docs/glossary.md#capability), a [target](../../docs/glossary.md#target), an agent or a [feature](../../docs/glossary.md#feature).
+- **`add`** extends that application with a collection, a [capability](../../docs/glossary.md#capability), a [target](../../docs/glossary.md#target), an agent, an [assignment kind](../../docs/glossary.md#assignment-kind) or a [feature](../../docs/glossary.md#feature).
 - **`versions`** checks that an installed application has one framework version.
 
 An export that leaves out examples (`--example`, `new`) or the framework source (`--published`) leaves out the [overview](../../docs/overview.md) map, whose claims cite files in both: `scripts/overview.ts`, `scripts/overview-curated.ts` and its VitePress view and data loader. `docs/overview.md` keeps its prose without the views, and `bun run generate` writes no `overview.json`.
@@ -58,12 +59,23 @@ With `--published` or `--registry <url>`, `new` leaves the framework source out 
 
 ### Generated parts
 
+`add collection <type>` writes the collection's contract with generated reads and create and update commands, their handlers, list and record screens, and a test. The handlers set the fields a person does not choose: the status, the author and the creation time. With `--tree`, the collection also gets a parent, generated move, retire and tree operations, and a tree screen with search.
+
 `add agent` writes an agent definition that reads the collection and requests approval for `<type>.update`. Its agent scenarios are played by the deterministic harness. The first agent also:
 
 - lists `approvalFeatureManifest` in the manifest and mounts `approvalFeature()` in `application.ts`, with the application's ID and clock as hooks;
 - adds `approvalAccess` to `policy.ts`: members request, read and approve, and only editors reject;
 - adds `'approval'` to the module's `requires`, because the agent requests approval through the feature's operations;
 - adds an Approvals screen where a person approves or rejects.
+
+`add assignment-kind <id> --collection <type>` writes an assignment kind for the person lane over that collection:
+
+- `contracts/<id>-assignment.ts`: the scope is up to 50 records, the brief holds their titles and statuses, and a report sets one record's status with a note;
+- `handlers/<id>-assignment.ts`: hooks that check the scope and the assignee, build the brief, and run `<type>.update` when an editor accepts a report;
+- `ui/<id>-assignments.tsx`: the assignment board, one assignment's reports and the assignee's own list, from the frame registry;
+- `test/<id>-assignment.test.ts`: the lifecycle and the roles through the application.
+
+The first kind also writes `contracts/assignments.ts`, the hook table in `handlers/assignments.ts` and the `assignee.list` query. It mounts `assignmentFeature` in `application.ts` and adds `assignmentAccess` to `policy.ts`: every member works on what is sent to them, editors also plan, read and review, and a delegated run only works. Later kinds insert into the kind list, the hook table and the screens. The `assign-work` skill (`packages/assignments/skills/assign-work/SKILL.md`) covers the agent, device, peer and target lanes.
 
 `add feature <id>` writes a [feature](../../docs/glossary.md#feature) in `features/<id>/`:
 

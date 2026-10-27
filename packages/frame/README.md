@@ -10,7 +10,7 @@ Framework (`packages/*`). Browser code, plus a build-time Vite plugin. The frame
 
 - [Web frame](../../docs/primitives.md#web-frame): `Frame`, `ScreensProvider`, `useScreens`, `screenForCapability`, `exchangeLaunch`, and the `frame` Vite plugin.
 - [Application](../../docs/primitives.md#application): `defineScreens`, `ApplicationScreens`, the browser entrypoint of every application.
-- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native` shadcn registry in [`registry.json`](registry.json): `capability-form`, `live-data-table`, `collection-screen`, `approval-review`, `reconciliation-review`, `run-panel`, `command-palette`, `conflict-banner`, `os-provenance`, `accounts`, `app-shell`, `frame` and their libraries.
+- [UI registry](../../docs/primitives.md#ui-registry): the `agent-native` shadcn registry in [`registry.json`](registry.json): `capability-form`, `live-data-table`, `collection-screen`, `collection-tree`, `approval-review`, `reconciliation-review`, `assignment-board`, `assignment-reports`, `my-assignments`, `worklist`, `run-panel`, `command-palette`, `conflict-banner`, `os-provenance`, `accounts`, `app-shell`, `frame` and their libraries.
 - [Approval request](../../docs/primitives.md#approval-request): `approval-review` lists pending approval requests live with Approve and Reject. The instance's refusal or conflict shows on the approval request, which stays open.
 - [UI session context](../../docs/primitives.md#ui-session-context): `useUiSession(resource, handlers)` registers a record screen's selection and applies intents with `applyUiIntent`. An open navigates through `resourcePath` from `screens.resources`; a review is returned for the screen to show.
 - [Display metadata](../../docs/primitives.md#display-metadata): `CollectionScreen`, `RecordScreen`, `capability-form` and the command palette read a capability's `display`.
@@ -61,7 +61,7 @@ The launch credential travels in the URL fragment and never reaches a server log
 
 The palette lists only capabilities the session's grant allows and never offers integration-only capabilities. Rendering `accounts` never reads the OS vault. `native-dialog` uses the `<dialog>` element because the instance's CSP forbids injected `<style>` tags.
 
-`live-data-table` never filters or paginates client-side over a partial set; the instance counts and pages after scoping. `collection-screen` builds a collection's list and record screens over `live-data-table` and `capability-form`. It uses the collection's generated `list`, `get`, create and update capabilities, so it inherits the same paging rule. A record the caller may not see shows as unavailable.
+`live-data-table` never filters or paginates client-side over a partial set; the instance counts and pages after scoping. `collection-screen` builds a collection's list and record screens over `live-data-table` and `capability-form`. It uses the collection's generated `list`, `get`, create, update, move and retire capabilities, so it inherits the same paging rule. A record the caller may not see shows as unavailable. `collection-tree` shows a tree collection's generated `tree` read, indented by depth, and searches through its `list`; the instance scopes the tree, so a record whose parent the caller cannot see starts its own branch.
 
 `defineScreens` checks the application's, its features' and its plugins' screens together. It fails at definition time on:
 
@@ -101,7 +101,7 @@ bun run build:web:examples
 bun run test:e2e
 ```
 
-`test/screens.test.ts` covers feature and plugin merging and the manifest checks. The frame has no other unit suite. `check:boundaries` builds every example's screens through the starter's real Vite config. The Playwright specs in `examples/*/e2e` drive the frame in Chromium, including live updates and draft conflicts.
+`test/screens.test.ts` covers feature and plugin merging and the manifest checks. The frame has no other unit suite. `check:boundaries` builds every example's screens through the starter's real Vite config. The Playwright specs in `examples/*/e2e` and `samples/*/e2e` drive the frame in Chromium, including live updates, draft conflicts and the assignment screens with their slots.
 
 ## Skills
 

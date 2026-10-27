@@ -5,7 +5,7 @@ description: Create a new agent-native application from this framework with `bun
 
 # Create an agent-native application
 
-The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets, requesting agents and features. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead.
+The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](../../../../docs/glossary.md#application) and its parts. `scaffold new` exports the framework and a thin [starter](../../../../docs/glossary.md#starter) with a generated application as the only content. `scaffold add` extends it with collections, capabilities, targets, requesting agents, assignment kinds and features. `scaffold --example <name>` exports one reference [example](../../../../docs/glossary.md#example) instead.
 
 ## Before writing
 
@@ -32,7 +32,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | `examples/quality-inspection` | capture against a system of record through the outbox, and a measuring instrument through a Python driver |
 | `examples/crm-capture` | live search of a CRM and adoption of its records |
 | `examples/line-station` | an operator workstation over workstation application reached through its screen or a .NET driver |
-| `examples/asset-survey` and `examples/asset-survey-field` | a hub with blob evidence, a declared workflow and a paired mobile field application |
+| `examples/asset-survey` and `examples/asset-survey-field` | a hub with blob evidence, a declared workflow, assignments and a paired mobile field application that takes them |
 | `examples/receiving` | an application generated with `scaffold new` and `scaffold add`: a file exchange with an ERP, reconciliation and an agent that requests approval |
 | `examples/fleet` | the fleet that sites report to: enrollment, signed releases on channels, audit forwarding and relayed access |
 | `samples/*` | one concept each on a lab test request application, as `docs/samples.md` lists them. Exports leave them out |

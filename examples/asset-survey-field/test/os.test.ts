@@ -6,6 +6,7 @@ import { connectMobileShell, type MobileOsBindings } from '@agent-native/mobile'
 import type { AndroidIntent } from '@agent-native/shell/intents';
 import type { ShellNotification } from '@agent-native/shell/notifications';
 import { findTagAction } from '../os';
+import type { BriefNode } from '../ui-native/brief';
 import { captureSummary, tagScreen, workRequest } from '../ui-native/os-requests';
 import { cleanUp, openPhone, startHub, type Rows } from './fixtures';
 
@@ -62,31 +63,28 @@ function device(platform: 'android' | 'ios' = 'android') {
   };
 }
 
-/** A hub with =G1 and its two breakers, an assignment over them, and a paired phone. */
+/** A hub with =G1 and its two breakers, a paired phone, and `send` for a survey of =G1 to it. */
 async function surveyed(platform: 'android' | 'ios' = 'android') {
   const survey = await startHub();
   const g1 = await survey.node(undefined, '=G1', 'Generator 1');
   const q1 = await survey.node(g1.id, '=G1-Q1', 'Generator circuit breaker');
   await survey.node(g1.id, '=G1-Q2', 'Station supply breaker');
-  const assignment = await survey.command<{ id: string }>('assignment.create', {
-    title: 'Nameplates of =G1',
-    roots: [g1.id],
-    kinds: ['nameplate'],
-  });
   const field = await openPhone(
     survey.hub.url,
     await survey.enrollment('Phone 1'),
     `phone-${platform}`,
+    [],
     platform,
   );
   const phone = device(platform);
   const connection = connectMobileShell(field.phone, field.application, phone.bindings);
-  return { survey, field, phone, connection, g1, q1, assignment };
+  const send = (title = 'Nameplates of =G1') => survey.send(title, g1.id, field.deviceId);
+  return { survey, field, phone, connection, g1, q1, send };
 }
 
-test('an assignment the hub sends is announced once, and the notice settles', async () => {
-  const { survey, field, phone, assignment, g1 } = await surveyed();
-  await survey.command('assignment.dispatch', { id: assignment.id, deviceId: field.deviceId });
+test('a survey the hub sends is announced once, and the notice settles', async () => {
+  const { field, phone, send } = await surveyed();
+  await send();
   await field.sync();
   field.phone.foreground();
   await until(() => phone.shown.length === 1);
@@ -103,13 +101,8 @@ test('an assignment the hub sends is announced once, and the notice settles', as
     );
   await until(async () => (await notices()).length === 0);
 
-  // The hub sends every assignment of the device again; only the new one is announced.
-  const second = await survey.command<{ id: string }>('assignment.create', {
-    title: 'Insulation check of =G1',
-    roots: [g1.id],
-    kinds: ['nameplate'],
-  });
-  await survey.command('assignment.dispatch', { id: second.id, deviceId: field.deviceId });
+  // The hub sends every open survey of the device again; only the new one is announced.
+  await send('Insulation check of =G1');
   await field.sync();
   await until(() => phone.shown.length === 2);
   expect(phone.shown[1]).toMatchObject({ body: 'Insulation check of =G1' });
@@ -118,8 +111,8 @@ test('an assignment the hub sends is announced once, and the notice settles', as
 });
 
 test('an asset tag from another app opens its node as a scan does', async () => {
-  const { survey, field, phone, connection, assignment, q1 } = await surveyed();
-  await survey.command('assignment.dispatch', { id: assignment.id, deviceId: field.deviceId });
+  const { field, phone, connection, q1, send } = await surveyed();
+  const assignment = await send();
   await field.sync();
   const delivered: OsDelivery[] = [];
   connection.deliveries.subscribe((delivery) => delivered.push(delivery));
@@ -148,21 +141,19 @@ test('an asset tag from another app opens its node as a scan does', async () => 
     params: { assignmentId: assignment.id, q: '=G1' },
   });
   expect(await tagScreen('=G9', session)).toEqual({ to: '/assignments' });
-  // A returned assignment takes no captures, so its tags open nothing in it.
-  await field.command('field.assignment.return', { id: assignment.id });
+  // A survey marked done takes no captures, so its tags open nothing in it.
+  await field.command('field.assignment.complete', { id: assignment.id });
   expect(await tagScreen('=G1-Q1', session)).toEqual({ to: '/assignments' });
 });
 
 test('a node raises a work request in the maintenance app, and a capture is shared as text', async () => {
-  const { survey, field, phone, connection, assignment, q1 } = await surveyed();
-  await survey.command('assignment.dispatch', { id: assignment.id, deviceId: field.deviceId });
+  const { field, phone, connection, q1, send } = await surveyed();
+  const assignment = await send();
   await field.sync();
-  const [node] = (
-    await field.query<Rows<{ designation: string; name: string }>>('field.node.list', {
-      assignmentId: assignment.id,
-      q: '=G1-Q1',
-    })
-  ).items;
+  const held = await field.query<{ brief: { nodes: BriefNode[] } }>('field.assignment.get', {
+    id: assignment.id,
+  });
+  const node = held.brief.nodes.find((item) => item.id === q1.id);
   const perform = (action: string, params: Record<string, string>) =>
     connection.perform({ action, params });
 
@@ -182,18 +173,13 @@ test('a node raises a work request in the maintenance app, and a capture is shar
     await perform('node.work-request', { ...workRequest(node!, ''), priority: 'high' }),
   ).toMatchObject({ status: 'refused', reason: 'invalid' });
 
-  await field.command('field.capture.record', {
-    id: 'cap-q1',
-    assignmentId: assignment.id,
-    nodeId: q1.id,
-    kind: 'nameplate',
-    photos: [await field.photo({ manufacturer: 'ABB' })],
-    codes: ['=G1-Q1'],
-    condition: 'poor',
-    note: 'Housing cracked',
-    takenAt: 1_000,
-  });
-  const [capture] = (await field.query<Rows>('field.capture.list')).items;
+  await field.capture(
+    assignment.id,
+    q1.id,
+    { manufacturer: 'ABB' },
+    { codes: ['=G1-Q1'], condition: 'poor', note: 'Housing cracked' },
+  );
+  const [capture] = (await field.query<Rows>('field.report.list')).items;
   expect(await perform('capture.share', { text: captureSummary(capture as never) })).toMatchObject({
     status: 'performed',
   });
@@ -210,14 +196,14 @@ test('a node raises a work request in the maintenance app, and a capture is shar
 });
 
 test('on iOS the work request is refused, and the rest works', async () => {
-  const { survey, field, phone, connection, assignment } = await surveyed('ios');
+  const { field, phone, connection, send } = await surveyed('ios');
   expect(
     await connection.perform({
       action: 'node.work-request',
       params: { designation: '=G1-Q1', name: 'Generator circuit breaker', note: '' },
     }),
   ).toMatchObject({ status: 'refused', reason: 'failed' });
-  await survey.command('assignment.dispatch', { id: assignment.id, deviceId: field.deviceId });
+  await send();
   await field.sync();
   field.phone.foreground();
   await until(() => phone.shown.length === 1);

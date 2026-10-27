@@ -87,6 +87,8 @@ A dash means that no sample, or no example, shows the primitive.
 | Trigger | `lab-requests-agents` with a job, `lab-requests-local-model` with an agent definition | `line-station` |
 | Standing grant | `lab-requests-agents` | `line-station` |
 | Workflow | — | `asset-survey` |
+| Assignment | — | `asset-survey` |
+| Worklist | — | `asset-survey-field` |
 | Input source | `lab-requests-sign-in` | `line-station`, `asset-survey-field` |
 | OS handler | — | `field-service`, `asset-survey-field` |
 | OS action | — | `field-service`, `asset-survey-field` |
@@ -146,6 +148,7 @@ The generator, the scaffold and the framework release are tools that run on cont
 | `packages/client` | every web screen, through the frame; `lab-requests-site` `publish-release.ts`; the `field-service` tests |
 | `packages/frame` | every sample and example except `asset-survey-field` |
 | `packages/frame-native`, `packages/mobile`, `apps/mobile` | `asset-survey-field` |
+| `packages/assignments` | `asset-survey`, `asset-survey-field` |
 | `packages/react` | `crm-capture`, `quality-inspection`, `asset-survey` |
 | `packages/operator-ui` | `lab-requests-sign-in`, `line-station`, `quality-inspection`, through its registry items |
 | `packages/devices` | `line-station`, `asset-survey-field` |

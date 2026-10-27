@@ -53,6 +53,7 @@ function fingerprintOf(
         principalId: context.grant.principalId ?? null,
         workspaceId: context.grant.workspaceId ?? null,
         runId: context.grant.runId ?? null,
+        ...(context.grant.agent === undefined ? {} : { agent: context.grant.agent }),
       }
     : null;
   return canonicalJson({

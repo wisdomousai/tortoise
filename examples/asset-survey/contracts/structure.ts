@@ -1,93 +1,74 @@
 import { z } from 'zod';
-import { operation } from './operation';
 import {
-  designation,
-  documentKind,
-  documentLimits,
-  documentSchema,
-  nodeSchema,
-  recordId,
-  scheme,
-  text,
-  treeNodeSchema,
-} from './schemas';
+  collectionCreate,
+  collectionList,
+  collectionMove,
+  collectionRetire,
+  collectionTree,
+  collectionUpdate,
+  defineCollection,
+} from '@agent-native/contracts';
+import { operation } from './operation';
+import { documentLimits, documentSchema, nodeSchema, recordId, scheme } from './schemas';
 
-const node = { action: 'read', resourceType: 'SurveyNode' };
-const edit = { action: 'edit', resourceType: 'SurveyNode' };
+/** The site structure: nodes under reference designations, one tree per root. */
+export const nodes = defineCollection({
+  type: 'node',
+  resourceType: 'SurveyNode',
+  item: nodeSchema,
+  label: { one: 'Node', many: 'Nodes' },
+  titleField: 'designation',
+  parent: 'parentId',
+  retiredField: 'retired',
+});
 
-/** The site structure: nodes under reference designations, and the documents that describe them. */
+/** Schematics, plans, datasheets and manuals of the site, each optionally on a node. */
+export const documents = defineCollection({
+  type: 'document',
+  resourceType: 'SurveyDocument',
+  item: documentSchema,
+  label: { one: 'Document', many: 'Documents' },
+  titleField: 'title',
+});
+
+const read = { action: 'read', resourceType: 'SurveyNode' };
+
+/**
+ * The structure's writes and tree are generated from the collection; the hub's hooks normalize
+ * designations and keep them unique per scheme. Reading one node with its path, captures and
+ * documents, and searching designations, are the survey's own.
+ */
 export const structureOperations = {
-  nodeCreate: operation('structure.node.create', 'command', {
-    input: z.strictObject({
-      parentId: recordId.optional(),
-      scheme,
-      designation,
-      name: text(120),
-    }),
-    output: nodeSchema,
-    permission: edit,
+  nodeCreate: collectionCreate(nodes, {
+    id: 'structure.node',
+    fields: ['parentId', 'scheme', 'designation', 'name'],
+    action: 'edit',
     description:
-      'Add a node to the site structure under parentId (or as a root). The designation must follow its scheme: IEC 81346 (=G1-Q1), KKS (1LBA10AA101) or ANSI/IEEE C37.2 device numbers (52, 50/51N), and be unique among active nodes of that scheme.',
-    dependencies: ['node'],
+      'Add a node to the site structure under parentId (or as a root). The designation must follow its scheme: IEC 81346 (=G1-Q1), KKS (1LBA10AA101) or ANSI/IEEE C37.2 device numbers (52, 50/51N), and be unique among active nodes of that scheme. Agents request approval for it instead of running it.',
   }),
-  nodeUpdate: operation('structure.node.update', 'command', {
-    input: z.strictObject({
-      id: recordId,
-      designation: designation.optional(),
-      name: text(120).optional(),
-    }),
-    output: nodeSchema,
-    permission: edit,
+  nodeUpdate: collectionUpdate(nodes, {
+    id: 'structure.node',
+    fields: ['designation', 'name'],
+    action: 'edit',
     description:
-      'Rename a node or correct its designation. Attributes change only by accepting an extraction.',
-    dependencies: ['node'],
+      'Rename a node or correct its designation. Attributes change only by accepting a capture.',
   }),
-  nodeMove: operation('structure.node.move', 'command', {
-    input: z.strictObject({ id: recordId, parentId: recordId.nullable() }),
-    output: nodeSchema,
-    permission: edit,
+  nodeMove: collectionMove(nodes, {
+    id: 'structure.node',
+    action: 'edit',
     description:
       'Move a node and its subtree under another parent, or to the root with parentId null. A node cannot move under itself or its own descendants.',
-    dependencies: ['node'],
   }),
-  nodeRetire: operation('structure.node.retire', 'command', {
-    input: z.strictObject({ id: recordId }),
-    output: nodeSchema,
-    permission: edit,
+  nodeRetire: collectionRetire(nodes, {
+    id: 'structure.node',
+    action: 'edit',
     description:
-      'Retire a node that no longer exists on site. It keeps its history and captures but leaves the tree, searches and field assignments; its children must be retired or moved first.',
-    dependencies: ['node'],
+      'Retire a node that no longer exists on site. It keeps its history and captures but leaves the tree, searches and new surveys; its children must be retired or moved first.',
   }),
-  nodePropose: operation('structure.node.propose', 'command', {
-    input: z.strictObject({
-      parentId: recordId.optional(),
-      scheme,
-      designation,
-      name: text(120),
-      documentId: recordId.optional(),
-    }),
-    output: nodeSchema,
-    permission: { action: 'propose', resourceType: 'SurveyNode' },
+  tree: collectionTree(nodes, {
+    id: 'structure',
     description:
-      'Propose a node read from a document or a capture, for a manager to accept with structure.node.accept. Agents propose; they do not create. A proposed node is shown apart and is not sent to the field.',
-    dependencies: ['node'],
-    exception:
-      'proposed by agents reading documents and captures; people accept on the structure screen',
-  }),
-  nodeAccept: operation('structure.node.accept', 'command', {
-    input: z.strictObject({ id: recordId }),
-    output: nodeSchema,
-    permission: edit,
-    description: 'Accept a proposed node into the structure.',
-    dependencies: ['node'],
-  }),
-  tree: operation('structure.tree', 'query', {
-    input: z.strictObject({ rootId: recordId.optional(), includeRetired: z.boolean().optional() }),
-    output: z.strictObject({ nodes: z.array(treeNodeSchema) }),
-    permission: node,
-    description:
-      'The structure depth first from rootId (or every root), each node with its depth. Retired nodes are left out unless includeRetired is true.',
-    dependencies: ['node'],
+      'The structure depth first from root (or every root), each node with its depth. Retired nodes are left out unless includeRetired is true.',
   }),
   nodeGet: operation('structure.node.get', 'query', {
     input: z.strictObject({ id: recordId }),
@@ -96,7 +77,7 @@ export const structureOperations = {
       path: z.array(z.strictObject({ id: recordId, designation: z.string(), name: z.string() })),
       captures: z.array(
         z.strictObject({
-          id: recordId,
+          id: z.string(),
           kind: z.string(),
           review: z.string(),
           takenAt: z.number(),
@@ -104,10 +85,10 @@ export const structureOperations = {
       ),
       documents: z.array(documentSchema),
     }),
-    permission: node,
+    permission: read,
     description:
       'One node with its path from the root, its accepted attributes with the capture each came from, its captures and documents.',
-    dependencies: ['node', 'capture', 'document'],
+    dependencies: ['node', 'assignment-report', 'document'],
   }),
   nodeSearch: operation('structure.node.search', 'query', {
     input: z.strictObject({
@@ -116,31 +97,23 @@ export const structureOperations = {
       limit: z.number().int().min(1).max(50).optional(),
     }),
     output: z.strictObject({ items: z.array(nodeSchema) }),
-    permission: node,
+    permission: read,
     description:
       'Find active nodes whose designation starts with q (spaces and case ignored) or whose name contains it. Use it to resolve a scanned tag or a designation read from a nameplate.',
     dependencies: ['node'],
   }),
-  documentAdd: operation('document.add', 'command', {
-    input: z.strictObject({
-      title: text(200),
-      kind: documentKind,
-      file: documentSchema.shape.file,
-      pages: z.number().int().positive().max(2000).optional(),
-      nodeId: recordId.optional(),
-    }),
-    output: documentSchema,
-    permission: { action: 'edit', resourceType: 'SurveyDocument' },
+  documentCreate: collectionCreate(documents, {
+    id: 'document',
+    fields: ['title', 'kind', 'file', 'pages', 'nodeId'],
+    blobs: documentLimits,
+    action: 'edit',
     description:
       'File a schematic, plan, datasheet or manual (PDF or image, uploaded first as a blob) and optionally attach it to a node.',
-    dependencies: ['document'],
-    blobs: documentLimits,
+    dependencies: ['node'],
   }),
-  documentList: operation('document.list', 'query', {
-    input: z.strictObject({ nodeId: recordId.optional() }),
-    output: z.strictObject({ items: z.array(documentSchema) }),
-    permission: { action: 'read', resourceType: 'SurveyDocument' },
+  documentList: collectionList(documents, {
+    id: 'document',
+    filters: ['nodeId', 'kind'],
     description: 'The documents of the survey, or of one node, newest first.',
-    dependencies: ['document'],
   }),
 } as const;

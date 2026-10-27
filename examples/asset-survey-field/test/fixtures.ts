@@ -53,13 +53,20 @@ export async function startHub() {
     });
   /** One outbox pass per target and one feed pass: what the hub's background loops do. */
   const settle = async () => {
-    await hub.integrations!.target('model').dispatcher.runOnce();
+    await hub.integrations!.target('assignment-model').dispatcher.runOnce();
     await hub.integrations!.target('eam').dispatcher.runOnce();
     await hub.integrations!.sync();
   };
   const enrollment = async (label: string) =>
     (await command<{ code: string }>('link.enrollment.create', { label, kind: 'field-sync' })).code;
-  return { hub, command, query, node, settle, enrollment, eam: () => eam };
+  /** A survey of the subtree under `root`, sent to a paired phone. */
+  const send = (title: string, root: string, deviceId: string) =>
+    command<{ id: string }>('assignment.survey.create', {
+      title,
+      scope: { roots: [root], kinds: ['nameplate'] },
+      assignee: { type: 'device', id: deviceId },
+    });
+  return { hub, command, query, node, settle, enrollment, send, eam: () => eam };
 }
 
 function memorySecrets(): SecretStore {
@@ -75,12 +82,14 @@ function memorySecrets(): SecretStore {
  * The field app on the mobile platform with Bun's SQLite and files. Device management hands it
  * the hub's address and an enrollment code, so it pairs on its own once it opens. `link.offline`
  * drops the network as airplane mode would; `link.drifted` makes the hub's contract read as a
- * newer release's, whose `capture.ingest` input changed. `platform` is the device's OS.
+ * newer release's, whose `assignment.survey.report` input changed. `ids` are the capture IDs the
+ * phone hands out, in order, before random ones. `platform` is the device's OS.
  */
 export async function openPhone(
   origin: string,
   code: string,
   workspace = 'phone-1',
+  ids: string[] = [],
   platform: 'android' | 'ios' = 'android',
 ) {
   const link = { offline: false, drifted: false };
@@ -93,7 +102,7 @@ export async function openPhone(
       operations: { id: string; schemaDigest?: string }[];
     };
     for (const operation of contract.operations)
-      if (operation.id === 'capture.ingest') operation.schemaDigest = 'sha256:newer';
+      if (operation.id === 'assignment.survey.report') operation.schemaDigest = 'sha256:newer';
     return Response.json(contract);
   }) as typeof fetch;
   const sandbox = mkdtempSync(join(tmpdir(), 'survey-phone-'));
@@ -104,7 +113,11 @@ export async function openPhone(
     secrets: memorySecrets(),
   });
   const managed = createManagedConfigPlugin(() => ({ 'hub-url': origin, 'enrollment-code': code }));
-  const application = createFieldApplication({ fetch: phoneFetch, plugins: [managed] });
+  const application = createFieldApplication({
+    fetch: phoneFetch,
+    plugins: [managed],
+    services: { newId: () => ids.shift() ?? crypto.randomUUID() },
+  });
   // One workspace per phone: a process holds each workspace name once.
   const phone = await openMobileInstance(application, { platform: mobile, workspace });
   cleanups.push(async () => {
@@ -125,7 +138,26 @@ export async function openPhone(
   const sync = () => phone.instance.integrations.sync();
   const photo = (lines: Record<string, string>) =>
     phone.transport.blobs!.put(nameplatePhoto(lines), 'image/png');
-  return { phone, application, link, deviceId, command, query, deliver, sync, photo };
+  /** One nameplate capture on a survey; `subject` is the node, unplaced when omitted. */
+  const capture = async (
+    assignmentId: string,
+    subject: string | undefined,
+    lines: Record<string, string>,
+    extra: Record<string, unknown> = {},
+  ) =>
+    command<{ id: string }>('field.survey.report', {
+      assignmentId,
+      ...(subject ? { subject } : {}),
+      body: {
+        kind: 'nameplate',
+        photos: [await photo(lines)],
+        codes: [],
+        note: '',
+        takenAt: 1_000,
+        ...extra,
+      },
+    });
+  return { phone, application, link, deviceId, command, query, deliver, sync, photo, capture };
 }
 
 /** Pairing from managed configuration runs in the background after startup. */

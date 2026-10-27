@@ -8,13 +8,16 @@ export interface Generated {
   readonly insertions: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>>;
 }
 
-const contract = (one: Names, many: Names) => `import { z } from 'zod';
+/** Lines that only a tree collection gets, joined so the flat template keeps no blank lines. */
+const only = (tree: boolean, ...lines: string[]) => (tree ? lines.join('\n') + '\n' : '');
+
+const contract = (one: Names, many: Names, tree: boolean) => `import { z } from 'zod';
 import {
+  collectionCreate,
   collectionGet,
   collectionList,
-  defineCapability,
+${only(tree, '  collectionMove,', '  collectionRetire,', '  collectionTree,')}  collectionUpdate,
   defineCollection,
-  jsonSchema,
   recordKeySchema,
 } from '@agent-native/contracts';
 
@@ -23,7 +26,7 @@ export const ${one.camel}Schema = z.strictObject({
   id: recordKeySchema,
   title: z.string().min(1).max(200),
   status: z.enum(['open', 'done']),
-  createdBy: z.string(),
+${only(tree, '  parentId: recordKeySchema.optional(),', '  retired: z.boolean(),')}  createdBy: z.string(),
   createdAt: z.number().int().nonnegative(),
 });
 export type ${one.pascal} = z.output<typeof ${one.camel}Schema>;
@@ -33,9 +36,8 @@ export const ${many.camel} = defineCollection({
   resourceType: '${one.pascal}',
   item: ${one.camel}Schema,
   label: { one: '${one.title}', many: '${many.title}' },
-});
-
-const write = { action: 'write', resourceType: '${one.pascal}' };
+  titleField: 'title',
+${only(tree, "  parent: 'parentId',", "  retiredField: 'retired',")}});
 
 /** Reads and writes of ${many.words}. Browser-safe. */
 export const ${one.camel}Operations = {
@@ -49,54 +51,53 @@ export const ${one.camel}Operations = {
     id: '${one.kebab}',
     description: 'Read one ${one.words} by id. Use its revision as ${one.kebab}:<id> in expectedRevisions.',
   }),
-  ${one.camel}Create: defineCapability({
-    id: '${one.kebab}.create',
-    kind: 'command',
-    description: 'Create an open ${one.words} with a title. Editors only.',
-    input: jsonSchema(z.strictObject({ title: ${one.camel}Schema.shape.title })),
-    output: jsonSchema(${one.camel}Schema),
-    permission: write,
-    dependencies: ['${one.kebab}'],
-    ui: { binding: '${one.kebab}.create' },
+${only(
+  tree,
+  `  ${one.camel}Tree: collectionTree(${many.camel}, {`,
+  `    id: '${one.kebab}',`,
+  `    description: 'The active ${many.words} depth first from root (or every root), each with its depth.',`,
+  `  }),`,
+)}  ${one.camel}Create: collectionCreate(${many.camel}, {
+    id: '${one.kebab}',
+    description: ${tree ? `'Create an open ${one.words} with a title, under parentId or as a root. Editors only.'` : `'Create an open ${one.words} with a title. Editors only.'`},
+    fields: ${tree ? "['title', 'parentId']" : "['title']"},
   }),
-  ${one.camel}Update: defineCapability({
-    id: '${one.kebab}.update',
-    kind: 'command',
+  ${one.camel}Update: collectionUpdate(${many.camel}, {
+    id: '${one.kebab}',
     description: 'Change the title or status of a ${one.words}. Editors only.',
-    input: jsonSchema(
-      z.strictObject({
-        id: recordKeySchema,
-        title: ${one.camel}Schema.shape.title.optional(),
-        status: ${one.camel}Schema.shape.status.optional(),
-      }),
-    ),
-    output: jsonSchema(${one.camel}Schema),
-    permission: write,
-    dependencies: ['${one.kebab}'],
-    ui: { binding: '${one.kebab}.update' },
+    fields: ['title', 'status'],
   }),
-} as const;
+${only(
+  tree,
+  `  ${one.camel}Move: collectionMove(${many.camel}, {`,
+  `    id: '${one.kebab}',`,
+  `    description: 'Move a ${one.words} and its subtree under another ${one.words}, or to the root with parentId null. Editors only.',`,
+  `  }),`,
+  `  ${one.camel}Retire: collectionRetire(${many.camel}, {`,
+  `    id: '${one.kebab}',`,
+  `    description: 'Retire a ${one.words}; its children must be retired or moved first. Editors only.',`,
+  `  }),`,
+)}} as const;
 `;
 
-const handlers = (one: Names, many: Names) => `import {
+const handlers = (one: Names, many: Names, tree: boolean) => `import {
+  collectionCommandHandlers,
   collectionGetHandler,
   collectionListHandler,
-  records,
-  type HandlerContribution,
+${only(tree, '  collectionTreeHandler,')}  type HandlerContribution,
 } from '@agent-native/runtime';
 import { operations } from '../contracts';
 import { ${many.camel}, type ${one.pascal} } from '../contracts/${one.kebab}';
 import type { AppState } from '../domain';
-import { compact, handler, newId, now, type Context, type Services } from './context';
+import { newId, now, type Services } from './context';
 
 type List = typeof operations.${one.camel}List;
 type Get = typeof operations.${one.camel}Get;
-/** Every member sees every ${one.words}; the policy's caller gate keeps everyone else out. */
+${only(tree, `type Tree = typeof operations.${one.camel}Tree;`)}/** Every member sees every ${one.words}; the policy's caller gate keeps everyone else out. */
 const visible = () => true;
 const store = (state: AppState) => state.${many.camel};
-const ${many.camel}Of = (ctx: Context) => records(ctx, ${many.camel}, ctx.state.${many.camel});
 
-/** Generated reads, scoped before filters and counts, and the create and update commands. */
+/** Generated reads, scoped before filters and counts, and the generated commands. */
 export function ${one.camel}Handlers(): HandlerContribution<AppState, Services>[] {
   return [
     collectionListHandler<AppState, Services, List, ${one.pascal}>(${many.camel}, operations.${one.camel}List, {
@@ -109,25 +110,35 @@ export function ${one.camel}Handlers(): HandlerContribution<AppState, Services>[
       store,
       visible,
     }),
-    handler(operations.${one.camel}Create, (input, ctx) => {
-      const id = newId(ctx);
-      return ${many.camel}Of(ctx).insert(id, {
-        id,
-        title: input.title,
-        status: 'open',
-        createdBy: ctx.context.principalId,
-        createdAt: now(ctx),
-      });
-    }),
-    handler(operations.${one.camel}Update, (input, ctx) => {
-      const { id, ...patch } = input;
-      return ${many.camel}Of(ctx).update(id, compact(patch));
-    }),
+${only(
+  tree,
+  `    collectionTreeHandler<AppState, Services, Tree, ${one.pascal}>(${many.camel}, operations.${one.camel}Tree, {`,
+  `      store,`,
+  `      visible,`,
+  `      order: (a, b) => a.title.localeCompare(b.title),`,
+  `    }),`,
+)}    ...collectionCommandHandlers<AppState, Services, ${one.pascal}>(
+      ${many.camel},
+      {
+        create: operations.${one.camel}Create,
+        update: operations.${one.camel}Update,
+${only(tree, `        move: operations.${one.camel}Move,`, `        retire: operations.${one.camel}Retire,`)}      },
+      {
+        store,
+        newKey: newId,
+        // The fields a person does not choose: a new ${one.words} is open and records who made it.
+        defaults: (ctx) => ({
+          status: 'open',
+${only(tree, '          retired: false,')}          createdBy: ctx.context.principalId,
+          createdAt: now(ctx),
+        }),
+      },
+    ),
   ];
 }
 `;
 
-const screen = (
+const flatScreen = (
   one: Names,
   many: Names,
 ) => `import { CollectionScreen, RecordScreen } from '@/components/collection-screen';
@@ -159,10 +170,71 @@ export const ${one.camel}Routes = [
 ];
 `;
 
+const treeScreen = (
+  one: Names,
+  many: Names,
+) => `import { RecordScreen } from '@/components/collection-screen';
+import { CollectionTree } from '@/components/collection-tree';
+import { operations } from '../contracts';
+
+/** Default screens for ${many.words}; replace either route with a purpose-built screen. */
+export const ${one.camel}Routes = [
+  {
+    path: '${many.kebab}',
+    component: () => (
+      <CollectionTree
+        title="${many.title}"
+        tree={operations.${one.camel}Tree}
+        search={operations.${one.camel}List}
+        create={operations.${one.camel}Create}
+        open={(row) => \`/${many.kebab}/\${String(row.id)}\`}
+      />
+    ),
+  },
+  {
+    path: '${many.kebab}/$id',
+    component: () => (
+      <RecordScreen
+        title="${one.title}"
+        get={operations.${one.camel}Get}
+        update={operations.${one.camel}Update}
+        move={operations.${one.camel}Move}
+        retire={operations.${one.camel}Retire}
+      />
+    ),
+  },
+];
+`;
+
+const treeTest = (one: Names, many: Names) => `
+test('${many.words} form a tree: moves refuse cycles, and retiring needs the children gone', async () => {
+  const app = await open();
+  const create = (title: string, parentId: string | undefined, key: string) =>
+    app.invokeRaw(
+      { operation: '${one.kebab}.create', input: { title, ...(parentId ? { parentId } : {}) }, idempotencyKey: key },
+      owner,
+    );
+  await create('Root', undefined, 'root');
+  await create('Child', '${one.kebab}-1', 'child');
+  const tree = await app.queryRaw({ operation: '${one.kebab}.tree', input: {} }, viewer);
+  expect(tree.data).toMatchObject({ total: 2, items: [{ title: 'Root', depth: 0 }, { title: 'Child', depth: 1 }] });
+  await expect(
+    app.invokeRaw({ operation: '${one.kebab}.move', input: { id: '${one.kebab}-1', parentId: '${one.kebab}-2' }, idempotencyKey: 'cycle' }, owner),
+  ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
+  await expect(
+    app.invokeRaw({ operation: '${one.kebab}.retire', input: { id: '${one.kebab}-1' }, idempotencyKey: 'early' }, owner),
+  ).rejects.toMatchObject({ code: 'CONFLICT' });
+  await app.invokeRaw({ operation: '${one.kebab}.retire', input: { id: '${one.kebab}-2' }, idempotencyKey: 'leaf' }, owner);
+  const active = await app.queryRaw({ operation: '${one.kebab}.tree', input: {} }, viewer);
+  expect(active.data).toMatchObject({ total: 1 });
+});
+`;
+
 const test = (
   app: AppNames,
   one: Names,
   many: Names,
+  tree: boolean,
 ) => `import { afterEach, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -222,18 +294,23 @@ test('viewers cannot write, strangers cannot read, and a missing ${one.words} is
     app.queryRaw({ operation: '${one.kebab}.get', input: { id: 'missing' } }, owner),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
 });
-`;
+${tree ? treeTest(one, many) : ''}`;
 
-/** A collection with generated get and list, create and update commands, screens and a test. */
-export function collection(app: AppNames, one: Names): Generated {
+/**
+ * A collection with generated get and list, create and update commands, screens and a test. A
+ * `tree` collection also gets a parent, move, retire and a tree read, and a tree screen.
+ */
+export function collection(app: AppNames, one: Names, tree = false): Generated {
   const many = plural(one);
-  const ops = ['List', 'Get', 'Create', 'Update'].map((op) => `operations.${one.camel}${op}.id`);
+  const reads = tree ? ['List', 'Get', 'Tree'] : ['List', 'Get'];
+  const writes = tree ? ['Create', 'Update', 'Move', 'Retire'] : ['Create', 'Update'];
+  const id = (op: string) => `operations.${one.camel}${op}.id`;
   return {
     files: {
-      [`contracts/${one.kebab}.ts`]: contract(one, many),
-      [`handlers/${one.kebab}.ts`]: handlers(one, many),
-      [`ui/${one.kebab}.tsx`]: screen(one, many),
-      [`test/${one.kebab}.test.ts`]: test(app, one, many),
+      [`contracts/${one.kebab}.ts`]: contract(one, many, tree),
+      [`handlers/${one.kebab}.ts`]: handlers(one, many, tree),
+      [`ui/${one.kebab}.tsx`]: tree ? treeScreen(one, many) : flatScreen(one, many),
+      [`test/${one.kebab}.test.ts`]: test(app, one, many, tree),
     },
     insertions: {
       'contracts.ts': {
@@ -247,10 +324,8 @@ export function collection(app: AppNames, one: Names): Generated {
       },
       'policy.ts': {
         rules: [
-          `[${ops[0]}]: 'open',`,
-          `[${ops[1]}]: 'open',`,
-          `[${ops[2]}]: editor,`,
-          `[${ops[3]}]: editor,`,
+          ...reads.map((op) => `[${id(op)}]: 'open',`),
+          ...writes.map((op) => `[${id(op)}]: editor,`),
         ],
         events: [`'${one.kebab}': () => true,`],
       },
