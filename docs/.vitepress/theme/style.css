@@ -2,3 +2,24 @@
 .vp-doc :is(h1, h2, h3, h4)[id] {
   scroll-margin-top: calc(var(--vp-nav-height) + 24px);
 }
+
+/* The tortoise before the site title, at the height of a nav logo. */
+.nav-tortoise {
+  width: 44px;
+  margin-right: 8px;
+}
+
+/* An image floated beside a paragraph, such as the tortoise on the home page. */
+.vp-doc img[align='right'] {
+  float: right;
+  margin: 0 0 16px 24px;
+}
+
+/* On a phone the image sits above the paragraph instead. */
+@media (max-width: 640px) {
+  .vp-doc img[align='right'] {
+    float: none;
+    width: 140px;
+    margin: 0 0 16px;
+  }
+}

@@ -53,7 +53,11 @@ test('new writes one generated application and copies no example', async () => {
   expect(await read(join(app, 'test/conformance.test.ts'))).toContain("name: 'note_list'");
   // The overview map cites the examples the export leaves out; the page keeps its prose.
   expect(await readdir(join(target, 'scripts'))).not.toContain('overview.ts');
-  expect(await readdir(join(target, 'docs/.vitepress/theme'))).not.toContain('overview');
+  const theme = await readdir(join(target, 'docs/.vitepress/theme'));
+  expect(theme).not.toContain('overview');
+  expect(theme).not.toContain('OverviewView.vue');
+  // The rest of the site's theme goes along, so the export's docs still build.
+  expect(theme).toContain('Tortoise.vue');
   const page = await read(join(target, 'docs/overview.md'));
   expect(page).toContain('## Request path');
   expect(page).not.toContain('<OverviewView');

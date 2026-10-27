@@ -1,6 +1,17 @@
-# Agent-native desktop starter
+# Tortoise
 
-A single-user application on the expert's own machine responds at once, works without a network, and composes with the other programs there, including the control software that runs equipment. Agent harnesses such as Claude Code and Codex run on the same machine and act through its CLIs and MCP servers. This repository is a reference architecture and [framework](docs/glossary.md#framework) for that paradigm. It provides reusable building blocks for agent-native, hyper-specialized applications for the edge workforce. People and agents operate each application together, and it delivers their work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES.
+<img src="./docs/assets/tortoise.svg" alt="A robot tortoise" width="180" align="right">
+
+A single-user application on the expert's own machine responds at once, works without a network, and composes with the other programs there, including the control software that runs equipment. Agent harnesses such as Claude Code and Codex run on the same machine and act through its CLIs and MCP servers. Tortoise is a reference architecture and [framework](docs/glossary.md#framework) for that paradigm. It provides reusable building blocks for agent-native, hyper-specialized applications for the edge workforce. People and agents operate each application together, and it delivers their work to the [systems of record](docs/systems-of-record.md) that own enterprise data, such as an ERP, a quality system or an MES.
+
+## Name
+
+Tortoise is named for the animal:
+
+- **Shell.** The [host](docs/glossary.md#host) wraps one application. Server code reaches the network, child processes and [exchange folders](docs/glossary.md#exchange-folder) only through the host's ports, and the host refuses whatever the [deployment policy](docs/glossary.md#deployment-policy) does not bind.
+- **Headless.** `app serve`, the CLI and the MCP bridge run the same application with no window. In [embedded mode](docs/glossary.md#embedded-mode), the MCP bridge runs the instance over stdio and listens on no network port.
+- **Sandbox.** The `sandbox` [hardening profile](docs/glossary.md#hardening-profile) refuses plain HTTP off the host and requires a fail-closed audit log. An embedded instance can run in a sandbox container whose only egress is the system of record.
+- **Stationary.** One instance owns the [workspace](docs/glossary.md#workspace), and another process that opens it fails with `CONFLICT`. The workspace is not synchronized across devices.
 
 ## Capabilities and surfaces
 

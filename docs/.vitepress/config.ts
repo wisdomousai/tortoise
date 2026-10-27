@@ -3,13 +3,20 @@
  * to a workspace README or a skill resolves the same way it does on GitHub. The site holds the guides, the root README and AGENTS.md, every
  * workspace README and every skill. `bun run docs:build` writes `dist/docs`.
  */
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, normalize } from 'node:path';
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 import { repoRoot, sidebar } from './sidebar';
 
 const repository = 'https://github.com/wisdomousai/agent-native-desktop-starter';
+
+/**
+ * The tortoise as the site icon. It is inlined as a data URL, because the site's public directory
+ * would be `public/` at the repository root.
+ */
+const tortoise = readFileSync(join(repoRoot, 'docs/assets/tortoise.svg'), 'utf8');
+const icon = `data:image/svg+xml,${encodeURIComponent(tortoise)}`;
 
 /**
  * A relative link to a source file or a directory has no page on the site. It points at the same
@@ -29,10 +36,11 @@ function sourceLink(href: string, pagePath: string): string | undefined {
 
 export default withMermaid(
   defineConfig({
-    title: 'Agent-native desktop starter',
+    title: 'Tortoise',
     description:
       'A TypeScript reference architecture for applications at the point of work that deliver to systems of record.',
     base: '/agent-native-desktop-starter/',
+    head: [['link', { rel: 'icon', type: 'image/svg+xml', href: icon }]],
     srcDir: '..',
     outDir: '../dist/docs',
     cacheDir: '../dist/docs-cache',

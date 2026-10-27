@@ -75,6 +75,8 @@ const sourceExtensions = new Set([
   '.yml',
   '.html',
   '.css',
+  // Components of the documentation site's theme.
+  '.vue',
   '.sh',
   '.py',
   '.toml',

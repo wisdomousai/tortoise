@@ -701,6 +701,12 @@ The name [primitives](primitives.md) uses for a site bundle together with its in
 
 OpenTelemetry metrics and traces of commands, outbox delivery and backlog, and runs, derived from the audit log and the outbox. The metrics and traces are exported through the egress guard without record contents. A driver's `telemetry` event is different: it enters as an observation. Lives in [`plugins/telemetry`](../plugins/telemetry/README.md).
 
+### Tortoise
+
+The name of the project: the framework, workstation packages, host plugins, starter, examples, samples and driver SDKs in this repository. Package names keep the `@agent-native/` scope. Explained in the [README](../README.md#name).
+
+Do not use: agent-native desktop starter (for the project).
+
 ### Trigger
 
 Work that starts on a committed change or a schedule instead of a person's prompt. A trigger submits commands under a standing grant like any caller. Lives in [`plugins/automation`](../plugins/automation/README.md).
