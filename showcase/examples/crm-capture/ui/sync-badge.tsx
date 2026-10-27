@@ -8,18 +8,18 @@ import { operations } from '../contracts';
 export function SyncBadge({ className }: { className?: string }) {
   const status = useQuery(live.liveQueryOptions(operations.syncStatus, {}));
   if (!status.data) return null;
-  const { pending, rejected, following } = status.data;
+  const { pending, rejected, requested } = status.data;
   const tone = rejected
     ? 'text-red-400'
-    : pending || following
+    : pending || requested
       ? 'text-amber-400'
       : 'text-emerald-400';
-  const Icon = rejected ? CircleAlert : pending || following ? RefreshCw : CircleCheck;
+  const Icon = rejected ? CircleAlert : pending || requested ? RefreshCw : CircleCheck;
   return (
     <p className={cn('flex items-center gap-2 font-medium text-sidebar-foreground', className)}>
       <Icon className={cn('size-4 shrink-0', tone)} aria-hidden />
-      {pending || following
-        ? `CRM: ${pending + following} waiting`
+      {pending || requested
+        ? `CRM: ${pending + requested} waiting`
         : rejected
           ? `CRM refused ${rejected}`
           : 'CRM in sync'}

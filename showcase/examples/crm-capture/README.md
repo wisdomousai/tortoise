@@ -243,7 +243,7 @@ Following is a domain command, because what following a record means depends on 
     - **Reads**: `reads: ['crm']` beside `targets`, without which the catalog refuses a remote query on the target.
     - **Data classes**: the classes that cross the destination, which the data-flow manifest reports.
     - **Scope and availability**: `internet` and `optional` in the example.
-16. Replace the generated `crm.send` command with a `crm.account.follow` command that declares `integration: { target: 'crm', delivery: 'outbox' }`. Its handler enqueues a follow effect and stores the account as following (`showcase/examples/crm-capture/handlers/capture.ts`).
+16. Replace the generated `crm.send` command with a `crm.account.follow` command that declares `integration: { target: 'crm', delivery: 'outbox' }`. Its handler enqueues a follow effect and stores the account as requested (`showcase/examples/crm-capture/handlers/capture.ts`).
     - **Contract**: the `crmSend` entry in `contracts/crm-target.ts` and in the operations of `contracts.ts`.
     - **Policy**: its `editor` rule in `policy.ts`.
     - **Handler**: the send handler in `handlers/crm-target.ts` and the `crmDeliveries` map in `domain.ts`.

@@ -101,6 +101,7 @@ describe('CRM capture', () => {
     expect((await query('crm.account.search', { q: 'acme robotics' })).items[0]!.local).toBe(
       'requested',
     );
+    expect(await query('crm.sync.status', {})).toMatchObject({ requested: 1, following: 0 });
     await complete();
     const followed = await query<{ name: string; status: string; owner: string }>(
       'crm.account.get',
@@ -114,6 +115,7 @@ describe('CRM capture', () => {
     expect((await query('crm.account.search', { q: 'acme robotics' })).items[0]!.local).toBe(
       'following',
     );
+    expect(await query('crm.sync.status', {})).toMatchObject({ requested: 0, following: 1 });
     // Following again changes nothing and asks the CRM nothing.
     const again = await command('crm.account.follow', { externalId: '001A1' }, 'follow-2');
     expect(again.result).toEqual({ id: '001A1', status: 'following' });

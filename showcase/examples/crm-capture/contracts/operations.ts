@@ -57,7 +57,7 @@ export const operations = {
     output: z.strictObject({ id: externalId, status: localStatus.exclude(['none']) }),
     permission: { action: 'follow', resourceType: 'CrmAccount' },
     description:
-      'Bring a CRM account found with crm.account.search into this workspace. The CRM is asked to let you follow it (with your CRM access); its details are then imported through the CRM feed and kept current. The receipt proves the local request only: the account is following until then, or rejected if the CRM refuses. Following an account already requested or followed returns it unchanged.',
+      'Bring a CRM account found with crm.account.search into this workspace. The CRM is asked to let you follow it (with your CRM access); its details are then imported through the CRM feed and kept current. The receipt proves the local request only: the account is requested until then, or rejected if the CRM refuses. Following an account already requested or followed returns it unchanged.',
     dependencies: ['account'],
     forwards: true,
   }),

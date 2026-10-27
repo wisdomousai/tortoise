@@ -14,7 +14,7 @@ import {
   type CrmServices,
 } from './context';
 
-/** A follow request completes its account; accepted keeps it following until the feed delivers it. */
+/** A follow request completes its account; accepted keeps it requested until the feed delivers it. */
 function completeFollow(ctx: Context, id: string, effectId: string, outcome: EffectOutcome) {
   const account = accountRecords(ctx).get(id);
   if (!account || account.effectId !== effectId)
