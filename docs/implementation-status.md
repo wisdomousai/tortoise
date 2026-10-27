@@ -205,7 +205,7 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 
 **Agent scenarios, live.** Gemma 4 E4B-it Q4_0 on llama-server 0.7.0 passed the model server's `requests approval for a note on a real model`, described above. The [agent scenarios](glossary.md#agent-scenario) in `packages/testing` and `examples/receiving` have passed with the deterministic harness only.
 
-**By hand, browser.** On 22 October 2026, `samples/notes-agents`, which `samples/lab-requests-agents` replaced, ran with `bun run dev:web` in Chrome on macOS. On an untitled note, **Suggest a title (offline run)** started a deterministic run from the note screen's UI session. The run requested approval for `note.update` and called `ui.request-review` naming the approval request. The screen showed the review above the pending suggestion; acknowledging closed it, and approving set the title on the open screen. The run's `ui.open` named the note already open, so no navigation was shown. `packages/frame/src/lib/ui-intents.test.ts` shows that an open intent reaches the open handler, and no test covers the default handler's navigation through `screens.resources`.
+**By hand, browser.** On 27 October 2026, `samples/lab-requests-agents` ran with `bun run dev:web` in Chrome on macOS. After the trigger was enabled on the Automation screen, a request submitted without a method got the job's approval request for "ASTM E8 tensile test". On the same request, **Suggest a method (offline run)** started a deterministic run from the screen's UI session. The run requested approval for `test-request.update` and called `ui.request-review`, and the screen showed the review above both pending suggestions. Acknowledging closed it, and approving the run's suggestion set the method on the open screen. Approving the job's suggestion afterwards showed that the record had changed and left it pending, and rejecting it closed it. `packages/frame/src/lib/ui-intents.test.ts` shows that an open intent reaches the open handler, and no test covers the default handler's navigation through `screens.resources`.
 
 On 27 October 2026, `samples/lab-requests-local-model` ran with `bun run dev:web` in Chrome on macOS, on the llama-server stand-in that `dev.ts` starts. After the trigger was enabled on the automation screen, a test request submitted without a method showed the suggested method "ASTM E8 tensile test" on its screen. Approving it set the method.
 
@@ -236,7 +236,7 @@ On 27 October 2026, `samples/lab-requests-local-model` ran with `bun run dev:web
 - Two dispatcher processes cannot share a local workspace, because the OS lock refuses the second (`packages/adapters/src/ownership.test.ts`). Dispatchers race only within one process, which the reliability tests cover, or across hosted instances under the fenced lease.
 - Capture timings come from synthetic runs.
 
-**By hand, browser.** On 22 October 2026, `samples/notes-system-of-record`, which `samples/lab-requests-system-of-record` replaced, ran with `bun run dev:web`, with its fake publisher on 127.0.0.1:4361 and the destination bound by `site-policy.dev.json`. The note added through the CLI was published and accepted as `pub-1`, and a note posted at the publisher arrived through the feed. In Chrome, a publication sent while the publisher moderated stayed pending with **Publish again** disabled. After the publisher forgot it, the dispatcher held the effect, and the note screen showed it live. Resolving it as applied with a reference accepted the publication with that reference.
+**By hand, browser.** On 27 October 2026, `samples/lab-requests-system-of-record` ran with `bun run dev:web` in Chrome on macOS, with its fake LIMS on 127.0.0.1:4371 and the destination bound by `site-policy.dev.json`. **Register in LIMS** on a request with a method was accepted as `LIMS-1`. While the LIMS reviewed, a request submitted through the CLI stayed pending with **Register again** disabled. After the LIMS forgot it, the dispatcher held the effect after six attempts, and the request screen showed it live. Resolving it as applied with the reference `LIMS-2` accepted the publication with that reference. A request without a method was rejected with the LIMS's reason, and a request registered at another site arrived through the feed as submitted by `lims-integration`.
 
 ### Peer applications
 
@@ -427,6 +427,8 @@ Control mappings are indicative.
 ## Known defects
 
 A session revoked during a request does not stop the request. HTTP authenticates each request once. If a session is revoked or expires while its command waits, the command's context stays live and the command commits. New requests with that token are refused.
+
+A sample or example started with `bun run dev` or `dev:web` titles its browser page and window with the display name in `app.config.json`, such as "Field Service", because `AGENT_NATIVE_APPLICATION` overrides only the application. The header shows the application's own label.
 
 These were fixed by inspection only and have no regression test:
 
