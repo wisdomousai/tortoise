@@ -11,8 +11,12 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** The application directories under `layer` that have screens and pass `include`. */
+/**
+ * The application directories under `layer` that have screens and pass `include`. A generated
+ * application leaves out every pattern, so a missing layer has none.
+ */
 function applications(layer: string, include: (directory: string) => boolean) {
+  if (!existsSync(resolve(root, layer))) return [];
   return readdirSync(resolve(root, layer), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => resolve(root, layer, entry.name))
