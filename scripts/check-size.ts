@@ -1,5 +1,5 @@
 /**
- * Reports long files and functions in `packages/*`, `workstations/*`, `plugins/*`, `apps/*`, `examples/*` and `samples/*` as
+ * Reports long files and functions in `packages/*`, `workstations/*`, `plugins/*`, `apps/*`, `examples/*` and `patterns/*` as
  * hints for review; they never fail the check. It fails only when a package `src/index.ts` holds
  * anything but `export … from` re-exports, because importers rely on the entrypoint carrying no
  * code of its own. Reads files only; writes nothing.
@@ -66,7 +66,7 @@ function* functions(
 }
 
 const files = (
-  await Array.fromAsync(new Bun.Glob('{packages,plugins,apps,examples,samples}/**/*').scan(root))
+  await Array.fromAsync(new Bun.Glob('{packages,plugins,apps,examples,patterns}/**/*').scan(root))
 )
   .filter((path) => measuredSource.test(path) && !exemptSource.test(path))
   .sort();

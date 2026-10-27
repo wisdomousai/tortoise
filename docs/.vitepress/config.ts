@@ -59,7 +59,7 @@ export default withMermaid(
       'plugins/:name/README.md': 'plugins/:name/index.md',
       'apps/:name/README.md': 'apps/:name/index.md',
       'examples/:name/README.md': 'examples/:name/index.md',
-      'samples/:name/README.md': 'samples/:name/index.md',
+      'patterns/:name/README.md': 'patterns/:name/index.md',
       'sdks/:name/README.md': 'sdks/:name/index.md',
       ':layer/:name/skills/:skill/SKILL.md': ':layer/:name/skills/:skill/index.md',
     },

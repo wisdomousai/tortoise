@@ -257,7 +257,7 @@ Do not use: in-process mode, standalone mode, local mode.
 
 ### Example
 
-An application under `examples/` that demonstrates a pattern and serves as a test fixture. Listed in [getting started](getting-started.md).
+A whole application under `examples/` for a real-world case in one of the covered domains, such as field service work orders or goods receiving. It also serves as a test fixture. Listed in [architecture](architecture.md#examples). A [pattern](#pattern) shows one technical concern instead.
 
 Do not use: demo app, reference app.
 
@@ -493,6 +493,12 @@ Do not use: queue (for the outbox), message queue, job queue.
 
 The local owner is the principal `owner`. Where the identity policy admits it, the host issues it a session and a connection file, and an embedded call without a grant file acts as it. An application may also declare an `owner` role in a container. Lives in [`packages/kernel`](../packages/kernel/README.md).
 
+### Pattern
+
+A small application under `patterns/` that shows one technical concern, such as a system of record, an agent or a sandbox. `patterns/lab-requests` is the base, and every other pattern composes it unchanged and adds one concern. Listed in [patterns](patterns.md). An [example](#example) is a whole application instead.
+
+Do not use: sample, demo (for a pattern).
+
 ### Peer
 
 Another agent-native application enrolled with this one through the peer link. It calls the peer surface as its service principal, `peer:<id>`, or on behalf of a person through a subject assertion. Lives in [`plugins/peer-link`](../plugins/peer-link/README.md).
@@ -596,12 +602,6 @@ Do not use: dependency declaration, capability requirement, permission request.
 The per-resource counter a command bumps. `expectedRevisions` makes a stale write conflict. Explained in [interaction contract](interaction-contract.md).
 
 Do not use: version (for a revision), etag.
-
-### Sample
-
-A small application under `samples/` that shows one concept. `samples/lab-requests` is the base, and every other sample composes it unchanged and adds one concern. Listed in [samples](samples.md).
-
-Do not use: demo (for a sample).
 
 ### Scaffold
 
@@ -725,7 +725,7 @@ OpenTelemetry metrics and traces of commands, outbox delivery and backlog, and r
 
 ### Tortoise
 
-The name of the project: the framework, workstation packages, host plugins, starter, examples, samples and driver SDKs in this repository. Package names keep the `@agent-native/` scope. Explained in the [README](../README.md#name).
+The name of the project: the framework, workstation packages, host plugins, starter, examples, patterns and driver SDKs in this repository. Package names keep the `@agent-native/` scope. Explained in the [README](../README.md#name).
 
 Do not use: agent-native desktop starter (for the project).
 

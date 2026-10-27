@@ -33,7 +33,7 @@ No public release has been made. The entries use these kinds of evidence:
 - The first was paused with SIGSTOP for 33 seconds. A new instance then took the lease with [fencing token](glossary.md#fencing-token) 2 and listed the project.
 - The first was resumed. It logged `lease-lost` and exited.
 
-**By hand.** On 27 October 2026, on macOS arm64, `samples/lab-requests-hosted` ran with `bun run dev:web` against a throwaway Homebrew Postgres 17.11 server on loopback, without Docker.
+**By hand.** On 27 October 2026, on macOS arm64, `patterns/lab-requests-hosted` ran with `bun run dev:web` against a throwaway Homebrew Postgres 17.11 server on loopback, without Docker.
 
 - The stand-in identity provider ran on `https://127.0.0.1:4372` with a certificate from a throwaway openssl CA, which the policy's `workforce-idp` binding trusted.
 - Sign-ins were driven with curl, not a browser, because no browser on the machine trusted that CA. A technician submitted a request recorded under their email. A viewer listed it and was refused a submission.
@@ -56,7 +56,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Browser.** On 18 October 2026, `examples/fleet/e2e/fleet.pw.ts` passed in headless Chromium against the real host. It covered enrollment from the Devices screen, a site report, a channel created and assigned from the screens, and the drift shown on the Health screen.
 
-**By hand, browser.** On 27 October 2026, on macOS arm64, `samples/lab-requests-site` on port 4359 and `examples/fleet` on port 4340 ran side by side with `bun run dev:web` in Chrome. The site enrolled with a code from the Devices screen, reported, and forwarded its audit log, which the fleet's Audit screen listed. `publish-release.ts` published a signed bundle of 46 files, with a 92 MB binary, to `lab-stable`. After the site was put on that channel, the release was staged in `fleet-releases`, and `fleet.health` reported no issues once the next report named it.
+**By hand, browser.** On 27 October 2026, on macOS arm64, `patterns/lab-requests-site` on port 4359 and `examples/fleet` on port 4340 ran side by side with `bun run dev:web` in Chrome. The site enrolled with a code from the Devices screen, reported, and forwarded its audit log, which the fleet's Audit screen listed. `publish-release.ts` published a signed bundle of 46 files, with a 92 MB binary, to `lab-stable`. After the site was put on that channel, the release was staged in `fleet-releases`, and `fleet.health` reported no issues once the next report named it.
 
 **Not shown.**
 
@@ -91,7 +91,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 **By hand, 17 October 2026.** A rerun after the bundle began writing its contract, security manifest and SBOM from the catalog. The signature verified, and `admit` listed the requirements to approve.
 
-**By hand, 27 October 2026.** `bun run bundle create` built a `samples/lab-requests-site` bundle of 46 files, with a 92 MB binary, on macOS arm64. The binary carried no `.exe` suffix after `scripts/bundle.ts` stopped matching `darwin` as Windows. `admit` on the copy the fleet agent staged refused it until approved.
+**By hand, 27 October 2026.** `bun run bundle create` built a `patterns/lab-requests-site` bundle of 46 files, with a 92 MB binary, on macOS arm64. The binary carried no `.exe` suffix after `scripts/bundle.ts` stopped matching `darwin` as Windows. `admit` on the copy the fleet agent staged refused it until approved.
 
 **Not shown.**
 
@@ -104,7 +104,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Added, not yet run.** The `site-install` CI job on Ubuntu runs `plugins/site/test/install.test.ts`. It applies `systemd-analyze verify` to the unit and `nft -c -f` to the rules.
 
-**By hand.** On 27 October 2026, on macOS arm64, `site install` installed release 1.2.0 of `samples/lab-requests-site` from the folder the fleet agent staged it in. It ran with `--prefix`, `--service systemd`, `samples/lab-requests-site/site-policy.json` and a site approval, without `--apply`. It rendered the unit and `egress.nft` and set mode 0755 on the installed binary, and `site status` verified the current release. Neither file was loaded, because the machine is not Linux.
+**By hand.** On 27 October 2026, on macOS arm64, `site install` installed release 1.2.0 of `patterns/lab-requests-site` from the folder the fleet agent staged it in. It ran with `--prefix`, `--service systemd`, `patterns/lab-requests-site/site-policy.json` and a site approval, without `--apply`. It rendered the unit and `egress.nft` and set mode 0755 on the installed binary, and `site status` verified the current release. Neither file was loaded, because the machine is not Linux.
 
 **Not shown.**
 
@@ -121,7 +121,7 @@ No public release has been made. The entries use these kinds of evidence:
 - `plugins/site/test/workforce.test.ts` signs in against a fake provider. It covers PKCE, a one-use state, session expiry and the ID-token checks: audience, nonce, verified email and the discovered issuer.
 - `packages/adapters/src/http-credentials.test.ts` shows a cookie accepted only as a cookie and a bearer only as a bearer.
 - The field-service hardening test starts an `external` policy with a bound provider and no owner session.
-- `plugins/site/test/identity-provider.test.ts` signs in against the stand-in provider in process, and `samples/lab-requests-hosted/test/hosted.test.ts` signs in through the network guard over HTTPS with a throwaway CA.
+- `plugins/site/test/identity-provider.test.ts` signs in against the stand-in provider in process, and `patterns/lab-requests-hosted/test/hosted.test.ts` signs in through the network guard over HTTPS with a throwaway CA.
 
 **Not shown.**
 
@@ -140,7 +140,7 @@ No public release has been made. The entries use these kinds of evidence:
 - revoking a badge ends its sessions;
 - neither the badge value nor the PIN reaches the workspace database.
 
-**By hand, browser.** On 27 October 2026, `samples/lab-requests-sign-in` ran with `bun run dev:web` in Chrome on macOS, with badges typed as keyboard-wedge bursts. Badges enrolled on the badge screen showed live. At the seat, a specimen label was refused as not a badge. A technician signed in with a PIN starting with zero, scanned a specimen label into the bench screen and submitted a request that recorded the technician as requester. A wrong PIN for the viewer's badge got "Badge or PIN not recognized". After the viewer signed in, the technician's session was gone and the viewer's submission was refused. Leaving the seat screen ended the viewer's session at the host, and so did two idle minutes in a second run.
+**By hand, browser.** On 27 October 2026, `patterns/lab-requests-sign-in` ran with `bun run dev:web` in Chrome on macOS, with badges typed as keyboard-wedge bursts. Badges enrolled on the badge screen showed live. At the seat, a specimen label was refused as not a badge. A technician signed in with a PIN starting with zero, scanned a specimen label into the bench screen and submitted a request that recorded the technician as requester. A wrong PIN for the viewer's badge got "Badge or PIN not recognized". After the viewer signed in, the technician's session was gone and the viewer's submission was refused. Leaving the seat screen ended the viewer's session at the host, and so did two idle minutes in a second run.
 
 **Not shown.**
 
@@ -153,7 +153,7 @@ No public release has been made. The entries use these kinds of evidence:
 **Not shown.**
 
 - Removing a feature or plugin from an application drops its slice at the next commit. Nothing keeps or exports the dropped data.
-- crm-capture, fleet and quality-inspection keep their unversioned `upgradeState`. The other examples and `samples/lab-requests-operations` declare [state migrations](glossary.md#state-migration).
+- crm-capture, fleet and quality-inspection keep their unversioned `upgradeState`. The other examples and `patterns/lab-requests-operations` declare [state migrations](glossary.md#state-migration).
 - A target port that maps effects by `contractVersion` has not been written.
 - The phone's storage stamps versions, but has no staged `migrate`.
 
@@ -200,27 +200,27 @@ The runs found these defects, now fixed and covered by deterministic tests:
 - `expectedRevisions` was offered on queries and `approval.request`, where it means nothing, and models filled it with invented keys.
 - The egress guard's 30-second request timeout cut off a model that reasons before it answers. A destination binding now takes `timeoutMs`.
 
-On 27 October 2026, `samples/lab-requests-local-model/test/live.test.ts` passed once, in 75 seconds, on the same machine, server and weights. A submitted test request started the method suggester through its trigger on the measured `lab-methods` entry. For the description "Tensile strength of the weld coupon", the model requested approval for `test-request.update` with the method `ASTM E8`. The request's input repeated the unchanged specimen and description. Its `baseRevisions` key was the bare ID wrapped in Gemma's `<|"|>` string tokens, not `test-request:<id>`. `approval.request` accepted that key, and the live run did not decide the request. Closing the host during the run's last model turn logged an `ECONNRESET` from the cancelled call.
+On 27 October 2026, `patterns/lab-requests-local-model/test/live.test.ts` passed once, in 75 seconds, on the same machine, server and weights. A submitted test request started the method suggester through its trigger on the measured `lab-methods` entry. For the description "Tensile strength of the weld coupon", the model requested approval for `test-request.update` with the method `ASTM E8`. The request's input repeated the unchanged specimen and description. Its `baseRevisions` key was the bare ID wrapped in Gemma's `<|"|>` string tokens, not `test-request:<id>`. `approval.request` accepted that key, and the live run did not decide the request. Closing the host during the run's last model turn logged an `ECONNRESET` from the cancelled call.
 
 Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these fixes, and was not rerun after them. No vLLM and no fine-tune has run. Weights are not yet delivered as bundle artifacts.
 
 **Agent scenarios, live.** Gemma 4 E4B-it Q4_0 on llama-server 0.7.0 passed the model server's `requests approval for a note on a real model`, described above. The [agent scenarios](glossary.md#agent-scenario) in `packages/testing` and `examples/receiving` have passed with the deterministic harness only.
 
-**By hand, browser.** On 27 October 2026, `samples/lab-requests-agents` ran with `bun run dev:web` in Chrome on macOS. After the trigger was enabled on the Automation screen, a request submitted without a method got the job's approval request for "ASTM E8 tensile test". On the same request, **Suggest a method (offline run)** started a deterministic run from the screen's UI session. The run requested approval for `test-request.update` and called `ui.request-review`, and the screen showed the review above both pending suggestions. Acknowledging closed it, and approving the run's suggestion set the method on the open screen. Approving the job's suggestion afterwards showed that the record had changed and left it pending, and rejecting it closed it. `packages/frame/src/lib/ui-intents.test.ts` shows that an open intent reaches the open handler, and no test covers the default handler's navigation through `screens.resources`.
+**By hand, browser.** On 27 October 2026, `patterns/lab-requests-agents` ran with `bun run dev:web` in Chrome on macOS. After the trigger was enabled on the Automation screen, a request submitted without a method got the job's approval request for "ASTM E8 tensile test". On the same request, **Suggest a method (offline run)** started a deterministic run from the screen's UI session. The run requested approval for `test-request.update` and called `ui.request-review`, and the screen showed the review above both pending suggestions. Acknowledging closed it, and approving the run's suggestion set the method on the open screen. Approving the job's suggestion afterwards showed that the record had changed and left it pending, and rejecting it closed it. `packages/frame/src/lib/ui-intents.test.ts` shows that an open intent reaches the open handler, and no test covers the default handler's navigation through `screens.resources`.
 
-On 27 October 2026, `samples/lab-requests-local-model` ran with `bun run dev:web` in Chrome on macOS, on the llama-server stand-in that `dev.ts` starts. After the trigger was enabled on the automation screen, a test request submitted without a method showed the suggested method "ASTM E8 tensile test" on its screen. Approving it set the method.
+On 27 October 2026, `patterns/lab-requests-local-model` ran with `bun run dev:web` in Chrome on macOS, on the llama-server stand-in that `dev.ts` starts. After the trigger was enabled on the automation screen, a test request submitted without a method showed the suggested method "ASTM E8 tensile test" on its screen. Approving it set the method.
 
 ### Execution host
 
 **Native.** On 17 October 2026, `bun run test:execution-host:linux` ran on Docker Desktop 29.4.0 (Linux 6.12.76-linuxkit, arm64). `IMAGE` named an image assembled by hand from a locally cached Alpine 3.23 base, with bubblewrap 0.12.0 and Bun 1.4.0 for musl. All 18 tests passed, including the eight in `test/sandbox.test.ts` under real bubblewrap and the plugin's seccomp filter. `test/linux/Dockerfile` itself was not built, because Docker Desktop's image pulls hung behind its proxy.
 
-**By hand, browser.** On 27 October 2026, `samples/lab-requests-sandbox` ran with `bun run dev:web` in Chrome on macOS. The request screen showed the execution host's reason that darwin has no backend, with **Analyze in the sandbox** disabled. Readings recorded on the screen listed live, and statistics entered by hand showed as entered by hand.
+**By hand, browser.** On 27 October 2026, `patterns/lab-requests-sandbox` ran with `bun run dev:web` in Chrome on macOS. The request screen showed the execution host's reason that darwin has no backend, with **Analyze in the sandbox** disabled. Readings recorded on the screen listed live, and statistics entered by hand showed as entered by hand.
 
 **Not shown.**
 
 - **Platforms:** no run on x86-64, on glibc, or on a host kernel outside a container. No macOS or Windows backend exists.
 - **Agents:** no coding agent harness (Codex, Claude Code) has run inside a sandbox. The tasks were the probe script, the application CLI and an MCP client.
-- **Sample:** `samples/lab-requests-sandbox/test/sandbox.test.ts` has not run under bubblewrap. On macOS it skips, and the sample's other tests show the unavailable path.
+- **Pattern:** `patterns/lab-requests-sandbox/test/sandbox.test.ts` has not run under bubblewrap. On macOS it skips, and the pattern's other tests show the unavailable path.
 - **Egress:** the proxy path was shown to a loopback listener, not to a real provider over TLS.
 - **Distributions:** those that restrict unprivileged user namespaces, by Ubuntu's AppArmor rule or a disabled sysctl, were not tried.
 
@@ -228,7 +228,7 @@ On 27 October 2026, `samples/lab-requests-local-model` ran with `bun run dev:web
 
 **Not shown.**
 
-- Delivery, sync and [remote queries](primitives.md#remote-query) run only against fakes: in memory in quality-inspection, crm-capture and asset-survey, and the loopback HTTP LIMS of `samples/lab-requests-system-of-record`. Asset-survey's fakes are the demo EAM and an extractor that reads text embedded in generated nameplate images.
+- Delivery, sync and [remote queries](primitives.md#remote-query) run only against fakes: in memory in quality-inspection, crm-capture and asset-survey, and the loopback HTTP LIMS of `patterns/lab-requests-system-of-record`. Asset-survey's fakes are the demo EAM and an extractor that reads text embedded in generated nameplate images.
 - Remote queries and [data providers](primitives.md#data-provider) are used by crm-capture and asset-survey.
 - There is no real system of record, CRM or EAM.
 - No extraction has run against a model provider. Asset-survey's model extractor has run only against a mock model and a fake network port.
@@ -237,13 +237,13 @@ On 27 October 2026, `samples/lab-requests-local-model` ran with `bun run dev:web
 - Two dispatcher processes cannot share a local workspace, because the OS lock refuses the second (`packages/adapters/src/ownership.test.ts`). Dispatchers race only within one process, which the reliability tests cover, or across hosted instances under the fenced lease.
 - Capture timings come from synthetic runs.
 
-**By hand, browser.** On 27 October 2026, `samples/lab-requests-system-of-record` ran with `bun run dev:web` in Chrome on macOS, with its fake LIMS on 127.0.0.1:4371 and the destination bound by `site-policy.dev.json`. **Register in LIMS** on a request with a method was accepted as `LIMS-1`. While the LIMS reviewed, a request submitted through the CLI stayed pending with **Register again** disabled. After the LIMS forgot it, the dispatcher held the effect after six attempts, and the request screen showed it live. Resolving it as applied with the reference `LIMS-2` accepted the publication with that reference. A request without a method was rejected with the LIMS's reason, and a request registered at another site arrived through the feed as submitted by `lims-integration`.
+**By hand, browser.** On 27 October 2026, `patterns/lab-requests-system-of-record` ran with `bun run dev:web` in Chrome on macOS, with its fake LIMS on 127.0.0.1:4371 and the destination bound by `site-policy.dev.json`. **Register in LIMS** on a request with a method was accepted as `LIMS-1`. While the LIMS reviewed, a request submitted through the CLI stayed pending with **Register again** disabled. After the LIMS forgot it, the dispatcher held the effect after six attempts, and the request screen showed it live. Resolving it as applied with the reference `LIMS-2` accepted the publication with that reference. A request without a method was rejected with the LIMS's reason, and a request registered at another site arrived through the feed as submitted by `lims-integration`.
 
 ### Peer applications
 
 **Not shown.**
 
-- **Live:** receiving and quality-inspection have connected only in the two-host tests on loopback. Nobody has connected them through `bun run dev` and the Peers screens. Only the two assignment samples have connected that way ([assignments](#assignments)), and no pair has run across two machines.
+- **Live:** receiving and quality-inspection have connected only in the two-host tests on loopback. Nobody has connected them through `bun run dev` and the Peers screens. Only the two assignment patterns have connected that way ([assignments](#assignments)), and no pair has run across two machines.
 - **Browser:** no browser test opens the Peers screen.
 - **Mobile:** the field application's drift check has run only under Bun, not in a Hermes build.
 
@@ -261,7 +261,7 @@ On 27 October 2026, `samples/lab-requests-local-model` ran with `bun run dev:web
 
 **Not shown.**
 
-- **Browser:** no sample runs the person, agent or peer lane. The notes samples that ran them by hand and in Playwright on 27 October 2026 were left out when the samples moved to lab requests, and have not been rebuilt there. The asset survey's screens have not run assignments in a browser.
+- **Browser:** no pattern runs the person, agent or peer lane. The notes applications that ran them by hand and in Playwright on 27 October 2026 were left out when the content moved to lab requests, and have not been rebuilt there. The asset survey's screens have not run assignments in a browser.
 - **Agent:** an agent assignee has run only with the deterministic harness (`packages/assignments/test/lanes.test.ts`). No model has read a brief and reported.
 - **Target:** the target lane has run only in tests, against a function port.
 - **Screens:** an application that fills no slots still shows the brief as JSON and takes the scope and a report's subject as typed record keys.
@@ -409,7 +409,7 @@ Control mappings are indicative.
 
 **Opt-in run, installed framework.** On 17 October 2026, `bun run test:scaffold:full`. The framework packs into 39 tarballs served by the loopback registry, and `scaffold new --registry` exports without framework source. The export installs, and reinstalls with `--frozen-lockfile` from a clean `node_modules`. It adds a target with the installed [scaffold](glossary.md#scaffold) and passes its whole `bun run check` and its Playwright spec.
 
-**Opt-in run.** On 27 October 2026, `bun run test:scaffold:full` passed its 16 tests with `field-service` as the configured application. The complete source export wrote the local-model sample's stand-in weights at run time. The framework packed into 49 tarballs for the registry install.
+**Opt-in run.** On 27 October 2026, `bun run test:scaffold:full` passed its 16 tests with `field-service` as the configured application. The complete source export wrote the local-model pattern's stand-in weights at run time. The framework packed into 49 tarballs for the registry install.
 
 **By hand, mobile export.** On 17 October 2026, `bun run scaffold <dir> --name field-survey --example asset-survey-field` exported `apps/mobile`, the field application and the hub example it imports. In the export, these passed:
 
@@ -440,7 +440,7 @@ Control mappings are indicative.
 
 A session revoked during a request does not stop the request. HTTP authenticates each request once. If a session is revoked or expires while its command waits, the command's context stays live and the command commits. New requests with that token are refused.
 
-A sample or example started with `bun run dev` or `dev:web` titles its browser page and window with the display name in `app.config.json`, such as "Field Service", because `AGENT_NATIVE_APPLICATION` overrides only the application. The header shows the application's own label.
+A pattern or example started with `bun run dev` or `dev:web` titles its browser page and window with the display name in `app.config.json`, such as "Field Service", because `AGENT_NATIVE_APPLICATION` overrides only the application. The header shows the application's own label.
 
 These were fixed by inspection only and have no regression test:
 

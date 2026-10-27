@@ -178,7 +178,7 @@ A seat is the local owner or a principal listed in the `station-sign-in-seats` s
 
 Signing in does not move a seat that the bridge holds. The operator takes the screen back with the takeover command. `workstations/sign-in/test/sign-in.test.ts` tests these rules.
 
-The plugin's seat screen reads the badge from a scanner and the PIN from the operator registry's keypad. It then shows the application's own screen as the operator, until sign-out, inactivity or expiry. Its badge screen enrolls and revokes badges. `samples/lab-requests-sign-in` composes both at a lab bench.
+The plugin's seat screen reads the badge from a scanner and the PIN from the operator registry's keypad. It then shows the application's own screen as the operator, until sign-out, inactivity or expiry. Its badge screen enrolls and revokes badges. `patterns/lab-requests-sign-in` composes both at a lab bench.
 
 ## Data ownership
 

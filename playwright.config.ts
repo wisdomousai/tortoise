@@ -1,8 +1,8 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
-  // The starter's own specs, and each example's and sample's under `<name>/e2e`.
+  // The starter's own specs, and each example's and pattern's under `<name>/e2e`.
   testDir: '.',
-  testMatch: ['tests/e2e/**/*.pw.ts', 'examples/*/e2e/**/*.pw.ts', 'samples/*/e2e/**/*.pw.ts'],
+  testMatch: ['tests/e2e/**/*.pw.ts', 'examples/*/e2e/**/*.pw.ts', 'patterns/*/e2e/**/*.pw.ts'],
   // Each spec runs the applications it names, so their web builds must exist.
   globalSetup: './scripts/build-web-examples.ts',
   timeout: 30_000,

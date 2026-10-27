@@ -1,8 +1,8 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-/** Directories that hold applications: the examples and the concept samples. */
-const contentLayers = ['examples', 'samples'] as const;
+/** Directories that hold applications: the examples and the concept patterns. */
+const contentLayers = ['examples', 'patterns'] as const;
 
 export interface ExcludedExample {
   readonly directory: string;
@@ -56,7 +56,7 @@ async function keptExamples(
 }
 
 /**
- * The examples and samples an export leaves out, with the package and application ids that the
+ * The examples and patterns an export leaves out, with the package and application ids that the
  * root manifest, lockfile and generated references name: every one except the example `keep` and
  * those it imports, or all of them when `keep` is undefined (a new application). Reads text only;
  * no content code is loaded.
@@ -91,19 +91,21 @@ export async function excludedExamples(
 }
 
 /**
- * The sample layer's workspace pattern when the export leaves out every sample, so the
+ * The `patterns/*` workspace entry when the export leaves out every pattern, so the
  * exported root lists no empty layer. The examples layer always stays: it holds the application.
  */
 export async function emptiedLayers(
   sourceRoot: string,
   excluded: readonly ExcludedExample[],
 ): Promise<string[]> {
-  const entries = await readdir(join(sourceRoot, 'samples'), { withFileTypes: true }).catch(
+  const entries = await readdir(join(sourceRoot, 'patterns'), { withFileTypes: true }).catch(
     () => [],
   );
-  const samples = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-  return samples.every((name) => excluded.some(({ directory }) => directory === `samples/${name}`))
-    ? ['samples/*']
+  const patterns = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  return patterns.every((name) =>
+    excluded.some(({ directory }) => directory === `patterns/${name}`),
+  )
+    ? ['patterns/*']
     : [];
 }
 

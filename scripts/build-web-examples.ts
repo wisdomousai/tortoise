@@ -22,7 +22,7 @@ function applications(layer: string, include: (directory: string) => boolean) {
 export default function buildExampleWeb() {
   const directories = [
     ...applications('examples', () => true),
-    ...applications('samples', (directory) => existsSync(resolve(directory, 'e2e'))),
+    ...applications('patterns', (directory) => existsSync(resolve(directory, 'e2e'))),
   ];
   for (const directory of directories) {
     const build = spawnSync('bun', ['run', 'build:web'], {

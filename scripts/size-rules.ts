@@ -8,7 +8,7 @@ export const maxFunctionLines = 80;
 
 /** Workspace sources that `check:size` measures. Tests, browser tests and generated output are exempt. */
 export const measuredSource =
-  /^(?:packages|workstations|plugins|apps|examples|samples)\/.+\.[cm]?[jt]sx?$/;
+  /^(?:packages|workstations|plugins|apps|examples|patterns)\/.+\.[cm]?[jt]sx?$/;
 export const exemptSource =
   /(?:\.test\.|\.pw\.ts$|\.d\.ts$|\/test\/|\/e2e\/|\/generated\/|\/dist\/|\/node_modules\/)/;
 

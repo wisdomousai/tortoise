@@ -27,14 +27,14 @@ export const config = readStarterConfig(join(root, 'app.config.json'), {});
 const program = config.name;
 
 /**
- * Every application this checkout can host: the configured one, each example and each sample. The catalog,
+ * Every application this checkout can host: the configured one, each example and each pattern. The catalog,
  * and so every generated artifact, belongs to one application.
  */
 export async function applications(): Promise<ApplicationManifest[]> {
   const found = new Map<string, ApplicationManifest>();
   const configured = await loadManifest(config);
   found.set(configured.id, configured);
-  for (const layer of ['examples', 'samples'])
+  for (const layer of ['examples', 'patterns'])
     for (const entry of await readdir(join(root, layer), { withFileTypes: true }).catch(() => []))
       if (
         entry.isDirectory() &&

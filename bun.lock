@@ -47,24 +47,24 @@
         "@agent-native/operator-ui": "workspace:*",
         "@agent-native/os": "workspace:*",
         "@agent-native/os-shortcuts": "workspace:*",
+        "@agent-native/pattern-lab-requests": "workspace:*",
+        "@agent-native/pattern-lab-requests-agents": "workspace:*",
+        "@agent-native/pattern-lab-requests-host-plugin": "workspace:*",
+        "@agent-native/pattern-lab-requests-hosted": "workspace:*",
+        "@agent-native/pattern-lab-requests-local-model": "workspace:*",
+        "@agent-native/pattern-lab-requests-operations": "workspace:*",
+        "@agent-native/pattern-lab-requests-review": "workspace:*",
+        "@agent-native/pattern-lab-requests-sandbox": "workspace:*",
+        "@agent-native/pattern-lab-requests-sign-in": "workspace:*",
+        "@agent-native/pattern-lab-requests-signals": "workspace:*",
+        "@agent-native/pattern-lab-requests-site": "workspace:*",
+        "@agent-native/pattern-lab-requests-system-of-record": "workspace:*",
         "@agent-native/peer-link": "workspace:*",
         "@agent-native/process": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
         "@agent-native/react": "workspace:*",
         "@agent-native/receiving": "workspace:*",
         "@agent-native/runtime": "workspace:*",
-        "@agent-native/sample-lab-requests": "workspace:*",
-        "@agent-native/sample-lab-requests-agents": "workspace:*",
-        "@agent-native/sample-lab-requests-host-plugin": "workspace:*",
-        "@agent-native/sample-lab-requests-hosted": "workspace:*",
-        "@agent-native/sample-lab-requests-local-model": "workspace:*",
-        "@agent-native/sample-lab-requests-operations": "workspace:*",
-        "@agent-native/sample-lab-requests-review": "workspace:*",
-        "@agent-native/sample-lab-requests-sandbox": "workspace:*",
-        "@agent-native/sample-lab-requests-sign-in": "workspace:*",
-        "@agent-native/sample-lab-requests-signals": "workspace:*",
-        "@agent-native/sample-lab-requests-site": "workspace:*",
-        "@agent-native/sample-lab-requests-system-of-record": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
         "@agent-native/screen-bridge": "workspace:*",
         "@agent-native/share-target": "workspace:*",
@@ -457,6 +457,54 @@
         "@electric-sql/pglite": "0.5.8",
       },
     },
+    "patterns/lab-requests": {
+      "name": "@agent-native/pattern-lab-requests",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-agents": {
+      "name": "@agent-native/pattern-lab-requests-agents",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-host-plugin": {
+      "name": "@agent-native/pattern-lab-requests-host-plugin",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-hosted": {
+      "name": "@agent-native/pattern-lab-requests-hosted",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-local-model": {
+      "name": "@agent-native/pattern-lab-requests-local-model",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-operations": {
+      "name": "@agent-native/pattern-lab-requests-operations",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-review": {
+      "name": "@agent-native/pattern-lab-requests-review",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-sandbox": {
+      "name": "@agent-native/pattern-lab-requests-sandbox",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-sign-in": {
+      "name": "@agent-native/pattern-lab-requests-sign-in",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-signals": {
+      "name": "@agent-native/pattern-lab-requests-signals",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-site": {
+      "name": "@agent-native/pattern-lab-requests-site",
+      "version": "0.1.0",
+    },
+    "patterns/lab-requests-system-of-record": {
+      "name": "@agent-native/pattern-lab-requests-system-of-record",
+      "version": "0.1.0",
+    },
     "plugins/android-intents": {
       "name": "@agent-native/android-intents",
       "version": "0.1.0",
@@ -821,54 +869,6 @@
         "react": "19.3.0",
       },
     },
-    "samples/lab-requests": {
-      "name": "@agent-native/sample-lab-requests",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-agents": {
-      "name": "@agent-native/sample-lab-requests-agents",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-host-plugin": {
-      "name": "@agent-native/sample-lab-requests-host-plugin",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-hosted": {
-      "name": "@agent-native/sample-lab-requests-hosted",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-local-model": {
-      "name": "@agent-native/sample-lab-requests-local-model",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-operations": {
-      "name": "@agent-native/sample-lab-requests-operations",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-review": {
-      "name": "@agent-native/sample-lab-requests-review",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-sandbox": {
-      "name": "@agent-native/sample-lab-requests-sandbox",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-sign-in": {
-      "name": "@agent-native/sample-lab-requests-sign-in",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-signals": {
-      "name": "@agent-native/sample-lab-requests-signals",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-site": {
-      "name": "@agent-native/sample-lab-requests-site",
-      "version": "0.1.0",
-    },
-    "samples/lab-requests-system-of-record": {
-      "name": "@agent-native/sample-lab-requests-system-of-record",
-      "version": "0.1.0",
-    },
     "sdks/driver-dotnet": {
       "name": "@agent-native/driver-sdk-dotnet",
       "version": "0.1.0",
@@ -1007,6 +1007,30 @@
 
     "@agent-native/os-shortcuts": ["@agent-native/os-shortcuts@workspace:plugins/os-shortcuts"],
 
+    "@agent-native/pattern-lab-requests": ["@agent-native/pattern-lab-requests@workspace:patterns/lab-requests"],
+
+    "@agent-native/pattern-lab-requests-agents": ["@agent-native/pattern-lab-requests-agents@workspace:patterns/lab-requests-agents"],
+
+    "@agent-native/pattern-lab-requests-host-plugin": ["@agent-native/pattern-lab-requests-host-plugin@workspace:patterns/lab-requests-host-plugin"],
+
+    "@agent-native/pattern-lab-requests-hosted": ["@agent-native/pattern-lab-requests-hosted@workspace:patterns/lab-requests-hosted"],
+
+    "@agent-native/pattern-lab-requests-local-model": ["@agent-native/pattern-lab-requests-local-model@workspace:patterns/lab-requests-local-model"],
+
+    "@agent-native/pattern-lab-requests-operations": ["@agent-native/pattern-lab-requests-operations@workspace:patterns/lab-requests-operations"],
+
+    "@agent-native/pattern-lab-requests-review": ["@agent-native/pattern-lab-requests-review@workspace:patterns/lab-requests-review"],
+
+    "@agent-native/pattern-lab-requests-sandbox": ["@agent-native/pattern-lab-requests-sandbox@workspace:patterns/lab-requests-sandbox"],
+
+    "@agent-native/pattern-lab-requests-sign-in": ["@agent-native/pattern-lab-requests-sign-in@workspace:patterns/lab-requests-sign-in"],
+
+    "@agent-native/pattern-lab-requests-signals": ["@agent-native/pattern-lab-requests-signals@workspace:patterns/lab-requests-signals"],
+
+    "@agent-native/pattern-lab-requests-site": ["@agent-native/pattern-lab-requests-site@workspace:patterns/lab-requests-site"],
+
+    "@agent-native/pattern-lab-requests-system-of-record": ["@agent-native/pattern-lab-requests-system-of-record@workspace:patterns/lab-requests-system-of-record"],
+
     "@agent-native/peer-link": ["@agent-native/peer-link@workspace:plugins/peer-link"],
 
     "@agent-native/process": ["@agent-native/process@workspace:plugins/process"],
@@ -1018,30 +1042,6 @@
     "@agent-native/receiving": ["@agent-native/receiving@workspace:examples/receiving"],
 
     "@agent-native/runtime": ["@agent-native/runtime@workspace:packages/runtime"],
-
-    "@agent-native/sample-lab-requests": ["@agent-native/sample-lab-requests@workspace:samples/lab-requests"],
-
-    "@agent-native/sample-lab-requests-agents": ["@agent-native/sample-lab-requests-agents@workspace:samples/lab-requests-agents"],
-
-    "@agent-native/sample-lab-requests-host-plugin": ["@agent-native/sample-lab-requests-host-plugin@workspace:samples/lab-requests-host-plugin"],
-
-    "@agent-native/sample-lab-requests-hosted": ["@agent-native/sample-lab-requests-hosted@workspace:samples/lab-requests-hosted"],
-
-    "@agent-native/sample-lab-requests-local-model": ["@agent-native/sample-lab-requests-local-model@workspace:samples/lab-requests-local-model"],
-
-    "@agent-native/sample-lab-requests-operations": ["@agent-native/sample-lab-requests-operations@workspace:samples/lab-requests-operations"],
-
-    "@agent-native/sample-lab-requests-review": ["@agent-native/sample-lab-requests-review@workspace:samples/lab-requests-review"],
-
-    "@agent-native/sample-lab-requests-sandbox": ["@agent-native/sample-lab-requests-sandbox@workspace:samples/lab-requests-sandbox"],
-
-    "@agent-native/sample-lab-requests-sign-in": ["@agent-native/sample-lab-requests-sign-in@workspace:samples/lab-requests-sign-in"],
-
-    "@agent-native/sample-lab-requests-signals": ["@agent-native/sample-lab-requests-signals@workspace:samples/lab-requests-signals"],
-
-    "@agent-native/sample-lab-requests-site": ["@agent-native/sample-lab-requests-site@workspace:samples/lab-requests-site"],
-
-    "@agent-native/sample-lab-requests-system-of-record": ["@agent-native/sample-lab-requests-system-of-record@workspace:samples/lab-requests-system-of-record"],
 
     "@agent-native/scaffold": ["@agent-native/scaffold@workspace:packages/scaffold"],
 

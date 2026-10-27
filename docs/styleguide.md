@@ -52,7 +52,7 @@ A reference page is an index with a fixed entry shape and no narrative: the [glo
 
 ### Package README
 
-A README describes one package, plugin, app, example, sample or SDK. "Package" on this page means any of the six. The first line is `# <package name>` from its `package.json`; `bun run check:readmes` enforces it. Sections, in order:
+A README describes one package, plugin, app, example, pattern or SDK. "Package" on this page means any of the six. The first line is `# <package name>` from its `package.json`; `bun run check:readmes` enforces it. Sections, in order:
 
 1. First paragraph: what the package is for, in two or three sentences.
 2. Layer: which of framework, plugin, starter, content or SDK, and what the package trusts.

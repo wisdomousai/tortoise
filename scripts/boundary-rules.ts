@@ -10,11 +10,11 @@ export const forbiddenBrowserImport =
 /**
  * Every plugin in `plugins/*` follows one layout: `plugin-manifest`, `plugin-screens`,
  * `contracts` and the `ui/` and `components/` folders are browser code, at the package root or
- * under `src/`; everything else is server code. A sample's own plugin, in
- * `samples/<name>/plugins/<plugin>`, follows the same layout.
+ * under `src/`; everything else is server code. A pattern's own plugin, in
+ * `patterns/<name>/plugins/<plugin>`, follows the same layout.
  */
 export const pluginBrowserSource =
-  /^(?:(?:samples\/[^/]+\/)?plugins\/[^/]+|workstations\/sign-in)\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
+  /^(?:(?:patterns\/[^/]+\/)?plugins\/[^/]+|workstations\/sign-in)\/(?:src\/)?(?:(?:plugin-manifest|contracts)\.ts$|plugin-screens\.tsx$|(?:contracts|ui|components)\/)/;
 /** The browser-safe subpaths of a plugin package, for `@agent-native/<plugin>/<subpath>`. */
 export const pluginBrowserEntry = /^(?:plugin-manifest|plugin-screens|contracts)$/;
 /** Resolved source paths of server-only framework and plugin packages. */
@@ -60,9 +60,9 @@ export const directEgress: readonly { readonly api: string; readonly pattern: Re
  * reaches only its own origin and cannot open sockets, so it is out of scope.
  */
 export const serverSource =
-  /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|plugins\/|workstations\/|(?:examples|samples)\/)/;
+  /^(?:apps\/(?:service|desktop)\/src\/|packages\/[^/]+\/src\/|plugins\/|workstations\/|(?:examples|patterns)\/)/;
 export const browserSource =
-  /^(?:packages\/(?:contracts|client|react|operator-ui|frame)\/|packages\/devices\/src\/(?!server\.ts$)|packages\/assignments\/src\/(?!server\/)|(?:examples|samples)\/[^/]+\/(?:ui\/|screens\.tsx$))/;
+  /^(?:packages\/(?:contracts|client|react|operator-ui|frame)\/|packages\/devices\/src\/(?!server\.ts$)|packages\/assignments\/src\/(?!server\/)|(?:examples|patterns)\/[^/]+\/(?:ui\/|screens\.tsx$))/;
 
 /**
  * Reviewed exceptions, each with the reason it is safe. Keep this list short: it is what an
@@ -121,7 +121,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
  * reach Node or Bun, nor a server-only package, so the mobile bundle never pulls one in.
  */
 export const portableSource =
-  /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native|shell|assignments)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/devices\/src\/scanner\/(?:decode|profile|source|gs1|symbology|layouts)\.ts$|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/)|(?:examples|samples)\/[^/]+\/(?:screens-native\.tsx$|ui-native\/))/;
+  /^(?:packages\/(?:contracts|runtime|client|integration|kernel|frame-native|shell|assignments)\/src\/|packages\/react\/src\/query(?:\.ts$|\/)|packages\/devices\/src\/scanner\/(?:decode|profile|source|gs1|symbology|layouts)\.ts$|packages\/adapters\/src\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)\.ts$|packages\/event-log\/src\/(?:chain|memory|forward)\.ts$|packages\/mobile\/src\/|apps\/mobile\/(?:index\.ts$|src\/|fixture\/)|(?:examples|patterns)\/[^/]+\/(?:screens-native\.tsx$|ui-native\/))/;
 /** Imports portable source may not make: Node and Bun built-ins and the Bun-only packages. */
 export const portableForbiddenImport =
   /^(?:node:|bun:|@agent-native\/(?:host|agents|station)(?:\/|$)|@agent-native\/(?:site|network)(?!\/(?:plugin-manifest|plugin-screens|contracts)$)(?:\/|$)|@agent-native\/adapters(?!\/(?:application-port|direct-transport|sql-driver|snapshot-storage|exclusive-lock)$)(?:\/|$)|@agent-native\/event-log(?!\/(?:chain|memory|forward)$)(?:\/|$))/;

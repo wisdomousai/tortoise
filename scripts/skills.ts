@@ -16,7 +16,7 @@ export const layers = [
   'plugins',
   'apps',
   'examples',
-  'samples',
+  'patterns',
   'sdks',
 ] as const;
 

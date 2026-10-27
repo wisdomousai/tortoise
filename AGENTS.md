@@ -4,10 +4,10 @@ Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before 
 
 ## Layers
 
-The layers are **framework** `packages/*`, **workstations** `workstations/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*` and `samples/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
+The layers are **framework** `packages/*`, **workstations** `workstations/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*` and `patterns/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
 
-- The framework and the starter name no domain and import no workstation package, plugin, example or sample. The starter hosts the one application named in `app.config.json`.
-- A sample in `samples/<name>` is a small application of the same shape. `samples/lab-requests` is the base; every other sample imports it unchanged and adds one concern.
+- The framework and the starter name no domain and import no workstation package, plugin, example or pattern. The starter hosts the one application named in `app.config.json`.
+- An example in `examples/<name>` is a whole application for a real-world case in a covered domain. A pattern in `patterns/<name>` is a small application of the same shape that shows one technical concern. `patterns/lab-requests` is the base; every other pattern imports it unchanged and adds one concern.
 - An example is an application with a browser-safe `manifest` entrypoint, a server `application` entrypoint and a browser `screens` entrypoint. Its domain code, fakes, screens and tests stay in the example; framework tests never import one.
 - A cross-cutting concern (deployment policy, network, audit, compliance) is a host plugin in `plugins/<name>`, with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. A plugin imports the framework and the plugins it requires, reaches the network, ingress, identity and audit log through host ports, and writes only through its own commands.
 - It imports the framework only. The screen bridge and workstation sign-in live there.
@@ -29,7 +29,7 @@ These protect data and security; `bun run check` and the conformance suites test
 This section is advice; depart from it when the code is better for it, and say why in the commit message.
 
 - Look for an existing primitive before adding one.
-- A new primitive, plugin or integrated technology gets a sample or example and a row in `docs/samples.md`. Content stays in the domains the repository addresses: manufacturing, field service, customer service, logistics, lab controls, industrial automation HMIs and APIs, and test and quality.
+- A new primitive, plugin or integrated technology gets a pattern or example and a row in `docs/patterns.md`. Content stays in the domains the repository addresses: manufacturing, field service, customer service, logistics, lab controls, industrial automation HMIs and APIs, and test and quality.
 - Move a domain concept into the framework when a second application needs it. Reusable UI ships as a shadcn registry built from stock primitives.
 - `check:size` lists long files and functions as hints. Split a module by responsibility.
 - An operation usually gets a behavioral scenario and a UI binding.

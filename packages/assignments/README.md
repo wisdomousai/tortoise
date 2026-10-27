@@ -4,7 +4,7 @@ This package hands work to an assignee and takes structured reports back for rev
 
 ## Layer
 
-Framework (`packages/*`). The contracts are browser-safe. The package imports framework packages only, never a plugin, example or sample. Its source is portable, because a worklist runs on a phone.
+Framework (`packages/*`). The contracts are browser-safe. The package imports framework packages only, never a plugin, example or pattern. Its source is portable, because a worklist runs on a phone.
 
 ## Primitives
 

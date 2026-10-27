@@ -47,10 +47,10 @@ In the same directory, `bun run dev:web` serves the browser instead. When an exa
 
 `asset-survey-field` runs on a phone or emulator instead; its README has the steps.
 
-The [samples](glossary.md#sample) in `samples/*` run the same way, on ports 4350 to 4361:
+The [patterns](glossary.md#pattern) in `patterns/*` run the same way, on ports 4350 to 4361:
 
 ```sh
-cd samples/lab-requests
+cd patterns/lab-requests
 bun run dev:web
 ```
 
@@ -186,4 +186,4 @@ The scaffold installs no global agent configuration. A coding agent shapes the g
 - [Development and testing](development-and-testing.md)
 - [Architecture](architecture.md#embedded-and-attached-modes)
 - [Architecture](architecture.md#examples)
-- [Samples](samples.md)
+- [Patterns](patterns.md)

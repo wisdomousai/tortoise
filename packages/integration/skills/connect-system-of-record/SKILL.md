@@ -24,7 +24,7 @@ The application owns its working set and its pending [outbox effects](../../../.
 4. Implement the settle and sync handlers with `targetHandlers`. They say how an outcome changes the forwarded record, how a feed item changes local state, and which records a caller may count.
 5. Pass `versions` to `targetHandlers` when the feed can deliver an older version after a newer one.
 6. Implement the [connector](../../../../docs/glossary.md#connector) (`SystemOfRecordPort`) as the only code that talks to the target. It reaches the target through the network port or the folder port. Start from a ready-made port when one fits:
-   - `httpTargetPort` (`plugins/connector-http`) for a REST system, with requests and rejection rules as data. `samples/lab-requests-system-of-record/lims-port.ts` adds a pending status, a lookup and a feed;
+   - `httpTargetPort` (`plugins/connector-http`) for a REST system, with requests and rejection rules as data. `patterns/lab-requests-system-of-record/lims-port.ts` adds a pending status, a lookup and a feed;
    - `fileTargetPort` (`plugins/connector-files`) for a file drop with receipts or an archive, and an inbox of result exports.
 7. Return a business rejection as data, `DeliveryUncertain` when the outcome cannot be established, and `pending` when the target acknowledged but has not decided.
 8. Connect the target in `application.ts` with `connectTarget` (`examples/quality-inspection/application.ts`). A target without a feed only delivers.
@@ -59,4 +59,4 @@ bun run generate
 - [Systems of record](../../../../docs/systems-of-record.md)
 - [`examples/quality-inspection`](../../../../examples/quality-inspection/README.md)
 - [`examples/crm-capture`](../../../../examples/crm-capture/README.md)
-- [Lab requests system of record sample](../../../../samples/lab-requests-system-of-record/README.md)
+- [Lab requests system of record pattern](../../../../patterns/lab-requests-system-of-record/README.md)

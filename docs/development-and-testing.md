@@ -101,7 +101,7 @@ Subprocess tests use temporary workspaces and stop only the processes the tests 
 
 ## Browser and desktop
 
-Browser specs live with the application in `examples/<name>/e2e/` or `samples/<name>/e2e/`. The specs start a host through the shared e2e helper. Playwright's setup builds the web frame of every example and of each sample with an `e2e` directory.
+Browser specs live with the application in `examples/<name>/e2e/` or `patterns/<name>/e2e/`. The specs start a host through the shared e2e helper. Playwright's setup builds the web frame of every example and of each pattern with an `e2e` directory.
 
 Packaged desktop tests need a built application. Set `DESKTOP_EXECUTABLE` and run:
 
