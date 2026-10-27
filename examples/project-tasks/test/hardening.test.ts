@@ -4,6 +4,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { sessionCookieName } from '@agent-native/adapters/http';
 import type { SitePolicyInput } from '@agent-native/site/policy';
 import { startHost } from '@agent-native/host/host';
 import { writeApplicationEntry } from '../../../scripts/application-entry';
@@ -115,7 +116,7 @@ test('an external identity floor needs a workforce provider, then admits only si
           headers: {
             'content-type': 'application/json',
             origin: host.url,
-            ...(cookie ? { cookie: `agent_session=${cookie}` } : {}),
+            ...(cookie ? { cookie: `${sessionCookieName(host.url)}=${cookie}` } : {}),
           },
           body: JSON.stringify({ input: {} }),
         });

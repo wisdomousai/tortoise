@@ -181,7 +181,7 @@ export interface PluginInstance {
    */
   authenticate?(token: string, request?: Request): Promise<ExecutionContext | undefined>;
   /**
-   * Serving host only: the caller an `agent_session` cookie stands for when it is not a host
+   * Serving host only: the caller the session cookie stands for when it is not a host
    * session, such as a person signed in through the plugin's own public routes. Kept apart from
    * `authenticate` so a bearer credential (a device's) is never accepted from a cookie, where
    * any page in the browser could have it sent. Asked on every request, like `authenticate`.

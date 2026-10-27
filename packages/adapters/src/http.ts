@@ -10,11 +10,13 @@ import { withSignal, type ApplicationPort } from './application-port';
 import { Cursors } from './http/cursors';
 import { jsonResponse, statusCodes } from './http/response';
 import { exchangeLaunch, routeAuthenticated } from './http/routes';
+import { readSessionCookie } from './http/session-cookie';
 import type { HostSession, Sessions, TokenAuthenticator } from './http/sessions';
 
 export { withSignal, type ApplicationPort } from './application-port';
 export { readJsonBody } from './http/body';
 export { jsonResponse } from './http/response';
+export { readSessionCookie, sessionCookie, sessionCookieName } from './http/session-cookie';
 export {
   Sessions,
   type CredentialSource,
@@ -68,9 +70,7 @@ async function authenticate(
   origin: string,
 ): Promise<HostSession> {
   const bearer = request.headers.get('authorization')?.match(/^Bearer ([A-Za-z0-9_-]+)$/)?.[1];
-  const cookie = request.headers
-    .get('cookie')
-    ?.match(/(?:^|;\s*)agent_session=([A-Za-z0-9_-]+)/)?.[1];
+  const cookie = readSessionCookie(request, origin);
   if (!bearer && request.method !== 'GET' && requestOrigin !== origin)
     throw new ApplicationError('FORBIDDEN', 'Browser writes require same-origin validation');
   const stored = options.sessions.get(bearer ?? cookie ?? '');

@@ -1,5 +1,10 @@
 import { expect, test } from 'bun:test';
-import { createHttpHandler, Sessions, type ApplicationPort } from '@agent-native/adapters/http';
+import {
+  createHttpHandler,
+  sessionCookieName,
+  Sessions,
+  type ApplicationPort,
+} from '@agent-native/adapters/http';
 import {
   createApplication,
   createMemoryStorage,
@@ -300,7 +305,7 @@ test('request fields cannot select identity, browser cookie writes require Origi
     '/api/v1/commands/test.write',
     undefined,
     { input: {}, idempotencyKey: 'x' },
-    { cookie: `agent_session=${session.token}` },
+    { cookie: `${sessionCookieName(origin)}=${session.token}` },
   );
   expect((await handler(cookieOnly)).status).toBe(403);
   const valid = await handler(
@@ -308,7 +313,7 @@ test('request fields cannot select identity, browser cookie writes require Origi
       '/api/v1/commands/test.write',
       undefined,
       { input: {}, idempotencyKey: 'x' },
-      { cookie: `agent_session=${session.token}`, origin },
+      { cookie: `${sessionCookieName(origin)}=${session.token}`, origin },
     ),
   );
   expect(valid.status).toBe(200);
