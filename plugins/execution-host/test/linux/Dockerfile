@@ -1,7 +1,7 @@
 # The Linux environment for the execution host's sandbox tests: bubblewrap and Bun, run as an
 # unprivileged user. `bun run test:execution-host:linux` builds it and mounts the checkout.
 FROM alpine:3.23
-ARG BUN_VERSION=1.4.0
+ARG BUN_VERSION=1.4.4
 RUN set -e; \
     apk add --no-cache bubblewrap libstdc++ libgcc curl unzip; \
     case "$(uname -m)" in x86_64) arch=x64 ;; aarch64) arch=aarch64 ;; *) exit 1 ;; esac; \

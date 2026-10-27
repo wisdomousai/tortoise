@@ -37,7 +37,7 @@ The Bun [host](docs/glossary.md#host) keeps the [workspace](docs/glossary.md#wor
 
 ## First run
 
-Install Bun 1.4.0, the version `package.json` pins. Dependencies are pinned in `bun.lock`.
+Install Bun 1.4.4, the version `package.json` pins. Dependencies are pinned in `bun.lock`.
 
 ```sh
 bun install --frozen-lockfile
