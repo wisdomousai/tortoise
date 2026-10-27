@@ -35,7 +35,7 @@ A [workstation application](../../../../docs/glossary.md#workstation-application
     - `createFixtureExtractor` for CI.
 11. Build the workstation's screen from the operator registry in `packages/operator-ui`, following the `build-screens` skill (`packages/frame/skills/build-screens/SKILL.md`).
 12. Add scanners from `packages/devices` with the `add-scanner-input` skill (`packages/devices/skills/add-scanner-input/SKILL.md`).
-13. Where operators share a workstation, compose `workstations/sign-in`. Each operator then signs in by badge and PIN and acts as their own [principal](../../../../docs/glossary.md#principal).
+13. Where operators share a workstation, compose `workstations/sign-in` with the `sign-in-at-a-seat` skill (`workstations/sign-in/skills/sign-in-at-a-seat/SKILL.md`). Each operator then signs in by badge and PIN and acts as their own [principal](../../../../docs/glossary.md#principal).
 
 ### Automation route
 

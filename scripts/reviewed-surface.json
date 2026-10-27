@@ -4376,6 +4376,11 @@
     "./plugin default",
     "./plugin stationSignInPlugin",
     "./plugin-manifest default",
-    "./plugin-manifest stationSignInPluginManifest"
+    "./plugin-manifest stationSignInPluginManifest",
+    "./plugin-screens OperatorSession",
+    "./plugin-screens OperatorSessionRecord",
+    "./plugin-screens SeatOptions",
+    "./plugin-screens stationSignInScreens",
+    "./plugin-screens useOperatorSession"
   ]
 }

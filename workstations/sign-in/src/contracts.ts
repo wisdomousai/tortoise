@@ -25,9 +25,6 @@ const digest = z.string().regex(/^[0-9a-f]{64}$/);
 const machineCalled = (what: string) => ({
   exception: `Called by the plugin's ${what}; people sign in at a seat by scanning their badge.`,
 });
-const noScreen = {
-  exception: 'Badges are administered over HTTP, MCP or the CLI until a badge screen exists.',
-};
 
 export const badgeSchema = z.strictObject({
   id,
@@ -65,7 +62,10 @@ export const stationSignInOperations = {
     ),
     output: jsonSchema(z.strictObject({ badge: badgeSchema })),
     permission: { action: 'enroll', resourceType: 'Badge' },
-    ui: noScreen,
+    ui: {
+      exception:
+        "Called by the plugin's enrollment route, which hashes the PIN. The badge screen posts to that route.",
+    },
     audit: { fields: ['principalId', 'label'] },
   }),
   badgeRevoke: defineCapability({
@@ -75,7 +75,7 @@ export const stationSignInOperations = {
     input: jsonSchema(z.strictObject({ badgeId: id })),
     output: jsonSchema(z.strictObject({ badge: badgeSchema })),
     permission: { action: 'revoke', resourceType: 'Badge' },
-    ui: noScreen,
+    ui: { binding: 'station-badge-revoke' },
     audit: { fields: ['badgeId'] },
   }),
   badgeList: defineCapability({
@@ -87,7 +87,7 @@ export const stationSignInOperations = {
       z.strictObject({ badges: z.array(badgeSchema), sessions: z.array(operatorSessionSchema) }),
     ),
     permission: { action: 'read', resourceType: 'Badge' },
-    ui: noScreen,
+    ui: { binding: 'station-badges' },
   }),
   badgeVerifier: defineCapability({
     id: 'station.badge.verifier',
