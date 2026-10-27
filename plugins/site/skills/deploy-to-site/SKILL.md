@@ -1,6 +1,6 @@
 ---
 name: deploy-to-site
-description: Prepare an agent-native application for a site, plant or customer machine. Use when writing or checking a deployment policy (profile, destination bindings, exchange folder bindings, TLS or mTLS ingress, peer destinations, identity, workforce sign-in, process bindings with path and hash), building and signing a site bundle, installing, checking or removing a release with site install, exporting firewall or orchestrator rules, or producing compliance evidence. Covers plugins/site, plugins/network, plugins/process, plugins/audit, plugins/compliance and packages/bundle.
+description: Prepare an agent-native application for a site, plant or customer machine. Use when writing or checking a deployment policy (profile, destination bindings, exchange folder bindings, TLS or mTLS ingress, peer destinations, identity, workforce sign-in, process bindings with path and hash), building and signing a site bundle, installing, checking or removing a release with app install, app status and app uninstall, exporting firewall or orchestrator rules, or producing compliance evidence. Covers plugins/site, plugins/network, plugins/process, plugins/audit, plugins/compliance and packages/bundle.
 ---
 
 # Deploy to a site

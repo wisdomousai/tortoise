@@ -1,6 +1,6 @@
 ---
 name: connect-a-site-to-a-fleet
-description: Connect an on-site agent-native instance to a fleet application, or build a fleet that sites report to. Use when composing the fleet-agent plugin, enrolling a site with a code, binding the fleet destination and the fleet-releases folder in a deployment policy, staging signed releases for site install, forwarding the audit log, turning on the remote-access relay, or implementing the fleet side of the protocol (fleetSiteModule with device-link). Covers plugins/fleet-agent.
+description: Connect an on-site agent-native instance to a fleet application, or build a fleet that sites report to. Use when composing the fleet-agent plugin, enrolling a site with a code, binding the fleet destination and the fleet-releases folder in a deployment policy, staging signed releases for app install, forwarding the audit log, turning on the remote-access relay, or implementing the fleet side of the protocol (fleetSiteModule with device-link). Covers plugins/fleet-agent.
 ---
 
 # Connect a site to a fleet

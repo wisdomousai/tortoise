@@ -85,7 +85,7 @@ A report holds [effect](glossary.md#effect) counts per target and no effect payl
 
 Audit forwarding keeps no state on the site. The fleet says where its copy ends, so after a lost reply or a restart the site sends the same events again. Events leave unchanged, so the fleet can check the hash chain.
 
-The plugin verifies a release before it appears in the releases folder. Each file is checked against the signed manifest as it arrives. The whole bundle is then verified against the `fleet-trust` keys before the temporary directory is renamed into the folder. Staging fetches each file whole and does not resume a download. Activation stays with the operator's site install, and the instance never replaces itself.
+The plugin verifies a release before it appears in the releases folder. Each file is checked against the signed manifest as it arrives. The whole bundle is then verified against the `fleet-trust` keys before the temporary directory is renamed into the folder. Staging fetches each file whole and does not resume a download. Activation stays with the operator's `app install`, and the instance never replaces itself.
 
 The fleet credential goes only to the fleet. The network port's `fleet` client resolves every path against the bound origin and refuses redirects. The plugin keeps the credential in the platform's secret store when the platform has one, and otherwise in `<workspace>/fleet-agent/credential` with mode 0600. The credential is not rotated, so a fleet that loses one re-enrolls the site with a new code.
 
