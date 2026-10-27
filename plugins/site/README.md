@@ -56,7 +56,7 @@ What the plugin does at each lifecycle hook:
 
 ### Policy input
 
-The `site-policy` setting (`--site-policy` or `AGENT_NATIVE_SITE_POLICY`) is a trusted launcher input. Without a policy, the application is isolated and needs nothing from other plugins. A policy below its profile floor refuses startup. The plugin never falls back to plain transport or to the local owner.
+The `site-policy` setting (`--site-policy` or `AGENT_NATIVE_SITE_POLICY`) is a trusted launcher input. Without a policy, the application is isolated and needs nothing from other plugins. A policy below its profile floor refuses startup. A policy that does not match the schema is refused with `INVALID_INPUT`, and each field it names is in `details`. The plugin never falls back to plain transport or to the local owner.
 
 A supplied policy declares the ports it depends on through `portsNeeded`: `network`, `ingress` or `eventLog`. The host refuses a composition in which no composed plugin provides one of them.
 
@@ -148,6 +148,7 @@ With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the ins
 - CIDR matching;
 - certificate validity at a chosen time;
 - the isolated default and binding checks;
+- a policy that does not match the schema, refused as `INVALID_INPUT` with each field named;
 - profile floors and the site-hub listener;
 - folder bindings;
 - the workforce issuer rules;

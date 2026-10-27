@@ -3,6 +3,7 @@ import { constants } from 'node:fs';
 import { access, readFile, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import {
+  ApplicationError,
   canonicalJson,
   type CatalogRequirements,
   type NetworkDestination,
@@ -195,7 +196,20 @@ export function resolveSitePolicy(
     readonly missingFolders?: readonly string[];
   } = {},
 ): ResolvedPolicy {
-  const policy = sitePolicySchema.parse(input ?? {});
+  const parsed = sitePolicySchema.safeParse(input ?? {});
+  // A malformed file is the operator's input: name each field, so `site check` can say what to fix.
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((issue) => ({
+      path: issue.path.join('.'),
+      message: issue.message,
+    }));
+    throw new ApplicationError(
+      'INVALID_INPUT',
+      `Site policy does not match its schema: ${issues.map((issue) => `${issue.path || '(root)'}: ${issue.message}`).join('; ')}`,
+      issues,
+    );
+  }
+  const policy = parsed.data;
   const report = createFindings();
   const declared = new Map(requirements.network.map((item) => [item.id, item]));
   const { bindings, disabled } = resolveBindings(policy, declared, files.ca, report);
