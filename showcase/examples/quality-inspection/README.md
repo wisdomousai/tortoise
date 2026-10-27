@@ -435,5 +435,5 @@ Follow the [write-hardware-driver](../../../plugins/connector-driver/skills/writ
 - [write-hardware-driver](../../../plugins/connector-driver/skills/write-hardware-driver/SKILL.md)
 - [CRM capture](../crm-capture/README.md)
 - [Receiving](../receiving/README.md)
-- [Line station](../line-station/README.md)
+- [Winding line](../winding-line/README.md)
 - [create-agent-native-app](../../../packages/scaffold/skills/create-agent-native-app/SKILL.md)

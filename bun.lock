@@ -37,7 +37,6 @@
         "@agent-native/integration": "workspace:*",
         "@agent-native/intent-scanner": "workspace:*",
         "@agent-native/kernel": "workspace:*",
-        "@agent-native/line-station": "workspace:*",
         "@agent-native/managed-config": "workspace:*",
         "@agent-native/mobile": "workspace:*",
         "@agent-native/model-server": "workspace:*",
@@ -73,6 +72,7 @@
         "@agent-native/telemetry": "workspace:*",
         "@agent-native/testing": "workspace:*",
         "@agent-native/webhook": "workspace:*",
+        "@agent-native/winding-line": "workspace:*",
         "@agent-native/workflows": "workspace:*",
         "@agent-native/workstation-sign-in": "workspace:*",
         "@ai-sdk/openai": "4.0.86",
@@ -819,16 +819,16 @@
       "name": "@agent-native/fleet",
       "version": "0.1.0",
     },
-    "showcase/examples/line-station": {
-      "name": "@agent-native/line-station",
-      "version": "0.1.0",
-    },
     "showcase/examples/quality-inspection": {
       "name": "@agent-native/quality-inspection",
       "version": "0.1.0",
     },
     "showcase/examples/receiving": {
       "name": "@agent-native/receiving",
+      "version": "0.1.0",
+    },
+    "showcase/examples/winding-line": {
+      "name": "@agent-native/winding-line",
       "version": "0.1.0",
     },
     "showcase/patterns/agents": {
@@ -987,8 +987,6 @@
 
     "@agent-native/kernel": ["@agent-native/kernel@workspace:packages/kernel"],
 
-    "@agent-native/line-station": ["@agent-native/line-station@workspace:showcase/examples/line-station"],
-
     "@agent-native/managed-config": ["@agent-native/managed-config@workspace:plugins/managed-config"],
 
     "@agent-native/mobile": ["@agent-native/mobile@workspace:packages/mobile"],
@@ -1064,6 +1062,8 @@
     "@agent-native/web": ["@agent-native/web@workspace:apps/web"],
 
     "@agent-native/webhook": ["@agent-native/webhook@workspace:plugins/webhook"],
+
+    "@agent-native/winding-line": ["@agent-native/winding-line@workspace:showcase/examples/winding-line"],
 
     "@agent-native/workflows": ["@agent-native/workflows@workspace:plugins/workflows"],
 

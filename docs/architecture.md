@@ -212,7 +212,7 @@ Startup refuses the composition in these cases:
 
 - **receiving** mounts `approval` and `reconciliation`.
 - **field-service** mounts `approval`.
-- **line-station** mounts `approval` and `device`.
+- **winding-line** mounts `approval` and `device`.
 - **asset-survey** mounts `assignment` and `approval`.
 
 Each implements the access views from its own roles in `policy.ts`, repeating the membership gate its application policy applies, and adopted the data its version 1 state kept.
@@ -283,7 +283,7 @@ Each [example](glossary.md#example) is an application under `showcase/examples/`
 | --- | --- | --- |
 | [`field-service`](../showcase/examples/field-service/README.md) | Work orders with dispatcher, technician and customer roles, field projection, revisions, live updates, a deterministic agent, OS handlers and actions, and a webhook for the customer portal, with no system of record. The fixture for the transport, storage and security conformance suites. | site, network, audit, compliance, os, share-target, notifications, os-shortcuts, webhook |
 | [`quality-inspection`](../showcase/examples/quality-inspection/README.md) | Outbox delivery and inbound sync against a fake quality system, keyboard capture and an instrument driver. The CLI and MCP run under a grant file in a stripped environment, from source or as the compiled binary. | site, network, audit, compliance, process, connector-driver |
-| [`line-station`](../showcase/examples/line-station/README.md) | A workstation application operated through its screen as an outbox connector, MES sync, scanner routing and held effects ([operator workstations](operator-workstations.md)). | site, network, process, audit, compliance, automation, connector-driver |
+| [`winding-line`](../showcase/examples/winding-line/README.md) | A workstation application operated through its screen as an outbox connector, MES sync, scanner routing and held effects ([operator workstations](operator-workstations.md)). | site, network, process, audit, compliance, automation, connector-driver |
 | [`crm-capture`](../showcase/examples/crm-capture/README.md) | Remote queries of a fake CRM with each caller's own access, follow requests through the outbox and the CRM's feed, and an unreachable CRM shown as a status. | site, network, audit, compliance |
 | [`asset-survey`](../showcase/examples/asset-survey/README.md) | A site structure under reference designations, assignments for paired phones, model extraction from photos with review, and filing into a fake EAM. Blobs, [device link](glossary.md#device-link) pairing and a compact tablet screen. | site, network, process, audit, compliance, device-link |
 | [`receiving`](../showcase/examples/receiving/README.md) | Goods receiving against an ERP through files: notices are read from an inbox folder, and receipts are posted as files and completed from receipt files. An agent requests approval for discrepancy reasons. Generated with the [scaffold](glossary.md#scaffold) and built on collections, the policy builder, a target, default screens and approval requests. | site, network, audit, compliance |

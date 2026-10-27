@@ -5,7 +5,7 @@ Two domain-neutral kits support [operator](glossary.md#operator) screens at a [w
 - [`packages/devices`](../packages/devices/README.md): scanner profiles, sources, decoding, calibration and routing, plus a reusable [module](glossary.md#module) for per-station device configuration.
 - [`packages/operator-ui`](../packages/operator-ui/README.md): the `operator` [UI registry](glossary.md#ui-registry) of glove-sized parts.
 
-`line-station` uses both kits, and the `quality-inspection` capture screen uses parts of the registry.
+`winding-line` uses both kits, and the `quality-inspection` capture screen uses parts of the registry.
 
 ## Concepts
 
@@ -46,7 +46,7 @@ The `operator` registry declares stock shadcn primitives as dependencies and add
 
 The scanner items depend on `packages/devices`, which is not on a public registry yet. Outside this repository, install it from a registry, as [framework packages](development-and-testing.md#framework-packages) describes, or vendor it.
 
-A gallery route, `station/kit` in `line-station`, renders every part at desk, touch and glove density. The `line-station` browser specs use it for interaction tests.
+A gallery route, `station/kit` in `winding-line`, renders every part at desk, touch and glove density. The `winding-line` browser specs use it for interaction tests.
 
 ## Scanner profiles
 
@@ -106,7 +106,7 @@ A scan router maps a scan to an intent without a model turn. A route matches a G
 
 ## Device configuration
 
-The `device` [feature](glossary.md#feature) reads and saves scanner profiles and scan routes per station. Writes carry expected [revisions](glossary.md#revision), so a stale writer conflicts. Routes are compiled before they are stored, so an invalid pattern fails at configuration time. The mounting application decides who may change the configuration through a station relation. In `line-station`, a station's supervisors administer it, and others with a role at that station read it.
+The `device` [feature](glossary.md#feature) reads and saves scanner profiles and scan routes per station. Writes carry expected [revisions](glossary.md#revision), so a stale writer conflicts. Routes are compiled before they are stored, so an invalid pattern fails at configuration time. The mounting application decides who may change the configuration through a station relation. In `winding-line`, a station's supervisors administer it, and others with a role at that station read it.
 
 ## Use
 
@@ -122,7 +122,7 @@ bun run check:registry:operator
 - `packages/operator-ui/test/primitives.test.ts`: numeric entry, the tap guard, key-burst filtering and registry drift.
 - `plugins/intent-scanner/test/source.test.ts`: the intent source over a fake receiver.
 
-`showcase/examples/line-station/e2e/station.pw.ts` covers the kit and the bound workstation screen in Chromium.
+`showcase/examples/winding-line/e2e/station.pw.ts` covers the kit and the bound workstation screen in Chromium.
 
 ## Limits
 

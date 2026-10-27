@@ -1,6 +1,6 @@
 ---
 name: write-hardware-driver
-description: Observe or control equipment from an agent-native application through a driver process. Use when connecting an instrument, controller, PLC gateway, test bench or vendor automation server (serial, COM, a vendor SDK), when writing a driver contract with defineDriverContract, wiring driverPluginManifest, createDriverPlugin and driverScreens into an application, or writing a driver in Python (sdks/driver-python) or C# (sdks/driver-dotnet). Covers plugins/connector-driver, plugins/process, sdks/* and the driver parts of showcase/examples/quality-inspection and showcase/examples/line-station.
+description: Observe or control equipment from an agent-native application through a driver process. Use when connecting an instrument, controller, PLC gateway, test bench or vendor automation server (serial, COM, a vendor SDK), when writing a driver contract with defineDriverContract, wiring driverPluginManifest, createDriverPlugin and driverScreens into an application, or writing a driver in Python (sdks/driver-python) or C# (sdks/driver-dotnet). Covers plugins/connector-driver, plugins/process, sdks/* and the driver parts of showcase/examples/quality-inspection and showcase/examples/winding-line.
 ---
 
 # Write a hardware driver
@@ -42,7 +42,7 @@ A [driver](../../../../docs/glossary.md#driver) is an executable in any language
 10. Print the process IDs and contract digests to bind with `app driver list`.
 11. Bind the driver's process ID to the executable's absolute path and hash in the deployment policy. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
 
-`showcase/examples/quality-inspection` reads a measuring instrument with a Python driver, observe only. `showcase/examples/line-station` loads recipes through a .NET driver as a convergent action, in actuate mode.
+`showcase/examples/quality-inspection` reads a measuring instrument with a Python driver, observe only. `showcase/examples/winding-line` loads recipes through a .NET driver as a convergent action, in actuate mode.
 
 ## Checks
 

@@ -86,7 +86,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'The desktop shell starts its own instance sidecar, which listens on loopback.',
   'apps/desktop/src/os-shell.ts':
     'The desktop shell submits OS requests to and polls OS actions from its loopback instance.',
-  'showcase/examples/line-station/station-bridge.ts':
+  'showcase/examples/winding-line/station-bridge.ts':
     "Launches Chromium for the workstation application's screen and reads simulator counters; to be routed through the screen-bridge destination.",
   'plugins/site/src/install/native.ts':
     'Operator verbs only, never inside an instance: `app install` runs the release it placed (network export, migrate), `app uninstall --purge` runs its `drain`, and, with --apply, the OS service manager and firewall loader.',
@@ -104,7 +104,7 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Starts declared child processes from site-policy bindings with a built environment; the process port is the only caller.',
   'workstations/screen-bridge/src/recognition/openai-compatible-vision.ts':
     'Falls back to global fetch when no fetch is injected; to be made required so the host passes the guard.',
-  'showcase/examples/line-station/fake-hmi/':
+  'showcase/examples/winding-line/fake-hmi/':
     'Test fixture: the simulated workstation application and its recorder.',
   'showcase/examples/asset-survey-field/test/fixtures.ts':
     "Test fixture: the phone's fetch to the loopback hub, which a test drops or alters as a lost network or a newer hub release would.",

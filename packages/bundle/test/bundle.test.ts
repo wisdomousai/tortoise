@@ -28,7 +28,7 @@ const requirements: BundleRequirements = {
   os: { handlers: [{ id: 'task.open' }], actions: [] },
 };
 const description = (overrides: Partial<BundleDescription> = {}): BundleDescription => ({
-  application: 'line-station',
+  application: 'winding-line',
   version: '1.2.0',
   platform: 'linux-x64',
   storageSchema: 2,
@@ -115,7 +115,7 @@ test('a payload with a link, or a manifest path that escapes, is refused', async
 test('an incompatible platform, storage schema or application is refused', async () => {
   const installed = await build('installed');
   const approval = {
-    application: 'line-station',
+    application: 'winding-line',
     requirementsDigest: requirementsDigest(requirements),
   };
   expect(admissionRefusals(installed, site, undefined, approval)).toEqual([]);
@@ -147,11 +147,11 @@ test('widened requirements need a site approval for exactly those requirements',
   const candidate = await build('v2', { version: '1.3.0', requirements: widened });
   expect(admissionRefusals(candidate, site, installed)[0]).toContain('without site approval');
   const stale = {
-    application: 'line-station',
+    application: 'winding-line',
     requirementsDigest: requirementsDigest(requirements),
   };
   expect(admissionRefusals(candidate, site, installed, stale)).toHaveLength(1);
-  const approved = { application: 'line-station', requirementsDigest: requirementsDigest(widened) };
+  const approved = { application: 'winding-line', requirementsDigest: requirementsDigest(widened) };
   expect(admissionRefusals(candidate, site, installed, approved)).toEqual([]);
   // The same requirements, or narrower ones, need no approval.
   const same = await build('v3', { version: '1.3.1' });

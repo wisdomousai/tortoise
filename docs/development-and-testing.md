@@ -113,7 +113,7 @@ Without `DESKTOP_EXECUTABLE` the tests skip.
 
 ## Station bridge demo and opt-in recognition
 
-A line-station host starts a station bridge only when `STATION_HMI_URL` is set. `cd showcase/examples/line-station && bun run dev` starts the fake HMI in the same process and sets that variable. It also sets simulator mode unless a vision model or recognition worker is configured. To bridge another HMI, set the URL yourself.
+A winding-line host starts a station bridge only when `STATION_HMI_URL` is set. `cd showcase/examples/winding-line && bun run dev` starts the fake HMI in the same process and sets that variable. It also sets simulator mode unless a vision model or recognition worker is configured. To bridge another HMI, set the URL yourself.
 
 The fake HMI shows its counters only as pixels, so reading them needs a [screen recognizer](glossary.md#screen-recognizer):
 

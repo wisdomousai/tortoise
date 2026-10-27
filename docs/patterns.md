@@ -52,7 +52,7 @@ A dash means that no pattern, or no example, shows the primitive.
 | --- | --- | --- |
 | Capability | `test-requests` | `field-service` |
 | Module | `test-requests` | `field-service`, `asset-survey` |
-| Feature | `review` | `field-service`, `line-station`, `receiving` |
+| Feature | `review` | `field-service`, `winding-line`, `receiving` |
 | Catalog | `test-requests` | `crm-capture` |
 | Generator | every pattern | every example |
 | Instance | `test-requests` | `field-service` |
@@ -62,9 +62,9 @@ A dash means that no pattern, or no example, shows the primitive.
 | Collection | `test-requests` | `fleet`, `receiving`, `quality-inspection` |
 | Execution context | `sandbox` | `crm-capture` |
 | Policy | `test-requests` | `field-service` |
-| Membership | — | `line-station`, `quality-inspection`, `fleet` |
+| Membership | — | `winding-line`, `quality-inspection`, `fleet` |
 | Storage | `test-requests`, `hosted` | `field-service` |
-| State migration | `operations` | `field-service`, `line-station`, `quality-inspection`, `receiving` |
+| State migration | `operations` | `field-service`, `winding-line`, `quality-inspection`, `receiving` |
 | Blob store | — | `field-service`, `asset-survey` |
 | Journal and live query | `test-requests` | `field-service` |
 | Application | every pattern | every example |
@@ -80,21 +80,21 @@ A dash means that no pattern, or no example, shows the primitive.
 | Display metadata | `test-requests` | `fleet` |
 | UI session context | `agents` | `field-service` |
 | Agent run | `agents` | `field-service` |
-| Agent definition | `agents`, `local-model`, `sandbox` | `field-service`, `line-station`, `receiving` |
+| Agent definition | `agents`, `local-model`, `sandbox` | `field-service`, `winding-line`, `receiving` |
 | Model entry | `local-model` | — |
-| Approval request | `agents` | `field-service`, `receiving`, `line-station` |
+| Approval request | `agents` | `field-service`, `receiving`, `winding-line` |
 | Approval dataset | `local-model` | — |
-| Trigger | `agents` with a job, `local-model` with an agent definition | `line-station` |
-| Trigger grant | `agents` | `line-station` |
+| Trigger | `agents` with a job, `local-model` with an agent definition | `winding-line` |
+| Trigger grant | `agents` | `winding-line` |
 | Workflow | — | `asset-survey` |
 | Assignment | — | `asset-survey` |
 | Worklist | — | `asset-survey-field` |
-| Input source | `sign-in` | `line-station`, `asset-survey-field` |
+| Input source | `sign-in` | `winding-line`, `asset-survey-field` |
 | OS handler | — | `field-service`, `asset-survey-field` |
 | OS action | — | `field-service`, `asset-survey-field` |
 | Shell port | — | `field-service` |
-| Process port | `local-model`, `sandbox` | `line-station`, `quality-inspection`, `asset-survey` |
-| UI registry | `sign-in` | `line-station`, `quality-inspection`, `asset-survey-field` |
+| Process port | `local-model`, `sandbox` | `winding-line`, `quality-inspection`, `asset-survey` |
+| UI registry | `sign-in` | `winding-line`, `quality-inspection`, `asset-survey-field` |
 | Outbox effect | `system-of-record` | `quality-inspection`, `asset-survey` |
 | Connector | `system-of-record` | `quality-inspection`, `receiving` |
 | Dispatcher | `system-of-record` | `quality-inspection` |
@@ -104,12 +104,12 @@ A dash means that no pattern, or no example, shows the primitive.
 | Peer link | — | `quality-inspection`, `receiving` |
 | Remote query | — | `crm-capture`, `asset-survey` |
 | Data provider | — | `crm-capture`, `asset-survey`, `receiving` |
-| Observation | `signals` | `line-station`, `quality-inspection` |
-| Interlock | — | `line-station` |
-| Driver contract | — | `line-station`, `quality-inspection` |
-| Driver process | — | `line-station`, `quality-inspection` |
-| Driver SDK | — | `line-station` with .NET, `quality-inspection` with Python |
-| Reconciliation | `system-of-record` | `receiving`, `quality-inspection`, `line-station` |
+| Observation | `signals` | `winding-line`, `quality-inspection` |
+| Interlock | — | `winding-line` |
+| Driver contract | — | `winding-line`, `quality-inspection` |
+| Driver process | — | `winding-line`, `quality-inspection` |
+| Driver SDK | — | `winding-line` with .NET, `quality-inspection` with Python |
+| Reconciliation | `system-of-record` | `receiving`, `quality-inspection`, `winding-line` |
 | Worker claims | `system-of-record` | `quality-inspection` |
 | Credential vault | — | `field-service` |
 | Device link | — | `asset-survey`, `asset-survey-field`, `fleet` |
@@ -120,9 +120,9 @@ A dash means that no pattern, or no example, shows the primitive.
 | Egress guard | `system-of-record`, `signals` | `field-service`, `quality-inspection` |
 | Audit log | `operations`, `site` | `field-service`, `fleet`, `quality-inspection` |
 | Execution host | `sandbox` | — |
-| Station and scanner profiles | — | `line-station` |
-| Device configuration | — | `line-station` |
-| Golden test | — | `line-station` |
+| Station and scanner profiles | — | `winding-line` |
+| Device configuration | — | `winding-line` |
+| Golden test | — | `winding-line` |
 | Compliance bundle | — | `quality-inspection` |
 | Behavioral scenario | `test-requests`, `host-plugin`, `review` | `field-service` |
 | Agent scenario | `agents`, `local-model` | `receiving` |
@@ -150,9 +150,9 @@ The generator, the scaffold and the framework release are tools that run on cont
 | `packages/frame-native`, `packages/mobile`, `apps/mobile` | `asset-survey-field` |
 | `packages/assignments` | `asset-survey`, `asset-survey-field` |
 | `packages/react` | `crm-capture`, `quality-inspection`, `asset-survey` |
-| `packages/operator-ui` | `sign-in`, `line-station`, `quality-inspection`, through its registry items |
-| `packages/devices` | `line-station`, `asset-survey-field` |
-| `packages/integration` | `system-of-record`, `quality-inspection`, `receiving`, `crm-capture`, `asset-survey`, `line-station` |
+| `packages/operator-ui` | `sign-in`, `winding-line`, `quality-inspection`, through its registry items |
+| `packages/devices` | `winding-line`, `asset-survey-field` |
+| `packages/integration` | `system-of-record`, `quality-inspection`, `receiving`, `crm-capture`, `asset-survey`, `winding-line` |
 | `packages/observation` | `signals` |
 | `packages/agents` | `agents`, `local-model`, `field-service`, `receiving` |
 | `packages/event-log` | `operations`, `field-service`, `fleet`, `quality-inspection` |
@@ -161,14 +161,14 @@ The generator, the scaffold and the framework release are tools that run on cont
 | `packages/scaffold` | `receiving`, `field-service` |
 | `plugins/site`, `plugins/network` | seven patterns, including `operations` and `site`; every example except `asset-survey-field` |
 | `plugins/audit` | `operations`, `site`, `signals`, `system-of-record`, `local-model`; every example except `asset-survey-field` |
-| `plugins/compliance` | `field-service`, `quality-inspection`, `line-station`, `receiving`, `crm-capture`, `asset-survey` |
-| `plugins/automation` | `agents`, `local-model`, `line-station` |
+| `plugins/compliance` | `field-service`, `quality-inspection`, `winding-line`, `receiving`, `crm-capture`, `asset-survey` |
+| `plugins/automation` | `agents`, `local-model`, `winding-line` |
 | `plugins/workflows` | `asset-survey` |
-| `plugins/process` | `local-model`, `sandbox`, `line-station`, `quality-inspection`, `asset-survey` |
+| `plugins/process` | `local-model`, `sandbox`, `winding-line`, `quality-inspection`, `asset-survey` |
 | `plugins/connector-http` | `system-of-record` |
 | `plugins/connector-files` | `receiving` |
 | `plugins/connector-mqtt`, `plugins/connector-opcua` | `signals` |
-| `plugins/connector-driver` | `line-station`, `quality-inspection` |
+| `plugins/connector-driver` | `winding-line`, `quality-inspection` |
 | `plugins/peer-link` | `quality-inspection`, `receiving` |
 | `plugins/device-link` | `asset-survey`, `fleet` |
 | `plugins/hub-link`, `plugins/intent-scanner`, `plugins/managed-config`, `plugins/android-intents` | `asset-survey-field` |
@@ -178,9 +178,9 @@ The generator, the scaffold and the framework release are tools that run on cont
 | `plugins/execution-host` | `sandbox` |
 | `plugins/fleet-agent` | `site`, `fleet` |
 | `plugins/telemetry` | `operations` |
-| `workstations/screen-bridge` | `line-station` |
+| `workstations/screen-bridge` | `winding-line` |
 | `workstations/sign-in` | `sign-in` |
-| `sdks/driver-dotnet` | `line-station` |
+| `sdks/driver-dotnet` | `winding-line` |
 | `sdks/driver-python` | `quality-inspection` |
 | `apps/service`, `apps/web` | `bun run dev:web` in every pattern and example |
 | `apps/desktop` | `bun run dev` in every pattern and example; `bun run package:stage` packages `field-service` |
@@ -209,14 +209,14 @@ The generator, the scaffold and the framework release are tools that run on cont
 | React, Vite, TanStack Router, Query and Table | every web screen, through the frame |
 | TanStack Form | `crm-capture`, `quality-inspection`, `asset-survey` |
 | shadcn and Tailwind CSS | every web screen; the registry items `sign-in` uses |
-| `bwip-js` barcodes | the `line-station` scanner setup |
+| `bwip-js` barcodes | the `winding-line` scanner setup |
 | Electron and electron-builder | `bun run dev` desktop windows; `bun run package:stage` |
 | Expo, React Native, React Navigation, Uniwind | `asset-survey-field` |
 | `expo-notifications`, `expo-sqlite`, `expo-secure-store`, `expo-background-task`, `expo-file-system` | `asset-survey-field` |
 | `expo-sharing` | — |
 | `react-native-webview` | `asset-survey-field`, through hub link |
 | The Android intents Kotlin module | `asset-survey-field` |
-| .NET 10 | the `line-station` automation driver |
+| .NET 10 | the `winding-line` automation driver |
 | Python and `pyserial` | the `quality-inspection` instrument driver |
 | Playwright | the `e2e/` specs of every example except `asset-survey-field` |
 | Changesets | the framework release |

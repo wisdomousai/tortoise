@@ -15,7 +15,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Live.** A [triggered](glossary.md#trigger) agent has requested approval on a real local model, and a person approved ([agents and providers](#agents-and-providers)).
 
-**Not shown.** No host route starts an [agent run](glossary.md#agent-run) from an [agent definition](glossary.md#agent-definition). The line-station approval request tile and the frame's approval request review have no browser test.
+**Not shown.** No host route starts an [agent run](glossary.md#agent-run) from an [agent definition](glossary.md#agent-definition). The winding-line approval request tile and the frame's approval request review have no browser test.
 
 **Limits.**
 
@@ -305,7 +305,7 @@ A second spec ran the same day and leaves the receipt unreadable. The Held recei
 
 ### Operator workstation bridge
 
-**Shown, browser.** In `line-station`, against the real host and a separate fake HMI process:
+**Shown, browser.** On 27 October 2026, `showcase/examples/winding-line/e2e/station.pw.ts` passed in headless Chromium against the real host and a separate fake HMI process:
 
 - a stop is classified;
 - an order is scanned and started with a hold;
@@ -314,7 +314,7 @@ A second spec ran the same day and leaves the receipt unreadable. The Held recei
 
 The kit's interaction tests also pass.
 
-**By hand.** On 8 October 2026, `bun run station:golden` identified 5 of 5 screens with no confident misread. It ran against recorded expectations rather than a model, which checks the wiring only.
+**By hand.** On 27 October 2026, after the frames were recorded again for the winder HMI, `bun run station:golden` identified 5 of 5 screens with no confident misread. It ran against recorded expectations rather than a model, which checks the wiring only.
 
 **Not shown.**
 
@@ -330,9 +330,9 @@ The kit's interaction tests also pass.
 **Not shown.**
 
 - **Equipment:** no physical instrument, controller or workstation application has been connected. The instrument driver has run only against its pseudo-terminal simulator, and the station automation driver only against its simulated station.
-- **Windows:** the .NET SDK's STA handler thread, COM interop and a `win-x86` build have not run. The line-station `ComStation` has never run, and its member names are an assumed object model rather than a real vendor's.
+- **Windows:** the .NET SDK's STA handler thread, COM interop and a `win-x86` build have not run. The winding-line `ComStation` has never run, and its member names are an assumed object model rather than a real vendor's.
 - **Linux:** the Python and .NET driver tests have run only on macOS.
-- **Served automation route:** line-station's automation route has run only in tests that start the driver directly. A served host starting it through the process plugin from a site binding (`STATION_ROUTE=automation`) has not run.
+- **Served automation route:** winding-line's automation route has run only in tests that start the driver directly. A served host starting it through the process plugin from a site binding (`STATION_ROUTE=automation`) has not run.
 - **Not built:** a remote transport for a driver on another machine, live non-journaled readings, remote queries over driver state, Android native-module drivers and a C++ SDK.
 
 ### Security and compliance

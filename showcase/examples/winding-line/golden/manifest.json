@@ -1,0 +1,58 @@
+{
+  "profile": "../station-profile.json",
+  "frames": [
+    {
+      "name": "stopped",
+      "frame": "stopped.json",
+      "image": "stopped.png",
+      "screen": "main",
+      "expected": {
+        "machine": "STOPPED",
+        "alarm": "",
+        "recipe": "R-250",
+        "good": 4210,
+        "scrap": 37
+      }
+    },
+    {
+      "name": "alarm",
+      "frame": "alarm.json",
+      "image": "alarm.png",
+      "screen": "main",
+      "expected": {
+        "machine": "ALARM",
+        "alarm": "E-214 Wire break at tensioner",
+        "recipe": "R-250",
+        "good": 10482,
+        "scrap": 119
+      }
+    },
+    {
+      "name": "recipe-dialog",
+      "frame": "recipe-dialog.json",
+      "image": "recipe-dialog.png",
+      "screen": "recipe",
+      "expected": {}
+    },
+    {
+      "name": "maintenance-popup",
+      "frame": "maintenance-popup.json",
+      "image": "maintenance-popup.png",
+      "screen": null,
+      "expected": {}
+    },
+    {
+      "name": "large-counts",
+      "frame": "large-counts.json",
+      "image": "large-counts.png",
+      "screen": "main",
+      "expected": {
+        "machine": "STOPPED",
+        "alarm": "E-214 Wire break at tensioner",
+        "recipe": "R-100",
+        "good": 98765,
+        "scrap": 1204
+      }
+    }
+  ]
+}

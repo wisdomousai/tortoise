@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "id": "winder-hmi",
+  "version": "1.0.0",
+  "application": { "name": "Winder HMI (simulated)", "vendor": "Example", "versions": ["4.2"] },
+  "screens": [
+    {
+      "id": "main",
+      "title": "Overview",
+      "anchors": [{ "role": "heading", "name": "Winder 1 overview" }]
+    },
+    {
+      "id": "recipe",
+      "title": "Load recipe",
+      "anchors": [{ "role": "dialog", "name": "Load recipe" }]
+    }
+  ],
+  "fields": [
+    {
+      "id": "machine",
+      "screen": "main",
+      "type": "enum",
+      "options": ["STOPPED", "RUNNING", "ALARM"],
+      "locator": { "role": "status", "name": "Machine state" },
+      "extractor": "accessibility",
+      "stableReads": 2
+    },
+    {
+      "id": "alarm",
+      "screen": "main",
+      "type": "text",
+      "locator": { "role": "status", "name": "Alarm" },
+      "extractor": "accessibility",
+      "stableReads": 1
+    },
+    {
+      "id": "recipe",
+      "screen": "main",
+      "type": "text",
+      "locator": { "role": "status", "name": "Loaded recipe" },
+      "extractor": "accessibility",
+      "stableReads": 1
+    },
+    {
+      "id": "good",
+      "screen": "main",
+      "type": "number",
+      "decimals": 0,
+      "region": { "x": 24, "y": 280, "width": 280, "height": 200 },
+      "extractor": "counter-ocr",
+      "hint": "Large number labelled GOOD on the left of the counter panel",
+      "minConfidence": 0.9,
+      "stableReads": 1
+    },
+    {
+      "id": "scrap",
+      "screen": "main",
+      "type": "number",
+      "decimals": 0,
+      "region": { "x": 304, "y": 280, "width": 280, "height": 200 },
+      "extractor": "counter-ocr",
+      "hint": "Large number labelled SCRAP on the right of the counter panel",
+      "minConfidence": 0.9,
+      "stableReads": 1
+    }
+  ],
+  "forbidden": [
+    {
+      "id": "estop-reset",
+      "reason": "Safety function: an e-stop is reset by a person at the machine",
+      "locator": { "role": "button", "name": "Reset e-stop" },
+      "region": { "x": 790, "y": 670, "width": 220, "height": 76 }
+    },
+    {
+      "id": "jog",
+      "reason": "Manual machine motion",
+      "locator": { "role": "button", "name": "Jog" },
+      "region": { "x": 790, "y": 550, "width": 220, "height": 76 }
+    },
+    {
+      "id": "start",
+      "reason": "Starting the machine is motion; only a person at the station starts it",
+      "locator": { "role": "button", "name": "Start" },
+      "region": { "x": 790, "y": 150, "width": 220, "height": 76 }
+    }
+  ],
+  "procedures": [
+    {
+      "id": "recipe.load",
+      "title": "Load recipe",
+      "risk": "operator-present",
+      "rerunnable": false,
+      "timeoutMs": 20000,
+      "maxSteps": 6,
+      "startScreen": "main",
+      "preconditions": [{ "field": "machine", "equals": "STOPPED" }],
+      "steps": [
+        { "kind": "click", "target": { "locator": { "role": "button", "name": "Load recipe" } } },
+        { "kind": "wait-for", "screen": "recipe", "timeoutMs": 3000 },
+        { "kind": "click", "target": { "locator": { "role": "textbox", "name": "Recipe" } } },
+        { "kind": "type", "text": "$input.recipe" },
+        { "kind": "click", "target": { "locator": { "role": "button", "name": "Confirm" } } },
+        { "kind": "wait-for", "screen": "main", "timeoutMs": 3000 }
+      ],
+      "readback": [{ "field": "recipe", "equals": "$input.recipe" }]
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+import { own, put, type StateMigrations } from '@agent-native/runtime';
+
+/**
+ * Coil winders for control transformers, on top of a homebrew MES and screen-only station
+ * software.
+ *
+ * Ownership: the MES owns orders and stop reasons (synced in). The station software owns actual
+ * machine state, the loaded recipe and counters; this application only observes them, with
+ * provenance, through the station bridge. This application owns what happens at the station:
+ * stops and their classification, count confirmations, operator verifications, the desired
+ * recipe, the bridge mode and the control holder. Forwarded records reach the MES through the outbox;
+ * desired station state reaches the station software through the outbox and its screen.
+ */
+export type StationRole = 'operator' | 'supervisor' | 'viewer';
+export type BridgeMode = 'monitor-only' | 'assist' | 'actuate';
+export type ControlHolder = 'operator' | 'agent' | 'idle';
+export type SyncStatus = 'pending' | 'accepted' | 'rejected';
+export type FieldValue = string | number | boolean | null;
+
+/** Station fields the domain interprets; other profile fields are kept as readings only. */
+export const FIELDS = {
+  machine: 'machine',
+  alarm: 'alarm',
+  recipe: 'recipe',
+  good: 'good',
+  scrap: 'scrap',
+} as const;
+/** An observation older than this no longer describes the station. */
+export const FRESH_MS = 30_000;
+export const MES = 'mes';
+export const hmiTarget = (station: string) => `legacy-hmi:${station}`;
+export const bridgePrincipal = (station: string) => `station-bridge:${station}`;
+
+export interface Synchronized {
+  effectId: string;
+  sync: SyncStatus;
+  sorRef?: string;
+  rejection?: { code: string; message: string };
+}
+export interface Reading {
+  value: FieldValue;
+  confidence: number;
+  source: string;
+  model?: { id: string; version?: string; digest?: string };
+  observedAt: number;
+  /** Frame and profile behind an observed value; absent for an operator's confirmation. */
+  frameDigest?: string;
+  profile?: { id: string; version: string };
+  status: 'observed' | 'operator-verified';
+  verifiedBy?: string;
+}
+/** A field's declared value type, as the station profile states it. */
+export interface FieldDeclaration {
+  type: 'number' | 'text' | 'enum' | 'boolean';
+  options?: string[];
+  decimals?: number;
+  unit?: string;
+}
+export interface Station {
+  id: string;
+  name: string;
+  line: string;
+  members: Record<string, StationRole>;
+  /** The only principal that may report observations and complete screen procedures here. */
+  bridgePrincipalId: string;
+  mode: BridgeMode;
+  controlHolder: ControlHolder;
+  controlChangedBy?: string;
+  controlChangedAt?: number;
+  screen?: string | null;
+  observedAt?: number;
+  profile?: { id: string; version: string };
+  localInputAt?: number;
+  readings: Record<string, Reading>;
+  orderId?: string;
+  desired?: {
+    recipe: string;
+    orderId: string;
+    requestedBy: string;
+    requestedAt: number;
+  } & Synchronized;
+}
+export interface Order {
+  id: string;
+  station: string;
+  material: string;
+  materialText: string;
+  recipe: string;
+  quantity: number;
+  status: 'released' | 'active' | 'completed';
+}
+export interface Reason {
+  code: string;
+  text: string;
+  category: 'planned' | 'unplanned' | 'quality';
+}
+export interface Stop extends Partial<Synchronized> {
+  id: string;
+  station: string;
+  orderId?: string;
+  state: 'STOPPED' | 'ALARM';
+  alarm?: string;
+  startedAt: number;
+  endedAt?: number;
+  reason?: string;
+  classifiedBy?: string;
+  classifiedAt?: number;
+}
+export interface CountReport extends Synchronized {
+  id: string;
+  station: string;
+  orderId: string;
+  good: number;
+  scrap: number;
+  observedAt: number;
+  provenance: 'observed' | 'operator-verified';
+  confirmedBy: string;
+  confirmedAt: number;
+}
+/** A reading the bridge saw but could not read with confidence. One open item per field. */
+export interface AttentionItem {
+  id: string;
+  station: string;
+  field: string;
+  proposed: FieldValue;
+  confidence: number;
+  source: string;
+  model?: Reading['model'];
+  observedAt: number;
+  frameDigest?: string;
+  profile?: { id: string; version: string };
+  declared?: FieldDeclaration;
+  createdAt: number;
+  /** Kept after resolution, so who confirmed what remains auditable. */
+  resolvedAt?: number;
+  resolvedBy?: string;
+  resolution?: 'confirmed' | 'superseded';
+}
+export interface LineState {
+  mesPrincipalId: string;
+  stations: Record<string, Station>;
+  orders: Record<string, Order>;
+  reasons: Record<string, Reason>;
+  stops: Record<string, Stop>;
+  counts: Record<string, CountReport>;
+  attention: Record<string, AttentionItem>;
+  watermark?: string;
+  lastSyncAt?: number;
+}
+
+export function createLineState(
+  options: {
+    mesPrincipalId?: string;
+    stations?: { id: string; name: string; line: string; members: Record<string, StationRole> }[];
+  } = {},
+): LineState {
+  const stations: LineState['stations'] = {};
+  for (const station of options.stations ?? [
+    { id: 'winder-1', name: 'Winder 1', line: 'Winding line 1', members: { owner: 'supervisor' } },
+  ])
+    put(stations, station.id, {
+      ...station,
+      members: { ...station.members },
+      bridgePrincipalId: bridgePrincipal(station.id),
+      // Observation is the safe default; actuation is switched on per station by a supervisor.
+      mode: 'monitor-only',
+      controlHolder: 'idle',
+      readings: {},
+    });
+  return {
+    mesPrincipalId: options.mesPrincipalId ?? 'mes-integration',
+    stations,
+    orders: {},
+    reasons: {},
+    stops: {},
+    counts: {},
+    attention: {},
+  };
+}
+
+/**
+ * Version 2 moves approval requests out of `windingLine.approvals` and device configuration out
+ * of the root `devices` into the approval and device features, which adopt them first
+ * (`application.ts`). The step is not compatible, so code from version 1 refuses a version 2
+ * workspace instead of running without them.
+ */
+export const migrations: StateMigrations = {
+  version: 2,
+  steps: [
+    {
+      from: 1,
+      to: 2,
+      up: (stored) => {
+        const { devices: _devices, ...rest } = stored as Record<string, unknown>;
+        const line = rest.windingLine as Record<string, unknown> | undefined;
+        if (!line) return rest;
+        const { approvals: _approvals, ...windingLine } = line;
+        return { ...rest, windingLine };
+      },
+    },
+  ],
+};
+
+/** Prototype-safe record access; keys are untrusted input. */
+export { own, put };
+export function stationRole(state: LineState, principalId: string, station: string) {
+  const entry = own(state.stations, station);
+  return entry ? own(entry.members, principalId) : undefined;
+}
+/** The station a bridge principal serves, if it is one. */
+export function bridgeStation(state: LineState, principalId: string): Station | undefined {
+  return Object.values(state.stations).find((station) => station.bridgePrincipalId === principalId);
+}
+/** The open attention item for a station field, if any. */
+export function openAttention(state: LineState, station: string, field?: string): AttentionItem[] {
+  return Object.values(state.attention).filter(
+    (item) =>
+      item.station === station &&
+      item.resolvedAt === undefined &&
+      (field === undefined || item.field === field),
+  );
+}
+export function openStop(state: LineState, station: string): Stop | undefined {
+  return Object.values(state.stops).find(
+    (stop) => stop.station === station && stop.endedAt === undefined,
+  );
+}
+/** A reading that may be used as fact: confident or confirmed by a person, and fresh. */
+export function usable(reading: Reading | undefined, now: number): reading is Reading {
+  return reading !== undefined && reading.value !== null && now - reading.observedAt <= FRESH_MS;
+}
