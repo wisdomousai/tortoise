@@ -8,9 +8,10 @@ import { operations } from '../../contracts';
 import { ErrorText, quietly } from '../shared';
 
 /**
- * Put a capture on the right node, found by designation or name, or discard it with a reason. An
- * unplaced capture can also be placed and sent for extraction in one step, or handed to the
- * capture-to-EAM workflow, which also files and exports the node once its values are accepted.
+ * Put a capture on the right node of its survey, found by designation or name, or discard it
+ * with a reason. An unplaced capture can also be placed and sent to the model in one step, or
+ * handed to the capture-to-EAM workflow, which also files and exports the node once its values
+ * are accepted.
  */
 export function PlaceOrDiscard({ captureId, placed }: { captureId: string; placed: boolean }) {
   const [q, setQ] = useState('');
@@ -19,11 +20,11 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
     ...live.liveQueryOptions(operations.nodeSearch, { q, limit: 8 }),
     enabled: q.trim().length > 0,
   });
-  const place = useCommand(transport, operations.capturePlace);
-  const placeAndExtract = useCommand(transport, operations.capturePlaceAndExtract);
+  const place = useCommand(transport, operations.reportPlace!);
+  const placeAndExtract = useCommand(transport, operations.placeAndExtract);
   const placeAndFile = useCommand(transport, operations.captureFileWorkflow);
   const busy = place.pending || placeAndExtract.pending || placeAndFile.pending;
-  const discard = useCommand(transport, operations.captureDiscard);
+  const discard = useCommand(transport, operations.reportDiscard);
   return (
     <section
       aria-label={placed ? 'Move or discard' : 'Place'}
@@ -51,7 +52,7 @@ export function PlaceOrDiscard({ captureId, placed }: { captureId: string; place
                   disabled={busy}
                   onClick={() =>
                     void quietly(
-                      place.execute({ id: captureId, nodeId: node.id }).then(() => setQ('')),
+                      place.execute({ id: captureId, subject: node.id }).then(() => setQ('')),
                     )
                   }
                 >

@@ -21,9 +21,7 @@ export function NodeEdit({
   const tree = useQuery(live.liveQueryOptions(operations.tree, {}));
   const [designation, setDesignation] = useState(node.designation);
   const [name, setName] = useState(node.name);
-  const parents = (tree.data?.nodes ?? []).filter(
-    (candidate) => candidate.id !== node.id && candidate.source !== 'proposed',
-  );
+  const parents = (tree.data?.items ?? []).filter((candidate) => candidate.id !== node.id);
   return (
     <section aria-label="Edit node" className="space-y-3 rounded-xl border bg-card p-4">
       <form

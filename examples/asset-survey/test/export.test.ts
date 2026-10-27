@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { device, dispatched, open, rita } from './survey';
+import { dispatched, open, rita } from './survey';
 
 const worker = resolve(import.meta.dir, '../export/worker.ts');
 const directory = await mkdtemp(join(tmpdir(), 'agent-native-survey-export-'));
@@ -29,26 +29,15 @@ async function sitePolicy(exportDirectory: string) {
 async function surveyed(settings?: Record<string, string>) {
   const survey = await open(settings);
   const { q2, assignment } = await dispatched(survey);
-  const photo = await survey.photo({ manufacturer: 'Siemens', serial: 'S-77' });
-  await survey.command(
-    'capture.ingest',
-    {
-      id: 'cap',
-      assignmentId: assignment.id,
-      nodeId: q2.id,
-      kind: 'nameplate',
-      photos: [photo],
-      codes: [],
-      note: '',
-      takenAt: 1,
-    },
-    device,
-  );
-  await survey.command('extraction.request', { captureId: 'cap' }, rita);
+  const lines = { manufacturer: 'Siemens', serial: 'S-77' };
+  // The capture uploads the same bytes, so this is its photo.
+  const photo = await survey.photo(lines);
+  await survey.capture('cap', assignment.id, q2.id, lines);
+  await survey.read('cap');
   await survey.settle();
   await survey.command(
-    'extraction.accept',
-    { captureId: 'cap', values: { manufacturer: 'Siemens', serial: 'S-77' } },
+    'assignment.extraction.accept',
+    { id: (await survey.reading('cap')).reportId, values: lines },
     rita,
   );
   return { survey, q2, photo };

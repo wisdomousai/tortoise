@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { defaultPorts } from '@agent-native/host';
 import { passOnce, type Runner } from '@agent-native/workflows/runner';
-import { at, device, dispatched, open, rita } from './survey';
+import { at, dispatched, open, rita } from './survey';
 
 const WEEK = 7 * 86_400_000;
 const integration = at('integration');
@@ -23,23 +23,9 @@ async function started() {
   const clock = { at: Date.now() };
   const survey = await open(undefined, { now: () => clock.at });
   const { q2, assignment } = await dispatched(survey);
-  // A node outside the assignment: the capture arrives unplaced.
+  // A node outside the survey: the capture arrives unplaced.
   const g2 = await survey.node(undefined, '=G2', 'Generator 2');
-  const photo = await survey.photo({ manufacturer: 'Siemens', serial: 'S-77' });
-  await survey.command(
-    'capture.ingest',
-    {
-      id: 'cap',
-      assignmentId: assignment.id,
-      nodeId: g2.id,
-      kind: 'nameplate',
-      photos: [photo],
-      codes: [],
-      note: '',
-      takenAt: 1,
-    },
-    device,
-  );
+  await survey.capture('cap', assignment.id, g2.id, { manufacturer: 'Siemens', serial: 'S-77' });
   const instance = await survey.command<Instance>('capture.file-workflow', {
     id: 'cap',
     nodeId: q2.id,
@@ -61,7 +47,7 @@ async function started() {
   };
   const pass = () => passOnce(runner);
   const get = () => survey.query<Instance>('workflow.get', { id: instance.id });
-  /** Placed, extracted and proposed: the instance waits for a reviewer. */
+  /** Placed, sent to the model and read: the instance waits for a reviewer. */
   const proposed = async () => {
     await pass();
     await pass();
@@ -69,10 +55,13 @@ async function started() {
     await pass();
     expect(await get()).toMatchObject({ status: 'waiting', step: 'reviewed' });
   };
-  const accept = () =>
+  const accept = async () =>
     survey.command(
-      'extraction.accept',
-      { captureId: 'cap', values: { manufacturer: 'Siemens', serial: 'S-77' } },
+      'assignment.extraction.accept',
+      {
+        id: (await survey.reading('cap')).reportId,
+        values: { manufacturer: 'Siemens', serial: 'S-77' },
+      },
       rita,
     );
   /** Accepted, filed into the EAM and its export requested. */
@@ -117,7 +106,7 @@ async function started() {
 }
 
 describe('survey.capture-to-eam', () => {
-  test('a capture is placed, extracted, reviewed, filed into the EAM and exported', async () => {
+  test('a capture is placed, read, reviewed, filed into the EAM and exported', async () => {
     const run = await started();
     await run.filed();
     await run.settleExport(true);

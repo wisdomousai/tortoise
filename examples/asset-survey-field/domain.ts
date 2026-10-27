@@ -1,102 +1,61 @@
-import type { BlobRef } from '@agent-native/contracts';
-import { own } from '@agent-native/runtime';
-import type { CaptureKind } from '@agent-native/asset-survey/domain';
-import type { SchemeId } from '@agent-native/asset-survey/contracts/schemes';
+import type { StateMigrations } from '@agent-native/runtime';
+import { createWorklistSlice, type WorklistSlice } from '@agent-native/assignments/server';
 
 /**
- * The field device's workspace. The hub owns assignments and their structure; the device keeps
- * the copy its feed last delivered and never edits it. The device owns its captures until the
- * hub has taken them, and keeps them afterwards to show what was sent.
+ * The field device's workspace: its one person, the principal that talks to the hub, and the
+ * worklist. The hub owns the surveys and their structure; the device keeps the copy its feed last
+ * delivered. It keeps every capture it recorded, with whether the hub took it.
  */
-export type HubSync = 'pending' | 'accepted' | 'rejected';
-export interface Rejection {
-  code: string;
-  message: string;
-}
-
-export interface FieldNode {
-  id: string;
-  parentId?: string;
-  scheme: SchemeId;
-  designation: string;
-  name: string;
-}
-export interface FieldAssignment {
-  id: string;
-  title: string;
-  kinds: CaptureKind[];
-  note?: string;
-  nodes: FieldNode[];
-  /** The hub has the return, from this device or from a manager. */
-  returned: boolean;
-}
-export interface FieldCapture {
-  id: string;
-  assignmentId: string;
-  nodeId?: string;
-  kind: CaptureKind;
-  photos: BlobRef[];
-  codes: string[];
-  condition?: 'good' | 'fair' | 'poor' | 'failed';
-  note: string;
-  takenAt: number;
-  effectId: string;
-  sync: HubSync;
-  rejection?: Rejection;
-}
-/** A return this device sent; the assignment takes no more captures from then on. */
-export interface FieldReturn {
-  effectId: string;
-  sync: HubSync;
-  rejection?: Rejection;
-}
 export interface FieldState {
   ownerId: string;
   integrationPrincipalId: string;
-  assignments: Record<string, FieldAssignment>;
-  captures: Record<string, FieldCapture>;
-  returns: Record<string, FieldReturn>;
-  cursor: { watermark?: string; lastSyncAt?: number };
+  worklist: WorklistSlice;
+}
+
+export interface FieldServices {
+  now?: () => number;
+  /** A new capture ID; `crypto.randomUUID()` when omitted. The hub keeps it. */
+  newId?: () => string;
 }
 
 export const createFieldState = (ownerId: string, integrationPrincipalId: string): FieldState => ({
   ownerId,
   integrationPrincipalId,
-  assignments: {},
-  captures: {},
-  returns: {},
-  cursor: {},
+  worklist: createWorklistSlice(),
 });
 
-/** Closed for capture: returned here or at the hub. */
-export const isClosed = (state: FieldState, assignment: FieldAssignment) =>
-  assignment.returned || own(state.returns, assignment.id) !== undefined;
+type Delivery = { sync: 'pending' | 'accepted' | 'rejected' };
 
-const compactKey = (text: string) => text.replace(/\s+/g, '').toUpperCase();
-
-/** The assignment's nodes depth first, each with its depth, as the hub sent them. */
-export function slice(assignment: FieldAssignment) {
-  const children = new Map<string | undefined, FieldNode[]>();
-  for (const node of assignment.nodes) {
-    const key = node.parentId;
-    children.set(key, [...(children.get(key) ?? []), node]);
-  }
-  const walk = (node: FieldNode, depth: number): (FieldNode & { depth: number })[] => [
-    { ...node, depth },
-    ...(children.get(node.id) ?? [])
-      .sort((a, b) => a.designation.localeCompare(b.designation))
-      .flatMap((child) => walk(child, depth + 1)),
-  ];
-  return (children.get(undefined) ?? [])
-    .sort((a, b) => a.designation.localeCompare(b.designation))
-    .flatMap((root) => walk(root, 0));
-}
-
-/** Nodes whose designation starts with `q` (spaces and case ignored) or whose name contains it. */
-export function matches(node: FieldNode, q: string) {
-  const key = compactKey(q);
-  const text = q.trim().toLowerCase();
-  return (
-    !text || compactKey(node.designation).startsWith(key) || node.name.toLowerCase().includes(text)
-  );
-}
+/**
+ * Version 1 kept assignments, captures and returns in records of its own. Version 2 starts the
+ * worklist empty: the next feed brings back the surveys still open for this device, and the
+ * captures the hub took are at the hub. A workspace with a capture or return still waiting for
+ * the hub is refused, so nothing is lost; the previous version delivers it first. The pairing is
+ * hub-link's and is kept.
+ */
+export const migrations: StateMigrations = {
+  version: 2,
+  steps: [
+    {
+      from: 1,
+      to: 2,
+      up: (stored) => {
+        const v1 = stored as {
+          ownerId: string;
+          integrationPrincipalId: string;
+          captures?: Record<string, Delivery>;
+          returns?: Record<string, Delivery>;
+        };
+        const waiting = [
+          ...Object.values(v1.captures ?? {}),
+          ...Object.values(v1.returns ?? {}),
+        ].filter((record) => record.sync === 'pending').length;
+        if (waiting)
+          throw new Error(
+            `Deliver the ${waiting} record(s) waiting for the hub with the previous version first`,
+          );
+        return createFieldState(v1.ownerId, v1.integrationPrincipalId);
+      },
+    },
+  ],
+};

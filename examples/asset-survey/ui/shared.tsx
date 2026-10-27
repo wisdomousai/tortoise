@@ -47,6 +47,14 @@ export function Empty({ children }: { children: ReactNode }) {
   );
 }
 
+/** Values typed one per line as `name: value`; lines without a name or a colon are skipped. */
+export const valueLines = (text: string): [name: string, value: string][] =>
+  text
+    .split('\n')
+    .map((line) => line.split(':'))
+    .filter((parts) => parts.length > 1 && parts[0]!.trim())
+    .map(([name, ...rest]) => [name!.trim(), rest.join(':').trim()]);
+
 /** Commands report failures through their hook's `error`; the rejected promise is handled. */
 export const quietly = (promise: Promise<unknown>) => promise.catch(() => undefined);
 

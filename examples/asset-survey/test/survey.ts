@@ -70,7 +70,7 @@ export async function open(settings?: PluginSettings, options: { now?: () => num
       .result as T;
   /** One outbox pass and one feed pass per target: what the background loops do. */
   const settle = async () => {
-    await integrations.target('model').dispatcher.runOnce();
+    await integrations.target('assignment-model').dispatcher.runOnce();
     await integrations.target('eam').dispatcher.runOnce();
     await integrations.sync();
   };
@@ -88,19 +88,77 @@ export async function open(settings?: PluginSettings, options: { now?: () => num
       designation,
       name,
     });
-  return { application, query, command, settle, deliver, retry, photo, node, eam: () => eam };
+  /** One capture reported on a survey, by device d1 unless `as` says otherwise. */
+  const capture = async (
+    id: string,
+    assignmentId: string,
+    nodeId: string | undefined,
+    lines: Record<string, string>,
+    options: { as?: ExecutionContext; takenAt?: number } = {},
+  ) =>
+    command<{ id: string; subject?: string }>(
+      'assignment.survey.report',
+      {
+        id,
+        assignmentId,
+        ...(nodeId ? { subject: nodeId } : {}),
+        body: {
+          kind: 'nameplate',
+          photos: [await photo(lines, options.as ?? device)],
+          codes: [],
+          note: '',
+          takenAt: options.takenAt ?? 1_000,
+        },
+      },
+      options.as ?? device,
+    );
+  /** Send a capture to the model to read, as `as`; the reading arrives on the next settle. */
+  const read = (captureId: string, as = rita) =>
+    command<{ id: string }>(
+      'assignment.extraction.create',
+      {
+        title: `Read ${captureId}`,
+        scope: { reportId: captureId },
+        assignee: { type: 'target', id: 'model' },
+      },
+      as,
+    );
+  /** Where a capture's reading stands, with the report to accept. */
+  const reading = async (captureId: string) =>
+    (
+      await query<{ extraction: { reportId: string; status: string; fields: Field[] } }>(
+        'capture.get',
+        { id: captureId },
+      )
+    ).extraction;
+  return {
+    application,
+    query,
+    command,
+    settle,
+    deliver,
+    retry,
+    photo,
+    node,
+    capture,
+    read,
+    reading,
+    eam: () => eam,
+  };
 }
 
-/** A generator bay with two breakers, dispatched to device d1. */
+/** A generator bay with two breakers, surveyed on device d1. */
 export async function dispatched(survey: Awaited<ReturnType<typeof open>>) {
   const g1 = await survey.node(undefined, '=G1', 'Generator 1');
   const q1 = await survey.node(g1.id, '=G1-Q1', 'Generator circuit breaker');
   const q2 = await survey.node(g1.id, '=G1-Q2', 'Station supply breaker');
-  const assignment = await survey.command<{ id: string; stage: string }>('assignment.create', {
-    title: 'Nameplates of =G1',
-    roots: [g1.id],
-    kinds: ['nameplate'],
-  });
-  await survey.command('assignment.dispatch', { id: assignment.id, deviceId: 'd1' });
+  const assignment = await survey.command<{ id: string; stage: string }>(
+    'assignment.survey.create',
+    {
+      title: 'Nameplates of =G1',
+      scope: { roots: [g1.id], kinds: ['nameplate'] },
+      assignee: { type: 'device', id: 'd1' },
+    },
+  );
   return { g1, q1, q2, assignment };
 }

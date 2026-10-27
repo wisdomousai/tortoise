@@ -52,10 +52,9 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
       designation: '=G1-Q1',
       name: 'Generator circuit breaker',
     });
-    const assignment = await command<{ id: string }>('assignment.create', {
+    const assignment = await command<{ id: string }>('assignment.survey.create', {
       title: 'Nameplates of =G1',
-      roots: [g1.id],
-      kinds: ['nameplate'],
+      scope: { roots: [g1.id], kinds: ['nameplate'] },
     });
 
     // Pairing: the hub issues a code, the device redeems it for its own bearer token.
@@ -70,7 +69,10 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
     });
     expect(redeemed.status).toBe(201);
     const paired = (await redeemed.json()) as { token: string; device: { id: string } };
-    await command('assignment.dispatch', { id: assignment.id, deviceId: paired.device.id });
+    await command('assignment.survey.send', {
+      id: assignment.id,
+      assignee: { type: 'device', id: paired.device.id },
+    });
 
     const device = (path: string, body: BodyInit, contentType = 'application/json') =>
       fetch(host.url + path, {
@@ -81,7 +83,8 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
     const feed = await device('/api/v1/queries/assignment.feed', JSON.stringify({ input: {} }));
     expect(feed.status).toBe(200);
     expect(
-      ((await feed.json()) as { data: { items: { nodes: unknown[] }[] } }).data.items[0]!.nodes,
+      ((await feed.json()) as { data: { items: { brief: { nodes: unknown[] } }[] } }).data.items[0]!
+        .brief.nodes,
     ).toHaveLength(2);
     const upload = await device(
       '/api/v1/blobs',
@@ -90,21 +93,21 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
     );
     expect(upload.status).toBe(201);
     const photo = await upload.json();
-    const capture = {
-      id: 'cap-1',
-      assignmentId: assignment.id,
-      nodeId: q1.id,
+    const body = {
       kind: 'nameplate',
       photos: [photo],
       codes: ['=G1-Q1'],
       note: 'Behind the left door',
       takenAt: 1_700_000_000_000,
     };
-    const ingest = await device(
-      '/api/v1/commands/capture.ingest',
-      JSON.stringify({ input: capture, idempotencyKey: 'cap-1' }),
+    const report = await device(
+      '/api/v1/commands/assignment.survey.report',
+      JSON.stringify({
+        input: { id: 'cap-1', assignmentId: assignment.id, subject: q1.id, body },
+        idempotencyKey: 'cap-1',
+      }),
     );
-    expect(ingest.status).toBe(200);
+    expect(report.status).toBe(200);
     // The device's token reaches its sync operations and nothing else.
     expect(
       (await device('/api/v1/queries/structure.tree', JSON.stringify({ input: {} }))).status,
@@ -115,7 +118,14 @@ test('a paired device hands over a capture over HTTP, and every surface reads it
       { operation: 'capture.get', input },
       { workspaceId: 'local', principalId: 'owner' },
     );
-    expect(direct.data).toMatchObject({ ...capture, deviceId: paired.device.id, review: 'new' });
+    expect(direct.data).toMatchObject({
+      ...body,
+      id: 'cap-1',
+      assignmentId: assignment.id,
+      nodeId: q1.id,
+      reportedBy: `device:${paired.device.id}`,
+      review: 'new',
+    });
     expect((await owner.query('capture.get', input)).data).toEqual(direct.data);
     const commandLine = await cli(['capture.get', '--json', JSON.stringify(input)]);
     expect(commandLine.exitCode).toBe(0);

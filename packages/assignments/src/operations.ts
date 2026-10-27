@@ -111,7 +111,11 @@ export function kindOperations<const K extends AnyAssignmentKind>(kind: K) {
     report: defineCapability({
       id: `${base}.report` as `assignment.${K['id']}.report`,
       kind: 'command',
-      description: `Report on a ${one} assignment you were given. ${kind.description} One report per call, under an ID you choose: the same report again is harmless, and a different one under the same ID conflicts. Refused once the assignment is done, withdrawn or closed.`,
+      description: `Report on a ${one} assignment you were given. ${kind.description} One report per call, under an ID you choose: the same report again is harmless, and a different one under the same ID conflicts. Refused once the assignment is withdrawn or closed; a report after your done mark is still taken.${
+        kind.subject
+          ? ` Name the ${kind.subject} the report is about as subject; one the assignment does not cover is refused, or from a device or a peer application kept unplaced for a person to place.`
+          : ''
+      }`,
       input: jsonSchema(
         z.strictObject({
           id: recordKeySchema,

@@ -233,6 +233,12 @@ _The approval requests people approved, rejected or let expire, exported as trai
 
 implemented · [`packages/runtime`](../packages/runtime/README.md)
 
+### Assignment
+
+_Work handed to a person, an agent, a paired device, a peer application or a target, with a brief, and the structured reports the assignee sends back for a person to accept or discard. The `assignment` feature keeps assignments and reports._
+
+implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame`](../packages/frame/README.md) [`samples/notes-assignments`](../samples/notes-assignments/README.md) [`examples/asset-survey`](../examples/asset-survey/README.md)
+
 ### Trigger
 
 _Work that starts on a committed change or a schedule instead of a person's prompt._
@@ -330,6 +336,12 @@ partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/in
 _Enrollment of another agent-native application, which then calls the peer surface as its service principal or, with a signed subject assertion, as a mapped person._
 
 partial · [`plugins/peer-link`](../plugins/peer-link/README.md) [`packages/integration`](../packages/integration/README.md) [`examples/quality-inspection`](../examples/quality-inspection/README.md) [`examples/receiving`](../examples/receiving/README.md)
+
+### Worklist
+
+_The assignee side of assignments in another application: the open assignments from the issuer's feed, and the reports and done marks recorded locally and delivered to the issuer through the outbox._
+
+implemented · [`packages/assignments`](../packages/assignments/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`samples/notes-worklist`](../samples/notes-worklist/README.md) [`examples/asset-survey-field`](../examples/asset-survey-field/README.md)
 
 ### Remote query
 

@@ -16,13 +16,13 @@ type Kind = (typeof kinds)[number];
 export function DocumentsScreen() {
   const documents = useQuery(live.liveQueryOptions(operations.documentList, {}));
   const tree = useQuery(live.liveQueryOptions(operations.tree, {}));
-  const add = useCommand(transport, operations.documentAdd);
+  const add = useCommand(transport, operations.documentCreate);
   const [file, setFile] = useState<File>();
   const [title, setTitle] = useState('');
   const [kind, setKind] = useState<Kind>('schematic');
   const [nodeId, setNodeId] = useState('');
   const [error, setError] = useState<string>();
-  const nodes = tree.data?.nodes ?? [];
+  const nodes = tree.data?.items ?? [];
   const designations = new Map(nodes.map((node) => [node.id, node.designation]));
   const submit = async () => {
     if (!file) return;
@@ -43,7 +43,7 @@ export function DocumentsScreen() {
   return (
     <Page
       title="Documents"
-      description="PDF or images up to 32 MiB. Agents read schematics to propose structure nodes."
+      description="PDF or images up to 32 MiB. Agents read schematics to request structure nodes."
     >
       <form
         aria-label="Add document"

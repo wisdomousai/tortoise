@@ -44,6 +44,7 @@ Skills are task guides for coding agents. Each lives in the workspace whose exte
 | Start an application, export an example, pick the next skill | [create-agent-native-app](packages/scaffold/skills/create-agent-native-app/SKILL.md) |
 | Add or change a command or query, a record shape or a trigger | [add-capability](packages/runtime/skills/add-capability/SKILL.md) |
 | Write or mount a feature: a reusable domain part with its slice, policy and hooks | [write-a-feature](packages/host/skills/write-a-feature/SKILL.md) |
+| Hand out work and review the reports: assignment kinds, lanes, the worklist | [assign-work](packages/assignments/skills/assign-work/SKILL.md) |
 | Write a host plugin for a cross-cutting concern | [write-host-plugin](packages/host/skills/write-host-plugin/SKILL.md) |
 | Choose the checks and report the evidence | [check-a-change](packages/testing/skills/check-a-change/SKILL.md) |
 | Connect a system of record: outbox, settle, sync, live reads | [connect-system-of-record](packages/integration/skills/connect-system-of-record/SKILL.md) |

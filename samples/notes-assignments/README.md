@@ -44,7 +44,7 @@ The screens are the registry's `assignment-board`, `assignment-reports` and `my-
 - A run acting for a member works, and reads only for an editor: the trigger loop reads the journal that way.
 - A peer application's service principal only works on what was sent to it.
 
-The feature matches the assignee itself: the person with no grant, a run of `note.reviewer`, or the peer's service principal. A report on a note outside the review is refused, and so is any report once the review is closed or withdrawn.
+The feature matches the assignee itself: the person with no grant, a run of `note.reviewer`, or the peer's service principal. A member's or run's report on a note outside the review is refused. A peer reports from its copy of the brief, so its report on such a note is kept without a note for an editor to place. Any report is refused once the review is closed or withdrawn.
 
 Accepting is person-only, so the reviewer's run cannot accept its own work. The accept hook runs `note.update` as the editor inside the accept command's transaction; a refused update leaves the report new.
 

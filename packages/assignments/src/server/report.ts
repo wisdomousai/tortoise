@@ -28,6 +28,9 @@ function visibleReport(ctx: Ctx, id: string): StoredReport {
 }
 const covers = (ctx: Ctx, kind: string, subject: string, assignment: StoredAssignment) =>
   ctx.hooks.subject?.(kind, subject, assignment) !== false;
+/** A device or a peer reports from its own copy of the brief, which may be out of date. */
+const remote = (assignment: StoredAssignment) =>
+  assignment.assignee?.type === 'device' || assignment.assignee?.type === 'peer';
 
 /** What a report entry holds before it is stored. */
 export interface ReportEntry {
@@ -39,9 +42,10 @@ export interface ReportEntry {
 /**
  * Store one report on a sent or done assignment. A done one still takes reports, because an
  * assignee's report can reach the issuer after its done mark when its delivery was retried. The
- * same report again returns the stored one and changes nothing; a different one under the same
- * ID conflicts. `attach` attaches the body's
- * blobs to the report, which only a command declaring the kind's report blob limits may do.
+ * same report again, from the same reporter with the same body, returns the stored one and
+ * changes nothing, even after a reviewer placed it on another subject; a different one under the
+ * same ID conflicts. `attach` attaches the body's blobs to the report, which only a command
+ * declaring the kind's report blob limits may do.
  */
 export function storeReport(
   ctx: Ctx,
@@ -54,7 +58,6 @@ export function storeReport(
     const same =
       existing.assignmentId === assignment.id &&
       existing.reportedBy === ctx.context.principalId &&
-      existing.subject === entry.subject &&
       canonicalJson(existing.body) === canonicalJson(entry.body);
     if (!same) throw conflict('A different report has this ID');
     return existing;
@@ -96,9 +99,15 @@ export function kindReportHandlers(assignments: Assignments, kind: AnyAssignment
           throw missing();
         if (assignment.kind !== kind.id)
           throw invalid(`The assignment is not ${kind.title} work`, 'assignmentId');
-        if (input.subject !== undefined && !covers(ctx, kind.id, input.subject, assignment))
+        const { subject, ...entry } = input;
+        const covered = subject === undefined || covers(ctx, kind.id, subject, assignment);
+        // A record that left the assignment after a device or a peer copied the brief keeps its
+        // report, unplaced, for a person to place; a caller on this instance is refused instead.
+        if (!covered && !remote(assignment))
           throw invalid('The assignment does not cover this record', 'subject');
-        return presentReport(storeReport(ctx, assignment, input, true));
+        return presentReport(
+          storeReport(ctx, assignment, covered && subject ? { ...entry, subject } : entry, true),
+        );
       },
     ),
     handler<{ id: string } & StoredBody>(

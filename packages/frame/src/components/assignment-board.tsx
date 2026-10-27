@@ -25,6 +25,8 @@ interface Assignment {
   kind: string;
   title: string;
   note?: string;
+  /** What the planner filled in, in the kind's scope shape. */
+  scope: unknown;
   assignee?: Assignee;
   stage: string;
   reports: number;

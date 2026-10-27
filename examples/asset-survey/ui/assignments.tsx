@@ -2,103 +2,107 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useCommand } from '@agent-native/react';
 import { deviceLinkOperations } from '@agent-native/device-link/contracts';
-import { Badge } from '@/components/ui/badge';
+import { AssignmentBoard } from '@/components/assignment-board';
 import { Button } from '@/components/ui/button';
-import { NativeSelect } from '@/components/ui/native-select';
 import { live, transport } from '@/lib/session';
-import { operations } from '../contracts';
-import { AssignmentForm } from './assignments/assignment-form';
-import { Empty, ErrorText, Page, quietly, when } from './shared';
+import { extraction, operations, survey } from '../contracts';
+import { ReadingScopePicker } from './assignments/reading-scope';
+import { SurveyScopeEditor } from './assignments/survey-scope';
+import { ErrorText, Page, quietly } from './shared';
 
-const stageText: Record<string, string> = {
-  draft: 'Draft',
-  dispatched: 'Sent to device',
-  'in-field': 'Captures arriving',
-  returned: 'Back from the field',
-  processed: 'Reviewed',
-  filed: 'Filed',
-};
-
-/** Field work: plan it on subtrees of the structure, send it to a paired phone, follow it back. */
+/**
+ * Field work: plan a survey on subtrees of the structure and send it to a paired phone or a
+ * person, then follow its captures back. A planner marks a survey done for a lost phone.
+ * An extraction sends one capture to the model or to a person to read; a refused one is withdrawn here.
+ */
 export function AssignmentsScreen() {
-  const assignments = useQuery(live.liveQueryOptions(operations.assignmentList, {}));
   const devices = useQuery(live.liveQueryOptions(deviceLinkOperations.deviceList, {}));
-  const dispatch = useCommand(transport, operations.assignmentDispatch);
-  const giveBack = useCommand(transport, operations.assignmentReturn);
+  const people = useQuery(live.liveQueryOptions(operations.assigneeList, {}));
+  const complete = useCommand(transport, operations.complete);
   const phones = (devices.data?.devices ?? []).filter(
     (device) => device.kind === 'field-sync' && device.revokedAt === undefined,
   );
+  const assignees = [
+    ...phones.map((phone) => ({ type: 'device', id: phone.id, label: phone.label })),
+    ...(people.data?.items ?? []),
+  ];
   return (
     <Page
       title="Assignments"
-      description="A phone receives its assignments with the structure below them at its next sync, works offline, and hands captures back."
+      description="A phone receives its surveys with the structure below them at its next sync, works offline, and hands captures back one by one."
+      actions={
+        phones.length === 0 && (
+          <Link to="/devices" className="text-sm text-primary hover:underline">
+            Pair a phone to send it surveys
+          </Link>
+        )
+      }
     >
-      <AssignmentForm />
-      <ErrorText error={assignments.error?.message ?? dispatch.error ?? giveBack.error} />
-      {assignments.data?.items.length === 0 && <Empty>No assignments yet.</Empty>}
-      <ul aria-label="Assignments" className="divide-y rounded-xl border bg-card">
-        {(assignments.data?.items ?? []).map((assignment) => (
-          <li
-            key={assignment.id}
-            className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-          >
-            <div className="min-w-0">
-              <p className="font-medium">{assignment.title}</p>
-              <p className="text-sm text-muted-foreground">
-                {assignment.kinds.join(', ')} · {assignment.captures} captures · created{' '}
-                {when(assignment.createdAt)}
-                {assignment.deviceId &&
-                  ` · device ${phones.find((phone) => phone.id === assignment.deviceId)?.label ?? assignment.deviceId}`}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={assignment.stage === 'filed' ? 'secondary' : 'outline'}>
-                {stageText[assignment.stage]}
-              </Badge>
-              {assignment.stage === 'draft' &&
-                (phones.length ? (
-                  <NativeSelect
-                    aria-label={`Send ${assignment.title} to`}
-                    value=""
-                    disabled={dispatch.pending}
-                    onChange={(event) =>
-                      void quietly(
-                        dispatch.execute({ id: assignment.id, deviceId: event.target.value }),
-                      )
-                    }
-                  >
-                    <option value="">Send to…</option>
-                    {phones.map((phone) => (
-                      <option key={phone.id} value={phone.id}>
-                        {phone.label}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                ) : (
-                  <Link to="/devices" className="text-sm text-primary hover:underline">
-                    Pair a phone to send it
-                  </Link>
-                ))}
-              {(assignment.stage === 'dispatched' || assignment.stage === 'in-field') && (
+      <AssignmentBoard
+        title="Surveys"
+        list={operations.list}
+        withdraw={operations.withdraw}
+        close={operations.close}
+        input={{ kind: 'survey' }}
+        assignees={assignees}
+        kinds={[
+          {
+            kind: survey,
+            create: operations.surveyCreate,
+            send: operations.surveySend,
+            scope: (props) => <SurveyScopeEditor {...props} />,
+          },
+        ]}
+        aside={(assignment) => (
+          <>
+            {assignment.assignee?.type === 'device' &&
+              ['sent', 'working'].includes(assignment.stage) && (
                 <Button
                   size="sm"
                   variant="outline"
-                  title="For a lost device: mark the field work done here"
-                  disabled={giveBack.pending}
-                  onClick={() => void quietly(giveBack.execute({ id: assignment.id }))}
+                  title="For a lost phone: mark the field work done here"
+                  disabled={complete.pending}
+                  onClick={() => void quietly(complete.execute({ id: assignment.id }))}
                 >
-                  Mark returned
+                  Mark done
                 </Button>
               )}
-              {assignment.captures > 0 && (
-                <Link to="/review" className="text-sm text-primary hover:underline">
-                  Review
-                </Link>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+            <Link
+              to="/assignments/$assignmentId"
+              params={{ assignmentId: assignment.id }}
+              className="text-sm text-primary hover:underline"
+            >
+              Captures
+            </Link>
+          </>
+        )}
+      />
+      <AssignmentBoard
+        title="Extractions"
+        list={operations.list}
+        withdraw={operations.withdraw}
+        close={operations.close}
+        input={{ kind: 'extraction' }}
+        assignees={assignees}
+        kinds={[
+          {
+            kind: extraction,
+            create: operations.extractionCreate,
+            send: operations.extractionSend,
+            scope: (props) => <ReadingScopePicker {...props} />,
+          },
+        ]}
+        aside={(assignment) => (
+          <Link
+            to="/review/$captureId"
+            params={{ captureId: (assignment.scope as { reportId: string }).reportId }}
+            className="text-sm text-primary hover:underline"
+          >
+            Capture
+          </Link>
+        )}
+      />
+      <ErrorText error={complete.error} />
     </Page>
   );
 }

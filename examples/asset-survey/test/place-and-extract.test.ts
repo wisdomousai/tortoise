@@ -66,46 +66,41 @@ test('placing and extracting in one command commits both or neither on every sur
     const g1 = await node('=G1', 'Generator 1');
     const q1 = await node('=G1-Q1', 'Generator circuit breaker', g1.id);
     const g2 = await node('=G2', 'Generator 2');
-    const assignment = await created('assignment.create', {
+    const assignment = await created('assignment.survey.create', {
       title: 'Nameplates of =G1',
-      roots: [g1.id],
-      kinds: ['nameplate'],
+      scope: { roots: [g1.id], kinds: ['nameplate'] },
+      assignee: { type: 'device', id: 'd1' },
     });
-    await direct('assignment.dispatch', { id: assignment.id, deviceId: 'd1' });
     const photo = await application.putBlob(
       nameplatePhoto({ manufacturer: 'ABB' }),
       'image/png',
       device,
     );
-    // Captures of a node outside the assignment arrive unplaced.
+    // Captures of a node outside the survey arrive unplaced.
     const ids = ['cap-direct', 'cap-http', 'cap-cli', 'cap-mcp'];
     for (const [index, id] of ids.entries())
       await direct(
-        'capture.ingest',
+        'assignment.survey.report',
         {
           id,
           assignmentId: assignment.id,
-          nodeId: g2.id,
-          kind: 'nameplate',
-          photos: [photo],
-          codes: [],
-          note: '',
-          takenAt: 1_000 + index,
+          subject: g2.id,
+          body: { kind: 'nameplate', photos: [photo], codes: [], note: '', takenAt: 1_000 + index },
         },
         device,
       );
     expect(await unplaced()).toEqual([...ids].sort());
     const input = (id: string) => ({ id, nodeId: q1.id });
 
-    // A grant without the extraction request: the placement already ran, and rolls back with it.
+    // A grant without the extraction: the placement already ran, and rolls back with it.
     const scoped = (operations: string[]) =>
       createHttpTransport({
         baseUrl: host.url,
         token: host.sessions.create({ ...owner, grant: { operations } }).token,
       });
     for (const operations of [
-      [composite, 'capture.place'],
-      [composite, 'extraction.request'],
+      [composite, 'assignment.report.place'],
+      [composite, 'assignment.extraction.create'],
       [composite],
     ])
       await expect(
@@ -118,7 +113,7 @@ test('placing and extracting in one command commits both or neither on every sur
     });
     expect(await unplaced()).toEqual([...ids].sort());
 
-    // Each surface places one capture and requests its extraction in one commit.
+    // Each surface places one capture and sends it to the model in one commit.
     const viaDirect = await direct(composite, input('cap-direct'), owner, 'k-direct');
     const viaHttp = await http.command(composite, input('cap-http'), { idempotencyKey: 'k-http' });
     const viaCli = await cli([
@@ -144,16 +139,15 @@ test('placing and extracting in one command commits both or neither on every sur
       [viaCli.value, 'cap-cli'],
       [viaMcp, 'cap-mcp'],
     ] as const) {
-      expect(receipt.result).toMatchObject({
-        capture: { id },
-        extraction: { captureId: id, status: 'requested' },
-      });
+      expect(receipt.result).toMatchObject({ capture: { id, nodeId: q1.id, reading: 'reading' } });
       expect(receipt.effects).toHaveLength(1);
-      expect(Object.keys(receipt.revisions).sort()).toEqual([`capture:${id}`, `extraction:${id}`]);
+      expect(Object.keys(receipt.revisions).sort()).toEqual(
+        [`assignment-report:${id}`, `assignment:${receipt.result.extraction.id}`].sort(),
+      );
     }
     expect(await unplaced()).toEqual([]);
 
-    // A retry on another surface returns the same receipt and requests nothing twice.
+    // A retry on another surface returns the same receipt and sends nothing twice.
     const retried = await cli([
       composite,
       '--json',
@@ -163,8 +157,11 @@ test('placing and extracting in one command commits both or neither on every sur
     ]);
     expect(retried.value.result).toEqual(viaHttp.result);
     expect(retried.value.revisions).toEqual(viaHttp.revisions);
-    const status = await application.queryRaw({ operation: 'extraction.status', input: {} }, owner);
-    expect(status.data).toMatchObject({ requested: 4 });
+    const status = await application.queryRaw(
+      { operation: 'assignment.model.status', input: {} },
+      owner,
+    );
+    expect(status.data).toMatchObject({ waiting: 4 });
   } finally {
     await mcp.close();
     await server.close();

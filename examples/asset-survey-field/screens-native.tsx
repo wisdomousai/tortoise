@@ -28,8 +28,8 @@ export default defineNativeScreens({
   ],
   capabilityScreens: [
     { prefix: 'field.assignment.', to: '/assignments' },
-    { prefix: 'field.node.', to: '/assignments' },
-    { prefix: 'field.capture.', to: '/sync' },
+    { prefix: 'field.survey.', to: '/assignments' },
+    { prefix: 'field.report.', to: '/sync' },
     { prefix: 'field.hub.', to: '/sync' },
   ],
   status: FieldStatus,

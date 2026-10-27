@@ -2,9 +2,7 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import type { ScanEvent } from '@agent-native/devices/scanner/decode';
 import type { ScannerProfile } from '@agent-native/devices/scanner/profile';
-import { StatusPill, type Signal } from '@agent-native/frame-native/components/status-pill';
 import { intentSource } from '@agent-native/intent-scanner/expo';
-import type { HubSync } from '../domain';
 
 export const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
@@ -41,20 +39,6 @@ export function ActionButton({
 
 export function Empty({ children }: { children: string }) {
   return <Text className="text-operator text-muted-foreground">{children}</Text>;
-}
-
-const syncSignal: Record<HubSync, Signal> = {
-  pending: 'pending',
-  accepted: 'ok',
-  rejected: 'fault',
-};
-const syncLabel: Record<HubSync, string> = {
-  pending: 'Waiting for the hub',
-  accepted: 'At the hub',
-  rejected: 'Refused by the hub',
-};
-export function SyncPill({ sync }: { sync: HubSync }) {
-  return <StatusPill signal={syncSignal[sync]} label={syncLabel[sync]} />;
 }
 
 /**

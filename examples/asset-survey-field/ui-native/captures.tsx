@@ -1,28 +1,35 @@
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { ListRow } from '@agent-native/frame-native/components/list-row';
 import { StatusPill } from '@agent-native/frame-native/components/status-pill';
+import { SyncPill, WorklistSync } from '@agent-native/frame-native/components/worklist-sync';
 import { useSession } from '@agent-native/frame-native/session';
+import type { CaptureBody } from './brief';
 import { fieldOperations as ops } from '../contracts';
-import { Empty, ErrorText, Screen, SyncPill } from './shared';
+import { Empty, ErrorText, Screen } from './shared';
 
 const when = (at: number) => new Date(at).toLocaleString();
+const titleOf = (body: unknown) => {
+  const capture = body as CaptureBody;
+  return capture.note || `${capture.kind}, ${capture.photos.length} photos`;
+};
 
 /** Captures taken without a node. The hub places them during review; the device keeps them as sent. */
 export function UnplacedScreen() {
   const { live } = useSession();
-  const captures = useQuery(live.liveQueryOptions(ops.captureList, { unplaced: true }));
+  const reports = useQuery(live.liveQueryOptions(ops.reportList, {}));
+  const unplaced = (reports.data?.items ?? []).filter((report) => report.subject === undefined);
   return (
     <Screen>
-      <ErrorText error={captures.error} />
+      <ErrorText error={reports.error} />
       <FlatList
-        data={captures.data?.items ?? []}
-        keyExtractor={(capture) => capture.id}
+        data={unplaced}
+        keyExtractor={(report) => report.id}
         renderItem={({ item }) => (
           <ListRow
-            title={item.note || `${item.kind}, ${item.photos.length} photos`}
-            detail={when(item.takenAt)}
-            trailing={<SyncPill sync={item.sync} />}
+            title={titleOf(item.body)}
+            detail={when(item.reportedAt)}
+            trailing={<SyncPill sync={item.sync} issuer="the hub" />}
           />
         )}
         ListEmptyComponent={<Empty>No unplaced captures.</Empty>}
@@ -38,42 +45,16 @@ export function UnplacedScreen() {
 export function SyncScreen() {
   const { live } = useSession();
   const status = useQuery(live.liveQueryOptions(ops.status, {}));
-  const captures = useQuery(live.liveQueryOptions(ops.captureList, {}));
-  const counts = status.data;
+  const reports = useQuery(live.liveQueryOptions(ops.reportList, {}));
+  const items = reports.data?.items ?? [];
   return (
     <Screen>
-      <ErrorText error={status.error ?? captures.error} />
-      {counts ? (
-        <View className="flex-row flex-wrap gap-2">
-          <StatusPill
-            signal={counts.pending ? 'pending' : 'idle'}
-            label={`${counts.pending} waiting`}
-          />
-          <StatusPill signal="ok" label={`${counts.accepted} at the hub`} />
-          <StatusPill
-            signal={counts.rejected ? 'fault' : 'idle'}
-            label={`${counts.rejected} refused`}
-          />
-        </View>
-      ) : null}
-      {counts?.lastSyncAt ? (
-        <Text className="text-base text-muted-foreground">{`Assignments received ${when(counts.lastSyncAt)}`}</Text>
-      ) : null}
-      <FlatList
-        data={captures.data?.items ?? []}
-        keyExtractor={(capture) => capture.id}
-        renderItem={({ item }) => (
-          <ListRow
-            title={item.note || `${item.kind}, ${item.photos.length} photos`}
-            detail={
-              item.rejection
-                ? `${item.rejection.code}: ${item.rejection.message}`
-                : when(item.takenAt)
-            }
-            trailing={<SyncPill sync={item.sync} />}
-          />
-        )}
-        ListEmptyComponent={<Empty>No captures yet.</Empty>}
+      <ErrorText error={status.error ?? reports.error} />
+      <WorklistSync
+        status={status.data}
+        reports={items}
+        issuer="the hub"
+        title={(report) => titleOf(items.find((item) => item.id === report.id)?.body)}
       />
     </Screen>
   );

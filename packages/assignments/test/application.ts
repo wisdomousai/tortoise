@@ -93,7 +93,11 @@ export const hooks = {
         await ctx.invoke(noteUpdate, { id: report.subject!, comment });
       },
     },
-    'field-survey': { brief: () => ({ nodes: [{ id: 'n1', designation: '=A1' }] }) },
+    'field-survey': {
+      brief: () => ({ nodes: [{ id: 'n1', designation: '=A1' }] }),
+      subject: (subject, assignment) =>
+        ((assignment.brief?.nodes ?? []) as { id: string }[]).some((node) => node.id === subject),
+    },
   }),
 } satisfies Record<string, unknown>;
 

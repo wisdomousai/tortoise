@@ -50,7 +50,7 @@ The feature's policy decides every assignment operation inside the transaction, 
 - Accepting a report is person-only. The accept hook writes the application's records in the same transaction, so its refusal writes nothing.
 - An assignment or report the caller cannot see reads as `NOT_FOUND`, so a refusal does not confirm that it exists. A grant's resource scope applies to reads too.
 - A report keeps the ID its reporter chose. The same report delivered again returns the stored one; a different body under that ID is a conflict. A done assignment still takes its assignee's reports, because a report can reach the issuer after the done mark when its delivery was retried; a withdrawn or closed one takes none.
-- A report's subject must be a record the assignment covers, as the `subject` hook decides.
+- A report's subject must be a record the assignment covers, as the `subject` hook decides. A caller on this instance is refused one it does not cover. A device or a peer reports from its own copy of the brief, which may be out of date, so its report is stored without the subject for a reviewer to place. Placing refuses a subject the assignment does not cover.
 - A target lane's answer applies only to the offer it names and only while the assignment is sent. The sync checks each report body against the kind and skips one it refuses, and drops a subject the assignment does not cover, so a reviewer places that report.
 - Brief blobs are attached to `assignment:<id>`, so the lane's port reads them through `readEffectBlob` and nothing else.
 - The worklist records a report or a done mark locally and enqueues it in the same transaction. The issuer authorizes each delivery again as the assignee's principal there, so the worklist widens nothing at the issuer. The worklist applies the issuer's feed as its whole open set, and a refused done mark reopens the assignment. A change to one of the lane's operations at the issuer holds deliveries and pulls until the two applications agree.
@@ -83,10 +83,11 @@ The samples test the lanes that need plugins: `samples/notes-assignments` runs t
 
 ## Skills
 
-None yet. The skill for declaring assignment kinds comes with the worklist and the samples.
+- [assign-work](skills/assign-work/SKILL.md): declare an assignment kind, mount the feature with its access view and hooks, pick the lanes and serve a worklist.
 
 ## References
 
+- [Assignments guide](../../docs/assignments.md)
 - [Feature](../../docs/glossary.md#feature)
 - [Peer target](../../docs/glossary.md#peer-target)
 - [Target](../../docs/primitives.md#target)

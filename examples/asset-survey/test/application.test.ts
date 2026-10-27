@@ -1,17 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import type { ExecutionContext } from '@agent-native/runtime';
-import {
-  at,
-  device,
-  dispatched,
-  open,
-  otherDevice,
-  owner,
-  rita,
-  vic,
-  type Field,
-  type Node,
-} from './survey';
+import { at, device, dispatched, open, otherDevice, owner, rita, vic, type Node } from './survey';
+
+type Tree = { items: { designation: string; depth: number }[]; total: number };
 
 describe('asset survey', () => {
   test('the structure validates designations per scheme and keeps them unique', async () => {
@@ -47,229 +38,223 @@ describe('asset survey', () => {
     });
     await command('structure.node.move', { id: q1.id, parentId: null });
     await command('structure.node.retire', { id: g1.id });
-    const tree = await query<{ nodes: { designation: string; depth: number }[] }>(
-      'structure.tree',
-      {},
-    );
-    expect(tree.nodes.map((item) => item.designation)).toEqual(['=G1-Q1', '1LBA10AA101', '50/51N']);
+    await expect(
+      command('structure.node.update', { id: g1.id, name: 'Generator 1 (old)' }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    const tree = await query<Tree>('structure.tree', {});
+    expect(tree.items.map((item) => item.designation)).toEqual(['=G1-Q1', '1LBA10AA101', '50/51N']);
     // A retired designation is free again.
     await node(undefined, '=G1', 'Generator 1 (rebuilt)');
     const found = await query<{ items: Node[] }>('structure.node.search', { q: '=g1' });
     expect(found.items.map((item) => item.designation)).toEqual(['=G1', '=G1-Q1']);
   });
 
-  test('proposed nodes wait for a person to accept them and stay out of field work', async () => {
+  test('an agent requests a node, and only a manager in person approves it', async () => {
     const { command, query, node } = await open();
     const g1 = await node(undefined, '=G1', 'Generator 1');
-    const proposed = await command<Node & { source: string }>(
-      'structure.node.propose',
-      { parentId: g1.id, scheme: 'iec81346', designation: '=G1-T1', name: 'Transformer' },
-      rita,
+    const agent: ExecutionContext = {
+      ...at('rita'),
+      runId: 'run-1',
+      grant: { operations: ['approval.request'], runId: 'run-1', principalId: 'rita' },
+    };
+    const request = await command<{ id: string; status: string }>(
+      'approval.request',
+      {
+        operation: 'structure.node.create',
+        input: { parentId: g1.id, scheme: 'iec81346', designation: '=G1-T1', name: 'Transformer' },
+        rationale: 'The single-line diagram shows T1 under =G1',
+      },
+      agent,
     );
-    expect(proposed.source).toBe('proposed');
+    expect(request.status).toBe('pending');
+    // Nothing exists until it is approved.
     expect((await query<{ items: Node[] }>('structure.node.search', { q: '=G1-T' })).items).toEqual(
       [],
     );
-    await expect(command('structure.node.accept', { id: proposed.id }, rita)).rejects.toMatchObject(
-      {
-        code: 'FORBIDDEN',
-      },
-    );
-    const agent: ExecutionContext = {
-      ...owner,
-      runId: 'run-1',
-      grant: {
-        operations: ['structure.node.accept', 'structure.node.propose'],
-        runId: 'run-1',
-        principalId: 'owner',
-      },
-    };
     await expect(
-      command('structure.node.accept', { id: proposed.id }, agent),
-    ).rejects.toMatchObject({
+      command(
+        'approval.request',
+        { operation: 'structure.node.create', input: {}, rationale: 'x' },
+        vic,
+      ),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(command('approval.approve', { id: request.id }, rita)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
-    const accepted = await command<{ source: string }>('structure.node.accept', {
-      id: proposed.id,
+    const delegated: ExecutionContext = {
+      ...owner,
+      runId: 'run-2',
+      grant: { operations: ['approval.approve'], runId: 'run-2', principalId: 'owner' },
+    };
+    await expect(command('approval.approve', { id: request.id }, delegated)).rejects.toMatchObject({
+      code: 'FORBIDDEN',
     });
-    expect(accepted.source).toBe('accepted');
+    await command('approval.approve', { id: request.id });
+    const found = await query<{ items: Node[] }>('structure.node.search', { q: '=G1-T' });
+    expect(found.items.map((item) => item.designation)).toEqual(['=G1-T1']);
   });
 
-  test('a dispatched assignment reaches only its device, with its structure slice', async () => {
+  test('a survey reaches only its device, with its structure slice', async () => {
     const survey = await open();
     const { query, command } = survey;
     const { g1, q1, assignment } = await dispatched(survey);
     await survey.node(undefined, '=G2', 'Generator 2');
 
     type Feed = {
-      items: { id: string; nodes: { id: string; parentId?: string; designation: string }[] }[];
+      items: {
+        id: string;
+        brief: { nodes: { id: string; parentId?: string; designation: string }[] };
+      }[];
       cursor: string;
     };
     const feed = await query<Feed>('assignment.feed', {}, device);
     expect(feed.items).toHaveLength(1);
-    expect(feed.items[0]!.nodes.map((item) => item.designation)).toEqual([
+    expect(feed.items[0]!.brief.nodes.map((item) => item.designation).sort()).toEqual([
       '=G1',
       '=G1-Q1',
       '=G1-Q2',
     ]);
-    expect(feed.items[0]!.nodes[0]!.parentId).toBeUndefined();
+    expect(feed.items[0]!.brief.nodes.find((item) => item.id === g1.id)!.parentId).toBeUndefined();
     expect((await query<Feed>('assignment.feed', { cursor: feed.cursor }, device)).items).toEqual(
       [],
     );
     expect((await query<Feed>('assignment.feed', {}, otherDevice)).items).toEqual([]);
-
-    // A change to the slice moves the cursor, so the device picks it up.
+    // The brief is the slice as it stood when sent; a later rename reaches the next survey.
     await command('structure.node.update', { id: q1.id, name: 'Main breaker' });
-    expect(
-      (await query<Feed>('assignment.feed', { cursor: feed.cursor }, device)).items,
-    ).toHaveLength(1);
+    expect((await query<Feed>('assignment.feed', { cursor: feed.cursor }, device)).items).toEqual(
+      [],
+    );
 
-    // People do not read the feed, and the device reads nothing else.
-    await expect(query('assignment.feed', {}, owner)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    // A manager's own feed holds nothing sent to the device; a viewer takes no work.
+    expect((await query<Feed>('assignment.feed', {}, owner)).items).toEqual([]);
+    await expect(query('assignment.feed', {}, vic)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    // The device reads nothing else.
     await expect(query('structure.tree', {}, device)).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await expect(command('structure.node.retire', { id: g1.id }, device)).rejects.toMatchObject({
       code: 'FORBIDDEN',
     });
+    await expect(query('assignment.list', {}, device)).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    });
 
     await expect(
-      command('assignment.return', { id: assignment.id }, otherDevice),
-    ).rejects.toMatchObject({
-      code: 'NOT_FOUND',
-    });
-    const returned = await command<{ stage: string }>(
-      'assignment.return',
+      command('assignment.complete', { id: assignment.id }, otherDevice),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    const done = await command<{ status: string }>(
+      'assignment.complete',
       { id: assignment.id },
       device,
     );
-    expect(returned.stage).toBe('returned');
+    expect(done.status).toBe('done');
   });
 
-  test('ingest is idempotent by capture ID and only for the device the assignment went to', async () => {
+  test('a report is idempotent by ID and only from the device the survey went to', async () => {
     const survey = await open();
-    const { query, command, photo } = survey;
+    const { query, command, capture } = survey;
     const { q1, assignment } = await dispatched(survey);
-    const plate = await photo({ manufacturer: 'ABB', serial: '1VYN300101' });
-    const capture = {
-      id: 'cap-1',
-      assignmentId: assignment.id,
-      nodeId: q1.id,
+    const body = {
       kind: 'nameplate',
-      photos: [plate],
+      photos: [await survey.photo({ manufacturer: 'ABB', serial: '1VYN300101' })],
       codes: [],
       note: '',
       takenAt: 1_000,
     };
-    await command('capture.ingest', capture, device);
-    await command('capture.ingest', capture, device);
+    const report = { id: 'cap-1', assignmentId: assignment.id, subject: q1.id, body };
+    await command('assignment.survey.report', report, device);
+    await command('assignment.survey.report', report, device);
     await expect(
-      command('capture.ingest', { ...capture, takenAt: 2_000 }, device),
-    ).rejects.toMatchObject({
-      code: 'CONFLICT',
-    });
+      command('assignment.survey.report', { ...report, body: { ...body, takenAt: 2_000 } }, device),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
     await expect(
-      command('capture.ingest', { ...capture, id: 'cap-2' }, otherDevice),
-    ).rejects.toMatchObject({
-      code: 'FORBIDDEN',
-    });
+      command('assignment.survey.report', { ...report, id: 'cap-2' }, otherDevice),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
     await expect(
-      command('capture.ingest', { ...capture, id: 'cap-3' }, owner),
-    ).rejects.toMatchObject({
-      code: 'FORBIDDEN',
-    });
-    // A node outside the assignment arrives unplaced.
+      command('assignment.survey.report', { ...report, id: 'cap-3' }, owner),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    // A node outside the survey arrives unplaced, for a reviewer to place within the survey.
     const g2 = await survey.node(undefined, '=G2', 'Generator 2');
-    await command(
-      'capture.ingest',
-      { ...capture, id: 'cap-4', nodeId: g2.id, takenAt: 3_000 },
-      device,
-    );
+    await capture('cap-4', assignment.id, g2.id, { serial: 'X' }, { takenAt: 3_000 });
     const unplaced = await query<{ items: { id: string }[] }>('capture.list', { unplaced: true });
     expect(unplaced.items.map((item) => item.id)).toEqual(['cap-4']);
     expect(
       (await query<{ items: { stage: string }[] }>('assignment.list', {})).items[0]!.stage,
-    ).toBe('in-field');
-    await command('capture.place', { id: 'cap-4', nodeId: q1.id }, rita);
-    await command('capture.discard', { id: 'cap-4', reason: 'Duplicate' }, rita);
+    ).toBe('working');
     await expect(
-      command('capture.place', { id: 'cap-4', nodeId: q1.id }, vic),
-    ).rejects.toMatchObject({
-      code: 'FORBIDDEN',
-    });
+      command('assignment.report.place', { id: 'cap-4', subject: g2.id }, rita),
+    ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
+    await command('assignment.report.place', { id: 'cap-4', subject: q1.id }, rita);
+    await command('assignment.report.discard', { id: 'cap-4', reason: 'Duplicate' }, rita);
+    await expect(
+      command('assignment.report.place', { id: 'cap-4', subject: q1.id }, vic),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 
   test('a reviewer accepts what the model read, and the EAM decides on the filing', async () => {
     const survey = await open();
-    const { query, command, photo, settle } = survey;
+    const { query, command, capture, settle } = survey;
     const { q1, q2, assignment } = await dispatched(survey);
-    const ingest = async (id: string, nodeId: string, lines: Record<string, string>) =>
-      command(
-        'capture.ingest',
-        {
-          id,
-          assignmentId: assignment.id,
-          nodeId,
-          kind: 'nameplate',
-          photos: [await photo(lines)],
-          codes: [],
-          note: '',
-          takenAt: 1_000,
-        },
-        device,
-      );
-    await ingest('cap-q1', q1.id, {
+    await capture('cap-q1', assignment.id, q1.id, {
       manufacturer: 'ABB',
       serial: '1VYN300101',
       ratedCurrent: '6300 A ?',
     });
-    await ingest('cap-q2', q2.id, { manufacturer: 'Siemens', ratedVoltage: '24 kV' });
-    await command('assignment.return', { id: assignment.id }, device);
-
-    await command('extraction.request', { captureId: 'cap-q1' }, rita);
-    await command('extraction.request', { captureId: 'cap-q2' }, rita);
-    await expect(command('extraction.request', { captureId: 'cap-q2' }, vic)).rejects.toMatchObject(
-      {
-        code: 'FORBIDDEN',
-      },
-    );
-    await settle();
-    const detail = await query<{ extraction: { status: string; fields: Field[] } }>('capture.get', {
-      id: 'cap-q1',
+    await capture('cap-q2', assignment.id, q2.id, {
+      manufacturer: 'Siemens',
+      ratedVoltage: '24 kV',
     });
-    expect(detail.extraction.status).toBe('proposed');
-    expect(
-      detail.extraction.fields.map(({ name, value, attention }) => [name, value, attention]),
-    ).toEqual([
+    await command('assignment.complete', { id: assignment.id }, device);
+
+    await survey.read('cap-q1');
+    await survey.read('cap-q2');
+    await expect(survey.read('cap-q2', vic)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(await query('assignment.model.status', {})).toMatchObject({ waiting: 2, refused: 0 });
+    await settle();
+    const q1Reading = await survey.reading('cap-q1');
+    expect(q1Reading.status).toBe('proposed');
+    expect(q1Reading.fields.map(({ name, value, attention }) => [name, value, attention])).toEqual([
       ['manufacturer', 'ABB', false],
       ['serial', '1VYN300101', false],
       ['ratedCurrent', '6300 A', true],
     ]);
-    expect(await query('extraction.status', {})).toMatchObject({ proposed: 2, attention: 1 });
+    const queue = await query<{ items: { reading?: string; attention: boolean }[] }>(
+      'capture.list',
+      { review: 'new' },
+    );
+    expect(queue.items.map((item) => [item.reading, item.attention]).sort()).toEqual([
+      ['proposed', false],
+      ['proposed', true],
+    ]);
 
     // The reviewer corrects the uncertain value; the node records that it was edited.
-    const accepted = await command<Node>(
-      'extraction.accept',
+    await command(
+      'assignment.extraction.accept',
       {
-        captureId: 'cap-q1',
+        id: q1Reading.reportId,
         values: { manufacturer: 'ABB', serial: '1VYN300101', ratedCurrent: '6300 A' },
       },
       rita,
     );
-    expect(accepted.attributes.ratedCurrent).toMatchObject({ value: '6300 A', edited: false });
+    expect(
+      (await query<Node>('structure.node.get', { id: q1.id })).attributes.ratedCurrent,
+    ).toMatchObject({ value: '6300 A', edited: false });
     await command(
-      'extraction.accept',
-      { captureId: 'cap-q2', values: { manufacturer: 'Siemens', ratedVoltage: '25 kV' } },
+      'assignment.extraction.accept',
+      {
+        id: (await survey.reading('cap-q2')).reportId,
+        values: { manufacturer: 'Siemens', ratedVoltage: '25 kV' },
+      },
       rita,
     );
     expect(
-      (await query<{ attributes: Node['attributes'] }>('structure.node.get', { id: q2.id }))
-        .attributes.ratedVoltage,
-    ).toMatchObject({
-      value: '25 kV',
-      edited: true,
+      (await query<Node>('structure.node.get', { id: q2.id })).attributes.ratedVoltage,
+    ).toMatchObject({ value: '25 kV', edited: true });
+    expect((await query<{ review: string }>('capture.get', { id: 'cap-q2' })).review).toBe(
+      'accepted',
+    );
+    const surveys = await query<{ items: { stage: string }[] }>('assignment.list', {
+      kind: 'survey',
     });
-    expect(
-      (await query<{ items: { stage: string }[] }>('assignment.list', {})).items[0]!.stage,
-    ).toBe('processed');
+    expect(surveys.items[0]!.stage).toBe('reviewed');
 
     // Q1 already exists in the EAM; Q2 has no serial. Creating either is refused.
     await expect(command('filing.file', { nodeId: q1.id }, rita)).rejects.toMatchObject({
@@ -317,34 +302,78 @@ describe('asset survey', () => {
     });
   });
 
+  test('a person surveys at a desk and reads a capture by hand instead of the model', async () => {
+    const survey = await open();
+    const { query, command, capture } = survey;
+    const g1 = await survey.node(undefined, '=G1', 'Generator 1');
+    const q1 = await survey.node(g1.id, '=G1-Q1', 'Breaker');
+    const work = await command<{ id: string }>('assignment.survey.create', {
+      title: 'Desk check of =G1',
+      scope: { roots: [g1.id], kinds: ['nameplate'] },
+      assignee: { type: 'person', id: 'rita' },
+    });
+    await expect(
+      command('assignment.survey.create', {
+        title: 'For a viewer',
+        scope: { roots: [g1.id], kinds: ['nameplate'] },
+        assignee: { type: 'person', id: 'vic' },
+      }),
+    ).rejects.toMatchObject({ code: 'INVALID_INPUT' });
+    await capture('desk-1', work.id, q1.id, { serial: 'S-1' }, { as: rita });
+    const reading = await command<{ id: string }>(
+      'assignment.extraction.create',
+      {
+        title: 'Read desk-1',
+        scope: { reportId: 'desk-1' },
+        assignee: { type: 'person', id: 'rita' },
+      },
+      owner,
+    );
+    const { digest } = (
+      await query<{ photos: { digest: string }[] }>('capture.get', { id: 'desk-1' })
+    ).photos[0]!;
+    await command(
+      'assignment.extraction.report',
+      {
+        id: 'by-hand-1',
+        assignmentId: reading.id,
+        body: {
+          model: 'read by hand',
+          fields: [{ name: 'serial', value: 'S-1', confidence: 1, source: { digest } }],
+        },
+      },
+      rita,
+    );
+    expect((await survey.reading('desk-1')).status).toBe('proposed');
+    await command('assignment.extraction.accept', { id: 'by-hand-1', values: { serial: 'S-1' } });
+    expect(
+      (await query<Node>('structure.node.get', { id: q1.id })).attributes.serial,
+    ).toMatchObject({ value: 'S-1', edited: false });
+  });
+
   test('the model and EAM feeds sync as one principal before either reported anything', async () => {
     const survey = await open();
     await survey.settle();
     await survey.settle();
     expect(await survey.query('filing.status', {})).toMatchObject({ pending: 0, accepted: 0 });
+    expect(await survey.query('assignment.model.status', {})).toMatchObject({
+      waiting: 0,
+      refused: 0,
+    });
   });
 
   test('a filing waits while the EAM is unreachable and goes out once it is back', async () => {
     const survey = await open();
-    const { query, command, photo, settle } = survey;
+    const { query, command, settle } = survey;
     const { q2, assignment } = await dispatched(survey);
-    await command(
-      'capture.ingest',
-      {
-        id: 'cap',
-        assignmentId: assignment.id,
-        nodeId: q2.id,
-        kind: 'nameplate',
-        photos: [await photo({ serial: 'S-77' })],
-        codes: [],
-        note: '',
-        takenAt: 1,
-      },
-      device,
-    );
-    await command('extraction.request', { captureId: 'cap' }, rita);
+    await survey.capture('cap', assignment.id, q2.id, { serial: 'S-77' });
+    await survey.read('cap');
     await settle();
-    await command('extraction.accept', { captureId: 'cap', values: { serial: 'S-77' } }, rita);
+    await command(
+      'assignment.extraction.accept',
+      { id: (await survey.reading('cap')).reportId, values: { serial: 'S-77' } },
+      rita,
+    );
     survey.eam().unavailable = true;
     await command('filing.file', { nodeId: q2.id });
     expect(await survey.deliver('eam')).toMatchObject({ retried: 1 });
@@ -358,12 +387,14 @@ describe('asset survey', () => {
 
   test('outsiders and the integration principal read nothing of the survey', async () => {
     const { query } = await open();
-    await expect(query('structure.tree', {}, at('eve'))).rejects.toMatchObject({
-      code: 'FORBIDDEN',
-    });
-    await expect(query('structure.tree', {}, at('integration'))).rejects.toMatchObject({
-      code: 'FORBIDDEN',
-    });
-    expect(await query<unknown>('structure.tree', {}, vic)).toEqual({ nodes: [] });
+    for (const outsider of [at('eve'), at('integration')]) {
+      await expect(query('structure.tree', {}, outsider)).rejects.toMatchObject({
+        code: 'FORBIDDEN',
+      });
+      await expect(query('assignment.list', {}, outsider)).rejects.toMatchObject({
+        code: 'FORBIDDEN',
+      });
+    }
+    expect(await query<unknown>('structure.tree', {}, vic)).toEqual({ items: [], total: 0 });
   });
 });

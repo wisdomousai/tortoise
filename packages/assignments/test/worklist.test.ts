@@ -202,6 +202,35 @@ describe('worklist', () => {
     });
   });
 
+  test('a report about a node the survey does not cover arrives unplaced, and a retry is harmless', async () => {
+    const hub = issuer();
+    const { integration, run, photo } = tablet(hub.client);
+    await send(hub, 'Hall 2');
+    await integration.inbound.runOnce();
+    const ref = await photo();
+    const body = { photos: [ref], condition: 'fair' };
+    await run('field.field-survey.report', { assignmentId: 'a1', subject: 'n7', body });
+    expect(await integration.dispatcher.runOnce()).toMatchObject({ accepted: 1 });
+    const stored = await atIssuer(hub, 'assignment.report.get', { id: 'tab-r1' });
+    expect(stored).toMatchObject({ reportedBy: 'device:tab-1', review: 'new' });
+    expect(stored.subject).toBeUndefined();
+
+    // A person places it; the device's retried delivery is still the same report.
+    await hub.application.invokeRaw(
+      { operation: 'assignment.report.place', input: { id: 'tab-r1', subject: 'n1' } },
+      planner,
+    );
+    const device = { workspaceId: WORKSPACE, principalId: 'device:tab-1' };
+    const retried = await hub.application.invokeRaw(
+      {
+        operation: 'assignment.field-survey.report',
+        input: { id: 'tab-r1', assignmentId: 'a1', subject: 'n7', body },
+      },
+      device,
+    );
+    expect(retried.result).toMatchObject({ id: 'tab-r1', subject: 'n1' });
+  });
+
   test('work the issuer withdrew is refused there, and a refused done mark reopens it here', async () => {
     const hub = issuer();
     const { integration, run, read } = tablet(hub.client);

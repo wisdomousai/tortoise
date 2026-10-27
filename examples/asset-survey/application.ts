@@ -1,5 +1,12 @@
 import { connectTarget, createRemoteSource } from '@agent-native/integration';
+import { approvalFeature, type ApprovalAccess, type ApprovalHooks } from '@agent-native/runtime';
+import {
+  assignmentFeature,
+  type AssignmentAccess,
+  type AssignmentHooks,
+} from '@agent-native/assignments/server';
 import { defineApplication } from '@agent-native/host/application';
+import { mountFeature } from '@agent-native/host/feature';
 import { auditPlugin } from '@agent-native/audit/plugin';
 import { compliancePlugin } from '@agent-native/compliance/plugin';
 import { createDeviceLinkPlugin } from '@agent-native/device-link/plugin';
@@ -9,25 +16,32 @@ import { bunProcesses, type NetworkPort } from '@agent-native/host/plugin';
 import { sitePlugin } from '@agent-native/site/plugin';
 import { createWorkflowsPlugin, type WorkflowsOptions } from '@agent-native/workflows/plugin';
 import manifest from './manifest';
-import { eamTarget, exportTarget, modelTarget, operations } from './contracts';
-import { fieldSurface } from './contracts/peer';
+import { assignments, eamTarget, exportTarget, operations, structureOperations } from './contracts';
 import {
-  createExtractorPort,
+  createExtractionPort,
   nameplateTextExtractor,
+  type ExtractionPort,
   type Extractor,
-  type Proposal,
 } from './connectors/extractor';
 import { FakeEam, type AssetChange, type EvidenceReader } from './connectors/fake-eam';
 import { modelExtractorFromEnv } from './connectors/model-extractor';
 import { createExportPort } from './export/connector';
 import { createSurveyState, type Role, type SurveyState } from './domain';
-import { createSurveyHandlers, surveyPolicy, type SurveyServices } from './server';
+import { adoptAssignments, migrations } from './migration';
+import {
+  createSurveyHandlers,
+  proposalAccess,
+  surveyAccess,
+  surveyHooks,
+  surveyPolicy,
+  type SurveyServices,
+} from './server';
 
 /** The model, EAM and export integrations' principal; distinct from every person and device. */
 export const INTEGRATION_PRINCIPAL = 'integration';
 
-/** What a paired field device may call: the service operations of the field surface. */
-export const FIELD_SYNC_OPERATIONS = fieldSurface.serviceOperations;
+/** What a paired field device may call: the device lane of the survey assignments. */
+export const FIELD_SYNC_OPERATIONS = assignments.lanes.device.operations;
 
 /**
  * The asset survey hub. Demo defaults: the nameplate-text extractor instead of a model, and an
@@ -46,7 +60,7 @@ export function createAssetSurveyApplication(
     /** The workflows plugin's clock and runner interval. */
     workflows?: WorkflowsOptions;
     /** Called with the connected ports, for tests that inspect or drive them. */
-    onConnect?: (ports: { eam: FakeEam; model: ReturnType<typeof createExtractorPort> }) => void;
+    onConnect?: (ports: { eam: FakeEam; model: ExtractionPort }) => void;
   } = {},
 ) {
   const state = (ownerId: string) =>
@@ -60,14 +74,51 @@ export function createAssetSurveyApplication(
   let readEvidence: EvidenceReader = async () => undefined;
   const reader: EvidenceReader = (effect, digest) => readEvidence(effect, digest);
   const eam = options.eam ? options.eam(reader) : new FakeEam(reader);
+  const extractor = options.extractor ?? nameplateTextExtractor;
   return defineApplication<SurveyState, SurveyServices>({
     manifest,
     createState: state,
-    upgradeState: (stored, ownerId) => (stored as SurveyState | undefined) ?? state(ownerId),
+    migrations,
+    upgradeState: (stored, ownerId) => ({
+      ...state(ownerId),
+      ...(stored as Partial<SurveyState> | undefined),
+    }),
     handlers: createSurveyHandlers(),
     authorization: surveyPolicy,
+    features: [
+      mountFeature<SurveyState, AssignmentAccess, AssignmentHooks, SurveyServices>(
+        assignmentFeature(assignments, {
+          targets: {
+            model: {
+              principalId: INTEGRATION_PRINCIPAL,
+              // The assignment feature connects the model's lane when a workspace opens.
+              port: ({ readBlob, network }) => {
+                const model = createExtractionPort({
+                  extractor: typeof extractor === 'function' ? extractor(network) : extractor,
+                  readBlob,
+                });
+                options.onConnect?.({ eam, model });
+                return model;
+              },
+            },
+          },
+        }),
+        // Version 1 kept field work, captures and extractions in the application's own records.
+        { access: surveyAccess, hooks: surveyHooks, adopt: { before: 2, from: adoptAssignments } },
+      ),
+      // Agents preparing the structure request node creations; a manager approves each.
+      mountFeature<SurveyState, ApprovalAccess, ApprovalHooks, SurveyServices>(
+        approvalFeature({ commands: [structureOperations.nodeCreate] }),
+        { access: proposalAccess, hooks: { newId: surveyHooks.newId, now: surveyHooks.now } },
+      ),
+    ],
     ...(options.services ? { services: options.services } : {}),
-    selectableResources: { node: operations.nodeGet.id, capture: operations.captureGet.id },
+    selectableResources: {
+      node: operations.nodeGet.id,
+      capture: operations.captureGet.id,
+      assignment: operations.get.id,
+      'assignment-report': operations.reportGet.id,
+    },
     plugins: [
       sitePlugin,
       networkPlugin,
@@ -80,20 +131,13 @@ export function createAssetSurveyApplication(
     sources: {
       eam: createRemoteSource({ target: 'eam', port: eam, credentials: eam.credentials }),
     },
-    connect: ({ application, workspaceId, network, processes }) => {
+    connect: ({ application, workspaceId, processes }) => {
       const readBlob = (effect: { id: string }, digest: string) =>
         application.readEffectBlob(workspaceId, effect.id, digest);
       readEvidence = readBlob;
-      const extractor = options.extractor ?? nameplateTextExtractor;
-      const model = createExtractorPort({
-        extractor: typeof extractor === 'function' ? extractor(network) : extractor,
-        readBlob,
-      });
-      options.onConnect?.({ eam, model });
       const common = { application, workspaceId, principalId: INTEGRATION_PRINCIPAL };
       return {
         integrations: [
-          connectTarget<Proposal>({ ...common, target: modelTarget, port: model }),
           connectTarget<AssetChange>({ ...common, target: eamTarget, port: eam }),
           // Unbound, the export target keeps its filings pending until the site binds the process.
           connectTarget({

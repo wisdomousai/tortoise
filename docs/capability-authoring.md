@@ -65,12 +65,16 @@ A command whose writes must commit together with another operation's runs that o
 ```ts
 export const placeAndExtract = operation('capture.place-and-extract', 'command', {
   // ...
-  invokes: ['capture.place', 'extraction.request'],
+  invokes: ['assignment.report.place', 'assignment.extraction.create'],
 });
 
 handler(placeAndExtract, async (input, ctx) => {
-  const capture = await ctx.invoke(capturePlace, input);
-  const extraction = await ctx.invoke(extractionRequest, { captureId: input.id });
+  const capture = await ctx.invoke(reportPlace, { id: input.id, subject: input.nodeId });
+  const extraction = await ctx.invoke(extractionCreate, {
+    title: 'Read the nameplate',
+    scope: { reportId: input.id },
+    assignee: { type: 'target', id: 'model' },
+  });
   return { capture, extraction };
 });
 ```

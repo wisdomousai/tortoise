@@ -31,7 +31,7 @@ Inbound sync pulls `assignment.feed` from notes-assignments as this application'
 
 ## Trust boundary
 
-notes-assignments decides every report and done mark as this application's peer principal, against its own records. It refuses a report on a review it withdrew or closed, and a report about a note outside the review. A refusal is kept on the report here with its reason and is not sent again.
+notes-assignments decides every report and done mark as this application's peer principal, against its own records. It refuses a report on a review it withdrew or closed. A report about a note outside the review arrives without a note, and an editor places it. A refusal is kept on the report here with its reason and is not sent again.
 
 The worklist applies the feed only through the integration principal. A member cannot change what notes-assignments sent, and the subject of a report is checked there, not here.
 
