@@ -14,6 +14,7 @@ import { Approvals, MethodSuggestions } from './ui/methods';
  * the automation screen. `resources` is where an agent's open intent leads for each kind.
  */
 export default defineScreens({
+  manifest,
   title: manifest.title,
   home: '/requests',
   routes: [
