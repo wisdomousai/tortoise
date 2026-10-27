@@ -40,6 +40,7 @@ An extension sample composes the base in each entrypoint:
 | `lab-requests-sign-in` | 4358 | Technicians sign in at a shared bench with a badge and PIN and submit test requests as themselves; the owner enrolls badges | `createStationSignInPlugin`, `stationSignInScreens`, `useOperatorSession`, `useScanner`, `numeric-pad` |
 | `lab-requests-site` | 4359 | The lab as a site of the fleet example: enrollment, reports, audit forwarding, a signed release staged and installed with its unit and firewall rules | `createFleetAgentPlugin`, `createBundle`, `site install`, `network export`, the site, network and audit plugins |
 | `lab-requests-sandbox` | 4360 | Tensile readings analyzed by a tool in a bubblewrap sandbox, which reads and records through the application CLI with a run-bound token | `executionSandbox`, `createExecutionHostPlugin`, `agentGrant`, `defineHostPlugin`, the site, network and process plugins |
+| `lab-requests-hosted` | 4361 | The request desk served from Postgres under a workspace lease, with lab staff signed in through an OpenID Connect provider | `hostedPlatform`, `PostgresStorage`, `--hosted-workspace`, `identity: external`, `startIdentityProvider`, the site and network plugins |
 
 Each sample's README lists its files, its trust boundary and one line per test file.
 
@@ -59,11 +60,12 @@ bun test samples/lab-requests-agents/
 bun test samples
 ```
 
-A sample with a `dev.ts` starts its fake system or seeds records first. `lab-requests-system-of-record` starts a fake LIMS on port 4371. `lab-requests-operations` starts the collector stand-in from `@agent-native/telemetry/testing` on port 4318 when no OpenTelemetry Collector listens there. `lab-requests-review` submits one request as a second technician, so the local owner has a request to review. `lab-requests-signals` starts an OPC UA gateway on port 4374 and an MQTT broker on port 4373 for its climate chambers. `lab-requests-local-model` binds its model server to port 4375 and runs the llama-server stand-in, or llama-server itself when `LOCAL_MODEL_GGUF` names weights. `lab-requests-site` writes a policy that binds the fleet example on port 4340 and a temporary releases folder, and prints the folder. `lab-requests-sandbox` binds its sandbox to `/usr/bin/bwrap` on Linux when bubblewrap is there.
+A sample with a `dev.ts` starts its fake system or seeds records first. `lab-requests-system-of-record` starts a fake LIMS on port 4371. `lab-requests-operations` starts the collector stand-in from `@agent-native/telemetry/testing` on port 4318 when no OpenTelemetry Collector listens there. `lab-requests-review` submits one request as a second technician, so the local owner has a request to review. `lab-requests-signals` starts an OPC UA gateway on port 4374 and an MQTT broker on port 4373 for its climate chambers. `lab-requests-local-model` binds its model server to port 4375 and runs the llama-server stand-in, or llama-server itself when `LOCAL_MODEL_GGUF` names weights. `lab-requests-site` writes a policy that binds the fleet example on port 4340 and a temporary releases folder, and prints the folder. `lab-requests-sandbox` binds its sandbox to `/usr/bin/bwrap` on Linux when bubblewrap is there. `lab-requests-hosted` starts the stand-in identity provider on port 4372 with the certificate its environment names, and needs `AGENT_NATIVE_DATABASE_URL`.
 
 ## Limits
 
 - The execution host runs only on Linux with bubblewrap. Elsewhere `lab-requests-sandbox` shows the unavailable path, and its sandbox tests skip.
+- `lab-requests-hosted` runs only against a Postgres server, and its browser sign-in needs a certificate the browser trusts. Its tests use PGlite and a throwaway CA instead.
 - The samples have no Playwright specs. `bun run check` runs their behavioral and UI-binding tests.
 
 ## References
@@ -79,5 +81,6 @@ A sample with a `dev.ts` starts its fake system or seeds records first. `lab-req
 - [Lab requests sign-in](../samples/lab-requests-sign-in/README.md)
 - [Lab requests site](../samples/lab-requests-site/README.md)
 - [Lab requests sandbox](../samples/lab-requests-sandbox/README.md)
+- [Lab requests hosted](../samples/lab-requests-hosted/README.md)
 - [Architecture](architecture.md)
 - [Capability authoring](capability-authoring.md)

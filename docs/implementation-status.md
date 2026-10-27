@@ -33,9 +33,15 @@ No public release has been made. The entries use these kinds of evidence:
 - The first was paused with SIGSTOP for 33 seconds. A new instance then took the lease with [fencing token](glossary.md#fencing-token) 2 and listed the project.
 - The first was resumed. It logged `lease-lost` and exited.
 
+**By hand.** On 27 October 2026, on macOS arm64, `samples/lab-requests-hosted` ran with `bun run dev:web` against a throwaway Homebrew Postgres 17.11 server on loopback, without Docker.
+
+- The stand-in identity provider ran on `https://127.0.0.1:4372` with a certificate from a throwaway openssl CA, which the policy's `workforce-idp` binding trusted.
+- Sign-ins were driven with curl, not a browser, because no browser on the machine trusted that CA. A technician submitted a request recorded under their email. A viewer listed it and was refused a submission.
+- A second instance started with `serve --hosted-workspace` exited with code 5 and `CONFLICT`. After the launch stopped, which set the lease's expiry to the time of release, the same command took the lease at once with fencing token 2 and listed the request.
+
 **Not shown.**
 
-- No [hosted instance](glossary.md#hosted-instance) has run behind a public TLS listener with workforce OIDC sign-in.
+- No [hosted instance](glossary.md#hosted-instance) has run behind a public TLS listener with workforce OIDC sign-in. `lab-requests-hosted` signs in on a loopback listener against the stand-in provider, and no browser has completed its sign-in.
 - None has run under a real orchestrator, or on Linux.
 - No commit from a paused holder has been caught by the fence in a live run. The resumed instance's renewal found the loss first, and the tests cover the fence.
 
@@ -115,6 +121,7 @@ No public release has been made. The entries use these kinds of evidence:
 - `plugins/site/test/workforce.test.ts` signs in against a fake provider. It covers PKCE, a one-use state, session expiry and the ID-token checks: audience, nonce, verified email and the discovered issuer.
 - `packages/adapters/src/http-credentials.test.ts` shows a cookie accepted only as a cookie and a bearer only as a bearer.
 - The project-tasks hardening test starts an `external` policy with a bound provider and no owner session.
+- `plugins/site/test/identity-provider.test.ts` signs in against the stand-in provider in process, and `samples/lab-requests-hosted/test/hosted.test.ts` signs in through the network guard over HTTPS with a throwaway CA.
 
 **Not shown.**
 
