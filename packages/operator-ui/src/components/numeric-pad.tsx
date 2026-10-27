@@ -91,7 +91,7 @@ function PadKey({
   );
 }
 
-/** The 4-column key grid: digits, delete, clear, submit, sign (when allowed) and separator. */
+/** The 4-column key grid: digits, delete, clear, submit, sign (when allowed) and separator (not for a code). */
 function Keypad({
   press,
   submit,
@@ -99,6 +99,7 @@ function Keypad({
   pending,
   separator,
   allowNegative,
+  code,
   submitLabel,
 }: {
   press: (key: string) => void;
@@ -107,6 +108,7 @@ function Keypad({
   pending: boolean;
   separator: string;
   allowNegative?: boolean;
+  code?: boolean;
   submitLabel: React.ReactNode;
 }) {
   const key = (content: React.ReactNode, onPress: () => void, extra?: string, name?: string) => (
@@ -142,7 +144,9 @@ function Keypad({
         ? key('±', () => press('±'), '', 'Change sign')
         : key('', () => undefined, 'invisible')}
       {key('0', () => press('0'))}
-      {key(separator, () => press(separator), '', 'Decimal separator')}
+      {code
+        ? key('', () => undefined, 'invisible')
+        : key(separator, () => press(separator), '', 'Decimal separator')}
     </div>
   );
 }
@@ -150,7 +154,9 @@ function Keypad({
 /**
  * On-screen keypad for measured values with gloves on. Large keys, the unit beside the readout,
  * the configured decimal separator, and the tolerance verdict before submitting. Physical
- * keyboards and USB keypads work too. The value stays a string until `onSubmit` parses it.
+ * keyboards and USB keypads work too. The value stays a string until `onSubmit` parses it, and
+ * `onSubmit` also gets the string as typed. For a PIN, pass `code` so leading zeros stay and
+ * `masked` so the readout shows a dot per digit.
  */
 function NumericPad({
   value,
@@ -162,12 +168,13 @@ function NumericPad({
   submitLabel = 'Record',
   label,
   keyboard = true,
+  masked = false,
   className,
   ...rules
 }: EntryRules & {
   value: string;
   onChange: (value: string) => void;
-  onSubmit: (value: number) => void;
+  onSubmit: (value: number, entry: string) => void;
   unit?: string;
   tolerance?: Tolerance;
   pending?: boolean;
@@ -175,13 +182,15 @@ function NumericPad({
   label: string;
   /** Accept digits and Enter from a physical keyboard while no text field has focus. */
   keyboard?: boolean;
+  /** Show a dot per digit instead of the digits, for a PIN. */
+  masked?: boolean;
   className?: string;
 }) {
   const separator = rules.separator ?? '.';
   const parsed = parseEntry(value);
   const press = (key: string) => onChange(applyKey(value, key, rules));
   const submit = () => {
-    if (parsed !== undefined && !pending) onSubmit(parsed);
+    if (parsed !== undefined && !pending) onSubmit(parsed, value);
   };
   const bindings: Record<string, () => void> = {
     Backspace: () => press('Backspace'),
@@ -205,7 +214,7 @@ function NumericPad({
         aria-live="polite"
         className="flex min-h-(--operator-target-lg) items-baseline justify-end gap-3 rounded-xl border-2 bg-card px-6 text-(length:--operator-text-xl) font-semibold tabular-nums"
       >
-        <span>{value || '0'}</span>
+        <span>{masked ? '•'.repeat(value.length) || '\u00a0' : value || '0'}</span>
         {unit && (
           <span className="text-(length:--operator-text-lg) text-muted-foreground">{unit}</span>
         )}
@@ -225,6 +234,7 @@ function NumericPad({
         pending={pending}
         separator={separator}
         allowNegative={rules.allowNegative}
+        code={rules.code}
         submitLabel={submitLabel}
       />
     </div>

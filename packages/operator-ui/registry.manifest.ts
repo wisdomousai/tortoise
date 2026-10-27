@@ -233,7 +233,7 @@ export const items: readonly ManifestItem[] = [
     type: 'registry:component',
     title: 'Numeric pad',
     description:
-      'On-screen keypad with unit, decimals, comma or period, and a live tolerance gauge.',
+      'On-screen keypad with unit, decimals, comma or period, a live tolerance gauge, and a masked mode for PINs.',
     dependencies: ['lucide-react'],
     registryDependencies: [
       'button',

@@ -31,6 +31,13 @@ describe('numeric entry', () => {
     expect(type('4±±', { allowNegative: true })).toBe('4');
   });
 
+  test('keeps a code as typed: leading zeros, digits only, up to its length', () => {
+    expect(type('0042', { code: true })).toBe('0042');
+    expect(type('1.2±-3', { code: true, allowNegative: true })).toBe('123');
+    expect(type('123456789', { code: true, maxLength: 8 })).toBe('12345678');
+    expect(applyKey('0042', 'Backspace', { code: true })).toBe('004');
+  });
+
   test('edits and clears', () => {
     expect(applyKey('12.3', 'Backspace')).toBe('12.');
     expect(applyKey('12.3', 'Escape')).toBe('');

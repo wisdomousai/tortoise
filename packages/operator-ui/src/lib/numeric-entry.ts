@@ -9,6 +9,8 @@ export interface EntryRules {
   /** Separator shown and typed; the parsed value accepts both. */
   readonly separator?: '.' | ',';
   readonly maxLength?: number;
+  /** A digit code such as a PIN: digits only, kept as typed with their leading zeros. */
+  readonly code?: boolean;
 }
 
 /** Apply one key (`0`–`9`, `.`/`,`, `Backspace`, `Escape`, `±`) to an entry string. */
@@ -16,6 +18,7 @@ export function applyKey(value: string, key: string, rules: EntryRules = {}): st
   const { decimals, allowNegative = false, separator = '.', maxLength = 12 } = rules;
   if (key === 'Backspace') return value.slice(0, -1);
   if (key === 'Escape' || key === 'Clear') return '';
+  if (rules.code) return /^\d$/.test(key) && value.length < maxLength ? `${value}${key}` : value;
   if (key === '±' || key === '-') {
     if (!allowNegative) return value;
     return value.startsWith('-') ? value.slice(1) : `-${value}`;
