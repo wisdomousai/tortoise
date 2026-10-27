@@ -108,8 +108,9 @@ test('an external identity floor needs a workforce provider, then admits only si
       destinations: { 'workforce-idp': { url: 'https://login.corp.example' } },
     });
     try {
-      // The local owner gets no session; a cookie the sign-in did not set opens nothing.
+      // No owner session or launch link exists; a cookie the sign-in did not set opens nothing.
       expect(host.connectionFile).toBeUndefined();
+      expect(host.launchUrl).toBeUndefined();
       const list = (cookie?: string) =>
         fetch(`${host.url}/api/v1/queries/project.list`, {
           method: 'POST',

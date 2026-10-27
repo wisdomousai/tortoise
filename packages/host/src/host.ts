@@ -226,13 +226,15 @@ export async function startHost(definition: AnyApplicationDefinition, options: S
       cleanup,
     );
     await startBackground(instance, options, origin);
+    const launching = ownerSession ?? agentSession;
     return {
       url: origin,
       workspacePath: ownership.canonicalPath,
       connectionFile,
       instance: ownership.instance,
-      // The browser opens as whoever the identity floor admits: the owner, or the delegate.
-      launchUrl: `${origin}/#launch=${sessions.launch((ownerSession ?? agentSession)!)}`,
+      // The browser opens as whoever the identity floor admits: the owner, or the delegate. With
+      // neither, as under external identity, people sign in through the identity plugin's routes.
+      ...(launching ? { launchUrl: `${origin}/#launch=${sessions.launch(launching)}` } : {}),
       sessions,
       application,
       /** Services the plugins expose, keyed by plugin id. */

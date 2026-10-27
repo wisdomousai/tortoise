@@ -14,7 +14,9 @@
  * and demo variables win. Nothing is discovered and no credential is read.
  *
  * `bun run dev` opens the desktop window (`dev-desktop.ts`). This file's main entry
- * serves the browser instead (`bun run dev:web` from an example).
+ * serves the browser instead (`bun run dev:web` from an example). There,
+ * `--hosted-workspace <name>` keeps the workspace in the Postgres database that
+ * `AGENT_NATIVE_DATABASE_URL` names, as `serve --hosted-workspace` does.
  */
 import { join, resolve } from 'node:path';
 import { readStarterConfig } from '@agent-native/host/config';
@@ -87,11 +89,22 @@ export async function prepareDevelopment(argv: string[]): Promise<PreparedDevelo
 }
 
 if (import.meta.main) {
-  const prepared = await prepareDevelopment(process.argv.slice(2));
-  const host = await runService(await configuredApplication(), starterConfig());
+  const args = process.argv.slice(2);
+  const hostedFlag = args.indexOf('--hosted-workspace');
+  const hostedWorkspace = hostedFlag < 0 ? undefined : args.splice(hostedFlag, 2)[1];
+  const prepared = await prepareDevelopment(args);
+  const host = await runService(await configuredApplication(), starterConfig(), {
+    ...(hostedWorkspace ? { hostedWorkspace } : {}),
+  });
+  // Without a launch link, as under external identity, people sign in through the site plugin.
   console.log(
-    `\n${prepared.title}: open ${host.launchUrl}\n` +
-      `  The link signs you in once and expires after one minute; restart for a fresh one.\n` +
-      `  CLI: AGENT_NATIVE_APPLICATION=${prepared.packageName} AGENT_NATIVE_CONNECTION=${host.connectionFile} bun run cli list\n`,
+    host.launchUrl
+      ? `\n${prepared.title}: open ${host.launchUrl}\n` +
+          `  The link signs you in once and expires after one minute; restart for a fresh one.\n`
+      : `\n${prepared.title}: sign in at ${host.url}/auth/sign-in\n`,
   );
+  if (host.connectionFile)
+    console.log(
+      `  CLI: AGENT_NATIVE_APPLICATION=${prepared.packageName} AGENT_NATIVE_CONNECTION=${host.connectionFile} bun run cli list\n`,
+    );
 }
