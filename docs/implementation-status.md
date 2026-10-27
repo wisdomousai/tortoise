@@ -50,10 +50,12 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Browser.** On 18 October 2026, `examples/fleet/e2e/fleet.pw.ts` passed in headless Chromium against the real host. It covered enrollment from the Devices screen, a site report, a channel created and assigned from the screens, and the drift shown on the Health screen.
 
+**By hand, browser.** On 27 October 2026, on macOS arm64, `samples/lab-requests-site` on port 4359 and `examples/fleet` on port 4340 ran side by side with `bun run dev:web` in Chrome. The site enrolled with a code from the Devices screen, reported, and forwarded its audit log, which the fleet's Audit screen listed. `publish-release.ts` published a signed bundle of 46 files, with a 92 MB binary, to `lab-stable`. After the site was put on that channel, the release was staged in `fleet-releases`, and `fleet.health` reported no issues once the next report named it.
+
 **Not shown.**
 
 - No site has reported to a [fleet](glossary.md#fleet) across a real network, behind a firewall that allows only outbound https.
-- No staged release has been activated by `site install` from the `fleet-releases` folder on a real machine with a loaded system service. The fleet-agent test does it on a staged prefix without `--apply`.
+- No staged release has been activated by `site install` from the `fleet-releases` folder on a real machine with a loaded system service. The fleet-agent test and the 27 October run ([site install](#site-install)) do it on a staged prefix without `--apply`.
 
 **Limits.**
 
@@ -61,6 +63,9 @@ No public release has been made. The entries use these kinds of evidence:
 - A site credential is not rotated. A fleet that loses one re-enrolls the site with a new code.
 - Staging fetches each release file whole. There is no resumed download.
 - The fleet's Devices screen calls a `field-sync` enrollment a phone, as device-link names it. A site is enrolled with that kind.
+- A failed cycle is kept only in the agent's in-process `lastError`. It is neither logged nor reported, so a site that cannot stage a release shows at the fleet as drift with no reason.
+- Staged release files keep mode 0644, so the staged binary cannot run `site install` itself.
+- The fleet example's screens show times as raw milliseconds.
 
 ### Telemetry
 
@@ -80,6 +85,8 @@ No public release has been made. The entries use these kinds of evidence:
 
 **By hand, 17 October 2026.** A rerun after the bundle began writing its contract, security manifest and SBOM from the catalog. The signature verified, and `admit` listed the requirements to approve.
 
+**By hand, 27 October 2026.** `bun run bundle create` built a `samples/lab-requests-site` bundle of 46 files, with a 92 MB binary, on macOS arm64. The binary carried no `.exe` suffix after `scripts/bundle.ts` stopped matching `darwin` as Windows. `admit` on the copy the fleet agent staged refused it until approved.
+
 **Not shown.**
 
 - `site install` consumes a bundle ([site install](#site-install)), but nothing verifies one again at launch.
@@ -91,11 +98,15 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Added, not yet run.** The `site-install` CI job on Ubuntu runs `plugins/site/test/install.test.ts`. It applies `systemd-analyze verify` to the unit and `nft -c -f` to the rules.
 
+**By hand.** On 27 October 2026, on macOS arm64, `site install` installed release 1.2.0 of `samples/lab-requests-site` from the folder the fleet agent staged it in. It ran with `--prefix`, `--service systemd`, `samples/lab-requests-site/site-policy.json` and a site approval, without `--apply`. It rendered the unit and `egress.nft` and set mode 0755 on the installed binary, and `site status` verified the current release. Neither file was loaded, because the machine is not Linux.
+
 **Not shown.**
 
 - No `--apply` run has loaded a service or firewall on a real host, on Linux or Windows.
 - The Windows path (WinSW XML, Windows Firewall script) has only been rendered, never run.
 - No kiosk client mode exists.
+
+**Limits.** `network export` on its own names the application ID as the socket owner, while `site install` runs the service as `agent-native`. An export made apart from the install needs `--user`.
 
 ### Workforce sign-in
 

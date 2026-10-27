@@ -134,6 +134,7 @@
     "@agent-native/sample-lab-requests-review": "workspace:*",
     "@agent-native/sample-lab-requests-sign-in": "workspace:*",
     "@agent-native/sample-lab-requests-signals": "workspace:*",
+    "@agent-native/sample-lab-requests-site": "workspace:*",
     "@agent-native/sample-lab-requests-system-of-record": "workspace:*",
     "@agent-native/scaffold": "workspace:*",
     "@agent-native/screen-bridge": "workspace:*",
