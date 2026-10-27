@@ -239,7 +239,7 @@ If the process dies before the commit is recorded, startup resolves the open ent
 
 ### Attestation and forwarding
 
-Before the first request, startup records the executable, catalog and policy digests and the policy's findings. An auditor can then match a running instance to its SBOM and security manifest.
+Before the first request, startup records the executable, catalog and policy digests and the policy's findings. An auditor can then match a running instance to its SBOM and security manifest. A built binary also records its build time and [best-before date](glossary.md#best-before-date).
 
 `audit.forwardTo` sends events to a bound collector as RFC 5424 syslog. The forwarder sends after the local append, through the guard like any other connection. Without the network plugin the connection is refused, and the forwarder counts the failure.
 
@@ -268,7 +268,7 @@ app audit verify --log /var/lib/app/audit             # exit 10 if the chain is 
 app compliance report --log /var/lib/app/audit --site site-policy.json --format markdown   # exit 10 if failing
 ```
 
-While the application runs, a posture monitor re-verifies the chain on an interval and on demand. It summarizes egress per destination and never probes the network. Auditors read posture, events and chain status through ordinary read-only queries and the Compliance screen. The screen polls every five seconds, so a denial appears within seconds.
+While the application runs, a posture monitor re-verifies the chain on an interval and on demand. It summarizes egress per destination and never probes the network. The `best-before` check warns from 30 days before the build's best-before date and never fails, so `compliance report` does not exit 10 for it. Auditors read posture, events and chain status through ordinary read-only queries and the Compliance screen. The screen polls every five seconds, so a denial appears within seconds.
 
 Only listed auditors may read the audit log; at creation the workspace owner is the only one. A delegated grant must name the operation. A grant limited to resources must also name `audit:log`.
 

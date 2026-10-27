@@ -1,18 +1,24 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { Menu, Search } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Kbd } from '@/components/ui/kbd';
 import { NativeDialog } from '@/components/ui/native-dialog';
 import { CommandPalette } from '@/components/command-palette';
 import { OsProvenanceNotice } from '@/components/os-provenance';
+import { useBuild } from '@/lib/build';
 import { useCompact } from '@/lib/compact';
 import { useShownProvenance } from '@/lib/os-deliveries';
 import { useScreens } from '@/screens-context';
 import { cn } from '@/lib/utils';
 
-/** Title, context, palette button, sidebar slot, navigation and status: the shell's panel. */
+/**
+ * Title, context, palette button, sidebar slot, navigation and status, with the build's
+ * best-before date when it has one: the shell's panel.
+ */
 function ShellPanel({ onFind }: { onFind: () => void }) {
   const { title, navigation, context: Context, sidebar: Sidebar, status: Status } = useScreens();
+  const build = useBuild();
   return (
     <>
       <div className="px-2">
@@ -54,6 +60,7 @@ function ShellPanel({ onFind }: { onFind: () => void }) {
       </nav>
       <div className="mt-auto space-y-2 rounded-lg bg-white/5 p-3 text-xs text-sidebar-muted">
         {Status ? <Status /> : null}
+        {build?.bestBefore ? <p>Best before {build.bestBefore}</p> : null}
         <a
           className="inline-block underline-offset-4 hover:text-sidebar-foreground hover:underline"
           href="/api/v1/contract"
@@ -119,6 +126,7 @@ export function AppShell() {
   const [palette, setPalette] = useState(false);
   const compact = useCompact();
   const origin = useShownProvenance();
+  const build = useBuild();
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
@@ -144,6 +152,16 @@ export function AppShell() {
       <main className="min-w-0 space-y-4 px-4 py-5 lg:px-10 lg:py-8">
         {origin.shown ? (
           <OsProvenanceNotice provenance={origin.shown.provenance} onDismiss={origin.dismiss} />
+        ) : null}
+        {build?.pastBestBefore ? (
+          <Alert className="border-warning/50">
+            <AlertTitle role="status">
+              This build is past its best-before date of {build.bestBefore}.
+            </AlertTitle>
+            <AlertDescription>
+              Everything keeps working. A new release resets the date.
+            </AlertDescription>
+          </Alert>
         ) : null}
         <Outlet />
       </main>

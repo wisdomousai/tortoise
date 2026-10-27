@@ -17,6 +17,7 @@ import {
 } from '@agent-native/bundle';
 import { cycloneDx, type SecurityManifest } from '@agent-native/compliance';
 import { loadManifest, readStarterConfig } from '@agent-native/host';
+import { bestBeforeDate } from '@agent-native/kernel/build';
 import { compileCli } from './build-cli';
 import { artifacts } from './reference-artifacts';
 
@@ -68,11 +69,14 @@ async function create(args: string[]) {
   if (!(await Bun.file(join(web, 'index.html')).exists()))
     throw new Error('No web build for this application in dist/web; run `bun run build:web` first');
   const payload = await mkdtemp(join(tmpdir(), 'agent-native-bundle-'));
+  // One build time for the binary's stamp and the bundle, so both report the same best-before date.
+  const createdAt = new Date().toISOString();
   try {
     await mkdir(join(payload, 'bin'));
     // As in build-cli.ts: `darwin` contains "win", so match the Windows names exactly.
     const windows = target ? target.includes('windows') : process.platform === 'win32';
-    await compileCli(join(payload, 'bin', windows ? `${config.name}.exe` : config.name), target);
+    const binary = join(payload, 'bin', windows ? `${config.name}.exe` : config.name);
+    await compileCli(binary, target, undefined, createdAt);
     await cp(web, join(payload, 'web'), { recursive: true });
     const reference = artifacts(manifest);
     const contract = reference.get('contract.json')!;
@@ -95,6 +99,10 @@ async function create(args: string[]) {
       {
         application: manifest.id,
         version,
+        createdAt,
+        ...(manifest.shelfLifeDays
+          ? { bestBefore: bestBeforeDate(createdAt, manifest.shelfLifeDays) }
+          : {}),
         platform: platformOf(target),
         storageSchema: ROW_SCHEMA_VERSION,
         catalogDigest: createHash('sha256').update(contract).digest('hex'),
@@ -120,7 +128,14 @@ async function check(args: string[], admit: boolean) {
   const bundle = resolve(args[0] ?? '');
   const keys = await trusted(flag(args, 'trust', true)!);
   const manifest = await verifyBundle(bundle, keys);
-  if (!admit) return console.log(JSON.stringify({ verified: true, version: manifest.version }));
+  if (!admit)
+    return console.log(
+      JSON.stringify({
+        verified: true,
+        version: manifest.version,
+        ...(manifest.bestBefore ? { bestBefore: manifest.bestBefore } : {}),
+      }),
+    );
   const installedPath = flag(args, 'installed');
   const installed = installedPath ? await verifyBundle(resolve(installedPath), keys) : undefined;
   const approvalPath = flag(args, 'approval');

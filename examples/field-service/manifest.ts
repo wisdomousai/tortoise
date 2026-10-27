@@ -23,6 +23,7 @@ import { workOrderPlannerModule, fieldServiceModule } from './contracts';
 export default defineManifest({
   id: 'field-service',
   title: 'Field service',
+  shelfLifeDays: 180,
   modules: [fieldServiceModule, workOrderPlannerModule],
   features: [approvalFeatureManifest],
   plugins: [

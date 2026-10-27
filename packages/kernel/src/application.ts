@@ -9,6 +9,7 @@ import {
 } from '@agent-native/runtime';
 import type { CapabilityModule, EventLogPort, HostComponent } from '@agent-native/contracts';
 import type { TargetIntegration } from '@agent-native/integration';
+import type { BuildStamp } from './build';
 import type { ApplicationManifest } from './manifest';
 import { deploymentComponents } from './components';
 import type { FeatureMount } from './feature';
@@ -84,6 +85,8 @@ export interface ApplicationDefinition<State, Services = unknown> {
    * lifecycles around the runtime (see `openPlugins`).
    */
   readonly plugins?: readonly AnyHostPlugin[];
+  /** When the running binary was built; set by `stampBuild`, never by hand. Absent from source. */
+  readonly build?: BuildStamp;
 }
 // Definitions are stored and passed without their state type; the host is generic over it.
 export type AnyApplicationDefinition = ApplicationDefinition<any, any>;

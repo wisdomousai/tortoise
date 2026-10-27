@@ -84,6 +84,7 @@ export async function openAudit(context: PluginOpenContext): Promise<PluginInsta
         executableDigest,
         catalogDigest,
         forwardTo,
+        ...(context.build ? { build: context.build } : {}),
       };
       await log.append(attestationRecords(policy, facts, { instance: context.instance }));
       await recover(directory, application);

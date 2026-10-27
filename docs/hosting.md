@@ -66,7 +66,7 @@ The protocol is one module, `fleetSiteModule`. The fleet enrolls each site throu
 
 | Capability | Kind | What the site does with it |
 | --- | --- | --- |
-| `fleet.site.report` | command | Sends its application, instance, [outbox](glossary.md#outbox) counts by target, audit head and staged release. |
+| `fleet.site.report` | command | Sends its application, instance, [outbox](glossary.md#outbox) counts by target, audit head, staged release and [best-before date](glossary.md#best-before-date). |
 | `fleet.site.desired` | query | Reads the release it should run. |
 | `fleet.audit.cursor` | query | Asks where the fleet's copy of its audit log ends. |
 | `fleet.audit.ingest` | command | Sends the events after that point as the JSON lines of its local log, 100 at a time. |
@@ -113,15 +113,18 @@ The health screen lists sites in any of these states:
 - [held effects](systems-of-record.md#held-effects);
 - a broken audit chain;
 - audit forwarding more than 1,000 events behind;
-- a staged release other than their channel's release.
+- a staged release other than their channel's release;
+- a build past its best-before date.
 
 Its thresholds are constants in `examples/fleet/handlers/sites.ts`.
+
+`site.remove` deletes a decommissioned site's record and its relay requests and keeps the audit events it forwarded. It needs an operator who is a person. A site whose device link still works adds itself again with its next report, so the device is revoked first.
 
 A relay request's headers and body are stored only while it waits, are never listed, and are dropped when the site takes the request. The take command's [receipt](glossary.md#receipt) still keeps the returned request, headers included, for replays with the same [idempotency key](glossary.md#idempotency-key), so pass short-lived site sessions.
 
 `bun test examples/fleet` runs these tests:
 
-- `examples/fleet/test/fleet.test.ts` runs the fleet with one or two plant instances on the real fleet agent. It covers the health screen, release channels, a release whose blobs are not exactly its files, a forged audit event that stops collection, the protocol's per-site scope and the relay.
+- `examples/fleet/test/fleet.test.ts` runs the fleet with one or two plant instances on the real fleet agent. It covers the health screen, a build past its best-before date, removing a site, release channels, a release whose blobs are not exactly its files, a forged audit event that stops collection, the protocol's per-site scope and the relay.
 - `examples/fleet/test/ui-bindings.test.ts` checks that every bound capability is on a screen.
 - `examples/fleet/e2e/fleet.pw.ts` runs the real host in a browser, from enrollment to release drift on the health screen.
 

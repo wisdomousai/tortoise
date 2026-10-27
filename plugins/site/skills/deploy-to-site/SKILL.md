@@ -40,8 +40,8 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 11. Verify the bundle with `bun run bundle verify <dir> --trust key.pub.json`.
 12. Admit it with `bun run bundle admit <dir> --trust key.pub.json --approval <file>`.
 13. Install with the bundled binary: `site install <bundle> --trust key.pub.json --approval <file>`. Stage it under `--prefix` first, then apply it with `--apply`. A refused admission, policy check, render or migration leaves the previous release current.
-14. Use `site status` to check the active release. It exits 1 when that release no longer verifies.
-15. Remove a release with `site uninstall`. It keeps data unless `--purge` is given.
+14. Use `site status` to check the active release and its best-before date. It exits 1 when that release no longer verifies.
+15. Remove a release with `site uninstall`, which keeps the data. To delete the data too, follow the `decommission-an-application` skill (`plugins/site/skills/decommission-an-application/SKILL.md`).
 16. Produce evidence with `app audit verify --log <dir>` and `app compliance report --log <dir> --site <file> --format markdown`. A running host re-checks posture, including certificate validity, on every check.
 
 ## Checks

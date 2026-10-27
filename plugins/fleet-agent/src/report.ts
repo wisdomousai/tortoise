@@ -4,7 +4,8 @@ import type { SiteReport } from './contracts';
 /**
  * This site's health as the fleet records it: the outbox counted by target the way `drain`
  * counts it (pending, held for reconciliation, acknowledged upstream), read with the host's own
- * trusted identity, which needs no business grant. Payloads never leave: only counts do.
+ * trusted identity, which needs no business grant. Payloads never leave: only counts do, with the
+ * running build's best-before date when it has one.
  */
 export async function siteReport(
   application: Pick<HostedApplication, 'pendingEffects'>,
@@ -15,6 +16,7 @@ export async function siteReport(
     readonly at: number;
     readonly auditHead?: number;
     readonly staged?: SiteReport['staged'];
+    readonly bestBefore?: string;
   },
 ): Promise<SiteReport> {
   const effects = await application.pendingEffects(hostContext(options.workspaceId), {
@@ -47,5 +49,6 @@ export async function siteReport(
     },
     ...(options.auditHead !== undefined ? { auditHead: options.auditHead } : {}),
     ...(options.staged ? { staged: options.staged } : {}),
+    ...(options.bestBefore ? { bestBefore: options.bestBefore } : {}),
   };
 }

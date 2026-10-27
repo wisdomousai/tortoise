@@ -48,6 +48,8 @@ async function complianceReport(manifest: ApplicationManifest, args: string[]) {
     verification,
     usage: accumulateEgress(new Map(), events),
     attestation: attestedDigests(attested),
+    // The log attests the best-before date of the build that wrote it.
+    ...(typeof attested.bestBefore === 'string' ? { bestBefore: attested.bestBefore } : {}),
     now: Date.now(),
   });
   const denials = events.filter((event) => event.outcome === 'denied').slice(-50);

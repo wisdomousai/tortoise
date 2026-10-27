@@ -11,17 +11,19 @@ const root = resolve(import.meta.dir, '..');
  * Compile the configured application's CLI (or `application`'s) into one self-contained
  * executable. It needs no Bun, Node or package install on the target, so a sandbox image only
  * copies this file. The sandbox test compiles through this same function, so the gate checks the
- * shipped build configuration. Fails with the bundler's messages when compilation fails.
+ * shipped build configuration. `builtAt` stamps the build time, now by default, which sets the
+ * build's best-before date. Fails with the bundler's messages when compilation fails.
  */
 export async function compileCli(
   outfile: string,
   target?: string,
   application?: string,
+  builtAt?: string,
 ): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), 'agent-native-cli-entry-'));
   try {
     return await compile(
-      await writeApplicationEntry('cli', directory, application),
+      await writeApplicationEntry('cli', directory, application, builtAt),
       outfile,
       target,
     );

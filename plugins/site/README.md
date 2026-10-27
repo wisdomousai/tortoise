@@ -93,7 +93,9 @@ Workforce sign-in is a public OpenID Connect client with PKCE (S256):
 
 The install verbs trust only what verifies against `--trust`. The copy in the release directory is verified again before anything runs from it. A failed admission, policy check, render or migration leaves `current` on the previous release, with its data untouched.
 
-The service account name is restricted to a plain account name, because it goes into shell commands and unit files. `site status` exits 1 when the active release no longer verifies. `uninstall` keeps the workspace and the audit log unless `--purge` is given.
+The service account name is restricted to a plain account name, because it goes into shell commands and unit files. `site status` exits 1 when the active release no longer verifies, and reports the signed best-before date of a verified release. `uninstall` keeps the workspace and the audit log unless `--purge` is given.
+
+Before a purge deletes the data directory, `install/outbox.ts` runs the installed release's `drain` with the service's site policy and audit log. The release is verified against `--trust` first, because it runs with the installer's rights. While effects remain pending, held or awaiting their target's decision, the purge is refused with `CONFLICT` and the counts by target, and nothing is removed. `--discard-undelivered` purges anyway and lists what it deleted.
 
 `install/native.ts` is the plugin's one exemption from the process rule in `check:boundaries`. It runs only in these site operator verbs, never inside an instance.
 
@@ -114,7 +116,7 @@ Framework:
 - `@agent-native/contracts` and `@agent-native/runtime` (types);
 - `@agent-native/adapters`: `cli`, and `row-storage` for the schema version an install migrates to;
 - `@agent-native/host`: `plugin`, `plugin-manifest`, `manifest` and `components`;
-- `@agent-native/kernel/instance` (`LOCAL_WORKSPACE`);
+- `@agent-native/kernel/instance` (`LOCAL_WORKSPACE`) and `@agent-native/kernel/build` (the best-before date);
 - `@agent-native/agents/oidc` (ID-token verification);
 - `@agent-native/bundle`, for bundle verification, admission and the trusted key and approval types.
 
@@ -135,14 +137,16 @@ Applications that compose the plugin exercise it:
 - the network suite shows a connected policy refused without the network plugin;
 - the desktop test covers the shipped deployment policy.
 
-`test/install.test.ts` installs signed fixture bundles into a staged prefix. Their binaries run `test/fixtures/install-cli.ts`, an application composing this plugin and the network plugin. It covers:
+`test/install.test.ts` installs signed fixture bundles into a staged prefix. Their binaries run `test/fixtures/install-cli.ts`, an application composing this plugin and the network and audit plugins, with commands that queue and settle an effect. It covers:
 
 - a first install refused without approval;
 - the rendered unit, rules and modes;
 - an upgrade that migrates the workspace before switching;
 - a tampered release reported by `status`;
 - a tampered bundle refused while `current` stays put;
-- uninstall keeping data.
+- uninstall keeping data;
+- the best-before date in `status`;
+- a purge refused while an effect is pending, allowed once it settles, and forced with `--discard-undelivered`.
 
 With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the install test also runs `systemd-analyze verify` on the unit and `nft -c -f` on the rules.
 
@@ -169,9 +173,11 @@ With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the ins
 ## Skills
 
 - [deploy-to-site](skills/deploy-to-site/SKILL.md): writing and checking a deployment policy, building and installing a signed bundle, and exporting firewall rules.
+- [decommission-an-application](skills/decommission-an-application/SKILL.md): a shelf life, draining and deciding effects, a purge that loses nothing, and removing the site from a fleet.
 
 ## References
 
 - [Security and compliance](../../docs/security-and-compliance.md#deployment-policy)
+- [Application lifecycle](../../docs/application-lifecycle.md)
 - [Architecture](../../docs/architecture.md#host-plugins)
 - [Security and compliance](../../docs/security-and-compliance.md#controls-and-plugins)

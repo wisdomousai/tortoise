@@ -17,6 +17,7 @@ Framework (`packages/*`). `@agent-native/host` re-exports the definition helpers
 - [Exchange folder](../../docs/glossary.md#exchange-folder): `FolderPort`, `BoundFolder`, `noFolders` and `HostPorts.folders`. Under the default `noFolders`, every folder is unavailable until a plugin binds folders.
 - [State migration](../../docs/primitives.md#state-migration): `StateMigrations`, `MigrationStep`, `checkMigrations`, `currentVersion`, `migrateSlice`, `stateUpgrade`, `ApplicationDefinition.migrations` and `HostPlugin.state.migrations`. Details under [State migrations](#state-migrations).
 - [Blob store](../../docs/primitives.md#blob-store): `HostPlatform.openBlobs` gives each instance its workspace's store. A serving instance sweeps unreferenced blobs when it opens.
+- [Shelf life](../../docs/primitives.md#shelf-life): `ApplicationManifest.shelfLifeDays`, `stampBuild`, `BuildStamp`, `ApplicationDefinition.build`, `buildFacts`, `BuildFacts`, `PluginOpenContext.build`, `bestBeforeDate` and `pastBestBefore`. A generated build entry stamps the definition with its build time. The best-before date is the UTC build date plus the shelf life, and it passes the day after.
 - [Host platform](../../docs/primitives.md#host-platform): `HostPlatform`, `PlatformId`, `platformIds`, `PlatformCapability`, `PlatformOwnership`, `assertPlatformSupports`, `installGlobals`, `assertGlobals`, `missingGlobals`, `RequiredGlobal`, `SecretStore`, `scopedSecrets`.
 
 The composition never starts a process. A plugin such as `@agent-native/process` provides the process port, and `spawn` returns the platform's handle as `unknown`.
@@ -40,6 +41,7 @@ The composition never starts a process. A plugin such as `@agent-native/process`
 | `@agent-native/kernel/platform`        | any host | `HostPlatform`, `PlatformOwnership`, `PlatformCapability`, `assertPlatformSupports`, `SecretStore`, `scopedSecrets`.                                                                                             |
 | `@agent-native/kernel/instance`       | any host | `openInstance`, `LOCAL_WORKSPACE`, `LOCAL_OWNER`.                                                                                                                                                               |
 | `@agent-native/kernel/globals`         | any host | `installGlobals`, `assertGlobals`, `missingGlobals`.                                                                                                                                                             |
+| `@agent-native/kernel/build`           | any host | `stampBuild`, `buildFacts`, `bestBeforeDate`, `pastBestBefore` and the build types. |
 | `@agent-native/kernel/migrations`      | any host | `StateMigrations`, `MigrationStep`, `checkMigrations`, `currentVersion`, `migrateSlice`.                                                                                                                         |
 | `@agent-native/kernel/state-upgrade`   | any host | `stateUpgrade`: the storage upgrade for a composed definition.                                                                                                                                                   |
 
@@ -112,6 +114,7 @@ bun run test:portable
 - `test/shell.test.ts`: the default shell port's refusals, and a single provider composed through `resolvePorts` and the late view.
 - `test/processes.test.ts`: without a provider no process starts and availability says why; one plugin may provide the port, the late view reads it, and two providers are refused.
 - `test/globals.test.ts`: the required globals behave as the runtime expects.
+- `test/build.test.ts`: the best-before date and the day it passes, build facts with and without a shelf life, shelf life validation, and plugins opened with the build facts of a stamped definition.
 
 `bun run test:portable` runs the composition, runtime, client, integration and mobile suites with `test/without-web-globals.ts` preloaded. That file deletes the globals Hermes may lack and installs the composition's replacements, so those suites prove they run without Bun's versions.
 

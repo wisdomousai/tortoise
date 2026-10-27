@@ -39,7 +39,7 @@ bun run scaffold versions [<application-directory>]
 ```
 
 - **Export** with `--example <name>` exports one [example](../../docs/glossary.md#example) as the hosted application, with the examples it imports. A field application keeps the hub application whose modules it shares. The export leaves the other examples, their reference sets, root dependencies and lockfile entries out.
-- **`new`** exports no example and generates one application in `examples/<name>`.
+- **`new`** exports no example and generates one application in `examples/<name>`. Its manifest sets a [shelf life](../../docs/glossary.md#shelf-life) of 180 days.
 - **`add`** extends that application with a collection, a [capability](../../docs/glossary.md#capability), a [target](../../docs/glossary.md#target), an agent, an [assignment kind](../../docs/glossary.md#assignment-kind) or a [feature](../../docs/glossary.md#feature).
 - **`versions`** checks that an installed application has one framework version.
 

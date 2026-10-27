@@ -6,6 +6,7 @@ import type {
   HandlerContribution,
 } from '@agent-native/runtime';
 import type { HostedApplication, Observer } from './application';
+import type { BuildFacts } from './build';
 import { checkFeature, type Feature } from './feature';
 import type { ApplicationManifest } from './manifest';
 import type { StateMigrations } from './migrations';
@@ -110,6 +111,8 @@ export interface PluginOpenContext {
   readonly instance: string;
   /** True for a serving host, which may start background work and child processes. */
   readonly serving: boolean;
+  /** When the running binary was built and its best-before date; absent for a run from source. */
+  readonly build?: BuildFacts;
   /** This plugin's settings that the launcher supplied. */
   readonly settings: Readonly<Record<string, string>>;
   /** This plugin's own secrets in this workspace, where the platform keeps secrets. */

@@ -84,6 +84,20 @@ test('a tampered file, an added file, a changed manifest or an unknown key is re
   await expect(verifyBundle(bundle, [key])).rejects.toThrow('trusted key');
 });
 
+test('the best-before date is signed with the bundle, and a malformed one is refused', async () => {
+  await build('dated', { bestBefore: '2027-04-25' });
+  const bundle = join(directory, 'dated');
+  expect((await verifyBundle(bundle, [key])).bestBefore).toBe('2027-04-25');
+  expect((await build('undated')).bestBefore).toBeUndefined();
+  const manifest = JSON.parse(await readFile(join(bundle, 'bundle.json'), 'utf8'));
+  manifest.bestBefore = '2099-01-01';
+  await writeFile(join(bundle, 'bundle.json'), JSON.stringify(manifest));
+  await expect(verifyBundle(bundle, [key])).rejects.toThrow('trusted key');
+  await expect(build('malformed', { bestBefore: '25.04.2027' })).rejects.toThrow(
+    'best-before date is invalid',
+  );
+});
+
 test('a payload with a link, or a manifest path that escapes, is refused', async () => {
   await symlink('/etc/hosts', join(payload, 'hosts'));
   await expect(build('linked')).rejects.toThrow('link');

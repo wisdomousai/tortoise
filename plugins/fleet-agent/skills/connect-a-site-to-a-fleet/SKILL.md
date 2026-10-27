@@ -5,7 +5,7 @@ description: Connect an on-site agent-native instance to a fleet application, or
 
 # Connect a site to a fleet
 
-The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet) and is outbound only. Each cycle it reports outbox counts, forwards the [audit log](../../../../docs/glossary.md#audit-log) events the fleet lacks and stages the assigned release. With the relay on, it also forwards remote-access requests to the site's own API.
+The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet) and is outbound only. Each cycle it reports outbox counts and the build's [best-before date](../../../../docs/glossary.md#best-before-date), forwards the [audit log](../../../../docs/glossary.md#audit-log) events the fleet lacks and stages the assigned release. With the relay on, it also forwards remote-access requests to the site's own API.
 
 ## Before writing
 
@@ -35,6 +35,8 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 3. Compose the device-link plugin with `syncOperations: fleetSiteOperationIds`.
 4. Attach release files to a resource the site's policy lets it read, so `GET /api/v1/blobs/<digest>` serves them.
 5. Store forwarded audit events as received, and accept each sequence once. The site reads your cursor before each batch, so a batch arrives again only when its reply was lost.
+6. Store the report's `bestBefore` with the site, and show a site past it without refusing anything, as `fleet.health` in `examples/fleet` does.
+7. Remove a decommissioned site after its device is revoked, as `site.remove` in `examples/fleet` does. A site still linked reports again and comes back.
 
 ## Checks
 

@@ -42,6 +42,8 @@ The compliance [capabilities](../../docs/glossary.md#capability) are queries onl
 
 Each call needs `read` on `Audit` from the plugin's own [policy](../../docs/glossary.md#policy) over its `compliance` slice. At creation, the workspace owner is the only auditor (`createComplianceState`). Each call is itself audited. The application's policy never decides these capabilities, and this policy never sees application state. A host without an audit log reports unavailable instead of empty.
 
+The posture's `best-before` check reads the build's [best-before date](../../docs/glossary.md#best-before-date) from the open context, and `compliance report` reads it from the log's `config.loaded` event. It warns from 30 days before the date and never fails.
+
 Generation is deterministic. Control mappings are indicative and are not a certification. Control IDs (`AN-<area>-<n>`) are stable and never renumbered.
 
 ## Dependencies
@@ -50,6 +52,7 @@ Framework:
 
 - `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/site/policy` (types) and `@agent-native/event-log`;
 - `@agent-native/adapters/cli`;
+- `@agent-native/kernel/build` for the best-before date;
 - `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`, `components`) and `@agent-native/frame/plugin-screens`;
 - `@agent-native/site` for the policy, and `@agent-native/audit` for the log and exit code.
 
@@ -66,7 +69,7 @@ bun test plugins/compliance
 - `test/compliance.test.ts` covers:
   - manifest ownership, the OS handler and action section, and a deterministic SBOM;
   - controls whose evidence exists;
-  - posture findings and `posture.checked`, including certificate expiry judged at each check;
+  - posture findings and `posture.checked`, including certificate expiry judged at each check and the best-before check;
   - audit-event paging;
   - [behavioral scenarios](../../docs/glossary.md#behavioral-scenario) through the direct driver.
 - Each example's `test/ui-bindings.test.ts` checks the screen's bindings.

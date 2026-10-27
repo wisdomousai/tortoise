@@ -12,7 +12,9 @@ export const installUsage = (program: string) => `Site install (run as root on t
       [--prefix dir] [--service systemd|windows|none] [--user name] [--apply]
                                                     verify, admit, place, migrate and switch a release
   ${program} site status [--prefix dir] --trust key.pub.json   the active release and whether it still verifies
-  ${program} site uninstall [--prefix dir] [--purge] [--apply]  remove the service and releases; data stays unless --purge
+  ${program} site uninstall [--prefix dir] [--apply]  remove the service and releases; the data stays
+  ${program} site uninstall --purge --trust key.pub.json [--discard-undelivered] [--prefix dir] [--apply]
+                                                    also delete the data; refused while the outbox holds effects
 `;
 
 const invalid = (message: string) => new ApplicationError('INVALID_INPUT', message);
@@ -79,7 +81,14 @@ export async function installVerb(manifest: ApplicationManifest, verb: string, a
     print(status);
     return status.installed && !status.verified ? 1 : 0;
   }
-  const options = { prefix, apply: has(args, 'apply'), purge: has(args, 'purge') };
+  const trust = takeFlag(args, 'trust');
+  const options = {
+    prefix,
+    apply: has(args, 'apply'),
+    purge: has(args, 'purge'),
+    discardUndelivered: has(args, 'discard-undelivered'),
+    ...(trust ? { trusted: await trustedKeys(resolve(trust)) } : {}),
+  };
   rejectRemaining(args);
   print(await uninstall(manifest, options));
   return 0;

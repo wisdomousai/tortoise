@@ -1,4 +1,6 @@
 import { join } from 'node:path';
+import type { BundleManifest } from '@agent-native/bundle';
+import { ApplicationError } from '@agent-native/contracts';
 
 /** How the installed service is started: a systemd unit, a Windows service wrapper, or neither. */
 export type ServiceManager = 'systemd' | 'windows' | 'none';
@@ -52,4 +54,12 @@ export interface InstallRecord {
   readonly firewallTable?: string;
   /** Generated files outside the release and data directories. */
   readonly generated: readonly string[];
+}
+
+/** The one executable a bundle carries, as a path under the release directory. */
+export function binaryOf(bundle: BundleManifest): string {
+  const binaries = bundle.files.filter((file) => file.path.startsWith('bin/'));
+  if (binaries.length !== 1)
+    throw new ApplicationError('CONFLICT', 'A bundle must carry exactly one executable under bin/');
+  return join('files', binaries[0]!.path);
 }

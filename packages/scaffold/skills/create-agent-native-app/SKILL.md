@@ -14,6 +14,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
   - record ownership;
   - the difference between capture and acceptance;
   - the exception path.
+- An application serves one site's task for a limited time. Keep its code to that domain, deliver what it captures through a target, and add no owner, term or renewal records.
 - Do not reuse discovered credentials, publish a release or install global agent configuration as part of scaffolding.
 
 ## Steps
@@ -24,7 +25,8 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 4. To try a registry install before anything is published, serve the packages on loopback with `bun run release:serve`.
 5. Extend the application with `scaffold add`.
 6. Shape the generated parts into the requested domain.
-7. Pick the skill for each further change from the second table below.
+7. Set `shelfLifeDays` in the manifest to how long one build should serve before it is rebuilt or removed. The scaffold writes 180.
+8. Pick the skill for each further change from the second table below.
 
 | Example | Shows |
 | --- | --- |
@@ -52,6 +54,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | Share targets, shortcuts, intents, notifications | `packages/shell/skills/add-os-integration/SKILL.md` |
 | The phone or tablet host, native plugins, pairing | `packages/mobile/skills/extend-mobile-host/SKILL.md` |
 | Deployment policy, signed bundles, install on a machine | `plugins/site/skills/deploy-to-site/SKILL.md` |
+| Removing an application from a site without losing records | `plugins/site/skills/decommission-an-application/SKILL.md` |
 | A hosted instance with its workspace in Postgres | `packages/host/skills/run-a-hosted-instance/SKILL.md` |
 | A site that reports to a fleet, or the fleet it reports to | `plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md` |
 | Metrics and traces in an observability backend | `plugins/telemetry/skills/export-telemetry/SKILL.md` |

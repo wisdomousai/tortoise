@@ -29,7 +29,7 @@ Only the package itself imports `audit-channel` (the log and forwarder), `syslog
 | Hook | Effect |
 | --- | --- |
 | `open` | Opens the log under its writer lock in the policy's audit mode, and provides it as `eventLog`. |
-| `ready` | Records `config.loaded` and `policy.loaded`, then resolves `command.accepted` events without an outcome. |
+| `ready` | Records `config.loaded`, with a built binary's build time and best-before date, and `policy.loaded`. Then resolves `command.accepted` events without an outcome. |
 | `describe` | Returns `{ log, mode }` for the `listening` record. |
 | `close` | Flushes the forwarder, then closes the sink and the log. |
 
@@ -50,7 +50,7 @@ Limits:
 
 ## Dependencies
 
-Framework: `@agent-native/contracts`, `@agent-native/event-log`, `@agent-native/adapters/cli`, `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`) and `@agent-native/site`, whose policy sets the audit mode. No external packages.
+Framework: `@agent-native/contracts`, `@agent-native/event-log`, `@agent-native/adapters/cli`, `@agent-native/host` (`plugin`, `plugin-manifest`, `manifest`), `@agent-native/kernel/build` (types) and `@agent-native/site`, whose policy sets the audit mode. No external packages.
 
 ## Tests
 

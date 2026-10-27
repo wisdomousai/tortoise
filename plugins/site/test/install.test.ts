@@ -24,7 +24,7 @@ const requirements = {
   processes: [{ id: 'helper', executable: 'helper' }],
 };
 
-async function bundle(version: string, state: number) {
+async function bundle(version: string, state: number, bestBefore?: string) {
   const payload = join(directory, `payload-${version}`);
   await mkdir(join(payload, 'bin'), { recursive: true });
   const bin = join(payload, 'bin', 'counter-site');
@@ -45,6 +45,7 @@ async function bundle(version: string, state: number) {
       storageSchema: 2,
       catalogDigest: 'a'.repeat(64),
       requirements,
+      ...(bestBefore ? { bestBefore } : {}),
     },
     key,
   );
@@ -202,4 +203,71 @@ test('a tampered release or bundle is refused, and uninstall keeps data unless p
   expect(
     await Bun.file(join(app('var/lib/agent-native'), 'workspace', 'workspace.sqlite')).exists(),
   ).toBe(true);
+}, 30_000);
+
+/** Run the installed release's binary in-process against the installed workspace. */
+function operate(args: string[]) {
+  const binary = join(app('opt/agent-native'), 'current', 'files/bin/counter-site');
+  const workspace = join(app('var/lib/agent-native'), 'workspace');
+  const run = Bun.spawnSync([binary, ...args, '--embedded', '--workspace', workspace]);
+  expect(run.exitCode).toBe(0);
+  return JSON.parse(run.stdout.toString().trim().split('\n').at(-1)!);
+}
+
+test('status shows the signed best-before date, and a purge refuses while the outbox holds effects', async () => {
+  const approval = join(directory, 'approval.json');
+  // Installed again over the data the last uninstall kept; a past date installs and runs.
+  expect(
+    (await install(await bundle('4.0.0', 2, '2000-01-01'), ['--approval', approval])).code,
+  ).toBe(0);
+  expect((await site(['status', '--trust', trust])).result).toMatchObject({
+    verified: true,
+    bestBefore: '2000-01-01',
+    pastBestBefore: true,
+  });
+
+  const { result } = operate(['counter.send']);
+  const missingTrust = await site(['uninstall', '--purge']);
+  expect(missingTrust.code).not.toBe(0);
+  expect(missingTrust.result.error.message).toContain('--trust is required');
+
+  const refused = await site(['uninstall', '--purge', '--trust', trust]);
+  expect(refused.code).not.toBe(0);
+  expect(refused.result.error).toMatchObject({
+    code: 'CONFLICT',
+    details: { remaining: [{ target: 'ledger', pending: 1, held: 0, upstream: 0 }] },
+  });
+  expect(refused.result.error.message).toContain('ledger: 1 pending');
+  // A refusal removes nothing.
+  expect((await site(['status', '--trust', trust])).result).toMatchObject({ installed: true });
+
+  // Once the target settles the effect, nothing would be lost.
+  operate(['counter.settle', '--effect-id', result.effectId]);
+  expect((await site(['uninstall', '--purge', '--trust', trust])).result).toEqual({
+    removed: true,
+    application: 'counter-site',
+    purged: true,
+  });
+  expect(await Bun.file(join(app('var/lib/agent-native'), 'install.json')).exists()).toBe(false);
+  expect(
+    await Bun.file(join(app('var/lib/agent-native'), 'workspace', 'workspace.sqlite')).exists(),
+  ).toBe(false);
+}, 30_000);
+
+test('--discard-undelivered purges anyway and lists what it deleted', async () => {
+  const approval = join(directory, 'approval.json');
+  expect((await install(await bundle('5.0.0', 1), ['--approval', approval])).code).toBe(0);
+  expect((await site(['status', '--trust', trust])).result).not.toHaveProperty('bestBefore');
+  operate(['counter.send']);
+  operate(['counter.send']);
+  expect(
+    (await site(['uninstall', '--purge', '--trust', trust, '--discard-undelivered'])).result,
+  ).toEqual({
+    removed: true,
+    application: 'counter-site',
+    purged: true,
+    discarded: [{ target: 'ledger', pending: 2, held: 0, upstream: 0 }],
+  });
+  for (const left of ['opt/agent-native', 'etc/agent-native', 'var/lib/agent-native'])
+    await expect(lstat(app(left))).rejects.toThrow();
 }, 30_000);

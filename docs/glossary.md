@@ -89,6 +89,12 @@ Do not use: event log, audit trail, log (alone, for the audit log).
 
 A reusable test of one capability: permitted and denied access, a stale revision, a replayed idempotency key, and the change visible to another caller. Lives in [`packages/testing`](../packages/testing/README.md).
 
+### Best-before date
+
+The last day a build is within its [shelf life](#shelf-life): the build date plus the shelf life, in UTC. The host reports it, and the frame shows a notice once it has passed. A [site bundle](#site-bundle) carries it signed, and a new release resets it. Nothing is refused after it. Lives in [`packages/kernel`](../packages/kernel/README.md); explained in [application lifecycle](application-lifecycle.md#shelf-life-and-best-before-date).
+
+Do not use: expiry date, expiration date, end of life.
+
 ### Blob
 
 Content-addressed bytes, such as a photo or a document, that a command references from a resource. The blob store is the port that keeps them. Lives in [`packages/runtime`](../packages/runtime/README.md).
@@ -186,6 +192,12 @@ A position in the journal. A receipt and a query result return the cursor they w
 ### Data provider
 
 One declaration of a kind of record that lives in a system of record and can be searched there live. It becomes two remote queries, `<id>.search` and `<id>.lookup`, so every surface reaches it the same way. Lives in [`packages/contracts`](../packages/contracts/README.md) and [`packages/integration`](../packages/integration/README.md).
+
+### Decommissioning
+
+Removing an application from a site after its [systems of record](#system-of-record) hold every record it captured. The workspace, the audit log and the blobs are deleted with the data directory, so `site uninstall --purge` refuses while the outbox still holds effects. Lives in [`plugins/site`](../plugins/site/README.md); explained in [application lifecycle](application-lifecycle.md#decommissioning-procedure).
+
+Do not use: retirement, sunsetting.
 
 ### Delivery mode
 
@@ -638,6 +650,10 @@ Do not use: login (for a session), token (alone, for a session), connection (for
 ### Settlement
 
 Recording a system of record's outcome for one effect, accepted or rejected, through the target's settle command. The dispatcher settles under the integration principal with its fencing token. A person settles a held effect through reconciliation. Lives in [`packages/integration`](../packages/integration/README.md); explained in [systems of record](systems-of-record.md).
+
+### Shelf life
+
+How many days each build of an application stays within its [best-before date](#best-before-date), declared in the manifest. An application without one builds releases without a best-before date. Lives in [`packages/kernel`](../packages/kernel/README.md); explained in [application lifecycle](application-lifecycle.md#shelf-life-and-best-before-date).
 
 ### Shell port
 

@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 import { ApplicationError, AUDIT_GENESIS } from '@agent-native/contracts';
 import { fleetSiteOperations } from '@agent-native/fleet-agent/contracts';
+import { pastBestBefore } from '@agent-native/kernel/build';
 import {
   collectionGetHandler,
   collectionListHandler,
@@ -8,6 +9,7 @@ import {
   type HandlerContribution,
 } from '@agent-native/runtime';
 import { operations } from '../contracts';
+import { relays } from '../contracts/relay';
 import { channels } from '../contracts/releases';
 import { healthSchema, sites, type Site } from '../contracts/sites';
 import { desiredRelease, siteIdOf, type AppState } from '../domain';
@@ -60,10 +62,18 @@ function issues(site: Site, state: AppState, at: number): Issue[] {
       kind: 'release-drift',
       detail: `Channel ${site.channel} assigns ${desired.id}; staged ${site.staged ?? 'nothing'}`,
     });
+  if (site.bestBefore && pastBestBefore(site.bestBefore, at))
+    found.push({
+      kind: 'past-best-before',
+      detail: `Runs a build past its best-before date of ${site.bestBefore}`,
+    });
   return found.map((issue) => ({ site: site.id, ...issue }));
 }
 
-/** Site reads, labels and channels, health, and the report and desired-release protocol calls. */
+/**
+ * Site reads, labels, channels and removal, health, and the report and desired-release protocol
+ * calls.
+ */
 export function siteHandlers(): HandlerContribution<AppState, Services>[] {
   return [
     collectionListHandler<AppState, Services, List, Site>(sites, operations.siteList, {
@@ -86,6 +96,14 @@ export function siteHandlers(): HandlerContribution<AppState, Services>[] {
         if (input.label !== undefined) site.label = input.label;
         if (input.channel !== undefined) site.channel = input.channel;
       });
+    }),
+    // The record and its relay requests go; forwarded audit events stay as the audit trail. A
+    // site whose device link still works reports again and comes back as a new record.
+    handler(operations.siteRemove, (input, ctx) => {
+      sitesOf(ctx).remove(input.id);
+      const requests = records(ctx, relays, ctx.state.relays);
+      for (const relay of requests.values()) if (relay.site === input.id) requests.remove(relay.id);
+      return { removed: true };
     }),
     handler(operations.fleetHealth, (_input, ctx) => {
       const at = now(ctx);
@@ -111,6 +129,8 @@ export function siteHandlers(): HandlerContribution<AppState, Services>[] {
         Object.assign(record, fields);
         if (input.staged) record.staged = input.staged.release;
         else delete record.staged;
+        if (input.bestBefore) record.bestBefore = input.bestBefore;
+        else delete record.bestBefore;
       });
       return {};
     }),

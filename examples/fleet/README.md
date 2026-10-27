@@ -42,13 +42,14 @@ The example is one [application](../../docs/primitives.md#application). It uses:
 | --- | --- | --- |
 | `link.enrollment.create` (device-link) | operator | A one-use code a site starts with, of kind `field-sync`. |
 | `site.list`, `site.get`, `site.update` | members; update by operators | Each site's last report. `update` sets a label and the channel. |
+| `site.remove` | operators, in person | Deletes a decommissioned site's record and its relay requests. Its forwarded audit events stay. |
 | `fleet.health` | members | The sites that need attention, listed below. |
 | `release.publish` | operators, from a build pipeline | A signed bundle: `bundle.json`, `bundle.sig` and each file uploaded first as a blob. |
 | `release.list`, `release.get`, `channel.list`, `channel.assign` | members; assign by operators | Channels point at one release each. |
 | `audit-event.list`, `audit-event.get` | members | Forwarded events, newest first, by site or kind. |
 | `relay.request`, `relay.list`, `relay.get` | members; request by an operator in person | A request to a site's `/api/v1/` and the response it returned. |
 
-A site's report holds its application, instance, outbox counts by target, audit position and staged release. `fleet.health` lists the sites that need attention, by the issue kinds in [Report and release flow](#report-and-release-flow).
+A site's report holds its application, instance, outbox counts by target, audit position, staged release and the running build's [best-before date](../../docs/glossary.md#best-before-date). `fleet.health` lists the sites that need attention, by the issue kinds in [Report and release flow](#report-and-release-flow).
 
 The fleet protocol capabilities are for enrolled sites only: `fleet.site.report`, `fleet.site.desired`, `fleet.audit.cursor`, `fleet.audit.ingest`, `fleet.relay.take` and `fleet.relay.answer`.
 
@@ -77,6 +78,7 @@ Enroll a site from the Devices screen. Then start the site with `--fleet-enrollm
 - **Releases.** The fleet checks that the manifest is a bundle manifest and that the uploaded blobs are exactly its files, by digest and size. It does not judge the signature. Each site checks the signature against its own trusted keys before staging, so a compromised fleet can withhold releases but cannot install one.
 - **Audit.** Each forwarded event must have the next sequence number, link to the hash of the event before it, and match its own hash (`hashEvent` from `@agent-native/event-log/chain`). The first event that fails stops collection for that site and records the reason on the site, where the health screen shows it.
 - **Audit retention.** The fleet skips events it already holds. A site reads the fleet's cursor before each batch, so a batch arrives again only when its reply was lost.
+- **Removal.** `site.remove` needs an operator and a person. It deletes no audit event, so the record of what a removed site did stays in the fleet. It does not revoke the site's device link, which belongs to the device-link plugin, so revoke the device first or the site's next report adds it again.
 - **Relay.** A request's headers and body are stored on the request only while it waits. The command receipt keeps the input for as long as receipts are kept. They are never listed and are dropped when the site takes the request. The site adds no credential, so a request reaches a capability only with a session the site issued. The site checks that session as it checks any other caller's.
 
 ## Dependencies
@@ -91,7 +93,8 @@ bun test examples/fleet
 
 `test/fleet.test.ts` starts the fleet and one or two plant instances on loopback. Each plant runs the real fleet-agent plugin, and `fleetNetworkFixture` maps its `fleet` destination to the fleet's loopback port. The tests cover:
 
-- reports and the health screen, with stale sites and release drift;
+- reports and the health screen, with stale sites, release drift and a build past its best-before date;
+- an operator removing a site, with its audit events kept and a revoked device not reporting it again;
 - a release reaching only the sites on its channel, with no other release readable;
 - a release whose blobs are not exactly its files;
 - audit events verified against the hash chain, and a forged event stopping collection;
@@ -136,7 +139,7 @@ bun test examples/fleet
 | [application.ts](application.ts) | `createFleetApplication`: state, handlers, policy and plugins |
 | [screens.tsx](screens.tsx) | Routes, navigation, capability screens and the device-link screens |
 | [contracts.ts](contracts.ts) | `fleetModule` and the capabilities people call |
-| [contracts/sites.ts](contracts/sites.ts) | Site collection, `site.update` and `fleet.health` with its issue kinds |
+| [contracts/sites.ts](contracts/sites.ts) | Site collection, `site.update`, `site.remove` and `fleet.health` with its issue kinds |
 | [contracts/releases.ts](contracts/releases.ts) | Release and channel collections, `release.publish` and `channel.assign` |
 | [contracts/audit.ts](contracts/audit.ts) | Forwarded audit event collection and the per-site limit |
 | [contracts/relay.ts](contracts/relay.ts) | Relay request collection and `relay.request` |
@@ -144,12 +147,12 @@ bun test examples/fleet
 | [policy.ts](policy.ts) | `appPolicy`: the site lane, the membership gate and per-capability rules |
 | [server.ts](server.ts) | `createHandlers`, every handler including the protocol's |
 | [handlers/context.ts](handlers/context.ts) | `Services` and the `handler` binder |
-| [handlers/sites.ts](handlers/sites.ts) | Site reads and update, health, the report and desired-release handlers |
+| [handlers/sites.ts](handlers/sites.ts) | Site reads, update and removal, health, the report and desired-release handlers |
 | [handlers/releases.ts](handlers/releases.ts) | Release and channel reads, publish and channel assignment |
 | [handlers/audit.ts](handlers/audit.ts) | Audit event reads, the audit cursor and ingest |
 | [handlers/relay.ts](handlers/relay.ts) | Relay reads, the request, take and answer handlers |
 | [ui/health.tsx](ui/health.tsx) | Health screen |
-| [ui/sites.tsx](ui/sites.tsx) | Site list, and the site screen with the remote-access form |
+| [ui/sites.tsx](ui/sites.tsx) | Site list, and the site screen with the remote-access and removal forms |
 | [ui/releases.tsx](ui/releases.tsx) | Release and channel screens |
 | [ui/audit.tsx](ui/audit.tsx) | Audit event screens |
 | [ui/relay.tsx](ui/relay.tsx) | Relay request screens |
@@ -162,7 +165,7 @@ bun test examples/fleet
 1. An operator creates a `field-sync` enrollment code on the Devices screen, which runs `link.enrollment.create` from the device-link plugin.
 2. The site's fleet agent exchanges the code at `/api/v1/link/enroll` for a bearer credential. The device-link plugin resolves it on every request to the principal `device:<id>`, with a grant of the protocol capabilities.
 3. Each cycle the site submits `fleet.site.report`. The lane in [policy.ts](policy.ts) matches `device:` principals and admits only the protocol capabilities.
-4. The report handler in [handlers/sites.ts](handlers/sites.ts) takes the site ID from the principal. It inserts the site record on the first report and then overwrites its outbox counts, audit head and staged release.
+4. The report handler in [handlers/sites.ts](handlers/sites.ts) takes the site ID from the principal. It inserts the site record on the first report and then overwrites its outbox counts, audit head, staged release and best-before date.
 5. A build pipeline with an operator's session uploads each release file as a blob and calls `release.publish`. The handler in [handlers/releases.ts](handlers/releases.ts) parses the bundle manifest and requires exactly one blob per file, matched by digest and size.
 6. The handler inserts the release record and attaches each blob to the resource `release:<id>`. It stores the signature without checking it.
 7. An operator points a channel at the release with `channel.assign` and assigns the site to it with `site.update`. An unknown channel answers `NOT_FOUND`.
@@ -175,6 +178,8 @@ bun test examples/fleet
     - **Audit broken.** The forwarded audit chain failed a check.
     - **Audit behind.** Forwarding lags the site's head by over 1,000 events.
     - **Release drift.** The staged release differs from the one the site's channel assigns.
+    - **Past best-before date.** The site runs a build past the best-before date its last report carried. The site keeps running.
+12. An operator removes a decommissioned site with `site.remove` from the site screen, after revoking its device on the Devices screen. The handler in [handlers/sites.ts](handlers/sites.ts) deletes the site record and the site's relay requests.
 
 ## Audit forwarding flow
 
@@ -279,7 +284,7 @@ The example uses no fake system of record. Its tests replace the site's network 
 - **Broken audit chain.** Collection stops at the first failed event and stays stopped. No capability inspects the break or resumes from the site's current head.
 - **Health thresholds.** The stale and audit-behind thresholds are constants in [handlers/sites.ts](handlers/sites.ts). They cannot be set per site or per deployment.
 - **Retention.** The fleet keeps the newest 1,000 audit events per site, and the site's own audit log keeps every event. After each answer, the fleet removes the oldest answered relay requests beyond 200 in total, and never a waiting or taken one.
-- **Missing removals.** No capability deletes a site, release or channel. Revoking a device stops its credential and leaves its site record.
+- **Missing removals.** No capability deletes a release or channel. `site.remove` leaves the device link, and a removed site's newest 1,000 forwarded audit events stay with no capability to delete them.
 - **Release size.** A release has at most 1,000 files of up to 256 MiB each.
 - **Relay transport.** The site polls for relay requests every two seconds by default and forwards one at a time. Request bodies reach up to 1,000,000 characters and response bodies up to 1 MiB, with no event streams.
 - **Credentials.** A site credential is not rotated, and a lost one needs a new enrollment code.
@@ -291,10 +296,12 @@ The example uses no fake system of record. Its tests replace the site's network 
 
 - [connect-a-site-to-a-fleet](../../plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md)
 - [run-a-hosted-instance](../../packages/host/skills/run-a-hosted-instance/SKILL.md)
+- [decommission-an-application](../../plugins/site/skills/decommission-an-application/SKILL.md)
 
 ## References
 
 - [Hosting: fleet](../../docs/hosting.md#fleet)
+- [Application lifecycle](../../docs/application-lifecycle.md)
 - [Fleet agent README](../../plugins/fleet-agent/README.md)
 - [Device link README](../../plugins/device-link/README.md)
 - [Architecture](../../docs/architecture.md)

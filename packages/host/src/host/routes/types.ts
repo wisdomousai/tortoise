@@ -3,6 +3,7 @@ import type { UiDeliveryStore } from '@agent-native/adapters/ui-deliveries';
 import type { UiSessionStore } from '@agent-native/adapters/ui-sessions';
 import type { createRunSupervisor } from '@agent-native/agents/supervisor';
 import type { Harness } from '@agent-native/agents/types';
+import type { BuildFacts } from '@agent-native/kernel/build';
 import type { ShellPort } from '@agent-native/kernel/shell';
 import type { HostedApplication } from '../../application';
 import type { ShellRelay } from '../shell-relay';
@@ -22,6 +23,8 @@ export interface HostRouteContext {
   readonly providers: Awaited<ReturnType<typeof createProviderAccess>>;
   /** Harnesses the embedding process added; they need no provider selection. */
   readonly harnesses?: readonly Harness[];
+  /** When the running binary was built and its best-before date; absent for a run from source. */
+  readonly build?: BuildFacts;
   readonly shutdown: {
     /** Present only when the local owner is a trusted identity. */
     readonly ownerSession?: HostSession;

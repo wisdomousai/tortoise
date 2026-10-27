@@ -16,6 +16,7 @@ Framework (`packages/*`). The starter's `apps/service` calls it. Content calls o
 - [Host platform](../../docs/primitives.md#host-platform): `hostedPlatform` (`HostedPlatformOptions`), the Bun platform with the workspace in Postgres under a [workspace lease](../../docs/glossary.md#workspace-lease). `serve --hosted-workspace <name>` selects it, with `AGENT_NATIVE_DATABASE_URL`.
 - [Shell port](../../docs/primitives.md#shell-port): the shell routes and the delivery routes, listed under [Shell and delivery routes](#shell-and-delivery-routes).
 - [State migration](../../docs/primitives.md#state-migration): `migrate [--dry-run]`, described under [Migrate command](#migrate-command).
+- [Shelf life](../../docs/primitives.md#shelf-life): a definition stamped by its build entry gives `startHost` its build facts. They are in the `listening` record, in each plugin's open context, and at `GET /api/v1/build` for a signed-in session. A run from source answers `{}`.
 - [Remote query](../../docs/primitives.md#remote-query): `ApplicationDefinition.sources` binds each remote target to a `RemoteSource`, which the host hands to the runtime. A target without a source answers `unavailable`.
 - [UI session context](../../docs/primitives.md#ui-session-context): a run started from a UI session gets the `ui.open`, `ui.select` and `ui.request-review` tools, which send intents to that session through `UiSessionStore.sendFromRun`. The host checks each named resource under the run's grant and against `selectableResources`.
 - [Compliance bundle](../../docs/primitives.md#compliance-bundle): `deploymentCatalog` is the composed catalog plus the host components that the generators read.
@@ -146,6 +147,7 @@ bun run test:service
   - a plugin resource type that shadows an application event rule;
   - connections and sources merged and bound once;
   - `feature:<id>` stamps, adoption of legacy data once, and older code refused.
+- `test/build.test.ts`: `GET /api/v1/build` for a stamped build past its best-before date, for a run from source, and without a session.
 - `test/workspace-backup.test.ts`: backs up a live workspace through the CLI, and refuses to restore while a host owns it.
 - `test/migrations.test.ts`: runs `migrate` with a pending effect, after a failed step and over a compatible step, and checks that storage refuses older code.
 - `test/providers.test.ts`: no credential reads at startup, single-use OAuth callbacks bound to their session, explicit API-key funding and no leaked provider error text.

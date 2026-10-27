@@ -33,6 +33,8 @@ export interface PostureMonitorOptions {
   readonly eventLog: EventLogPort;
   readonly forwarding?: () => ForwardingStats | undefined;
   readonly attestation?: () => Promise<{ catalogDigest?: string; executableDigest?: string }>;
+  /** The running build's best-before date, when it carries one. */
+  readonly bestBefore?: string;
   /** Re-check cadence. Default 15 minutes; each check re-verifies the whole chain. */
   readonly intervalMs?: number;
   /** A posture read older than this triggers a new check. Default one minute. */
@@ -72,6 +74,7 @@ async function runCheck(
     ...(options.forwarding?.() ? { forwarding: options.forwarding()! } : {}),
     usage: state.usage,
     ...(options.attestation ? { attestation: await options.attestation() } : {}),
+    ...(options.bestBefore ? { bestBefore: options.bestBefore } : {}),
     now: now(),
   });
   await options.eventLog

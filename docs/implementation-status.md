@@ -93,6 +93,8 @@ No public release has been made. The entries use these kinds of evidence:
 
 **By hand, 27 October 2026.** `bun run bundle create` built a `patterns/lab-requests-site` bundle of 46 files, with a 92 MB binary, on macOS arm64. The binary carried no `.exe` suffix after `scripts/bundle.ts` stopped matching `darwin` as Windows. `admit` on the copy the fleet agent staged refused it until approved.
 
+**By hand, 27 October 2026.** `bun run bundle create` signed the [best-before date](glossary.md#best-before-date) 2027-04-25 into a project-tasks bundle (the example since renamed `field-service`) with a shelf life of 180 days, and `verify` printed it.
+
 **Not shown.**
 
 - `site install` consumes a bundle ([site install](#site-install)), but nothing verifies one again at launch.
@@ -106,11 +108,23 @@ No public release has been made. The entries use these kinds of evidence:
 
 **By hand.** On 27 October 2026, on macOS arm64, `site install` installed release 1.2.0 of `patterns/lab-requests-site` from the folder the fleet agent staged it in. It ran with `--prefix`, `--service systemd`, `patterns/lab-requests-site/site-policy.json` and a site approval, without `--apply`. It rendered the unit and `egress.nft` and set mode 0755 on the installed binary, and `site status` verified the current release. Neither file was loaded, because the machine is not Linux.
 
+**By hand, 27 October 2026.** On macOS arm64, `site install` placed that project-tasks bundle in a staged prefix with `--service none` and an approval of its requirements. `site status` reported the release verified, with its best-before date. `site uninstall --purge --trust` ran the installed release's `drain` and then removed the release, configuration and data directories.
+
 **Not shown.**
 
 - No `--apply` run has loaded a service or firewall on a real host, on Linux or Windows.
 - The Windows path (WinSW XML, Windows Firewall script) has only been rendered, never run.
 - No kiosk client mode exists.
+- No purge has run against a service with undelivered effects on a real host.
+
+### Application lifecycle
+
+**By hand, 27 October 2026.** A project-tasks CLI compiled with a build time of 1 January 2026 served with a best-before date of 30 June 2026. In headless Chromium the web frame showed the date in the status box and the notice that the date has passed. `project create` committed, and `compliance report` on the instance's audit log reported the `best-before` check as `warn` and exited 0.
+
+**Not shown.**
+
+- No Playwright spec covers the frame's best-before notice.
+- No fleet has received a best-before date from a site across a real network.
 
 **Limits.** `network export` on its own names the application ID as the socket owner, while `site install` runs the service as `agent-native`. An export made apart from the install needs `--user`.
 

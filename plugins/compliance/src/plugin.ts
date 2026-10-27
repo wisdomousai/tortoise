@@ -27,7 +27,7 @@ export const compliancePlugin = defineHostPlugin<ComplianceState, ComplianceServ
   handlers: createComplianceHandlers(),
   authorization: { resourceTypes: ['audit'], port: compliancePolicy },
   commands: [complianceCliCommand],
-  async open({ services }) {
+  async open({ services, build }) {
     const { policy } = siteServiceOf(services);
     const audit = auditServiceOf(services);
     const monitor = createPostureMonitor({
@@ -40,6 +40,7 @@ export const compliancePlugin = defineHostPlugin<ComplianceState, ComplianceServ
         catalogDigest: audit.catalogDigest,
         executableDigest: await audit.executableDigest(),
       }),
+      ...(build?.bestBefore ? { bestBefore: build.bestBefore } : {}),
     });
     return {
       service: monitor,

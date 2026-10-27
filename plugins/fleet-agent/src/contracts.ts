@@ -46,6 +46,11 @@ export const siteReportSchema = z.strictObject({
   auditHead: count.optional(),
   /** The newest release the site staged for activation, by fleet release ID. */
   staged: z.strictObject({ release: id, version: z.string().min(1).max(64) }).optional(),
+  /** The running build's best-before date, `YYYY-MM-DD`, when the application has a shelf life. */
+  bestBefore: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 });
 export type SiteReport = z.infer<typeof siteReportSchema>;
 
