@@ -48,7 +48,7 @@ bun run build
 bun run test:e2e
 ```
 
-The package has no test files of its own. `check:boundaries` bundles every example's screens through this Vite config. The Playwright specs in `examples/*/e2e` drive the built web root in Chromium.
+The package has no test files of its own. `check:boundaries` bundles every example's screens through this Vite config. The Playwright specs in `examples/*/e2e` and `samples/*/e2e` drive the built web root in Chromium.
 
 ## Skills
 

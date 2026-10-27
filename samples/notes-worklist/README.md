@@ -16,7 +16,8 @@ The sample is one [application](../../docs/primitives.md#application) that uses 
 | `domain.ts` | Server | The state, the base `notes` slice and the worklist slice, and the integration principal |
 | `policy.ts` | Server | The worklist route: members read, editors report and mark done, and only the integration principal settles and syncs |
 | `application.ts` | Server | The base handlers, `worklistHandlers`, both routes, the plugins, and `connectWorklist` through the peer link's client |
-| `screens.tsx`, `ui/reviews.tsx` | Browser | The registry's `worklist` screen, one review and the peers screen |
+| `screens.tsx`, `ui/reviews.tsx` | Browser | The registry's `worklist` screen with its slots filled, one review with its verdicts, and the peers screen |
+| `ui/verdict.tsx` | Browser | The brief's notes, the verdict form, a verdict, and a report's note named from the brief. They repeat views of notes-assignments, because the web build generates styles only for classes in this application's directory and the frame |
 | `dev.ts`, `site-policy.dev.json` | Server | Binds `reviews-peer` to notes-assignments on `127.0.0.1:4355` for a dev launch |
 
 Inbound sync pulls `assignment.feed` from notes-assignments as this application's peer principal and applies it as the whole open set. A review it no longer lists, because it was withdrawn, closed or marked done there, stops taking reports here. Reports and done marks are outbox effects to `assignment.review.report` and `assignment.complete` there. A report that arrives after the done mark is still taken, so a retried delivery is not lost.
@@ -49,6 +50,11 @@ bun test samples/notes-worklist
 
 - `test/peer.test.ts`: two hosts started with `startPeerPair`, the worklist's destination bound in its site policy. A review sent to the peer arrives with its brief. The report and the done mark are delivered and recorded there under `peer:<id>`, and the status counts both as accepted. The issuer's editor accepts the report into the note. A report on a review withdrawn before delivery is refused with `CONFLICT` and kept here as refused, and the next sync closes the review here.
 - `test/ui-bindings.test.ts`: every bound capability is referenced by a screen in this sample, the base or the peer link plugin.
+- `e2e/worklist.pw.ts`, in Chromium against two real hosts: a site policy binds `reviews-peer` to notes-assignments, and a code from its Peers screen connects the two. A review sent to the peer arrives with its notes. A verdict and Done go back, the report shows as taken there, and an editor of notes-assignments accepts the verdict into its note.
+
+```sh
+bunx playwright test samples/notes-worklist
+```
 
 Run both samples in the browser:
 

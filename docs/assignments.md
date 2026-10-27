@@ -93,6 +93,12 @@ bun test samples/notes-assignments samples/notes-worklist
 bun test examples/asset-survey examples/asset-survey-field
 ```
 
+Run the samples' screens in Chromium, through the person and peer lanes:
+
+```sh
+bunx playwright test samples/notes-assignments samples/notes-worklist
+```
+
 ## Limits
 
 - A brief sent to a device or a peer carries no blobs, because the feed pull downloads none. A kind that declares brief blobs for these lanes is refused.

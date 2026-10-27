@@ -61,7 +61,7 @@ A sample with a `dev.ts` starts its fake system first or binds its destinations.
 
 - No sample serves a local model or runs agent tools in the execution host. The model-server stand-in is exported only from that plugin's tests, and the execution host runs only on Linux with bubblewrap.
 - No sample reads plant signals.
-- The samples have no Playwright specs. `bun run check` runs their behavioral and UI-binding tests.
+- Only `notes-assignments` and `notes-worklist` have Playwright specs. `bun run check` runs the behavioral and UI-binding tests of every sample.
 
 ## References
 

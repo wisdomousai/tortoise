@@ -167,7 +167,7 @@
       "name": "assignment-board",
       "type": "registry:component",
       "title": "Assignment board",
-      "description": "Assignments, live, with stage, assignee and report counts; a form per kind that creates a draft or sends at once, with a slot for the scope editor; and Send, Withdraw and Close where the stage allows them.",
+      "description": "Assignments, live, with stage, assignee and report counts; a form per kind that creates a draft or sends at once; and Send, Withdraw and Close where the stage allows them. Slots per kind: the scope editor and a summary of what an assignment covers.",
       "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
       "registryDependencies": [
         "badge",
@@ -189,7 +189,7 @@
       "name": "assignment-reports",
       "type": "registry:component",
       "title": "Assignment reports",
-      "description": "Reports, live, with body, reporter and review state; place a report on a subject, discard it, or accept it with the reviewer's input, with slots for the body view and the accept form.",
+      "description": "Reports, live, with body, reporter and review state; place a report on a subject, discard it, or accept it with the reviewer's input. Slots per kind: the body view, the subject's name, the placing input and the accept form.",
       "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
       "registryDependencies": [
         "badge",
@@ -209,7 +209,7 @@
       "name": "my-assignments",
       "type": "registry:component",
       "title": "My assignments",
-      "description": "The assignments sent to the signed-in person, live, each with its brief, a report form generated from the kind's report or the application's own, and Done.",
+      "description": "The assignments sent to the signed-in person, live, each with its brief, a report form and Done. Slots per kind: the brief view and the report form, generated from the kind's report when omitted.",
       "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
       "registryDependencies": [
         "button",
@@ -231,7 +231,7 @@
       "name": "worklist",
       "type": "registry:component",
       "title": "Worklist",
-      "description": "The work an issuer sent here, live, with a report form per kind, Done, and every report with whether the issuer took it; the counts and last feed from the worklist target's status.",
+      "description": "The work an issuer sent here, live, with a report form per kind, Done, and every report with whether the issuer took it; the counts and last feed from the worklist target's status. Slots per kind: the brief view, the report form, the body view and the subject's name.",
       "dependencies": ["@tanstack/react-query", "@agent-native/contracts"],
       "registryDependencies": [
         "badge",

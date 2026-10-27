@@ -22,7 +22,12 @@ export interface AssignmentReport {
   review: 'new' | 'accepted' | 'discarded';
   reviewedBy?: string;
   reason?: string;
+  /** What the reviewer gave on accepting it, in the kind's accept shape. */
+  accepted?: Record<string, unknown>;
 }
+
+/** Places a report on a subject; resolves false and shows the refusal when the instance refuses. */
+export type PlaceReport = (subject: string) => Promise<boolean>;
 
 /** One kind's reports: its contract, its accept command and optional views. */
 export interface ReportsKind {
@@ -31,6 +36,10 @@ export interface ReportsKind {
   accept: Command;
   /** How a report body reads; its fields as a list when omitted. */
   body?: (report: AssignmentReport) => ReactNode;
+  /** How a placed report names its subject, such as a link to the record; its key when omitted. */
+  subject?: (report: AssignmentReport) => ReactNode;
+  /** The input that places a report on a subject; a field for the record's key when omitted. */
+  place?: (report: AssignmentReport, place: PlaceReport) => ReactNode;
   /** The reviewer's input on accepting; the accept command's generated form when omitted. */
   review?: (report: AssignmentReport) => ReactNode;
 }
@@ -85,12 +94,16 @@ function ReportItem({
     setMessage(undefined);
     try {
       await client.command(command, input as never);
+      return true;
     } catch (error) {
       setMessage(refusal(error));
+      return false;
     } finally {
       setBusy(false);
     }
   };
+  const placeOn: PlaceReport = (on) =>
+    place ? act(place, { id: report.id, subject: on }) : Promise.resolve(false);
   const open = report.review === 'new';
   return (
     <li aria-label={`Report ${report.id}`} className="space-y-3 rounded-lg border p-4">
@@ -98,7 +111,11 @@ function ReportItem({
         <span className="font-medium">{kind?.kind.title ?? report.kind}</span>
         <Badge variant={open ? 'secondary' : 'outline'}>{report.review}</Badge>
         {report.subject ? (
-          <Badge variant="outline">{report.subject}</Badge>
+          kind?.subject ? (
+            kind.subject(report)
+          ) : (
+            <Badge variant="outline">{report.subject}</Badge>
+          )
         ) : kind?.kind.subject ? (
           <Badge variant="destructive">Not placed</Badge>
         ) : null}
@@ -110,12 +127,13 @@ function ReportItem({
         {report.reviewedBy ? ` · reviewed by ${report.reviewedBy}` : ''}
         {report.reason ? ` · ${report.reason}` : ''}
       </p>
-      {open && place && kind?.kind.subject && (
+      {open && place && kind?.kind.subject && kind.place && kind.place(report, placeOn)}
+      {open && place && kind?.kind.subject && !kind.place && (
         <form
           className="flex flex-wrap items-center gap-2"
           onSubmit={(event) => {
             event.preventDefault();
-            void act(place, { id: report.id, subject });
+            void placeOn(subject);
           }}
         >
           <Input

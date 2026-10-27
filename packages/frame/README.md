@@ -101,7 +101,7 @@ bun run build:web:examples
 bun run test:e2e
 ```
 
-`test/screens.test.ts` covers feature and plugin merging and the manifest checks. The frame has no other unit suite. `check:boundaries` builds every example's screens through the starter's real Vite config. The Playwright specs in `examples/*/e2e` drive the frame in Chromium, including live updates and draft conflicts.
+`test/screens.test.ts` covers feature and plugin merging and the manifest checks. The frame has no other unit suite. `check:boundaries` builds every example's screens through the starter's real Vite config. The Playwright specs in `examples/*/e2e` and `samples/*/e2e` drive the frame in Chromium, including live updates, draft conflicts and the assignment screens with their slots.
 
 ## Skills
 

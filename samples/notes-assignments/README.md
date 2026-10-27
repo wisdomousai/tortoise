@@ -20,10 +20,12 @@ The sample is one [application](../../docs/primitives.md#application) with the `
 | `automation.ts` | Server | The `review-sent-to-agent` [trigger](../../docs/primitives.md#trigger), which runs the reviewer on each review sent to it |
 | `application.ts` | Server | The base handlers in the `notes` slice, the feature mounted with its access and hooks, both routes, `selectableResources`, automation and the peer link |
 | `screens.tsx`, `ui/reviews.tsx` | Browser | The review board and reports, one review, one report, My reviews, and the automation and peers screens |
+| `ui/review-parts.tsx` | Browser | The note picker for the scope, a note's title as a link, placing a report on a note of its review, and accepting a verdict with its comment |
+| `ui/verdict.tsx` | Browser | The brief's notes, the verdict form and a verdict as reported |
 
 The review kind declares the scope (note IDs), the brief (each note's title and text when the review is sent), the report (`keep` or `revise` and a comment, about one note) and the accept input (an optional comment that replaces the report's). Accepting runs `note.update` as the editor who accepts and appends `Review (<verdict>): <comment>` to the note's text.
 
-The screens are the registry's `assignment-board`, `assignment-reports` and `my-assignments` with no slots, so their forms come from the kind's schemas. The assignee picker lists the members and the agent from `review.assignee.list`, and connected peers from `peer.list`, which only the workspace owner may read.
+The screens are the registry's `assignment-board`, `assignment-reports` and `my-assignments`, with every slot filled. The planner ticks notes from a searchable list, and the board names each review's notes. The assignee reads the brief's notes and reports a verdict on one note at a time. A report names its note and reads as keep or revise with its comment. An unplaced report is placed on one of the notes its review was sent with. The reviewer accepts the reporter's comment or edits it first. The assignee picker lists the members and the agent from `review.assignee.list`, and connected peers from `peer.list`, which only the workspace owner may read.
 
 ## Entrypoints
 
@@ -63,8 +65,13 @@ bun test samples/notes-assignments
 - `test/reviews.test.ts`: a viewer may not plan, and the scope must name existing notes. A review sent to Vera shows in her feed with the notes as they were, and is refused to a non-member. A report about a note outside the review is refused, and a late report after Done is still taken. A viewer may not accept; an editor's accept appends the comment to the note. After Close, reports are refused and the feed is empty. The assignee list names the members and the agent.
 - `test/agent.test.ts`: once the owner enables the trigger, a review sent to `note.reviewer` is reported on per note by an `auto:` run as the owner and marked done. A review sent to a person starts no run. A viewer's accept is refused, and the editor's writes the verdict into the note.
 - `test/ui-bindings.test.ts`: every bound capability, the feature's included, is referenced by a screen in this sample, the base or the automation and peer link plugins.
+- `e2e/reviews.pw.ts`, in Chromium against the real host: the owner picks two notes through the search and sends the review to the owner. My reviews shows the brief, takes a verdict on each note and Done. On the board, an edited comment is accepted into its note, the other verdict is discarded and the review is closed.
 
 `samples/notes-worklist` tests the peer lane with this application as the issuer.
+
+```sh
+bunx playwright test samples/notes-assignments
+```
 
 Run the sample in the browser:
 

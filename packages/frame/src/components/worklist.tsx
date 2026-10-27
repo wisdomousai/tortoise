@@ -47,6 +47,10 @@ export interface WorklistKind {
   brief?: (item: WorklistAssignment) => ReactNode;
   /** The application's own report form; fields generated from the report body when omitted. */
   form?: (item: WorklistAssignment, submit: SubmitReport) => ReactNode;
+  /** How a recorded report's body reads; its fields as a list when omitted. */
+  body?: (report: WorklistReport) => ReactNode;
+  /** How a recorded report names its subject; its key when omitted. */
+  subject?: (report: WorklistReport) => ReactNode;
 }
 
 const syncVariant = { pending: 'secondary', accepted: 'outline', rejected: 'destructive' } as const;
@@ -119,7 +123,7 @@ function Item({
         {item.note && <p className="text-sm">{item.note}</p>}
         <p className="text-xs text-muted-foreground">
           {kind?.kind.title ?? item.kind}, sent {new Date(item.sentAt).toLocaleString()},{' '}
-          {item.reports} reports here
+          {item.reports} {item.reports === 1 ? 'report' : 'reports'} here
         </p>
         {item.rejection && (
           <p className="text-sm text-destructive">
@@ -236,26 +240,34 @@ export function Worklist({
           <p className="text-sm text-muted-foreground">No reports yet.</p>
         ) : (
           <ul className="space-y-3">
-            {recorded.map((report) => (
-              <li
-                key={report.id}
-                aria-label={`Report ${report.id}`}
-                className="space-y-2 rounded-lg border p-4"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium">
-                    {kindOf(report.kind)?.kind.title ?? report.kind}
-                  </span>
-                  <Badge variant={syncVariant[report.sync]}>{syncLabel(report.sync, issuer)}</Badge>
-                  {report.subject && <Badge variant="outline">{report.subject}</Badge>}
-                </div>
-                <ReportBody body={report.body} />
-                <p className="text-xs text-muted-foreground">
-                  Recorded {new Date(report.reportedAt).toLocaleString()}
-                  {report.rejection ? ` · ${report.rejection.message}` : ''}
-                </p>
-              </li>
-            ))}
+            {recorded.map((report) => {
+              const kind = kindOf(report.kind);
+              return (
+                <li
+                  key={report.id}
+                  aria-label={`Report ${report.id}`}
+                  className="space-y-2 rounded-lg border p-4"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{kind?.kind.title ?? report.kind}</span>
+                    <Badge variant={syncVariant[report.sync]}>
+                      {syncLabel(report.sync, issuer)}
+                    </Badge>
+                    {report.subject &&
+                      (kind?.subject ? (
+                        kind.subject(report)
+                      ) : (
+                        <Badge variant="outline">{report.subject}</Badge>
+                      ))}
+                  </div>
+                  {kind?.body ? kind.body(report) : <ReportBody body={report.body} />}
+                  <p className="text-xs text-muted-foreground">
+                    Recorded {new Date(report.reportedAt).toLocaleString()}
+                    {report.rejection ? ` · ${report.rejection.message}` : ''}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

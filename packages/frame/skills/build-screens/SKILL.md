@@ -38,7 +38,7 @@ description: Build or change the web screens of an agent-native application, fea
 10. Never hand-edit the generated `registry.json` or `src/styles/operator.css`.
 11. Rebuild the frame registry with `bun run build:registry`.
 12. For framework capabilities, wrap the registry screen in an application screen that passes the capabilities and a `describe` label, as `examples/receiving/ui/reconcile.tsx` does. `approval-review` takes `approvalOperations`, and `reconciliation-review` takes `reconciliationOperations`.
-    - `assignment-board`, `assignment-reports` and `my-assignments` take the operations that `defineAssignments` returns, one entry per kind, and optional slots: the scope editor, the report body view, the reviewer's accept form and the report form. Without a slot they generate the form from the kind's schemas. `worklist` takes the operations that `defineWorklist` returns, for an application that takes work from another.
+    - `assignment-board`, `assignment-reports` and `my-assignments` take the operations that `defineAssignments` returns, one entry per kind, and optional slots per kind. The board takes the scope editor and a summary of what an assignment covers. The reports take the body view, the subject's name, the input that places a report and the reviewer's accept form. My assignments takes the brief view and the report form. Without a slot they show JSON and key fields generated from the kind's schemas. `worklist` takes the operations that `defineWorklist` returns, for an application that takes work from another, with the brief, report form, body and subject slots. `samples/notes-assignments/ui/reviews.tsx` fills every slot.
 13. Change the starter's look in `apps/web`. A file at the same `src/` path as a frame file replaces it.
 14. Add stock primitives to `apps/web` with `shadcn add`. Keep domain screens in the application, never in the starter.
 15. For native screens, use `defineNativeScreens` from `packages/frame-native` and follow the `extend-mobile-host` skill (`packages/mobile/skills/extend-mobile-host/SKILL.md`).
@@ -47,7 +47,7 @@ description: Build or change the web screens of an agent-native application, fea
 
 1. Add a UI-binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`, as in `examples/project-tasks/test/ui-bindings.test.ts`. It proves a screen references every capability that claims a binding.
 2. Add feature and plugin screen directories to that test's scan.
-3. Add a Playwright spec in `examples/<app>/e2e/` that proves the screen renders and commits.
+3. Add a Playwright spec in `examples/<app>/e2e/` or `samples/<app>/e2e/` that proves the screen renders and commits.
 4. Run the checks:
 
    ```sh

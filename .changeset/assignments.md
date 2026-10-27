@@ -11,6 +11,6 @@ Assignments: work handed to a person, an agent, a paired device, a peer applicat
 
 `AgentDefinition` takes an optional `creates`, the resource types a resource-scoped run may create. `agentGrant` records the definition on `DelegationGrant.agent`; grant files refuse the field.
 
-The frame registry adds `assignment-board`, `assignment-reports`, `my-assignments` and `worklist`, and the native registry adds `worklist-list` and `worklist-sync`. `scaffold add assignment-kind <id> --collection <type>` writes a person-lane kind with its hooks, screens and a test, and the first kind mounts the feature.
+The frame registry adds `assignment-board`, `assignment-reports`, `my-assignments` and `worklist`, and the native registry adds `worklist-list` and `worklist-sync`. Slots per kind replace the scope editor, the board's summary, the brief view, the report form, the body view, the subject's name, the placing input and the accept form. `scaffold add assignment-kind <id> --collection <type>` writes a person-lane kind with its hooks, screens and a test, and the first kind mounts the feature.
 
 `CapabilityForm` prefixes its field IDs per form, so two forms for the same command on one page keep their labels apart.

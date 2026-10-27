@@ -238,11 +238,15 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 
 The run found that two accept forms on one page shared field IDs, so one comment field carried both labels and the other none. `CapabilityForm` now prefixes its field IDs per form, and the rebuilt screen labelled both.
 
+**By hand, browser, the samples' own screens.** On 27 October 2026, a scripted Chromium run took screenshots of every screen of both samples with their slots filled. A peer report about a note outside the review showed as not placed, with accepting disabled until it was placed. The picker of the review's notes placed it, and the report then named that note. One review, one report and the worklist's review screen showed note titles where the generated screens showed keys.
+
+**Shown, browser.** `samples/notes-assignments/e2e/reviews.pw.ts` runs the person lane through those screens against the real host, from picking the notes to accepting an edited comment into its note. `samples/notes-worklist/e2e/worklist.pw.ts` runs the peer lane between two hosts, from the enrollment code to accepting the peer's verdict.
+
 **Not shown.**
 
 - **Agent:** an agent assignee has run only with the deterministic harness (`packages/assignments/test/lanes.test.ts`, `samples/notes-assignments/test/agent.test.ts`). No model has read a brief and reported.
 - **Target:** the target lane has run only in tests, against a function port.
-- **Browser:** no Playwright spec covers the samples' assignment screens. Without slots, the generated forms show the brief as JSON and take the scope and a report's subject as typed record IDs.
+- **Browser:** no spec covers the agent lane or placing a report; both ran by hand only. An application that fills no slots still shows the brief as JSON and takes the scope and a report's subject as typed record keys.
 
 ### Connector plugins
 

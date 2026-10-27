@@ -20,7 +20,8 @@ export interface Assignee {
 export interface AssigneeOption extends Assignee {
   label: string;
 }
-interface Assignment {
+/** An assignment as the board's list returns it. */
+export interface BoardAssignment {
   id: string;
   kind: string;
   title: string;
@@ -44,8 +45,10 @@ export interface BoardKind {
   kind: { id: string; title: string; lanes: readonly string[] };
   create: Command;
   send: Command;
-  /** An editor for the scope the planner fills in; a JSON field when omitted. */
+  /** An editor for the scope that labels its own fields; a JSON field when omitted. */
   scope?: (props: { value: unknown; onChange: (value: unknown) => void }) => ReactNode;
+  /** What an assignment covers, under its assignee; nothing when omitted. */
+  summary?: (assignment: BoardAssignment) => ReactNode;
 }
 
 const stageVariant: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
@@ -147,6 +150,8 @@ function NewAssignment({
     if (!created) return;
     setTitle('');
     setNote('');
+    setScope({});
+    setJson('{}');
     setAssignee('');
   };
   return (
@@ -180,16 +185,18 @@ function NewAssignment({
         <Textarea id={id('note')} value={note} onChange={(event) => setNote(event.target.value)} />
       </div>
       <div className="space-y-1 sm:col-span-2">
-        <Label htmlFor={id('scope')}>Scope</Label>
         {kind.scope ? (
           kind.scope({ value: scope, onChange: setScope })
         ) : (
-          <Textarea
-            id={id('scope')}
-            className="font-mono"
-            value={json}
-            onChange={(event) => setJson(event.target.value)}
-          />
+          <>
+            <Label htmlFor={id('scope')}>Scope</Label>
+            <Textarea
+              id={id('scope')}
+              className="font-mono"
+              value={json}
+              onChange={(event) => setJson(event.target.value)}
+            />
+          </>
         )}
       </div>
       <div className="flex items-center gap-3 sm:col-span-2">
@@ -214,12 +221,12 @@ function AssignmentRow({
   close,
   aside,
 }: {
-  assignment: Assignment;
+  assignment: BoardAssignment;
   kind: BoardKind | undefined;
   assignees: readonly AssigneeOption[];
   withdraw: Command;
   close: Command;
-  aside?: (assignment: Assignment) => ReactNode;
+  aside?: (assignment: BoardAssignment) => ReactNode;
 }) {
   const { busy, message, act } = useAct();
   const [assignee, setAssignee] = useState('');
@@ -245,10 +252,11 @@ function AssignmentRow({
         {assignment.delivery === 'rejected' && <Badge variant="destructive">Refused</Badge>}
       </div>
       <p className="text-sm text-muted-foreground">
-        {who} · {assignment.reports} reports
+        {who} · {assignment.reports} {assignment.reports === 1 ? 'report' : 'reports'}
         {assignment.rejection ? ` · ${assignment.rejection.message}` : ''}
         {assignment.reason ? ` · ${assignment.reason}` : ''}
       </p>
+      {kind?.summary?.(assignment)}
       <div className="flex flex-wrap items-center gap-2">
         {assignment.stage === 'draft' && kind && (
           <>
@@ -315,10 +323,10 @@ export function AssignmentBoard({
   assignees: readonly AssigneeOption[];
   /** The list query's filters: kind, stage, assignee. */
   input?: Record<string, unknown>;
-  aside?: (assignment: Assignment) => ReactNode;
+  aside?: (assignment: BoardAssignment) => ReactNode;
 }) {
   const query = useQuery(live.liveQueryOptions(list, { limit: 100, ...input } as never));
-  const data = query.data as { items: Assignment[]; total: number } | undefined;
+  const data = query.data as { items: BoardAssignment[]; total: number } | undefined;
   const items = data?.items ?? [];
   const [creating, setCreating] = useState<string>();
   const kindOf = (id: string) => kinds.find((kind) => kind.kind.id === id);
