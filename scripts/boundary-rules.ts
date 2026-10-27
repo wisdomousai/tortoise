@@ -96,8 +96,8 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Runs only inside a bubblewrap sandbox, whose network namespace has loopback only: the launcher relays loopback ports to the host relays and starts the task.',
   'plugins/execution-host/test/fixtures/':
     'Test fixture run inside the sandbox: it attempts the connections and processes the sandbox must refuse.',
-  'plugins/model-server/test/fixtures/':
-    'Test stand-in for llama-server, started as a child through the process port: it listens on the loopback port the site policy binds to local-inference.',
+  'plugins/model-server/src/testing/':
+    'Stand-in for llama-server in tests and development launches, started as a child through the process port: it listens on the loopback port the site policy binds to local-inference.',
   'packages/adapters/src/postgres-bun.ts':
     "The hosted platform's workspace database, opened before any plugin from the URL the launcher configures; it holds workspace state, as the local SQLite file does.",
   'plugins/process/src/spawn.ts':

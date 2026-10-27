@@ -3724,7 +3724,11 @@
     "./src/plugin ModelServerStatus",
     "./src/plugin createModelServer",
     "./src/plugin-manifest default",
-    "./src/plugin-manifest modelServerPluginManifest"
+    "./src/plugin-manifest modelServerPluginManifest",
+    "./src/testing StandInMessage",
+    "./src/testing StandInReply",
+    "./src/testing StandInResponder",
+    "./src/testing llamaServerStandIn"
   ],
   "plugins/network": [
     ". AllowRule",

@@ -15,11 +15,11 @@ import { startHost } from '@agent-native/host/host';
 import { gateModel } from '@agent-native/testing/activation';
 import { runAgentScenario, type AgentScenario } from '@agent-native/testing/agent-scenarios';
 import { serverArguments } from '../src/arguments';
+import { llamaServerStandIn } from '../src/testing';
 import { measure } from '../src/measure';
 import type { ModelServerOptions } from '../src/plugin';
 import { ENTRY, notesApplication, person } from './fixture';
 
-const fixture = join(import.meta.dir, 'fixtures', 'llama-server.ts');
 const sha = (bytes: Uint8Array) => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 const dataset = `sha256:${'d'.repeat(64)}`;
 const cleanup: (() => Promise<unknown>)[] = [];
@@ -35,7 +35,7 @@ async function freePort() {
   return port;
 }
 
-/** Weights on disk, the entry naming them, and a host serving them through the fixture. */
+/** Weights on disk, the entry naming them, and a host serving them through the stand-in. */
 async function site() {
   const directory = await mkdtemp(join(tmpdir(), 'model-server-'));
   cleanup.push(() => rm(directory, { recursive: true, force: true }));
@@ -76,7 +76,7 @@ async function site() {
         processes: {
           llm: {
             executable: process.execPath,
-            args: [fixture, '--port', String(port)],
+            args: [llamaServerStandIn, '--port', String(port)],
             env: { FIXTURE_CALL: JSON.stringify(call) },
           },
         },

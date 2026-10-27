@@ -40,6 +40,8 @@ A [model entry](../../../../docs/glossary.md#model-entry) names the weights by d
 
 ## Checks
 
+In tests and development launches, bind the process to Bun with `llamaServerStandIn` from `@agent-native/model-server/testing` as its first argument. It takes llama-server's flags. `FIXTURE_RESPONDER` names a module whose default `StandInResponder` scripts the model's answers.
+
 1. Run the tests:
 
    ```sh
