@@ -1,6 +1,6 @@
 # Application lifecycle
 
-An [application](glossary.md#application) built on the [framework](glossary.md#framework) serves one task at one [site](glossary.md#site) until the site removes it. Each build carries a best-before date that the host, the site install, the compliance posture and the fleet show, and nothing is refused after it. Removing an application deletes its data directory only after the [outbox](glossary.md#outbox) holds no effect that a [system of record](glossary.md#system-of-record) has not settled.
+An [application](glossary.md#application) built on the [framework](glossary.md#framework) serves one task at one [site](glossary.md#site) until the site removes it. Each build carries a best-before date that the host, `app status`, the compliance posture and the fleet show, and nothing is refused after it. Removing an application deletes its data directory only after the [outbox](glossary.md#outbox) holds no effect that a [system of record](glossary.md#system-of-record) has not settled.
 
 ## Concepts
 
