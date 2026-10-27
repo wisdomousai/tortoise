@@ -123,7 +123,7 @@ External: `zod` for the policy schema, and `jose` for the provider's key set.
 ## Tests
 
 ```sh
-bun test examples/project-tasks/test/hardening.test.ts examples/project-tasks/test/security.test.ts
+bun test examples/field-service/test/hardening.test.ts examples/field-service/test/security.test.ts
 bun test plugins/network
 bun test apps/desktop/test/site-policy.test.ts
 bun test plugins/site
@@ -131,7 +131,7 @@ bun test plugins/site
 
 Applications that compose the plugin exercise it:
 
-- the project-tasks suites cover isolated defaults, profile floors, identity and mTLS;
+- the field-service suites cover isolated defaults, profile floors, identity and mTLS;
 - the network suite shows a connected policy refused without the network plugin;
 - the desktop test covers the shipped deployment policy.
 

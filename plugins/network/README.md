@@ -66,13 +66,13 @@ Gaps: the guard is in-process. Real containment needs the exported rules applied
 ```sh
 bun test plugins/network
 UPDATE_GOLDEN=1 bun test plugins/network   # after an intended exporter change; review the diff
-bun test plugins/webhook examples/project-tasks/test/security.test.ts examples/project-tasks/test/hardening.test.ts
+bun test plugins/webhook examples/field-service/test/security.test.ts examples/field-service/test/hardening.test.ts
 ```
 
 - `test/guard.test.ts` runs the guard against a loopback server. It covers origin, redirect and address checks, audited decisions, fail-closed recording, response caps, a binding's own timeout and response cap, and the child proxy admitting only declared destinations.
 - `test/network.test.ts` covers rule exports against golden files in `test/golden`, the guard recording into an audit log composed after it, and a connected policy refused without this plugin.
 
-The webhook suite shows a third-party plugin refused by the guard for an unbound destination. The project-tasks suites cover bound and refused provider destinations, the child proxy and mTLS. `bun run test:isolated` and `bun run test:sandbox` check that no path escapes the guard.
+The webhook suite shows a third-party plugin refused by the guard for an unbound destination. The field-service suites cover bound and refused provider destinations, the child proxy and mTLS. `bun run test:isolated` and `bun run test:sandbox` check that no path escapes the guard.
 
 ## Skills
 

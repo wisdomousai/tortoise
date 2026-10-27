@@ -10,7 +10,7 @@ The CLI and the MCP bridge reach the running [host](glossary.md#host) in [attach
 
 ## First run
 
-`bun install --frozen-lockfile` installs the dependencies. `bun run dev` builds the web screens, then opens the desktop window on `project-tasks`, the application `app.config.json` names. The host also prints a [launch link](glossary.md#launch-exchange) for a browser. That link signs a browser in once and expires after one minute.
+`bun install --frozen-lockfile` installs the dependencies. `bun run dev` builds the web screens, then opens the desktop window on `field-service`, the application `app.config.json` names. The host also prints a [launch link](glossary.md#launch-exchange) for a browser. That link signs a browser in once and expires after one minute.
 
 The host keeps the workspace in `.workspace/` by default. These environment variables change the defaults:
 
@@ -21,7 +21,7 @@ The host keeps the workspace in `.workspace/` by default. These environment vari
 
 `bun run dev:web` serves the browser without opening the window.
 
-In `project-tasks`, the task list updates when [commands](glossary.md#command) commit. The [caller](glossary.md#caller) editing a task keeps the caller's draft when another caller changes the committed record. `examples/project-tasks/e2e/workspace.pw.ts` checks both through MCP and the browser.
+In `field-service`, the task list updates when [commands](glossary.md#command) commit. The [caller](glossary.md#caller) editing a task keeps the caller's draft when another caller changes the committed record. `examples/field-service/e2e/workspace.pw.ts` checks both through MCP and the browser.
 
 ## Other examples
 
@@ -36,7 +36,7 @@ In the same directory, `bun run dev:web` serves the browser instead. When an exa
 
 | Example | Port | Guide |
 | --- | --- | --- |
-| [`project-tasks`](../examples/project-tasks/README.md) | 4321 | [State and reactivity](state-and-reactivity.md) |
+| [`field-service`](../examples/field-service/README.md) | 4321 | [State and reactivity](state-and-reactivity.md) |
 | [`quality-inspection`](../examples/quality-inspection/README.md) | 4322 | [Systems of record](systems-of-record.md) |
 | [`line-station`](../examples/line-station/README.md) | 4323 | [Operator workstations](operator-workstations.md) |
 | [`crm-capture`](../examples/crm-capture/README.md) | 4324 | [Systems of record](systems-of-record.md) |
@@ -137,11 +137,11 @@ bun run generate
 `scaffold new` exports the [starter](glossary.md#starter) and the framework source with a generated application as the only content. Run it from the root of this repository, then work in the new directory:
 
 ```sh
-bun run scaffold new /path/to/new-app --name new-app --display-name "New App" --collection note
+bun run scaffold new /path/to/new-app --name new-app --display-name "New App" --collection inspection
 cd /path/to/new-app
 bun install --frozen-lockfile
-bun run scaffold add capability note.archive --kind command --description "Archive a note. Editors only."
-bun run scaffold add target ledger --collection note
+bun run scaffold add capability inspection.approve --kind command --description "Approve an inspection. Editors only."
+bun run scaffold add target qms --collection inspection
 bun run format
 bun run generate
 bun run dev

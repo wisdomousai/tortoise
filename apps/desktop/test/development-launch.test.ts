@@ -11,10 +11,10 @@ const root = resolve('repo-root');
 const workspace = resolve('work');
 const env: NodeJS.ProcessEnv = {
   AGENT_NATIVE_DESKTOP_DEV: '1',
-  AGENT_NATIVE_APPLICATION: '@agent-native/project-tasks',
+  AGENT_NATIVE_APPLICATION: '@agent-native/field-service',
   AGENT_NATIVE_BUN: process.execPath,
   AGENT_NATIVE_SERVICE_ENTRY: resolve('apps/service/src/index.ts'),
-  AGENT_NATIVE_WEB_ROOT: resolve('dist/web/project-tasks'),
+  AGENT_NATIVE_WEB_ROOT: resolve('dist/web/field-service'),
   AGENT_NATIVE_DEV_ROOT: root,
   AGENT_NATIVE_SITE_POLICY: resolve('apps/desktop/site-policy.json'),
   PORT: '4321',
@@ -34,7 +34,7 @@ test('development launches use the source service and keep host-owned paths', ()
   const launch = developmentServiceLaunch(env, workspace);
   expect(launch.executable).toBe(process.execPath);
   expect(launch.args).toEqual([resolve('apps/service/src/index.ts')]);
-  expect(launch.webRoot).toBe(resolve('dist/web/project-tasks'));
+  expect(launch.webRoot).toBe(resolve('dist/web/field-service'));
   expect(launch.cwd).toBe(root);
   expect(launch.port).toBe('4321');
   expect(launch.sitePolicy).toBe(resolve('apps/desktop/site-policy.json'));
@@ -62,8 +62,8 @@ test('development launch refuses relative paths and a missing flag', () => {
 test('each development application gets its own single-instance name', () => {
   // One literal: a scaffold export renames it, and the calls must not depend on its length.
   const appName = 'agent-native-desktop-starter';
-  expect(developmentAppName(appName, '@agent-native/project-tasks')).toBe(
-    `${appName}.agent-native-project-tasks`,
+  expect(developmentAppName(appName, '@agent-native/field-service')).toBe(
+    `${appName}.agent-native-field-service`,
   );
   expect(developmentAppName(appName, undefined)).toBe(appName);
 });

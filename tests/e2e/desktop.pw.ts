@@ -79,8 +79,8 @@ test('packaged Electron uses its bundled instance with no runtime on PATH, react
   try {
     app = await launch(workspace);
     const page = await app.firstWindow();
-    await page.getByLabel('New project').fill('Native acceptance');
-    await page.getByRole('button', { name: 'Create project', exact: true }).click();
+    await page.getByLabel('New work order').fill('Native acceptance');
+    await page.getByRole('button', { name: 'Create work order', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Native acceptance' })).toBeVisible();
     await page.getByLabel('New task title').fill('Created in native Electron');
     await page.getByRole('button', { name: 'Add task', exact: true }).click();
@@ -207,15 +207,15 @@ test('closing an attached native frontend leaves the pre-existing bundled servic
     const endpoint = await ready;
     app = await launch(workspace);
     const page = await app.firstWindow();
-    await page.getByLabel('New project').fill('Attached instance');
-    await page.getByRole('button', { name: 'Create project', exact: true }).click();
+    await page.getByLabel('New work order').fill('Attached instance');
+    await page.getByRole('button', { name: 'Create work order', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Attached instance' })).toBeVisible();
     await app.close();
     app = undefined;
     expect(child!.exitCode).toBeNull();
     expect(await health(endpoint)).toBe(true);
-    const projects = await call(await connection(workspace), 'project.list', {});
-    expect(projects.data.items[0].name).toBe('Attached instance');
+    const workOrders = await call(await connection(workspace), 'work-order.list', {});
+    expect(workOrders.data.items[0].name).toBe('Attached instance');
   } finally {
     await app?.close();
     if (child && child.exitCode === null) {

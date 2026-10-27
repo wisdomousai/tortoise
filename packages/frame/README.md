@@ -22,7 +22,7 @@ Framework (`packages/*`). Browser code, plus a build-time Vite plugin. The frame
 - [Feature](../../docs/primitives.md#feature): `defineFeatureScreens`, `FeatureScreens`. `defineScreens({ manifest, features })` merges a feature's routes, navigation and capability screens before its checks.
 - [Host plugin](../../docs/primitives.md#host-plugin): `definePluginScreens`, `PluginScreens`, the same shape. `defineScreens({ manifest, plugins })` merges plugin screens after feature screens.
 
-A worked `screens` entrypoint is [`examples/project-tasks/screens.tsx`](../../examples/project-tasks/screens.tsx).
+A worked `screens` entrypoint is [`examples/field-service/screens.tsx`](../../examples/field-service/screens.tsx).
 
 ## Entrypoints
 

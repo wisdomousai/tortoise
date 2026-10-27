@@ -120,7 +120,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 - `plugins/site/test/workforce.test.ts` signs in against a fake provider. It covers PKCE, a one-use state, session expiry and the ID-token checks: audience, nonce, verified email and the discovered issuer.
 - `packages/adapters/src/http-credentials.test.ts` shows a cookie accepted only as a cookie and a bearer only as a bearer.
-- The project-tasks hardening test starts an `external` policy with a bound provider and no owner session.
+- The field-service hardening test starts an `external` policy with a bound provider and no owner session.
 - `plugins/site/test/identity-provider.test.ts` signs in against the stand-in provider in process, and `samples/lab-requests-hosted/test/hosted.test.ts` signs in through the network guard over HTTPS with a throwaway CA.
 
 **Not shown.**
@@ -176,7 +176,7 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Shown, browser.**
 
-- **project-tasks:** live updates from an external MCP process, drafts that keep their base revision, and paging past the first page.
+- **field-service:** live updates from an external MCP process, drafts that keep their base revision, and paging past the first page.
 - **quality-inspection:** keyboard-only capture, and a draft that keeps its sample when another caller records it first.
 - **crm-capture:** search, adopt and log.
 - **lab-requests-review:** on 27 October 2026, `bun run dev:web` in Chrome on macOS. As the local owner, an approval of the request `dev.ts` submitted as a second technician showed live. After a method change it was marked as on an earlier revision, and the owner signed the new revision. A second signature of that revision and a signature of the owner's own request were refused with their messages.
@@ -362,21 +362,22 @@ Control mappings are indicative.
 
 ### OS integration
 
-**Shown, browser.** `examples/project-tasks/e2e/os.pw.ts`:
+**Shown, browser.** `examples/field-service/e2e/os.pw.ts`:
 
 - The served web manifest carries the protocol and file handlers.
-- A `?os=` landing with a task link opens that task's project, shows where it came from and clears the address.
+- A `?os=` landing with a task link opens that task's work order, shows where it came from and clears the address.
 - A submitted Markdown file shows the prefilled task with its provenance, and adding it creates the task.
 - An uploaded image shows its attachment in the prefill. The added task links to bytes the page can download.
 - A share target form is posted cross-site from a blank page, first with a link and then with a PNG. Each lands on the application, shows the prefilled task with its provenance, and the added task is created.
 - A reminder asked for in the page shows as waiting for the desktop or phone application.
 - The web manifest lists the New task shortcut. Its landing shows an empty prefilled task opened from a shortcut.
+- Open map opens the OpenStreetMap search for the site in a new browsing context without an opener. The test answers that URL locally. Send summary passes the work order's title and summary text to `navigator.share`, which the test replaces with a recorder.
 
 **Not shown.** Nothing has been registered with, received from or performed through a real OS.
 
 - **Desktop wiring:** the Electron wiring (`apps/desktop/src/os-shell.ts`) has no native run. A macOS link or file reaches it only from a packaged bundle.
 - **Installed web application:** no installed web application has registered the protocol or file handlers, and the launch queue path has not run in a browser. Whether a Chromium version accepts the SVG icon for installation is not checked.
-- **OS actions:** `runOsAction` has no caller yet. On a device, the field application's screens call `useOsAction`, and they have not rendered.
+- **OS actions:** the browser has run `runOsAction` only with a replaced `navigator.share`, and the desktop shell has relayed no open or share from it. On a device, the field application's screens call `useOsAction`, and they have not rendered.
 - **Expo bindings:** `packages/mobile/src/expo/os-shell.ts` has not run on a device or simulator. No Android intent filter, iOS associated domain or document type has been registered, and no exported association file has been served from a real domain.
 - **Share:** no share has come from a real share sheet. The Chromium test posts the share target form itself.
 - **Expo sharing:** `expo-sharing`, whose receiving API is experimental, has not run on a device. Its Android SEND filter and iOS share extension are unbuilt.

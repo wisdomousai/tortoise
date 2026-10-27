@@ -28,7 +28,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 
 | Example | Shows |
 | --- | --- |
-| `examples/project-tasks` | the smallest whole application: capabilities, policy, OS handlers, agent definitions, a background job |
+| `examples/field-service` | the smallest whole application: capabilities, policy, OS handlers, agent definitions, a background job |
 | `examples/quality-inspection` | capture against a system of record through the outbox, and a measuring instrument through a Python driver |
 | `examples/crm-capture` | live search of a CRM and adoption of its records |
 | `examples/line-station` | an operator workstation over workstation application reached through its screen or a .NET driver |

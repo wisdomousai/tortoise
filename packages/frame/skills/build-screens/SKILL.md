@@ -43,7 +43,7 @@ description: Build or change the web screens of an agent-native application, fea
 
 ## Checks
 
-1. Add a UI-binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`, as in `examples/project-tasks/test/ui-bindings.test.ts`. It proves a screen references every capability that claims a binding.
+1. Add a UI-binding test with `unboundOperations` from `@agent-native/testing/ui-bindings`, as in `examples/field-service/test/ui-bindings.test.ts`. It proves a screen references every capability that claims a binding.
 2. Add feature and plugin screen directories to that test's scan.
 3. Add a Playwright spec in `examples/<app>/e2e/` that proves the screen renders and commits.
 4. Run the checks:
@@ -60,7 +60,7 @@ description: Build or change the web screens of an agent-native application, fea
 ## References
 
 - [`@agent-native/frame`](../../README.md)
-- [`examples/project-tasks/screens.tsx`](../../../../examples/project-tasks/screens.tsx)
+- [`examples/field-service/screens.tsx`](../../../../examples/field-service/screens.tsx)
 - [`examples/quality-inspection/ui/capture-station.tsx`](../../../../examples/quality-inspection/ui/capture-station.tsx)
 - [Lab requests agents sample](../../../../samples/lab-requests-agents/README.md)
 - [Interaction contract](../../../../docs/interaction-contract.md#ui-intents)

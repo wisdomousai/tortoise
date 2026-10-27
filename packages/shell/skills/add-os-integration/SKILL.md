@@ -5,7 +5,7 @@ description: Let the operating system reach an agent-native application, or let 
 
 # Add an OS integration
 
-An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its [module](../../../../docs/glossary.md#module). The first kind is an [OS handler](../../../../docs/glossary.md#os-handler), the second an [OS action](../../../../docs/glossary.md#os-action). `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. [Host plugins](../../../../docs/glossary.md#host-plugin) serve each kind. `examples/project-tasks/os.ts` declares one of nearly every kind and is the worked reference. `examples/asset-survey-field/os.ts` is the phone reference: an intent handler that opens a resource, and intent, share and notify actions that native screens and inbound sync use.
+An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its [module](../../../../docs/glossary.md#module). The first kind is an [OS handler](../../../../docs/glossary.md#os-handler), the second an [OS action](../../../../docs/glossary.md#os-action). `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. [Host plugins](../../../../docs/glossary.md#host-plugin) serve each kind. `examples/field-service/os.ts` declares one of nearly every kind and is the worked reference; its work order screen runs the open and share actions with `runOsAction`. `examples/asset-survey-field/os.ts` is the phone reference: an intent handler that opens a resource, and intent, share and notify actions that native screens and inbound sync use.
 
 ## Before writing
 
@@ -55,8 +55,8 @@ bunx playwright test examples/<app>/e2e
 ```
 
 - Each serving plugin's `test/mobile.test.ts` runs the mobile instance with Bun bindings for the device.
-- `examples/project-tasks/test/os.test.ts` covers the desktop path over HTTP.
+- `examples/field-service/test/os.test.ts` covers the desktop path over HTTP.
 - `examples/asset-survey-field/test/os.test.ts` covers a phone with faked bindings: an intent, a notice queued by inbound sync, an intent action and a share.
-- `examples/project-tasks/e2e/os.pw.ts` covers the browser.
+- `examples/field-service/e2e/os.pw.ts` covers the browser, including an open action in a new browsing context and a share through the Web Share API.
 
 The Kotlin module of `plugins/android-intents` and the Expo config plugins compile only in a native build. Record a device or emulator run in [implementation status](../../../../docs/implementation-status.md#os-integration), separately from the Bun tests.

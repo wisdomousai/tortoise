@@ -58,7 +58,7 @@ Other suites cover the rest:
 
 - `packages/shell/test/shortcuts.test.ts`: the link form, the matching order and the registrations;
 - `packages/mobile/test/shortcuts-plugin.test.ts`: the Android config plugin;
-- `examples/project-tasks/e2e/os.pw.ts`: opening the web shortcut.
+- `examples/field-service/e2e/os.pw.ts`: opening the web shortcut.
 
 ## Skills
 

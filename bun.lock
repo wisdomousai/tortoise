@@ -26,6 +26,7 @@
         "@agent-native/devices": "workspace:*",
         "@agent-native/event-log": "workspace:*",
         "@agent-native/execution-host": "workspace:*",
+        "@agent-native/field-service": "workspace:*",
         "@agent-native/fleet": "workspace:*",
         "@agent-native/fleet-agent": "workspace:*",
         "@agent-native/frame": "workspace:*",
@@ -47,7 +48,6 @@
         "@agent-native/os-shortcuts": "workspace:*",
         "@agent-native/peer-link": "workspace:*",
         "@agent-native/process": "workspace:*",
-        "@agent-native/project-tasks": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
         "@agent-native/react": "workspace:*",
         "@agent-native/receiving": "workspace:*",
@@ -179,16 +179,16 @@
       "name": "@agent-native/crm-capture",
       "version": "0.1.0",
     },
+    "examples/field-service": {
+      "name": "@agent-native/field-service",
+      "version": "0.1.0",
+    },
     "examples/fleet": {
       "name": "@agent-native/fleet",
       "version": "0.1.0",
     },
     "examples/line-station": {
       "name": "@agent-native/line-station",
-      "version": "0.1.0",
-    },
-    "examples/project-tasks": {
-      "name": "@agent-native/project-tasks",
       "version": "0.1.0",
     },
     "examples/quality-inspection": {
@@ -945,6 +945,8 @@
 
     "@agent-native/execution-host": ["@agent-native/execution-host@workspace:plugins/execution-host"],
 
+    "@agent-native/field-service": ["@agent-native/field-service@workspace:examples/field-service"],
+
     "@agent-native/fleet": ["@agent-native/fleet@workspace:examples/fleet"],
 
     "@agent-native/fleet-agent": ["@agent-native/fleet-agent@workspace:plugins/fleet-agent"],
@@ -988,8 +990,6 @@
     "@agent-native/peer-link": ["@agent-native/peer-link@workspace:plugins/peer-link"],
 
     "@agent-native/process": ["@agent-native/process@workspace:plugins/process"],
-
-    "@agent-native/project-tasks": ["@agent-native/project-tasks@workspace:examples/project-tasks"],
 
     "@agent-native/quality-inspection": ["@agent-native/quality-inspection@workspace:examples/quality-inspection"],
 

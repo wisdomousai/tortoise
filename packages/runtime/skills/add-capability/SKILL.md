@@ -64,6 +64,6 @@ After `generate`, read the application's security manifest and data flows in `di
 ## References
 
 - [Capability authoring](../../../../docs/capability-authoring.md)
-- [`examples/project-tasks`](../../../../examples/project-tasks/README.md)
+- [`examples/field-service`](../../../../examples/field-service/README.md)
 - [Authorization](../../../../docs/authorization.md)
 - [Samples](../../../../docs/samples.md)

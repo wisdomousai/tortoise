@@ -161,7 +161,7 @@ test('under external identity an embedded call needs a grant; the serving host s
     /embedded calls need a delegated grant/,
   );
   expect(() => assertIdentity(policy, undefined, true)).not.toThrow();
-  const grant = { operations: ['project.list'], expiresAt: Date.now() + 60_000 };
+  const grant = { operations: ['work-order.list'], expiresAt: Date.now() + 60_000 };
   expect(() =>
     assertIdentity(policy, { workspaceId: 'local', principalId: 'agent', grant }, false),
   ).not.toThrow();

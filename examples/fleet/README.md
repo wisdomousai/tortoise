@@ -304,7 +304,7 @@ The example uses no fake system of record. Its tests replace the site's network 
 - [deploy-to-site](../../plugins/site/skills/deploy-to-site/SKILL.md)
 - [Asset survey](../asset-survey/README.md)
 - [Asset survey field](../asset-survey-field/README.md)
-- [Project tasks](../project-tasks/README.md)
+- [Field service](../field-service/README.md)
 - [add-capability](../../packages/runtime/skills/add-capability/SKILL.md)
 - [Setup reference](../../packages/scaffold/skills/create-agent-native-app/references/new-application.md)
 - [extend-mobile-host](../../packages/mobile/skills/extend-mobile-host/SKILL.md)

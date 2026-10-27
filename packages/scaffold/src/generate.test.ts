@@ -40,7 +40,7 @@ test('new writes one generated application and copies no example', async () => {
   const lock = await read(join(target, 'bun.lock'));
   expect(lock).toContain('"examples/field-notes": {');
   expect(lock).toContain('"@field-notes/application": ["@field-notes/application@workspace:');
-  expect(lock).not.toContain('examples/project-tasks');
+  expect(lock).not.toContain('examples/field-service');
   // The samples go too, with their workspace pattern and root dependencies.
   expect(await readdir(target)).not.toContain('samples');
   expect(lock).not.toContain('samples/lab-requests');

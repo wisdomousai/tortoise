@@ -1,6 +1,6 @@
 # Capability authoring
 
-Domain behavior enters an application as a capability, written from the contract through the handler and policy rule to the tests. The `project-tasks` example is the worked reference.
+Domain behavior enters an application as a capability, written from the contract through the handler and policy rule to the tests. The `field-service` example is the worked reference.
 
 ## Concepts
 
@@ -180,14 +180,14 @@ A [trigger](glossary.md#trigger) runs a job or an agent definition on a committe
 
 ## Scenarios
 
-Write a behavioral scenario for each capability: permitted and denied access, a stale revision, a replayed [idempotency key](glossary.md#idempotency-key) and the change visible to another caller. [`packages/testing`](../packages/testing/README.md) runs it against the instance directly. `examples/project-tasks/test/transport-conformance.test.ts` checks the same behavior over HTTP, the CLI and MCP. When an agent definition gains or loses a capability, update its [agent scenarios](glossary.md#agent-scenario).
+Write a behavioral scenario for each capability: permitted and denied access, a stale revision, a replayed [idempotency key](glossary.md#idempotency-key) and the change visible to another caller. [`packages/testing`](../packages/testing/README.md) runs it against the instance directly. `examples/field-service/test/transport-conformance.test.ts` checks the same behavior over HTTP, the CLI and MCP. When an agent definition gains or loses a capability, update its [agent scenarios](glossary.md#agent-scenario).
 
 ## Use
 
 In an application made by the [scaffold](glossary.md#scaffold), this command writes the contract, handler, policy rule and a test at the `// scaffold:` markers.
 
 ```sh
-bun run scaffold add capability note.archive --kind command --description "Archive a note"
+bun run scaffold add capability inspection.approve --kind command --description "Approve an inspection"
 ```
 
 Then run the checks in [development and testing](development-and-testing.md), and record browser and native runs in the [implementation ledger](implementation-status.md).

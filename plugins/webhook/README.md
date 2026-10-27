@@ -1,6 +1,6 @@
 # @agent-native/webhook
 
-An example [host plugin](../../docs/glossary.md#host-plugin), written the way a third party would write one. It posts a change notification to one declared webhook [destination](../../docs/glossary.md#destination) whenever an observed [capability](../../docs/glossary.md#capability) commits. `project-tasks` composes it.
+An example [host plugin](../../docs/glossary.md#host-plugin), written the way a third party would write one. It posts a change notification to one declared webhook [destination](../../docs/glossary.md#destination) whenever an observed [capability](../../docs/glossary.md#capability) commits. `field-service` composes it.
 
 ## Layer
 
@@ -25,7 +25,7 @@ The plugin is one [Host plugin](../../docs/primitives.md#host-plugin). It compos
 | `@agent-native/webhook/plugin-screens`  | browser            | `webhookScreens`: the `/webhook` route, a navigation item and the `webhook.` prefix.         |
 | `@agent-native/webhook/*`               | see file           | `contracts` (browser-safe), `server` (state, handlers, policy), `delivery` (the loop).       |
 
-Set the capabilities to observe, by operation ID, with `--webhook-operations project.create,task.complete` or `AGENT_NATIVE_WEBHOOK_OPERATIONS`. An unknown operation ID refuses startup. With none set, the plugin starts nothing.
+Set the capabilities to observe, by operation ID, with `--webhook-operations work-order.create,task.set-status` or `AGENT_NATIVE_WEBHOOK_OPERATIONS`. An unknown operation ID refuses startup. With none set, the plugin starts nothing.
 
 Each pass of the loop:
 
@@ -66,7 +66,7 @@ bun test plugins/webhook
 - startup refused for an unknown operation ID;
 - a behavioral scenario through the direct driver.
 
-`examples/project-tasks/test/ui-bindings.test.ts` checks the status screen's binding.
+`examples/field-service/test/ui-bindings.test.ts` checks the status screen's binding.
 
 ## Skills
 
