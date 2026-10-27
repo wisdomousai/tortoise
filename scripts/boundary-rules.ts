@@ -106,6 +106,8 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Falls back to global fetch when no fetch is injected; to be made required so the host passes the guard.',
   'examples/line-station/fake-hmi/':
     'Test fixture: the simulated workstation application and its recorder.',
+  'examples/asset-survey-field/test/fixtures.ts':
+    "Test fixture: the phone's fetch to the loopback hub, which a test drops or alters as a lost network or a newer hub release would.",
   'plugins/fleet-agent/src/relay.ts':
     "Forwards a remote-access request from the fleet to the host's own listener (`PluginStartContext.origin`) under `/api/v1/` only, adding no credential and never following a redirect.",
   'plugins/hub-link/src/plugin.ts':

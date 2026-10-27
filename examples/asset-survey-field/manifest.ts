@@ -1,8 +1,12 @@
 import { defineManifest } from '@agent-native/kernel/manifest';
 import type { PluginManifest } from '@agent-native/kernel/plugin-manifest';
+import { androidIntentsPluginManifest } from '@agent-native/android-intents/plugin-manifest';
 import { hubLinkPluginManifest } from '@agent-native/hub-link/plugin-manifest';
 import { intentScannerPluginManifest } from '@agent-native/intent-scanner/plugin-manifest';
 import { managedConfigPluginManifest } from '@agent-native/managed-config/plugin-manifest';
+import { notificationsPluginManifest } from '@agent-native/notifications/plugin-manifest';
+import { osPluginManifest } from '@agent-native/os/plugin-manifest';
+import { shareTargetPluginManifest } from '@agent-native/share-target/plugin-manifest';
 import { fieldModule } from './contracts';
 
 /**
@@ -36,6 +40,10 @@ export function fieldManifest(plugins: readonly PluginManifest[]) {
 /** Every plugin any build composes: what `mobile:prepare` reads for native config plugins. */
 export default fieldManifest([
   hubLinkPluginManifest,
+  osPluginManifest,
+  shareTargetPluginManifest,
+  notificationsPluginManifest,
+  androidIntentsPluginManifest,
   managedConfigPluginManifest,
   intentScannerPluginManifest,
 ]);

@@ -343,6 +343,8 @@ Control mappings are indicative.
 
 **By hand, 17 October 2026.** The asset-survey field application was prepared with `AGENT_NATIVE_MOBILE_APPLICATION=@agent-native/asset-survey-field bun run mobile:prepare`. `expo export --platform android` then bundled it. Metro resolved its native screens, `expo-camera`, `expo-file-system` and the hub-link, managed-config and intent-scanner entries. `expo config --type introspect` on the same entry showed the `expo-camera` config plugin applied from the manifest's `expoPlugins`. It set the iOS camera usage description, no microphone description, and only Android's `CAMERA` permission.
 
+**By hand, 27 October 2026.** The field application with the OS, share-target, notifications and Android intents plugins was prepared the same way, and `expo export --platform android` bundled it. `expo config --type introspect` showed the `expo-notifications` config plugin and an intent filter for `dev.agentnative.survey.action.FIND_TAG` with `android.intent.category.DEFAULT`.
+
 **Shown, browser.**
 
 - The web frame on a tablet-sized viewport (`tests/e2e/compact-shell.pw.ts`, Chromium with touch). The sidebar becomes a bar with a menu sheet that closes on navigation, the capability palette opens, and the sidebar returns at desktop width.
@@ -355,7 +357,7 @@ Control mappings are indicative.
 - **Mobile platform:** it has not run on a device. The Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes.
 - **Native UI:** the native frame and components have not rendered.
 - **Native modules:** the plugins' Kotlin and Swift modules have not been compiled. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
-- **Field application:** its screens have not rendered. Taking photos, finding a node from a scan, and pairing from managed configuration have run only as the Bun pipeline test without the native plugins.
+- **Field application:** its screens have not rendered. Taking photos, finding a node from a scan, and pairing from managed configuration have run only as the Bun pipeline test without the native plugins. The asset tag intent, the work request, the share and the assignment notice have run only with faked device bindings.
 - **Planned checks:** Test DPC restrictions, `simctl` managed configuration and `adb` scan broadcasts, to run on demand.
 
 ### OS integration
@@ -374,16 +376,16 @@ Control mappings are indicative.
 
 - **Desktop wiring:** the Electron wiring (`apps/desktop/src/os-shell.ts`) has no native run. A macOS link or file reaches it only from a packaged bundle.
 - **Installed web application:** no installed web application has registered the protocol or file handlers, and the launch queue path has not run in a browser. Whether a Chromium version accepts the SVG icon for installation is not checked.
-- **OS actions:** `runOsAction` has no caller yet.
+- **OS actions:** `runOsAction` has no caller yet. On a device, the field application's screens call `useOsAction`, and they have not rendered.
 - **Expo bindings:** `packages/mobile/src/expo/os-shell.ts` has not run on a device or simulator. No Android intent filter, iOS associated domain or document type has been registered, and no exported association file has been served from a real domain.
 - **Share:** no share has come from a real share sheet. The Chromium test posts the share target form itself.
 - **Expo sharing:** `expo-sharing`, whose receiving API is experimental, has not run on a device. Its Android SEND filter and iOS share extension are unbuilt.
 - **Share details:** the macOS share menu has not opened. On Android a `content:` name is often opaque, so such a file matches only by its media type.
-- **Staging:** staged uploads are lost on restart. No example targets mobile with the OS plugin.
+- **Staging:** staged uploads are lost on restart.
 - **Electron notifications:** no notification has been shown by a real OS, and the Electron `Notification` path has no native run. Its action buttons appear only on macOS and Windows, and whether macOS shows them for an unsigned build is unchecked.
 - **Expo notifications:** `expo-notifications` has not run on a device. The permission prompt, the categories, a reply after the application was stopped and `requiresUnlock` on iOS are unchecked.
 - **Notification limits:** text replies are not passed on. A web page shows no notifications.
-- **Android intents:** the intent module (`plugins/android-intents/android`) has not been compiled, and no intent has been received or started on a device. The intent filter config plugin (`packages/mobile/intent-filters.plugin.cjs`) has not run in a prebuild, and an `am start` with a declared action is unchecked.
+- **Android intents:** the intent module (`plugins/android-intents/android`) has not been compiled, and no intent has been received or started on a device. The intent filter config plugin (`packages/mobile/intent-filters.plugin.cjs`) has run only in `expo config --type introspect`, not in a prebuild, and an `am start` with a declared action is unchecked.
 - **Intent extras:** a sender's extras of a type the application cannot unpack drop all extras of that intent.
 - **Shortcuts:** no launcher has shown a shortcut. The macOS dock menu and the Windows jump list (`apps/desktop/src/os-shell.ts`) have no native run.
 - **Shortcut builds:** the Android shortcuts config plugin (`packages/mobile/shortcuts.plugin.cjs`) has not run in a prebuild, and no installed web application has offered its manifest shortcut.

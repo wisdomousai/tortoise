@@ -98,7 +98,6 @@
         "cn": "0.4.0",
         "expo": "58.0.14",
         "expo-background-task": "58.0.11",
-        "expo-build-properties": "58.0.11",
         "expo-camera": "58.0.10",
         "expo-crypto": "58.0.7",
         "expo-dev-client": "58.0.14",
@@ -108,7 +107,6 @@
         "expo-secure-store": "58.0.2",
         "expo-sharing": "58.0.19",
         "expo-sqlite": "58.0.13",
-        "expo-status-bar": "58.0.3",
         "expo-task-manager": "58.0.12",
         "jose": "6.2.12",
         "lucide-react": "1.52.0",
@@ -2559,8 +2557,6 @@
 
     "expo-background-task": ["expo-background-task@58.0.11", "https://registry.yarnpkg.com/expo-background-task/-/expo-background-task-58.0.11.tgz", { "dependencies": { "expo-task-manager": "~58.0.12" }, "peerDependencies": { "expo": "*" } }, "sha512-dseg1bJg2gkzJxQ1qYgK3UNenBgibFP3oOVIXOpwMexwbKgEVc6sIwCrlWazpyZpYjE5Lj8siEjQwCIBTT778g=="],
 
-    "expo-build-properties": ["expo-build-properties@58.0.11", "https://registry.yarnpkg.com/expo-build-properties/-/expo-build-properties-58.0.11.tgz", { "dependencies": { "@expo/schema-utils": "^58.0.2", "resolve-from": "^5.0.0", "semver": "^7.7.4" }, "peerDependencies": { "expo": "*" } }, "sha512-8vjp+RSD7VW/VeEpG9l1YON4ZqOqQXPmtMYFqmh41I7cBGwELRYybHFrh2P3uBgzWlRBuQrRLO5UAtAYfT7HLg=="],
-
     "expo-camera": ["expo-camera@58.0.10", "https://registry.yarnpkg.com/expo-camera/-/expo-camera-58.0.10.tgz", { "dependencies": { "barcode-detector": "^3.0.0" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*", "react-native-web": "*" }, "optionalPeers": ["react-native-web"] }, "sha512-QXs93Kd2oZO2VuiCUPPHZgzUIPazdURx9Mse+i03U+74K5Vy7FT1F4ONp21w91aTIp1NbWtmJAcJNjSnTE+5bQ=="],
 
     "expo-constants": ["expo-constants@58.0.12", "https://registry.yarnpkg.com/expo-constants/-/expo-constants-58.0.12.tgz", { "dependencies": { "@expo/env": "~2.5.2", "@expo/require-utils": "^58.0.4" }, "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-d3/dsps32nU4m6YJQbXQ1dIfn58GxfmJjTnZ0WtnhdSHTdG/oVsOakLqYRlX/FaLUKkQOSHXMf7hyCx+2a/HSQ=="],
@@ -2602,8 +2598,6 @@
     "expo-sharing": ["expo-sharing@58.0.19", "https://registry.yarnpkg.com/expo-sharing/-/expo-sharing-58.0.19.tgz", { "dependencies": { "@expo/config-plugins": "^58.0.9", "@expo/config-types": "^58.0.3", "@expo/plist": "^0.10.1" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-FzTUT7uquCBbWVwjYm1fogpO3UNBoj+XRCNrCv7GzRNy9f0KPzLZTnaqJw28nEvaesYg/Q9nAiwSwkH1Df/Bdg=="],
 
     "expo-sqlite": ["expo-sqlite@58.0.13", "https://registry.yarnpkg.com/expo-sqlite/-/expo-sqlite-58.0.13.tgz", { "dependencies": { "await-lock": "^2.2.2" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-EqYQTJUJ2Ub+Q/PwM8UTQBeg1/+piuhG8KQTO8HOhZfYu8e34bB3sOkGsM0HQ7KNesvWLlN8UmbrajRQRyE3gg=="],
-
-    "expo-status-bar": ["expo-status-bar@58.0.3", "https://registry.yarnpkg.com/expo-status-bar/-/expo-status-bar-58.0.3.tgz", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-+GMLHLA81LB+/m2DteQAN7kvH8unVj3zYGSj8D6Csf+mCrc4P6jJwaSbrz17qTizzEIJ5lv6SuU9Zfyy2vSNoQ=="],
 
     "expo-task-manager": ["expo-task-manager@58.0.12", "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-58.0.12.tgz", { "dependencies": { "unimodules-app-loader": "~58.0.2" }, "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-SLvNkkFJhkHwVzI1xfNiBxS3tNH2zxTUQXVFxpyMXtbc5GRIwRvgv/KYpheV3SjlIqiEh1yy6qG5kMmqKXcsMw=="],
 
@@ -3748,8 +3742,6 @@
     "electron-winstaller/fs-extra": ["fs-extra@7.0.1", "https://registry.yarnpkg.com/fs-extra/-/fs-extra-7.0.1.tgz", { "dependencies": { "graceful-fs": "^4.1.2", "jsonfile": "^4.0.0", "universalify": "^0.1.0" } }, "sha512-YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw=="],
 
     "enquirer/strip-ansi": ["strip-ansi@6.0.1", "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
-
-    "expo-build-properties/semver": ["semver@7.7.4", "https://registry.yarnpkg.com/semver/-/semver-7.7.4.tgz", { "bin": { "semver": "bin/semver.js" } }, "sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA=="],
 
     "expo-modules-autolinking/commander": ["commander@7.2.0", "https://registry.yarnpkg.com/commander/-/commander-7.2.0.tgz", {}, "sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw=="],
 

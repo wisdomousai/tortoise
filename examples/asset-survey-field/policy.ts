@@ -24,6 +24,12 @@ export const fieldPolicy = definePolicy<FieldState, 'owner'>({
     [ops.captureRecord.id]: 'open',
     [ops.captureList.id]: 'open',
     [ops.assignmentReturn.id]: 'open',
+    [ops.tagGet.id]: 'open',
+    // The notification dispatcher: the owner under its delegated grant, never a screen.
+    [ops.noticesSettle.id]: {
+      allow: ({ state, context }) =>
+        state.ownerId === context.principalId && context.grant !== undefined,
+    },
   },
   events: Object.fromEntries(
     ['assignment', 'capture', 'sync'].map((type) => [

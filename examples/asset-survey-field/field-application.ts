@@ -8,8 +8,12 @@ import {
 import { defineApplication } from '@agent-native/kernel/application';
 import type { AnyHostPlugin } from '@agent-native/kernel/plugin';
 import type { fieldAssignmentSchema } from '@agent-native/asset-survey/contracts/schemas';
+import { androidIntentsPlugin } from '@agent-native/android-intents/plugin';
 import { createHubLinkPlugin } from '@agent-native/hub-link/plugin';
-import { hubTarget } from './contracts';
+import { notificationsPlugin } from '@agent-native/notifications/plugin';
+import { createOsPlugin } from '@agent-native/os/plugin';
+import { shareTargetPlugin } from '@agent-native/share-target/plugin';
+import { fieldOperations, hubTarget } from './contracts';
 import { createFieldState, type FieldState } from './domain';
 import { createFieldHandlers, type FieldServices } from './handlers';
 import { fieldManifest } from './manifest';
@@ -19,9 +23,12 @@ import { fieldPolicy } from './policy';
 export const INTEGRATION_PRINCIPAL = 'integration';
 
 /**
- * The field application. Hub-link comes first; `plugins` adds the native ones a device build
- * composes (managed configuration, the intent scanner), so the same domain runs under Bun in
- * tests without them. `fetch` replaces the hub-link plugin's, for tests that drop the network.
+ * The field application. Hub-link and the OS plugins come first: the OS plugin, then the ones
+ * that serve its share, notify and intent declarations. Android intents is composed on every
+ * platform because startup refuses declared intents without it; on iOS an intent action is
+ * refused instead. `plugins` adds the native ones a device build composes (managed
+ * configuration, the intent scanner), so the same domain runs under Bun in tests without them.
+ * `fetch` replaces the hub-link plugin's, for tests that drop the network.
  */
 export function createFieldApplication(
   options: {
@@ -32,6 +39,10 @@ export function createFieldApplication(
 ) {
   const plugins = [
     createHubLinkPlugin(options.fetch ? { fetch: options.fetch } : {}),
+    createOsPlugin(),
+    shareTargetPlugin,
+    notificationsPlugin,
+    androidIntentsPlugin,
     ...(options.plugins ?? []),
   ];
   return defineApplication<FieldState, FieldServices>({
@@ -40,6 +51,8 @@ export function createFieldApplication(
     upgradeState: (stored, ownerId) =>
       (stored as FieldState | undefined) ?? createFieldState(ownerId, INTEGRATION_PRINCIPAL),
     handlers: createFieldHandlers(),
+    // An OS request opens `tag:<tag>` once the owner may read it with this query.
+    selectableResources: { tag: fieldOperations.tagGet.id },
     authorization: fieldPolicy,
     ...(options.services ? { services: options.services } : {}),
     plugins,

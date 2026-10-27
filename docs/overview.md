@@ -42,6 +42,7 @@ An outbox effect is in one phase at a time.
 | Plant signals | MQTT, Sparkplug B or OPC UA readings pass the observation gate into an ingest command. | [`packages/observation`](../packages/observation/README.md), [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md), [`plugins/connector-opcua`](../plugins/connector-opcua/README.md) | `lab-requests-signals` sample |
 | Files | An inbox folder feeds inbound sync, and delivered files settle from receipt files. | [`plugins/connector-files`](../plugins/connector-files/README.md) | `receiving` |
 | Phone | A paired phone captures offline and delivers to its [hub](glossary.md#hub). | [`packages/mobile`](../packages/mobile/README.md), [`plugins/device-link`](../plugins/device-link/README.md), [`plugins/hub-link`](../plugins/hub-link/README.md) | `asset-survey-field` |
+| Operating system | A link, file, share, Android intent, launcher shortcut or notification reply opens a screen or prefills a form that a person confirms. | [`packages/shell`](../packages/shell/README.md), [`plugins/os`](../plugins/os/README.md), [`plugins/share-target`](../plugins/share-target/README.md), [`plugins/os-shortcuts`](../plugins/os-shortcuts/README.md), [`plugins/android-intents`](../plugins/android-intents/README.md), [`plugins/notifications`](../plugins/notifications/README.md) | `project-tasks`, `asset-survey-field` |
 
 ## Operating properties
 

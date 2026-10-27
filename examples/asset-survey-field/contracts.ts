@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { defineModule, definePeerTarget, rejectionSchema } from '@agent-native/contracts';
+import {
+  defineModule,
+  definePeerTarget,
+  effectOutcomeSchema,
+  rejectionSchema,
+} from '@agent-native/contracts';
 import { fieldOperations as hubOperations } from '@agent-native/asset-survey/contracts/captures';
 import { fieldSurface } from '@agent-native/asset-survey/contracts/peer';
 import { operation } from '@agent-native/asset-survey/contracts/operation';
@@ -10,6 +15,7 @@ import {
   photoLimits,
   recordId,
 } from '@agent-native/asset-survey/contracts/schemas';
+import { fieldOs } from './os';
 
 /** How a record stands with the hub: waiting in the outbox, taken, or refused with a reason. */
 export const hubSync = z.enum(['pending', 'accepted', 'rejected']);
@@ -116,6 +122,39 @@ export const fieldOperations = {
     dependencies: ['assignment'],
     forwards: 'hub',
   }),
+  tagGet: operation('field.tag.get', 'query', {
+    input: z.strictObject({ id: z.string().regex(/^[^\s:]{1,128}$/) }),
+    output: z.strictObject({
+      id: z.string(),
+      matches: z.array(
+        z.strictObject({
+          assignmentId: recordId,
+          nodeId: recordId,
+          designation: fieldNodeSchema.shape.designation,
+          name: fieldNodeSchema.shape.name,
+        }),
+      ),
+    }),
+    permission: { action: 'read', resourceType: 'Assignment' },
+    description:
+      'Where an asset tag is in the open assignments: the nodes it finds as a scan does, by designation prefix with spaces and case ignored, or by name. An intent from another app opens tag:<tag> through this query.',
+    dependencies: ['assignment'],
+    exception:
+      'Read when an OS request opens tag:<tag>, to choose the capture or search screen that shows it.',
+  }),
+  noticesSettle: operation('assignment-notices.effect.settle', 'command', {
+    input: z.strictObject({
+      effectId: z.string().min(1).max(128),
+      outcome: effectOutcomeSchema,
+      fence: z.number().int().min(1).optional(),
+    }),
+    output: z.strictObject({}),
+    permission: { action: 'settle', resourceType: 'AssignmentNotice' },
+    description:
+      'Notification dispatcher only: record whether the device showed the notice of a new assignment.',
+    dependencies: ['assignment'],
+    exception: 'Called by the notification dispatcher once the device showed the notice.',
+  }),
   status: hubTarget.status,
   sync: hubTarget.sync,
   settle: hubTarget.settle,
@@ -129,6 +168,9 @@ export const fieldModule = defineModule({
     fieldOperations.captureRecord,
     fieldOperations.captureList,
     fieldOperations.assignmentReturn,
+    fieldOperations.tagGet,
+    fieldOperations.noticesSettle,
     ...hubTarget.capabilities,
   ],
+  os: fieldOs,
 });

@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { File } from 'expo-file-system';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import type { BlobRef } from '@agent-native/contracts';
 import { HoldButton } from '@agent-native/frame-native/components/hold-button';
+import { useOsAction } from '@agent-native/frame-native/os-actions';
 import { useSession } from '@agent-native/frame-native/session';
 import type { CaptureKind } from '@agent-native/asset-survey/domain';
 import { fieldOperations as ops } from '../contracts';
 import type { FieldCapture } from '../domain';
+import { refusal, workRequest } from './os-requests';
 import { ActionButton, ErrorText, Screen } from './shared';
 
 type Condition = NonNullable<FieldCapture['condition']>;
@@ -59,12 +61,14 @@ function Chips<T extends string>({
  * Take photos and record one capture. Each photo is stored as a blob on the device as soon as it
  * is taken, so the capture command only references them; the camera's temporary files are
  * deleted when the screen closes. The capture goes to the hub through the outbox whenever the
- * device reaches it.
+ * device reaches it. On Android, a node's capture can also raise a work request in the
+ * maintenance app, with the note as its text.
  */
 export function CaptureScreen() {
   const params = useRoute().params as { assignmentId: string; nodeId?: string; codes?: string[] };
   const navigation = useNavigation();
   const { live, client, transport } = useSession();
+  const perform = useOsAction();
   const [permission, requestPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
   const files = useRef<File[]>([]);
@@ -105,6 +109,14 @@ export function CaptureScreen() {
     } finally {
       setBusy(false);
     }
+  };
+  const raise = () => {
+    if (!node) return;
+    setError(undefined);
+    perform('node.work-request', workRequest(node, note)).then(
+      (outcome) => setError(refusal('The work request was not sent', outcome)),
+      setError,
+    );
   };
   const save = () => {
     if (!chosenKind) return;
@@ -175,6 +187,9 @@ export function CaptureScreen() {
         maxLength={1000}
         className="min-h-target rounded-xl border border-border px-4 py-3 text-operator text-foreground"
       />
+      {node && Platform.OS === 'android' ? (
+        <ActionButton label="Raise work request" disabled={busy} onPress={raise} />
+      ) : null}
       <ErrorText error={error} />
       <HoldButton
         label="Save capture"
