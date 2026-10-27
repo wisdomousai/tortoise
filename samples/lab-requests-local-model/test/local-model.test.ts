@@ -9,7 +9,7 @@ import { requestOperations } from '@agent-native/sample-lab-requests/contracts';
 import { gateModel } from '@agent-native/testing/activation';
 import type { AgentScenario } from '@agent-native/testing/agent-scenarios';
 import { methodSuggester, METHOD_MODEL } from '../contracts';
-import { standInModel } from '../model';
+import { standInEntry, standInModel } from '../model';
 import { owner, refused, startLab, until, viewer } from './fixtures';
 
 const cleanup: (() => Promise<void>)[] = [];
@@ -76,7 +76,7 @@ test('the trigger runs the method suggester on the measured local model, and a t
     state: 'ready',
     model: expect.objectContaining({
       entry: METHOD_MODEL,
-      digest: standInModel.entry.base.digest,
+      digest: standInEntry.base.digest,
       verified: true,
     }),
   });
@@ -105,7 +105,7 @@ test('the trigger runs the method suggester on the measured local model, and a t
   // The audit log names the measured weights the server started on and the model of each run.
   expect((await audit('model.started'))[0]?.data).toMatchObject({
     entry: METHOD_MODEL,
-    base: standInModel.entry.base.digest,
+    base: standInEntry.base.digest,
   });
   expect((await audit('run.started')).map((record) => record.data?.model)).toContain(METHOD_MODEL);
 });
@@ -113,10 +113,10 @@ test('the trigger runs the method suggester on the measured local model, and a t
 test('weights that differ from the entry do not serve, and the agent gets no other model', async () => {
   const { models } = await lab({
     model: {
-      ...standInModel,
+      ...standInModel(),
       entry: {
-        ...standInModel.entry,
-        base: { ...standInModel.entry.base, digest: `sha256:${'0'.repeat(64)}` },
+        ...standInEntry,
+        base: { ...standInEntry.base, digest: `sha256:${'0'.repeat(64)}` },
       },
     },
   });
@@ -165,10 +165,10 @@ test('decided suggestions export as a dataset, and a fine-tune on it serves only
   await writeFile(adapter, adapterBytes);
   const tuned = {
     entry: defineModelEntry({
-      ...standInModel.entry,
+      ...standInEntry,
       adapter: { kind: 'lora', digest: sha(adapterBytes), dataset: dataset.digest },
     }),
-    files: { ...standInModel.files, adapter },
+    files: { ...standInModel().files, adapter },
   };
 
   const unactivated = await lab({ model: tuned });

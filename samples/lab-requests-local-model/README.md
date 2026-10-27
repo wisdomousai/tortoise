@@ -22,15 +22,14 @@ Its own files:
 | --- | --- | --- |
 | `contracts.ts` | Browser and server | The `method-suggestions` module with the approval operations and the suggester, and the `llm` model server component |
 | `automation.ts` | Server | The trigger that runs the suggester on each submitted test request |
-| `model.ts` | Server | `MethodModel` (entry, files and activation), the stand-in entry, and `methodModelFrom` |
+| `model.ts` | Server | `MethodModel` (entry, files and activation), the stand-in entry and weights, and `methodModelFrom` |
 | `domain.ts`, `handlers.ts`, `policy.ts` | Server | The `suggestions` slice, the approval handlers and their route |
 | `application.ts` | Server | `composeLabRequestsLocalModel`, which returns the application and the model server |
 | `screens.tsx`, `ui/suggestions.tsx` | Browser | Suggested methods on the test request screen, the approvals screen and the automation screen |
 | `responder.ts` | Stand-in process | The stand-in model's answers: read the request, then request approval for its method |
-| `model/stand-in-weights.bin` | Stand-in process | The file the stand-in loads and the plugin measures |
 | `dev.ts` | Dev launch | Writes the site policy for the stand-in, or for llama-server on `LOCAL_MODEL_GGUF` |
 
-The model comes from the deployment. `methodModelFrom` reads the JSON file `LAB_METHOD_MODEL` names, with `entry`, `files` and an optional `activation`. Without it, the sample serves the stand-in entry, whose digest names `model/stand-in-weights.bin`.
+The model comes from the deployment. `methodModelFrom` reads the JSON file `LAB_METHOD_MODEL` names, with `entry`, `files` and an optional `activation`. Without it, the sample serves the stand-in entry. `standInModel` writes the stand-in weights, a fixed text whose digest the entry names, to the temporary directory, because a source export carries no weight files.
 
 The stand-in model is `llamaServerStandIn` from `@agent-native/model-server/testing`, with `FIXTURE_RESPONDER` naming `responder.ts`. It takes llama-server's flags and serves the same OpenAI-compatible API, so the plugin, the harness and the trigger run unchanged.
 
