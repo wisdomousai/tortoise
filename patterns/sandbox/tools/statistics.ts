@@ -1,5 +1,5 @@
 /**
- * Count, mean, extremes and pattern standard deviation of a result's readings. It sits beside the
+ * Count, mean, extremes and sample standard deviation of a result's readings. It sits beside the
  * analysis tool because the sandbox mounts only this directory of the pattern.
  */
 export function summarize(readings: readonly number[]) {

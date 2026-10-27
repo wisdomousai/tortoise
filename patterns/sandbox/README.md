@@ -1,6 +1,6 @@
 # @agent-native/pattern-sandbox
 
-`pattern-sandbox` composes the [base pattern](../base/README.md) unchanged with test results and the [execution host](../../docs/glossary.md#execution-host). A technician records the tensile strength of each coupon of a test request. The result analyst's tool then runs in a bubblewrap sandbox, reads the readings through the application CLI and records their statistics. On a platform without bubblewrap, the request screen says why the sandbox cannot run, and technicians enter the statistics by hand.
+`pattern-sandbox` composes the [base pattern](../base/README.md) unchanged with test results and the [execution host](../../docs/glossary.md#execution-host). A technician records the breakdown voltage of each fill of the test cell for a test request. The result analyst's tool then runs in a bubblewrap sandbox, reads the readings through the application CLI and records their statistics. On a platform without bubblewrap, the request screen says why the sandbox cannot run, and technicians enter the statistics by hand.
 
 ## Layer
 
@@ -30,7 +30,7 @@ Its own files:
 | `plugins/result-analysis/plugin-manifest.ts` | Browser and server | The plugin manifest, its route paths and the sandbox ID |
 | `plugins/result-analysis/plugin.ts` | Server | `analyzeResult` and the plugin's routes |
 | `tools/analyze.ts` | Sandbox | The analysis tool: `test-result get`, then `test-result analyze`, through the CLI run in process |
-| `tools/statistics.ts` | Sandbox and tests | `summarize`: count, mean, range and pattern standard deviation |
+| `tools/statistics.ts` | Sandbox and tests | `summarize`: count, mean, range and sample standard deviation |
 | `ui/results.tsx` | Browser | `ResultsSection`: results, the readings form, the sandbox status and the hand-entry form |
 | `screens.tsx` | Browser | The base screens with `ResultsSection` on the request screen |
 | `dev.ts` | Development launch | On Linux with bubblewrap, a policy that binds the sandbox to `/usr/bin/bwrap` |

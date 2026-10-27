@@ -96,14 +96,15 @@ const scenarios: BehavioralScenario[] = [
         {
           operation: 'test-request.submit',
           input: {
-            specimen: 'B-1042-03',
-            description: 'Tensile strength of the weld coupon',
-            method: 'ASTM E8 tensile test',
+            sample: 'OS-24-0417',
+            transformer: 'TR-40517',
+            description: 'Gas alarm after a load increase',
+            method: 'IEC 60567 dissolved gas analysis',
           },
         },
         owner,
       );
-      const signed = await driver.command(sign('approved', 1, 'Method fits the coupon'), lena);
+      const signed = await driver.command(sign('approved', 1, 'Method fits the gas alarm'), lena);
       expect(signed.result).toMatchObject({
         id: 'r2',
         subject: 'test-request:r1',
@@ -135,14 +136,14 @@ const scenarios: BehavioralScenario[] = [
       await driver.command(
         {
           operation: 'test-request.update',
-          input: { id: 'r1', method: 'ASTM E18 hardness test' },
+          input: { id: 'r1', method: 'IEC 60156 breakdown voltage' },
           expectedRevisions: { 'test-request:r1': 1 },
         },
         owner,
       );
       expect(await refused(driver.command(sign('approved', 1), mia))).toStartWith('CONFLICT');
       const signed = await driver.command(
-        sign('rejected', 2, 'Hardness needs a polished face'),
+        sign('rejected', 2, 'Breakdown voltage needs a sealed glass bottle'),
         mia,
       );
       expect(signed.result).toMatchObject({ revision: 2, verdict: 'rejected', reviewer: 'mia' });

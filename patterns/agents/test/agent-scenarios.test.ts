@@ -27,7 +27,11 @@ afterAll(async () => {
 
 const withoutMethod = {
   operation: 'test-request.submit',
-  input: { specimen: 'Bracket B-12', description: 'Rockwell hardness after heat treatment' },
+  input: {
+    sample: 'OS-24-0012',
+    transformer: 'TR-40517',
+    description: 'Breakdown voltage before re-energizing',
+  },
   idempotencyKey: 'without-method',
 };
 const scenarios: AgentScenario[] = [
@@ -45,7 +49,7 @@ const scenarios: AgentScenario[] = [
           operation: 'approval.request',
           input: {
             operation: 'test-request.update',
-            input: { id: 'r1', method: 'ASTM E18 Rockwell hardness' },
+            input: { id: 'r1', method: 'IEC 60156 breakdown voltage' },
             rationale: 'The test its description names.',
             resource: 'test-request:r1',
             baseRevisions: { 'test-request:r1': 1 },
@@ -58,7 +62,7 @@ const scenarios: AgentScenario[] = [
       approvals: [
         {
           operation: 'test-request.update',
-          input: { method: 'ASTM E18 Rockwell hardness' },
+          input: { method: 'IEC 60156 breakdown voltage' },
           resource: 'test-request:r1',
         },
       ],
@@ -81,7 +85,7 @@ const scenarios: AgentScenario[] = [
       commands: [
         {
           operation: 'test-request.update',
-          input: { id: 'r1', method: 'ASTM E18 Rockwell hardness' },
+          input: { id: 'r1', method: 'IEC 60156 breakdown voltage' },
         },
       ],
     },

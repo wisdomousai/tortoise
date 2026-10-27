@@ -10,7 +10,7 @@ Content (`patterns/*`). It trusts the framework, the base pattern and the four p
 
 The pattern is one [application](../../docs/primitives.md#application). Next to the base pattern's module it composes:
 
-- a [state migration](../../docs/primitives.md#state-migration) in `migrations.ts`. Version 2 renames the `sampleId` and `tests` fields of an earlier test requests release to `specimen` and `method`. Requests that the base pattern wrote pass unchanged;
+- a [state migration](../../docs/primitives.md#state-migration) in `migrations.ts`. Version 2 renames the `sampleId`, `unit` and `tests` fields of an earlier test requests release to `sample`, `transformer` and `method`. Requests that the base pattern wrote pass unchanged;
 - a [deployment policy](../../docs/primitives.md#deployment-policy), which the [site plugin](../../plugins/site/README.md) loads from the `site-policy` setting;
 - the [egress guard](../../docs/primitives.md#egress-guard) of the [network plugin](../../plugins/network/README.md), which checks each telemetry export against the policy's `telemetry` destination;
 - the [audit log](../../docs/primitives.md#audit-log) of the [audit plugin](../../plugins/audit/README.md), which records each guarded connection and adds the `audit verify` command;
@@ -29,7 +29,7 @@ The site, network, audit and telemetry plugins are each a [host plugin](../../do
 
 ## Trust boundary
 
-The base pattern's policy decides every test request operation. Telemetry sends operation identifiers, outcomes, durations and counts. It sends no specimen, description, request identifier or principal. An export leaves only through the egress guard to the URL that the site policy binds to `telemetry`. Without that binding, exports fail, the plugin reports the reason in `status()`, and commands are unaffected.
+The base pattern's policy decides every test request operation. Telemetry sends operation identifiers, outcomes, durations and counts. It sends no sample, description, request identifier or principal. An export leaves only through the egress guard to the URL that the site policy binds to `telemetry`. Without that binding, exports fail, the plugin reports the reason in `status()`, and commands are unaffected.
 
 The migration step is not compatible. Once a workspace is at version 2, storage refuses `patterns/base` on it. `migrate` runs the step on a checked copy and keeps the previous database next to the new one. Any write by this pattern's code also stores version 2, without the copy.
 
@@ -45,8 +45,8 @@ The migration step is not compatible. Once a workspace is at version 2, storage 
 bun test patterns/operations
 ```
 
-- `test/migration.test.ts`: a workspace seeded from `test/fixtures/workspace-v1.json` has no version stamp and stores `sampleId` and `tests`. `migrate --dry-run` reports the step from 1 to 2 and changes nothing. `migrate` renames the fields, stamps version 2 and refuses `patterns/base`. A workspace that `patterns/base` wrote opens with its requests unchanged.
-- `test/telemetry.test.ts`: the `startCollector` stand-in receives the committed and denied `test-request.submit` counts. The exported data holds no specimen, description, request identifier or principal, and the audit log records the export.
+- `test/migration.test.ts`: a workspace seeded from `test/fixtures/workspace-v1.json` has no version stamp and stores `sampleId`, `unit` and `tests`. `migrate --dry-run` reports the step from 1 to 2 and changes nothing. `migrate` renames the fields, stamps version 2 and refuses `patterns/base`. A workspace that `patterns/base` wrote opens with its requests unchanged.
+- `test/telemetry.test.ts`: the `startCollector` stand-in receives the committed and denied `test-request.submit` counts. The exported data holds no sample, description, request identifier or principal, and the audit log records the export.
 - `test/ui-bindings.test.ts`: every bound capability is referenced by a screen in this pattern or the base.
 
 ### Use

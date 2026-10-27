@@ -49,7 +49,8 @@ export function createTestRequestsHandlers(): HandlerContribution<
       visible,
       present,
       order: (a, b) => b.updatedAt - a.updatedAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
-      searchText: (request) => `${request.specimen} ${request.method} ${request.description}`,
+      searchText: (request) =>
+        `${request.sample} ${request.transformer} ${request.method} ${request.description}`,
     }),
     collectionGetHandler<
       TestRequestsState,
@@ -61,7 +62,8 @@ export function createTestRequestsHandlers(): HandlerContribution<
       const id = (ctx.services.newId ?? randomUUID)();
       return requestsOf(ctx).insert(id, {
         id,
-        specimen: input.specimen,
+        sample: input.sample,
+        transformer: input.transformer,
         description: input.description,
         method: input.method ?? '',
         requester: ctx.context.principalId,
@@ -70,7 +72,8 @@ export function createTestRequestsHandlers(): HandlerContribution<
     }),
     bind(requestOperations.requestUpdate, (input, ctx) =>
       requestsOf(ctx).update(input.id, (request) => {
-        if (input.specimen !== undefined) request.specimen = input.specimen;
+        if (input.sample !== undefined) request.sample = input.sample;
+        if (input.transformer !== undefined) request.transformer = input.transformer;
         if (input.description !== undefined) request.description = input.description;
         if (input.method !== undefined) request.method = input.method;
         request.updatedAt = now(ctx);

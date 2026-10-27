@@ -75,14 +75,15 @@ export function createPublishingHandlers(): HandlerContribution<
         resource: publications.resource(request.id),
         payload: {
           requestId: request.id,
-          specimen: request.specimen,
+          sample: request.sample,
+          transformer: request.transformer,
           description: request.description,
           method: request.method,
         },
       });
       return publicationsOf(ctx).set(request.id, {
         id: request.id,
-        specimen: request.specimen,
+        sample: request.sample,
         effectId,
         sync: 'pending',
         publishedAt: now(ctx),
@@ -102,7 +103,8 @@ export function createPublishingHandlers(): HandlerContribution<
           if (local.has(id)) continue;
           local.insert(id, {
             id,
-            specimen: registered.specimen,
+            sample: registered.sample,
+            transformer: registered.transformer,
             description: registered.description,
             method: registered.method,
             requester: LIMS_PRINCIPAL,

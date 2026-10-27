@@ -21,14 +21,14 @@ export interface MethodModel {
  * The pattern writes them at run time, because a source export carries no weight files.
  */
 const standInText =
-  'Stand-in weights for the test requests local model pattern. The llama-server stand-in loads any file; the model server measures this one against the lab-methods entry.\n';
+  'Stand-in weights for the local model pattern. The llama-server stand-in loads any file; the model server measures this one against the lab-methods entry.\n';
 
 /** The `lab-methods` base entry for the stand-in weights, which the plugin measures at start. */
 export const standInEntry: ModelEntry = defineModelEntry({
   id: METHOD_MODEL,
   base: {
     name: 'lab-methods-stand-in',
-    digest: 'sha256:e3d711d124c0de82ae1b30de8d26f6c9e080b3e60681e3cd0e16a1aad133b8fa',
+    digest: 'sha256:4303509a67d363f6060b4b36599bf3a0678e1891ed7ae8233127a28b639d748e',
   },
   license: 'MIT',
   contextTokens: 4096,

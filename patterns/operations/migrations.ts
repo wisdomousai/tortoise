@@ -3,15 +3,17 @@ import type { StateMigrations } from '@agent-native/kernel/migrations';
 type Stored = { testRequests?: { requests?: Record<string, Record<string, unknown>> } };
 
 /** Version 1 field names and the version 2 names that the test requests handlers read. */
-const renamed = { sampleId: 'specimen', tests: 'method' } as const;
+const renamed = { sampleId: 'sample', unit: 'transformer', tests: 'method' } as const;
 
 /**
  * Version 2 of the application's state. An earlier release of the test requests module stored a
- * request's specimen as `sampleId` and its test method as `tests`; the step renames both. The
- * step is not compatible: code at version 1 would read a request without `sampleId`, so storage
+ * request's sample as `sampleId`, its transformer as `unit` and its test method as `tests`; the
+ * step renames all three. The step is not compatible: code at version 1 would read a request
+ * without `sampleId`, so storage
  * refuses that code once a workspace is at version 2.
  *
- * A version 1 workspace that `patterns/base` wrote already holds `specimen` and `method`.
+ * A version 1 workspace that `patterns/base` wrote already holds `sample`, `transformer` and
+ * `method`.
  * The step leaves those requests unchanged, so it is deterministic on both kinds of version 1
  * state.
  */

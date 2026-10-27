@@ -21,7 +21,7 @@ Its own files:
 | `manifest.ts` | Browser and server | The test requests module and the station sign-in plugin manifest |
 | `application.ts` | Server | `createTestRequestsSignInApplication`, with `benchMembers` and the plugin |
 | `screens.tsx` | Browser | The base screens, the seat at `/seat` (the home screen) and the badge screen |
-| `ui/bench.tsx` | Browser | `BenchWork`: submitting a test request for a scanned specimen label, and the latest requests, as the operator |
+| `ui/bench.tsx` | Browser | `BenchWork`: submitting a test request for a scanned sample label, and the latest requests, as the operator |
 
 ## Entrypoints
 
@@ -57,7 +57,7 @@ cd patterns/sign-in
 bun run dev:web
 ```
 
-Enroll badges for `ana` and `ben` on the Badges screen, with badge numbers of the form `LAB-0042`. On the Seat screen, scan a badge with a keyboard-wedge scanner, or type it as a burst with no field focused, or use **Type instead**. Specimen labels of the form `B-1042-03` scan into the bench's specimen field.
+Enroll badges for `ana` and `ben` on the Badges screen, with badge numbers of the form `LAB-0042`. On the Seat screen, scan a badge with a keyboard-wedge scanner, or type it as a burst with no field focused, or use **Type instead**. Sample labels of the form `OS-24-0417` scan into the bench's sample field.
 
 ## Skills
 

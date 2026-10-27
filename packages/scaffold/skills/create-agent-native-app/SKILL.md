@@ -37,7 +37,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | `examples/asset-survey` and `examples/asset-survey-field` | a hub with blob evidence, a declared workflow, assignments and a paired mobile field application that takes them |
 | `examples/receiving` | an application generated with `scaffold new` and `scaffold add`: a file exchange with an ERP, reconciliation and an agent that requests approval |
 | `examples/fleet` | the fleet that sites report to: enrollment, signed releases on channels, audit forwarding and relayed access |
-| `patterns/*` | one concept each on a lab test request application, as `docs/patterns.md` lists them. Exports leave them out |
+| `patterns/*` | one concept each on an oil lab's test requests for power transformers in service, as `docs/patterns.md` lists them. Exports leave them out |
 
 | Task | Skill |
 | --- | --- |

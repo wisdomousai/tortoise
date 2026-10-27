@@ -43,49 +43,45 @@ async function serve() {
   return { host, command, owner };
 }
 
-test('the statistics are the count, mean, range and pattern standard deviation', () => {
-  expect(summarize([412, 405, 418, 409])).toEqual({
+test('the statistics are the count, mean, range and sample standard deviation', () => {
+  expect(summarize([62, 55, 68, 59])).toEqual({
     count: 4,
-    mean: 411,
-    min: 405,
-    max: 418,
+    mean: 61,
+    min: 55,
+    max: 68,
     stdev: 5.48,
   });
-  expect(summarize([400]).stdev).toBe(0);
+  expect(summarize([60]).stdev).toBe(0);
 });
 
 test('technicians record readings for a submitted request and enter statistics by hand', async () => {
   const { command } = await serve();
   const submitted = await command(
     'test-request.submit',
-    { specimen: 'B-1042-03', description: 'Tensile strength of the weld coupon' },
+    {
+      sample: 'OS-24-0417',
+      transformer: 'TR-40517',
+      description: 'Gas alarm after a load increase',
+    },
     'ana',
   );
   const request = (submitted.result as { id: string }).id;
-  const recorded = await command(
-    'test-result.record',
-    { request, readings: [412, 405, 418] },
-    'ana',
-  );
+  const recorded = await command('test-result.record', { request, readings: [62, 55, 68] }, 'ana');
   expect(recorded.result).toMatchObject({ request, recordedBy: 'ana' });
   const id = (recorded.result as { id: string }).id;
 
   await expect(
-    command('test-result.record', { request, readings: [400] }, 'ben'),
+    command('test-result.record', { request, readings: [60] }, 'ben'),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   await expect(
-    command('test-result.record', { request: 'missing', readings: [400] }, 'ana'),
+    command('test-result.record', { request: 'missing', readings: [60] }, 'ana'),
   ).rejects.toMatchObject({ code: 'NOT_FOUND' });
   // Statistics entered outside a run record no run.
-  const entered = await command(
-    'test-result.analyze',
-    { id, ...summarize([412, 405, 418]) },
-    'ana',
-  );
-  expect(entered.result).toMatchObject({ analysis: { count: 3, mean: 411.67 } });
+  const entered = await command('test-result.analyze', { id, ...summarize([62, 55, 68]) }, 'ana');
+  expect(entered.result).toMatchObject({ analysis: { count: 3, mean: 61.67 } });
   expect(entered.result).not.toHaveProperty('analysisRun');
   await expect(
-    command('test-result.analyze', { id, ...summarize([400]) }, 'ben'),
+    command('test-result.analyze', { id, ...summarize([60]) }, 'ben'),
   ).rejects.toMatchObject({ code: 'FORBIDDEN' });
 });
 

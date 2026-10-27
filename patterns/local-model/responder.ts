@@ -8,10 +8,10 @@ import type { StandInMessage, StandInResponder } from '@agent-native/model-serve
  * description asks for. A real model gets the same tools and messages.
  */
 const methods: readonly (readonly [RegExp, string])[] = [
-  [/\btensile\b/i, 'ASTM E8 tensile test'],
-  [/\bhardness\b/i, 'ASTM E18 Rockwell hardness'],
-  [/\bimpact\b/i, 'ISO 179 Charpy impact'],
-  [/\bsalt[ -]spray\b/i, 'ASTM B117 salt spray'],
+  [/\bgas\b/i, 'IEC 60567 dissolved gas analysis'],
+  [/\bbreakdown\b/i, 'IEC 60156 breakdown voltage'],
+  [/\bdissipation\b/i, 'IEC 60247 dissipation factor'],
+  [/\b(?:furan|paper aging)\b/i, 'IEC 61198 furan analysis'],
 ];
 
 const text = (content: unknown): string =>

@@ -39,7 +39,7 @@ Publishing the plugin means moving the folder to the repository's `plugins/activ
 
 ## Trust boundary
 
-The plugin's policy sees only the `activity` slice and decides only `activity.*` operations; the base pattern's policy decides the test request operations. Readers listed in the slice read the summary, which starts with the workspace owner, so a lab viewer is not an activity reader. The journal holds operation names, resource identifiers and revisions, so the counts contain no specimen or description and no principal. A pass at a cursor the slice already reached adds nothing, so a pass repeated after a crash does not count twice. When retention removed journal entries before the loop read them, those commands are not counted.
+The plugin's policy sees only the `activity` slice and decides only `activity.*` operations; the base pattern's policy decides the test request operations. Readers listed in the slice read the summary, which starts with the workspace owner, so a lab viewer is not an activity reader. The journal holds operation names, resource identifiers and revisions, so the counts contain no sample or description and no principal. A pass at a cursor the slice already reached adds nothing, so a pass repeated after a crash does not count twice. When retention removed journal entries before the loop read them, those commands are not counted.
 
 ## Dependencies
 

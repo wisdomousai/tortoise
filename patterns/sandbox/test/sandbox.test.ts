@@ -58,8 +58,9 @@ describe.skipIf(!supported)('analysis in a bubblewrap sandbox', () => {
     ({ token } = JSON.parse(await readFile(host.connectionFile!, 'utf8')) as { token: string });
     request = (
       await command('test-request.submit', {
-        specimen: 'B-1042-03',
-        description: 'Tensile strength of the weld coupon',
+        sample: 'OS-24-0417',
+        transformer: 'TR-40517',
+        description: 'Gas alarm after a load increase',
       })
     ).id;
   });
@@ -69,7 +70,7 @@ describe.skipIf(!supported)('analysis in a bubblewrap sandbox', () => {
   });
 
   test('the owner starts a run from the route; its tool reads and records through the CLI', async () => {
-    const readings = [412, 405, 418, 409];
+    const readings = [62, 55, 68, 59];
     const { id } = await command('test-result.record', { request, readings });
     const response = await fetch(new URL(resultAnalysisPaths.run, host.url), {
       method: 'POST',
@@ -88,7 +89,7 @@ describe.skipIf(!supported)('analysis in a bubblewrap sandbox', () => {
   });
 
   test("a viewer's run reads the result, and the policy refuses its analysis", async () => {
-    const { id } = await command('test-result.record', { request, readings: [398, 402] });
+    const { id } = await command('test-result.record', { request, readings: [57, 61] });
     const run = await analyzeResult(
       host.services['execution-host'] as ExecutionHost,
       host.application.catalog,

@@ -40,7 +40,11 @@ test('a run started from the test request screen opens the request and asks for 
   await host.application.invokeRaw(
     {
       operation: 'test-request.submit',
-      input: { specimen: 'Soil core 4', description: 'Moisture content as received' },
+      input: {
+        sample: 'OS-24-0804',
+        transformer: 'TR-40517',
+        description: 'Water content after a gasket leak',
+      },
       idempotencyKey: 'submit',
     },
     owner,
@@ -59,7 +63,7 @@ test('a run started from the test request screen opens the request and asks for 
       [
         tool('approval.request', {
           operation: 'test-request.update',
-          input: { id: 'id-1', method: 'ASTM D2216 moisture content' },
+          input: { id: 'id-1', method: 'IEC 60814 water content' },
           rationale: 'The test its description names.',
           resource: 'test-request:id-1',
           baseRevisions: { 'test-request:id-1': 1 },

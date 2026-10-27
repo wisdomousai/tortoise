@@ -18,9 +18,10 @@ try {
     {
       operation: 'test-request.submit',
       input: {
-        specimen: 'B-1042-03',
-        description: 'Tensile strength of the weld coupon',
-        method: 'ASTM E8 tensile test',
+        sample: 'OS-24-0417',
+        transformer: 'TR-40517',
+        description: 'Gas alarm after a load increase',
+        method: 'IEC 60567 dissolved gas analysis',
       },
       idempotencyKey: 'dev-seed-lena-1',
     },

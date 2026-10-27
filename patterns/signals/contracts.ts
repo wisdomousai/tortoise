@@ -39,7 +39,7 @@ export const conditionSchema = z.strictObject({
 export type Condition = z.output<typeof conditionSchema>;
 
 /**
- * A climate chamber where specimens are conditioned before testing, with its setpoint and
+ * A climate chamber where samples are conditioned before testing, with its setpoint and
  * tolerance. `conditioned` is true when both quantities are observed and within tolerance.
  */
 export const chamberSchema = z.strictObject({
@@ -61,7 +61,7 @@ const readingSchema = z.strictObject({
 
 const member = { action: 'read', resourceType: 'Chamber' };
 
-/** Climate chambers, their conditions and which chamber holds a test request's specimen. */
+/** Climate chambers, their conditions and which chamber holds a test request's sample. */
 export const chamberOperations = {
   chamberList: defineCapability({
     id: 'chamber.list',
@@ -78,7 +78,7 @@ export const chamberOperations = {
     id: 'chamber.conditions',
     kind: 'query',
     description:
-      "The chamber that holds a test request's specimen and its conditions, or null when the specimen is in no chamber.",
+      "The chamber that holds a test request's sample and its conditions, or null when the sample is in no chamber.",
     input: jsonSchema(z.strictObject({ request: recordKeySchema })),
     output: jsonSchema(z.strictObject({ chamber: chamberSchema.nullable() })),
     permission: member,
@@ -89,7 +89,7 @@ export const chamberOperations = {
     id: 'chamber.place',
     kind: 'command',
     description:
-      "Record that a test request's specimen is conditioned in a chamber. Technicians only.",
+      "Record that a test request's sample is conditioned in a chamber. Technicians only.",
     input: jsonSchema(z.strictObject({ request: recordKeySchema, chamber: recordKeySchema })),
     output: jsonSchema(z.strictObject({ request: recordKeySchema, chamber: recordKeySchema })),
     permission: { action: 'write', resourceType: 'Chamber' },

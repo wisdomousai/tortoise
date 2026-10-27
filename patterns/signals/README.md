@@ -1,6 +1,6 @@
 # @agent-native/pattern-signals
 
-`pattern-signals` composes the [base pattern](../base/README.md) unchanged with climate chambers, where specimens are conditioned before testing. Chamber temperature comes from the chamber controllers over OPC UA, and humidity from one Sparkplug B edge node per chamber over MQTT. A technician places a test request's specimen in a chamber, and the request screen shows whether that chamber holds its setpoint.
+`pattern-signals` composes the [base pattern](../base/README.md) unchanged with climate chambers, where samples are conditioned before testing. Chamber temperature comes from the chamber controllers over OPC UA, and humidity from one Sparkplug B edge node per chamber over MQTT. A technician places a test request's sample in a chamber, and the request screen shows whether that chamber holds its setpoint.
 
 ## Layer
 
@@ -51,7 +51,7 @@ A chamber is conditioned when both its temperature and humidity are observed and
 
 The observers reach the gateway and the broker only through the network port, so the site policy decides where `chamber-gateway` and `chamber-broker` point. Until it binds them, the observers reach nothing and no condition is recorded.
 
-The observers submit as `chamber-observer`. Its lane admits only `chamber.reading.ingest` and no event, so a compromised gateway or broker can record conditions and nothing else. People cannot call the ingest command. Members read chambers, and technicians place specimens.
+The observers submit as `chamber-observer`. Its lane admits only `chamber.reading.ingest` and no event, so a compromised gateway or broker can record conditions and nothing else. People cannot call the ingest command. Members read chambers, and technicians place samples.
 
 Both connectors only read. The MQTT client subscribes and never publishes, and the OPC UA client uses the Read service. The OPC UA connection uses security policy None and an anonymous session, so it belongs on a segmented control network; the connector's README lists its limits. A real broker on port 8883 is bound with `tls: true`.
 
@@ -65,7 +65,7 @@ Both connectors only read. The MQTT client subscribes and never publishes, and t
 bun test patterns/signals/
 ```
 
-- `test/signals.test.ts`: the real observers against `FakePlant` on free ports, through the network port of an embedded instance whose site policy binds both destinations. A temperature counts after two equal reads and a humidity after the edge node's birth, a placed request shows its chamber, and a humidity outside the tolerance clears `conditioned`. A dead edge node and a stopped gateway leave the last values uncertain, and a new birth makes the humidity current again. The observer principal reads nothing and places nothing, people cannot ingest, and neither observer writes to the plant. A viewer cannot place a specimen. Without a site binding, neither source is reached.
+- `test/signals.test.ts`: the real observers against `FakePlant` on free ports, through the network port of an embedded instance whose site policy binds both destinations. A temperature counts after two equal reads and a humidity after the edge node's birth, a placed request shows its chamber, and a humidity outside the tolerance clears `conditioned`. A dead edge node and a stopped gateway leave the last values uncertain, and a new birth makes the humidity current again. The observer principal reads nothing and places nothing, people cannot ingest, and neither observer writes to the plant. A viewer cannot place a sample. Without a site binding, neither source is reached.
 - `test/ui-bindings.test.ts`: every bound capability is referenced by a screen in this pattern or the base.
 
 Run the pattern in the browser:

@@ -13,7 +13,8 @@ export class FakeLims {
   private readonly elsewhere: {
     seq: number;
     id: string;
-    specimen: string;
+    sample: string;
+    transformer: string;
     description: string;
     method: string;
   }[] = [];
@@ -47,9 +48,9 @@ export class FakeLims {
   }
 
   /** Another site's front desk registers a request; the change feed reports it. */
-  register(specimen: string, description: string, method: string) {
+  register(sample: string, transformer: string, description: string, method: string) {
     const seq = this.elsewhere.length + 1;
-    this.elsewhere.push({ seq, id: `r${seq}`, specimen, description, method });
+    this.elsewhere.push({ seq, id: `r${seq}`, sample, transformer, description, method });
   }
 
   private async handle(request: Request): Promise<Response> {
@@ -93,9 +94,10 @@ export class FakeLims {
       const page = this.elsewhere.filter((item) => item.seq > after).slice(0, 20);
       const last = page.at(-1)?.seq ?? after;
       return Response.json({
-        items: page.map(({ id, specimen, description, method }) => ({
+        items: page.map(({ id, sample, transformer, description, method }) => ({
           id,
-          specimen,
+          sample,
+          transformer,
           description,
           method,
         })),
@@ -111,7 +113,8 @@ export class FakeLims {
       if (control[1] === 'forget') this.forget(String(body.key));
       if (control[1] === 'register')
         this.register(
-          String(body.specimen ?? ''),
+          String(body.sample ?? ''),
+          String(body.transformer ?? ''),
           String(body.description ?? ''),
           String(body.method ?? ''),
         );

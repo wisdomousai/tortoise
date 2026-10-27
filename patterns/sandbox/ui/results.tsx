@@ -39,13 +39,13 @@ function ResultRow({ result, availability }: { result: TestResult; availability?
   return (
     <li className="space-y-2 rounded-lg border p-3 text-sm">
       <p>
-        {result.readings.join(', ')} MPa, recorded by {result.recordedBy}
+        {result.readings.join(', ')} kV, recorded by {result.recordedBy}
       </p>
       {analysis ? (
         <p className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary">analyzed</Badge>
           <span>
-            mean {analysis.mean} MPa, s {analysis.stdev}, range {analysis.min} to {analysis.max}, n{' '}
+            mean {analysis.mean} kV, s {analysis.stdev}, range {analysis.min} to {analysis.max}, n{' '}
             {analysis.count}
           </span>
           <span className="text-muted-foreground">

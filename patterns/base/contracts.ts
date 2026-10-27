@@ -10,12 +10,14 @@ import {
 } from '@agent-native/contracts';
 
 /**
- * One test request: a specimen sent to the lab, what the requester wants tested, and the test
- * method a technician assigns. `requester` is the principal who submitted it.
+ * One test request: an oil sample drawn from an installed power transformer, what the requester
+ * wants tested, and the test method a technician assigns. `requester` is the principal who
+ * submitted it.
  */
 export const testRequestSchema = z.strictObject({
   id: recordKeySchema,
-  specimen: z.string().min(1).max(64),
+  sample: z.string().min(1).max(64),
+  transformer: z.string().min(1).max(64),
   description: z.string().max(10_000),
   method: z.string().max(200),
   requester: z.string().min(1).max(128),
@@ -34,9 +36,10 @@ export const testRequestCollection = defineCollection({
   resourceType: 'TestRequest',
   item: testRequestRecordSchema,
   label: { one: 'Test request', many: 'Test requests' },
-  titleField: 'specimen',
+  titleField: 'sample',
   fields: [
-    { name: 'specimen' },
+    { name: 'sample' },
+    { name: 'transformer' },
     { name: 'method', label: 'Test method' },
     { name: 'description' },
     // `updatedAt` stays out: a JSON number carries no unit, so a screen would print the epoch.
@@ -51,7 +54,7 @@ export const requestOperations = {
   requestList: collectionList(testRequestCollection, {
     id: 'test-request',
     description:
-      'List test requests, most recently changed first. Search matches specimen, method and description.',
+      'List test requests, most recently changed first. Search matches sample, transformer, method and description.',
     search: true,
   }),
   requestGet: collectionGet(testRequestCollection, {
@@ -63,10 +66,11 @@ export const requestOperations = {
     id: 'test-request.submit',
     kind: 'command',
     description:
-      'Submit a test request for a specimen. Technicians only. The test method may be left empty for a technician to assign.',
+      'Submit a test request for an oil sample drawn from a transformer. Technicians only. The test method may be left empty for a technician to assign.',
     input: jsonSchema(
       z.strictObject({
-        specimen: testRequestSchema.shape.specimen,
+        sample: testRequestSchema.shape.sample,
+        transformer: testRequestSchema.shape.transformer,
         description: testRequestSchema.shape.description,
         method: testRequestSchema.shape.method.optional(),
       }),
@@ -75,17 +79,18 @@ export const requestOperations = {
     permission: write,
     dependencies: ['test-request'],
     ui: { binding: 'test-request.submit' },
-    display: { label: 'Submit test request', resource: 'test-request', titleField: 'specimen' },
+    display: { label: 'Submit test request', resource: 'test-request', titleField: 'sample' },
   }),
   requestUpdate: defineCapability({
     id: 'test-request.update',
     kind: 'command',
     description:
-      'Change the specimen, description or test method of a test request. Technicians only. Pass the revision you read as expectedRevisions so a concurrent change conflicts.',
+      'Change the sample, transformer, description or test method of a test request. Technicians only. Pass the revision you read as expectedRevisions so a concurrent change conflicts.',
     input: jsonSchema(
       z.strictObject({
         id: recordKeySchema,
-        specimen: testRequestSchema.shape.specimen.optional(),
+        sample: testRequestSchema.shape.sample.optional(),
+        transformer: testRequestSchema.shape.transformer.optional(),
         description: testRequestSchema.shape.description.optional(),
         method: testRequestSchema.shape.method.optional(),
       }),
@@ -94,7 +99,7 @@ export const requestOperations = {
     permission: write,
     dependencies: ['test-request'],
     ui: { binding: 'test-request.update' },
-    display: { label: 'Save test request', resource: 'test-request', titleField: 'specimen' },
+    display: { label: 'Save test request', resource: 'test-request', titleField: 'sample' },
   }),
 } as const;
 

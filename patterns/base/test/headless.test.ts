@@ -52,10 +52,12 @@ test('the CLI submits and lists test requests in-process, with no frame', async 
   const submitted = await cli(
     'test-request',
     'submit',
-    '--specimen',
-    'B-1042-03',
+    '--sample',
+    'OS-24-0417',
+    '--transformer',
+    'TR-40517',
     '--description',
-    'Hardness after heat treatment',
+    'Breakdown voltage after filtering',
   );
   expect(submitted.stderr).toBe('');
   expect(submitted.exitCode).toBe(0);
@@ -63,11 +65,21 @@ test('the CLI submits and lists test requests in-process, with no frame', async 
   expect(listed.exitCode).toBe(0);
   expect(JSON.parse(listed.stdout).data).toMatchObject({
     total: 1,
-    items: [{ specimen: 'B-1042-03', requester: 'owner' }],
+    items: [{ sample: 'OS-24-0417', requester: 'owner' }],
   });
   expect(
-    (await cli('test-request', 'submit', '--specimen', 'x'.repeat(65), '--description', ''))
-      .exitCode,
+    (
+      await cli(
+        'test-request',
+        'submit',
+        '--sample',
+        'x'.repeat(65),
+        '--transformer',
+        'TR-40517',
+        '--description',
+        '',
+      )
+    ).exitCode,
   ).toBe(2);
 });
 
@@ -94,7 +106,7 @@ test('an MCP client sees one titled tool per capability and the workflow text', 
     const list = tools.find((tool) => tool.name === 'test_request_list')!;
     expect(list.title).toBe('Test requests');
     expect(list.description).toContain(
-      'Each record is the resource test-request:<id>. specimen names a record.',
+      'Each record is the resource test-request:<id>. sample names a record.',
     );
     expect(tools.find((tool) => tool.name === 'test_request_submit')!.title).toBe(
       'Submit test request',
@@ -104,7 +116,11 @@ test('an MCP client sees one titled tool per capability and the workflow text', 
     const called = await mcp.callTool({
       name: 'test_request_submit',
       arguments: {
-        input: { specimen: 'B-1042-04', description: 'Salt spray, 96 h' },
+        input: {
+          sample: 'OS-24-0418',
+          transformer: 'TR-40517',
+          description: 'Paper aging, 30 years in service',
+        },
         idempotencyKey: 'mcp-1',
       },
     });

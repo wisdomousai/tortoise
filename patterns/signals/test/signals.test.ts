@@ -111,9 +111,10 @@ const refused = (promise: Promise<unknown>) =>
 test('temperature counts after two equal reads and humidity after a birth; a placed request shows its chamber', async () => {
   const { plant, observers, command, chamber, observe, application } = await open();
   const { id } = (await command('test-request.submit', {
-    specimen: 'PA6-0417',
-    description: 'Notched impact strength after conditioning',
-    method: 'ISO 179 Charpy impact',
+    sample: 'OS-24-0431',
+    transformer: 'TR-40517',
+    description: 'Dissipation factor at 90 °C after conditioning',
+    method: 'IEC 60247 dissipation factor',
   })) as { id: string };
   await command('chamber.place', { request: id, chamber: 'chamber-1' });
   await until(() => observers.humidity.connected);
@@ -206,11 +207,12 @@ test('the observer principal only ingests, and neither observer writes to the pl
   expect(await refused(chambers(stranger))).toBe('FORBIDDEN');
 });
 
-test('viewers read chambers but cannot place a specimen', async () => {
+test('viewers read chambers but cannot place a sample', async () => {
   const { command } = await open();
   const { id } = (await command('test-request.submit', {
-    specimen: 'PA6-0418',
-    description: 'Tensile modulus after conditioning',
+    sample: 'OS-24-0432',
+    transformer: 'TR-40517',
+    description: 'Dissipation factor after conditioning',
     method: '',
   })) as { id: string };
   expect(

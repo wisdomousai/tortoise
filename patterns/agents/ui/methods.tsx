@@ -12,7 +12,7 @@ import { methodFor } from '../method';
 type UiSession = ReturnType<typeof useUiSession>;
 type RequestRecord = {
   id: string;
-  specimen: string;
+  sample: string;
   description: string;
   method: string;
   revision: number;

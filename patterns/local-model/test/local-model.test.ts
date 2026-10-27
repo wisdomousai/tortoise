@@ -35,10 +35,11 @@ const pending = async (application: Application) =>
       )
     ).data as { items: ApprovalRequest[] }
   ).items;
-const submit = async (application: Application, specimen: string, description: string) =>
+const submit = async (application: Application, sample: string, description: string) =>
   (
     await command(application, requestOperations.requestSubmit.id, {
-      specimen,
+      sample,
+      transformer: 'TR-40517',
       description,
       method: '',
     })
@@ -82,11 +83,11 @@ test('the trigger runs the method suggester on the measured local model, and a t
   });
   await enableTrigger(application);
 
-  const coupon = await submit(application, 'PA6-0417', 'Notched impact strength, conditioned');
-  const suggestion = await suggestionFor(application, coupon.id);
+  const request = await submit(application, 'OS-24-0431', 'Dissipation factor at 90 °C');
+  const suggestion = await suggestionFor(application, request.id);
   expect(suggestion).toMatchObject({
     operation: requestOperations.requestUpdate.id,
-    input: { id: coupon.id, method: 'ISO 179 Charpy impact' },
+    input: { id: request.id, method: 'IEC 60247 dissipation factor' },
     requestedBy: 'owner',
   });
   // The run only requested approval; a viewer cannot approve, and the owner's approval updates.
@@ -97,10 +98,10 @@ test('the trigger runs the method suggester on the measured local model, and a t
   ).toBe('FORBIDDEN');
   await command(application, approvalOperations.approvalApprove.id, { id: suggestion.id });
   const updated = await application.queryRaw(
-    { operation: requestOperations.requestGet.id, input: { id: coupon.id } },
+    { operation: requestOperations.requestGet.id, input: { id: request.id } },
     owner,
   );
-  expect(updated.data).toMatchObject({ method: 'ISO 179 Charpy impact' });
+  expect(updated.data).toMatchObject({ method: 'IEC 60247 dissipation factor' });
 
   // The audit log names the measured weights the server started on and the model of each run.
   expect((await audit('model.started'))[0]?.data).toMatchObject({
@@ -134,18 +135,18 @@ test('decided suggestions export as a dataset, and a fine-tune on it serves only
   const base = await lab();
   const { application } = base.host;
   await enableTrigger(application);
-  const decide = async (specimen: string, description: string, approve: boolean) => {
-    const { id } = await submit(application, specimen, description);
+  const decide = async (sample: string, description: string, approve: boolean) => {
+    const { id } = await submit(application, sample, description);
     const suggestion = await suggestionFor(application, id);
     await command(
       application,
       approve ? approvalOperations.approvalApprove.id : approvalOperations.approvalReject.id,
-      approve ? { id: suggestion.id } : { id: suggestion.id, reason: 'Needs ISO 6892-1' },
+      approve ? { id: suggestion.id } : { id: suggestion.id, reason: 'Needs ASTM D3612' },
     );
   };
-  await decide('B-1042-03', 'Tensile strength of the weld coupon', true);
-  await decide('BR-12', 'Rockwell hardness after heat treatment', true);
-  await decide('B-1042-04', 'Tensile test at 200 °C', false);
+  await decide('OS-24-0417', 'Gas alarm after a load increase', true);
+  await decide('OS-24-0420', 'Breakdown voltage before re-energizing', true);
+  await decide('OS-24-0418', 'Dissolved gas after a through-fault', false);
   const dataset = await exportApprovalDataset(application, owner, {
     operations: [requestOperations.requestUpdate.id],
     redact: { rationale: true },
@@ -153,9 +154,9 @@ test('decided suggestions export as a dataset, and a fine-tune on it serves only
   expect(
     dataset.rows.map((row) => [row.outcome, (row.input as { method: string }).method]),
   ).toEqual([
-    ['approved', 'ASTM E8 tensile test'],
-    ['approved', 'ASTM E18 Rockwell hardness'],
-    ['rejected', 'ASTM E8 tensile test'],
+    ['approved', 'IEC 60567 dissolved gas analysis'],
+    ['approved', 'IEC 60156 breakdown voltage'],
+    ['rejected', 'IEC 60567 dissolved gas analysis'],
   ]);
   expect(dataset.rows.every((row) => row.rationale === '[redacted]')).toBe(true);
 
@@ -180,7 +181,7 @@ test('decided suggestions export as a dataset, and a fine-tune on it serves only
   // The gate judges the fine-tune on an evaluation server, against the agent's scenarios.
   const evaluation = await lab({ model: tuned, evaluation: true });
   const scenario: AgentScenario = {
-    name: 'suggests the tensile test for a tensile coupon',
+    name: 'suggests dissolved gas analysis after a tap changer fault',
     agent: methodSuggester.id,
     task: 'Suggest the test method for test-request:r1.',
     issuer: owner,
@@ -189,8 +190,9 @@ test('decided suggestions export as a dataset, and a fine-tune on it serves only
       {
         operation: requestOperations.requestSubmit.id,
         input: {
-          specimen: 'B-2001-01',
-          description: 'Tensile strength of a rolled bar',
+          sample: 'OS-24-0611',
+          transformer: 'TR-40517',
+          description: 'Dissolved gas after a tap changer fault',
           method: '',
         },
         idempotencyKey: 'gate-setup',
@@ -201,7 +203,7 @@ test('decided suggestions export as a dataset, and a fine-tune on it serves only
       approvals: [
         {
           operation: requestOperations.requestUpdate.id,
-          input: { method: 'ASTM E8 tensile test' },
+          input: { method: 'IEC 60567 dissolved gas analysis' },
         },
       ],
       outcome: 'succeeded',

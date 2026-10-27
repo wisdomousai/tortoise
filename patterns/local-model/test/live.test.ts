@@ -93,7 +93,12 @@ live(
     const { id } = (
       await run(
         requestOperations.requestSubmit.id,
-        { specimen: 'B-1042-03', description: 'Tensile strength of the weld coupon', method: '' },
+        {
+          sample: 'OS-24-0417',
+          transformer: 'TR-40517',
+          description: 'Dissolved gases after a Buchholz alarm',
+          method: '',
+        },
         'submit',
       )
     ).result as { id: string };
@@ -109,7 +114,7 @@ live(
     console.log(JSON.stringify(suggestion, null, 2));
     expect(suggestion).toMatchObject({
       operation: requestOperations.requestUpdate.id,
-      input: { id, method: expect.stringMatching(/tensile|E8/i) },
+      input: { id, method: expect.stringMatching(/gas|60567|D3612/i) },
     });
   },
   300_000,

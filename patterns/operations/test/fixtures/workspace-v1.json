@@ -4,9 +4,10 @@
     "requests": {
       "r1": {
         "id": "r1",
-        "sampleId": "B-1042-03",
-        "description": "Weld coupon from line 2, heat lot 7731",
-        "tests": "ASTM E8 tensile test",
+        "sampleId": "OS-24-0417",
+        "unit": "TR-40517",
+        "description": "Drawn from the bottom valve of T2, Substation Nord",
+        "tests": "IEC 60567 dissolved gas analysis",
         "requester": "owner",
         "updatedAt": 1000
       }

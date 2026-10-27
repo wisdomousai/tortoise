@@ -8,7 +8,7 @@ import manifest from './manifest';
 import { reviewScreens } from './features/review/screens';
 import { RequestReview } from './ui/request-review';
 
-/** The lab request screens, with the review panel below each test request. */
+/** The test request screens, with the review panel below each test request. */
 export default defineScreens({
   manifest,
   title: manifest.title,

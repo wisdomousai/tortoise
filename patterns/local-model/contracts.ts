@@ -16,7 +16,7 @@ export const methodSuggester = defineAgent({
   id: 'test-request.method-suggester',
   title: 'Test method suggester',
   instructions:
-    'The test request named below was just submitted. Read it with test-request.get. If its method is empty, request approval for test-request.update with the test method its description asks for (resource test-request:<id>, with the revision you read as baseRevisions). Never request approval to change the specimen or the description. When the method is set, or no method fits, stop.',
+    'The test request named below was just submitted. Read it with test-request.get. If its method is empty, request approval for test-request.update with the test method its description asks for (resource test-request:<id>, with the revision you read as baseRevisions). Never request approval to change the sample, the transformer or the description. When the method is set, or no method fits, stop.',
   operations: ['test-request.get', 'test-request.update', 'approval.list'],
   model: 'local',
   models: [METHOD_MODEL],

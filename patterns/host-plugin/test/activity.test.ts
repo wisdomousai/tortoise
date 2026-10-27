@@ -72,17 +72,20 @@ test('the loop counts committed test request commands and resumes from its curso
   let host = await startHost(application(), options);
   // Closes whichever host is open when the test ends.
   cleanup.push(() => host.close());
-  const submit = (specimen: string) =>
+  const submit = (sample: string) =>
     host.application.invokeRaw(
-      { operation: requestOperations.requestSubmit.id, input: { specimen, description: '' } },
+      {
+        operation: requestOperations.requestSubmit.id,
+        input: { sample, transformer: 'TR-40517', description: '' },
+      },
       owner,
     );
-  const { result } = await submit('B-1042-03');
-  await submit('B-1042-04');
+  const { result } = await submit('OS-24-0417');
+  await submit('OS-24-0418');
   await host.application.invokeRaw(
     {
       operation: requestOperations.requestUpdate.id,
-      input: { id: (result as { id: string }).id, method: 'ASTM E8 tensile test' },
+      input: { id: (result as { id: string }).id, method: 'IEC 60567 dissolved gas analysis' },
     },
     owner,
   );
@@ -95,7 +98,7 @@ test('the loop counts committed test request commands and resumes from its curso
   await host.close();
 
   host = await startHost(application(), options);
-  await submit('B-1043-01');
+  await submit('OS-24-0502');
   await until(async () => (await summary(host)).operations[0]?.count === 3);
   // The restarted loop counted only the new command.
   expect((await summary(host)).operations).toEqual([

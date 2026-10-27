@@ -22,11 +22,11 @@ test('a request without a method gets one only after a technician approves the t
         )
       ).data as { items: ApprovalRequest[] }
     ).items;
-  const submit = (specimen: string, description: string, method: string, key: string) =>
+  const submit = (sample: string, description: string, method: string, key: string) =>
     application.invokeRaw(
       {
         operation: requestOperations.requestSubmit.id,
-        input: { specimen, description, method },
+        input: { sample, transformer: 'TR-40517', description, method },
         idempotencyKey: key,
       },
       owner,
@@ -40,7 +40,7 @@ test('a request without a method gets one only after a technician approves the t
     ).data;
 
   // A trigger does nothing until a person issues a standing grant for it.
-  await submit('Coupon 0', 'Tensile test before the grant', '', 'before');
+  await submit('OS-24-0700', 'Dissolved gas before the grant', '', 'before');
   const grant = await application.invokeRaw(
     {
       operation: 'automation.grant.issue',
@@ -57,18 +57,24 @@ test('a request without a method gets one only after a technician approves the t
     );
     return (data as { items: { cursor?: number }[] }).items[0]?.cursor !== undefined;
   });
-  const coupon = (await submit('Coupon 7', 'Tensile strength of a welded coupon', '', 'tensile'))
-    .result as { id: string };
-  await submit('Coupon 8', 'Tensile test', 'ASTM E8 tensile test', 'has-method');
-  await submit('Soil core 2', 'Grain size distribution', '', 'unmatched');
+  const gasAlarm = (
+    await submit('OS-24-0707', 'Dissolved gas after a Buchholz gas alarm', '', 'gas')
+  ).result as { id: string };
+  await submit(
+    'OS-24-0708',
+    'Dissolved gas analysis',
+    'IEC 60567 dissolved gas analysis',
+    'has-method',
+  );
+  await submit('OS-24-0802', 'Color and appearance', '', 'unmatched');
   await until(async () => (await pending()).length > 0);
   await Bun.sleep(50);
   const [request, ...others] = await pending();
   expect(others).toEqual([]);
   expect(request).toMatchObject({
     operation: requestOperations.requestUpdate.id,
-    input: { id: coupon.id, method: 'ASTM E8 tensile test' },
-    resource: `test-request:${coupon.id}`,
+    input: { id: gasAlarm.id, method: 'IEC 60567 dissolved gas analysis' },
+    resource: `test-request:${gasAlarm.id}`,
     requestedBy: 'owner',
   });
   expect(request!.runId).toStartWith('auto:');
@@ -87,14 +93,15 @@ test('a request without a method gets one only after a technician approves the t
     { operation: approvalOperations.approvalApprove.id, input: { id: request!.id } },
     owner,
   );
-  expect(await get(coupon.id)).toMatchObject({ method: 'ASTM E8 tensile test' });
+  expect(await get(gasAlarm.id)).toMatchObject({ method: 'IEC 60567 dissolved gas analysis' });
 
   // A technician may reject a suggestion; the request keeps no method.
-  const panel = (await submit('Panel 3', 'Salt spray exposure, 96 hours', '', 'salt-spray'))
-    .result as { id: string };
+  const aged = (
+    await submit('OS-24-0903', 'Paper aging after 25 years in service', '', 'paper-aging')
+  ).result as { id: string };
   await until(async () => (await pending()).length > 0);
   const [suggestion] = await pending();
-  expect(suggestion!.input).toEqual({ id: panel.id, method: 'ASTM B117 salt spray' });
+  expect(suggestion!.input).toEqual({ id: aged.id, method: 'IEC 61198 furan analysis' });
   expect(
     await refused(
       application.invokeRaw(
@@ -108,7 +115,7 @@ test('a request without a method gets one only after a technician approves the t
     owner,
   );
   expect(await pending()).toEqual([]);
-  expect(await get(panel.id)).toMatchObject({ method: '' });
+  expect(await get(aged.id)).toMatchObject({ method: '' });
 
   // Revoking stops future runs.
   await application.invokeRaw(
@@ -119,7 +126,7 @@ test('a request without a method gets one only after a technician approves the t
     },
     owner,
   );
-  await submit('Coupon 9', 'Hardness after revoking', '', 'after');
+  await submit('OS-24-0709', 'Breakdown voltage after revoking', '', 'after');
   await Bun.sleep(100);
   expect(await pending()).toEqual([]);
 });

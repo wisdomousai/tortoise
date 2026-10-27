@@ -16,12 +16,12 @@ import {
 export const LIMS_DESTINATION = 'lims-api';
 
 /**
- * One test request's publication, keyed by the request's id: the specimen it was sent with and
+ * One test request's publication, keyed by the request's id: the sample it was sent with and
  * where its delivery stands. `sorRef` is the LIMS id once the LIMS registered the request.
  */
 export const publicationSchema = z.strictObject({
   id: recordKeySchema,
-  specimen: z.string().max(64),
+  sample: z.string().max(64),
   effectId: z.string(),
   ...deliveryShape,
   publishedAt: z.number().int().nonnegative(),
@@ -33,9 +33,9 @@ export const publications = defineCollection({
   resourceType: 'Publication',
   item: publicationSchema,
   label: { one: 'Publication', many: 'Publications' },
-  titleField: 'specimen',
+  titleField: 'sample',
   fields: [
-    { name: 'specimen' },
+    { name: 'sample' },
     { name: 'sync', label: 'Delivery' },
     { name: 'sorRef', label: 'LIMS id' },
   ],
@@ -44,7 +44,8 @@ export const publications = defineCollection({
 /** A test request registered at another site's LIMS front desk, as the LIMS feed reports it. */
 export const registeredRequestSchema = z.strictObject({
   id: recordKeySchema,
-  specimen: z.string().min(1).max(64),
+  sample: z.string().min(1).max(64),
+  transformer: z.string().min(1).max(64),
   description: z.string().max(10_000),
   method: z.string().max(200),
 });
@@ -90,7 +91,7 @@ export const publishingOperations = {
     dependencies: ['publication'],
     integration: { target: limsTarget.target, delivery: 'outbox' },
     ui: { binding: 'publication.publish' },
-    display: { label: 'Register in LIMS', resource: 'publication', titleField: 'specimen' },
+    display: { label: 'Register in LIMS', resource: 'publication', titleField: 'sample' },
   }),
   limsSettle: limsTarget.settle,
   limsSync: limsTarget.sync!,

@@ -62,8 +62,13 @@ export async function open({ bound = true } = {}) {
     integrations
       .target('lims')
       .dispatcher.runOnce(new AbortController().signal, { ignoreBackoff: true });
-  const submit = (specimen: string, description: string, method: string) =>
-    command<{ id: string }>('test-request.submit', { specimen, description, method });
+  const submit = (sample: string, description: string, method: string) =>
+    command<{ id: string }>('test-request.submit', {
+      sample,
+      transformer: 'TR-40517',
+      description,
+      method,
+    });
   return { application, integrations, lims, query, command, deliver, submit };
 }
 

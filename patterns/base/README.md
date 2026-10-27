@@ -1,6 +1,6 @@
 # @agent-native/pattern-base
 
-`pattern-base` is the base application of the [patterns](../../docs/patterns.md): a lab's test requests. A technician submits a request for a specimen with a description of what to test and assigns the test method, and viewers read the requests. Each extension pattern imports its module, handlers, policy and screens unchanged and adds one concern next to them.
+`pattern-base` is the base application of the [patterns](../../docs/patterns.md): the test requests of a power transformer manufacturer's oil lab. Field technicians draw oil samples from transformers in service. A technician submits a request for a sample with the transformer it came from and a description of what to test, a technician assigns the test method, such as IEC 60567 dissolved gas analysis, and viewers read the requests. Each extension pattern imports its module, handlers, policy and screens unchanged and adds one concern next to them.
 
 ## Layer
 

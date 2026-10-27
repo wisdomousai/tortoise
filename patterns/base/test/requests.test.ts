@@ -46,7 +46,11 @@ const scenarios: BehavioralScenario[] = [
       const submitted = await driver.command(
         {
           operation: 'test-request.submit',
-          input: { specimen: 'B-1042-03', description: 'Tensile strength of the weld coupon' },
+          input: {
+            sample: 'OS-24-0417',
+            transformer: 'TR-40517',
+            description: 'Gas alarm after a load increase',
+          },
         },
         owner,
       );
@@ -55,7 +59,7 @@ const scenarios: BehavioralScenario[] = [
       await driver.command(
         {
           operation: 'test-request.update',
-          input: { id: 'r1', method: 'ASTM E8 tensile test' },
+          input: { id: 'r1', method: 'IEC 60567 dissolved gas analysis' },
           expectedRevisions: { 'test-request:r1': 1 },
         },
         owner,
@@ -64,7 +68,10 @@ const scenarios: BehavioralScenario[] = [
         { operation: 'test-request.get', input: { id: 'r1' } },
         viewer,
       );
-      expect(read.data).toMatchObject({ specimen: 'B-1042-03', method: 'ASTM E8 tensile test' });
+      expect(read.data).toMatchObject({
+        sample: 'OS-24-0417',
+        method: 'IEC 60567 dissolved gas analysis',
+      });
     },
   },
   {
@@ -75,7 +82,7 @@ const scenarios: BehavioralScenario[] = [
           driver.command(
             {
               operation: 'test-request.update',
-              input: { id: 'r1', method: 'ASTM E18 hardness test' },
+              input: { id: 'r1', method: 'IEC 60156 breakdown voltage' },
               expectedRevisions: { 'test-request:r1': 1 },
             },
             owner,
@@ -89,14 +96,14 @@ const scenarios: BehavioralScenario[] = [
     async run(driver) {
       const request = {
         operation: 'test-request.submit',
-        input: { specimen: 'B-1043-01', description: 'Moisture content' },
+        input: { sample: 'OS-24-0502', transformer: 'TR-40517', description: 'Water content' },
         idempotencyKey: 'submit-once',
       };
       const first = await driver.command(request, owner);
       const second = await driver.command(request, owner);
       expect(second.result).toEqual(first.result);
       const list = await driver.query(
-        { operation: 'test-request.list', input: { search: 'moisture' } },
+        { operation: 'test-request.list', input: { search: 'water' } },
         owner,
       );
       expect(list.data).toMatchObject({ total: 1 });
@@ -110,7 +117,7 @@ const scenarios: BehavioralScenario[] = [
           driver.command(
             {
               operation: 'test-request.submit',
-              input: { specimen: 'B-9', description: '' },
+              input: { sample: 'OS-9', transformer: 'TR-40517', description: '' },
             },
             viewer,
           ),

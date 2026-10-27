@@ -60,7 +60,7 @@ bun test patterns/local-model/
 ```
 
 - `test/local-model.test.ts`: a serving host with the stand-in. The server serves the measured stand-in entry, the trigger's run requests approval for the method of a new request, a viewer cannot approve, and the owner's approval updates the request. The audit log records the measured base digest and the run's model. Weights that differ from the entry are refused. Three decided suggestions export as a dataset with the rationale blanked. A fine-tune whose adapter names the dataset is refused without an activation, passes its gate on an evaluation server, and then serves with the adapter and dataset digests.
-- `test/live.test.ts`: runs only when `LOCAL_MODEL_GGUF` names a GGUF file. The model server starts the real llama-server on the measured weights, and the trigger's run on it requests approval for a tensile test method.
+- `test/live.test.ts`: runs only when `LOCAL_MODEL_GGUF` names a GGUF file. The model server starts the real llama-server on the measured weights, and the trigger's run on it requests approval for a dissolved gas analysis method.
 - `test/ui-bindings.test.ts`: every bound capability is referenced by a screen in this pattern, the base or the automation plugin.
 
 ```sh

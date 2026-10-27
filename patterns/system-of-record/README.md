@@ -83,7 +83,7 @@ The fake LIMS listens on `http://127.0.0.1:4371`. Its controls act as the LIMS's
 curl -X POST localhost:4371/control/review -d '{"on":true}'
 curl -X POST localhost:4371/control/approve -d '{"key":"<effect id>"}'
 curl -X POST localhost:4371/control/forget -d '{"key":"<effect id>"}'
-curl -X POST localhost:4371/control/register -d '{"specimen":"S-2001","description":"Coating thickness on bracket","method":"ISO 2178"}'
+curl -X POST localhost:4371/control/register -d '{"sample":"OS-24-2001","transformer":"TR-38822","description":"Acidity of aged oil","method":"IEC 62021-1"}'
 ```
 
 ## Skills

@@ -102,7 +102,11 @@ test('the lab site enrolls, reports to the fleet and forwards its audit log', as
   await site.application.invokeRaw(
     {
       operation: 'test-request.submit',
-      input: { specimen: 'B-1042-03', description: 'Tensile strength of the weld coupon' },
+      input: {
+        sample: 'OS-24-0417',
+        transformer: 'TR-40517',
+        description: 'Gas alarm after a load increase',
+      },
       idempotencyKey: 'submit-1',
     },
     { workspaceId: LOCAL_WORKSPACE, principalId: 'ana' },

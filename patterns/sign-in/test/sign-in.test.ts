@@ -43,17 +43,20 @@ async function startBench() {
     expect(response.status).toBe(201);
     return ((await response.json()) as { token: string }).token;
   };
-  const submit = (token: string, specimen: string) =>
+  const submit = (token: string, sample: string) =>
     post('/api/v1/commands/test-request.submit', token, {
-      input: { specimen, description: 'Hardness of the heat-treated shaft' },
+      input: {
+        sample,
+        transformer: 'TR-40517',
+        description: 'Breakdown voltage before re-energizing',
+      },
       idempotencyKey: crypto.randomUUID(),
     });
   const list = async (token: string) => {
     const response = await post('/api/v1/queries/test-request.list', token, { input: {} });
     if (!response.ok) return response.status;
-    return (
-      (await response.json()) as { data: { items: { specimen: string; requester: string }[] } }
-    ).data.items;
+    return ((await response.json()) as { data: { items: { sample: string; requester: string }[] } })
+      .data.items;
   };
   return { clock, seat, post, enroll, signIn, submit, list };
 }
@@ -63,13 +66,13 @@ test('a technician signs in at the bench with a PIN that starts with zero and su
   await enroll('ana', 'LAB-0042', '0420');
   const ana = await signIn('LAB-0042', '0420');
 
-  const submitted = await submit(ana, 'B-1042-03');
+  const submitted = await submit(ana, 'OS-24-0417');
   expect(submitted.status).toBe(200);
   expect(((await submitted.json()) as { result: { requester: string } }).result.requester).toBe(
     'ana',
   );
   expect(await list(ana)).toEqual([
-    expect.objectContaining({ specimen: 'B-1042-03', requester: 'ana' }),
+    expect.objectContaining({ sample: 'OS-24-0417', requester: 'ana' }),
   ]);
 });
 
@@ -78,12 +81,12 @@ test('the next sign-in at the bench ends the previous session, and a viewer cann
   await enroll('ana', 'LAB-0042', '0420');
   await enroll('ben', 'LAB-0043', '1357');
   const ana = await signIn('LAB-0042', '0420');
-  expect((await submit(ana, 'B-1042-03')).status).toBe(200);
+  expect((await submit(ana, 'OS-24-0417')).status).toBe(200);
 
   const ben = await signIn('LAB-0043', '1357');
   expect(await list(ana)).toBe(403);
   expect(await list(ben)).toEqual([expect.objectContaining({ requester: 'ana' })]);
-  const refused = await submit(ben, 'B-1042-04');
+  const refused = await submit(ben, 'OS-24-0418');
   expect(refused.status).toBe(403);
   expect(((await refused.json()) as { error: { code: string } }).error.code).toBe('FORBIDDEN');
   // An operator administers no badges.

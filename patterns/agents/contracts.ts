@@ -9,7 +9,7 @@ export const methodSuggester = defineAgent({
   id: 'test-request.method-suggester',
   title: 'Test method suggester',
   instructions:
-    'Find test requests with an empty method. Read each with test-request.get, then request approval for test-request.update with the test method its description asks for (resource test-request:<id>, with the revision you read as baseRevisions). Never request approval to change the specimen or the description.',
+    'Find test requests with an empty method. Read each with test-request.get, then request approval for test-request.update with the test method its description asks for (resource test-request:<id>, with the revision you read as baseRevisions). Never request approval to change the sample, the transformer or the description.',
   operations: ['test-request.list', 'test-request.get', 'test-request.update', 'approval.list'],
   model: 'any',
   output: 'request-approval',

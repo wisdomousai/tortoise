@@ -33,20 +33,20 @@ function sharedDatabase() {
 }
 
 const owner = { workspaceId: LOCAL_WORKSPACE, principalId: LOCAL_OWNER };
-const submit = (host: Awaited<ReturnType<typeof startHost>>, specimen: string) =>
+const submit = (host: Awaited<ReturnType<typeof startHost>>, sample: string) =>
   host.application.invokeRaw(
     {
       operation: 'test-request.submit',
-      input: { specimen, description: 'Tensile strength of the weld coupon' },
+      input: { sample, transformer: 'TR-40517', description: 'Gas alarm after a load increase' },
       idempotencyKey: crypto.randomUUID(),
     },
     owner,
   );
-const specimens = async (host: Awaited<ReturnType<typeof startHost>>) =>
+const samples = async (host: Awaited<ReturnType<typeof startHost>>) =>
   (
     (await host.application.queryRaw({ operation: 'test-request.list', input: {} }, owner))
-      .data as { items: { specimen: string }[] }
-  ).items.map((item) => item.specimen);
+      .data as { items: { sample: string }[] }
+  ).items.map((item) => item.sample);
 
 test('two instances race for the workspace; the second serves the same requests after the first', async () => {
   const root = await directory();
@@ -63,7 +63,7 @@ test('two instances race for the workspace; the second serves the same requests 
   const refused = [a, b].find((result) => result.status === 'rejected') as PromiseRejectedResult;
   expect(refused.reason).toBeInstanceOf(WorkspaceOwnedError);
   const first = (serving[0] as PromiseFulfilledResult<Awaited<ReturnType<typeof start>>>).value;
-  await submit(first, 'B-1042-03');
+  await submit(first, 'OS-24-0417');
 
   // The lease outlives its first expiry while the holder renews it.
   await Bun.sleep(400);
@@ -72,9 +72,9 @@ test('two instances race for the workspace; the second serves the same requests 
   await first.close();
   const second = await start('c');
   cleanups.push(() => second.close());
-  expect(await specimens(second)).toEqual(['B-1042-03']);
-  await submit(second, 'B-1042-04');
-  expect((await specimens(second)).sort()).toEqual(['B-1042-03', 'B-1042-04']);
+  expect(await samples(second)).toEqual(['OS-24-0417']);
+  await submit(second, 'OS-24-0418');
+  expect((await samples(second)).sort()).toEqual(['OS-24-0417', 'OS-24-0418']);
 });
 
 /** A throwaway CA and a certificate for 127.0.0.1 signed by it, written into `path`. */
@@ -168,7 +168,11 @@ test.skipIf(!Bun.which('openssl'))(
         },
         body: JSON.stringify({ input, idempotencyKey: crypto.randomUUID() }),
       });
-    const request = { specimen: 'B-1042-03', description: 'Tensile strength of the weld coupon' };
+    const request = {
+      sample: 'OS-24-0417',
+      transformer: 'TR-40517',
+      description: 'Gas alarm after a load increase',
+    };
 
     const ana = await signIn('ana@lab.example');
     const submitted = await call(ana, 'commands', 'test-request.submit', request);

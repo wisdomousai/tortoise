@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { FlaskConical } from 'lucide-react';
+import { Droplet } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { CollectionScreen, RecordScreen } from '@/components/collection-screen';
 import { requestOperations } from '../contracts';
@@ -38,7 +38,7 @@ export function requestRoutes(options: { sections?: readonly RequestSection[] } 
           title="Test requests"
           list={requestOperations.requestList}
           create={requestOperations.requestSubmit}
-          columns={['specimen', 'method', 'requester']}
+          columns={['sample', 'transformer', 'method', 'requester']}
           open={(row) => `/requests/${String(row.id)}`}
         />
       ),
@@ -47,5 +47,5 @@ export function requestRoutes(options: { sections?: readonly RequestSection[] } 
   ];
 }
 
-export const requestNavigation = [{ to: '/requests', label: 'Test requests', icon: FlaskConical }];
+export const requestNavigation = [{ to: '/requests', label: 'Test requests', icon: Droplet }];
 export const requestCapabilityScreens = [{ prefix: 'test-request.', to: '/requests' }];

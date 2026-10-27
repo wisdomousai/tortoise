@@ -1,6 +1,6 @@
 # Patterns
 
-The [patterns](glossary.md#pattern) in `patterns/*` show one technical concern each, such as a system of record, an agent, a sandbox or plant signals. The [examples](glossary.md#example) in `examples/*` are whole applications for real-world cases instead. The patterns are small applications on one lab domain: test requests for specimens. `patterns/base` is the base application. A technician submits a request with a description and assigns the test method, and viewers read the requests. Each other pattern imports the base's module, handlers, policy and screens unchanged and adds one concern next to them.
+The [patterns](glossary.md#pattern) in `patterns/*` show one technical concern each, such as a system of record, an agent, a sandbox or plant signals. The [examples](glossary.md#example) in `examples/*` are whole applications for real-world cases instead. The patterns are small applications for one case: a manufacturer of power transformers whose oil lab tests samples drawn from transformers in service. `patterns/base` is the base application. A technician submits a test request for an oil sample with its transformer and a description, a technician assigns the test method, and viewers read the requests. Each other pattern imports the base's module, handlers, policy and screens unchanged and adds one concern next to them.
 
 ## Concepts
 
@@ -38,8 +38,8 @@ An extension pattern composes the base in each entrypoint:
 | `signals` | 4356 | Climate chamber temperature over OPC UA and humidity from Sparkplug B edge nodes, recorded through an ingest command | `opcUaServer`, `mqttBroker`, `createOpcUaObserver`, `createMqttObserver`, the site, network and audit plugins |
 | `local-model` | 4357 | The method suggester run by a trigger on a measured local model, a dataset of decided suggestions and a gated fine-tune | `defineModelEntry`, `createModelServer`, `createAutomationPlugin`, `exportApprovalDataset`, `gateModel` |
 | `sign-in` | 4358 | Technicians sign in at a shared bench with a badge and PIN and submit test requests as themselves; the owner enrolls badges | `createStationSignInPlugin`, `stationSignInScreens`, `useOperatorSession`, `useScanner`, `numeric-pad` |
-| `site` | 4359 | The lab as a site of the fleet example: enrollment, reports, audit forwarding, a signed release staged and installed with its unit and firewall rules | `createFleetAgentPlugin`, `createBundle`, `app install`, `network export`, the site, network and audit plugins |
-| `sandbox` | 4360 | Tensile readings analyzed by a tool in a bubblewrap sandbox, which reads and records through the application CLI with a run-bound token | `executionSandbox`, `createExecutionHostPlugin`, `agentGrant`, `defineHostPlugin`, the site, network and process plugins |
+| `site` | 4359 | The oil lab as a site of the fleet example: enrollment, reports, audit forwarding, a signed release staged and installed with its unit and firewall rules | `createFleetAgentPlugin`, `createBundle`, `app install`, `network export`, the site, network and audit plugins |
+| `sandbox` | 4360 | Breakdown voltage readings analyzed by a tool in a bubblewrap sandbox, which reads and records through the application CLI with a run-bound token | `executionSandbox`, `createExecutionHostPlugin`, `agentGrant`, `defineHostPlugin`, the site, network and process plugins |
 | `hosted` | 4361 | The request desk served from Postgres under a workspace lease, with lab staff signed in through an OpenID Connect provider | `hostedPlatform`, `PostgresStorage`, `--hosted-workspace`, `identity: external`, `startIdentityProvider`, the site and network plugins |
 
 Each pattern's README lists its files, its trust boundary and one line per test file.

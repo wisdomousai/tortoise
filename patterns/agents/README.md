@@ -30,7 +30,7 @@ Its own files:
 | `application.ts` | Server | The base handlers in the `testRequests` slice, the approval handlers, both routes, `selectableResources` and the automation plugin |
 | `screens.tsx`, `ui/methods.tsx` | Browser | The base test request screen with a method section, the approvals list, the automation screen and `resources` |
 
-`methodFor` in `method.ts` matches words such as tensile, hardness, salt spray and moisture to an ASTM method. It returns an empty string when no word matches, so the job and the screen suggest nothing.
+`methodFor` in `method.ts` matches words such as gas, breakdown, furan and water to an IEC method. It returns an empty string when no word matches, so the job and the screen suggest nothing.
 
 The trigger reacts to `test-request.submit`. Its job reads the request and, when the method is empty and the description names a test, requests approval for `test-request.update` with that method. It runs as the person who issued its standing grant, narrowed to `test-request.get` and `approval.request`, so it never changes a request. It is a deterministic job, so a dev launch needs no model.
 
@@ -72,7 +72,7 @@ cd patterns/agents
 bun run dev:web
 ```
 
-Enable the trigger on the Automation screen, then submit a request without a method whose description names a test, such as "Tensile strength of a welded coupon". A suggestion appears on the request's screen. On such a request, **Suggest a method (offline run)** starts the run from the screen.
+Enable the trigger on the Automation screen, then submit a request without a method whose description names a test, such as "Dissolved gas after a Buchholz gas alarm". A suggestion appears on the request's screen. On such a request, **Suggest a method (offline run)** starts the run from the screen.
 
 ## Skills
 

@@ -17,8 +17,8 @@ import {
 } from '@/components/ui/table';
 import { useScanner } from '@/hooks/use-scanner';
 
-/** Specimen labels at the bench, such as B-1042-03. */
-const specimenRoutes = [{ intent: 'specimen', pattern: '^(B-\\d{4}-\\d{2})$' }];
+/** Sample labels at the bench, such as OS-24-0417. */
+const sampleRoutes = [{ intent: 'sample', pattern: '^(OS-\\d{2}-\\d{4})$' }];
 const refusal = (error: unknown) =>
   (error as { code?: string }).code === 'FORBIDDEN'
     ? 'You may not submit test requests.'
@@ -27,18 +27,19 @@ const refusal = (error: unknown) =>
       : String(error);
 
 /**
- * The bench while an operator is signed in: submit a test request for a scanned specimen and
+ * The bench while an operator is signed in: submit a test request for a scanned sample and
  * read the latest requests. Every query and command goes through the operator's own client, so
  * the request records the operator as its requester, and the test requests policy refuses a
  * viewer's submission.
  */
 export function BenchWork() {
   const { client, live } = useOperatorSession();
-  const [specimen, setSpecimen] = useState('');
+  const [sample, setSample] = useState('');
+  const [transformer, setTransformer] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string>();
   const [submitted, setSubmitted] = useState<string>();
-  useScanner({ routes: specimenRoutes, onRoute: (routed) => setSpecimen(routed.value) });
+  useScanner({ routes: sampleRoutes, onRoute: (routed) => setSample(routed.value) });
   const requests = useQuery(live.liveQueryOptions(requestOperations.requestList, { limit: 10 }));
   const items = ((requests.data as { items?: TestRequestRecord[] } | undefined)?.items ??
     []) as TestRequestRecord[];
@@ -57,10 +58,11 @@ export function BenchWork() {
               setError(undefined);
               setSubmitted(undefined);
               void client
-                .command(requestOperations.requestSubmit, { specimen, description })
+                .command(requestOperations.requestSubmit, { sample, transformer, description })
                 .then(() => {
-                  setSubmitted(specimen);
-                  setSpecimen('');
+                  setSubmitted(sample);
+                  setSample('');
+                  setTransformer('');
                   setDescription('');
                 })
                 .catch((failure) => setError(refusal(failure)));
@@ -77,12 +79,23 @@ export function BenchWork() {
               </Alert>
             )}
             <div className="space-y-1">
-              <Label htmlFor="bench-specimen">Specimen</Label>
+              <Label htmlFor="bench-sample">Sample</Label>
               <Input
-                id="bench-specimen"
-                value={specimen}
-                onChange={(event) => setSpecimen(event.target.value)}
-                placeholder="Scan the specimen label"
+                id="bench-sample"
+                value={sample}
+                onChange={(event) => setSample(event.target.value)}
+                placeholder="Scan the sample label"
+                maxLength={64}
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bench-transformer">Transformer</Label>
+              <Input
+                id="bench-transformer"
+                value={transformer}
+                onChange={(event) => setTransformer(event.target.value)}
+                placeholder="TR-40517"
                 maxLength={64}
                 required
               />
@@ -93,7 +106,7 @@ export function BenchWork() {
                 id="bench-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Hardness of the heat-treated shaft"
+                placeholder="Breakdown voltage before re-energizing"
                 required
               />
             </div>
@@ -109,7 +122,8 @@ export function BenchWork() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Specimen</TableHead>
+                <TableHead>Sample</TableHead>
+                <TableHead>Transformer</TableHead>
                 <TableHead>Test method</TableHead>
                 <TableHead>Submitted by</TableHead>
               </TableRow>
@@ -117,7 +131,8 @@ export function BenchWork() {
             <TableBody>
               {items.map((request) => (
                 <TableRow key={request.id}>
-                  <TableCell>{request.specimen}</TableCell>
+                  <TableCell>{request.sample}</TableCell>
+                  <TableCell>{request.transformer}</TableCell>
                   <TableCell>{request.method || '—'}</TableCell>
                   <TableCell>{request.requester}</TableCell>
                 </TableRow>

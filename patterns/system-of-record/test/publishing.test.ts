@@ -4,7 +4,7 @@ import { open, refused, viewer } from './fixtures';
 
 test('a published test request is registered with the LIMS id', async () => {
   const { submit, command, query, deliver, lims } = await open();
-  const { id } = await submit('S-1042', 'Tensile strength of weld coupon', 'ISO 6892-1');
+  const { id } = await submit('OS-24-1042', 'Gas alarm on the Buchholz relay', 'IEC 60567');
   await command('publication.publish', { id });
   expect(await query<Publication>('publication.get', { id })).toMatchObject({ sync: 'pending' });
   await deliver();
@@ -14,9 +14,10 @@ test('a published test request is registered with the LIMS id', async () => {
   });
   expect([...lims.registrations.values()][0]!.body).toMatchObject({
     requestId: id,
-    specimen: 'S-1042',
-    description: 'Tensile strength of weld coupon',
-    method: 'ISO 6892-1',
+    sample: 'OS-24-1042',
+    transformer: 'TR-40517',
+    description: 'Gas alarm on the Buchholz relay',
+    method: 'IEC 60567',
   });
   expect(await query('lims.sync.status', {})).toMatchObject({
     accepted: 1,
@@ -42,7 +43,7 @@ test('the LIMS refusal lands on the publication with its reason', async () => {
 test('a reviewed publication stays pending until the lookup finds it registered', async () => {
   const { submit, command, query, deliver, lims } = await open();
   lims.reviewed = true;
-  const { id } = await submit('S-1044', 'Hardness after heat treatment', 'ASTM E18');
+  const { id } = await submit('OS-24-1044', 'Breakdown voltage after filtering', 'IEC 60156');
   const { effectId } = await command<Publication>('publication.publish', { id });
   await deliver();
   expect(await query<Publication>('publication.get', { id })).toMatchObject({ sync: 'pending' });
@@ -61,7 +62,7 @@ test('a reviewed publication stays pending until the lookup finds it registered'
 test('a publication the LIMS lost is held until a person resolves it', async () => {
   const { submit, command, query, deliver, lims } = await open();
   lims.reviewed = true;
-  const { id } = await submit('S-1045', 'Salt spray exposure', 'ISO 9227');
+  const { id } = await submit('OS-24-1045', 'Paper aging in a 1998 unit', 'IEC 61198');
   const { effectId } = await command<Publication>('publication.publish', { id });
   await deliver();
   lims.forget(effectId);
@@ -87,7 +88,7 @@ test('a publication the LIMS lost is held until a person resolves it', async () 
 
 test('requests registered at another site arrive once through the change feed', async () => {
   const { integrations, query, lims } = await open();
-  lims.register('S-2001', 'Coating thickness on bracket', 'ISO 2178');
+  lims.register('OS-24-2001', 'TR-38822', 'Acidity of aged oil', 'IEC 62021-1');
   await integrations.sync();
   await integrations.sync();
   const { items } = await query<{ items: { id: string; requester: string }[] }>(
@@ -95,7 +96,11 @@ test('requests registered at another site arrive once through the change feed', 
     {},
   );
   expect(items).toEqual([
-    expect.objectContaining({ id: 'lims-r1', requester: 'lims-integration', method: 'ISO 2178' }),
+    expect.objectContaining({
+      id: 'lims-r1',
+      requester: 'lims-integration',
+      method: 'IEC 62021-1',
+    }),
   ]);
 });
 
@@ -103,7 +108,13 @@ test('the integration principal may settle and sync but not change test requests
   const { command } = await open();
   const integration = { workspaceId: 'local', principalId: 'lims-integration' };
   expect(
-    await refused(command('test-request.submit', { specimen: 'x', description: 'y' }, integration)),
+    await refused(
+      command(
+        'test-request.submit',
+        { sample: 'x', transformer: 'TR-40517', description: 'y' },
+        integration,
+      ),
+    ),
   ).toBe('FORBIDDEN');
   expect(await refused(command('publication.publish', { id: 'any' }, integration))).toBe(
     'FORBIDDEN',
@@ -114,7 +125,7 @@ test('the integration principal may settle and sync but not change test requests
 
 test('without a bound destination a publication waits in the outbox', async () => {
   const { submit, command, query, deliver, lims } = await open({ bound: false });
-  const { id } = await submit('S-1046', 'Waiting for a binding', 'ISO 6892-1');
+  const { id } = await submit('OS-24-1046', 'Waiting for a binding', 'IEC 60567');
   await command('publication.publish', { id });
   await deliver();
   expect(await query<Publication>('publication.get', { id })).toMatchObject({ sync: 'pending' });

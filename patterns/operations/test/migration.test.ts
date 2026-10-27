@@ -23,7 +23,7 @@ async function workspace() {
   return join(directory, 'workspace');
 }
 
-/** The rows an earlier test requests release left: no version stamp, `sampleId` and `tests`. */
+/** The rows an earlier test requests release left: no version stamp, `sampleId`, `unit` and `tests`. */
 async function seed(path: string) {
   await mkdir(path, { recursive: true });
   const storage = new SQLiteStorage<Stored>(join(path, 'workspace.sqlite'), () =>
@@ -74,7 +74,7 @@ async function getRequest(definition: Parameters<typeof openEmbeddedInstance>[0]
   }
 }
 
-test('migrate renames sampleId and tests, stamps version 2 and refuses the version 1 code', async () => {
+test('migrate renames sampleId, unit and tests, stamps version 2 and refuses the version 1 code', async () => {
   const path = await workspace();
   await seed(path);
 
@@ -89,17 +89,18 @@ test('migrate renames sampleId and tests, stamps version 2 and refuses the versi
   const after = await stored(path);
   expect(after.state.testRequests.requests.r1).toEqual({
     id: 'r1',
-    specimen: 'B-1042-03',
-    description: 'Weld coupon from line 2, heat lot 7731',
-    method: 'ASTM E8 tensile test',
+    sample: 'OS-24-0417',
+    transformer: 'TR-40517',
+    description: 'Drawn from the bottom valve of T2, Substation Nord',
+    method: 'IEC 60567 dissolved gas analysis',
     requester: 'owner',
     updatedAt: 1000,
   });
   expect(after.stateVersions?.application).toEqual({ version: 2, readableFrom: 2 });
 
   expect(await getRequest(createTestRequestsOperationsApplication(), path)).toMatchObject({
-    specimen: 'B-1042-03',
-    method: 'ASTM E8 tensile test',
+    sample: 'OS-24-0417',
+    method: 'IEC 60567 dissolved gas analysis',
   });
   await expect(getRequest(createTestRequestsApplication(), path)).rejects.toThrow(
     'needs code at version 2',
@@ -115,7 +116,12 @@ test('a workspace the base pattern wrote opens at version 2 with its requests un
   await base.application.invokeRaw(
     {
       operation: 'test-request.submit',
-      input: { specimen: 'B-1042-03', description: 'Weld coupon', method: 'ASTM E8 tensile test' },
+      input: {
+        sample: 'OS-24-0417',
+        transformer: 'TR-40517',
+        description: 'Bottom valve sample',
+        method: 'IEC 60567 dissolved gas analysis',
+      },
     },
     owner,
   );
@@ -123,8 +129,8 @@ test('a workspace the base pattern wrote opens at version 2 with its requests un
 
   const written = (await stored(path)).state.testRequests.requests.r1;
   expect(await getRequest(createTestRequestsOperationsApplication(), path)).toMatchObject({
-    specimen: 'B-1042-03',
-    method: 'ASTM E8 tensile test',
+    sample: 'OS-24-0417',
+    method: 'IEC 60567 dissolved gas analysis',
   });
   expect(await migrate(path)).toMatchObject({ code: 0, result: { migrated: true } });
   expect((await stored(path)).state.testRequests.requests.r1).toEqual(written);

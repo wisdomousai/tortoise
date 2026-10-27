@@ -80,7 +80,7 @@ export function ChambersScreen() {
   );
 }
 
-/** Below one test request: the chamber that conditions its specimen, and moving it to another. */
+/** Below one test request: the chamber that conditions its sample, and moving it to another. */
 export function RequestChamber({ id }: { id: string }) {
   const conditions = useQuery(
     live.liveQueryOptions(chamberOperations.chamberConditions, { request: id }),
@@ -96,8 +96,8 @@ export function RequestChamber({ id }: { id: string }) {
     } catch (error) {
       setMessage(
         (error as { code?: string }).code === 'FORBIDDEN'
-          ? 'Only technicians place specimens.'
-          : 'The specimen was not placed.',
+          ? 'Only technicians place samples.'
+          : 'The sample was not placed.',
       );
     }
   };
@@ -124,7 +124,7 @@ export function RequestChamber({ id }: { id: string }) {
           </dd>
         </dl>
       ) : (
-        <p className="text-sm text-muted-foreground">The specimen is in no chamber.</p>
+        <p className="text-sm text-muted-foreground">The sample is in no chamber.</p>
       )}
       <div className="flex items-center gap-2">
         <NativeSelect

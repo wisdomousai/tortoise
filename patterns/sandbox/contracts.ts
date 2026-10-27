@@ -16,13 +16,14 @@ export const analysisSchema = z.strictObject({
   mean: z.number(),
   min: z.number(),
   max: z.number(),
-  /** Pattern standard deviation; 0 for a single reading. */
+  /** Sample standard deviation; 0 for a single reading. */
   stdev: z.number().nonnegative(),
 });
 export type Analysis = z.output<typeof analysisSchema>;
 
 /**
- * The tensile strengths measured on a test request's coupons, in MPa, and their analysis.
+ * The breakdown voltages measured on a test request's oil sample, one per fill of the test
+ * cell, in kV, and their analysis.
  * `analysisRun` is the run that recorded the analysis, absent when a technician entered it.
  */
 export const testResultSchema = z.strictObject({
@@ -64,7 +65,7 @@ export const resultOperations = {
     id: 'test-result.record',
     kind: 'command',
     description:
-      'Record the tensile strength of each coupon of a test request, in MPa. Technicians only.',
+      'Record the breakdown voltage of each fill of the test cell for a test request, in kV. Technicians only.',
     input: jsonSchema(
       z.strictObject({
         request: testResultSchema.shape.request,
@@ -81,7 +82,7 @@ export const resultOperations = {
     id: 'test-result.analyze',
     kind: 'command',
     description:
-      'Record the summary statistics of the readings of a test result: count, mean, minimum, maximum and pattern standard deviation. Technicians only. A run is recorded with the analysis.',
+      'Record the summary statistics of the readings of a test result: count, mean, minimum, maximum and sample standard deviation. Technicians only. A run is recorded with the analysis.',
     input: jsonSchema(analysisSchema.extend({ id: recordKeySchema })),
     output: jsonSchema(testResultSchema),
     permission: write,
@@ -99,7 +100,7 @@ export const resultAnalyst = defineAgent({
   id: 'test-result.analyst',
   title: 'Result analyst',
   instructions:
-    'Read the test result with test-result.get, compute the count, mean, minimum, maximum and pattern standard deviation of its readings, and record them with test-result.analyze.',
+    'Read the test result with test-result.get, compute the count, mean, minimum, maximum and sample standard deviation of its readings, and record them with test-result.analyze.',
   operations: [resultOperations.resultGet.id, resultOperations.resultAnalyze.id],
   resourceTypes: ['test-result'],
   model: 'any',
