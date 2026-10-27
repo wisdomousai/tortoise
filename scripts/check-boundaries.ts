@@ -63,7 +63,7 @@ const browserContent =
 // Layers by directory: framework `packages/*`, workstations `workstations/*`, plugins `plugins/*`,
 // shell `apps/*`, content `showcase/examples/*` and `showcase/patterns/*`, and driver SDKs `sdks/*`.
 // Imports resolve through relative paths and workspace package names alike, so an alias such as
-// `@agent-native/line-station` cannot bypass a rule that a relative path would break.
+// `@agent-native/winding-line` cannot bypass a rule that a relative path would break.
 type Layer = 'framework' | 'workstation' | 'plugin' | 'shell' | 'content' | 'sdk';
 const layerDirectories: Record<string, Layer> = {
   packages: 'framework',

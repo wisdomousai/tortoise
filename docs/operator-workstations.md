@@ -1,6 +1,6 @@
 # Operator workstations
 
-An [application](glossary.md#application) observes and drives a [workstation application](glossary.md#workstation-application) through its [screen](glossary.md#screen). The example is [`showcase/examples/line-station`](../showcase/examples/line-station/README.md).
+An [application](glossary.md#application) observes and drives a [workstation application](glossary.md#workstation-application) through its [screen](glossary.md#screen). The example is [`showcase/examples/winding-line`](../showcase/examples/winding-line/README.md).
 
 A workstation application has no API and must stay unmodified. Where its only stable interface is its screen, the application treats it as a [system of record](systems-of-record.md) reached through that screen. Software with an automation interface, such as COM, a local RPC service, files or a decodable network protocol, is reached through a [driver](hardware-drivers.md) instead, as [Automation route](#automation-route) describes.
 
@@ -43,7 +43,7 @@ The screen bridge sits behind the [outbox](glossary.md#outbox), as a connector o
 2. The [dispatcher](glossary.md#dispatcher) claims the effect outside any transaction and hands it to the screen bridge. The connector runs the declared procedure on the screen, and the dispatcher settles the outcome through the domain's settle command.
 3. The station observer reads the screen and submits readings through an ingest command. It never writes storage.
 
-Screens, MCP clients and agents never address the bridge, and the bridge holds no business capabilities. In `line-station`, each station's bridge runs as the [integration principal](glossary.md#integration-principal) `station-bridge:<station>`. Its [grant](glossary.md#grant) holds three capabilities:
+Screens, MCP clients and agents never address the bridge, and the bridge holds no business capabilities. In `winding-line`, each station's bridge runs as the [integration principal](glossary.md#integration-principal) `station-bridge:<station>`. Its [grant](glossary.md#grant) holds three capabilities:
 
 | Capability | Use |
 | --- | --- |
@@ -90,7 +90,7 @@ Each procedure declares a hazard class:
 | `low` | Changes settings, with no motion. |
 | `operator-present` | The effect payload must carry a confirmation that a person is at the station. |
 
-Driver actions use the same bridge modes and hazard classes, as the hardware drivers [gate](hardware-drivers.md#gate) describes. In `line-station`, only a supervisor at the station may change the bridge mode. A supervisor can pause actuation at any time, and pending effects then wait visibly.
+Driver actions use the same bridge modes and hazard classes, as the hardware drivers [gate](hardware-drivers.md#gate) describes. In `winding-line`, only a supervisor at the station may change the bridge mode. A supervisor can pause actuation at any time, and pending effects then wait visibly.
 
 ## Deployment stages
 
@@ -98,7 +98,7 @@ Driver actions use the same bridge modes and hazard classes, as the hardware dri
 2. **Annotate.** People and agents add meaning to observed events, such as stop reasons and count confirmations. Each annotation is an ordinary command, forwarded to the MES through the outbox.
 3. **Actuate.** The bridge writes into the workstation application, for example to load the recipe for a scanned order. The bridge mode must permit the procedure's hazard class.
 
-In `line-station`, the stop explainer agent requests approval for a stop reason from the alarm text and history. The station shows the [approval request](glossary.md#approval-request), and the operator approves it with one tap. Loading a recipe has hazard class `operator-present` and so needs actuate mode. The operator starts the order with a hold-to-confirm, and the command records the operator as the confirming person.
+In `winding-line`, the stop explainer agent requests approval for a stop reason from the alarm text and history. The station shows the [approval request](glossary.md#approval-request), and the operator approves it with one tap. Loading a recipe has hazard class `operator-present` and so needs actuate mode. The operator starts the order with a hold-to-confirm, and the command records the operator as the confirming person.
 
 ## Controller gate
 
@@ -161,7 +161,7 @@ When the vendor updates the workstation application or a model changes, the [gol
 
 A workstation application that has an automation interface can be reached through a driver instead of its screen. The [driver contract](glossary.md#driver-contract) carries the fields the station profile reads and the same procedures, with the same preconditions, readback and hazard classes. Its bridge runs as the same station principal, with the same grant, target and control query. Observations and outbox effects look the same to the domain, so handlers, contracts and screens do not change with the route.
 
-The driver's `control` field takes the place of the screen's local input check. The bridge mode and the seat gate the driver as they gate the screen. `line-station` configures each workstation on one route. Its automation driver is written in C# against the workstation application's COM server, as the hardware drivers [examples](hardware-drivers.md#examples) describe.
+The driver's `control` field takes the place of the screen's local input check. The bridge mode and the seat gate the driver as they gate the screen. `winding-line` configures each workstation on one route. Its automation driver is written in C# against the workstation application's COM server, as the hardware drivers [examples](hardware-drivers.md#examples) describe.
 
 ## Workstation sign-in
 
@@ -194,9 +194,9 @@ The plugin's seat screen reads the badge from a scanner and the PIN from the ope
 
 ```sh
 bun test workstations/screen-bridge
-bun test showcase/examples/line-station
-cd showcase/examples/line-station && bun run dev
-cd showcase/examples/line-station && bun run station:golden
+bun test showcase/examples/winding-line
+cd showcase/examples/winding-line && bun run dev
+cd showcase/examples/winding-line && bun run station:golden
 ```
 
 `bun run dev` starts the fake HMI in the same process and bridges it. A host starts a bridge only when `STATION_HMI_URL` is set.

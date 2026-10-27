@@ -38,7 +38,7 @@ In the same directory, `bun run dev:web` serves the browser instead. When an exa
 | --- | --- | --- |
 | [`field-service`](../showcase/examples/field-service/README.md) | 4321 | [State and reactivity](state-and-reactivity.md) |
 | [`quality-inspection`](../showcase/examples/quality-inspection/README.md) | 4322 | [Systems of record](systems-of-record.md) |
-| [`line-station`](../showcase/examples/line-station/README.md) | 4323 | [Operator workstations](operator-workstations.md) |
+| [`winding-line`](../showcase/examples/winding-line/README.md) | 4323 | [Operator workstations](operator-workstations.md) |
 | [`crm-capture`](../showcase/examples/crm-capture/README.md) | 4324 | [Systems of record](systems-of-record.md) |
 | [`asset-survey`](../showcase/examples/asset-survey/README.md) | 4326 | [Mobile](mobile.md) |
 | [`receiving`](../showcase/examples/receiving/README.md) | 4330 | [Systems of record](systems-of-record.md) |

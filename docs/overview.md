@@ -35,10 +35,10 @@ An outbox effect is in one phase at a time.
 
 | Input | Route into a capability | Packages | Examples |
 | --- | --- | --- | --- |
-| Scanner | A scan route submits the command a button would. | [`packages/devices`](../packages/devices/README.md), [`plugins/intent-scanner`](../plugins/intent-scanner/README.md) | `line-station`, `asset-survey-field` |
-| Operator at a screen | Glove-sized parts of the operator registry call commands. | [`packages/operator-ui`](../packages/operator-ui/README.md) | `line-station`, `quality-inspection` |
-| Instrument or controller | A driver process reports readings and runs declared actions. | [`plugins/connector-driver`](../plugins/connector-driver/README.md), [`sdks/driver-python`](../sdks/driver-python/README.md), [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md) | `quality-inspection`, `line-station` |
-| Workstation application | The screen bridge reads the workstation application's screen and runs declared procedures. | [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) | `line-station` |
+| Scanner | A scan route submits the command a button would. | [`packages/devices`](../packages/devices/README.md), [`plugins/intent-scanner`](../plugins/intent-scanner/README.md) | `winding-line`, `asset-survey-field` |
+| Operator at a screen | Glove-sized parts of the operator registry call commands. | [`packages/operator-ui`](../packages/operator-ui/README.md) | `winding-line`, `quality-inspection` |
+| Instrument or controller | A driver process reports readings and runs declared actions. | [`plugins/connector-driver`](../plugins/connector-driver/README.md), [`sdks/driver-python`](../sdks/driver-python/README.md), [`sdks/driver-dotnet`](../sdks/driver-dotnet/README.md) | `quality-inspection`, `winding-line` |
+| Workstation application | The screen bridge reads the workstation application's screen and runs declared procedures. | [`workstations/screen-bridge`](../workstations/screen-bridge/README.md) | `winding-line` |
 | Plant signals | MQTT, Sparkplug B or OPC UA readings pass the observation gate into an ingest command. | [`packages/observation`](../packages/observation/README.md), [`plugins/connector-mqtt`](../plugins/connector-mqtt/README.md), [`plugins/connector-opcua`](../plugins/connector-opcua/README.md) | `signals` pattern |
 | Files | An inbox folder feeds inbound sync, and delivered files settle from receipt files. | [`plugins/connector-files`](../plugins/connector-files/README.md) | `receiving` |
 | Phone | A paired phone takes [assignments](glossary.md#assignment) from its [hub](glossary.md#hub), captures offline and delivers the reports. | [`packages/mobile`](../packages/mobile/README.md), [`packages/assignments`](../packages/assignments/README.md), [`plugins/device-link`](../plugins/device-link/README.md), [`plugins/hub-link`](../plugins/hub-link/README.md) | `asset-survey-field` |

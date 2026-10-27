@@ -4,7 +4,7 @@ The [screen bridge](../../docs/glossary.md#screen-bridge) reads a [workstation a
 
 ## Layer
 
-Workstation (`workstations/*`). Server only, except `requirements`. The domain [module](../../docs/glossary.md#module) declares the screen and the outbox targets, as `showcase/examples/line-station` does. The package trusts the host's ports and treats model output as untrusted. A model may read the screen or suggest targets; deterministic code acts and verifies. Nothing here writes application state directly.
+Workstation (`workstations/*`). Server only, except `requirements`. The domain [module](../../docs/glossary.md#module) declares the screen and the outbox targets, as `showcase/examples/winding-line` does. The package trusts the host's ports and treats model output as untrusted. A model may read the screen or suggest targets; deterministic code acts and verifies. Nothing here writes application state directly.
 
 ## Primitives
 
@@ -73,7 +73,7 @@ Framework: `@agent-native/contracts`, `@agent-native/runtime`, `@agent-native/in
 
 ```sh
 bun test workstations/screen-bridge
-cd showcase/examples/line-station && bun run station:golden
+cd showcase/examples/winding-line && bun run station:golden
 ```
 
 - `test/controller.test.ts`: per-action screen gate and stable readback; popups and local input stop procedures; procedures with an unknown outcome are held.

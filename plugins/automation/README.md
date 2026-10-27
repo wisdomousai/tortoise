@@ -41,7 +41,7 @@ An agent run uses the first available harness that meets the agent's model requi
 
 The prompt starts with `agentInstructions`: the definition's instructions and, for a requesting agent, each command it may request approval for with its input schema. The trigger's prompt and what started the run follow.
 
-`line-station` composes the plugin to close approval requests nobody approved in time.
+`winding-line` composes the plugin to close approval requests nobody approved in time.
 
 ## Trust boundary
 

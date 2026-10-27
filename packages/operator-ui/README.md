@@ -14,7 +14,7 @@ Framework (`packages/*`). Browser code. Trust-relevant behavior stays in the cat
   - the hooks `use-press-and-hold`, `use-tap-guard`, `use-operator-keys`, `use-scanner`, `use-feedback` and `use-idle-return`.
 - [Approval request](../../docs/primitives.md#approval-request): the attention queue's `approval request` kind and `approvalChoices` give an agent's [approval request](../../docs/glossary.md#approval-request) a one-tap Approve and a Reject. The station resolves them to `approval.approve` and `approval.reject`.
 
-[`showcase/examples/line-station/ui/station.tsx`](../../showcase/examples/line-station/ui/station.tsx) composes a station [screen](../../docs/glossary.md#screen) from these parts.
+[`showcase/examples/winding-line/ui/station.tsx`](../../showcase/examples/winding-line/ui/station.tsx) composes a station [screen](../../docs/glossary.md#screen) from these parts.
 
 ## Entrypoints
 

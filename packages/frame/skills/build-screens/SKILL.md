@@ -16,7 +16,7 @@ description: Build or change the web screens of an agent-native application, fea
   - `live-data-table` pages after the instance scopes rows.
 - Declare [display metadata](../../../../docs/glossary.md#display-metadata) on the capability before writing columns or labels in a screen. `collection-screen`, `capability-form` and the command palette read it. A collection passes it as `titleField` and `fields`.
 - For gloved or high-frequency input, use the `operator` registry (`packages/operator-ui`) and read [point-of-work input](../../../../docs/point-of-work-input.md).
-- `showcase/examples/line-station/ui/station.tsx` composes a full station's screen.
+- `showcase/examples/winding-line/ui/station.tsx` composes a full station's screen.
 - Each command a screen issues needs a matching `ui.binding` on its capability, its [UI binding](../../../../docs/glossary.md#ui-binding). The `add-capability` skill (`packages/runtime/skills/add-capability/SKILL.md`) covers it.
 - The instance's content security policy rejects inline scripts and injected styles. Use components that render native elements, such as `ui/native-dialog`, instead of ones that inject styles at runtime.
 - Browser files must not import server modules.

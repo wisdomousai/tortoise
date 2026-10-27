@@ -6,7 +6,7 @@ import { defineHostComponent } from '@agent-native/contracts';
  * catalog's requirements, where the site policy binds or disables each destination.
  *
  * The station screen itself and the MES are declared by the domain module that names their outbox
- * targets (for example `lineStationModule`), not here: this package is domain-neutral.
+ * targets (for example `windingLineModule`), not here: this package is domain-neutral.
  */
 export const stationBridgeComponent = defineHostComponent({
   id: 'station-bridge',

@@ -125,8 +125,8 @@ function detail(data: Overview, example: Example, links: Links) {
 
 export const examples: View = (element, data, links) => {
   const panel = h('div', { class: 'ov-detail', 'aria-live': 'polite' });
-  const initial = data.examples.some((example) => example.id === 'line-station')
-    ? 'line-station'
+  const initial = data.examples.some((example) => example.id === 'winding-line')
+    ? 'winding-line'
     : data.examples[0]!.id;
   const show = (id: string) =>
     panel.replaceChildren(

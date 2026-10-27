@@ -2,7 +2,7 @@
  * Gate a station profile and its perception models on labeled golden frames.
  *
  *   bun scripts/station-golden.ts <golden directory>
- *   cd showcase/examples/line-station && bun run station:golden
+ *   cd showcase/examples/winding-line && bun run station:golden
  *
  * Accessibility fields are read from each frame's recorded tree. Pixel fields use, in order:
  * - STATION_VISION_BASE_URL + STATION_VISION_MODEL: a local OpenAI-compatible vision model

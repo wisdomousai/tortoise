@@ -86,7 +86,7 @@ A trigger run acts as the grant's issuer under a delegated grant that lists the 
 
 A job's command keys come from the run, the capability, its input and how often the run made that call. A job repeated after a crash therefore replays what it already committed. An agent's keys are its model's tool-call IDs, which change across a repeat. Give event triggers to requesting agents, whose repeat adds at most a second approval request.
 
-Trigger runs go through the plugin's own run supervisor, so they do not appear in the host's run panel. An agent run takes the first available harness that meets the agent's model requirement, and fails when none does. Its model sees only the capabilities agent triggers may call. The prompt starts with the definition's instructions and, for a requesting agent, each command it may request approval for with its input schema. `line-station` composes the plugin with a schedule trigger that closes approval requests nobody approved in time.
+Trigger runs go through the plugin's own run supervisor, so they do not appear in the host's run panel. An agent run takes the first available harness that meets the agent's model requirement, and fails when none does. Its model sees only the capabilities agent triggers may call. The prompt starts with the definition's instructions and, for a requesting agent, each command it may request approval for with its input schema. `winding-line` composes the plugin with a schedule trigger that closes approval requests nobody approved in time.
 
 ## Local models
 

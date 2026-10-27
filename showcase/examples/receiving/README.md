@@ -340,7 +340,7 @@ The ERP side replaces `FakeFileConsumer` and follows the rules in the [connector
 - [Quality inspection](../quality-inspection/README.md)
 - [Peer link](../../../plugins/peer-link/README.md)
 - [CRM capture](../crm-capture/README.md)
-- [Line station](../line-station/README.md)
+- [Winding line](../winding-line/README.md)
 - [add-capability](../../../packages/runtime/skills/add-capability/SKILL.md)
 - [build-screens](../../../packages/frame/skills/build-screens/SKILL.md)
 - [deploy-to-site](../../../plugins/site/skills/deploy-to-site/SKILL.md)

@@ -371,13 +371,13 @@ implemented · [`workstations/screen-bridge`](../workstations/screen-bridge/READ
 
 _A driver's state fields, its actions with delivery mode and hazard class, and its events, as data with a digest the driver must echo at its handshake._
 
-partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`showcase/examples/quality-inspection`](../showcase/examples/quality-inspection/README.md) [`showcase/examples/line-station`](../showcase/examples/line-station/README.md)
+partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`showcase/examples/quality-inspection`](../showcase/examples/quality-inspection/README.md) [`showcase/examples/winding-line`](../showcase/examples/winding-line/README.md)
 
 ### Driver process
 
 _A supervised child process that controls or reads equipment, speaking JSON-RPC over its standard streams and started through the process port. Its events can enter as ingest commands._
 
-partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/process`](../plugins/process/README.md) [`showcase/examples/quality-inspection`](../showcase/examples/quality-inspection/README.md) [`showcase/examples/line-station`](../showcase/examples/line-station/README.md)
+partial · [`plugins/connector-driver`](../plugins/connector-driver/README.md) [`plugins/process`](../plugins/process/README.md) [`showcase/examples/quality-inspection`](../showcase/examples/quality-inspection/README.md) [`showcase/examples/winding-line`](../showcase/examples/winding-line/README.md)
 
 ### Driver SDK
 
@@ -389,7 +389,7 @@ partial · [`sdks/driver-python`](../sdks/driver-python/README.md) [`sdks/driver
 
 _A tracked state and procedure for outcomes no one can establish automatically. The `reconciliation` feature serves the decisions._
 
-implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/frame`](../packages/frame/README.md) [`showcase/examples/receiving`](../showcase/examples/receiving/README.md) [`showcase/examples/line-station`](../showcase/examples/line-station/README.md)
+implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md) [`packages/integration`](../packages/integration/README.md) [`packages/frame`](../packages/frame/README.md) [`showcase/examples/receiving`](../showcase/examples/receiving/README.md) [`showcase/examples/winding-line`](../showcase/examples/winding-line/README.md)
 
 ### Worker claims
 

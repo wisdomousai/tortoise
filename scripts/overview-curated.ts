@@ -566,15 +566,15 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
       'showcase/examples/quality-inspection/drivers',
     ],
   },
-  'line-station': {
+  'winding-line': {
     input:
       "A workstation application's screen through an observer, scanners, and an automation driver.",
     record:
       'A homebrew MES for orders and stops, and the workstation application through its screen.',
     sources: [
-      'showcase/examples/line-station/fake-mes.ts',
-      'showcase/examples/line-station/fake-hmi',
-      'showcase/examples/line-station/drivers',
+      'showcase/examples/winding-line/fake-mes.ts',
+      'showcase/examples/winding-line/fake-hmi',
+      'showcase/examples/winding-line/drivers',
     ],
   },
   receiving: {

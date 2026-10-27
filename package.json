@@ -111,7 +111,7 @@
     "@agent-native/integration": "workspace:*",
     "@agent-native/intent-scanner": "workspace:*",
     "@agent-native/kernel": "workspace:*",
-    "@agent-native/line-station": "workspace:*",
+    "@agent-native/winding-line": "workspace:*",
     "@agent-native/managed-config": "workspace:*",
     "@agent-native/mobile": "workspace:*",
     "@agent-native/model-server": "workspace:*",

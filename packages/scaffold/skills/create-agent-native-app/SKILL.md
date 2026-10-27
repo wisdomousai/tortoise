@@ -33,7 +33,7 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | `showcase/examples/field-service` | the smallest whole application: capabilities, policy, OS handlers and actions, agent definitions, a background job |
 | `showcase/examples/quality-inspection` | capture against a system of record through the outbox, and a measuring instrument through a Python driver |
 | `showcase/examples/crm-capture` | live search of a CRM and adoption of its records |
-| `showcase/examples/line-station` | an operator workstation over workstation application reached through its screen or a .NET driver |
+| `showcase/examples/winding-line` | an operator workstation over workstation application reached through its screen or a .NET driver |
 | `showcase/examples/asset-survey` and `showcase/examples/asset-survey-field` | a hub with blob evidence, a declared workflow, assignments and a paired mobile field application that takes them |
 | `showcase/examples/receiving` | an application generated with `scaffold new` and `scaffold add`: a file exchange with an ERP, reconciliation and an agent that requests approval |
 | `showcase/examples/fleet` | the fleet that sites report to: enrollment, signed releases on channels, audit forwarding and relayed access |
