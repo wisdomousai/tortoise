@@ -26,6 +26,7 @@
         "@agent-native/devices": "workspace:*",
         "@agent-native/event-log": "workspace:*",
         "@agent-native/execution-host": "workspace:*",
+        "@agent-native/field-service": "workspace:*",
         "@agent-native/fleet": "workspace:*",
         "@agent-native/fleet-agent": "workspace:*",
         "@agent-native/frame": "workspace:*",
@@ -47,16 +48,22 @@
         "@agent-native/os-shortcuts": "workspace:*",
         "@agent-native/peer-link": "workspace:*",
         "@agent-native/process": "workspace:*",
-        "@agent-native/project-tasks": "workspace:*",
         "@agent-native/quality-inspection": "workspace:*",
         "@agent-native/react": "workspace:*",
         "@agent-native/receiving": "workspace:*",
         "@agent-native/runtime": "workspace:*",
-        "@agent-native/sample-notes": "workspace:*",
-        "@agent-native/sample-notes-agents": "workspace:*",
-        "@agent-native/sample-notes-host-plugin": "workspace:*",
-        "@agent-native/sample-notes-operations": "workspace:*",
-        "@agent-native/sample-notes-system-of-record": "workspace:*",
+        "@agent-native/sample-lab-requests": "workspace:*",
+        "@agent-native/sample-lab-requests-agents": "workspace:*",
+        "@agent-native/sample-lab-requests-host-plugin": "workspace:*",
+        "@agent-native/sample-lab-requests-hosted": "workspace:*",
+        "@agent-native/sample-lab-requests-local-model": "workspace:*",
+        "@agent-native/sample-lab-requests-operations": "workspace:*",
+        "@agent-native/sample-lab-requests-review": "workspace:*",
+        "@agent-native/sample-lab-requests-sandbox": "workspace:*",
+        "@agent-native/sample-lab-requests-sign-in": "workspace:*",
+        "@agent-native/sample-lab-requests-signals": "workspace:*",
+        "@agent-native/sample-lab-requests-site": "workspace:*",
+        "@agent-native/sample-lab-requests-system-of-record": "workspace:*",
         "@agent-native/scaffold": "workspace:*",
         "@agent-native/screen-bridge": "workspace:*",
         "@agent-native/share-target": "workspace:*",
@@ -91,7 +98,6 @@
         "cn": "0.4.0",
         "expo": "58.0.14",
         "expo-background-task": "58.0.11",
-        "expo-build-properties": "58.0.11",
         "expo-camera": "58.0.10",
         "expo-crypto": "58.0.7",
         "expo-dev-client": "58.0.14",
@@ -101,7 +107,6 @@
         "expo-secure-store": "58.0.2",
         "expo-sharing": "58.0.19",
         "expo-sqlite": "58.0.13",
-        "expo-status-bar": "58.0.3",
         "expo-task-manager": "58.0.12",
         "jose": "6.2.12",
         "lucide-react": "1.52.0",
@@ -174,16 +179,16 @@
       "name": "@agent-native/crm-capture",
       "version": "0.1.0",
     },
+    "examples/field-service": {
+      "name": "@agent-native/field-service",
+      "version": "0.1.0",
+    },
     "examples/fleet": {
       "name": "@agent-native/fleet",
       "version": "0.1.0",
     },
     "examples/line-station": {
       "name": "@agent-native/line-station",
-      "version": "0.1.0",
-    },
-    "examples/project-tasks": {
-      "name": "@agent-native/project-tasks",
       "version": "0.1.0",
     },
     "examples/quality-inspection": {
@@ -798,24 +803,52 @@
         "react": "19.3.0",
       },
     },
-    "samples/notes": {
-      "name": "@agent-native/sample-notes",
+    "samples/lab-requests": {
+      "name": "@agent-native/sample-lab-requests",
       "version": "0.1.0",
     },
-    "samples/notes-agents": {
-      "name": "@agent-native/sample-notes-agents",
+    "samples/lab-requests-agents": {
+      "name": "@agent-native/sample-lab-requests-agents",
       "version": "0.1.0",
     },
-    "samples/notes-host-plugin": {
-      "name": "@agent-native/sample-notes-host-plugin",
+    "samples/lab-requests-host-plugin": {
+      "name": "@agent-native/sample-lab-requests-host-plugin",
       "version": "0.1.0",
     },
-    "samples/notes-operations": {
-      "name": "@agent-native/sample-notes-operations",
+    "samples/lab-requests-hosted": {
+      "name": "@agent-native/sample-lab-requests-hosted",
       "version": "0.1.0",
     },
-    "samples/notes-system-of-record": {
-      "name": "@agent-native/sample-notes-system-of-record",
+    "samples/lab-requests-local-model": {
+      "name": "@agent-native/sample-lab-requests-local-model",
+      "version": "0.1.0",
+    },
+    "samples/lab-requests-operations": {
+      "name": "@agent-native/sample-lab-requests-operations",
+      "version": "0.1.0",
+    },
+    "samples/lab-requests-review": {
+      "name": "@agent-native/sample-lab-requests-review",
+      "version": "0.1.0",
+    },
+    "samples/lab-requests-sandbox": {
+      "name": "@agent-native/sample-lab-requests-sandbox",
+      "version": "0.1.0",
+    },
+    "samples/lab-requests-sign-in": {
+      "name": "@agent-native/sample-lab-requests-sign-in",
+      "version": "0.1.0",
+    },
+    "samples/lab-requests-signals": {
+      "name": "@agent-native/sample-lab-requests-signals",
+      "version": "0.1.0",
+    },
+    "samples/lab-requests-site": {
+      "name": "@agent-native/sample-lab-requests-site",
+      "version": "0.1.0",
+    },
+    "samples/lab-requests-system-of-record": {
+      "name": "@agent-native/sample-lab-requests-system-of-record",
       "version": "0.1.0",
     },
     "sdks/driver-dotnet": {
@@ -842,11 +875,19 @@
       "version": "0.1.0",
       "dependencies": {
         "@agent-native/adapters": "workspace:*",
+        "@agent-native/client": "workspace:*",
         "@agent-native/contracts": "workspace:*",
+        "@agent-native/frame": "workspace:*",
         "@agent-native/kernel": "workspace:*",
+        "@agent-native/react": "workspace:*",
         "@agent-native/runtime": "workspace:*",
         "@noble/hashes": "2.4.0",
+        "@tanstack/react-query": "5.104.1",
+        "lucide-react": "1.52.0",
         "zod": "4.6.5",
+      },
+      "peerDependencies": {
+        "react": "19.3.0",
       },
     },
   },
@@ -904,6 +945,8 @@
 
     "@agent-native/execution-host": ["@agent-native/execution-host@workspace:plugins/execution-host"],
 
+    "@agent-native/field-service": ["@agent-native/field-service@workspace:examples/field-service"],
+
     "@agent-native/fleet": ["@agent-native/fleet@workspace:examples/fleet"],
 
     "@agent-native/fleet-agent": ["@agent-native/fleet-agent@workspace:plugins/fleet-agent"],
@@ -948,8 +991,6 @@
 
     "@agent-native/process": ["@agent-native/process@workspace:plugins/process"],
 
-    "@agent-native/project-tasks": ["@agent-native/project-tasks@workspace:examples/project-tasks"],
-
     "@agent-native/quality-inspection": ["@agent-native/quality-inspection@workspace:examples/quality-inspection"],
 
     "@agent-native/react": ["@agent-native/react@workspace:packages/react"],
@@ -958,15 +999,29 @@
 
     "@agent-native/runtime": ["@agent-native/runtime@workspace:packages/runtime"],
 
-    "@agent-native/sample-notes": ["@agent-native/sample-notes@workspace:samples/notes"],
+    "@agent-native/sample-lab-requests": ["@agent-native/sample-lab-requests@workspace:samples/lab-requests"],
 
-    "@agent-native/sample-notes-agents": ["@agent-native/sample-notes-agents@workspace:samples/notes-agents"],
+    "@agent-native/sample-lab-requests-agents": ["@agent-native/sample-lab-requests-agents@workspace:samples/lab-requests-agents"],
 
-    "@agent-native/sample-notes-host-plugin": ["@agent-native/sample-notes-host-plugin@workspace:samples/notes-host-plugin"],
+    "@agent-native/sample-lab-requests-host-plugin": ["@agent-native/sample-lab-requests-host-plugin@workspace:samples/lab-requests-host-plugin"],
 
-    "@agent-native/sample-notes-operations": ["@agent-native/sample-notes-operations@workspace:samples/notes-operations"],
+    "@agent-native/sample-lab-requests-hosted": ["@agent-native/sample-lab-requests-hosted@workspace:samples/lab-requests-hosted"],
 
-    "@agent-native/sample-notes-system-of-record": ["@agent-native/sample-notes-system-of-record@workspace:samples/notes-system-of-record"],
+    "@agent-native/sample-lab-requests-local-model": ["@agent-native/sample-lab-requests-local-model@workspace:samples/lab-requests-local-model"],
+
+    "@agent-native/sample-lab-requests-operations": ["@agent-native/sample-lab-requests-operations@workspace:samples/lab-requests-operations"],
+
+    "@agent-native/sample-lab-requests-review": ["@agent-native/sample-lab-requests-review@workspace:samples/lab-requests-review"],
+
+    "@agent-native/sample-lab-requests-sandbox": ["@agent-native/sample-lab-requests-sandbox@workspace:samples/lab-requests-sandbox"],
+
+    "@agent-native/sample-lab-requests-sign-in": ["@agent-native/sample-lab-requests-sign-in@workspace:samples/lab-requests-sign-in"],
+
+    "@agent-native/sample-lab-requests-signals": ["@agent-native/sample-lab-requests-signals@workspace:samples/lab-requests-signals"],
+
+    "@agent-native/sample-lab-requests-site": ["@agent-native/sample-lab-requests-site@workspace:samples/lab-requests-site"],
+
+    "@agent-native/sample-lab-requests-system-of-record": ["@agent-native/sample-lab-requests-system-of-record@workspace:samples/lab-requests-system-of-record"],
 
     "@agent-native/scaffold": ["@agent-native/scaffold@workspace:packages/scaffold"],
 
@@ -1377,8 +1432,6 @@
     "@expo/spawn-async": ["@expo/spawn-async@1.8.0", "https://registry.yarnpkg.com/@expo/spawn-async/-/spawn-async-1.8.0.tgz", { "dependencies": { "cross-spawn": "^7.0.6" } }, "sha512-eb9xxd/LbuEGSdua4NumCu/McVB9EM+F/JxB9pWgnERw4HQ9XyTNH1KapG6oqLWR8TuRK2LQfzJlmNi94CVobw=="],
 
     "@expo/sudo-prompt": ["@expo/sudo-prompt@9.3.2", "https://registry.yarnpkg.com/@expo/sudo-prompt/-/sudo-prompt-9.3.2.tgz", {}, "sha512-HHQigo3rQWKMDzYDLkubN5WQOYXJJE2eNqIQC2axC2iO3mHdwnIR7FgZVvHWtBwAdzBgAP0ECp8KqS8TiMKvgw=="],
-
-    "@expo/ws-tunnel": ["@expo/ws-tunnel@2.0.1", "https://registry.yarnpkg.com/@expo/ws-tunnel/-/ws-tunnel-2.0.1.tgz", { "peerDependencies": { "ws": "^8.0.0" } }, "sha512-mljsRffbOHzmSimYQbQu9h9NR3alwCCwEEouRGFL4QRTt8dNvsNtKEPa/5jHmtDLDtsh4xXsWKwzjN9BTpeXHQ=="],
 
     "@expo/xcpretty": ["@expo/xcpretty@4.4.7", "https://registry.yarnpkg.com/@expo/xcpretty/-/xcpretty-4.4.7.tgz", { "dependencies": { "@babel/code-frame": "^7.20.0", "chalk": "^4.1.0", "js-yaml": "^4.1.0" }, "bin": { "excpretty": "build/cli.js" } }, "sha512-EbxYllZ7/ozONVZd425cm4XnolfW+AmSFT5aP7Jdno6oc3WrYQcHz2CO20z/2rwWwYgztmV2PXvYH+BQ8YFjqg=="],
 
@@ -2006,8 +2059,6 @@
 
     "@vitejs/plugin-react": ["@vitejs/plugin-react@6.1.2", "https://registry.yarnpkg.com/@vitejs/plugin-react/-/plugin-react-6.1.2.tgz", { "dependencies": { "@rolldown/pluginutils": "^1.0.1" }, "peerDependencies": { "@rolldown/plugin-babel": "^0.1.7 || ^0.2.0", "babel-plugin-react-compiler": "^1.0.0", "oxc-transform-react": "^0.152.0", "vite": "^8.0.0" }, "optionalPeers": ["@rolldown/plugin-babel", "babel-plugin-react-compiler", "oxc-transform-react"] }, "sha512-fhJNGUdscQa4HkI0xFxwonWyhnVReCPDbXI7FH7jmzpnVCrFQI7PRrhWecO263610vOrs9tr2Y4xcf8uAdFxbw=="],
 
-    "@vitejs/plugin-vue": ["@vitejs/plugin-vue@5.2.4", "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz", { "peerDependencies": { "vite": "^5.0.0 || ^6.0.0", "vue": "^3.2.25" } }, "sha512-7Yx/SXSOcQq5HiiV3orevHUFn+pmMB4cgbEkDYgnkUWb0WfeQ/wa2yFv6D5ICiCQOVpjA7vYDXrC7AGO8yjDHA=="],
-
     "@vue/compiler-core": ["@vue/compiler-core@3.5.44", "https://registry.yarnpkg.com/@vue/compiler-core/-/compiler-core-3.5.44.tgz", { "dependencies": { "@babel/parser": "^7.29.9", "@vue/shared": "3.5.44", "entities": "^7.0.1", "estree-walker": "^2.0.2", "source-map-js": "^1.2.2" } }, "sha512-k34nCytbK8PQ1gR2mGROYOw6Pnv/mumqIdrZ3x2tbyXZDWm7ViKGLTfdB+DRrWqEQsLgGJvn0WN9jBif5zCTLQ=="],
 
     "@vue/compiler-dom": ["@vue/compiler-dom@3.5.44", "https://registry.yarnpkg.com/@vue/compiler-dom/-/compiler-dom-3.5.44.tgz", { "dependencies": { "@vue/compiler-core": "3.5.44", "@vue/shared": "3.5.44" } }, "sha512-W5AoBFWdw1lQAKiHowkfgFKFab82oSRT6sGsPfw/q1GRjsy/ZJFLHGhJyBRIFN9APLTUduDH9U2JAiPOIyKuYg=="],
@@ -2506,8 +2557,6 @@
 
     "expo-background-task": ["expo-background-task@58.0.11", "https://registry.yarnpkg.com/expo-background-task/-/expo-background-task-58.0.11.tgz", { "dependencies": { "expo-task-manager": "~58.0.12" }, "peerDependencies": { "expo": "*" } }, "sha512-dseg1bJg2gkzJxQ1qYgK3UNenBgibFP3oOVIXOpwMexwbKgEVc6sIwCrlWazpyZpYjE5Lj8siEjQwCIBTT778g=="],
 
-    "expo-build-properties": ["expo-build-properties@58.0.11", "https://registry.yarnpkg.com/expo-build-properties/-/expo-build-properties-58.0.11.tgz", { "dependencies": { "@expo/schema-utils": "^58.0.2", "resolve-from": "^5.0.0", "semver": "^7.7.4" }, "peerDependencies": { "expo": "*" } }, "sha512-8vjp+RSD7VW/VeEpG9l1YON4ZqOqQXPmtMYFqmh41I7cBGwELRYybHFrh2P3uBgzWlRBuQrRLO5UAtAYfT7HLg=="],
-
     "expo-camera": ["expo-camera@58.0.10", "https://registry.yarnpkg.com/expo-camera/-/expo-camera-58.0.10.tgz", { "dependencies": { "barcode-detector": "^3.0.0" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*", "react-native-web": "*" }, "optionalPeers": ["react-native-web"] }, "sha512-QXs93Kd2oZO2VuiCUPPHZgzUIPazdURx9Mse+i03U+74K5Vy7FT1F4ONp21w91aTIp1NbWtmJAcJNjSnTE+5bQ=="],
 
     "expo-constants": ["expo-constants@58.0.12", "https://registry.yarnpkg.com/expo-constants/-/expo-constants-58.0.12.tgz", { "dependencies": { "@expo/env": "~2.5.2", "@expo/require-utils": "^58.0.4" }, "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-d3/dsps32nU4m6YJQbXQ1dIfn58GxfmJjTnZ0WtnhdSHTdG/oVsOakLqYRlX/FaLUKkQOSHXMf7hyCx+2a/HSQ=="],
@@ -2549,8 +2598,6 @@
     "expo-sharing": ["expo-sharing@58.0.19", "https://registry.yarnpkg.com/expo-sharing/-/expo-sharing-58.0.19.tgz", { "dependencies": { "@expo/config-plugins": "^58.0.9", "@expo/config-types": "^58.0.3", "@expo/plist": "^0.10.1" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-FzTUT7uquCBbWVwjYm1fogpO3UNBoj+XRCNrCv7GzRNy9f0KPzLZTnaqJw28nEvaesYg/Q9nAiwSwkH1Df/Bdg=="],
 
     "expo-sqlite": ["expo-sqlite@58.0.13", "https://registry.yarnpkg.com/expo-sqlite/-/expo-sqlite-58.0.13.tgz", { "dependencies": { "await-lock": "^2.2.2" }, "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-EqYQTJUJ2Ub+Q/PwM8UTQBeg1/+piuhG8KQTO8HOhZfYu8e34bB3sOkGsM0HQ7KNesvWLlN8UmbrajRQRyE3gg=="],
-
-    "expo-status-bar": ["expo-status-bar@58.0.3", "https://registry.yarnpkg.com/expo-status-bar/-/expo-status-bar-58.0.3.tgz", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-+GMLHLA81LB+/m2DteQAN7kvH8unVj3zYGSj8D6Csf+mCrc4P6jJwaSbrz17qTizzEIJ5lv6SuU9Zfyy2vSNoQ=="],
 
     "expo-task-manager": ["expo-task-manager@58.0.12", "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-58.0.12.tgz", { "dependencies": { "unimodules-app-loader": "~58.0.2" }, "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-SLvNkkFJhkHwVzI1xfNiBxS3tNH2zxTUQXVFxpyMXtbc5GRIwRvgv/KYpheV3SjlIqiEh1yy6qG5kMmqKXcsMw=="],
 
@@ -3576,6 +3623,8 @@
 
     "@electron/windows-sign/fs-extra": ["fs-extra@11.4.1", "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.4.1.tgz", { "dependencies": { "graceful-fs": "^4.2.0", "jsonfile": "^6.0.1", "universalify": "^2.0.0" } }, "sha512-KYAb4c9BJQI6QqGKthV68OHe0badztdXJWKo0WtBA9IuCFPTKvE5ZdUBglP833aMjhaSPNO4A5j/EkzZtGlKjA=="],
 
+    "@expo/cli/@expo/ws-tunnel": ["@expo/ws-tunnel@2.0.1", "https://registry.yarnpkg.com/@expo/ws-tunnel/-/ws-tunnel-2.0.1.tgz", { "peerDependencies": { "ws": "^8.0.0" } }, "sha512-mljsRffbOHzmSimYQbQu9h9NR3alwCCwEEouRGFL4QRTt8dNvsNtKEPa/5jHmtDLDtsh4xXsWKwzjN9BTpeXHQ=="],
+
     "@expo/cli/accepts": ["accepts@1.3.8", "https://registry.yarnpkg.com/accepts/-/accepts-1.3.8.tgz", { "dependencies": { "mime-types": "~2.1.34", "negotiator": "0.6.3" } }, "sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw=="],
 
     "@expo/cli/ci-info": ["ci-info@3.9.0", "https://registry.yarnpkg.com/ci-info/-/ci-info-3.9.0.tgz", {}, "sha512-NIxF55hv4nSqQswkAeiOi1r83xy8JldOFDTWiug55KBu9Jnblncd2U6ViHmYgHf01TPZS77NJBhBMKdWj9HQMQ=="],
@@ -3603,8 +3652,6 @@
     "@expo/package-manager/ora": ["ora@3.4.0", "https://registry.yarnpkg.com/ora/-/ora-3.4.0.tgz", { "dependencies": { "chalk": "^2.4.2", "cli-cursor": "^2.1.0", "cli-spinners": "^2.0.0", "log-symbols": "^2.2.0", "strip-ansi": "^5.2.0", "wcwidth": "^1.0.1" } }, "sha512-eNwHudNbO1folBP3JsZ19v9azXWtQZjICdr3Q0TDPIaeBQ3mXLrh54wM+er0+hSp+dWKf+Z8KM58CYzEyIYxYg=="],
 
     "@expo/prebuild-config/semver": ["semver@7.7.4", "https://registry.yarnpkg.com/semver/-/semver-7.7.4.tgz", { "bin": { "semver": "bin/semver.js" } }, "sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA=="],
-
-    "@expo/ws-tunnel/ws": ["ws@8.22.0", "https://registry.yarnpkg.com/ws/-/ws-8.22.0.tgz", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-Ydggc987+RO0AnWtZ/7Wq9FtNvcrL1b/RO0ud9mWjUPgDrsAAwQSF51sm2hm1XofbU/4jkpGEsLFsZZxU+1DOg=="],
 
     "@malept/flatpak-bundler/fs-extra": ["fs-extra@9.1.0", "https://registry.yarnpkg.com/fs-extra/-/fs-extra-9.1.0.tgz", { "dependencies": { "at-least-node": "^1.0.0", "graceful-fs": "^4.2.0", "jsonfile": "^6.0.1", "universalify": "^2.0.0" } }, "sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ=="],
 
@@ -3695,8 +3742,6 @@
     "electron-winstaller/fs-extra": ["fs-extra@7.0.1", "https://registry.yarnpkg.com/fs-extra/-/fs-extra-7.0.1.tgz", { "dependencies": { "graceful-fs": "^4.1.2", "jsonfile": "^4.0.0", "universalify": "^0.1.0" } }, "sha512-YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw=="],
 
     "enquirer/strip-ansi": ["strip-ansi@6.0.1", "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
-
-    "expo-build-properties/semver": ["semver@7.7.4", "https://registry.yarnpkg.com/semver/-/semver-7.7.4.tgz", { "bin": { "semver": "bin/semver.js" } }, "sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA=="],
 
     "expo-modules-autolinking/commander": ["commander@7.2.0", "https://registry.yarnpkg.com/commander/-/commander-7.2.0.tgz", {}, "sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw=="],
 
@@ -3819,6 +3864,8 @@
     "uniwind/lightningcss": ["lightningcss@1.30.1", "https://registry.yarnpkg.com/lightningcss/-/lightningcss-1.30.1.tgz", { "dependencies": { "detect-libc": "^2.0.3" }, "optionalDependencies": { "lightningcss-darwin-arm64": "1.30.1", "lightningcss-darwin-x64": "1.30.1", "lightningcss-freebsd-x64": "1.30.1", "lightningcss-linux-arm-gnueabihf": "1.30.1", "lightningcss-linux-arm64-gnu": "1.30.1", "lightningcss-linux-arm64-musl": "1.30.1", "lightningcss-linux-x64-gnu": "1.30.1", "lightningcss-linux-x64-musl": "1.30.1", "lightningcss-win32-arm64-msvc": "1.30.1", "lightningcss-win32-x64-msvc": "1.30.1" } }, "sha512-xi6IyHML+c9+Q3W0S4fCQJOym42pyurFiJUHEcEyHS0CeKzia4yZDEsLlqOFykxOdHpNy0NmvVO31vcSqAxJCg=="],
 
     "unzipper/fs-extra": ["fs-extra@11.3.1", "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.3.1.tgz", { "dependencies": { "graceful-fs": "^4.2.0", "jsonfile": "^6.0.1", "universalify": "^2.0.0" } }, "sha512-eXvGGwZ5CL17ZSwHWd3bbgk7UUpF6IFHtP57NYYakPvHOs8GDgDe5KJI36jIJzDkJ6eJjuzRA8eBQb6SkKue0g=="],
+
+    "vitepress/@vitejs/plugin-vue": ["@vitejs/plugin-vue@5.2.4", "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-5.2.4.tgz", { "peerDependencies": { "vite": "^5.0.0 || ^6.0.0", "vue": "^3.2.25" } }, "sha512-7Yx/SXSOcQq5HiiV3orevHUFn+pmMB4cgbEkDYgnkUWb0WfeQ/wa2yFv6D5ICiCQOVpjA7vYDXrC7AGO8yjDHA=="],
 
     "vitepress/vite": ["vite@5.4.21", "https://registry.yarnpkg.com/vite/-/vite-5.4.21.tgz", { "dependencies": { "esbuild": "^0.21.3", "postcss": "^8.4.43", "rollup": "^4.20.0" }, "optionalDependencies": { "fsevents": "~2.3.3" }, "peerDependencies": { "@types/node": "^18.0.0 || >=20.0.0", "less": "*", "lightningcss": "^1.21.0", "sass": "*", "sass-embedded": "*", "stylus": "*", "sugarss": "*", "terser": "^5.4.0" }, "optionalPeers": ["@types/node", "less", "lightningcss", "sass", "sass-embedded", "stylus", "sugarss", "terser"], "bin": { "vite": "bin/vite.js" } }, "sha512-o5a9xKjbtuhY6Bi5S3+HvbRERmouabWbyUcpXXUA1u+GNUKoROi9byOJ8M0nHbHYHkYICiMlqxkg1KkYmm25Sw=="],
 

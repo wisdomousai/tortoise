@@ -236,7 +236,7 @@
       "name": "numeric-pad",
       "type": "registry:component",
       "title": "Numeric pad",
-      "description": "On-screen keypad with unit, decimals, comma or period, and a live tolerance gauge.",
+      "description": "On-screen keypad with unit, decimals, comma or period, a live tolerance gauge, and a masked mode for PINs.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [
         "button",

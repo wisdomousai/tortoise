@@ -174,6 +174,7 @@ Paths are relative to `examples/asset-survey`.
 | [Surface adapters](../../docs/primitives.md#surface-adapter): HTTP, CLI and MCP | Generated from the catalog | `test/conformance.test.ts` |
 | [Capability bindings](../../docs/primitives.md#capability-binding) and [live queries](../../docs/primitives.md#journal-and-live-query) | `ui/*.tsx` | `test/ui-bindings.test.ts`, `e2e/survey.pw.ts` |
 | Compact route variant | `review` route in `screens.tsx`, `ReviewScreenCompact` in `ui/review.tsx` | `e2e/survey.pw.ts`, "the review queue is one column" |
+| [Nested invocation](../../docs/primitives.md#nested-invocation) of two commands in one transaction | `capture.place-and-extract` in `contracts/extraction.ts` and `handlers/review.ts`; `workflow.start` from `capture.file-workflow` in `handlers/filing.ts` | `test/place-and-extract.test.ts` |
 | [Workflow](../../docs/primitives.md#workflow) with a compensation | `captureToEam` and `captureFileWorkflow` in `contracts/workflow.ts`; `filing.withdraw` in `handlers/filing.ts`; `createWorkflowsPlugin` in `application.ts` | `test/capture-to-eam.test.ts` |
 | [Host plugins](../../docs/primitives.md#host-plugin) site, network, process, audit, compliance, device-link, workflows | `manifest.ts`, `application.ts` | `test/conformance.test.ts`, `test/export.test.ts` |
 

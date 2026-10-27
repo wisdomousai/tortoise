@@ -1,8 +1,10 @@
 import { join } from 'node:path';
 import { createFileBlobStore } from '@agent-native/adapters/blob-files';
 import { acquireWorkspaceOwnership } from '@agent-native/adapters/ownership';
+import { bunPostgres } from '@agent-native/adapters/postgres-bun';
 import { acquireWorkspaceLease, type WorkspaceLease } from '@agent-native/adapters/postgres-lease';
 import { PostgresStorage, type PgDriver } from '@agent-native/adapters/postgres-storage';
+import { ApplicationError } from '@agent-native/contracts';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
 import { LOCAL_OWNER } from '@agent-native/kernel/instance';
 import type { HostPlatform, PlatformOwnership } from '@agent-native/kernel/platform';
@@ -87,4 +89,28 @@ export function hostedPlatform(options: HostedPlatformOptions): ServingPlatform 
     openBlobs: (ownership: { canonicalPath: string }) =>
       createFileBlobStore(join(ownership.canonicalPath, 'blobs')),
   } satisfies HostPlatform);
+}
+
+/**
+ * The hosted platform for `workspace` in the Postgres database that `AGENT_NATIVE_DATABASE_URL`
+ * names, as `serve --hosted-workspace` and a development launch start it. The URL is read from the
+ * environment, never a flag, so its credentials stay out of the process list. Losing the lease
+ * stops the host with exit code 1, for the orchestrator to restart it behind the new holder.
+ */
+export function hostedPlatformFromEnvironment(workspace: string, env = process.env) {
+  const url = env.AGENT_NATIVE_DATABASE_URL;
+  if (!url)
+    throw new ApplicationError(
+      'INVALID_INPUT',
+      '--hosted-workspace needs AGENT_NATIVE_DATABASE_URL in the environment',
+    );
+  return hostedPlatform({
+    database: bunPostgres(url),
+    workspace,
+    onLeaseLost(error) {
+      console.error(JSON.stringify({ type: 'lease-lost', workspace, message: error.message }));
+      process.exitCode = 1;
+      process.kill(process.pid, 'SIGTERM');
+    },
+  });
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FlatList, Text, TextInput, View } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
@@ -13,14 +13,17 @@ const field = 'min-h-target rounded-xl border border-border px-4 text-operator t
 
 /**
  * One assignment's structure as a tree, with designation search. A scanned tag searches the
- * same way and opens the capture screen when it matches exactly one node. Returning the
- * assignment ends its field work on this device.
+ * same way and opens the capture screen when it matches exactly one node. A tag another app
+ * sent arrives as `q`. Returning the assignment ends its field work on this device.
  */
 export function AssignmentScreen() {
-  const { assignmentId } = useRoute().params as { assignmentId: string };
+  const { assignmentId, q: sent } = useRoute().params as { assignmentId: string; q?: string };
   const { live, client } = useSession();
   const { open } = useFrameNavigation();
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(sent ?? '');
+  useEffect(() => {
+    if (sent) setQ(sent);
+  }, [sent]);
   const [error, setError] = useState<unknown>();
   const assignments = useQuery(live.liveQueryOptions(ops.assignmentList, {}));
   const nodes = useQuery(

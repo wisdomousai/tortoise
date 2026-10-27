@@ -70,6 +70,8 @@ A stored session minted from such a credential keeps its `via`. Every recheck us
 
 The host, origin and cross-site checks run before authentication. `publicRoute` runs after the Host and Origin checks and before the session check.
 
+The session cookie is `agent_session`, or `agent_session_<port>` when the origin's port is not its scheme's default. Browsers send a host's cookies to every port on it, so two hosts on one machine, such as a fleet and a site, keep separate sessions. `sessionCookie(origin, token, maxAge)` writes the `Set-Cookie` value, with `Secure` on https, and `readSessionCookie(request, origin)` reads it. A plugin that sets its own session, such as workforce sign-in, uses both.
+
 A session that stands for such a credential (`HostSession.credential`) can mint a launch key like any other session. The [launch exchange](../../docs/glossary.md#launch-exchange) opens a browser session of its own, whose cookie is a new token. That session keeps the credential's name and rechecks it on every request and every event-stream poll. Revoking the credential, such as a paired tablet's, ends the browser session at its next request and closes its stream. A bearer credential's own event stream is rechecked the same way.
 
 ### Blobs
@@ -109,7 +111,7 @@ bun test packages/adapters
 - `src/sqlite.test.ts`: a rolled-back transaction leaves the initial state untouched; blob references persist, and older documents load without them.
 - `src/blob-files.test.ts`: storing, listing, reading and removing by digest; a repeated store refreshes `storedAt`; invalid digests never become paths.
 - `src/http-blobs.test.ts`: upload, attach and read over HTTP with the client transport; sandboxed download headers; size and media-type refusals; blobs on the direct transport.
-- `src/http-credentials.test.ts`: a cookie is offered only as a cookie and a bearer only as a bearer, on every recheck.
+- `src/http-credentials.test.ts`: a cookie is offered only as a cookie and a bearer only as a bearer, on every recheck. Two hosts on different ports of one machine each set and read only their own session cookie.
 - `src/ui-deliveries.test.ts`: only the session that submitted the request takes its deliveries, which expire and are revalidated and rejected when access is gone. It also covers malformed deliveries, a token reused by another principal and a full inbox.
 - `src/ownership.test.ts`: one owner per workspace across processes, path aliases and a killed owner.
 - `src/mcp.test.ts`: each agent definition is an MCP resource with its instructions, tool names and budgets.
@@ -117,7 +119,7 @@ bun test packages/adapters
 
 Postgres storage and the lease are tested in `packages/testing`, in `test/storage.test.ts` and `test/postgres-lease.test.ts`. The storage conformance suite and the PGlite driver live there. Set `STORAGE_POSTGRES_URL` to run them against a server too.
 
-Surface parity is proven in content, where real capabilities exist. `examples/project-tasks/test/transport-conformance.test.ts` runs the same scenarios through direct, HTTP, CLI subprocess and MCP.
+Surface parity is proven in content, where real capabilities exist. `examples/field-service/test/transport-conformance.test.ts` runs the same scenarios through direct, HTTP, CLI subprocess and MCP.
 
 ## Skills
 

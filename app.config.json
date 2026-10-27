@@ -1,6 +1,6 @@
 {
   "name": "agent-native-desktop-starter",
-  "displayName": "Project Workspace",
+  "displayName": "Field Service",
   "appId": "dev.agentnative.workspace",
-  "application": "@agent-native/project-tasks"
+  "application": "@agent-native/field-service"
 }

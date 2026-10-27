@@ -145,7 +145,7 @@ Do not use: integration (for a connector), adapter (for a connector), bridge (fo
 
 ### Container
 
-A project, plant, workstation or other unit that people hold roles in. Membership is per container. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [authorization](authorization.md).
+A work order, plant, workstation or other unit that people hold roles in. Membership is per container. Lives in [`packages/runtime`](../packages/runtime/README.md); explained in [authorization](authorization.md).
 
 Do not use: scope (for a container).
 
@@ -577,7 +577,7 @@ Do not use: version (for a revision), etag.
 
 ### Sample
 
-A small application under `samples/` that shows one concept. `samples/notes` is the base, and every other sample composes it unchanged and adds one concern. Listed in [samples](samples.md).
+A small application under `samples/` that shows one concept. `samples/lab-requests` is the base, and every other sample composes it unchanged and adds one concern. Listed in [samples](samples.md).
 
 Do not use: demo (for a sample).
 

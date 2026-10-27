@@ -32,7 +32,7 @@ Framework (`packages/*`). Domain-neutral. A domain defines its capabilities with
 - [OS action](../../docs/primitives.md#os-action): `OsAction`, `CatalogOsAction`, and `osActionTargets`, the outbox targets that notify actions carry.
 - [Shell port](../../docs/primitives.md#shell-port): the values that cross between adapters, the host's shell routes, the port and the frame. They are `OsPlatform`, `osPlatforms`, `RawOsRequest`, `OsDelivery`, `OsProvenance`, `OsRefusal`, `OsRequestOutcome`, `OsActionRequest`, `OsInstruction`, `OsActionOutcome` and `OsActionResult`.
 
-The worked example is [`examples/project-tasks/contracts.ts`](../../examples/project-tasks/contracts.ts).
+The worked example is [`examples/field-service/contracts.ts`](../../examples/field-service/contracts.ts).
 
 ## Entrypoints
 

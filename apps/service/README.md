@@ -31,11 +31,13 @@ Environment:
 - every setting the application's plugins declare, read by `readPluginSettings`, such as `AGENT_NATIVE_SITE_POLICY` with the site plugin and `AGENT_NATIVE_AUDIT_LOG` with the audit plugin;
 - `AGENT_NATIVE_APPLICATION`, which overrides the configured application for one launch.
 
+`runService` takes `hostedWorkspace` to keep the workspace in the Postgres database that `AGENT_NATIVE_DATABASE_URL` names. `bun run dev:web` passes it from `--hosted-workspace`.
+
 `bun run build:cli` compiles the same CLI into `dist/bin/<name>` with a generated static application entry, because a binary cannot follow a runtime import.
 
 ## Trust boundary
 
-[Callers](../../docs/glossary.md#caller) are untrusted, and the host authenticates them. The instance prints a single-use, short-lived `launchUrl` and writes a [connection file](../../docs/glossary.md#connection-file). Both are local credentials. Without a [deployment policy](../../docs/glossary.md#deployment-policy), the instance is isolated to loopback.
+[Callers](../../docs/glossary.md#caller) are untrusted, and the host authenticates them. The instance prints a single-use, short-lived `launchUrl` and writes a [connection file](../../docs/glossary.md#connection-file). Both are local credentials. Under external identity it prints neither, and people sign in at `/auth/sign-in`. Without a [deployment policy](../../docs/glossary.md#deployment-policy), the instance is isolated to loopback.
 
 The starter names no [host plugin](../../docs/glossary.md#host-plugin); the application composes them. `runService` passes the application's URL scheme from `app.config.json` as the default of `AGENT_NATIVE_OS_SCHEME`. Only the OS plugin reads it, and the launcher's environment wins.
 

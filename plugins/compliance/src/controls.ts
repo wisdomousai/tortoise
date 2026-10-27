@@ -69,7 +69,7 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 5.1'],
     },
     evidence: {
-      tests: ['plugins/network/test/guard.test.ts', 'examples/project-tasks/test/security.test.ts'],
+      tests: ['plugins/network/test/guard.test.ts', 'examples/field-service/test/security.test.ts'],
       artifacts: [],
       events: ['egress.allowed', 'egress.denied', 'egress.completed'],
     },
@@ -108,7 +108,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: [
-        'examples/project-tasks/test/security.test.ts',
+        'examples/field-service/test/security.test.ts',
         'plugins/site/test/policy.test.ts',
         'plugins/network/test/guard.test.ts',
       ],
@@ -168,7 +168,7 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: [
         'packages/runtime/test/audit.test.ts',
-        'examples/project-tasks/test/security.test.ts',
+        'examples/field-service/test/security.test.ts',
       ],
       artifacts: [],
       events: [
@@ -257,7 +257,7 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: [
         'packages/runtime/test/audit.test.ts',
-        'examples/project-tasks/test/security.test.ts',
+        'examples/field-service/test/security.test.ts',
       ],
       artifacts: ['data-flows.md'],
       events: ['command.accepted'],
@@ -315,7 +315,7 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: [
         'packages/runtime/test/runtime.test.ts',
-        'examples/project-tasks/test/security-conformance.test.ts',
+        'examples/field-service/test/security-conformance.test.ts',
       ],
       artifacts: ['contract.json'],
       events: ['command.denied', 'query.denied'],
@@ -338,8 +338,8 @@ export const controls: readonly Control[] = [
     evidence: {
       tests: [
         'plugins/site/test/policy.test.ts',
-        'examples/project-tasks/test/security.test.ts',
-        'examples/project-tasks/test/hardening.test.ts',
+        'examples/field-service/test/security.test.ts',
+        'examples/field-service/test/hardening.test.ts',
       ],
       artifacts: ['network export --format k8s-networkpolicy|nftables'],
       events: ['config.loaded'],
@@ -359,7 +359,7 @@ export const controls: readonly Control[] = [
     },
     evidence: {
       tests: [
-        'examples/project-tasks/test/security.test.ts',
+        'examples/field-service/test/security.test.ts',
         'examples/quality-inspection/test/security.test.ts',
         'plugins/site/test/policy.test.ts',
       ],
@@ -438,7 +438,7 @@ export const controls: readonly Control[] = [
       iec62443: ['CR 3.5'],
     },
     evidence: {
-      tests: ['examples/project-tasks/test/transport-conformance.test.ts'],
+      tests: ['examples/field-service/test/transport-conformance.test.ts'],
       artifacts: ['openapi.json'],
       events: ['command.failed'],
     },

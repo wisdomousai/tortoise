@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { createApplication, createMemoryStorage } from '@agent-native/runtime';
 import { createHttpHandler } from './http';
+import { sessionCookieName } from './http/session-cookie';
 import { Sessions, type CredentialSource } from './http/sessions';
 
 /** Credentials the host does not store reach the resolver tagged with where they were presented. */
@@ -13,6 +14,7 @@ test('a cookie is offered only as a cookie and a bearer only as a bearer, on eve
     handlers: [],
   });
   const origin = 'http://127.0.0.1:4100';
+  const cookie = (token: string) => `${sessionCookieName(origin)}=${token}`;
   const sessions = new Sessions();
   const seen: [string, CredentialSource][] = [];
   // Like the host: a device token is good only as a bearer, a person's only as a cookie.
@@ -32,14 +34,14 @@ test('a cookie is offered only as a cookie and a bearer only as a bearer, on eve
     handler(
       new Request(`${origin}/api/v1/contract`, { headers: { host: '127.0.0.1:4100', ...headers } }),
     );
-  expect((await get({ cookie: 'agent_session=person' })).status).toBe(200);
+  expect((await get({ cookie: cookie('person') })).status).toBe(200);
   expect((await get({ authorization: 'Bearer device' })).status).toBe(200);
   // A device token in a cookie, or a person's cookie token as a bearer, is refused.
-  expect((await get({ cookie: 'agent_session=device' })).status).toBe(403);
+  expect((await get({ cookie: cookie('device') })).status).toBe(403);
   expect((await get({ authorization: 'Bearer person' })).status).toBe(403);
   // A bearer wins over a cookie; the cookie is not offered at all.
   seen.length = 0;
-  await get({ authorization: 'Bearer device', cookie: 'agent_session=person' });
+  await get({ authorization: 'Bearer device', cookie: cookie('person') });
   expect(seen).toEqual([['device', 'bearer']]);
 
   // A browser session minted from a cookie credential rechecks it as a cookie.
@@ -50,11 +52,57 @@ test('a cookie is offered only as a cookie and a bearer only as a bearer, on eve
     'cookie',
   );
   seen.length = 0;
-  expect((await get({ cookie: `agent_session=${minted.token}` })).status).toBe(200);
+  expect((await get({ cookie: cookie(minted.token) })).status).toBe(200);
   expect(seen).toEqual([['person', 'cookie']]);
   delete issued.person;
-  expect((await get({ cookie: `agent_session=${minted.token}` })).status).toBe(403);
+  expect((await get({ cookie: cookie(minted.token) })).status).toBe(403);
   expect(sessions.get(minted.token)).toBeUndefined();
+});
+
+/** Browsers send one host's cookies to every port on it, so each port names its own session. */
+test('two hosts on one machine each set and read only their own session cookie', async () => {
+  const application = createApplication({
+    modules: [],
+    storage: createMemoryStorage({}),
+    services: {},
+    authorization: { authorize: () => ({ allowed: true }), canReadEvent: () => true },
+    handlers: [],
+  });
+  const host = (port: number) => {
+    const origin = `http://127.0.0.1:${port}`;
+    const sessions = new Sessions();
+    const handler = createHttpHandler({ application, sessions, origin: () => origin });
+    const send = (path: string, headers: Record<string, string> = {}, body?: unknown) =>
+      handler(
+        new Request(`${origin}${path}`, {
+          method: body === undefined ? 'GET' : 'POST',
+          headers: { host: `127.0.0.1:${port}`, origin, ...headers },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        }),
+      );
+    return { origin, sessions, send };
+  };
+  const fleet = host(4340);
+  const site = host(4359);
+  const signIn = async (at: ReturnType<typeof host>) => {
+    const launch = at.sessions.launch(
+      at.sessions.create({ workspaceId: 'w', principalId: at.origin }),
+    );
+    const json = { 'content-type': 'application/json' };
+    const response = await at.send('/api/v1/session', json, { launch });
+    return response.headers.get('set-cookie')!.split(';')[0]!;
+  };
+  const fleetCookie = await signIn(fleet);
+  const siteCookie = await signIn(site);
+  expect(fleetCookie).toStartWith('agent_session_4340=');
+  expect(siteCookie).toStartWith('agent_session_4359=');
+  // The browser sends both cookies to both ports; each host reads its own.
+  const both = { cookie: `${fleetCookie}; ${siteCookie}` };
+  expect((await fleet.send('/api/v1/contract', both)).status).toBe(200);
+  expect((await site.send('/api/v1/contract', both)).status).toBe(200);
+  expect((await site.send('/api/v1/contract', { cookie: fleetCookie })).status).toBe(403);
+  expect(sessionCookieName('https://site.example')).toBe('agent_session');
+  expect(sessionCookieName('https://site.example:8443')).toBe('agent_session_8443');
 });
 
 /** A peer acting for a person reaches operations only, and its resolver sees the signed request. */

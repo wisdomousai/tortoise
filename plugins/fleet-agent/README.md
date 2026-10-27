@@ -26,6 +26,8 @@ A fleet composes `fleetSiteModule`, implements its handlers and enrolls sites wi
 
 Compose the plugin after the site plugin, the network plugin and, for audit forwarding, the audit plugin. The [deployment policy](../../docs/glossary.md#deployment-policy) binds the `fleet` destination to the fleet's https origin and the `fleet-releases` folder to a directory. Both bindings are optional, and the site runs without them. The destination is declared `authenticated`, so the site check refuses a plain-text binding off loopback.
 
+The network guard caps a response at 32 MiB, and a release file such as the site's compiled binary is larger. Set `maxResponseBytes` on the `fleet` binding above the largest release file, or staging fails with `RESPONSE_TOO_LARGE`.
+
 | Setting | Environment | Meaning |
 | --- | --- | --- |
 | `fleet-enrollment-code` | `AGENT_NATIVE_FLEET_ENROLLMENT_CODE` | One-use code from the fleet, exchanged for the site credential on the first cycle. |

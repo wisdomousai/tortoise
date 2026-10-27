@@ -115,7 +115,7 @@ bun test packages/runtime
   - a rejected command's upload is swept after the grace period, while referenced and freshly stored blobs stay;
   - connectors read an effect's blobs; audit by digest.
 
-Every `Storage` adapter must pass `storageConformance` from [`@agent-native/testing`](../testing/README.md). `examples/project-tasks/test/storage-conformance.test.ts` checks that one workflow has the same outcomes on memory and SQLite storage.
+Every `Storage` adapter must pass `storageConformance` from [`@agent-native/testing`](../testing/README.md). `examples/field-service/test/storage-conformance.test.ts` checks that one workflow has the same outcomes on memory and SQLite storage.
 
 ## Skills
 

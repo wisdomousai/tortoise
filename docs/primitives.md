@@ -101,7 +101,7 @@ implemented · [`packages/runtime`](../packages/runtime/README.md) [`packages/ad
 
 ### Membership
 
-_Roles that people hold in a container: a project, plant or station._
+_Roles that people hold in a container: a work order, plant or station._
 
 implemented · [`packages/contracts`](../packages/contracts/README.md) [`packages/runtime`](../packages/runtime/README.md)
 
@@ -261,13 +261,13 @@ implemented · [`packages/devices`](../packages/devices/README.md) [`plugins/int
 
 _A declared registration with the operating system, such as a link path, file type, share target, Android intent, shortcut or notification reply, and where its requests go._
 
-partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/shell`](../packages/shell/README.md) [`plugins/os`](../plugins/os/README.md) [`plugins/share-target`](../plugins/share-target/README.md) [`plugins/notifications`](../plugins/notifications/README.md) [`plugins/android-intents`](../plugins/android-intents/README.md) [`plugins/os-shortcuts`](../plugins/os-shortcuts/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`packages/mobile`](../packages/mobile/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`apps/desktop`](../apps/desktop/README.md) [`apps/mobile`](../apps/mobile/README.md) [`examples/project-tasks`](../examples/project-tasks/README.md)
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/shell`](../packages/shell/README.md) [`plugins/os`](../plugins/os/README.md) [`plugins/share-target`](../plugins/share-target/README.md) [`plugins/notifications`](../plugins/notifications/README.md) [`plugins/android-intents`](../plugins/android-intents/README.md) [`plugins/os-shortcuts`](../plugins/os-shortcuts/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`packages/mobile`](../packages/mobile/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`apps/desktop`](../apps/desktop/README.md) [`apps/mobile`](../apps/mobile/README.md) [`examples/field-service`](../examples/field-service/README.md)
 
 ### OS action
 
 _A declared request to the operating system to open a URL, reveal or open a file, share, notify or send an Android intent, with the data classes it carries._
 
-partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/shell`](../packages/shell/README.md) [`plugins/os`](../plugins/os/README.md) [`plugins/share-target`](../plugins/share-target/README.md) [`plugins/notifications`](../plugins/notifications/README.md) [`plugins/android-intents`](../plugins/android-intents/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/agents`](../packages/agents/README.md) [`apps/desktop`](../apps/desktop/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/mobile`](../packages/mobile/README.md)
+partial · [`packages/contracts`](../packages/contracts/README.md) [`packages/shell`](../packages/shell/README.md) [`plugins/os`](../plugins/os/README.md) [`plugins/share-target`](../plugins/share-target/README.md) [`plugins/notifications`](../plugins/notifications/README.md) [`plugins/android-intents`](../plugins/android-intents/README.md) [`plugins/compliance`](../plugins/compliance/README.md) [`packages/agents`](../packages/agents/README.md) [`apps/desktop`](../apps/desktop/README.md) [`packages/frame`](../packages/frame/README.md) [`packages/frame-native`](../packages/frame-native/README.md) [`packages/mobile`](../packages/mobile/README.md)
 
 ### Shell port
 

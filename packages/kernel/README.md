@@ -75,7 +75,7 @@ On a serving host a plugin instance may implement these hooks:
 
 - `publicRoute(request)`, answered before the session check;
 - `authenticate(token, request)`, which resolves a bearer credential the plugin issued to an `ExecutionContext`, with the request that carried it for a credential that also signs the request;
-- `authenticateCookie(token)`, which does the same for an `agent_session` cookie the plugin set for a signed-in person;
+- `authenticateCookie(token)`, which does the same for a session cookie the plugin set for a signed-in person with `sessionCookie` from `@agent-native/adapters/http`, named `agent_session` or, on a port other than the scheme's default, `agent_session_<port>`;
 - `route(request, context)`, which receives an `/api/` request that the host has authenticated and not routed, with the caller's context.
 
 Use `route` for work that must happen before any command runs, such as hashing a PIN so it never becomes a stored command input. The two credential hooks never see each other's tokens. `authenticate(token, via, request)` on the opened plugins routes by `CredentialSource`. A device's bearer credential therefore cannot be replayed from a cookie, which any web page in the browser can have sent.

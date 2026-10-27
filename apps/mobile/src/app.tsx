@@ -76,6 +76,7 @@ export function App() {
         transport={state.opened.transport}
         services={state.opened.instance.services}
         os={state.os.deliveries}
+        osActions={state.os.perform}
       />
     );
   return (

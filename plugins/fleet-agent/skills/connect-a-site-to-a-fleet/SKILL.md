@@ -12,6 +12,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 - The site side needs a provided network port, so startup refuses an application without one.
 - The site acts at the fleet as one device-link principal, never on behalf of a person. Two applications that call each other for people use the peer link instead, as the `connect-two-applications` skill (`plugins/peer-link/skills/connect-two-applications/SKILL.md`) describes.
 - The `fleet` destination is declared `authenticated`, so the site check refuses a plain-text binding off loopback.
+- `samples/lab-requests-site` composes the site side against `examples/fleet`. Its `publish-release.ts` publishes a signed bundle to a channel, and its README installs the staged release.
 
 ## Steps
 
@@ -19,12 +20,12 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 
 1. Add `fleetAgentPluginManifest` to the manifest's `plugins`, after the site, network and audit plugins.
 2. Add `fleetAgentPlugin`, or `createFleetAgentPlugin({ intervalMs })`, to the application's `plugins` in the same order.
-3. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `destinations.fleet` to the fleet's https origin. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+3. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `destinations.fleet` to the fleet's https origin. Set its `maxResponseBytes` above the largest release file, because the guard's default cap of 32 MiB is below a compiled binary. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
 4. Bind `folders['fleet-releases']` to a directory the host's OS user can write. Leaving the destination or the folder out disables only that part, and the site still runs.
 5. Create a `field-sync` enrollment on the fleet.
 6. Start the site once with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`. The plugin stores the credential, so later starts need no code.
 7. Set `fleet-trust` to the publisher's `key.pub.json` to stage releases. A staged release appears in `fleet-releases/<release id>` only after it verifies.
-8. Activate a staged release with `site install <that directory> --trust key.pub.json`, by hand or from a timer the site runs.
+8. Activate a staged release with `site install <that directory> --trust key.pub.json`, by hand or from a timer the site runs. A release that widens the requirements also needs `--approval`. The staged files keep mode 0644, so run `site install` from the installed release's binary, or on a first install from a copy of the bundle.
 9. Set `fleet-relay` to `on` only when remote access is wanted. A remote caller still needs a session the site issued, for example through the site's [workforce sign-in](../../../../docs/glossary.md#workforce-sign-in).
 
 ### Fleet side
@@ -41,6 +42,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 
    ```sh
    bun test plugins/fleet-agent
+   bun test samples/lab-requests-site/
    ```
 
 2. Put a new protocol capability in `src/contracts.ts` and in the fixture fleet in `test/fixtures.ts`.
@@ -55,3 +57,4 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 - [Hosting](../../../../docs/hosting.md#fleet)
 - [`@agent-native/fleet-agent`](../../README.md#trust-boundary)
 - [`examples/fleet`](../../../../examples/fleet/README.md)
+- [Lab requests site sample](../../../../samples/lab-requests-site/README.md)

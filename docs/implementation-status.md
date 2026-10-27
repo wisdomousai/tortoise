@@ -33,9 +33,15 @@ No public release has been made. The entries use these kinds of evidence:
 - The first was paused with SIGSTOP for 33 seconds. A new instance then took the lease with [fencing token](glossary.md#fencing-token) 2 and listed the project.
 - The first was resumed. It logged `lease-lost` and exited.
 
+**By hand.** On 27 October 2026, on macOS arm64, `samples/lab-requests-hosted` ran with `bun run dev:web` against a throwaway Homebrew Postgres 17.11 server on loopback, without Docker.
+
+- The stand-in identity provider ran on `https://127.0.0.1:4372` with a certificate from a throwaway openssl CA, which the policy's `workforce-idp` binding trusted.
+- Sign-ins were driven with curl, not a browser, because no browser on the machine trusted that CA. A technician submitted a request recorded under their email. A viewer listed it and was refused a submission.
+- A second instance started with `serve --hosted-workspace` exited with code 5 and `CONFLICT`. After the launch stopped, which set the lease's expiry to the time of release, the same command took the lease at once with fencing token 2 and listed the request.
+
 **Not shown.**
 
-- No [hosted instance](glossary.md#hosted-instance) has run behind a public TLS listener with workforce OIDC sign-in.
+- No [hosted instance](glossary.md#hosted-instance) has run behind a public TLS listener with workforce OIDC sign-in. `lab-requests-hosted` signs in on a loopback listener against the stand-in provider, and no browser has completed its sign-in.
 - None has run under a real orchestrator, or on Linux.
 - No commit from a paused holder has been caught by the fence in a live run. The resumed instance's renewal found the loss first, and the tests cover the fence.
 
@@ -50,10 +56,12 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Browser.** On 18 October 2026, `examples/fleet/e2e/fleet.pw.ts` passed in headless Chromium against the real host. It covered enrollment from the Devices screen, a site report, a channel created and assigned from the screens, and the drift shown on the Health screen.
 
+**By hand, browser.** On 27 October 2026, on macOS arm64, `samples/lab-requests-site` on port 4359 and `examples/fleet` on port 4340 ran side by side with `bun run dev:web` in Chrome. The site enrolled with a code from the Devices screen, reported, and forwarded its audit log, which the fleet's Audit screen listed. `publish-release.ts` published a signed bundle of 46 files, with a 92 MB binary, to `lab-stable`. After the site was put on that channel, the release was staged in `fleet-releases`, and `fleet.health` reported no issues once the next report named it.
+
 **Not shown.**
 
 - No site has reported to a [fleet](glossary.md#fleet) across a real network, behind a firewall that allows only outbound https.
-- No staged release has been activated by `site install` from the `fleet-releases` folder on a real machine with a loaded system service. The fleet-agent test does it on a staged prefix without `--apply`.
+- No staged release has been activated by `site install` from the `fleet-releases` folder on a real machine with a loaded system service. The fleet-agent test and the 27 October run ([site install](#site-install)) do it on a staged prefix without `--apply`.
 
 **Limits.**
 
@@ -61,6 +69,9 @@ No public release has been made. The entries use these kinds of evidence:
 - A site credential is not rotated. A fleet that loses one re-enrolls the site with a new code.
 - Staging fetches each release file whole. There is no resumed download.
 - The fleet's Devices screen calls a `field-sync` enrollment a phone, as device-link names it. A site is enrolled with that kind.
+- A failed cycle is kept only in the agent's in-process `lastError`. It is neither logged nor reported, so a site that cannot stage a release shows at the fleet as drift with no reason.
+- Staged release files keep mode 0644, so the staged binary cannot run `site install` itself.
+- The fleet example's screens show times as raw milliseconds.
 
 ### Telemetry
 
@@ -80,6 +91,8 @@ No public release has been made. The entries use these kinds of evidence:
 
 **By hand, 17 October 2026.** A rerun after the bundle began writing its contract, security manifest and SBOM from the catalog. The signature verified, and `admit` listed the requirements to approve.
 
+**By hand, 27 October 2026.** `bun run bundle create` built a `samples/lab-requests-site` bundle of 46 files, with a 92 MB binary, on macOS arm64. The binary carried no `.exe` suffix after `scripts/bundle.ts` stopped matching `darwin` as Windows. `admit` on the copy the fleet agent staged refused it until approved.
+
 **Not shown.**
 
 - `site install` consumes a bundle ([site install](#site-install)), but nothing verifies one again at launch.
@@ -91,11 +104,15 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Added, not yet run.** The `site-install` CI job on Ubuntu runs `plugins/site/test/install.test.ts`. It applies `systemd-analyze verify` to the unit and `nft -c -f` to the rules.
 
+**By hand.** On 27 October 2026, on macOS arm64, `site install` installed release 1.2.0 of `samples/lab-requests-site` from the folder the fleet agent staged it in. It ran with `--prefix`, `--service systemd`, `samples/lab-requests-site/site-policy.json` and a site approval, without `--apply`. It rendered the unit and `egress.nft` and set mode 0755 on the installed binary, and `site status` verified the current release. Neither file was loaded, because the machine is not Linux.
+
 **Not shown.**
 
 - No `--apply` run has loaded a service or firewall on a real host, on Linux or Windows.
 - The Windows path (WinSW XML, Windows Firewall script) has only been rendered, never run.
 - No kiosk client mode exists.
+
+**Limits.** `network export` on its own names the application ID as the socket owner, while `site install` runs the service as `agent-native`. An export made apart from the install needs `--user`.
 
 ### Workforce sign-in
 
@@ -103,7 +120,8 @@ No public release has been made. The entries use these kinds of evidence:
 
 - `plugins/site/test/workforce.test.ts` signs in against a fake provider. It covers PKCE, a one-use state, session expiry and the ID-token checks: audience, nonce, verified email and the discovered issuer.
 - `packages/adapters/src/http-credentials.test.ts` shows a cookie accepted only as a cookie and a bearer only as a bearer.
-- The project-tasks hardening test starts an `external` policy with a bound provider and no owner session.
+- The field-service hardening test starts an `external` policy with a bound provider and no owner session.
+- `plugins/site/test/identity-provider.test.ts` signs in against the stand-in provider in process, and `samples/lab-requests-hosted/test/hosted.test.ts` signs in through the network guard over HTTPS with a throwaway CA.
 
 **Not shown.**
 
@@ -122,17 +140,19 @@ No public release has been made. The entries use these kinds of evidence:
 - revoking a badge ends its sessions;
 - neither the badge value nor the PIN reaches the workspace database.
 
+**By hand, browser.** On 27 October 2026, `samples/lab-requests-sign-in` ran with `bun run dev:web` in Chrome on macOS, with badges typed as keyboard-wedge bursts. Badges enrolled on the badge screen showed live. At the seat, a specimen label was refused as not a badge. A technician signed in with a PIN starting with zero, scanned a specimen label into the bench screen and submitted a request that recorded the technician as requester. A wrong PIN for the viewer's badge got "Badge or PIN not recognized". After the viewer signed in, the technician's session was gone and the viewer's submission was refused. Leaving the seat screen ended the viewer's session at the host, and so did two idle minutes in a second run.
+
 **Not shown.**
 
-- No physical badge reader has been tested, and no screen at a station signs people in yet.
+- No physical badge reader has been tested.
 - Signing in does not move a seat that an agent holds.
+- A page reload loses the operator token, and its session stays open until it expires.
 
 ### State migrations
 
 **Not shown.**
 
 - Removing a feature or plugin from an application drops its slice at the next commit. Nothing keeps or exports the dropped data.
-- Only `samples/notes-operations` declares [state migrations](glossary.md#state-migration). The examples keep their unversioned `upgradeState`.
 - A target port that maps effects by `contractVersion` has not been written.
 - The phone's storage stamps versions, but has no staged `migrate`.
 
@@ -155,9 +175,11 @@ No public release has been made. The entries use these kinds of evidence:
 
 **Shown, browser.**
 
-- **project-tasks:** live updates from an external MCP process, drafts that keep their base revision, and paging past the first page.
+- **field-service:** live updates from an external MCP process, drafts that keep their base revision, and paging past the first page.
 - **quality-inspection:** keyboard-only capture, and a draft that keeps its sample when another caller records it first.
 - **crm-capture:** search, adopt and log.
+- **lab-requests-review:** on 27 October 2026, `bun run dev:web` in Chrome on macOS. As the local owner, an approval of the request `dev.ts` submitted as a second technician showed live. After a method change it was marked as on an earlier revision, and the owner signed the new revision. A second signature of that revision and a signature of the owner's own request were refused with their messages.
+- **lab-requests-signals:** on 27 October 2026, `bun run dev:web` in Chrome on macOS, against the plant stand-in that `dev.ts` starts. A test request placed in chamber 2 showed the chamber's temperature from OPC UA and humidity from Sparkplug B, updating live. When the humidity drifted to 64.7 % RH, the chambers screen marked chamber 2 out of tolerance while chamber 1 stayed conditioned. The audit log recorded the egress to both destinations.
 
 ### Agents and providers
 
@@ -177,20 +199,27 @@ The runs found these defects, now fixed and covered by deterministic tests:
 - `expectedRevisions` was offered on queries and `approval.request`, where it means nothing, and models filled it with invented keys.
 - The egress guard's 30-second request timeout cut off a model that reasons before it answers. A destination binding now takes `timeoutMs`.
 
+On 27 October 2026, `samples/lab-requests-local-model/test/live.test.ts` passed once, in 75 seconds, on the same machine, server and weights. A submitted test request started the method suggester through its trigger on the measured `lab-methods` entry. For the description "Tensile strength of the weld coupon", the model requested approval for `test-request.update` with the method `ASTM E8`. The request's input repeated the unchanged specimen and description. Its `baseRevisions` key was the bare ID wrapped in Gemma's `<|"|>` string tokens, not `test-request:<id>`. `approval.request` accepted that key, and the live run did not decide the request. Closing the host during the run's last model turn logged an `ECONNRESET` from the cancelled call.
+
 Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these fixes, and was not rerun after them. No vLLM and no fine-tune has run. Weights are not yet delivered as bundle artifacts.
 
 **Agent scenarios, live.** Gemma 4 E4B-it Q4_0 on llama-server 0.7.0 passed the model server's `requests approval for a note on a real model`, described above. The [agent scenarios](glossary.md#agent-scenario) in `packages/testing` and `examples/receiving` have passed with the deterministic harness only.
 
-**By hand, browser.** On 22 October 2026, `samples/notes-agents` ran with `bun run dev:web` in Chrome on macOS. On an untitled note, **Suggest a title (offline run)** started a deterministic run from the note screen's UI session. The run requested approval for `note.update` and called `ui.request-review` naming the approval request. The screen showed the review above the pending suggestion; acknowledging closed it, and approving set the title on the open screen. The run's `ui.open` named the note already open, so no navigation was shown. `packages/frame/src/lib/ui-intents.test.ts` shows that an open intent reaches the open handler, and no test covers the default handler's navigation through `screens.resources`.
+**By hand, browser.** On 27 October 2026, `samples/lab-requests-agents` ran with `bun run dev:web` in Chrome on macOS. After the trigger was enabled on the Automation screen, a request submitted without a method got the job's approval request for "ASTM E8 tensile test". On the same request, **Suggest a method (offline run)** started a deterministic run from the screen's UI session. The run requested approval for `test-request.update` and called `ui.request-review`, and the screen showed the review above both pending suggestions. Acknowledging closed it, and approving the run's suggestion set the method on the open screen. Approving the job's suggestion afterwards showed that the record had changed and left it pending, and rejecting it closed it. `packages/frame/src/lib/ui-intents.test.ts` shows that an open intent reaches the open handler, and no test covers the default handler's navigation through `screens.resources`.
+
+On 27 October 2026, `samples/lab-requests-local-model` ran with `bun run dev:web` in Chrome on macOS, on the llama-server stand-in that `dev.ts` starts. After the trigger was enabled on the automation screen, a test request submitted without a method showed the suggested method "ASTM E8 tensile test" on its screen. Approving it set the method.
 
 ### Execution host
 
 **Native.** On 17 October 2026, `bun run test:execution-host:linux` ran on Docker Desktop 29.4.0 (Linux 6.12.76-linuxkit, arm64). `IMAGE` named an image assembled by hand from a locally cached Alpine 3.23 base, with bubblewrap 0.12.0 and Bun 1.4.0 for musl. All 18 tests passed, including the eight in `test/sandbox.test.ts` under real bubblewrap and the plugin's seccomp filter. `test/linux/Dockerfile` itself was not built, because Docker Desktop's image pulls hung behind its proxy.
 
+**By hand, browser.** On 27 October 2026, `samples/lab-requests-sandbox` ran with `bun run dev:web` in Chrome on macOS. The request screen showed the execution host's reason that darwin has no backend, with **Analyze in the sandbox** disabled. Readings recorded on the screen listed live, and statistics entered by hand showed as entered by hand.
+
 **Not shown.**
 
 - **Platforms:** no run on x86-64, on glibc, or on a host kernel outside a container. No macOS or Windows backend exists.
 - **Agents:** no coding agent harness (Codex, Claude Code) has run inside a sandbox. The tasks were the probe script, the application CLI and an MCP client.
+- **Sample:** `samples/lab-requests-sandbox/test/sandbox.test.ts` has not run under bubblewrap. On macOS it skips, and the sample's other tests show the unavailable path.
 - **Egress:** the proxy path was shown to a loopback listener, not to a real provider over TLS.
 - **Distributions:** those that restrict unprivileged user namespaces, by Ubuntu's AppArmor rule or a disabled sysctl, were not tried.
 
@@ -198,7 +227,7 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 
 **Not shown.**
 
-- Delivery, sync and [remote queries](primitives.md#remote-query) run only against fakes: in memory in quality-inspection, crm-capture and asset-survey, and the loopback HTTP publisher of `samples/notes-system-of-record`. Asset-survey's fakes are the demo EAM and an extractor that reads text embedded in generated nameplate images.
+- Delivery, sync and [remote queries](primitives.md#remote-query) run only against fakes: in memory in quality-inspection, crm-capture and asset-survey, and the loopback HTTP LIMS of `samples/lab-requests-system-of-record`. Asset-survey's fakes are the demo EAM and an extractor that reads text embedded in generated nameplate images.
 - Remote queries and [data providers](primitives.md#data-provider) are used by crm-capture and asset-survey.
 - There is no real system of record, CRM or EAM.
 - No extraction has run against a model provider. Asset-survey's model extractor has run only against a mock model and a fake network port.
@@ -207,7 +236,7 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 - Two dispatcher processes cannot share a local workspace, because the OS lock refuses the second (`packages/adapters/src/ownership.test.ts`). Dispatchers race only within one process, which the reliability tests cover, or across hosted instances under the fenced lease.
 - Capture timings come from synthetic runs.
 
-**By hand, browser.** On 22 October 2026, `samples/notes-system-of-record` ran with `bun run dev:web`, with its fake publisher on 127.0.0.1:4361 and the destination bound by `site-policy.dev.json`. The note added through the CLI was published and accepted as `pub-1`, and a note posted at the publisher arrived through the feed. In Chrome, a publication sent while the publisher moderated stayed pending with **Publish again** disabled. After the publisher forgot it, the dispatcher held the effect, and the note screen showed it live. Resolving it as applied with a reference accepted the publication with that reference.
+**By hand, browser.** On 27 October 2026, `samples/lab-requests-system-of-record` ran with `bun run dev:web` in Chrome on macOS, with its fake LIMS on 127.0.0.1:4371 and the destination bound by `site-policy.dev.json`. **Register in LIMS** on a request with a method was accepted as `LIMS-1`. While the LIMS reviewed, a request submitted through the CLI stayed pending with **Register again** disabled. After the LIMS forgot it, the dispatcher held the effect after six attempts, and the request screen showed it live. Resolving it as applied with the reference `LIMS-2` accepted the publication with that reference. A request without a method was rejected with the LIMS's reason, and a request registered at another site arrived through the feed as submitted by `lims-integration`.
 
 ### Peer applications
 
@@ -313,6 +342,8 @@ Control mappings are indicative.
 
 **By hand, 17 October 2026.** The asset-survey field application was prepared with `AGENT_NATIVE_MOBILE_APPLICATION=@agent-native/asset-survey-field bun run mobile:prepare`. `expo export --platform android` then bundled it. Metro resolved its native screens, `expo-camera`, `expo-file-system` and the hub-link, managed-config and intent-scanner entries. `expo config --type introspect` on the same entry showed the `expo-camera` config plugin applied from the manifest's `expoPlugins`. It set the iOS camera usage description, no microphone description, and only Android's `CAMERA` permission.
 
+**By hand, 27 October 2026.** The field application with the OS, share-target, notifications and Android intents plugins was prepared the same way, and `expo export --platform android` bundled it. `expo config --type introspect` showed the `expo-notifications` config plugin and an intent filter for `dev.agentnative.survey.action.FIND_TAG` with `android.intent.category.DEFAULT`.
+
 **Shown, browser.**
 
 - The web frame on a tablet-sized viewport (`tests/e2e/compact-shell.pw.ts`, Chromium with touch). The sidebar becomes a bar with a menu sheet that closes on navigation, the capability palette opens, and the sidebar returns at desktop width.
@@ -325,35 +356,36 @@ Control mappings are indicative.
 - **Mobile platform:** it has not run on a device. The Expo SQLite driver, file blob store, lock and background task are untested, and the globals check has not run under Hermes.
 - **Native UI:** the native frame and components have not rendered.
 - **Native modules:** the plugins' Kotlin and Swift modules have not been compiled. No Android or iOS build has been produced, and nothing has run on an emulator, simulator or device.
-- **Field application:** its screens have not rendered. Taking photos, finding a node from a scan, and pairing from managed configuration have run only as the Bun pipeline test without the native plugins.
+- **Field application:** its screens have not rendered. Taking photos, finding a node from a scan, and pairing from managed configuration have run only as the Bun pipeline test without the native plugins. The asset tag intent, the work request, the share and the assignment notice have run only with faked device bindings.
 - **Planned checks:** Test DPC restrictions, `simctl` managed configuration and `adb` scan broadcasts, to run on demand.
 
 ### OS integration
 
-**Shown, browser.** `examples/project-tasks/e2e/os.pw.ts`:
+**Shown, browser.** `examples/field-service/e2e/os.pw.ts`:
 
 - The served web manifest carries the protocol and file handlers.
-- A `?os=` landing with a task link opens that task's project, shows where it came from and clears the address.
+- A `?os=` landing with a task link opens that task's work order, shows where it came from and clears the address.
 - A submitted Markdown file shows the prefilled task with its provenance, and adding it creates the task.
 - An uploaded image shows its attachment in the prefill. The added task links to bytes the page can download.
 - A share target form is posted cross-site from a blank page, first with a link and then with a PNG. Each lands on the application, shows the prefilled task with its provenance, and the added task is created.
 - A reminder asked for in the page shows as waiting for the desktop or phone application.
 - The web manifest lists the New task shortcut. Its landing shows an empty prefilled task opened from a shortcut.
+- Open map opens the OpenStreetMap search for the site in a new browsing context without an opener. The test answers that URL locally. Send summary passes the work order's title and summary text to `navigator.share`, which the test replaces with a recorder.
 
 **Not shown.** Nothing has been registered with, received from or performed through a real OS.
 
 - **Desktop wiring:** the Electron wiring (`apps/desktop/src/os-shell.ts`) has no native run. A macOS link or file reaches it only from a packaged bundle.
 - **Installed web application:** no installed web application has registered the protocol or file handlers, and the launch queue path has not run in a browser. Whether a Chromium version accepts the SVG icon for installation is not checked.
-- **OS actions:** `runOsAction` has no caller yet.
+- **OS actions:** the browser has run `runOsAction` only with a replaced `navigator.share`, and the desktop shell has relayed no open or share from it. On a device, the field application's screens call `useOsAction`, and they have not rendered.
 - **Expo bindings:** `packages/mobile/src/expo/os-shell.ts` has not run on a device or simulator. No Android intent filter, iOS associated domain or document type has been registered, and no exported association file has been served from a real domain.
 - **Share:** no share has come from a real share sheet. The Chromium test posts the share target form itself.
 - **Expo sharing:** `expo-sharing`, whose receiving API is experimental, has not run on a device. Its Android SEND filter and iOS share extension are unbuilt.
 - **Share details:** the macOS share menu has not opened. On Android a `content:` name is often opaque, so such a file matches only by its media type.
-- **Staging:** staged uploads are lost on restart. No example targets mobile with the OS plugin.
+- **Staging:** staged uploads are lost on restart.
 - **Electron notifications:** no notification has been shown by a real OS, and the Electron `Notification` path has no native run. Its action buttons appear only on macOS and Windows, and whether macOS shows them for an unsigned build is unchecked.
 - **Expo notifications:** `expo-notifications` has not run on a device. The permission prompt, the categories, a reply after the application was stopped and `requiresUnlock` on iOS are unchecked.
 - **Notification limits:** text replies are not passed on. A web page shows no notifications.
-- **Android intents:** the intent module (`plugins/android-intents/android`) has not been compiled, and no intent has been received or started on a device. The intent filter config plugin (`packages/mobile/intent-filters.plugin.cjs`) has not run in a prebuild, and an `am start` with a declared action is unchecked.
+- **Android intents:** the intent module (`plugins/android-intents/android`) has not been compiled, and no intent has been received or started on a device. The intent filter config plugin (`packages/mobile/intent-filters.plugin.cjs`) has run only in `expo config --type introspect`, not in a prebuild, and an `am start` with a declared action is unchecked.
 - **Intent extras:** a sender's extras of a type the application cannot unpack drop all extras of that intent.
 - **Shortcuts:** no launcher has shown a shortcut. The macOS dock menu and the Windows jump list (`apps/desktop/src/os-shell.ts`) have no native run.
 - **Shortcut builds:** the Android shortcuts config plugin (`packages/mobile/shortcuts.plugin.cjs`) has not run in a prebuild, and no installed web application has offered its manifest shortcut.
@@ -366,6 +398,8 @@ Control mappings are indicative.
 **Opt-in run, complete export.** On 17 October 2026, `bun run test:scaffold:full`. The complete source export installs frozen and passes format, typecheck, generation, build and its 810 tests. The driver SDKs, .NET projects and certificate fixture are now exported. An authored capability with its policy rule answers over the exported HTTP host.
 
 **Opt-in run, installed framework.** On 17 October 2026, `bun run test:scaffold:full`. The framework packs into 39 tarballs served by the loopback registry, and `scaffold new --registry` exports without framework source. The export installs, and reinstalls with `--frozen-lockfile` from a clean `node_modules`. It adds a target with the installed [scaffold](glossary.md#scaffold) and passes its whole `bun run check` and its Playwright spec.
+
+**Opt-in run.** On 27 October 2026, `bun run test:scaffold:full` passed its 16 tests with `field-service` as the configured application. The complete source export wrote the local-model sample's stand-in weights at run time. The framework packed into 49 tarballs for the registry install.
 
 **By hand, mobile export.** On 17 October 2026, `bun run scaffold <dir> --name field-survey --example asset-survey-field` exported `apps/mobile`, the field application and the hub example it imports. In the export, these passed:
 
@@ -393,6 +427,8 @@ Control mappings are indicative.
 ## Known defects
 
 A session revoked during a request does not stop the request. HTTP authenticates each request once. If a session is revoked or expires while its command waits, the command's context stays live and the command commits. New requests with that token are refused.
+
+A sample or example started with `bun run dev` or `dev:web` titles its browser page and window with the display name in `app.config.json`, such as "Field Service", because `AGENT_NATIVE_APPLICATION` overrides only the application. The header shows the application's own label.
 
 These were fixed by inspection only and have no regression test:
 

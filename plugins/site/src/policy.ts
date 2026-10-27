@@ -3,6 +3,7 @@ import { constants } from 'node:fs';
 import { access, readFile, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import {
+  ApplicationError,
   canonicalJson,
   type CatalogRequirements,
   type NetworkDestination,
@@ -57,6 +58,7 @@ export interface ResolvedBinding {
   readonly certificatePins?: readonly string[];
   readonly tls?: boolean;
   readonly timeoutMs?: number;
+  readonly maxResponseBytes?: number;
 }
 /** What does not work in this deployment and why: the offline-first consequence list. */
 export interface OfflineConsequence {
@@ -194,7 +196,20 @@ export function resolveSitePolicy(
     readonly missingFolders?: readonly string[];
   } = {},
 ): ResolvedPolicy {
-  const policy = sitePolicySchema.parse(input ?? {});
+  const parsed = sitePolicySchema.safeParse(input ?? {});
+  // A malformed file is the operator's input: name each field, so `site check` can say what to fix.
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((issue) => ({
+      path: issue.path.join('.'),
+      message: issue.message,
+    }));
+    throw new ApplicationError(
+      'INVALID_INPUT',
+      `Site policy does not match its schema: ${issues.map((issue) => `${issue.path || '(root)'}: ${issue.message}`).join('; ')}`,
+      issues,
+    );
+  }
+  const policy = parsed.data;
   const report = createFindings();
   const declared = new Map(requirements.network.map((item) => [item.id, item]));
   const { bindings, disabled } = resolveBindings(policy, declared, files.ca, report);

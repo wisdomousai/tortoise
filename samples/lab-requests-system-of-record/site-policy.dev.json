@@ -1,0 +1,5 @@
+{
+  "profile": "desktop-local",
+  "audit": { "mode": "best-effort" },
+  "destinations": { "lims-api": { "url": "http://127.0.0.1:4371" } }
+}

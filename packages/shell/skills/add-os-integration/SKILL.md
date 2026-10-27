@@ -5,7 +5,7 @@ description: Let the operating system reach an agent-native application, or let 
 
 # Add an OS integration
 
-An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its [module](../../../../docs/glossary.md#module). The first kind is an [OS handler](../../../../docs/glossary.md#os-handler), the second an [OS action](../../../../docs/glossary.md#os-action). `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. [Host plugins](../../../../docs/glossary.md#host-plugin) serve each kind. `examples/project-tasks/os.ts` declares one of nearly every kind and is the worked reference.
+An application declares what the OS may send it and what it may ask of the OS as data, in an `OsDeclarations` object on its [module](../../../../docs/glossary.md#module). The first kind is an [OS handler](../../../../docs/glossary.md#os-handler), the second an [OS action](../../../../docs/glossary.md#os-action). `packages/shell` matches requests and builds instructions from those declarations, and generates every platform registration from them. [Host plugins](../../../../docs/glossary.md#host-plugin) serve each kind. `examples/field-service/os.ts` declares one of nearly every kind and is the worked reference; its work order screen runs the open and share actions with `runOsAction`. `examples/asset-survey-field/os.ts` is the phone reference: an intent handler that opens a resource, and intent, share and notify actions that native screens and inbound sync use.
 
 ## Before writing
 
@@ -25,13 +25,15 @@ An application declares what the OS may send it and what it may ask of the OS as
 
 1. Declare the handler or action in the application's OS declarations (`os` on its module). Give it a stable `id`, a `description`, the kind's fields from `packages/contracts/src/os.ts`, and a JSON schema for `params` or extras.
 2. Name only the request's own fields in a template, such as `{taskId}` or `{file.stem}`.
+   - An `open` target's kind must be listed in the application's `selectableResources`, with a read query that takes `{ id }`. The host and the mobile shell run that query as the caller before the frame sees the delivery, and drop it when the read fails.
+   - The screens map the kind to a screen in `resources` of `defineScreens` or `defineNativeScreens`.
 3. List the serving plugin and `plugins/os` in the application's manifest and application entrypoints. A site turns individual IDs off with the `os-disabled` setting.
 4. For `notify`, write what the [notifications README](../../../../plugins/notifications/README.md#entrypoints) lists under "What the application writes":
    - a notify action over outbox targets with `offline: 'queue'`;
-   - a `<target>.effect.settle` command per target;
+   - a `<target>.effect.settle` command per target. It calls `ctx.settleEffect` and then `ctx.change(effect.resource)`, because a command that touches an effect must change the effect's resource;
    - a command that enqueues an `OsNotificationPayload` with the replies it offers.
 5. Declare the data classes an action carries. Notification text leaves the [instance](../../../../docs/glossary.md#instance) for the lock screen.
-6. Show the delivery on the screen. The web frame and `packages/frame-native` apply deliveries and show provenance (`describeProvenance`) above a prefilled form.
+6. Show the delivery on the screen. The web frame and `packages/frame-native` apply deliveries and show provenance (`describeProvenance`) above a prefilled form. A screen asks for an action with `runOsAction` from the web frame's `@/lib/os-browser`, or `useOsAction` from `@agent-native/frame-native/os-actions` on a device.
 7. Write no platform registration by hand. The generators in `@agent-native/shell/registrations` turn the same declarations into platform files:
    - `nativeOsConfig` runs in `bun run mobile:prepare` (`scripts/mobile-entry.ts`) and adds the Expo config plugins for shares, notifications, intent filters and shortcuts;
    - `desktopOsConfig` runs in `bun run package:stage` for the electron-builder scheme and file associations;
@@ -53,7 +55,8 @@ bunx playwright test examples/<app>/e2e
 ```
 
 - Each serving plugin's `test/mobile.test.ts` runs the mobile instance with Bun bindings for the device.
-- `examples/project-tasks/test/os.test.ts` covers the desktop path over HTTP.
-- `examples/project-tasks/e2e/os.pw.ts` covers the browser.
+- `examples/field-service/test/os.test.ts` covers the desktop path over HTTP.
+- `examples/asset-survey-field/test/os.test.ts` covers a phone with faked bindings: an intent, a notice queued by inbound sync, an intent action and a share.
+- `examples/field-service/e2e/os.pw.ts` covers the browser, including an open action in a new browsing context and a share through the Web Share API.
 
 The Kotlin module of `plugins/android-intents` and the Expo config plugins compile only in a native build. Record a device or emulator run in [implementation status](../../../../docs/implementation-status.md#os-integration), separately from the Bun tests.

@@ -91,3 +91,26 @@ test('the observer resubmits unchanged content once per heartbeat under payload 
   );
   expect(new Set(submitted.map((request) => request.idempotencyKey)).size).toBe(4);
 });
+
+test('stopping during a pass ends the loop without waiting out the interval', async () => {
+  let release!: () => void;
+  const observer = createObserver<ObservationBase>({
+    source: 'slow',
+    sample: () =>
+      new Promise((resolve) => {
+        release = () => resolve({ observedAt: 1, frameDigest: 'f', readings: [] });
+      }),
+    application: { invokeRaw: async () => ({ result: {} }) as unknown as CommandReceipt },
+    context: { workspaceId: 'w', principalId: 'observer' },
+    ingestOperation: 'gauge.observation.ingest',
+  });
+  observer.start(60_000);
+  await Bun.sleep(5);
+  const stopped = observer.stop();
+  release();
+  const outcome = await Promise.race([
+    stopped.then(() => 'stopped'),
+    Bun.sleep(500).then(() => 'waiting'),
+  ]);
+  expect(outcome).toBe('stopped');
+});

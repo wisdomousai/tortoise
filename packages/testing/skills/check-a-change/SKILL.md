@@ -36,7 +36,7 @@ description: Choose and run the checks for a change in this repository and repor
 | Change | Run first |
 | --- | --- |
 | A capability, policy or handler in an application | `bun test examples/<app>` or `bun test samples/<name>`, `bun run generate`, `bun run test:conformance` |
-| The notes base sample | `bun test samples`, since every other sample imports it |
+| The lab requests base sample | `bun test samples`, since every other sample imports it |
 | A screen or registry item | `bun run build`, `bunx playwright test examples/<app>/e2e`, `bun run check:registry:operator` for operator items |
 | A framework package | `bun test packages/<name>`, `bun run check:boundaries`; `bun run test:portable` for kernel, runtime, client, integration or mobile code |
 | A host plugin | `bun test plugins/<name>`, `bun run check:boundaries` |

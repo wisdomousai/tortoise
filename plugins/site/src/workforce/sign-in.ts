@@ -5,6 +5,7 @@ import {
   type FetchImplementation,
   type JWTVerifyGetKey,
 } from 'jose';
+import { readSessionCookie, sessionCookie } from '@agent-native/adapters/http';
 import { verifyOidcIdentity } from '@agent-native/agents/oidc';
 import type { SitePolicy } from '../policy';
 import { LOCAL_WORKSPACE } from '@agent-native/kernel/instance';
@@ -61,8 +62,9 @@ function principalOf(config: WorkforceConfig, payload: Record<string, unknown>) 
  * - `GET /auth/sign-in` redirects to the provider with a fresh state, nonce and code challenge,
  *   kept in memory for ten minutes.
  * - `GET /auth/callback` consumes the state once, exchanges the code, verifies the ID token
- *   (signature from the provider's keys, issuer, audience, nonce, expiry) and sets the
- *   `agent_session` cookie to a session token of its own, valid for `sessionMinutes`.
+ *   (signature from the provider's keys, issuer, audience, nonce, expiry) and sets the host's
+ *   session cookie (`sessionCookie` in `@agent-native/adapters/http`) to a session token of its
+ *   own, valid for `sessionMinutes`.
  * - `POST /auth/sign-out` ends that session; it checks the Origin itself, because public routes
  *   run before the host's origin check.
  *
@@ -161,26 +163,21 @@ export function createWorkforceSignIn(config: WorkforceConfig, options: Workforc
       context: { workspaceId: LOCAL_WORKSPACE, principalId },
       expires: now() + maxAge * 1000,
     });
-    const secure = url.protocol === 'https:' ? '; Secure' : '';
     return new Response(null, {
       status: 302,
       headers: {
         Location: '/',
         'Cache-Control': 'no-store',
-        'Set-Cookie': `agent_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${maxAge}${secure}`,
+        'Set-Cookie': sessionCookie(url.origin, token, maxAge),
       },
     });
   }
 
   function signOut(request: Request, url: URL) {
     if (request.headers.get('origin') !== url.origin) return text(403, 'Untrusted origin');
-    const token = request.headers
-      .get('cookie')
-      ?.match(/(?:^|;\s*)agent_session=([A-Za-z0-9_-]+)/)?.[1];
+    const token = readSessionCookie(request, url.origin);
     if (token) sessions.delete(token);
-    return text(200, 'Signed out', {
-      'Set-Cookie': 'agent_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0',
-    });
+    return text(200, 'Signed out', { 'Set-Cookie': sessionCookie(url.origin, '', 0) });
   }
 
   return {

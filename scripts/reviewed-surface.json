@@ -103,6 +103,9 @@
     "./src/http createHttpHandler",
     "./src/http jsonResponse",
     "./src/http readJsonBody",
+    "./src/http readSessionCookie",
+    "./src/http sessionCookie",
+    "./src/http sessionCookieName",
     "./src/http withSignal",
     "./src/index adapterContractVersion",
     "./src/mcp createMcpServer",
@@ -1360,6 +1363,9 @@
     "./frame RAIL_WIDTH",
     "./frame useFrameNavigation",
     "./frame useNativeScreens",
+    "./os-actions OsActionsProvider",
+    "./os-actions PerformOsAction",
+    "./os-actions useOsAction",
     "./os-deliveries OpenScreen",
     "./os-deliveries OsDeliveries",
     "./os-deliveries OsDeliverySource",
@@ -3724,7 +3730,11 @@
     "./src/plugin ModelServerStatus",
     "./src/plugin createModelServer",
     "./src/plugin-manifest default",
-    "./src/plugin-manifest modelServerPluginManifest"
+    "./src/plugin-manifest modelServerPluginManifest",
+    "./src/testing StandInMessage",
+    "./src/testing StandInReply",
+    "./src/testing StandInResponder",
+    "./src/testing llamaServerStandIn"
   ],
   "plugins/network": [
     ". AllowRule",
@@ -4079,7 +4089,12 @@
     "./src/policy resolveSitePolicy",
     "./src/policy sitePolicySchema",
     "./src/policy-file policyErrors",
-    "./src/policy-file sitePolicyFor"
+    "./src/policy-file sitePolicyFor",
+    "./src/testing IdentityProvider",
+    "./src/testing IdentityProviderOptions",
+    "./src/testing StandInPerson",
+    "./src/testing createIdentityProvider",
+    "./src/testing startIdentityProvider"
   ],
   "plugins/telemetry": [
     ". TELEMETRY_DESTINATION",
@@ -4118,7 +4133,9 @@
     "./src/recorder RecorderOptions",
     "./src/recorder Span",
     "./src/recorder createRecorder",
-    "./src/recorder durationBounds"
+    "./src/recorder durationBounds",
+    "./src/testing Received",
+    "./src/testing startCollector"
   ],
   "plugins/webhook": [
     "./contracts webhookModule",
@@ -4370,6 +4387,11 @@
     "./plugin default",
     "./plugin stationSignInPlugin",
     "./plugin-manifest default",
-    "./plugin-manifest stationSignInPluginManifest"
+    "./plugin-manifest stationSignInPluginManifest",
+    "./plugin-screens OperatorSession",
+    "./plugin-screens OperatorSessionRecord",
+    "./plugin-screens SeatOptions",
+    "./plugin-screens stationSignInScreens",
+    "./plugin-screens useOperatorSession"
   ]
 }

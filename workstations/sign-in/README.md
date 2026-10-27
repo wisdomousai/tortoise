@@ -8,7 +8,7 @@ Workstation (`workstations/*`). The plugin runs on the Bun host only, because si
 
 ## Primitives
 
-- [Workstation sign-in](../../docs/primitives.md#workstation-sign-in): the `station.*` [capabilities](../../docs/glossary.md#capability), the sign-in, sign-out and enrollment routes (`stationPaths`), and operator token resolution.
+- [Workstation sign-in](../../docs/primitives.md#workstation-sign-in): the `station.*` [capabilities](../../docs/glossary.md#capability), the sign-in, sign-out and enrollment routes (`stationPaths`), operator token resolution, and the seat and badge [screens](../../docs/glossary.md#screen).
 - [Host plugin](../../docs/primitives.md#host-plugin): `createStationSignInPlugin`, `stationSignInPlugin` and `stationSignInPluginManifest`. The plugin uses the authenticated-route and credential hooks of a serving host. Its manifest keeps the operation namespace `station`, which the `station.badge.*` and `station.session.*` operations predate.
 
 ## Entrypoints
@@ -18,15 +18,23 @@ Workstation (`workstations/*`). The plugin runs on the Bun host only, because si
 | `@agent-native/workstation-sign-in/contracts`       | browser and any host | `stationSignInOperations`, `stationSignInModule`, `stationPaths`, `badgeSchema`, `operatorSessionSchema`.      |
 | `@agent-native/workstation-sign-in/plugin-manifest` | browser and any host | `stationSignInPluginManifest`, with the settings `station-sign-in-seats` and `station-sign-in-minutes`.        |
 | `@agent-native/workstation-sign-in/plugin`          | Bun host             | `createStationSignInPlugin({ now? })` and `stationSignInPlugin`, for `defineApplication({ plugins })`.         |
+| `@agent-native/workstation-sign-in/plugin-screens`  | browser              | `stationSignInScreens({ seat, work, idleMs?, badgePattern? })` for `defineScreens({ plugins })`, and `useOperatorSession`. |
 
 ### Seat screen
 
-The seat's screen:
+`stationSignInScreens` adds the seat screen at `/seat`. Signed out, it:
 
-1. reads badges with `useScanner` from `@agent-native/operator-ui`, routing the badge format to an intent with `createScanRouter`;
-2. posts `{ badge, pin, seat }` to `stationPaths.signIn` with its own session and gets `201 { token, session }` back;
-3. keeps the token in memory and calls the API with it as a bearer (`createHttpTransport({ token })`) until the session ends;
-4. ends the session by posting `{ token }` to `stationPaths.signOut`.
+1. reads a badge with `useScanner` from the operator registry, matching `badgePattern`, or from the scan prompt's manual entry;
+2. takes the PIN on the registry's `numeric-pad` with `code` and `masked`, so leading zeros stay and only dots show;
+3. posts `{ badge, pin, seat }` to `stationPaths.signIn` with the seat's own session and gets `201 { token, session }` back.
+
+Signed in, it renders `work` inside an operator session. `useOperatorSession()` gives `work` a client and live bindings built on `createHttpTransport({ token })` with their own query cache. The host prefers the bearer over the seat's cookie, so every query and command acts as the operator.
+
+The session ends at the host when the operator signs out, when the seat is idle for `idleMs`, when it expires, and when the seat screen is left. A response that rejects the token, after a sign-out elsewhere or a revoked badge, returns the seat to sign-in. The token lives only in memory, so a page reload leaves the session open until it expires.
+
+### Badge screen
+
+The badge screen at `/badges` lists badges and open sessions with `station.badge.list`, enrolls a badge by posting to `stationPaths.enroll`, and revokes one with `station.badge.revoke`. Only an admin's session can use it.
 
 ### Seats and session length
 
@@ -61,14 +69,13 @@ Each attempt is a recorded command, with the badge ID, the seat and whether the 
 
 ### Known gaps
 
-- No badge administration screen exists yet. The `station.badge.*` capabilities declare a UI exception and are used over HTTP, MCP or the CLI.
 - Signing in does not move a seat that an agent holds. The operator takes the screen back with the application's takeover command, as [operator workstations](../../docs/operator-workstations.md#seat) describes.
 - No physical badge reader has been tested.
 
 ## Dependencies
 
-- **Framework:** `@agent-native/contracts`, `@agent-native/kernel` (`plugin`, `plugin-manifest`, `application`, `instance`), `@agent-native/runtime` and `@agent-native/adapters` (`http`, for the JSON helpers).
-- **External:** `@noble/hashes` (scrypt, SHA-256) and `zod`.
+- **Framework:** `@agent-native/contracts`, `@agent-native/kernel` (`plugin`, `plugin-manifest`, `application`, `instance`), `@agent-native/runtime` and `@agent-native/adapters` (`http`, for the JSON helpers). The screens use `@agent-native/frame`, `@agent-native/client` and `@agent-native/react`, and the operator registry's `numeric-pad`, `scan-prompt`, `operator-surface`, `use-scanner` and `use-idle-return` through the `@/` alias.
+- **External:** `@noble/hashes` (scrypt, SHA-256) and `zod`. The screens use `react`, `@tanstack/react-query` and `lucide-react`.
 - **Tests only:** `@agent-native/host` and `@agent-native/testing`.
 
 ## Tests
@@ -87,8 +94,11 @@ bun test workstations/sign-in
 - a session expires;
 - revoking a badge ends its sessions.
 
-`test/scenarios.test.ts` runs the capabilities through the direct driver.
+`test/scenarios.test.ts` runs the capabilities through the direct driver. `test/ui-bindings.test.ts` checks that the badge screen references `station.badge.list` and `station.badge.revoke`.
+
+`samples/lab-requests-sign-in` runs the seat and badge screens in a browser launch.
 
 ## Skills
 
+- [sign-in-at-a-seat](skills/sign-in-at-a-seat/SKILL.md): composing the plugin and its screens, the work an operator does at the seat, and badge enrollment.
 - [bridge-station-screen](../screen-bridge/skills/bridge-station-screen/SKILL.md): a workstation application reached through its screen.

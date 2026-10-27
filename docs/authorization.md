@@ -30,7 +30,7 @@ A [nested invocation](glossary.md#nested-invocation) (`ctx.invoke`, `ctx.query`,
 
 The policy receives the trusted context, the capability, the validated input and the current state, and at commit the previous state. In field projection, it reduces each output to the fields the caller may read. It also decides whether a journal entry may be delivered. Its rules resolve records from authoritative state. The runtime itself checks the grant and the resources a command changes.
 
-In the `project-tasks` example, workspace owners administer projects, project owners administer theirs, editors edit tasks and viewers read. An archived project rejects task edits. Only owners see private notes and membership. Response schemas make those fields optional, so a projected response still validates.
+In the `field-service` example, the workspace owner creates work orders and is a dispatcher on every one. Dispatchers administer their work orders, technicians edit tasks and customers read. A closed work order rejects task edits. Only dispatchers see internal notes and membership. Response schemas make those fields optional, so a projected response still validates.
 
 ## Declarative policies
 
@@ -89,8 +89,8 @@ The instance owns the [workspace](glossary.md#workspace). Other processes attach
 The CASL [adapter](glossary.md#adapter) keeps CASL syntax out of capability descriptors. It accepts equality, membership and boolean conditions over registered scalar fields:
 
 ```ts
-{ eq: ['projectId', 'p1'] }
-{ in: ['projectId', ['p1', 'p2']] }
+{ eq: ['workOrderId', 'w1'] }
+{ in: ['workOrderId', ['w1', 'w2']] }
 { and: [scopeA, scopeB] }
 { or: [scopeA, scopeB] }
 { not: scopeA }
@@ -107,7 +107,7 @@ It is not a general CASL-to-SQL translator. A new codebase supplies explicit map
 
 ```sh
 bun test packages/runtime/test packages/adapters/src/casl.test.ts
-bun test examples/project-tasks/test/security-conformance.test.ts
+bun test examples/field-service/test/security-conformance.test.ts
 ```
 
 ## References

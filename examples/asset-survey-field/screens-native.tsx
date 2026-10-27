@@ -7,6 +7,7 @@ import { AssignmentScreen } from './ui-native/assignment';
 import { AssignmentsScreen } from './ui-native/assignments';
 import { CaptureScreen } from './ui-native/capture';
 import { FieldStatus, SyncScreen, UnplacedScreen } from './ui-native/captures';
+import { tagScreen } from './ui-native/os-requests';
 import { scannerProfile } from './ui-native/shared';
 import manifest from './manifest';
 
@@ -32,6 +33,8 @@ export default defineNativeScreens({
     { prefix: 'field.capture.', to: '/sync' },
     { prefix: 'field.hub.', to: '/sync' },
   ],
+  // An asset tag another app sends opens its node, as a scan does.
+  resources: { tag: tagScreen },
   status: FieldStatus,
   plugins:
     Platform.OS === 'android'

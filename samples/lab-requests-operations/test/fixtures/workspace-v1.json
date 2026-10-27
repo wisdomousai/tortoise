@@ -1,0 +1,15 @@
+{
+  "labRequests": {
+    "members": { "owner": "technician", "viewer": "viewer" },
+    "requests": {
+      "r1": {
+        "id": "r1",
+        "sampleId": "B-1042-03",
+        "description": "Weld coupon from line 2, heat lot 7731",
+        "tests": "ASTM E8 tensile test",
+        "requester": "owner",
+        "updatedAt": 1000
+      }
+    }
+  }
+}

@@ -96,8 +96,8 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Runs only inside a bubblewrap sandbox, whose network namespace has loopback only: the launcher relays loopback ports to the host relays and starts the task.',
   'plugins/execution-host/test/fixtures/':
     'Test fixture run inside the sandbox: it attempts the connections and processes the sandbox must refuse.',
-  'plugins/model-server/test/fixtures/':
-    'Test stand-in for llama-server, started as a child through the process port: it listens on the loopback port the site policy binds to local-inference.',
+  'plugins/model-server/src/testing/':
+    'Stand-in for llama-server in tests and development launches, started as a child through the process port: it listens on the loopback port the site policy binds to local-inference.',
   'packages/adapters/src/postgres-bun.ts':
     "The hosted platform's workspace database, opened before any plugin from the URL the launcher configures; it holds workspace state, as the local SQLite file does.",
   'plugins/process/src/spawn.ts':
@@ -106,6 +106,8 @@ export const egressExemptions: Readonly<Record<string, string>> = {
     'Falls back to global fetch when no fetch is injected; to be made required so the host passes the guard.',
   'examples/line-station/fake-hmi/':
     'Test fixture: the simulated workstation application and its recorder.',
+  'examples/asset-survey-field/test/fixtures.ts':
+    "Test fixture: the phone's fetch to the loopback hub, which a test drops or alters as a lost network or a newer hub release would.",
   'plugins/fleet-agent/src/relay.ts':
     "Forwards a remote-access request from the fleet to the host's own listener (`PluginStartContext.origin`) under `/api/v1/` only, adding no credential and never following a redirect.",
   'plugins/hub-link/src/plugin.ts':

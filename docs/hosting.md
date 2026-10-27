@@ -38,6 +38,8 @@ A site-scoped destination, a device, an exchange folder or a station process tie
    bun run cli serve --workspace ./instance --hosted-workspace <name> --port 4317
    ```
 
+   A development launch takes the same flag, as in `bun ../../scripts/dev-example.ts --port 4317 --hosted-workspace <name>` from the application's directory.
+
 4. Supervise the instance and restart it on exit code 1. A restarted instance exits with code 5 while another instance holds the lease (see [exit codes](systems-of-record.md#exit-codes)).
 5. In the [deployment policy](glossary.md#deployment-policy), set `ingress.listen` to `tls` with the public certificate and its key.
 6. In the same policy, set `identity: external`, name the OpenID Connect provider in `workforce`, and bind the `workforce-idp` destination to the provider's origin.

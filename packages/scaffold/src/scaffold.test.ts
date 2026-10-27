@@ -263,7 +263,7 @@ standalone(
         name: 'fresh-application',
         displayName: 'Fresh Application',
         appId: 'dev.agentnative.fresh-application',
-        application: '@agent-native/project-tasks',
+        application: '@agent-native/field-service',
       });
       expect(manifest.files.some((file) => file.path === 'packages/runtime/src/index.ts')).toBe(
         true,
@@ -294,40 +294,40 @@ standalone(
             `Standalone ${command.join(' ')} failed (${code}):\n${stdout}\n${stderr}`,
           );
       }
-      expect(await readFile(join(target, 'dist/web/project-tasks/index.html'), 'utf8')).toContain(
+      expect(await readFile(join(target, 'dist/web/field-service/index.html'), 'utf8')).toContain(
         '<title>Fresh Application</title>',
       );
       // Exercise authoring in the exported application, not in the original checkout.
-      const contractsPath = join(target, 'examples/project-tasks/contracts.ts');
+      const contractsPath = join(target, 'examples/field-service/contracts.ts');
       let contracts = await readFile(contractsPath, 'utf8');
       contracts = patched(
         contracts,
         'export const operations = {',
         `export const operations = {
-  projectSummary: defineCapability({ id: 'project.summary', kind: 'query', input: jsonSchema(idInput), output: jsonSchema(z.strictObject({ id, taskCount: z.number().int() })), permission: { action: 'read', resourceType: 'Project' }, ui: { exception: 'Headless scaffold extension verification' } }),`,
+  workOrderSummary: defineCapability({ id: 'work-order.summary', kind: 'query', input: jsonSchema(idInput), output: jsonSchema(z.strictObject({ id, taskCount: z.number().int() })), permission: { action: 'read', resourceType: 'WorkOrder' }, ui: { exception: 'Headless scaffold extension verification' } }),`,
       );
-      contracts = patched(contracts, /('task\.set-status')(,?\s*\])/, "$1, 'project.summary'$2");
+      contracts = patched(contracts, /('task\.set-status')(,?\s*\])/, "$1, 'work-order.summary'$2");
       await writeFile(contractsPath, contracts);
-      const handlersPath = join(target, 'examples/project-tasks/handlers/projects.ts');
+      const handlersPath = join(target, 'examples/field-service/handlers/work-orders.ts');
       const handlers = patched(
         await readFile(handlersPath, 'utf8'),
         '>[] => [',
         `>[] => [
-  handler(operations.projectSummary, (input, ctx) => ({ id: project(ctx.state, input.id).id, taskCount: Object.values(ctx.state.tasks).filter(task => task.projectId === input.id).length })),`,
+  handler(operations.workOrderSummary, (input, ctx) => ({ id: workOrder(ctx.state, input.id).id, taskCount: Object.values(ctx.state.tasks).filter(task => task.workOrderId === input.id).length })),`,
       );
       await writeFile(handlersPath, handlers);
       // Unknown operations fail closed, so the new query needs its own policy rule.
-      const policyPath = join(target, 'examples/project-tasks/policy.ts');
+      const policyPath = join(target, 'examples/field-service/policy.ts');
       await writeFile(
         policyPath,
         patched(
           await readFile(policyPath, 'utf8'),
-          '    [operations.projectGet.id]: onProject,',
-          '    [operations.projectGet.id]: onProject,\n    [operations.projectSummary.id]: onProject,',
+          '    [operations.workOrderGet.id]: onWorkOrder,',
+          '    [operations.workOrderGet.id]: onWorkOrder,\n    [operations.workOrderSummary.id]: onWorkOrder,',
         ),
       );
       await writeFile(
-        join(target, 'examples/project-tasks/scaffold-extension.test.ts'),
+        join(target, 'examples/field-service/scaffold-extension.test.ts'),
         `import { expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -341,11 +341,11 @@ test('authored summary is available through the exported HTTP host', async () =>
   try {
     const connection = await Bun.file(host.connectionFile!).json();
     const transport = createHttpTransport({ baseUrl: host.url, token: connection.token });
-    const project = await transport.command<{ id: string }>('project.create', { name: 'Extension' });
-    await transport.command('task.create', { projectId: project.result.id, title: 'One task' });
-    expect((await transport.query('project.summary', { id: project.result.id })).data).toEqual({ id: project.result.id, taskCount: 1 });
+    const workOrder = await transport.command<{ id: string }>('work-order.create', { name: 'Extension' });
+    await transport.command('task.create', { workOrderId: workOrder.result.id, title: 'One task' });
+    expect((await transport.query('work-order.summary', { id: workOrder.result.id })).data).toEqual({ id: workOrder.result.id, taskCount: 1 });
     const contract = await transport.catalog();
-    expect(contract.operations.find(operation => operation.id === 'project.summary')?.mcpName).toBe('project_summary');
+    expect(contract.operations.find(operation => operation.id === 'work-order.summary')?.mcpName).toBe('work_order_summary');
   } finally { await host.close(); await rm(workspace, { recursive: true, force: true }); }
 });
 `,
@@ -355,7 +355,7 @@ test('authored summary is available through the exported HTTP host', async () =>
         ['bun', 'run', 'check:format'],
         ['bun', 'run', 'generate'],
         ['bun', 'run', 'typecheck'],
-        ['bun', 'test', 'examples/project-tasks/scaffold-extension.test.ts'],
+        ['bun', 'test', 'examples/field-service/scaffold-extension.test.ts'],
       ]) {
         const result = Bun.spawn(command, { cwd: target, env, stdout: 'pipe', stderr: 'pipe' });
         const [stdout, stderr, code] = await Promise.all([
@@ -369,35 +369,35 @@ test('authored summary is available through the exported HTTP host', async () =>
           );
       }
       const generated = JSON.parse(
-        await readFile(join(target, 'dist/reference/project-tasks/contract.json'), 'utf8'),
+        await readFile(join(target, 'dist/reference/field-service/contract.json'), 'utf8'),
       ) as {
         operations: { id: string; mcpName: string; ui: { exception?: string } }[];
         workflows: { operations: string[] }[];
       };
       expect(
-        generated.operations.find((operation) => operation.id === 'project.summary'),
+        generated.operations.find((operation) => operation.id === 'work-order.summary'),
       ).toMatchObject({
-        mcpName: 'project_summary',
+        mcpName: 'work_order_summary',
         ui: { exception: 'Headless scaffold extension verification' },
       });
       expect(
-        generated.workflows.some((workflow) => workflow.operations.includes('project.summary')),
+        generated.workflows.some((workflow) => workflow.operations.includes('work-order.summary')),
       ).toBe(true);
       expect(
-        await readFile(join(target, 'dist/reference/project-tasks/openapi.json'), 'utf8'),
-      ).toContain('/api/v1/queries/project.summary');
+        await readFile(join(target, 'dist/reference/field-service/openapi.json'), 'utf8'),
+      ).toContain('/api/v1/queries/work-order.summary');
       expect(
-        await readFile(join(target, 'dist/reference/project-tasks/operations.md'), 'utf8'),
-      ).toContain('project.summary');
+        await readFile(join(target, 'dist/reference/field-service/operations.md'), 'utf8'),
+      ).toContain('work-order.summary');
       expect(
-        await readFile(join(target, 'dist/reference/project-tasks/workflows.md'), 'utf8'),
-      ).toContain('project.summary');
+        await readFile(join(target, 'dist/reference/field-service/workflows.md'), 'utf8'),
+      ).toContain('work-order.summary');
       expect(
         await readFile(
-          join(target, 'dist/reference/project-tasks/application-skill/SKILL.md'),
+          join(target, 'dist/reference/field-service/application-skill/SKILL.md'),
           'utf8',
         ),
-      ).toContain('project_summary');
+      ).toContain('work_order_summary');
     } finally {
       await rm(directory, { recursive: true, force: true });
     }

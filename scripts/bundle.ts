@@ -70,7 +70,8 @@ async function create(args: string[]) {
   const payload = await mkdtemp(join(tmpdir(), 'agent-native-bundle-'));
   try {
     await mkdir(join(payload, 'bin'));
-    const windows = (target ?? process.platform).includes('win');
+    // As in build-cli.ts: `darwin` contains "win", so match the Windows names exactly.
+    const windows = target ? target.includes('windows') : process.platform === 'win32';
     await compileCli(join(payload, 'bin', windows ? `${config.name}.exe` : config.name), target);
     await cp(web, join(payload, 'web'), { recursive: true });
     const reference = artifacts(manifest);

@@ -19,14 +19,23 @@
   "exports": {
     "./contracts": "./src/contracts.ts",
     "./plugin-manifest": "./src/plugin-manifest.ts",
-    "./plugin": "./src/plugin.ts"
+    "./plugin": "./src/plugin.ts",
+    "./plugin-screens": "./src/plugin-screens.tsx"
   },
   "dependencies": {
     "@agent-native/adapters": "workspace:*",
+    "@agent-native/client": "workspace:*",
     "@agent-native/contracts": "workspace:*",
+    "@agent-native/frame": "workspace:*",
     "@agent-native/kernel": "workspace:*",
+    "@agent-native/react": "workspace:*",
     "@agent-native/runtime": "workspace:*",
     "@noble/hashes": "2.4.0",
+    "@tanstack/react-query": "5.104.1",
+    "lucide-react": "1.52.0",
     "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "react": "19.3.0"
   }
 }

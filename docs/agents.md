@@ -141,4 +141,4 @@ No host route starts an agent run from an agent definition. Definitions run thro
 - [add-capability skill](../packages/runtime/skills/add-capability/SKILL.md)
 - [serve-a-local-model skill](../plugins/model-server/skills/serve-a-local-model/SKILL.md)
 - [run-agent-tools-in-a-sandbox skill](../plugins/execution-host/skills/run-agent-tools-in-a-sandbox/SKILL.md)
-- [`examples/project-tasks/job.ts`](../examples/project-tasks/job.ts)
+- [`examples/field-service/job.ts`](../examples/field-service/job.ts)

@@ -1,20 +1,61 @@
-import { FlatList, Text, View } from 'react-native';
+import { useState } from 'react';
+import { FlatList, Pressable, Text, View } from 'react-native';
+import { Share2 } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
+import { useCSSVariable } from 'uniwind';
+import type { OutputOf } from '@agent-native/contracts';
 import { ListRow } from '@agent-native/frame-native/components/list-row';
 import { StatusPill } from '@agent-native/frame-native/components/status-pill';
+import { useOsAction } from '@agent-native/frame-native/os-actions';
 import { useSession } from '@agent-native/frame-native/session';
 import { fieldOperations as ops } from '../contracts';
+import { captureSummary, refusal } from './os-requests';
 import { Empty, ErrorText, Screen, SyncPill } from './shared';
 
 const when = (at: number) => new Date(at).toLocaleString();
+type Capture = OutputOf<typeof ops.captureList>['items'][number];
 
-/** Captures taken without a node. The hub places them during review; the device keeps them as sent. */
+/** A capture's sync state, and a glove-sized button that shares its summary as text. */
+function CaptureTrailing({
+  capture,
+  onError,
+}: {
+  capture: Capture;
+  onError: (error: unknown) => void;
+}) {
+  const perform = useOsAction();
+  const muted = useCSSVariable('--color-muted-foreground');
+  return (
+    <View className="flex-row items-center gap-2">
+      <SyncPill sync={capture.sync} />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Share capture"
+        onPress={() =>
+          perform('capture.share', { text: captureSummary(capture) }).then(
+            (outcome) => onError(refusal('The capture was not shared', outcome)),
+            onError,
+          )
+        }
+        className="min-h-target min-w-target items-center justify-center rounded-xl active:bg-muted"
+      >
+        <Share2 size={24} color={typeof muted === 'string' ? muted : undefined} />
+      </Pressable>
+    </View>
+  );
+}
+
+/**
+ * Captures taken without a node. The hub places them during review; the device keeps them as
+ * sent. Each can be shared as text.
+ */
 export function UnplacedScreen() {
   const { live } = useSession();
   const captures = useQuery(live.liveQueryOptions(ops.captureList, { unplaced: true }));
+  const [error, setError] = useState<unknown>();
   return (
     <Screen>
-      <ErrorText error={captures.error} />
+      <ErrorText error={captures.error ?? error} />
       <FlatList
         data={captures.data?.items ?? []}
         keyExtractor={(capture) => capture.id}
@@ -22,7 +63,7 @@ export function UnplacedScreen() {
           <ListRow
             title={item.note || `${item.kind}, ${item.photos.length} photos`}
             detail={when(item.takenAt)}
-            trailing={<SyncPill sync={item.sync} />}
+            trailing={<CaptureTrailing capture={item} onError={setError} />}
           />
         )}
         ListEmptyComponent={<Empty>No unplaced captures.</Empty>}
@@ -39,10 +80,11 @@ export function SyncScreen() {
   const { live } = useSession();
   const status = useQuery(live.liveQueryOptions(ops.status, {}));
   const captures = useQuery(live.liveQueryOptions(ops.captureList, {}));
+  const [error, setError] = useState<unknown>();
   const counts = status.data;
   return (
     <Screen>
-      <ErrorText error={status.error ?? captures.error} />
+      <ErrorText error={status.error ?? captures.error ?? error} />
       {counts ? (
         <View className="flex-row flex-wrap gap-2">
           <StatusPill
@@ -70,7 +112,7 @@ export function SyncScreen() {
                 ? `${item.rejection.code}: ${item.rejection.message}`
                 : when(item.takenAt)
             }
-            trailing={<SyncPill sync={item.sync} />}
+            trailing={<CaptureTrailing capture={item} onError={setError} />}
           />
         )}
         ListEmptyComponent={<Empty>No captures yet.</Empty>}

@@ -14,15 +14,18 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 - Pick the hardening profile from where the host runs: `desktop-local`, `site-hub` (paired devices over the site network), `sandbox` or `zero-trust`.
 - The site issues and renews certificates. The host only reads them and warns 30 days before expiry.
 - A secret never goes into the policy or a process environment by hand.
+- `samples/lab-requests-site` carries a connected `site-hub` policy, and its README runs steps 9 to 14 on a release a fleet staged.
 
 ## Steps
 
 1. Write the policy, starting from `examples/quality-inspection/site-policy.sandbox.json`. Set:
    - `profile` and `mode`;
    - `destinations` with `url` and `addresses`, the CIDRs needed for DNS-rebinding checks and firewall exports;
+   - `timeoutMs` on a destination that answers slowly, and `maxResponseBytes` on one that serves files over 32 MiB, such as a fleet's releases;
    - `ca` or `certificatePins` where required;
    - `audit`;
    - `identity`, either `grant-file` or `external` with `workforce` for [workforce sign-in](../../../../docs/glossary.md#workforce-sign-in);
+     Bind `workforce-idp` to the provider's `https` origin. Before a real provider is configured, `startIdentityProvider` from `@agent-native/site/testing` stands in for it with a certificate the binding's `ca` trusts;
    - `grants.maxTtlSeconds`;
    - the listener for TLS or mTLS.
 2. In connected mode, bind or explicitly disable every required destination.
@@ -49,6 +52,7 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
    bun test plugins/site plugins/network plugins/process
    bun test plugins/compliance
    bun test apps/desktop/test/site-policy.test.ts
+   bun test samples/lab-requests-site/
    bun run test:sandbox
    ```
 
@@ -66,3 +70,4 @@ A [deployment policy](../../../../docs/glossary.md#deployment-policy) binds what
 - [`@agent-native/site`](../../README.md)
 - [Profiles table](../../../../docs/security-and-compliance.md#hardening-profiles)
 - [Desktop](../../../../docs/desktop.md)
+- [Lab requests site sample](../../../../samples/lab-requests-site/README.md)

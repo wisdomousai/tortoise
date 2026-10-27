@@ -91,7 +91,7 @@ async function guardedFetch(
     ]);
     const location = response.headers.get('location');
     if (response.status < 300 || response.status >= 400 || !location)
-      return capped(response, destinationId, kernel.maxResponseBytes);
+      return capped(response, destinationId, binding.maxResponseBytes ?? kernel.maxResponseBytes);
     if (hop >= kernel.maxRedirects) return deny(kernel, 'TOO_MANY_REDIRECTS', destinationId);
     // Follow only within the same destination, revalidating every hop.
     url = new URL(location, url);

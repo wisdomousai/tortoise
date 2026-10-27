@@ -43,6 +43,7 @@ Data lives in `var/lib/agent-native/<app>`, outside every release, so switching 
 | `@agent-native/site/cidr`            | server only        | CIDR parsing and address checks, shared with the network plugin's guard.                           |
 | `@agent-native/site/policy-file`     | server only        | `sitePolicyFor` and `policyErrors`, which offline CLI verbs of other plugins use to read a policy. |
 | `@agent-native/site/cli`             | server only        | `site check`, the install verbs and `POLICY_REJECTED_EXIT_CODE`.                                   |
+| `@agent-native/site/testing` | server (tests, development) | `createIdentityProvider` and `startIdentityProvider`: a stand-in OpenID Connect provider for workforce sign-in. |
 
 What the plugin does at each lifecycle hook:
 
@@ -56,7 +57,7 @@ What the plugin does at each lifecycle hook:
 
 ### Policy input
 
-The `site-policy` setting (`--site-policy` or `AGENT_NATIVE_SITE_POLICY`) is a trusted launcher input. Without a policy, the application is isolated and needs nothing from other plugins. A policy below its profile floor refuses startup. The plugin never falls back to plain transport or to the local owner.
+The `site-policy` setting (`--site-policy` or `AGENT_NATIVE_SITE_POLICY`) is a trusted launcher input. Without a policy, the application is isolated and needs nothing from other plugins. A policy below its profile floor refuses startup. A policy that does not match the schema is refused with `INVALID_INPUT`, and each field it names is in `details`. The plugin never falls back to plain transport or to the local owner.
 
 A supplied policy declares the ports it depends on through `portsNeeded`: `network`, `ingress` or `eventLog`. The host refuses a composition in which no composed plugin provides one of them.
 
@@ -85,6 +86,8 @@ Workforce sign-in is a public OpenID Connect client with PKCE (S256):
 - The session token is the plugin's own. It goes only into an `HttpOnly; SameSite=Strict` cookie, `Secure` on HTTPS.
 - The token is offered only to `authenticateCookie`, never to `authenticate`, so a device's bearer credential never works from a cookie.
 - Sign-out checks the Origin itself, because public routes run before the host's origin check.
+
+`startIdentityProvider` in `@agent-native/site/testing` stands in for the provider in tests and development launches. It serves discovery, its keys, a page that signs in one of the configured people, and the token endpoint with the PKCE check. It serves one client and redirects only to loopback. It is never part of a deployment.
 
 ### Install verbs
 
@@ -120,7 +123,7 @@ External: `zod` for the policy schema, and `jose` for the provider's key set.
 ## Tests
 
 ```sh
-bun test examples/project-tasks/test/hardening.test.ts examples/project-tasks/test/security.test.ts
+bun test examples/field-service/test/hardening.test.ts examples/field-service/test/security.test.ts
 bun test plugins/network
 bun test apps/desktop/test/site-policy.test.ts
 bun test plugins/site
@@ -128,7 +131,7 @@ bun test plugins/site
 
 Applications that compose the plugin exercise it:
 
-- the project-tasks suites cover isolated defaults, profile floors, identity and mTLS;
+- the field-service suites cover isolated defaults, profile floors, identity and mTLS;
 - the network suite shows a connected policy refused without the network plugin;
 - the desktop test covers the shipped deployment policy.
 
@@ -148,6 +151,7 @@ With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the ins
 - CIDR matching;
 - certificate validity at a chosen time;
 - the isolated default and binding checks;
+- a policy that does not match the schema, refused as `INVALID_INPUT` with each field named;
 - profile floors and the site-hub listener;
 - folder bindings;
 - the workforce issuer rules;
@@ -159,6 +163,8 @@ With `SITE_INSTALL_NATIVE=1`, as in the `site-install` CI job on Ubuntu, the ins
 - a one-use state, sign-out and session expiry;
 - refusals for another audience, an unverified email and a discovery document naming another issuer;
 - which callers `external` admits.
+
+`test/identity-provider.test.ts` signs in through the same routes against the stand-in provider, called in process. It covers the sign-in page and the principal, and refusals for an unknown person, a redirect off loopback and a code spent by a wrong verifier.
 
 ## Skills
 

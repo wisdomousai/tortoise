@@ -28,12 +28,14 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 
 | Example | Shows |
 | --- | --- |
-| `examples/project-tasks` | the smallest whole application: capabilities, policy, OS handlers, agent definitions, a background job |
+| `examples/field-service` | the smallest whole application: capabilities, policy, OS handlers and actions, agent definitions, a background job |
 | `examples/quality-inspection` | capture against a system of record through the outbox, and a measuring instrument through a Python driver |
 | `examples/crm-capture` | live search of a CRM and adoption of its records |
 | `examples/line-station` | an operator workstation over workstation application reached through its screen or a .NET driver |
-| `examples/asset-survey` and `examples/asset-survey-field` | a hub with blob evidence and a paired mobile field application |
-| `samples/*` | one concept each on a notes application: a system of record, agents and UI intents, a host plugin, a migration and telemetry. Exports leave them out |
+| `examples/asset-survey` and `examples/asset-survey-field` | a hub with blob evidence, a declared workflow and a paired mobile field application |
+| `examples/receiving` | an application generated with `scaffold new` and `scaffold add`: a file exchange with an ERP, reconciliation and an agent that requests approval |
+| `examples/fleet` | the fleet that sites report to: enrollment, signed releases on channels, audit forwarding and relayed access |
+| `samples/*` | one concept each on a lab test request application, as `docs/samples.md` lists them. Exports leave them out |
 
 | Task | Skill |
 | --- | --- |
@@ -53,6 +55,10 @@ The [scaffold](../../../../docs/glossary.md#scaffold) starts an [application](..
 | A hosted instance with its workspace in Postgres | `packages/host/skills/run-a-hosted-instance/SKILL.md` |
 | A site that reports to a fleet, or the fleet it reports to | `plugins/fleet-agent/skills/connect-a-site-to-a-fleet/SKILL.md` |
 | Metrics and traces in an observability backend | `plugins/telemetry/skills/export-telemetry/SKILL.md` |
+| Plant signals from MQTT, Sparkplug B or OPC UA | `packages/observation/skills/observe-plant-signals/SKILL.md` |
+| A sequence that waits on people or systems between steps | `plugins/workflows/skills/declare-a-workflow/SKILL.md` |
+| Two agent-native applications that call each other | `plugins/peer-link/skills/connect-two-applications/SKILL.md` |
+| Operators who sign in at a shared seat by badge and PIN | `workstations/sign-in/skills/sign-in-at-a-seat/SKILL.md` |
 | Which checks to run and how to report them | `packages/testing/skills/check-a-change/SKILL.md` |
 
 `bun install` links these skills for Claude Code and Codex. An application that installs the framework from a registry gets these skills from the installed packages under `node_modules/@agent-native/`. There, the steps that change framework source apply in the framework checkout instead.

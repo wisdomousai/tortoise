@@ -134,5 +134,6 @@ export function resolveBinding(
     ...(binding.certificatePins ? { certificatePins: binding.certificatePins } : {}),
     ...(binding.tls ? { tls: true } : {}),
     ...(binding.timeoutMs ? { timeoutMs: binding.timeoutMs } : {}),
+    ...(binding.maxResponseBytes ? { maxResponseBytes: binding.maxResponseBytes } : {}),
   } as ResolvedBinding;
 }

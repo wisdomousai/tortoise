@@ -38,6 +38,11 @@ const bindingSchema = z.union([
      * before it replies.
      */
     timeoutMs: z.number().int().min(1_000).max(3_600_000).optional(),
+    /**
+     * Response body cap in bytes, replacing the guard's default of 32 MiB, for a destination
+     * that serves large files by nature, such as a fleet's release files.
+     */
+    maxResponseBytes: z.number().int().min(1_048_576).max(1_073_741_824).optional(),
   }),
 ]);
 /** An environment variable name, as a process binding sets it. */

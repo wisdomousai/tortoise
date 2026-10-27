@@ -24,7 +24,9 @@ export async function serveCommand(definition: AnyApplicationDefinition, args: s
     );
   // Loaded lazily: provider access and the web host are not needed by embedded commands.
   const { serve } = await import('../serve');
-  const platform = hostedWorkspace ? await hosted(hostedWorkspace) : undefined;
+  const platform = hostedWorkspace
+    ? (await import('../platform/hosted')).hostedPlatformFromEnvironment(hostedWorkspace)
+    : undefined;
   await serve(definition, {
     ...(platform ? { platform } : {}),
     workspacePath,
@@ -46,32 +48,4 @@ export async function serveCommand(definition: AnyApplicationDefinition, args: s
     throw error;
   });
   return new Promise<number>(() => {});
-}
-
-/**
- * `--hosted-workspace <name>`: keep the workspace in the Postgres database that
- * `AGENT_NATIVE_DATABASE_URL` names, under the workspace's lease. The URL is read from the
- * environment, never a flag, so its credentials stay out of the process list. Losing the lease
- * stops the host with exit code 1, for the orchestrator to restart it behind the new holder.
- */
-async function hosted(workspace: string) {
-  const url = process.env.AGENT_NATIVE_DATABASE_URL;
-  if (!url)
-    throw new ApplicationError(
-      'INVALID_INPUT',
-      '--hosted-workspace needs AGENT_NATIVE_DATABASE_URL in the environment',
-    );
-  const [{ bunPostgres }, { hostedPlatform }] = await Promise.all([
-    import('@agent-native/adapters/postgres-bun'),
-    import('../platform/hosted'),
-  ]);
-  return hostedPlatform({
-    database: bunPostgres(url),
-    workspace,
-    onLeaseLost(error) {
-      console.error(JSON.stringify({ type: 'lease-lost', workspace, message: error.message }));
-      process.exitCode = 1;
-      process.kill(process.pid, 'SIGTERM');
-    },
-  });
 }

@@ -160,7 +160,7 @@ Elsewhere:
 
 - `plugins/model-server` runs the gate against a managed server.
 - `examples/receiving/test/agent-scenarios.test.ts` runs the discrepancy agent's scenarios.
-- The behavioral scenario helpers have no suite of their own. `examples/project-tasks/test/storage-conformance.test.ts` and the scenario tests of the webhook, device-link, hub-link, station-sign-in and compliance plugins exercise them.
+- The behavioral scenario helpers have no suite of their own. `examples/field-service/test/storage-conformance.test.ts` and the scenario tests of the webhook, device-link, hub-link, station-sign-in and compliance plugins exercise them.
 - The UI-binding helpers are exercised by the UI-binding test of every example.
 
 ## Skills

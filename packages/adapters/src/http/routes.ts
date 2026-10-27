@@ -6,6 +6,7 @@ import { parseRevisions, readJsonBody } from './body';
 import type { Cursors } from './cursors';
 import { eventStreamResponse } from './event-stream';
 import { jsonResponse } from './response';
+import { sessionCookie } from './session-cookie';
 import type { HostSession, Sessions, TokenAuthenticator } from './sessions';
 
 export interface AuthenticatedRoutes {
@@ -23,7 +24,7 @@ export async function exchangeLaunch(sessions: Sessions, request: Request) {
   if (!session)
     throw new ApplicationError('FORBIDDEN', 'Launch credential expired or already used');
   return jsonResponse({ connected: true }, 200, {
-    'Set-Cookie': `agent_session=${session.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=86400`,
+    'Set-Cookie': sessionCookie(new URL(request.url).origin, session.token, 86_400),
   });
 }
 

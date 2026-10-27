@@ -132,6 +132,31 @@ export const createFieldHandlers = (): HandlerContribution<FieldState, FieldServ
     assignmentRecords(ctx).touch(assignment.id);
     return assignmentDto(ctx.state, assignment);
   }),
+  handler(ops.noticesSettle, (input, ctx) => {
+    const effect = ctx.settleEffect(
+      input.effectId,
+      input.outcome,
+      input.fence === undefined ? {} : { fence: input.fence },
+    );
+    // The outcome rides on the assignment's change, which the outbox requires.
+    ctx.change(effect.resource);
+    return {};
+  }),
+  handler(ops.tagGet, (input, ctx) => ({
+    id: input.id,
+    matches: Object.values(ctx.state.assignments)
+      .filter((assignment) => !isClosed(ctx.state, assignment))
+      .flatMap((assignment) =>
+        slice(assignment)
+          .filter((node) => matches(node, input.id))
+          .map((node) => ({
+            assignmentId: assignment.id,
+            nodeId: node.id,
+            designation: node.designation,
+            name: node.name,
+          })),
+      ),
+  })),
   ...targetHandlers<FieldState, FieldServices, z.output<typeof fieldAssignmentSchema>>(hubTarget, {
     cursor: (state) => state.cursor,
     now,
@@ -159,7 +184,21 @@ export const createFieldHandlers = (): HandlerContribution<FieldState, FieldServ
     },
     applyBatch({ items }, ctx) {
       // The hub sends every assignment of this device whenever any of them changes.
-      for (const item of items)
+      for (const item of items) {
+        // The device's owner is told of each open assignment the first time it arrives. The
+        // notice waits in the outbox until the app is in the foreground to show it.
+        if (!own(ctx.state.assignments, item.id) && !item.returned)
+          ctx.enqueue({
+            target: 'assignment-notices',
+            type: 'assignment.notice',
+            resource: assignmentRecords(ctx).resource(item.id),
+            payload: {
+              principal: ctx.state.ownerId,
+              category: 'assignment-new',
+              title: 'New assignment',
+              body: item.title,
+            },
+          });
         assignmentRecords(ctx).set(
           item.id,
           compact({
@@ -172,6 +211,7 @@ export const createFieldHandlers = (): HandlerContribution<FieldState, FieldServ
           }),
           'synced',
         );
+      }
       return items.length;
     },
     status(ctx) {

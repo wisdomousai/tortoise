@@ -164,6 +164,25 @@ describe('egress guard', () => {
     await expect(response.text()).rejects.toThrow('RESPONSE_TOO_LARGE');
   });
 
+  test("a binding's response cap replaces the guard's default for that destination only", async () => {
+    const egress = createEgress({
+      policy: policy({
+        mode: 'isolated',
+        destinations: {
+          'local-model': { url: `http://127.0.0.1:${server.port}`, maxResponseBytes: 1_048_576 },
+        },
+      }),
+      requirements,
+      maxResponseBytes: 1024,
+    });
+    expect(await (await egress.client('local-model').fetch('/big')).text()).toHaveLength(4096);
+    expect(() =>
+      policy({
+        destinations: { 'local-model': { url: 'http://127.0.0.1:1', maxResponseBytes: 1024 } },
+      }),
+    ).toThrow('expected number to be >=1048576');
+  });
+
   test('a required egress log that cannot be written keeps the connection closed', async () => {
     let fetched = false;
     const broken: EventLogPort = {

@@ -1,4 +1,9 @@
-import { ApplicationError, type OsDelivery } from '@agent-native/contracts';
+import {
+  ApplicationError,
+  type OsActionOutcome,
+  type OsActionRequest,
+  type OsDelivery,
+} from '@agent-native/contracts';
 import type { AnyApplicationDefinition } from '@agent-native/kernel/application';
 import {
   createMobileShell,
@@ -89,7 +94,8 @@ function listenForIntents(shell: MobileShell, bindings: MobileOsBindings) {
  * with are submitted to the shell port as the device's owner, what the port delivers waits for
  * the frame's subscription once an opened resource is checked readable, and the port's actions
  * run through this device. The OS runs in this process, so the adapter attaches directly
- * instead of over HTTP.
+ * instead of over HTTP. `perform` asks for a declared OS action as the device's owner, as a
+ * screen does through `useOsAction`.
  *
  * Without a plugin that provides the shell port, nothing is attached or submitted: the returned
  * connection delivers nothing. An unsolicited request still only opens or prefills; a person
@@ -143,7 +149,15 @@ export function connectMobileShell(
     detach = port.attach(context, shell);
   } catch {
     // No shell port: the application composes no OS plugin.
-    return { deliveries: { subscribe: () => () => undefined }, close: () => undefined };
+    return {
+      deliveries: { subscribe: () => () => undefined },
+      perform: async (request: OsActionRequest): Promise<OsActionOutcome> => ({
+        status: 'refused',
+        reason: 'unsupported',
+        action: request.action,
+      }),
+      close: () => undefined,
+    };
   }
   const unsubscribe = bindings.subscribe((uri) => void shell.receive(uri));
   // A reply is submitted as the device's owner; the notifications plugin checks its nonce.
@@ -164,6 +178,8 @@ export function connectMobileShell(
         return () => void listeners.delete(listener);
       },
     },
+    /** A declared OS action, performed through this device's bindings once the port allows it. */
+    perform: (request: OsActionRequest) => port.perform(context, request),
     close() {
       unsubscribe();
       unreplies?.();

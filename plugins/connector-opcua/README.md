@@ -19,7 +19,7 @@ Plugin layer, as a library without plugin entrypoints. `./contracts` is browser-
 | `@agent-native/connector-opcua/client` | server | `OpcUaClient` (`connect`, `read`, `close`), `OpcUaError`. |
 | `@agent-native/connector-opcua/types` | server | Node IDs in every binary form, variants, data values and status helpers (`isBad`, `isUncertain`). |
 | `@agent-native/connector-opcua/observe` | server | `createOpcUaObserver`. |
-| `@agent-native/connector-opcua/testing` | server (tests) | `FakeOpcUaServer`, a loopback server. |
+| `@agent-native/connector-opcua/testing` | server (tests and development launches) | `FakeOpcUaServer`, a loopback server on a free or given port. |
 
 `FakeOpcUaServer` has settable values, chunked responses, short token lifetimes, dropped sessions and a record of every request.
 

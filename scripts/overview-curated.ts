@@ -100,7 +100,7 @@ export const paths: readonly RequestPath[] = [
         sources: ['packages/adapters/src', 'packages/host/src'],
         tests: [
           {
-            file: 'examples/project-tasks/test/transport-conformance.test.ts',
+            file: 'examples/field-service/test/transport-conformance.test.ts',
             test: 'direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors and idempotent commits',
           },
         ],
@@ -394,7 +394,7 @@ export const properties: readonly Property[] = [
     doc: 'architecture#surfaces-and-identity',
     tests: [
       {
-        file: 'examples/project-tasks/test/transport-conformance.test.ts',
+        file: 'examples/field-service/test/transport-conformance.test.ts',
         test: 'direct, HTTP, CLI subprocess and MCP protocol share scoped results, errors and idempotent commits',
       },
     ],
@@ -594,10 +594,11 @@ export const exampleRoutes: Readonly<Record<string, ExampleRoute>> = {
     record: 'The asset-survey hub, reached through the peer connector.',
     sources: ['examples/asset-survey-field/ui-native/capture.tsx'],
   },
-  'project-tasks': {
-    input: 'Screens, OS links, the share target and launcher shortcuts.',
-    record: 'None; a notification target only.',
-    sources: ['examples/project-tasks/os.ts'],
+  'field-service': {
+    input:
+      'Screens, OS links and files, the share target, launcher shortcuts and reminder replies.',
+    record: 'None; a notification target, and a webhook to the customer portal.',
+    sources: ['examples/field-service/os.ts'],
   },
   fleet: {
     input: 'Reports and audit events from enrolled sites.',

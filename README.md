@@ -42,7 +42,7 @@ bun install --frozen-lockfile
 bun run dev
 ```
 
-The desktop window opens on `project-tasks`, the application `app.config.json` names. Create a project, add a task, then choose **Create tasks from brief**. A deterministic [harness](docs/glossary.md#harness) turns each line of the brief into a command and needs no provider account.
+The desktop window opens on `field-service`, the application `app.config.json` names. Create a work order, add a task, then choose **Create tasks from brief**. A deterministic [harness](docs/glossary.md#harness) turns each line of the brief into a command and needs no provider account.
 
 ## Verification
 

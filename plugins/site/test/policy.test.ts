@@ -99,6 +99,22 @@ describe('site policy', () => {
     });
   });
 
+  test('a policy that does not match the schema is refused as input, naming each field', () => {
+    let refused: unknown;
+    try {
+      resolveSitePolicy(
+        { destinations: { 'vendor-api': { url: 'https://api.vendor.example', retries: 3 } } },
+        requirements,
+      );
+    } catch (error) {
+      refused = error;
+    }
+    expect(refused).toMatchObject({
+      code: 'INVALID_INPUT',
+      details: [{ path: 'destinations.vendor-api', message: 'Unrecognized key: "retries"' }],
+    });
+  });
+
   test('bindings must match declarations and the connected deployment must decide every required one', () => {
     expect(codes({ mode: 'connected', destinations: { nowhere: { url: 'https://x' } } })).toEqual([
       'UNDECLARED_BINDING',

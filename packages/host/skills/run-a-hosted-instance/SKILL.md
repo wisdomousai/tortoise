@@ -11,6 +11,7 @@ A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [h
 
 - Check that the application can be hosted. A `site`-scoped destination, a device, an exchange folder or a station process pins it to a [site](../../../../docs/glossary.md#site). The generated security manifest (`bun run generate`) shows its placement.
 - Decide the instance layout. One process serves one workspace. Several workspaces run one instance each, behind a router that sends each workspace's requests to its instance.
+- `samples/lab-requests-hosted` is a hosted instance with workforce sign-in against a stand-in provider, and its test races two instances on PGlite.
 - Decide where the instance's local directory (`--workspace`) lives. It still holds blobs, agent run history, the [audit log](../../../../docs/glossary.md#audit-log) and the plugins' files. Put it on a volume that follows the instance, or accept that a takeover on another machine starts without them.
 
 ## Steps
@@ -19,7 +20,7 @@ A [hosted instance](../../../../docs/glossary.md#hosted-instance) is the same [h
 
 1. Provide a Postgres 15 or newer database the instance can create tables in.
 2. Put the database URL with its credentials in `AGENT_NATIVE_DATABASE_URL`, from the deployment's secret store. Never put it in a flag or a policy file.
-3. Start the instance with `app serve --workspace <dir> --hosted-workspace <name> --port <n>`. `<name>` is the workspace's key in the database, and every instance of one workspace uses the same name. A second instance is refused with `CONFLICT` while the lease is held.
+3. Start the instance with `app serve --workspace <dir> --hosted-workspace <name> --port <n>`. `<name>` is the workspace's key in the database, and every instance of one workspace uses the same name. A second instance is refused with `CONFLICT` while the lease is held. A development launch takes the same flag: `bun ../../scripts/dev-example.ts --port <n> --hosted-workspace <name>` from the application's directory.
 4. Supervise the instance and restart it when it exits. An instance that loses its lease logs a `lease-lost` record on stderr and exits with code 1. A restarted instance does not wait for the lease. It is refused until the lease expires after 30 seconds without renewal, or is released.
 5. Set a `tls` listener with the public certificate in the site plugin's policy, as for a site. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) has the policy steps.
 6. Set `identity: external` in the same policy, with `workforce` naming the OpenID Connect provider. People sign in with the workforce account, and no local owner session exists.
@@ -43,3 +44,4 @@ The second line runs the same cases against a real server, with a database made 
 
 - [Hosting](../../../../docs/hosting.md#hosted-instance)
 - [Adapters](../../../../docs/adapters.md#storage)
+- [Lab requests hosted sample](../../../../samples/lab-requests-hosted/README.md)
