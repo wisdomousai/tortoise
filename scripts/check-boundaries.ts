@@ -70,10 +70,16 @@ const layerDirectories: Record<string, Layer> = {
   workstations: 'workstation',
   plugins: 'plugin',
   apps: 'shell',
-  examples: 'content',
-  patterns: 'content',
+  'showcase/examples': 'content',
+  'showcase/patterns': 'content',
   sdks: 'sdk',
 };
+/** The layer directory a repo-relative path lies in: its first segment, or two under `showcase/`. */
+const layerDirectoryOf = (path: string) =>
+  path
+    .split('/')
+    .slice(0, path.startsWith('showcase/') ? 2 : 1)
+    .join('/');
 const packageLayers = new Map<string, Layer>();
 const manifestOf = (path: string) =>
   readFile(path, 'utf8')
@@ -93,16 +99,18 @@ for (const name of await readdir(resolve(root, 'node_modules/@agent-native')).ca
   const manifest = await manifestOf(
     resolve(root, 'node_modules/@agent-native', name, 'package.json'),
   );
-  const layer = layerDirectories[manifest?.repository?.directory?.split('/')[0] ?? ''];
+  const layer = layerDirectories[layerDirectoryOf(manifest?.repository?.directory ?? '')];
   if (manifest?.name && layer && !packageLayers.has(manifest.name))
     packageLayers.set(manifest.name, layer);
 }
 function layerOfPath(path: string): Layer | undefined {
-  return layerDirectories[relative(root, path).replaceAll('\\', '/').split('/')[0]!];
+  return layerDirectories[layerDirectoryOf(relative(root, path).replaceAll('\\', '/'))];
 }
 /** `workstations/<name>` or the same shape for the other layers. */
 function workspaceOf(path: string): string | undefined {
-  const [directory, name] = relative(root, path).replaceAll('\\', '/').split('/');
+  const relativePath = relative(root, path).replaceAll('\\', '/');
+  const directory = layerDirectoryOf(relativePath);
+  const name = relativePath.slice(directory.length + 1).split('/')[0];
   return directory && name ? `${directory}/${name}` : undefined;
 }
 function layerOfImport(file: string, dependency: string): Layer | undefined {

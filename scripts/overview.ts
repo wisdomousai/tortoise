@@ -20,8 +20,8 @@ const layerTitles: Record<string, string> = {
   packages: 'Framework',
   plugins: 'Plugins',
   apps: 'Starter',
-  examples: 'Examples',
-  patterns: 'Patterns',
+  'showcase/examples': 'Examples',
+  'showcase/patterns': 'Patterns',
   sdks: 'Driver SDKs',
 };
 
@@ -215,7 +215,10 @@ export async function overview(root: string, manifests: readonly ApplicationMani
   const edges = new Map(
     found.map((workspace) => [workspace.manifest.name, dependencies(workspace)]),
   );
-  const layerOf = (workspace: Workspace) => workspace.directory.split('/')[0]!;
+  // The layer directory the workspace sits in, which is two segments deep under `showcase/`.
+  const layerOf = (workspace: Workspace) =>
+    layers.find((layer) => workspace.directory.startsWith(`${layer.directory}/`))?.directory ??
+    workspace.directory.split('/')[0]!;
   const sameLayer = new Map(
     found.map((workspace) => [
       workspace.manifest.name,
