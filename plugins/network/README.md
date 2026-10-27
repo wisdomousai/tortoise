@@ -41,7 +41,7 @@ A destination-scoped client allows only the bound scheme, host and port. It also
 - rechecks every redirect hop;
 - checks DNS answers against the bound networks before connecting;
 - applies CA bundles and certificate pins;
-- caps response size and time.
+- caps response size and time, at 32 MiB and 30 seconds unless a binding sets `maxResponseBytes` or `timeoutMs`.
 
 Provider SDKs get a fetch routed by origin, and TCP transports get a scoped socket. Declared children get the loopback CONNECT proxy, which admits only their declared [destinations](../../docs/glossary.md#destination). The proxy identifies each child by a per-process credential. A refusal is an `UNAVAILABLE` error with a stable `DenialReason`.
 
@@ -69,7 +69,7 @@ UPDATE_GOLDEN=1 bun test plugins/network   # after an intended exporter change; 
 bun test plugins/webhook examples/project-tasks/test/security.test.ts examples/project-tasks/test/hardening.test.ts
 ```
 
-- `test/guard.test.ts` runs the guard against a loopback server. It covers origin, redirect and address checks, audited decisions, fail-closed recording, response caps, and the child proxy admitting only declared destinations.
+- `test/guard.test.ts` runs the guard against a loopback server. It covers origin, redirect and address checks, audited decisions, fail-closed recording, response caps, a binding's own timeout and response cap, and the child proxy admitting only declared destinations.
 - `test/network.test.ts` covers rule exports against golden files in `test/golden`, the guard recording into an audit log composed after it, and a connected policy refused without this plugin.
 
 The webhook suite shows a third-party plugin refused by the guard for an unbound destination. The project-tasks suites cover bound and refused provider destinations, the child proxy and mTLS. `bun run test:isolated` and `bun run test:sandbox` check that no path escapes the guard.

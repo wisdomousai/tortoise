@@ -95,6 +95,7 @@ A policy file under the `sandbox` profile:
 - **`addresses`** are CIDRs. The addresses let the guard check DNS answers, which defeats DNS rebinding, and the rule exports need the addresses. A binding without addresses gets a warning, and the exports keep it blocked instead of widening it.
 - **`ca`** replaces the trust store for one destination, and **`certificatePins`** pin its server certificates.
 - **`timeoutMs`** replaces the guard's 30-second request timeout for one destination, from 1 second to an hour. A local model server that reasons before it answers needs minutes.
+- **`maxResponseBytes`** replaces the guard's 32 MiB response cap for one destination, from 1 MiB to 1 GiB. A fleet serves release files, and a site's compiled binary is larger than 32 MiB.
 - **`folders`** binds each declared folder ID to an absolute directory or disables it with a reason. The directory can be a POSIX path, a Windows drive path or a UNC share. A disabled or unbound folder is unavailable through the folder port.
 - **Connected mode** requires every required destination to be bound or explicitly disabled. The findings list each closed destination with its offline consequence.
 

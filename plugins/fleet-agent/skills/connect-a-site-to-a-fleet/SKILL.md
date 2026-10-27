@@ -19,7 +19,7 @@ The fleet agent connects a site to a [fleet](../../../../docs/glossary.md#fleet)
 
 1. Add `fleetAgentPluginManifest` to the manifest's `plugins`, after the site, network and audit plugins.
 2. Add `fleetAgentPlugin`, or `createFleetAgentPlugin({ intervalMs })`, to the application's `plugins` in the same order.
-3. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `destinations.fleet` to the fleet's https origin. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
+3. In the [deployment policy](../../../../docs/glossary.md#deployment-policy), bind `destinations.fleet` to the fleet's https origin. Set its `maxResponseBytes` above the largest release file, because the guard's default cap of 32 MiB is below a compiled binary. The `deploy-to-site` skill (`plugins/site/skills/deploy-to-site/SKILL.md`) covers the policy.
 4. Bind `folders['fleet-releases']` to a directory the host's OS user can write. Leaving the destination or the folder out disables only that part, and the site still runs.
 5. Create a `field-sync` enrollment on the fleet.
 6. Start the site once with `--fleet-enrollment-code <code>` or `AGENT_NATIVE_FLEET_ENROLLMENT_CODE`. The plugin stores the credential, so later starts need no code.
