@@ -61,7 +61,7 @@ Split a file that `check:size` lists only when it holds a second responsibility.
 | `bun run test:integration`          | Outbox dispatch and inbound sync against fake systems of record.                                |
 | `bun run test:isolated`             | The whole suite, failing on any non-loopback connection from the test process.                  |
 | `bun run test:e2e`                  | Browser acceptance with Playwright.                                                             |
-| `bun run test:execution-host:linux` | The execution host's bubblewrap tests in a Linux container. Needs Docker; the tests skip elsewhere.  |
+| `bun run test:execution-host:linux [path ...]` | The execution host's bubblewrap tests in a Linux container, or the tests at the paths given. Needs Docker; the tests skip elsewhere. |
 | `bun run test:package`              | Desktop packaging checks available on this platform.                                            |
 | `bun run test:scaffold`             | Deterministic export and its overwrite and privacy safeguards.                                  |
 | `bun run test:scaffold:full`        | With `SCAFFOLD_ACCEPTANCE=1`, a fresh export installs, typechecks, builds, tests and adds a capability. |

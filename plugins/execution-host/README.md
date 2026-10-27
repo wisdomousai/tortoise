@@ -116,6 +116,8 @@ bun run test:execution-host:linux
 - a process left behind not outliving the sandbox;
 - output, wall-time and cancellation stops.
 
+`test:execution-host:linux` also takes test paths and runs those in the same container instead.
+
 ## Skills
 
 - [run-agent-tools-in-a-sandbox](skills/run-agent-tools-in-a-sandbox/SKILL.md): declaring a sandbox, binding bubblewrap and running a task under a grant.

@@ -31,7 +31,7 @@ The [execution host](../../../../docs/glossary.md#execution-host) runs an agent'
 
 1. On any platform, run `bun test plugins/execution-host`. It covers the filter, the layout and the broker.
 2. Call `availability(sandbox)` to learn why a sandbox cannot run: not Linux, no bubblewrap binding, or no serving host.
-3. On Linux, or anywhere with Docker, run `bun run test:execution-host:linux`.
+3. On Linux, or anywhere with Docker, run `bun run test:execution-host:linux`. Add test paths to run an application's own sandbox tests in the same container.
 4. For an application's own task, copy the pattern in `plugins/execution-host/test/sandbox.test.ts`. Start the host with the plugin and run the task.
 5. Assert the receipts, the refused calls outside the grant, and the denied file and network attempts that matter to the task.
 
