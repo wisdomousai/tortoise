@@ -72,6 +72,9 @@ async function repeat(
 ) {
   while (!signal.aborted) {
     await pass(signal).catch((error) => onError?.(error));
+    // A stop during the pass has already fired `abort`, so waiting for it would sleep out the
+    // whole interval.
+    if (signal.aborted) return;
     await new Promise<void>((resolve) => {
       const timer = setTimeout(resolve, intervalMs);
       signal.addEventListener('abort', () => (clearTimeout(timer), resolve()), {
