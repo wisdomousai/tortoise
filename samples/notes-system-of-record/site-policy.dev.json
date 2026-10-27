@@ -1,5 +1,0 @@
-{
-  "profile": "desktop-local",
-  "audit": { "mode": "best-effort" },
-  "destinations": { "publisher-api": { "url": "http://127.0.0.1:4361" } }
-}

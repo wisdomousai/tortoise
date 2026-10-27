@@ -577,7 +577,7 @@ Do not use: version (for a revision), etag.
 
 ### Sample
 
-A small application under `samples/` that shows one concept. `samples/notes` is the base, and every other sample composes it unchanged and adds one concern. Listed in [samples](samples.md).
+A small application under `samples/` that shows one concept. `samples/lab-requests` is the base, and every other sample composes it unchanged and adds one concern. Listed in [samples](samples.md).
 
 Do not use: demo (for a sample).
 

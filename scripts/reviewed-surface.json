@@ -4118,7 +4118,9 @@
     "./src/recorder RecorderOptions",
     "./src/recorder Span",
     "./src/recorder createRecorder",
-    "./src/recorder durationBounds"
+    "./src/recorder durationBounds",
+    "./src/testing Received",
+    "./src/testing startCollector"
   ],
   "plugins/webhook": [
     "./contracts webhookModule",

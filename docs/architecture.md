@@ -14,7 +14,7 @@ Terms: [application](glossary.md#application), [instance](glossary.md#instance),
 | [Workstation](glossary.md#workstation) | `workstations/*` | The edge-workstation opinion: the [screen bridge](glossary.md#screen-bridge) and [workstation sign-in](glossary.md#workstation-sign-in). |
 | Plugins | `plugins/*` | [Host plugins](#host-plugins) for cross-cutting concerns an application chooses to compose, such as [deployment policy](glossary.md#deployment-policy), network, audit and compliance. |
 | [Starter](glossary.md#starter) | `apps/*` | Thin wiring its owner forks and extends: configuration, entrypoints, web root, stock UI primitives and the desktop and mobile wrappers. |
-| Content | `examples/*`, `samples/*` or the owner's code | [Applications](#application-entrypoints), with their tests and demo scripts. Each [sample](glossary.md#sample) composes the notes base and adds one concern. |
+| Content | `examples/*`, `samples/*` or the owner's code | [Applications](#application-entrypoints), with their tests and demo scripts. Each [sample](glossary.md#sample) composes the lab requests base and adds one concern. |
 | Driver SDKs | `sdks/*` | The driver protocol in Python and C#, for [hardware drivers](hardware-drivers.md). |
 
 The starter learns its application from configuration. Generic behavior goes into framework packages. A new application therefore does not edit the starter, and an owner who forks it keeps receiving framework changes.

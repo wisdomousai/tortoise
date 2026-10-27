@@ -50,7 +50,7 @@ In the same directory, `bun run dev:web` serves the browser instead. When an exa
 The [samples](glossary.md#sample) in `samples/*` run the same way, on ports 4350 to 4354:
 
 ```sh
-cd samples/notes
+cd samples/lab-requests
 bun run dev:web
 ```
 

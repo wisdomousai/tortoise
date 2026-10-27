@@ -7,7 +7,7 @@ Read `docs/overview.md`, `docs/architecture.md` and `docs/primitives.md` before 
 The layers are **framework** `packages/*`, **workstations** `workstations/*`, **plugins** `plugins/*`, **starter** `apps/*` and **content** `examples/*` and `samples/*`. Driver SDKs for other languages sit beside them in `sdks/*`.
 
 - The framework and the starter name no domain and import no workstation package, plugin, example or sample. The starter hosts the one application named in `app.config.json`.
-- A sample in `samples/<name>` is a small application of the same shape. `samples/notes` is the base; every other sample imports it unchanged and adds one concern.
+- A sample in `samples/<name>` is a small application of the same shape. `samples/lab-requests` is the base; every other sample imports it unchanged and adds one concern.
 - An example is an application with a browser-safe `manifest` entrypoint, a server `application` entrypoint and a browser `screens` entrypoint. Its domain code, fakes, screens and tests stay in the example; framework tests never import one.
 - A cross-cutting concern (deployment policy, network, audit, compliance) is a host plugin in `plugins/<name>`, with `plugin-manifest`, `plugin` and `plugin-screens` entrypoints that the application lists. A plugin imports the framework and the plugins it requires, reaches the network, ingress, identity and audit log through host ports, and writes only through its own commands.
 - It imports the framework only. The screen bridge and workstation sign-in live there.

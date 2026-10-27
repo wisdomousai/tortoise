@@ -1,0 +1,14 @@
+{
+  "name": "@agent-native/sample-lab-requests-operations",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun ../../scripts/dev-desktop.ts --port 4354",
+    "dev:web": "bun ../../scripts/dev-example.ts --port 4354"
+  },
+  "exports": {
+    "./screens": "./screens.tsx",
+    "./*": "./*.ts"
+  }
+}

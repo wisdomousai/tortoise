@@ -114,28 +114,4 @@ export function telemetryApplication() {
   });
 }
 
-export interface Received {
-  readonly path: string;
-  readonly body: Record<string, any>;
-}
-
-/** An OTLP/HTTP collector on loopback that keeps what it receives and can refuse. */
-export function startCollector() {
-  const received: Received[] = [];
-  const control = { down: false };
-  const receive = async (request: Request) => {
-    if (control.down) return new Response('unavailable', { status: 503 });
-    received.push({
-      path: new URL(request.url).pathname,
-      body: (await request.json()) as Record<string, any>,
-    });
-    return Response.json({});
-  };
-  const server = Bun.serve({ hostname: '127.0.0.1', port: 0, fetch: receive });
-  return {
-    url: `http://127.0.0.1:${server.port}`,
-    received,
-    control,
-    stop: () => server.stop(true),
-  };
-}
+export { startCollector, type Received } from '../src/testing';

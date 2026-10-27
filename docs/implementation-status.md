@@ -132,7 +132,7 @@ No public release has been made. The entries use these kinds of evidence:
 **Not shown.**
 
 - Removing a feature or plugin from an application drops its slice at the next commit. Nothing keeps or exports the dropped data.
-- Only `samples/notes-operations` declares [state migrations](glossary.md#state-migration). The examples keep their unversioned `upgradeState`.
+- Only `samples/lab-requests-operations` declares [state migrations](glossary.md#state-migration). The examples keep their unversioned `upgradeState`.
 - A target port that maps effects by `contractVersion` has not been written.
 - The phone's storage stamps versions, but has no staged `migrate`.
 
@@ -181,7 +181,7 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 
 **Agent scenarios, live.** Gemma 4 E4B-it Q4_0 on llama-server 0.7.0 passed the model server's `requests approval for a note on a real model`, described above. The [agent scenarios](glossary.md#agent-scenario) in `packages/testing` and `examples/receiving` have passed with the deterministic harness only.
 
-**By hand, browser.** On 22 October 2026, `samples/notes-agents` ran with `bun run dev:web` in Chrome on macOS. On an untitled note, **Suggest a title (offline run)** started a deterministic run from the note screen's UI session. The run requested approval for `note.update` and called `ui.request-review` naming the approval request. The screen showed the review above the pending suggestion; acknowledging closed it, and approving set the title on the open screen. The run's `ui.open` named the note already open, so no navigation was shown. `packages/frame/src/lib/ui-intents.test.ts` shows that an open intent reaches the open handler, and no test covers the default handler's navigation through `screens.resources`.
+**By hand, browser.** On 22 October 2026, `samples/notes-agents`, which `samples/lab-requests-agents` replaced, ran with `bun run dev:web` in Chrome on macOS. On an untitled note, **Suggest a title (offline run)** started a deterministic run from the note screen's UI session. The run requested approval for `note.update` and called `ui.request-review` naming the approval request. The screen showed the review above the pending suggestion; acknowledging closed it, and approving set the title on the open screen. The run's `ui.open` named the note already open, so no navigation was shown. `packages/frame/src/lib/ui-intents.test.ts` shows that an open intent reaches the open handler, and no test covers the default handler's navigation through `screens.resources`.
 
 ### Execution host
 
@@ -198,7 +198,7 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 
 **Not shown.**
 
-- Delivery, sync and [remote queries](primitives.md#remote-query) run only against fakes: in memory in quality-inspection, crm-capture and asset-survey, and the loopback HTTP publisher of `samples/notes-system-of-record`. Asset-survey's fakes are the demo EAM and an extractor that reads text embedded in generated nameplate images.
+- Delivery, sync and [remote queries](primitives.md#remote-query) run only against fakes: in memory in quality-inspection, crm-capture and asset-survey, and the loopback HTTP LIMS of `samples/lab-requests-system-of-record`. Asset-survey's fakes are the demo EAM and an extractor that reads text embedded in generated nameplate images.
 - Remote queries and [data providers](primitives.md#data-provider) are used by crm-capture and asset-survey.
 - There is no real system of record, CRM or EAM.
 - No extraction has run against a model provider. Asset-survey's model extractor has run only against a mock model and a fake network port.
@@ -207,7 +207,7 @@ Qwen2.5-1.5B-Instruct Q4_K_M failed the note scenario in every run before these 
 - Two dispatcher processes cannot share a local workspace, because the OS lock refuses the second (`packages/adapters/src/ownership.test.ts`). Dispatchers race only within one process, which the reliability tests cover, or across hosted instances under the fenced lease.
 - Capture timings come from synthetic runs.
 
-**By hand, browser.** On 22 October 2026, `samples/notes-system-of-record` ran with `bun run dev:web`, with its fake publisher on 127.0.0.1:4361 and the destination bound by `site-policy.dev.json`. The note added through the CLI was published and accepted as `pub-1`, and a note posted at the publisher arrived through the feed. In Chrome, a publication sent while the publisher moderated stayed pending with **Publish again** disabled. After the publisher forgot it, the dispatcher held the effect, and the note screen showed it live. Resolving it as applied with a reference accepted the publication with that reference.
+**By hand, browser.** On 22 October 2026, `samples/notes-system-of-record`, which `samples/lab-requests-system-of-record` replaced, ran with `bun run dev:web`, with its fake publisher on 127.0.0.1:4361 and the destination bound by `site-policy.dev.json`. The note added through the CLI was published and accepted as `pub-1`, and a note posted at the publisher arrived through the feed. In Chrome, a publication sent while the publisher moderated stayed pending with **Publish again** disabled. After the publisher forgot it, the dispatcher held the effect, and the note screen showed it live. Resolving it as applied with a reference accepted the publication with that reference.
 
 ### Peer applications
 

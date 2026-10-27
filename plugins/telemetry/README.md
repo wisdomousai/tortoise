@@ -22,6 +22,7 @@ Plugins (`plugins/*`). Server only. The plugin trusts the audit plugin's log as 
 | `@agent-native/telemetry/plugin` | server | `createTelemetryPlugin`, `telemetryPlugin`, the service and status types |
 | `@agent-native/telemetry/recorder` | server | `createRecorder`: audit events to cumulative metrics and finished spans |
 | `@agent-native/telemetry/otlp` | server | `metricsRequest` and `tracesRequest`, the OTLP/HTTP JSON bodies |
+| `@agent-native/telemetry/testing` | server (tests and development) | `startCollector`, an OTLP/HTTP collector stand-in on loopback that keeps the newest 1,000 requests and can answer 503 |
 
 ### Composition
 
@@ -89,11 +90,11 @@ The tests also use `@agent-native/runtime`, `@agent-native/site`, `@agent-native
 bun test plugins/telemetry
 ```
 
-`test/telemetry.test.ts` starts an instance with the site, network, audit and telemetry plugins and a loopback collector bound in its deployment policy. It checks:
+`test/telemetry.test.ts` starts an instance with the site, network, audit and telemetry plugins and the `startCollector` stand-in bound in its deployment policy. It checks:
 
 - the command, delivery, attempt, backlog and run metrics;
 - the parent links between command, delivery and run spans;
-- that no note text, resource, principal, run, effect or correlation ID reaches the collector;
+- that no record text, resource, principal, run, effect or correlation ID reaches the collector;
 - that each export is a guarded connection in the audit log;
 - a collector that is down, with counts kept and spans dropped past the buffer;
 - an instance with no collector bound.
